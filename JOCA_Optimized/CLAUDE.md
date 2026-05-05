@@ -52,8 +52,8 @@ Actualizar raiz: `graphify . --update` · Actualizar skills/agentes: `/graphify 
 | `/debug` | triage de erros + skill do stack detectado |
 | `/create-skill [desc]` | nova skill: research → draft → improve → evaluate |
 | `/create-skill --upgrade [nome]` | melhorar skill existente |
-| `/install` | setup JOCA numa máquina nova |
-| `/init-project` | inicializar projecto real |
+| `/init-joca` | setup JOCA numa máquina nova (identidade, skills, MCPs, API keys) |
+| `/init-project` | ligar um projecto ao JOCA (detecção automática de stack) |
 | `/resume` | carregar contexto + knowledge graph |
 | `/save` | guardar estado + actualizar knowledge graph |
 | `/wp-perf-review [path]` | code review WP completo (Critical/Warning/Info) |

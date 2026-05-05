@@ -32,6 +32,11 @@
 
 ## Skills (JOCA_Optimized — compactadas e consolidadas)
 
+### Commands
+- `/init-joca` — setup global JOCA: identidade, skills, MCPs, API keys, deps
+- `/init-project` — ligar projecto ao JOCA: detecção automática de stack, MCPs projecto, memória
+- `/install` — alias deprecated → aponta para `/init-joca`
+
 ### Base
 - `create-skill` — pipeline self-improving para criar/melhorar skills (caveman · karpathy · agent-context → absorvidos no CLAUDE.md)
 
