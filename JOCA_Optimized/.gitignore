@@ -1,0 +1,20 @@
+# Session state (personal, not for distribution)
+estado.md
+
+# Graphify generated output
+graphify-out/
+
+# Personal project memory
+memory/projects/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

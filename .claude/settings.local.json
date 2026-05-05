@@ -13,7 +13,12 @@
       "WebFetch(domain:mermaid.ai)",
       "WebFetch(domain:mcpmarket.com)",
       "WebSearch",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "Bash(cp -r /home/user/JOCA /home/user/JOCA_Optimized)",
+      "Bash(rm -rf /home/user/JOCA_Optimized/.git)",
+      "Bash(rm -rf /home/user/JOCA/JOCA_Optimized/.git)",
+      "Bash(git -C /home/user/JOCA add JOCA_Optimized/)",
+      "Bash(git -C /home/user/JOCA status --short)"
     ]
   }
 }

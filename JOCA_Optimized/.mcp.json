@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@executeautomation/playwright-mcp-server"]
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "self-hosted",
+        "FIRECRAWL_API_URL": "http://localhost:3002"
+      }
+    },
+    "lunar-docs": {
+      "type": "http",
+      "url": "https://docs.lunarphp.com/mcp"
+    }
+  }
+}
