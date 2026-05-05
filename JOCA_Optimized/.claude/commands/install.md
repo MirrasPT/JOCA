@@ -234,29 +234,29 @@ Pré-selecciona com base no projecto (se existir contexto):
 
 | Área               | Skills                                                                          |
 |--------------------|---------------------------------------------------------------------------------|
-| UI/UX              | frontend-design, huashu-design                                                  |
-| Ilustração         | canvas-design, brand-guidelines                                                 |
-| Animação           | lottie-animator                                                                 |
-| Vídeo              | video, hyperframes/core, hyperframes/gsap, watch                                |
-| 3D                 | blender skill + blender MCP (.mcp.json)                                         |
-| Marketing/SEO      | ads-creation, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
-| Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                        |
-| WordPress          | wordpress/wordpress-router, wordpress/wp-project-triage, wordpress/wp-plugin-development, wordpress/wp-block-development, wordpress/wp-block-themes, wordpress/wp-rest-api, wordpress/wp-wpcli-and-ops, wordpress/wp-performance, wordpress/wp-phpstan, wordpress/wp-playground, wordpress/wp-interactivity-api, wordpress/wp-abilities-api, wordpress/wpds, wordpress/wp-plugin-directory-guidelines, wordpress/blueprint |
-| Shopify            | shopify/shopify-router, shopify/shopify-app, shopify/shopify-theme, shopify/shopify-store-audit, shopify/shopify-store-fixer |
-| DevOps             | devops-engineer                                                                 |
-| Analytics          | google-analytics, microsoft-clarity                                             |
-| Research           | deep-research                                                                   |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill                       |
+| UI/UX              | `ui`                                                                            |
+| Ilustração         | `visual`                                                                        |
+| Animação           | `motion`                                                                        |
+| Vídeo              | `video`, `hyperframes/core`, `hyperframes/gsap`                                 |
+| 3D                 | `blender` + blender MCP (.mcp.json)                                             |
+| Marketing/SEO      | `seo`, `content`, `performance`                                                 |
+| Dev web            | `web-tester`, `quality` + por stack (tabela abaixo)                             |
+| WordPress          | `wordpress/wordpress-router`, `wp-project-triage`, `wp-plugin-development`, `wp-block-development`, `wp-block-themes`, `wp-rest-api`, `wp-wpcli-and-ops`, `wp-performance`, `wp-phpstan`, `wp-playground`, `wp-interactivity-api`, `wp-abilities-api`, `wpds`, `wp-plugin-directory-guidelines`, `blueprint` |
+| Shopify            | `shopify/shopify-router`, `shopify-app`, `shopify-theme`, `shopify-store-audit`, `shopify-store-fixer` |
+| DevOps             | `platform`                                                                      |
+| Analytics          | `analytics`                                                                     |
+| Research           | agente `deep-research`                                                          |
+| Base (sempre)      | `create-skill`                                                                  |
 
 Skills adicionais por stack:
 
 | Stack           | Skills                                                              |
 |-----------------|---------------------------------------------------------------------|
-| Laravel         | laravel-specialist, php-pro, postgres-pro, test-master              |
-| PHP puro        | php-pro                                                             |
-| PostgreSQL      | postgres-pro                                                        |
-| WP + WooCommerce | wordpress/* + php-pro                                              |
-| WP + WP-CLI     | wordpress/wp-wpcli-and-ops (já incluído no pacote WordPress)       |
+| Laravel         | `php-stack`, `quality`                                              |
+| PHP puro        | `php-stack`                                                         |
+| PostgreSQL      | `php-stack` (inclui postgres)                                       |
+| WP + WooCommerce | `wordpress/*` + `php-stack`                                        |
+| WP + WP-CLI     | `wordpress/wp-wpcli-and-ops` (já incluído no pacote WordPress)     |
 
 ### Detecção de gaps
 
@@ -348,7 +348,7 @@ IDENTIDADE
   [Nome] — [papel][, localização]
 
 SKILLS ([n])
-  Base:  caveman, karpathy-guidelines, agent-context, create-skill
+  Base:  create-skill (caveman · karpathy · agent-context embutidos no CLAUDE.md)
   [categoria]: [lista]
 
 MCPs GLOBAIS:   [lista]

@@ -8,12 +8,12 @@ Recolher contexto:
 Formular hipóteses ordenadas por probabilidade (máx 3).
 
 Activar skill relevante ao stack:
-- Laravel → `laravel-specialist`
-- PHP → `php-pro`
+- Laravel / PHP / PostgreSQL → `php-stack`
 - WordPress → skill WP relevante
-- Frontend/JS → `webapp-testing` ou `frontend-design`
-- PostgreSQL → `postgres-pro`
-- DevOps/infra → `devops-engineer`
-- Flutter → `flutter-expert`
+- Frontend/UI/JS → `ui`
+- Web app / Playwright → `web-tester`
+- DevOps/infra/CI → `platform`
+- API / testes → `quality`
+- Flutter → agente `flutter-expert`
 
 Propor passos de diagnóstico concretos e verificáveis antes de qualquer fix.
