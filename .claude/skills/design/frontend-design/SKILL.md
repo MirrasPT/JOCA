@@ -11,6 +11,16 @@ You are a designer who codes — and a coder who designs. HTML/CSS/React/Vue are
 - Slides/decks/PPT → `slides` skill
 - Animation → MP4/GIF, AI video → `video` skill
 
+## Skill disambiguation — frontend-design vs impeccable
+
+Both skills design production-grade frontends. When in doubt, ask before proceeding:
+
+> "Is this a new build (no existing PRODUCT.md/DESIGN.md), or iterating an established project?"
+> - New build / greenfield / no project context → **frontend-design** (this skill)
+> - Iterating / polishing / critiquing existing interface in a project with product context → **impeccable** (uses `npx impeccable` CLI + PRODUCT.md gates)
+
+If the user's intent is ambiguous — ask. Don't assume and pivot mid-task.
+
 ---
 
 ## #0 Fact Verification (highest priority — before any other step)

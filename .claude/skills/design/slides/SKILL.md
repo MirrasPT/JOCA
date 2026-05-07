@@ -91,6 +91,19 @@ Per user request: PDF, PPTX. HTML version always included.
 
 ## Design Rules
 
+### Per-slide positioning (answer before writing each slide)
+
+Four questions that define every slide's design system before writing a single line:
+
+| Question | Options |
+|---|---|
+| **Narrative role** | Hero / Transition / Data / Quote / Closing |
+| **Viewer distance** | 10cm phone / 1m laptop / 10m projection |
+| **Visual temperature** | Quiet / Exciting / Calm / Authoritative / Warm / Tense |
+| **Content estimate** | Sketch 3 × 5-second thumbnails — does it fit? |
+
+Answer these four, then vocalize the design system (color, type, layout, component pattern). The system serves the answers — not the other way around. Wrong direction at sketch stage = 5 min fix; wrong direction at full implementation = start over.
+
 ### Fixed-size rendering (mandatory)
 
 Slides are fixed 1920×1080. Must implement JS auto-scale + letterboxing. Never rely on browser zoom or CSS `vw/vh` units for content size.

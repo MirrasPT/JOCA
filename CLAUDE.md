@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # JOCA
 
 ## Comunicação
@@ -9,6 +13,45 @@ Desactivar: "stop caveman" / "normal mode". Auto-clarify em: avisos de seguranç
 2. **Simplicidade** — mínimo código; sem features não pedidas; sem abstrações para uso único
 3. **Cirúrgico** — toca só o necessário; não "melhora" código adjacente; mantém estilo existente
 4. **Verificável** — define critérios de sucesso antes de começar; multi-step: plano com check por step
+
+## Estrutura do repositório
+
+```
+JOCA/
+├── CLAUDE.md                   ← comportamento base (este ficheiro)
+├── install.md                  ← script interactivo de instalação
+├── README.md                   ← documentação pública
+├── CREDITOS.md                 ← créditos e origens das skills
+├── memory/
+│   ├── INDEX.md                ← índice de skills, agentes e ferramentas
+│   ├── projects/               ← entrada por projecto (criado por /save)
+│   ├── feedback/               ← sessões /feedback-joca
+│   └── tools/                  ← graphify, mcp-routing, laravel-stack, motion
+└── .claude/
+    ├── commands/               ← /install /init-project /resume /save /plan /debug /review-* /wp-perf*
+    ├── agents/                 ← tester-*, img-gen-*, watch, gemini-brain, codex-review, deep-research, ...
+    ├── skills/
+    │   ├── base/               ← caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
+    │   ├── design/             ← frontend-design, huashu-design, canvas-design, img-gen, lottie-animator, impeccable, comfyui/*, gsap/*, stitch/*
+    │   ├── dev/
+    │   │   ├── *.md            ← laravel-specialist, php-pro, postgres-pro, api-designer, devops-engineer, ...
+    │   │   ├── browser-use/    ← automação browser: CLI, remote, Python lib, Cloud API
+    │   │   ├── wordpress/      ← activar só em projectos WP
+    │   │   └── shopify/        ← activar só em projectos Shopify
+    │   ├── marketing/          ← ads-creation, seo, seo-local, email-sequence, content-strategy, ...
+    │   └── video/              ← video, hyperframes/*
+    ├── scripts/
+    │   └── gemini-generate.py  ← geração de imagens via Gemini
+    └── settings.json
+```
+
+## Adicionar skill / agente / comando
+
+**Skill:** criar `.claude/skills/<categoria>/<nome>.md` com frontmatter `name`, `description`, triggers. Adicionar entrada em `memory/INDEX.md`.
+
+**Agente:** criar `.claude/agents/<nome>.md`. Disponível via `Agent(subagent_type="<nome>")`. Adicionar entrada em `memory/INDEX.md`.
+
+**Comando:** criar `.claude/commands/<nome>.md`. Disponível como `/<nome>` no Claude Code.
 
 ## Contexto e Agentes
 Sub-agentes isolam contexto, não dividem papéis. Custo real ~15x tokens. Cap supervisor: 3-5 workers.
@@ -28,6 +71,19 @@ Agentes disponíveis:
 - **Especialistas** — Flutter, payments, deep research, skill pipeline (improver + evaluator)
 
 Para skill ou agente específico: ler `memory/INDEX.md`.
+
+### Regra: skill/agente primeiro
+
+**Antes de qualquer tarefa** — verificar se existe skill ou agente relevante em `memory/INDEX.md`.
+
+| Situação | Acção |
+|---|---|
+| Skill/agente claramente relevante | Activar directamente, informar qual foi usado |
+| Tarefa parece ter cobertura mas não é óbvio | Perguntar: "Existe uma skill para X — quer que a use?" |
+| Nenhuma skill relevante | Responder directamente, sem forçar |
+
+**Hierarquia de preferência:** skill especializada > agente > resposta genérica.
+Nunca responder genericamente quando existe uma skill para o mesmo domínio.
 
 ## Knowledge Graph
 Se `graphify-out/GRAPH_REPORT.md` existir: consultar antes de arquitectura/catálogo. Detalhes: `graphify-out/graph.json`.

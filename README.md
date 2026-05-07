@@ -1,5 +1,7 @@
 # JOCA — Joint Orchestrator of Cognitive Agents
 
+[![GitHub](https://img.shields.io/badge/GitHub-MirrasPT%2FJOCA-blue?logo=github)](https://github.com/MirrasPT/JOCA)
+
 Toolkit centralizado de skills, agentes, memória e MCPs para Claude Code. Instala uma vez, usa em qualquer projecto.
 
 **Problema que resolve:** cada projecto novo recomeça do zero — sem contexto, sem ferramentas, sem comportamento consistente. O JOCA é a camada persistente que vive acima dos projectos.
@@ -14,13 +16,22 @@ Abre qualquer projecto no Claude Code com `d:\Mega\Claude\JOCA` como working dir
 JOCA/
 ├── CLAUDE.md          ← comportamento base (comunicação, código, agentes)
 ├── install.md         ← assistente interactivo de instalação
+├── CREDITOS.md        ← créditos e origens das skills
 ├── memory/
 │   ├── INDEX.md       ← catálogo de skills, agentes e ferramentas
+│   ├── projects/      ← entrada por projecto (criado por /save)
+│   ├── feedback/      ← sessões /feedback-joca
 │   └── tools/         ← graphify, MCP routing, motion, laravel-stack
 └── .claude/
-    ├── commands/      ← /install, /init-project, /resume, /save, ...
+    ├── commands/      ← /install, /init-project, /resume, /save, /feedback-joca, ...
     ├── agents/        ← tester-code, flutter-expert, deep-research, ...
-    └── skills/        ← design/, dev/, marketing/, video/, base/
+    ├── scripts/       ← graphify-global.py, graphify-patch.sh
+    └── skills/
+        ├── base/      ← caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
+        ├── design/    ← frontend-design, impeccable, slides, huashu-design, gsap/*, stitch/*, ...
+        ├── dev/       ← laravel, php, postgres, browser-use/*, wordpress/*, shopify/*, ...
+        ├── marketing/ ← ads, seo, email, content, social, copywriting
+        └── video/     ← video, hyperframes/*
 ```
 
 ---
@@ -64,12 +75,19 @@ Skills são activadas on-demand — só carregam quando invocadas.
 | `karpathy-guidelines` | Pensar antes de codar, simplicidade, mudanças cirúrgicas |
 | `agent-context` | Orquestração multi-agente, compressão de contexto 70-80% |
 | `create-skill` | Pipeline self-improving para criar/melhorar skills |
+| `feedback-joca` | Captura problemas de workflow JOCA numa sessão |
 
 ### Design
-`frontend-design` · `slides` · `huashu-design` · `canvas-design` · `brand-guidelines` · `img-gen` · `lottie-animator` · `comfyui/core` · `comfyui/io` · `comfyui/deploy`
+`frontend-design` · `impeccable` · `slides` · `huashu-design` · `canvas-design` · `brand-guidelines` · `img-gen` · `lottie-animator` · `comfyui/core` · `comfyui/io` · `comfyui/deploy`
+
+**GSAP** (8 skills): `gsap/gsap-core` · `gsap/gsap-timeline` · `gsap/gsap-scrolltrigger` · `gsap/gsap-plugins` · `gsap/gsap-utils` · `gsap/gsap-react` · `gsap/gsap-frameworks` · `gsap/gsap-performance`
+
+**Stitch** (8 skills): `stitch/stitch-design` · `stitch/stitch-loop` · `stitch/design-md` · `stitch/enhance-prompt` · `stitch/react-components` · `stitch/remotion` · `stitch/shadcn-ui` · `stitch/taste-design`
 
 ### Dev
 `laravel-specialist` · `php-pro` · `postgres-pro` · `api-designer` · `devops-engineer` · `test-master` · `webapp-testing` · `flutter` · `blender` · `google-analytics` · `microsoft-clarity`
+
+**Browser Use** (4 skills): `browser-use/browser-use` · `browser-use/remote-browser` · `browser-use/open-source` · `browser-use/cloud`
 
 ### Marketing
 `ads-creation` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `social-content` · `copywriting`
@@ -136,25 +154,36 @@ Guia de decisão completo: [`memory/tools/mcp-routing.md`](memory/tools/mcp-rout
 
 ## Knowledge Graph
 
-O JOCA integra com [graphify](https://github.com/safishamsi/graphify) para mapear a arquitectura do projecto em grafo semântico persistente — elimina releituras repetidas entre sessões.
+O JOCA integra com [graphify](https://github.com/safishamsi/graphify) para mapear código, documentação e designs em grafos semânticos persistentes — elimina releituras repetidas entre sessões.
 
 ```bash
 # Instalar
 pip install graphifyy && graphify install
 
-# Gerar grafo do projecto actual
-/graphify .
+# Gerar / actualizar grafo do projecto actual
+graphify update .
 
-# Gerar grafo das skills/agentes (requer merge manual)
-/graphify .claude/
+# Grafo global: JOCA + todos os projectos activos numa rede ligada
+python3 .claude/scripts/graphify-global.py
+
+# Re-gerar tudo do zero
+python3 .claude/scripts/graphify-global.py --refresh
+
+# Output: graphify-out/global/graph.json + GRAPH_REPORT.md + graph.html
 ```
+
+O grafo global liga automaticamente os nós JOCA (skills, agentes, commands) aos ficheiros de cada projecto activo via uma ponte filesystem — uma única rede navegável. Projectos descobertos via `memory/projects/*.md`.
+
+Após actualizar graphify: `bash .claude/scripts/graphify-patch.sh`
 
 ---
 
 ## Créditos
 
-Skills e agentes construídos sobre trabalho de: Anthropic, Corey Haines, Jeffallan, VoltAgent, WordPress Foundation, HeyGen, alchaincyf, e outros. Lista completa em [`READ.md`](READ.md).
+Skills e agentes construídos sobre trabalho de: Anthropic, Corey Haines, Jeffallan, VoltAgent, WordPress Foundation, HeyGen, alchaincyf, e outros. Lista completa em [`CREDITOS.md`](CREDITOS.md).
 
 ---
+
+**Repositório público:** [github.com/MirrasPT/JOCA](https://github.com/MirrasPT/JOCA)
 
 > Licença dos componentes individuais pertence aos autores originais. JOCA como sistema de integração: MIT.

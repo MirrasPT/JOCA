@@ -4,35 +4,66 @@ Transforma qualquer pasta de ficheiros num knowledge graph consultável e persis
 
 ---
 
-## ⚠️ Limitação: pastas dotfile (.claude/)
+## Ficheiros suportados (v0.7.0 patched)
 
-O `graphify detect()` exclui hardcoded qualquer directório que começa com `.` (incluindo `.claude/`). Não é configurável via `.graphifyignore`.
+### Código (extracção AST)
+`.py` · `.js` `.jsx` `.mjs` `.ts` `.tsx` · `.go` · `.rs` · `.java` · `.c` `.h` `.cpp` `.cc` `.cxx` `.hpp` · `.rb` · `.cs` · `.kt` `.kts` · `.scala` · `.php` · `.swift` · `.lua` `.toc` · `.zig` · `.ps1` · `.m` `.mm` · `.vue` · `.svelte` · `.ex` `.exs` · `.jl` · `.dart` · `.v` `.sv` · `.sql` · `.html` `.css`
 
-**Consequência:** skills e agentes em `.claude/` ficam fora do mapa semântico → nós órfãos no grafo.
+### Documentos (extracção semântica via LLM)
+`.md` `.mdx` · `.txt` · `.rst` · `.html` `.htm` `.xml` · `.yaml` `.yml` · `.toml` · `.json` `.jsonc` · `.css` `.scss` `.sass` `.less` · `.sh` `.bash` `.zsh` `.fish` · `.graphql` `.gql`
 
-**Workaround para incluir `.claude/`:**
+### Outros
+`.pdf` (texto extraído) · `.docx` `.xlsx` (convertidos para MD, requer `pip install graphifyy[office]`) · imagens · vídeo/áudio
 
+---
+
+## Correcções aplicadas ao package instalado
+
+Três patches no `graphifyy v0.7.0` aplicados a `/opt/homebrew/lib/python3.14/site-packages/graphify/detect.py`:
+
+| Patch | O quê | Porquê |
+|---|---|---|
+| **DOC_EXTENSIONS** | Adicionadas: `.json`, `.jsonc`, `.yaml`, `.yml`, `.toml`, `.css`, `.scss`, `.sass`, `.less`, `.sh`, `.bash`, `.zsh`, `.fish`, `.xml`, `.htm`, `.graphql`, `.gql` | Extensões comuns não reconhecidas → ficheiros ignorados |
+| **Dotdirs incluídos** | Removido `not d.startswith(".")` do filtro de pastas | `.claude/` (skills/agents/commands) era excluída hardcoded; `.git` continua excluído via `_SKIP_DIRS` |
+| **Dotfiles raiz incluídos** | Removido `if p.name.startswith("."): continue` | Ficheiros como `.graphifyignore` eram ignorados; `.env` e credenciais protegidos pelo `_SENSITIVE_PATTERNS` |
+
+**Re-aplicar após upgrade:**
+```bash
+bash JOCA/.claude/scripts/graphify-patch.sh
 ```
-# Passo 1 — extrair .claude/ separadamente (como root, não dotdir)
-/graphify .claude/
-# → gera graphify-out/.graphify_claude_graph.json (escolher output path diferente)
-
-# Passo 2 — merge com o grafo raiz existente
-graphify merge-graphs \
-  graphify-out/graph-root.json \
-  graphify-out/graph-claude.json \
-  --out graphify-out/graph.json
-
-# Passo 3 — regenerar report
-graphify cluster-only .
-```
-
-**Frequência:** correr após adicionar/modificar skills ou agentes. O grafo raiz raramente muda.
 
 **Redução de tokens documentada:**
 - 71.5x numa codebase mista (código + docs + imagens)
 - 49x em tarefas diárias em repos grandes
 - 6.8x em code review
+
+---
+
+## Grafo global JOCA
+
+Liga o JOCA (skills, agents, memory) com todos os projectos activos num único grafo consultável.
+
+```bash
+# Gerar / actualizar grafo global
+python3 JOCA/.claude/scripts/graphify-global.py
+
+# Re-gerar tudo do zero (ignora graphs existentes)
+python3 JOCA/.claude/scripts/graphify-global.py --refresh
+
+# Só JOCA, sem projectos
+python3 JOCA/.claude/scripts/graphify-global.py --joca-only
+```
+
+**Output:** `JOCA/graphify-out/global/graph.json` + `GRAPH_REPORT.md`
+
+**Como funciona:**
+1. Corre `graphify .` em `JOCA/` → inclui `.claude/` (skills, agents, commands, scripts)
+2. Lê `memory/projects/*.md` para descobrir caminhos de projectos activos
+3. Para cada projecto: usa graph existente ou corre `graphify .` no directório
+4. `graphify merge-graphs` combina todos → `graphify-out/global/`
+5. `graphify cluster-only` regenera o GRAPH_REPORT.md
+
+**Projectos descobertos automaticamente** via campo `directorio:` no frontmatter dos ficheiros `memory/projects/*.md`.
 
 ---
 
