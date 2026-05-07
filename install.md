@@ -8,15 +8,13 @@ Segue estas instruções exactamente. Faz as perguntas bloco a bloco, aguarda re
 ## Verificação inicial
 
 ```bash
-# Verifica paths comuns onde JOCA pode estar instalado
-ls ~/MEGA/Claude/JOCA/CLAUDE.md 2>/dev/null && echo "joca_found" \
-  || ls ~/Claude/JOCA/CLAUDE.md 2>/dev/null && echo "joca_found" \
-  || echo "joca_missing"
+# Procura pasta chamada JOCA em locais comuns (o caminho antes não importa)
+find ~ -maxdepth 5 -name "JOCA" -type d 2>/dev/null | head -5
 ```
 
-Se `joca_found`: informa que JOCA já existe e vai actualizar a configuração.
+Se encontrou: informa que JOCA já existe nesse caminho e vai actualizar a configuração.
 
-Se `joca_missing`: pergunta onde instalar JOCA (sugestão: `~/MEGA/Claude/JOCA`), depois:
+Se não encontrou: pergunta onde instalar — o utilizador escolhe a pasta pai (ex: `~/`, `~/Documents/`, `~/Dev/`); a pasta será criada como `<destino>/JOCA`. Depois:
 
 ```bash
 # Opção A — clonar repositório público (recomendado)
