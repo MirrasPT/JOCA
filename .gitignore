@@ -4,10 +4,6 @@ estado.md
 # Graphify generated output
 graphify-out/
 
-# Personal project memory and session data
-memory/projects/
-memory/feedback/
-
 # Python cache
 __pycache__/
 *.pyc

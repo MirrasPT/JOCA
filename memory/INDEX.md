@@ -7,12 +7,9 @@
 - [motion.md](tools/motion.md) — biblioteca de animação React/JS (Motion/Framer Motion)
 
 ## Feedback
-- [session-bodegas-2026-05-06.md](feedback/session-bodegas-2026-05-06.md) — scraping fallback chain, graphify para design/markup, discovery antes de prototipagem
 
 ## Projects
 <!-- Entradas adicionadas por /save -->
-- [bodegas_do_campo.md](projects/bodegas_do_campo.md) — WP+WooCommerce+Elementor; bodega boutique Ribeiro, Galicia; DESIGN.md criado; Docker pendente
-- [livro_de_elogios_2026.md](projects/livro_de_elogios_2026.md) — SaaS multi-tenant Laravel 11; plataforma elogios 27k empresas; Fase 0 Design HTML; Playwright instalado
 
 ## Commands
 - `/resume` — carrega contexto e knowledge graph do projecto
