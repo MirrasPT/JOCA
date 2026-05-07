@@ -29,7 +29,7 @@ Se graphify não disponível: avisar "Corre `/install` no JOCA primeiro." e para
 
 Corre scan:
 ```bash
-graphify . 2>/dev/null
+graphify update . 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
@@ -183,16 +183,21 @@ claude mcp add --transport stdio shopify-dev-mcp -- npx -y @shopify/dev-mcp@late
 
 Com base no tipo de projecto, pré-selecciona as áreas relevantes e verifica cobertura:
 
-| Tipo                 | Áreas sugeridas                                     |
-|----------------------|-----------------------------------------------------|
-| Website/App          | Desenvolvimento web, DevOps, Analytics              |
-| WordPress            | WordPress, DevOps, Analytics                        |
-| Shopify              | Shopify, Analytics                                  |
-| Design UI/UX         | UI/UX, Ilustração, Animação                         |
-| Design Print         | Ilustração                                          |
-| Vídeo                | Vídeo                                               |
-| Research             | Research, Analytics                                 |
-| Marketing            | Marketing/SEO, Analytics                            |
+| Tipo                   | Áreas sugeridas                                                  |
+|------------------------|------------------------------------------------------------------|
+| Website/App            | Desenvolvimento web, DevOps, Analytics                           |
+| WordPress              | WordPress, DevOps, Analytics                                     |
+| Shopify                | Shopify, Analytics                                               |
+| Design UI/UX greenfield | UI/UX (`frontend-design`), Ilustração, Animação                 |
+| Design UI/UX iteração  | UI/UX (`impeccable`), Animação, Stitch                           |
+| Design Motion/GSAP     | Animação (`gsap/*`), UI/UX, Stitch                               |
+| Design Print           | Ilustração                                                       |
+| Vídeo                  | Vídeo                                                            |
+| Research               | Research, Analytics                                              |
+| Marketing              | Marketing/SEO, Analytics                                         |
+| Automação / Scraping   | Automação de browser, Desenvolvimento web                        |
+
+**Nota disambiguation design:** se o projecto já tem `PRODUCT.md` ou `DESIGN.md` → sugerir `impeccable`. Se greenfield → `frontend-design`.
 
 Apresenta as sugestões e pergunta se há algo a acrescentar ou remover.
 
@@ -228,11 +233,20 @@ Pergunta se este projecto precisa de MCPs específicos:
 
 ```
 [ ] Blender (3D)
+[ ] Browser Use (automação browser AI-driven — browser-use/browser-use)
 [ ] WordPress MCP Adapter (só se projecto WP + WP 6.8+ — expõe Abilities como tools MCP)
 [ ] Shopify AI Toolkit MCP (docs + schema Shopify em contexto — só projectos Shopify)
 [ ] Analytics / GA4 (já coberto por skill — não precisa MCP)
 [ ] Outro: ___
 [ ] Nenhum
+```
+
+Se Browser Use seleccionado: verificar `pip install browser-use` e instalar skills `browser-use/browser-use` + `browser-use/open-source`. Adicionar ao `.mcp.json` se usar MCP server:
+```json
+"browser-use": {
+  "command": "uvx",
+  "args": ["browser-use-mcp"]
+}
 ```
 
 Se WordPress MCP Adapter seleccionado: instrui instalação no projecto:
@@ -277,7 +291,7 @@ Confirmas? [S/N]
 ### 1. Correr graphify (se não correu ainda)
 
 ```bash
-graphify .
+graphify update .
 ```
 
 Se Laravel + Filament:
@@ -302,15 +316,19 @@ Se não existir, criar com:
 ```markdown
 ## Navegação de Código
 
-1. Consultar `graphify-out/graph.json` para estrutura e dependências
-2. Ler ficheiros raw só quando necessário para editar
-3. Actualizar: `graphify . --update`
+1. Consultar `graphify-out/GRAPH_REPORT.md` — god nodes, comunidades, perguntas sugeridas
+2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
+3. Ler ficheiros raw só quando necessário para editar ou o graph não tiver a resposta
+4. Actualizar: `graphify update .`
 
 ## Projecto
 **Nome:** [nome]
 **Stack:** [stack]
 **Objectivo:** [descrição]
+**Directório:** [caminho absoluto]
 ```
+
+Adicionar `directorio: [caminho absoluto]` no frontmatter para que o grafo global o descubra automaticamente.
 
 Se já existir, adicionar secção de navegação sem apagar conteúdo existente.
 
@@ -338,10 +356,12 @@ Criar `[joca]/memory/projects/[nome-projecto].md`:
 name: [nome]
 description: [stack e objectivo]
 type: project
+directorio: [caminho absoluto da pasta do projecto]
 ---
 
 **Stack:** [stack]
 **Objectivo:** [descrição]
+**Directório:** `[caminho absoluto]`
 **Iniciado:** [data]
 **Why:** [razão de existir]
 **How to apply:** [como o JOCA deve ajudar neste projecto]
@@ -355,6 +375,8 @@ A iniciar.
 ## Pendente
 <!-- preenchido por /save -->
 ```
+
+O campo `directorio:` no frontmatter é obrigatório — é usado pelo script `graphify-global.py` para descobrir e incluir este projecto no grafo global.
 
 Actualizar `memory/INDEX.md`:
 ```markdown
@@ -372,11 +394,12 @@ Para cada skill nova confirmada.
 ### 7. Relatório final
 
 ```
-✓ graphify corrido
+✓ graphify update . corrido
 ✓ CLAUDE.md do projecto criado/actualizado
 ✓ .mcp.json configurado — se aplicável
-✓ Memória: [nome-projecto].md criado
+✓ Memória: [nome-projecto].md criado (com directorio: [caminho])
 ✓ ~/CLAUDE.md actualizado
 
 Pronto. Usa /resume no início de cada sessão neste projecto.
+Para incluir no grafo global: python3 [joca]/.claude/scripts/graphify-global.py
 ```

@@ -19,16 +19,15 @@ Se `joca_found`: informa que JOCA já existe e vai actualizar a configuração.
 Se `joca_missing`: pergunta onde instalar JOCA (sugestão: `~/MEGA/Claude/JOCA`), depois:
 
 ```bash
-# Opção A — copiar de instalação local existente (máquina com JOCA)
-# O utilizador indica o caminho fonte; o assistente copia estrutura .claude/ e memory/
+# Opção A — clonar repositório público (recomendado)
+git clone https://github.com/MirrasPT/JOCA.git <caminho_destino>
 
-# Opção B — clonar repositório Git (quando disponível)
-# git clone <JOCA_REPO_URL> <caminho_destino>
-# NOTA: repositório público ainda não criado. Usar Opção A até existir.
+# Opção B — copiar de instalação local existente (outra máquina com JOCA)
+# O utilizador indica o caminho fonte; o assistente copia estrutura .claude/ e memory/
 
 # Opção C — criar estrutura mínima manualmente
 mkdir -p <destino>/.claude/{skills,agents,commands}
-mkdir -p <destino>/memory/{tools,projects}
+mkdir -p <destino>/memory/{tools,projects,feedback}
 # Depois copiar manualmente os ficheiros do sistema de origem
 ```
 
@@ -100,7 +99,7 @@ Qual é o caminho da pasta do projecto? (ex: ~/Desktop/_Projetos/meu-site)
 Depois:
 ```bash
 cd <caminho_projeto>
-graphify . 2>/dev/null || echo "graphify_unavailable"
+graphify update . 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
@@ -272,15 +271,17 @@ Resposta livre
 
 Se vier de branch [2] ou [3], pré-selecciona com base no tipo de projecto:
 
-| Tipo de projecto       | Pré-seleccionado                                      |
-|------------------------|-------------------------------------------------------|
-| Website/App/Software   | Desenvolvimento web, DevOps, Analytics                |
-| Design — UI/UX         | UI/UX, Ilustração, Animação                           |
-| Design — Print/Large   | Ilustração, (sem Animação)                            |
-| Vídeo                  | Vídeo                                                 |
-| Research               | Research, Analytics                                   |
-| Marketing              | Marketing/SEO, Analytics                              |
-| Global only            | Nenhum pré-seleccionado                               |
+| Tipo de projecto       | Pré-seleccionado                                           |
+|------------------------|------------------------------------------------------------|
+| Website/App/Software   | Desenvolvimento web, DevOps, Analytics                     |
+| Design — UI/UX         | UI/UX, Ilustração, Animação                                |
+| Design — Motion/GSAP   | UI/UX, Animação, Stitch                                    |
+| Design — Print/Large   | Ilustração                                                 |
+| Vídeo                  | Vídeo                                                      |
+| Research               | Research, Analytics                                        |
+| Marketing              | Marketing/SEO, Analytics                                   |
+| Automação / Scraping   | Automação de browser, Desenvolvimento web                  |
+| Global only            | Nenhum pré-seleccionado                                    |
 
 Apresenta assim:
 ```
@@ -288,11 +289,12 @@ Com base no teu projecto, sugiro estas áreas:
 
 [x] Design de interfaces (UI/UX)        <- pré-seleccionado
 [x] Ilustração / arte visual            <- pré-seleccionado
-[ ] Animação (Lottie, motion)
+[ ] Animação (Lottie, GSAP, motion)
 [ ] Vídeo / conteúdo
 [ ] 3D (Blender)
 [ ] Marketing / SEO / Ads
 [ ] Desenvolvimento web
+[ ] Automação de browser
 [ ] DevOps / infra
 [ ] Analytics / dados
 [ ] Research
@@ -306,19 +308,21 @@ Confirmas, ajustas ou adicionas?
 
 Após confirmação das áreas, determina as skills a instalar:
 
-| Área                  | Skills                                                                 |
-|-----------------------|------------------------------------------------------------------------|
-| UI/UX                 | frontend-design, huashu-design                                         |
-| Ilustração            | canvas-design, brand-guidelines                                        |
-| Animação              | lottie-animator                                                        |
-| Vídeo                 | video, hyperframes/core, hyperframes/gsap, watch                       |
-| 3D                    | blender (skill) + blender (MCP em .mcp.json)                           |
-| Marketing/SEO         | ads-creation, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
-| Desenvolvimento web   | webapp-testing + skills por stack (ver tabela abaixo)                  |
-| DevOps                | devops-engineer                                                        |
-| Analytics             | google-analytics, microsoft-clarity                                    |
-| Research              | deep-research                                                          |
-| Sempre (base)         | caveman, karpathy-guidelines, agent-context, create-skill              |
+| Área                  | Skills                                                                                        |
+|-----------------------|-----------------------------------------------------------------------------------------------|
+| UI/UX                 | `frontend-design` (greenfield), `impeccable` (iteração/polish), `slides`, `huashu-design`    |
+| Ilustração            | `canvas-design`, `brand-guidelines`                                                           |
+| Animação              | `lottie-animator`, `gsap/gsap-core`, `gsap/gsap-timeline`, `gsap/gsap-scrolltrigger`, `gsap/gsap-plugins`, `gsap/gsap-performance` + React/Vue/Svelte se aplicável |
+| Stitch (design-to-code) | `stitch/stitch-design`, `stitch/stitch-loop`, `stitch/design-md`, `stitch/taste-design`, `stitch/react-components` |
+| Vídeo                 | `video`, `hyperframes/core`, `hyperframes/website-to-video`, `watch`                         |
+| 3D                    | `blender` (skill) + blender (MCP em .mcp.json)                                               |
+| Marketing/SEO         | `ads-creation`, `seo`, `seo-local`, `email-sequence`, `content-strategy`, `social-content`, `copywriting` |
+| Desenvolvimento web   | `webapp-testing` + skills por stack (ver tabela abaixo)                                      |
+| Automação de browser  | `browser-use/browser-use` (CLI) + opcionalmente `browser-use/remote-browser`, `browser-use/open-source`, `browser-use/cloud` |
+| DevOps                | `devops-engineer`                                                                             |
+| Analytics             | `google-analytics`, `microsoft-clarity`                                                      |
+| Research              | `deep-research`                                                                               |
+| Sempre (base)         | `caveman`, `karpathy-guidelines`, `agent-context`, `create-skill`, `feedback-joca`           |
 
 Skills por stack (desenvolvimento web):
 
@@ -327,7 +331,7 @@ Skills por stack (desenvolvimento web):
 | Laravel     | laravel-specialist, php-pro, postgres-pro, test-master |
 | PHP puro    | php-pro                                                |
 | PostgreSQL  | postgres-pro                                           |
-| React       | webapp-testing                                         |
+| React       | webapp-testing, gsap/gsap-react (se animações)        |
 | Qualquer    | api-designer                                           |
 
 ### Detecção de gaps
@@ -382,12 +386,19 @@ Procuro skill específica ou ignoro por agora?
 
 ### Ferramentas extra *(multi-select)*
 ```
-[ ] Browser automation (Playwright)
+[ ] Browser automation (Playwright — MCP)
+[ ] Browser Use (automação browser AI-driven — pip install browser-use)
 [ ] Web scraping (Firecrawl — requer Docker)
 [ ] Microsoft Clarity (requer Composio)
 [ ] HuggingFace
 [ ] Outro: ___
 ```
+
+Se Browser Use seleccionado — verificar dependência:
+```bash
+pip install browser-use 2>/dev/null || echo "pip_unavailable"
+```
+Instala skills `browser-use/browser-use` + `browser-use/open-source`. Para uso remoto/cloud adicionar `browser-use/remote-browser` e `browser-use/cloud`.
 
 ### Geração de imagens
 ```
@@ -410,7 +421,7 @@ IDENTIDADE
   Utilizador: [Nome] ([papel][, localização])
 
 SKILLS ([n] total)
-  Base:    caveman, karpathy-guidelines, agent-context, create-skill
+  Base:    caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
   Design:  [lista]
   Dev:     [lista]
   ...
@@ -473,7 +484,7 @@ Lê o ficheiro actual. Actualiza ou cria a secção JOCA:
 Toolkit instalado em: [caminho_joca]
 Skills activas: [lista por categoria]
 MCPs globais: [lista]
-Comandos: /install, /init-project, /resume, /save, /create-skill
+Comandos: /install, /init-project, /resume, /save, /create-skill, /feedback-joca, /help-joca
 ```
 
 Não apagar conteúdo existente não relacionado com JOCA.
@@ -483,9 +494,9 @@ Não apagar conteúdo existente não relacionado com JOCA.
 ```
 [joca]/memory/
   INDEX.md
-  projects/
-  tools/
-  feedback/
+  projects/      ← entradas por projecto (/save cria automaticamente)
+  tools/         ← graphify, mcp-routing, laravel-stack, motion
+  feedback/      ← sessões /feedback-joca
 ```
 
 ### 3. Configurar MCPs globais
@@ -528,4 +539,6 @@ Para cada skill nova confirmada, executar o pipeline create-skill.
 JOCA pronto.
 → Navega para um projecto e corre /init-project para o ligar ao JOCA.
 → No início de cada sessão, corre /resume para carregar contexto.
+→ Para gerar o grafo global (JOCA + todos os projectos): python3 .claude/scripts/graphify-global.py
+→ Referência completa de comandos: /help-joca
 ```
