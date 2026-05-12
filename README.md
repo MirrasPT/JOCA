@@ -50,6 +50,22 @@ Lê o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/mas
 
 O assistente faz o questionário, detecta o teu stack, selecciona as skills relevantes e configura MCPs.
 
+### Actualizar o JOCA
+
+Se já tens o JOCA instalado, usa o comando:
+
+```
+/update-joca
+```
+
+Se o comando não for detectado (versão anterior, sessão sem contexto JOCA), cola isto directamente no Claude Code:
+
+```
+Lê o ficheiro https://raw.githubusercontent.com/MirrasPT/JOCA/master/.claude/commands/update-joca.md e segue as instruções para verificar e actualizar o JOCA instalado nesta máquina.
+```
+
+Ambas as variantes fazem o mesmo: comparam a instalação local com este repositório, mostram o que é novo e aplicam as actualizações após confirmação. Nunca sobrescrevem a tua memória de projectos ou ficheiros de feedback pessoais.
+
 ### Já tens o JOCA instalado
 
 No início de cada sessão:
