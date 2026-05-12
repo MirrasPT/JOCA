@@ -1,12 +1,9 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file exists only as compatibility bridge for tools that read `AGENTS.md`.
+Canonical guidance for JOCA lives in `CLAUDE.md`. Keep JOCA Claude-first.
 
 # JOCA
-
-## Fonte de verdade
-JOCA é Claude-first. `CLAUDE.md`, `.claude/`, `memory/INDEX.md` e `memory/tools/` são canónicos.
-`AGENTS.md` existe só como ponte para ferramentas externas que procuram esse nome. Não criar lógica principal fora de `.claude/`.
 
 ## Comunicação
 Terse. Sem artigos, filler, hedging. Fragmentos OK. Termos técnicos exactos. Código intacto.
@@ -22,7 +19,8 @@ Desactivar: "stop caveman" / "normal mode". Auto-clarify em: avisos de seguranç
 
 ```
 JOCA/
-├── CLAUDE.md                   ← comportamento base (este ficheiro)
+├── CLAUDE.md                   ← comportamento base canónico
+├── AGENTS.md                   ← ponte de compatibilidade; não é fonte de verdade
 ├── install.md                  ← script interactivo de instalação
 ├── README.md                   ← documentação pública
 ├── CREDITOS.md                 ← créditos e origens das skills
@@ -111,5 +109,3 @@ Actualizar raiz: `graphify . --update` · Actualizar skills/agentes: `/graphify 
 | `/save` | guardar estado + actualizar knowledge graph |
 | `/wp-perf-review [path]` | code review WP completo (Critical/Warning/Info) |
 | `/wp-perf [path]` | quick triage WP — issues críticos |
-| `/upgrade-joca` | lê feedback acumulado → lista upgrades → implementa após confirmação |
-| `/update-joca` | compara local com repositório oficial GitHub → aplica updates após confirmação |

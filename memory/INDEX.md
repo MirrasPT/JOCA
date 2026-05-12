@@ -1,15 +1,10 @@
 # JOCA Memory Index
 
-## Tools
-- [graphify.md](tools/graphify.md) — como instalar e usar Graphify em projectos
-- [mcp-routing.md](tools/mcp-routing.md) — quando usar cada MCP: GitHub, Mermaid, Blender, HuggingFace, Playwright, Firecrawl, Google, Lunar, WordPress
-- [laravel-stack.md](tools/laravel-stack.md) — Filament + Lunar PHP: AI integration, Boost install, workflow
-- [motion.md](tools/motion.md) — biblioteca de animação React/JS (Motion/Framer Motion)
+## Projectos
+<!-- Entradas adicionadas por /save -->
 
 ## Feedback
-
-## Projects
-<!-- Entradas adicionadas por /save -->
+<!-- Entradas adicionadas por /feedback-joca -->
 
 ## Commands
 - `/resume` — carrega contexto e knowledge graph do projecto
@@ -19,11 +14,14 @@
 - `/review-code` — code review via tester-code + Codex adversarial opcional
 - `/review-design` — review UI/UX e acessibilidade em paralelo
 - `/feedback-joca` — captura o que falhou no workflow JOCA nesta sessão
+- `/feedback-projeto` — melhora ficheiros do projecto (Branding.md, CLAUDE.md, etc.) com base na sessão
 - `/init-project` — inicializa entrada de projecto novo em JOCA/memory
 - `/install` — setup do JOCA numa máquina nova
 - `/wp-perf` — quick triage WordPress, issues críticos (rápido)
 - `/wp-perf-review` — code review WP completo: Critical / Warning / Info
 - `/help-joca` — referência rápida de todos os comandos, agentes e skills
+- `/upgrade-joca` — lê todo o feedback acumulado, detecta gaps pendentes e implementa upgrades ao JOCA após confirmação
+- `/update-joca` — compara instalação local com o repositório oficial (GitHub) e aplica updates após confirmação
 
 ## Agents
 

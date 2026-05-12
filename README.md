@@ -6,11 +6,13 @@ Toolkit centralizado de skills, agentes, memória e MCPs para Claude Code. Insta
 
 **Problema que resolve:** cada projecto novo recomeça do zero — sem contexto, sem ferramentas, sem comportamento consistente. O JOCA é a camada persistente que vive acima dos projectos.
 
+**Fonte de verdade:** JOCA é Claude-first. `CLAUDE.md`, `.claude/`, `memory/INDEX.md` e `memory/tools/` são canónicos. Outros ficheiros de agente, quando existirem, são pontes de compatibilidade.
+
 ---
 
 ## Como funciona
 
-Abre qualquer projecto no Claude Code com `d:\Mega\Claude\JOCA` como working directory adicional (ou define como path global). O `CLAUDE.md` do JOCA é lido automaticamente — comportamento, skills e agentes ficam disponíveis imediatamente.
+Abre qualquer projecto no Claude Code com a pasta do JOCA como working directory adicional (ou define como path global nas definições do Claude Code). O `CLAUDE.md` do JOCA é lido automaticamente — comportamento, skills e agentes ficam disponíveis imediatamente.
 
 ```
 JOCA/
@@ -123,6 +125,10 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/init-project` | Liga um projecto ao JOCA |
 | `/resume` | Carrega contexto no início da sessão |
 | `/save` | Guarda estado no fim da sessão |
+| `/feedback-joca` | Captura gaps no workflow JOCA desta sessão |
+| `/feedback-projeto` | Actualiza docs do projecto com aprendizagens da sessão |
+| `/upgrade-joca` | Lê feedback acumulado e implementa melhorias ao JOCA |
+| `/update-joca` | Verifica e aplica updates do repositório oficial GitHub |
 | `/review-code` | Code review + adversarial via Codex |
 | `/review-design` | UI/UX + acessibilidade em paralelo |
 | `/plan` | Plan Mode — arquitectura |
@@ -131,6 +137,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/create-skill --upgrade [nome]` | Melhora skill existente |
 | `/wp-perf-review [path]` | Code review WP completo |
 | `/wp-perf [path]` | Quick triage WP |
+| `/help-joca` | Referência rápida de todos os comandos, agentes e skills |
 
 ---
 

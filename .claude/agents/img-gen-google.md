@@ -102,6 +102,24 @@ Watercolour illustration of a cosy Lisbon street, terracotta rooftops, warm afte
 - Extremely precise spatial layouts
 - Exact brand reproduction
 
+## Prompts de produto (garrafa / embalagem)
+
+Quando o contexto for um produto físico (garrafa de vinho, embalagem, frasco), estruturar o prompt como JSON antes de enviar ao script:
+
+```json
+{
+  "scene": "lifestyle setting — e.g. marble table, cellar, yacht deck, penthouse lounge",
+  "subject": "bottle description — brand, varietal, label colour, capsule present/absent",
+  "bottle": "position and framing — e.g. centred upright, slight angle, neck partially out of frame",
+  "props": "secondary elements — e.g. wine glass half-full, oak barrel, luxury watch, linen cloth",
+  "lighting": "light quality and direction — e.g. soft diffused side light, golden hour, dramatic rim light",
+  "style": "visual style — e.g. photorealistic editorial, dark moody luxury, light airy minimal",
+  "restrictions": "explicit negatives — e.g. no text overlay, no hands, no label distortion"
+}
+```
+
+Converter o JSON para prompt de texto corrido antes de passar ao `--prompt`. O JSON serve de brief estruturado; o script recebe string.
+
 ## Parameters for common use cases
 
 | Use case | `--model` | `--size` | `--aspect` |

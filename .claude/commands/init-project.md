@@ -1,7 +1,11 @@
 # /init-project — Inicializar Projecto
 
-Liga um projecto ao JOCA. Corre este comando a partir da pasta do projecto.  
-Segue as fases abaixo. Faz as perguntas bloco a bloco, aguarda resposta antes de avançar.
+Liga um projecto ao JOCA. Corre este comando a partir da pasta do projecto.
+Segue as fases abaixo uma de cada vez — aguarda resposta antes de avançar.
+
+**Modo de apresentação:**
+- Perguntas com ≤4 opções exclusivas → usar a ferramenta `AskUserQuestion` (selector visual com setas)
+- Perguntas com mais de 4 opções ou multi-select → apresentar lista e aguardar input de texto
 
 ---
 
@@ -11,52 +15,65 @@ Segue as fases abaixo. Faz as perguntas bloco a bloco, aguarda resposta antes de
 graphify --version 2>/dev/null || echo "graphify_unavailable"
 ```
 
-Se graphify não disponível: avisar "Corre `/install` no JOCA primeiro." e parar.
+Se graphify não disponível: avisar "Corre `/install` primeiro para configurar as dependências." e parar.
 
 ---
 
 ## FASE 1 — Contexto do projecto
 
-**Q1 — Este projecto é novo ou já tem código?**
+**Q1 — Estado do projecto**
+`AskUserQuestion`:
 ```
-[1] Já tem código / estrutura
-[2] Projecto novo (a começar do zero)
+question: "Este projecto já tem código ou estrutura?"
+header: "Estado"
+options:
+  - "Já tem código / estrutura existente"
+  - "Projecto novo (a começar do zero)"
 ```
 
 ---
 
-### Branch [1] — Projecto Existente
+### Branch [A] — Projecto Existente
 
-Corre scan:
+Correr scan:
 ```bash
 graphify update . 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
-Apresenta resumo do que detectaste:
+Apresentar resumo do detectado:
 ```
 Detectei:
-- Stack: [detectado]
-- Descrição: [detectada]
-- Fase: [detectada]
-- Estrutura: [resumo graphify]
+  Stack:     [detectado]
+  Descrição: [detectada]
+  Fase:      [detectada]
+  Estrutura: [resumo graphify — god nodes, comunidades]
 
 Está correcto? Corrige o que estiver errado.
+```
+
+Confirmar com `AskUserQuestion`:
+```
+question: "O resumo detectado está correcto?"
+header: "Confirmar"
+options:
+  - "Sim, avançar"
+  - "Não, deixa-me corrigir"
 ```
 
 Continua para **FASE 2**.
 
 ---
 
-### Branch [2] — Projecto Novo
+### Branch [B] — Projecto Novo
 
 **Q2 — Nome do projecto**
-```
-Resposta livre
-```
+Texto livre: "Nome do projecto?"
 
 **Q3 — Tipo de projecto**
+Lista numerada (>4 opções):
 ```
+Que tipo de projecto é?
 [1] Website / App / Software
 [2] WordPress
 [3] Shopify
@@ -67,12 +84,18 @@ Resposta livre
 [8] Outro: ___
 ```
 
-#### Sub-branch: Website / App / Software
+### Sub-branch: Website / App / Software
 
 **Q4 — Frontend** *(multi-select)*
 ```
-[ ] Vanilla HTML/CSS/JS   [ ] React   [ ] Vue
-[ ] Next.js / Nuxt        [ ] Flutter [ ] Nenhum   [ ] Outro: ___
+Que tecnologias de frontend usas? (selecciona todas as que se aplicam)
+[ ] Vanilla HTML/CSS/JS
+[ ] React
+[ ] Vue
+[ ] Next.js / Nuxt
+[ ] Flutter
+[ ] Nenhum
+[ ] Outro: ___
 ```
 
 **Q5 — Backend** *(multi-select)*
@@ -88,16 +111,26 @@ Resposta livre
 ```
 
 **Q7 — Deploy**
+Lista numerada:
 ```
-[1] Vercel / Netlify   [2] cPanel   [3] VPS   [4] AWS/GCP/Azure   [5] Ainda não sei   [6] Outro: ___
+[1] Vercel / Netlify
+[2] cPanel
+[3] VPS
+[4] AWS / GCP / Azure
+[5] Ainda não sei
+[6] Outro: ___
 ```
 
-#### Sub-branch: WordPress
+### Sub-branch: WordPress
 
 **Q4 — Tipo de trabalho WP** *(multi-select)*
 ```
-[ ] Plugin          [ ] Tema (block theme)    [ ] Tema (clássico)
-[ ] Bloco Gutenberg [ ] Site completo (FSE)   [ ] Headless (REST/GraphQL)
+[ ] Plugin
+[ ] Tema (block theme)
+[ ] Tema (clássico)
+[ ] Bloco Gutenberg
+[ ] Site completo (FSE)
+[ ] Headless (REST/GraphQL)
 [ ] Outro: ___
 ```
 
@@ -107,23 +140,33 @@ Resposta livre
 ```
 
 **Q6 — Ambiente local**
+Lista numerada:
 ```
-[1] WP Playground   [2] Local by Flywheel   [3] MAMP/WAMP
-[4] Docker          [5] Staging/Prod directo   [6] Outro: ___
+[1] WP Playground
+[2] Local by Flywheel
+[3] MAMP / WAMP
+[4] Docker
+[5] Staging/Prod directo
+[6] Outro: ___
 ```
 
 **Q7 — Deploy**
+Lista numerada:
 ```
 [1] cPanel   [2] WP Engine   [3] Kinsta   [4] VPS   [5] WordPress.com   [6] Outro: ___
 ```
 
 **Q8 — WordPress MCP Adapter?** *(expõe WP Abilities como MCP tools; requer WP 6.8+)*
+`AskUserQuestion`:
 ```
-[1] Sim — instalar via Composer no projecto
-[2] Não
+question: "Instalar WordPress MCP Adapter neste projecto?"
+header: "WP MCP"
+options:
+  - "Sim — instalar via Composer"
+  - "Não"
 ```
 
-#### Sub-branch: Shopify
+### Sub-branch: Shopify
 
 **Q4 — Tipo de trabalho Shopify** *(multi-select)*
 ```
@@ -135,79 +178,113 @@ Resposta livre
 ```
 
 **Q5 — Shopify AI Toolkit MCP?** *(docs + schema em contexto; requer Node.js 18+)*
+`AskUserQuestion`:
 ```
-[1] Sim — instalar MCP server local (shopify-dev-mcp)
-[2] Sim — instalar como plugin (auto-updates)
-[3] Não
+question: "Instalar Shopify AI Toolkit MCP?"
+header: "Shopify MCP"
+options:
+  - "Sim — MCP server local (sem auth)"
+  - "Sim — plugin (auto-updates)"
+  - "Não"
 ```
 
-Se MCP seleccionado:
+Se seleccionado:
 ```bash
-# Opção 1 — MCP server local (sem auth)
+# Opção 1 — MCP server local
 claude mcp add --transport stdio shopify-dev-mcp -- npx -y @shopify/dev-mcp@latest
 
-# Opção 2 — Plugin (auto-updates)
+# Opção 2 — Plugin
 /plugin marketplace add Shopify/shopify-ai-toolkit
-/plugin install shopify-plugin@shopify-plugin
 ```
 
 **Q6 — Deploy**
+Lista numerada:
 ```
-[1] Shopify App Store (público)   [2] App privada / custom app
-[3] Shopify Plus (merchant)       [4] Tema — loja do cliente   [5] Outro: ___
+[1] Shopify App Store (público)
+[2] App privada / custom app
+[3] Shopify Plus (merchant)
+[4] Tema — loja do cliente
+[5] Outro: ___
 ```
 
-#### Sub-branch: Design
+### Sub-branch: Design
 
-**Q4** *(multi-select)*: UI/UX · Branding · Motion/Animação · Print/Large format · Ilustração · Outro  
-**Q5** *(multi-select)*: Protótipos HTML · SVG/Figma · Lottie · Assets PNG/WebP · PDF · Outro
+**Q4** *(multi-select)*:
+```
+[ ] UI/UX   [ ] Branding   [ ] Motion/Animação   [ ] Print/Large format   [ ] Ilustração   [ ] Outro
+```
 
-#### Sub-branch: Vídeo
+**Q5** *(multi-select)*:
+```
+[ ] Protótipos HTML   [ ] SVG/Figma   [ ] Lottie   [ ] Assets PNG/WebP   [ ] PDF   [ ] Outro
+```
 
-**Q4** *(multi-select)*: Social media · Explainer · Documental · Tutorial · Outro  
-**Q5** *(multi-select)*: AI video · Remotion · Edição tradicional · Legendas locais · Outro
+### Sub-branch: Vídeo
 
-#### Sub-branch: Research
+**Q4** *(multi-select)*:
+```
+[ ] Social media   [ ] Explainer   [ ] Documental   [ ] Tutorial   [ ] Outro
+```
 
-**Q4**: Mercado · Tecnologia · Conteúdo/SEO · Científico · Outro  
-**Q5** *(multi-select)*: Relatório MD/PDF · Resumo executivo · Tabela comparativa · JSON/CSV · Outro
+**Q5** *(multi-select)*:
+```
+[ ] AI video   [ ] Remotion   [ ] Edição tradicional   [ ] Legendas locais   [ ] Outro
+```
 
-#### Sub-branch: Marketing
+### Sub-branch: Research
 
-**Q4** *(multi-select)*: SEO · Google Ads · Meta Ads · LinkedIn · Email · Social orgânico · Outro  
-**Q5**: Leads · E-commerce · Brand awareness · Retenção · Outro
+**Q4**:
+```
+[1] Mercado   [2] Tecnologia   [3] Conteúdo/SEO   [4] Científico   [5] Outro
+```
+
+**Q5** *(multi-select)*:
+```
+[ ] Relatório MD/PDF   [ ] Resumo executivo   [ ] Tabela comparativa   [ ] JSON/CSV   [ ] Outro
+```
+
+### Sub-branch: Marketing
+
+**Q4** *(multi-select)*:
+```
+[ ] SEO   [ ] Google Ads   [ ] Meta Ads   [ ] LinkedIn   [ ] Email   [ ] Social orgânico   [ ] Outro
+```
+
+**Q5**:
+```
+[1] Leads   [2] E-commerce   [3] Brand awareness   [4] Retenção   [5] Outro
+```
 
 ---
 
 ## FASE 2 — Skills e gaps
 
-Com base no tipo de projecto, pré-selecciona as áreas relevantes e verifica cobertura:
+Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 
-| Tipo                   | Áreas sugeridas                                                  |
-|------------------------|------------------------------------------------------------------|
-| Website/App            | Desenvolvimento web, DevOps, Analytics                           |
-| WordPress              | WordPress, DevOps, Analytics                                     |
-| Shopify                | Shopify, Analytics                                               |
-| Design UI/UX greenfield | UI/UX (`frontend-design`), Ilustração, Animação                 |
-| Design UI/UX iteração  | UI/UX (`impeccable`), Animação, Stitch                           |
-| Design Motion/GSAP     | Animação (`gsap/*`), UI/UX, Stitch                               |
-| Design Print           | Ilustração                                                       |
-| Vídeo                  | Vídeo                                                            |
-| Research               | Research, Analytics                                              |
-| Marketing              | Marketing/SEO, Analytics                                         |
-| Automação / Scraping   | Automação de browser, Desenvolvimento web                        |
+| Tipo                    | Áreas sugeridas                                                  |
+|-------------------------|------------------------------------------------------------------|
+| Website/App             | Desenvolvimento web, DevOps, Analytics                           |
+| WordPress               | WordPress, DevOps, Analytics                                     |
+| Shopify                 | Shopify, Analytics                                               |
+| Design UI/UX greenfield | UI/UX (`frontend-design`), Ilustração, Animação                  |
+| Design UI/UX iteração   | UI/UX (`impeccable`), Animação, Stitch                           |
+| Design Motion/GSAP      | Animação (`gsap/*`), UI/UX, Stitch                               |
+| Design Print            | Ilustração                                                       |
+| Vídeo                   | Vídeo                                                            |
+| Research                | Research, Analytics                                              |
+| Marketing               | Marketing/SEO, Analytics                                         |
+| Automação / Scraping    | Automação de browser, Desenvolvimento web                        |
 
 **Nota disambiguation design:** se o projecto já tem `PRODUCT.md` ou `DESIGN.md` → sugerir `impeccable`. Se greenfield → `frontend-design`.
 
-Apresenta as sugestões e pergunta se há algo a acrescentar ou remover.
+Apresentar sugestões e perguntar se há algo a acrescentar ou remover.
 
 ### Detecção de gaps
 
-Para cada aspecto específico do projecto sem cobertura directa nas skills instaladas:
-
-1. Identifica o gap
-2. `WebSearch` — procura em GitHub / mcpmarket.com
-3. Apresenta:
+Para cada aspecto específico sem cobertura directa:
+1. Identificar o gap
+2. `WebSearch` em GitHub / mcpmarket.com
+3. Apresentar resultado:
 
 ```
 Para "[caso específico]": sem cobertura nativa.
@@ -220,8 +297,8 @@ Instalo? [S/N]
 Não encontrei nada relevante.
 Criar via /create-skill? [S/N/Mais tarde]
 
-[Se parcialmente coberto]
-Cobertura parcial: [skill-x] cobre A — falta B
+[Se cobertura parcial]
+[skill-x] cobre A — falta B
 [1] Procurar  [2] Criar  [3] Ignorar
 ```
 
@@ -229,19 +306,22 @@ Cobertura parcial: [skill-x] cobre A — falta B
 
 ## FASE 3 — MCPs do projecto
 
-Pergunta se este projecto precisa de MCPs específicos:
-
+Apresentar lista de MCPs específicos de projecto:
 ```
+Que MCPs específicos este projecto precisa?
 [ ] Blender (3D)
-[ ] Browser Use (automação browser AI-driven — browser-use/browser-use)
-[ ] WordPress MCP Adapter (só se projecto WP + WP 6.8+ — expõe Abilities como tools MCP)
-[ ] Shopify AI Toolkit MCP (docs + schema Shopify em contexto — só projectos Shopify)
-[ ] Analytics / GA4 (já coberto por skill — não precisa MCP)
+[ ] Browser Use (automação browser AI-driven)
+[ ] WordPress MCP Adapter (WP 6.8+ — só projectos WP)
+[ ] Shopify AI Toolkit MCP (só projectos Shopify)
 [ ] Outro: ___
 [ ] Nenhum
 ```
 
-Se Browser Use seleccionado: verificar `pip install browser-use` e instalar skills `browser-use/browser-use` + `browser-use/open-source`. Adicionar ao `.mcp.json` se usar MCP server:
+Se Browser Use seleccionado:
+```bash
+pip install browser-use
+```
+Adicionar ao `.mcp.json`:
 ```json
 "browser-use": {
   "command": "uvx",
@@ -249,11 +329,9 @@ Se Browser Use seleccionado: verificar `pip install browser-use` e instalar skil
 }
 ```
 
-Se WordPress MCP Adapter seleccionado: instrui instalação no projecto:
+Se WordPress MCP Adapter seleccionado:
 ```bash
 composer require wordpress/mcp-adapter
-# WP 6.8 apenas (6.9+ já inclui Abilities API):
-# composer require wordpress/abilities-api
 ```
 Adicionar ao `.mcp.json` do projecto:
 ```json
@@ -277,11 +355,18 @@ SKILLS NOVAS: [lista — se gaps aprovados]
 MCPs PROJECTO: [lista]
 
 FICHEIROS A CRIAR
-  CLAUDE.md           — navegação de código
-  .mcp.json           — se MCPs de projecto
-  [joca]/memory/projects/[nome].md
+  CLAUDE.md                          ← navegação de código
+  .mcp.json                          ← se MCPs de projecto
+  [joca]/memory/projects/[nome].md   ← entrada de memória
+```
 
-Confirmas? [S/N]
+`AskUserQuestion`:
+```
+question: "Confirmas a configuração acima?"
+header: "Confirmar"
+options:
+  - "Sim, aplicar"
+  - "Voltar atrás para ajustar"
 ```
 
 ---
@@ -294,24 +379,16 @@ Confirmas? [S/N]
 graphify update .
 ```
 
-Se Laravel + Filament:
-```bash
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
 Se WordPress:
 ```bash
-# Verificar WP-CLI disponível
 wp --version 2>/dev/null || echo "wp_cli_unavailable"
-# Detectar versão WP e plugins activos
 wp core version 2>/dev/null
 wp plugin list --status=active --format=csv 2>/dev/null
 ```
 
 ### 2. Criar/actualizar CLAUDE.md do projecto
 
-Se não existir, criar com:
+Se não existir, criar:
 
 ```markdown
 ## Navegação de Código
@@ -328,13 +405,9 @@ Se não existir, criar com:
 **Directório:** [caminho absoluto]
 ```
 
-Adicionar `directorio: [caminho absoluto]` no frontmatter para que o grafo global o descubra automaticamente.
-
 Se já existir, adicionar secção de navegação sem apagar conteúdo existente.
 
 ### 3. Criar .mcp.json (se MCPs de projecto confirmados)
-
-Criar ou actualizar `.mcp.json` na raiz do projecto:
 
 ```json
 {
@@ -376,14 +449,14 @@ A iniciar.
 <!-- preenchido por /save -->
 ```
 
-O campo `directorio:` no frontmatter é obrigatório — é usado pelo script `graphify-global.py` para descobrir e incluir este projecto no grafo global.
+O campo `directorio:` no frontmatter é obrigatório — usado por `graphify-global.py` para incluir o projecto no grafo global.
 
 Actualizar `memory/INDEX.md`:
 ```markdown
 - [nome-projecto.md](projects/nome-projecto.md) — [descrição curta]
 ```
 
-### 5. Actualizar Workspace Overview em ~/CLAUDE.md
+### 5. Actualizar ~/CLAUDE.md
 
 Adicionar linha na tabela de projectos activos se não existir.
 
@@ -397,7 +470,7 @@ Para cada skill nova confirmada.
 ✓ graphify update . corrido
 ✓ CLAUDE.md do projecto criado/actualizado
 ✓ .mcp.json configurado — se aplicável
-✓ Memória: [nome-projecto].md criado (com directorio: [caminho])
+✓ Memória: [nome-projecto].md criado (directorio: [caminho])
 ✓ ~/CLAUDE.md actualizado
 
 Pronto. Usa /resume no início de cada sessão neste projecto.

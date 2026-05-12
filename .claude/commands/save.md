@@ -22,10 +22,10 @@ Actualizar as secções:
 
 ```bash
 # Graph do projecto (directório actual do projecto)
-graphify . --update
+graphify update .
 
 # Graph do JOCA (toolkit — navegar para a pasta JOCA)
-cd <caminho JOCA> && graphify . --update
+cd <caminho JOCA> && graphify update .
 ```
 
 Ambos correm incondicionalmente no fim de cada sessão.

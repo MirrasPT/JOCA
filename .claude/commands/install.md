@@ -1,26 +1,35 @@
 # /install — Setup e Configuração do JOCA
 
-Executa o assistente de instalação/reconfiguração completo do JOCA.  
-Segue as fases abaixo. Faz as perguntas bloco a bloco, aguarda resposta antes de avançar.
+Assistente interactivo de instalação e reconfiguração. Pode correr em qualquer altura — reconfigura sem apagar o que já existe.
+
+**Modo de apresentação:**
+- Perguntas com ≤4 opções exclusivas → usar a ferramenta `AskUserQuestion` (selector visual com setas)
+- Perguntas com mais de 4 opções ou multi-select → apresentar lista numerada/com checkboxes e aguardar input de texto
+- Uma fase de cada vez. Aguardar resposta antes de avançar.
 
 ---
 
 ## FASE 0 — Identidade
 
-Verifica se já existe perfil em `~/CLAUDE.md`. Se existir, extrai nome e papel e apresenta:
+Verificar se já existe perfil em `~/CLAUDE.md`. Se existir, extrair nome e papel e perguntar via `AskUserQuestion`:
+
 ```
-Encontrei o teu perfil: [Nome], [papel].
-Queres actualizar? [S/N]
+question: "Encontrei o teu perfil: [Nome], [papel]. O que queres fazer?"
+header: "Perfil"
+options:
+  - "Manter como está" → saltar para FASE 1
+  - "Actualizar perfil" → continuar abaixo
 ```
-Se não existir, faz as perguntas:
+
+Se não existir perfil, ou se escolheu actualizar:
 
 **Q1 — Nome**
-```
-Resposta livre
-```
+Pergunta de texto livre: "Como te chamas?"
 
 **Q2 — Papel**
+Lista numerada (>4 opções):
 ```
+Qual é o teu papel principal?
 [1] Designer
 [2] Desenvolvedor
 [3] Full-stack
@@ -30,64 +39,69 @@ Resposta livre
 ```
 
 **Q3 — Localização** *(opcional)*
+`AskUserQuestion`:
 ```
-[1] Portugal
-[2] Brasil
-[3] Outro: ___
-[4] Prefiro não dizer
+question: "Onde estás localizado? (opcional)"
+header: "Localização"
+options:
+  - "Portugal"
+  - "Brasil"
+  - "Outro país"
+  - "Prefiro não dizer"
 ```
 
 **Q4 — Sistema Operativo**
+`AskUserQuestion`:
 ```
-[1] macOS
-[2] Windows
-[3] Linux
-[4] Outro: ___
+question: "Que sistema operativo usas?"
+header: "Sistema"
+options:
+  - "macOS"
+  - "Windows"
+  - "Linux"
+  - "Outro"
 ```
 
 ---
 
 ## FASE 1 — Contexto
 
-**Q5 — O que queres fazer agora?**
+**Q5 — Intenção**
+`AskUserQuestion`:
 ```
-[1] Reconfigurar JOCA global (sem projecto específico)
-[2] Ligar o JOCA a um projecto existente
-[3] Iniciar um projecto novo
+question: "O que queres fazer agora?"
+header: "Intenção"
+options:
+  - "Configurar o JOCA globalmente (sem projecto)"  → FASE 3
+  - "Ligar o JOCA a um projecto existente"           → Branch [A]
+  - "Iniciar um projecto novo"                        → Branch [B]
 ```
-
-Se [1]: avança para **FASE 3**.  
-Se [2] ou [3]: continua abaixo.
 
 ---
 
-### Branch [2] — Projecto Existente
+## Branch [A] — Projecto Existente
 
-Pergunta o caminho:
-```
-Qual é o caminho da pasta do projecto?
-```
+Pedir o caminho da pasta do projecto (texto livre).
 
 ```bash
-cd <caminho>
-graphify . 2>/dev/null || echo "graphify_unavailable"
+graphify update . 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
-Apresenta resumo detectado e pede confirmação antes de continuar.  
+Apresentar resumo do que foi detectado e pedir confirmação antes de continuar.
 Avança para **FASE 3** com contexto do projecto activo.
 
 ---
 
-### Branch [3] — Projecto Novo
+## Branch [B] — Projecto Novo
 
 **Q6 — Nome do projecto**
-```
-Resposta livre
-```
+Texto livre: "Nome do projecto?"
 
 **Q7 — Tipo de projecto**
+Lista numerada (>4 opções):
 ```
+Que tipo de projecto é?
 [1] Website / App / Software
 [2] WordPress
 [3] Shopify
@@ -98,12 +112,18 @@ Resposta livre
 [8] Outro: ___
 ```
 
-#### Sub-branch: Website / App / Software
+### Sub-branch: Website / App / Software
 
-**Q8 — Frontend** *(multi-select)*
+**Q8 — Frontend** *(multi-select — lista com checkboxes)*
 ```
-[ ] Vanilla HTML/CSS/JS   [ ] React   [ ] Vue
-[ ] Next.js / Nuxt        [ ] Flutter [ ] Nenhum   [ ] Outro: ___
+Que tecnologias de frontend usas? (selecciona todas as que se aplicam)
+[ ] Vanilla HTML/CSS/JS
+[ ] React
+[ ] Vue
+[ ] Next.js / Nuxt
+[ ] Flutter
+[ ] Nenhum
+[ ] Outro: ___
 ```
 
 **Q9 — Backend** *(multi-select)*
@@ -119,41 +139,26 @@ Resposta livre
 ```
 
 **Q11 — Deploy**
+Lista numerada:
 ```
-[1] Vercel / Netlify   [2] cPanel   [3] VPS   [4] AWS/GCP/Azure   [5] Ainda não sei   [6] Outro: ___
-```
-
-#### Sub-branch: Shopify
-
-**Q8 — Tipo de trabalho Shopify** *(multi-select)*
-```
-[ ] App (integração externa, multi-loja, lógica programática)
-[ ] Extensão (checkout UI, admin UI, POS, customer account)
-[ ] Shopify Functions (descontos, entrega, pagamento customizado)
-[ ] Tema (Online Store 2.0 / Liquid)
-[ ] Auditoria de loja (SEO, conversão, AEO/GEO)
-[ ] Outro: ___
+[1] Vercel / Netlify
+[2] cPanel
+[3] VPS
+[4] AWS / GCP / Azure
+[5] Ainda não sei
+[6] Outro: ___
 ```
 
-**Q9 — Ferramentas Shopify** *(multi-select)*
-```
-[ ] Shopify CLI (já instalado)   [ ] Admin API (GraphQL)
-[ ] Polaris (Admin UI)           [ ] Theme Check
-[ ] Shopify AI Toolkit (MCP)     [ ] Nenhum
-```
-
-**Q10 — Deploy**
-```
-[1] Shopify App Store (público)   [2] App privada / custom app
-[3] Shopify Plus (merchant)       [4] Outro: ___
-```
-
-#### Sub-branch: WordPress
+### Sub-branch: WordPress
 
 **Q8 — Tipo de trabalho WP** *(multi-select)*
 ```
-[ ] Plugin          [ ] Tema (block theme)    [ ] Tema (clássico)
-[ ] Bloco Gutenberg [ ] Site completo (FSE)   [ ] Headless (REST/GraphQL)
+[ ] Plugin
+[ ] Tema (block theme)
+[ ] Tema (clássico)
+[ ] Bloco Gutenberg
+[ ] Site completo (FSE)
+[ ] Headless (REST/GraphQL)
 [ ] Outro: ___
 ```
 
@@ -163,35 +168,86 @@ Resposta livre
 ```
 
 **Q10 — Ambiente local**
+Lista numerada:
 ```
 [1] WP Playground   [2] Local by Flywheel   [3] MAMP/WAMP
 [4] Docker          [5] Staging/Prod directo   [6] Outro: ___
 ```
 
 **Q11 — Deploy**
+Lista numerada:
 ```
 [1] cPanel   [2] WP Engine   [3] Kinsta   [4] VPS   [5] WordPress.com   [6] Outro: ___
 ```
 
-#### Sub-branch: Design
+### Sub-branch: Shopify
 
-**Q8** *(multi-select)*: UI/UX · Branding · Motion/Animação · Print/Large format · Ilustração · Outro  
-**Q9** *(multi-select)*: Protótipos HTML · SVG/Figma · Lottie · Assets PNG/WebP · PDF · Outro
+**Q8 — Tipo de trabalho Shopify** *(multi-select)*
+```
+[ ] App (integração externa, multi-loja, lógica programática)
+[ ] Extensão (checkout UI, admin UI, POS, customer account)
+[ ] Shopify Functions (descontos, entrega, pagamento)
+[ ] Tema (Online Store 2.0 / Liquid)
+[ ] Auditoria de loja (SEO, conversão, AEO/GEO)
+[ ] Outro: ___
+```
 
-#### Sub-branch: Vídeo
+**Q9 — Deploy**
+Lista numerada:
+```
+[1] Shopify App Store (público)
+[2] App privada / custom app
+[3] Shopify Plus (merchant)
+[4] Outro: ___
+```
 
-**Q8** *(multi-select)*: Social media · Explainer · Documental · Tutorial · Outro  
-**Q9** *(multi-select)*: AI video · Remotion · Edição tradicional · Legendas locais · Outro
+### Sub-branch: Design
 
-#### Sub-branch: Research
+**Q8** *(multi-select)*:
+```
+[ ] UI/UX   [ ] Branding   [ ] Motion/Animação   [ ] Print/Large format   [ ] Ilustração   [ ] Outro
+```
 
-**Q8**: Mercado · Tecnologia · Conteúdo/SEO · Científico · Outro  
-**Q9** *(multi-select)*: Relatório MD/PDF · Resumo executivo · Tabela comparativa · JSON/CSV · Outro
+**Q9** *(multi-select)*:
+```
+[ ] Protótipos HTML   [ ] SVG/Figma   [ ] Lottie   [ ] Assets PNG/WebP   [ ] PDF   [ ] Outro
+```
 
-#### Sub-branch: Marketing
+### Sub-branch: Vídeo
 
-**Q8** *(multi-select)*: SEO · Google Ads · Meta Ads · LinkedIn · Email · Social orgânico · Outro  
-**Q9**: Leads · E-commerce · Brand awareness · Retenção · Outro
+**Q8** *(multi-select)*:
+```
+[ ] Social media   [ ] Explainer   [ ] Documental   [ ] Tutorial   [ ] Outro
+```
+
+**Q9** *(multi-select)*:
+```
+[ ] AI video   [ ] Remotion   [ ] Edição tradicional   [ ] Legendas locais   [ ] Outro
+```
+
+### Sub-branch: Research
+
+**Q8**:
+```
+[1] Mercado   [2] Tecnologia   [3] Conteúdo/SEO   [4] Científico   [5] Outro
+```
+
+**Q9** *(multi-select)*:
+```
+[ ] Relatório MD/PDF   [ ] Resumo executivo   [ ] Tabela comparativa   [ ] JSON/CSV   [ ] Outro
+```
+
+### Sub-branch: Marketing
+
+**Q8** *(multi-select)*:
+```
+[ ] SEO   [ ] Google Ads   [ ] Meta Ads   [ ] LinkedIn   [ ] Email   [ ] Social orgânico   [ ] Outro
+```
+
+**Q9**:
+```
+[1] Leads   [2] E-commerce   [3] Brand awareness   [4] Retenção   [5] Outro
+```
 
 ---
 
@@ -199,7 +255,7 @@ Resposta livre
 
 ### Áreas de trabalho
 
-Pré-selecciona com base no projecto (se existir contexto):
+Pré-seleccionar com base no projecto detectado/declarado:
 
 | Tipo                 | Pré-seleccionado                                    |
 |----------------------|-----------------------------------------------------|
@@ -213,7 +269,9 @@ Pré-selecciona com base no projecto (se existir contexto):
 | Marketing            | Marketing/SEO, Analytics                            |
 | Global               | Nenhum                                              |
 
+Apresentar lista com pré-selecção e perguntar confirmação (multi-select, lista):
 ```
+Áreas de trabalho activas: (confirma ou ajusta)
 [x] Design de interfaces (UI/UX)
 [x] Ilustração / arte visual
 [ ] Animação (Lottie, motion)
@@ -232,53 +290,51 @@ Pré-selecciona com base no projecto (se existir contexto):
 
 ### Mapeamento áreas → skills
 
-| Área               | Skills                                                                          |
-|--------------------|---------------------------------------------------------------------------------|
-| UI/UX              | frontend-design, huashu-design                                                  |
-| Ilustração         | canvas-design, brand-guidelines                                                 |
-| Animação           | lottie-animator                                                                 |
-| Vídeo              | video, hyperframes/core, hyperframes/gsap, watch                                |
-| 3D                 | blender skill + blender MCP (.mcp.json)                                         |
+| Área               | Skills activadas                                                               |
+|--------------------|--------------------------------------------------------------------------------|
+| UI/UX              | frontend-design, huashu-design                                                 |
+| Ilustração         | canvas-design, brand-guidelines                                                |
+| Animação           | lottie-animator                                                                |
+| Vídeo              | video, hyperframes/core, hyperframes/gsap, watch                               |
+| 3D                 | blender skill + blender MCP                                                    |
 | Marketing/SEO      | ads-creation, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
-| Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                        |
-| WordPress          | wordpress/wordpress-router, wordpress/wp-project-triage, wordpress/wp-plugin-development, wordpress/wp-block-development, wordpress/wp-block-themes, wordpress/wp-rest-api, wordpress/wp-wpcli-and-ops, wordpress/wp-performance, wordpress/wp-phpstan, wordpress/wp-playground, wordpress/wp-interactivity-api, wordpress/wp-abilities-api, wordpress/wpds, wordpress/wp-plugin-directory-guidelines, wordpress/blueprint |
-| Shopify            | shopify/shopify-router, shopify/shopify-app, shopify/shopify-theme, shopify/shopify-store-audit, shopify/shopify-store-fixer |
-| DevOps             | devops-engineer                                                                 |
-| Analytics          | google-analytics, microsoft-clarity                                             |
-| Research           | deep-research                                                                   |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill                       |
+| Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                       |
+| WordPress          | wordpress/* (router, triage, plugin, block, themes, rest-api, wpcli, performance, phpstan, playground, interactivity, abilities, wpds, guidelines, blueprint) |
+| Shopify            | shopify/* (router, app, theme, store-audit, store-fixer)                       |
+| DevOps             | devops-engineer                                                                |
+| Analytics          | google-analytics, microsoft-clarity                                            |
+| Research           | deep-research                                                                  |
+| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill                      |
 
 Skills adicionais por stack:
 
-| Stack           | Skills                                                              |
-|-----------------|---------------------------------------------------------------------|
-| Laravel         | laravel-specialist, php-pro, postgres-pro, test-master              |
-| PHP puro        | php-pro                                                             |
-| PostgreSQL      | postgres-pro                                                        |
-| WP + WooCommerce | wordpress/* + php-pro                                              |
-| WP + WP-CLI     | wordpress/wp-wpcli-and-ops (já incluído no pacote WordPress)       |
+| Stack              | Skills                                                      |
+|--------------------|-------------------------------------------------------------|
+| Laravel            | laravel-specialist, php-pro, postgres-pro, test-master      |
+| PHP puro           | php-pro                                                     |
+| PostgreSQL         | postgres-pro                                                |
+| WP + WooCommerce   | wordpress/* + php-pro                                       |
 
 ### Detecção de gaps
 
-Para cada resposta específica que não tenha cobertura directa nas skills existentes:
-
-1. Identifica o gap (ex: "Unity/game design" → sem skill nativa)
-2. `WebSearch` para encontrar skill relevante em GitHub ou mcpmarket.com
-3. Apresenta:
+Para cada aspecto do projecto sem cobertura directa nas skills existentes:
+1. Identificar o gap
+2. `WebSearch` em GitHub / mcpmarket.com
+3. Apresentar resultado:
 
 ```
-Para "[caso]": não existe skill nativa.
+Para "[caso]": sem cobertura nativa.
 
 [Se encontrou]
-Encontrei: → repo/skill — descrição
+→ repo/skill — descrição
 Instalo? [S/N]
 
 [Se não encontrou]
-Não encontrei nada relevante online.
+Não encontrei nada relevante.
 Crio via /create-skill? [S/N/Mais tarde]
 
-[Se parcialmente coberto]
-Cobertura parcial: [skill-x] cobre A ✓ — falta B
+[Se cobertura parcial]
+[skill-x] cobre A ✓ — falta B
 [1] Procurar online  [2] Criar  [3] Ignorar
 ```
 
@@ -296,56 +352,69 @@ Cobertura parcial: [skill-x] cobre A ✓ — falta B
 [ ] Firecrawl (web scraping — requer Docker ou API key)
 [ ] Microsoft Clarity (requer Composio API key)
 [ ] HuggingFace (modelos Hub, Spaces — requer token p/ privado)
-[ ] WordPress MCP Adapter (expõe WP Abilities como tools — só p/ projectos WP, requer WP 6.8+)
-[ ] Gemini CLI (análise multimodal: vídeo, PDF, contexto 1M — tier gratuito com Google account)
-[ ] Codex CLI (code review adversarial via OpenAI — requer ChatGPT Plus ou OPENAI_API_KEY)
+[ ] WordPress MCP Adapter (WP 6.8+ — só p/ projectos WP)
+[ ] Gemini CLI (análise multimodal: vídeo, PDF, contexto 1M — tier gratuito)
+[ ] Codex CLI (code review adversarial — requer ChatGPT Plus ou OPENAI_API_KEY)
 [ ] Outro: ___
 ```
 
-**Geração de imagens**:
+**Geração de imagens**
+`AskUserQuestion`:
 ```
-[1] OpenAI gpt-image-2   [2] Google Gemini   [3] Ambos   [4] Não preciso
+question: "Que motor de geração de imagens queres usar?"
+header: "Img Gen"
+options:
+  - "Google Gemini (recomendado — geral, drafts, aspect ratios)"
+  - "OpenAI gpt-image-2 (texto em imagens, produto, inpainting)"
+  - "Ambos"
+  - "Não preciso"
 ```
 
 ---
 
 ## FASE APIs — Chaves de API
 
-Com base nas selecções anteriores, determina quais chaves são necessárias:
+Com base nas selecções, determinar quais chaves são necessárias:
 
-| MCP / Ferramenta         | Variável                        | Trigger                          |
-|--------------------------|----------------------------------|----------------------------------|
-| GitHub MCP               | `GITHUB_PERSONAL_ACCESS_TOKEN`  | GitHub seleccionado              |
-| HuggingFace MCP          | `HF_TOKEN`                      | HuggingFace seleccionado         |
-| OpenAI (img-gen + Codex) | `OPENAI_API_KEY`                | img-gen [1]/[3] ou Codex CLI    |
-| Google Gemini (img-gen + CLI) | `GEMINI_API_KEY`           | img-gen [2]/[3] ou Gemini CLI sem OAuth |
-| Firecrawl cloud          | `FIRECRAWL_API_KEY`             | Firecrawl sem Docker local       |
-| Composio (Clarity)       | `COMPOSIO_API_KEY`              | Microsoft Clarity seleccionado   |
+| Ferramenta                    | Variável                        | Quando é necessária                       |
+|-------------------------------|----------------------------------|-------------------------------------------|
+| GitHub MCP                    | `GITHUB_PERSONAL_ACCESS_TOKEN`  | GitHub seleccionado                       |
+| HuggingFace MCP               | `HF_TOKEN`                      | HuggingFace seleccionado                  |
+| OpenAI (img-gen + Codex)      | `OPENAI_API_KEY`                | img-gen OpenAI ou Codex CLI               |
+| Google Gemini (img-gen + CLI) | `GEMINI_API_KEY`                | img-gen Gemini ou Gemini CLI sem OAuth    |
+| Firecrawl cloud               | `FIRECRAWL_API_KEY`             | Firecrawl sem Docker local                |
+| Composio (Clarity)            | `COMPOSIO_API_KEY`              | Microsoft Clarity                         |
 
-Para cada chave necessária, pergunta individualmente:
-
+Para cada chave necessária, perguntar via `AskUserQuestion`:
 ```
-[Ferramenta] precisa de [NOME_CHAVE].
-Estado actual: [detectado / não encontrado]
-[1] Introduzir agora   [2] Já está no sistema   [3] Mais tarde
+question: "[Ferramenta] precisa de [NOME_CHAVE]. Estado actual: [detectado / não encontrado]"
+header: "API Key"
+options:
+  - "Introduzir agora"
+  - "Já está configurada no sistema"
+  - "Configurar mais tarde"
 ```
 
-- Opção [1]: recebe o valor (não mostra em claro depois de confirmar)
-- Opção [2]: assume configurado, não toca em nada
-- Opção [3]: marca como ⚠ pendente no relatório final
+- "Introduzir agora" → receber o valor (não mostrar em claro depois de confirmar)
+- "Já está configurada" → assumir OK, não tocar
+- "Mais tarde" → marcar como ⚠ pendente no relatório final
 
 **Onde ficam guardadas:**
-- Chaves de MCP servers → bloco `env` do servidor em `.mcp.json`
-- `OPENAI_API_KEY`, `GEMINI_API_KEY` → `env` global em `~/.claude.json` (disponíveis a todos os agentes)
-- Se `~/.claude.json` não existir ou o user preferir: instruir a definir como variável de sistema (setx no Windows, export no macOS/Linux)
+- Chaves MCP servers → bloco `env` do servidor em `.mcp.json`
+- `OPENAI_API_KEY`, `GEMINI_API_KEY` → `env` global em `~/.claude.json`
+- Se preferir não escrever em `~/.claude.json`: instruir comando exacto:
+  - Windows: `setx OPENAI_API_KEY "<valor>"`
+  - macOS/Linux: `export OPENAI_API_KEY="<valor>"` + adicionar a `~/.zshrc`
 
 ---
 
 ## FASE 4 — Confirmação
 
+Apresentar resumo completo:
+
 ```
 IDENTIDADE
-  [Nome] — [papel][, localização]
+  [Nome] — [papel][, localização] — [OS]
 
 SKILLS ([n])
   Base:  caveman, karpathy-guidelines, agent-context, create-skill
@@ -365,7 +434,16 @@ FICHEIROS
   memory/               criar estrutura
   [projecto]/.mcp.json  criar — se aplicável
 
-Confirmas? [S/N]
+Confirmas?
+```
+
+`AskUserQuestion`:
+```
+question: "Confirmas a configuração acima?"
+header: "Confirmar"
+options:
+  - "Sim, aplicar"
+  - "Voltar atrás para ajustar"
 ```
 
 ---
@@ -374,16 +452,16 @@ Confirmas? [S/N]
 
 ```bash
 python3 --version 2>/dev/null || python --version
-graphify --version 2>/dev/null
+graphify --version 2>/dev/null || echo "graphify_unavailable"
 node --version 2>/dev/null
 bun --version 2>/dev/null
 docker --version 2>/dev/null
-curl -s http://localhost:3002/health 2>/dev/null
+curl -s http://localhost:3002/health 2>/dev/null || echo "firecrawl_unavailable"
 gemini --version 2>/dev/null || echo "gemini_cli_unavailable"
 codex --version 2>/dev/null || echo "codex_cli_unavailable"
 ```
 
-Se algo em falta for necessário para as escolhas feitas, instrui o utilizador antes de continuar.
+Para cada ferramenta em falta que foi seleccionada, instruir instalação antes de continuar.
 
 ---
 
@@ -391,7 +469,7 @@ Se algo em falta for necessário para as escolhas feitas, instrui o utilizador a
 
 ### 1. ~/CLAUDE.md
 
-Lê o ficheiro actual. Adiciona/actualiza secção JOCA sem apagar conteúdo existente:
+Ler ficheiro actual. Adicionar/actualizar secção JOCA sem apagar conteúdo existente:
 
 ```markdown
 ## Utilizador
@@ -409,27 +487,27 @@ Lê o ficheiro actual. Adiciona/actualiza secção JOCA sem apagar conteúdo exi
 Toolkit em: [caminho_joca]
 Skills: [lista por categoria]
 MCPs globais: [lista]
-Comandos: /install, /init-project, /resume, /save, /create-skill
+Comandos: /install, /init-project, /resume, /save, /feedback-joca, /feedback-projeto, /upgrade-joca, /update-joca, /create-skill
 ```
 
 ### 2. Estrutura de memória
 
-Confirmar que existem:
+Confirmar que existem (criar se não existirem):
 - `memory/INDEX.md`
-- `memory/projects/`
+- `memory/projects/` (com `.gitkeep`)
 - `memory/tools/`
-- `memory/feedback/`
+- `memory/feedback/` (com `.gitkeep`)
 
 ### 3. MCPs globais
 
-Playwright e Firecrawl: verificar `~/.claude.json`. Se ausentes, mostrar ao utilizador o bloco JSON a adicionar.  
+Playwright e Firecrawl: verificar `~/.claude.json`. Se ausentes, mostrar ao utilizador o bloco JSON a adicionar.
 Google connectors: instruir activação em claude.ai/settings (OAuth nativo).
 
 ### 3a. API Keys
 
 Para cada chave marcada como "introduzir agora":
 
-**MCP servers** — escrever no bloco `env` do servidor em `.mcp.json` (global `~/.claude.json` ou projecto):
+**MCP servers** — escrever no bloco `env` do servidor em `.mcp.json`:
 ```json
 "github": {
   "command": "npx",
@@ -443,54 +521,39 @@ Para cada chave marcada como "introduzir agora":
 }
 ```
 
-**Chaves de agentes** (OPENAI_API_KEY, GEMINI_API_KEY) — adicionar ao bloco `env` global de `~/.claude.json`:
+**Chaves de agentes** — adicionar ao bloco `env` global de `~/.claude.json`:
 ```json
 { "env": { "OPENAI_API_KEY": "<valor>", "GEMINI_API_KEY": "<valor>" } }
 ```
-Se o utilizador preferir não escrever em `~/.claude.json`, mostrar o comando exacto para definir no sistema:
-- Windows: `setx OPENAI_API_KEY "<valor>"`
-- macOS/Linux: `export OPENAI_API_KEY="<valor>"` (e adicionar a `~/.zshrc` ou `~/.bashrc`)
 
-Para chaves ⚠ pendentes: listar no relatório final com link de obtenção:
+Para chaves ⚠ pendentes — listar com link de obtenção:
 - `GITHUB_PERSONAL_ACCESS_TOKEN` → github.com/settings/tokens (scope: repo, read:org)
 - `HF_TOKEN` → huggingface.co/settings/tokens
 - `OPENAI_API_KEY` → platform.openai.com/api-keys
 - `GEMINI_API_KEY` → aistudio.google.com/apikey
 - `COMPOSIO_API_KEY` → app.composio.dev/settings
 
-### 3b. CLIs externos (se Gemini CLI ou Codex CLI seleccionados)
+### 3b. CLIs externos
 
-**Gemini CLI:**
+**Gemini CLI** (se seleccionado):
 ```bash
 npm install -g @google/gemini-cli
-
-# Autenticação — opção 1: Google account (tier gratuito, sem API key)
-gemini auth login
-
-# Autenticação — opção 2: API key do AI Studio (também gratuito)
-# setx GEMINI_API_KEY "<chave>"   # Windows
-# export GEMINI_API_KEY="<chave>" # macOS/Linux
-# Obter em: aistudio.google.com/apikey
+gemini auth login          # opção 1: Google account (tier gratuito)
+# ou: definir GEMINI_API_KEY no sistema
 ```
 
-**Codex CLI:**
+**Codex CLI** (se seleccionado):
 ```bash
 npm install -g @openai/codex
-
-# Autenticação — opção 1: ChatGPT Plus/Pro (usa subscrição existente)
-codex login
-
-# Autenticação — opção 2: API key OpenAI (pago por uso)
-# setx OPENAI_API_KEY "<chave>"   # Windows
-# export OPENAI_API_KEY="<chave>" # macOS/Linux
-# Obter em: platform.openai.com/api-keys
+codex login                # opção 1: ChatGPT Plus/Pro
+# ou: definir OPENAI_API_KEY no sistema
 ```
 
-### 4. .mcp.json do projecto (se branch 2 ou 3)
+### 4. .mcp.json do projecto (se Branch [A] ou [B])
 
 Criar ou actualizar com os MCPs específicos confirmados.
 
-### 5. Entrada de memória do projecto (se branch 2 ou 3)
+### 5. Entrada de memória do projecto (se Branch [A] ou [B])
 
 Criar `memory/projects/[nome].md` e actualizar `memory/INDEX.md`.
 
@@ -512,7 +575,5 @@ API KEYS
   ⚠ [chave] — PENDENTE → [URL para obter]
 
 JOCA pronto.
-Próximo passo: /init-project num projecto · /resume no início de cada sessão.
+Próximo: /init-project num projecto · /resume no início de cada sessão.
 ```
-
-Se existirem chaves pendentes: listar com instrução exacta de como adicionar depois (setx / export / editar .mcp.json).

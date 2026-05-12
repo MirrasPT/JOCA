@@ -65,8 +65,9 @@ Se a sessão foi longa e complexa, perguntar:
 ---
 name: <título descritivo>
 description: <uma linha — o que está documentado aqui>
-type: feedback
+type: feedback-joca
 session: <projecto> / <tema da sessão>
+date: <YYYY-MM-DD>
 ---
 
 # Feedback — <título>

@@ -437,7 +437,7 @@ def rebuild_report():
     print(f"→ cluster-only + report ...", end=" ", flush=True)
     try:
         import sys as _sys
-        _sys.path.insert(0, '/Users/renatoferreira/.local/share/uv/tools/graphifyy/lib/python3.12/site-packages')
+        _sys.path.insert(0, str(pathlib.Path.home() / '.local/share/uv/tools/graphifyy/lib/python3.12/site-packages'))
         import json as _json
         import networkx as _nx
         from networkx.readwrite import json_graph as _jg

@@ -23,16 +23,16 @@
       "command": "uvx",
       "args": ["blender-mcp"]
     },
-    "huggingface": {
-      "type": "http",
-      "url": "https://huggingface.co/mcp",
-      "headers": {
-        "Authorization": "Bearer ${HF_TOKEN}"
-      }
-    },
     "lunar-docs": {
       "type": "http",
       "url": "https://docs.lunarphp.com/mcp"
+    },
+    "huggingface": {
+      "command": "npx",
+      "args": ["-y", "@huggingface/mcp-client"],
+      "env": {
+        "HF_TOKEN": "INSERIR_TOKEN_AQUI"
+      }
     }
   }
 }

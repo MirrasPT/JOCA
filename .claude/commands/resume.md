@@ -12,16 +12,18 @@ Se não existir entrada: sugerir correr `/init-project` primeiro.
 ### 2. Ler contexto do projecto
 Ler `JOCA/memory/projects/<nome>.md` — estado actual, decisões tomadas, pendentes.
 
+Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
+
 ### 3. Verificar knowledge graphs
 
 **Graph do projecto:**
-- Se não existir `graphify-out/graph.json` e houver código: sugerir `graphify .`
-- Se existir mas for antigo (>7 dias): sugerir `graphify . --update`
+- Se não existir `graphify-out/graph.json` e houver código: sugerir `graphify update .`
+- Se existir mas for antigo (>7 dias): sugerir `graphify update .`
 - Se existir: ler `graphify-out/GRAPH_REPORT.md`
 
 **Graph do JOCA:**
 - Se existir `<caminho JOCA>/graphify-out/GRAPH_REPORT.md`: ler para contexto de agentes e skills disponíveis
-- Se não existir: sugerir `cd <caminho JOCA> && graphify .` para gerar
+- Se não existir: sugerir `cd <caminho JOCA> && graphify update .` para gerar
 
 ### 4. Apresentar resumo ao utilizador
 
