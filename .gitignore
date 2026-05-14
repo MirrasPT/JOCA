@@ -19,3 +19,9 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local projects (not part of JOCA toolkit)
+JOCA_UI/
+JOCA\ OS/
+clock.html
+.env
