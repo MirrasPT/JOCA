@@ -157,6 +157,36 @@ Guia de decisão para os MCPs configurados no JOCA. Sem este documento os MCPs a
 
 ---
 
+## Scraping web — cadeia de fallback
+
+Usar **sempre nesta ordem**. Cada passo só se o anterior falhar.
+
+```
+1. mcp__firecrawl__firecrawl_scrape
+   └─ primeira tentativa; lida com JS rendering e SPAs
+   └─ falha: bloqueado por anti-bot, timeout, 403/429
+
+2. mcp__browser-use__browser_navigate
+   └─ quando Firecrawl falha/bloqueia
+   └─ falha: timeout >30s, browser_use não responde
+
+3. mcp__playwright__playwright_navigate
+   └─ quando browser-use timeout
+   └─ ⚠ VERIFICAR PRIMEIRO: npx playwright install (obrigatório na 1ª vez)
+   └─ falha: browsers não instalados, MCP não conectado
+
+4. curl -s -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" <url>
+   └─ fallback universal — funciona sempre para HTML estático
+   └─ não executa JS; para SPAs este step pode não ter conteúdo útil
+```
+
+**Notas:**
+- `WebFetch` não é para scraping — é para URLs simples sem bloqueio anti-bot
+- Playwright MCP requer `npx playwright install` na primeira utilização na máquina
+- curl com User-Agent real bypassa a maioria dos anti-bot básicos
+
+---
+
 ## Decisão rápida
 
 | Preciso de...               | Usar                          |
@@ -166,7 +196,7 @@ Guia de decisão para os MCPs configurados no JOCA. Sem este documento os MCPs a
 | Asset 3D / renderizar       | Blender MCP + `blender` skill |
 | Modelo ML open-source       | HuggingFace MCP               |
 | Testar UI no browser        | Playwright MCP + `webapp-testing` |
-| Scrape site complexo        | Firecrawl MCP                 |
+| Scrape site (qualquer)      | Ver cadeia de fallback acima  |
 | Email/calendário/docs       | Google Connectors             |
 | Docs Lunar/Laravel          | Lunar Docs MCP                |
 | Gerir conteúdo WP           | WordPress MCP                 |

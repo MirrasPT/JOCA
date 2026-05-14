@@ -161,7 +161,7 @@ Ficheiros actualizados:
 
 Próximo:
 → Rever alterações: git diff HEAD~N HEAD
-→ Se usas graphify: graphify . --update no directório JOCA
+→ Se usas graphify: python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
 ```
 
 ---

@@ -22,6 +22,14 @@ Gather context:
 - Access to Search Console / analytics?
 - AI search: do you know if your brand appears in ChatGPT, Perplexity, or Google AI Overviews?
 
+**Se o utilizador fornece uma URL real:** antes de dar recomendações, lançar `seo-analyst` para obter dados reais do site — evita recomendações baseadas em suposições:
+
+```
+Agent(subagent_type="seo-analyst", prompt="Technical SEO audit for [URL]. Depth: quick scan. Focus on: title tags, meta descriptions, H1s, canonical URLs, robots.txt, sitemap.xml, Core Web Vitals estimate, schema markup. Report prioritized findings so the SEO skill can make evidence-based recommendations.")
+```
+
+Aguardar o relatório do `seo-analyst` e incorporar os dados reais nas recomendações desta skill. Se o relatório identificar issues críticos, priorizá-los acima de recomendações genéricas.
+
 ---
 
 ## Part 1 — Traditional SEO Audit

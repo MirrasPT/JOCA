@@ -6,7 +6,7 @@ metadata:
   author: https://github.com/Jeffallan
   version: "1.1.0"
   domain: backend
-  triggers: Laravel, Eloquent, PHP framework, Laravel API, Artisan, Blade templates, Laravel queues, Livewire, Laravel testing, Sanctum, Horizon
+  triggers: Laravel, Eloquent, PHP framework, Laravel API, Artisan, Blade templates, Laravel queues, Livewire, Laravel testing, Sanctum, Horizon, database migration, N+1 queries, query optimization, multi-tenancy, SaaS
   role: specialist
   scope: implementation
   output-format: code
@@ -257,6 +257,46 @@ Run these at each workflow stage to confirm correctness before proceeding:
 | After implementation | `php artisan test --coverage` | >85% coverage, 0 failures |
 | Before PR | `./vendor/bin/pint --test` | PSR-12 linting passes |
 
+---
+
+## Agent Integration
+
+### Quando há um erro Laravel difícil de resolver
+
+Spawn `log-debugger` com o contexto completo:
+
+```
+Agent(subagent_type="log-debugger", prompt="Debug this Laravel error. Error: [paste full stack trace]. File: [file:line]. Recent changes: [git log --oneline -5]. Laravel version: [php artisan --version]. Context: [what operation was being performed].")
+```
+
+### Após implementar endpoints de API
+
+Validar com `tester-api` antes de PR:
+
+```
+Agent(subagent_type="tester-api", prompt="Test these Laravel API endpoints. Base URL: [http://localhost:8000]. Auth: Bearer token — get it via: php artisan tinker >>> $user = User::first(); >>> $user->createToken('test')->plainTextToken. Endpoints to test: [list routes from: php artisan route:list --path=api]. Focus on: auth enforcement (401 without token), validation errors (422 with bad input), response schema, no 500s on edge cases.")
+```
+
+### Antes de deploy — security scan rápido
+
+```
+Agent(subagent_type="tester-security", prompt="Security audit for this Laravel project. Run: composer audit for CVEs, check for secrets in code (gitleaks or grep patterns), verify HTTP security headers on [URL]. Report Critical/High issues only.")
+```
+
 ## Knowledge Reference
 
 Laravel 10+, Eloquent ORM, PHP 8.2+, API resources, Sanctum/Passport, queues, Horizon, Livewire, Inertia, Octane, Pest/PHPUnit, Redis, broadcasting, events/listeners, notifications, task scheduling
+
+---
+
+## Workflow
+
+Pipeline desta skill na sequência JOCA:
+
+→ **antes**: `plan` — se ≥2 ficheiros ou decisão de arquitectura
+→ **após implementar código**: `tester-code`
+→ **após implementar endpoints**: `tester-api`
+→ **se erro Laravel**: `log-debugger` (Mode 4 — Laravel diagnosis)
+→ **antes de deploy**: `tester-security` → `deploy-forge`
+
+Notificar o próximo passo ao concluir cada fase: `→ próximo: tester-code`

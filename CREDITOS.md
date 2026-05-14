@@ -33,7 +33,7 @@ Skills, agentes, scripts e sistemas usados no JOCA.
 
 | Skill | Descrição | Repo | Autor |
 |-------|-----------|------|-------|
-| ads-creation | Estratégia de campanha + copy + targeting + optimização (Google/Meta/LinkedIn/TikTok) | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | Corey Haines |
+| paid-ads | Estratégia de campanha + copy + targeting + optimização (Google/Meta/LinkedIn/TikTok) | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | Corey Haines |
 | seo | SEO técnico + on-page + AI search (AEO/GEO/LLMO) + internacional + auditoria | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | Corey Haines |
 | seo-local | SEO local: GBP, NAP, citações, reviews, schema por vertical, multi-location | [AgriciDaniel/claude-seo](https://github.com/AgriciDaniel/claude-seo) | AgriciDaniel |
 | email-sequence | Sequências email automatizadas: welcome, nurture, onboarding, re-engagement | [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | Corey Haines |

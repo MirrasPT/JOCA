@@ -1,6 +1,6 @@
 ---
 name: flutter-expert
-description: "Use when building cross-platform mobile applications with Flutter 3+ that require custom UI implementation, complex state management, native platform integrations, or performance optimization across iOS/Android/Web."
+description: "Use when building or debugging Flutter 3+ applications. Triggered by: \"Flutter\", \"Dart\", \"Riverpod\", \"BLoC\", \"Provider\", \"widget\", \"pubspec\", \"build_runner\", \"flutter pub\", \"GoRouter\", \"platform channel\", \"iOS Android app\", \"Flutter navigation\", \"Flutter animation\", \"Flutter state\". Covers: architecture, state management (Riverpod/BLoC/Provider), custom widgets, animations, platform channels, native integrations, performance optimization, testing, deployment (App Store, Play Store)."
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---

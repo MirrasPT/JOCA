@@ -97,7 +97,7 @@ Qual é o caminho da pasta do projecto? (ex: ~/Desktop/_Projetos/meu-site)
 Depois:
 ```bash
 cd <caminho_projeto>
-graphify update . 2>/dev/null || echo "graphify_unavailable"
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
@@ -272,9 +272,9 @@ Se vier de branch [2] ou [3], pré-selecciona com base no tipo de projecto:
 | Tipo de projecto       | Pré-seleccionado                                           |
 |------------------------|------------------------------------------------------------|
 | Website/App/Software   | Desenvolvimento web, DevOps, Analytics                     |
-| Design — UI/UX         | UI/UX, Ilustração, Animação                                |
+| Design — UI/UX         | UI/UX, Branding / identidade, Animação                     |
 | Design — Motion/GSAP   | UI/UX, Animação, Stitch                                    |
-| Design — Print/Large   | Ilustração                                                 |
+| Design — Print/Large   | Print / large format, Branding / identidade                |
 | Vídeo                  | Vídeo                                                      |
 | Research               | Research, Analytics                                        |
 | Marketing              | Marketing/SEO, Analytics                                   |
@@ -286,7 +286,8 @@ Apresenta assim:
 Com base no teu projecto, sugiro estas áreas:
 
 [x] Design de interfaces (UI/UX)        <- pré-seleccionado
-[x] Ilustração / arte visual            <- pré-seleccionado
+[x] Branding / identidade visual        <- pré-seleccionado
+[ ] Print / large format (roll-ups, flyers, trifolds)
 [ ] Animação (Lottie, GSAP, motion)
 [ ] Vídeo / conteúdo
 [ ] 3D (Blender)
@@ -308,13 +309,14 @@ Após confirmação das áreas, determina as skills a instalar:
 
 | Área                  | Skills                                                                                        |
 |-----------------------|-----------------------------------------------------------------------------------------------|
-| UI/UX                 | `frontend-design` (greenfield), `impeccable` (iteração/polish), `slides`, `huashu-design`    |
-| Ilustração            | `canvas-design`, `brand-guidelines`                                                           |
-| Animação              | `lottie-animator`, `gsap/gsap-core`, `gsap/gsap-timeline`, `gsap/gsap-scrolltrigger`, `gsap/gsap-plugins`, `gsap/gsap-performance` + React/Vue/Svelte se aplicável |
+| UI/UX                 | `frontend-design` (protótipo), `frontend-dev` (produção React/Vue), `impeccable` (iteração/polish), `slides`, `huashu-design` |
+| Branding / identidade | `brand-guidelines` (DESIGN.md + BRAND.md), `canvas-design`                                   |
+| Print / large format  | `graphic-design` (roll-ups, flyers, trifolds, posters, HTML→PDF)                             |
+| Animação              | `anima` (GSAP+Lottie router), `lottie-animator` (Lottie avançado), `gsap/gsap-core`, `gsap/gsap-timeline`, `gsap/gsap-scrolltrigger`, `gsap/gsap-plugins`, `gsap/gsap-performance` + React/Vue/Svelte se aplicável |
 | Stitch (design-to-code) | `stitch/stitch-design`, `stitch/stitch-loop`, `stitch/design-md`, `stitch/taste-design`, `stitch/react-components` |
 | Vídeo                 | `video`, `hyperframes/core`, `hyperframes/website-to-video`, `watch`                         |
 | 3D                    | `blender` (skill) + blender (MCP em .mcp.json)                                               |
-| Marketing/SEO         | `ads-creation`, `seo`, `seo-local`, `email-sequence`, `content-strategy`, `social-content`, `copywriting` |
+| Marketing/SEO         | `paid-ads`, `seo`, `seo-local`, `email-sequence`, `content-strategy`, `social-content`, `copywriting` |
 | Desenvolvimento web   | `webapp-testing` + skills por stack (ver tabela abaixo)                                      |
 | Automação de browser  | `browser-use/browser-use` (CLI) + opcionalmente `browser-use/remote-browser`, `browser-use/open-source`, `browser-use/cloud` |
 | DevOps                | `devops-engineer`                                                                             |

@@ -1,6 +1,23 @@
 {
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(gh api *)",
+      "Bash(mv code-reviewer.md tester-code.md)",
+      "Bash(mv accessibility-tester.md tester-accessibility.md)",
+      "Bash(mv ui-ux-tester.md tester-ui-ux.md)",
+      "Bash(curl -s \"https://mcpmarket.com/tools/skills/blender-toolkit\")",
+      "Bash(python3 -c \"import sys,html,re; content=sys.stdin.read\\(\\); content=re.sub\\(r'<script[^>]*>.*?</script>','',content,flags=re.DOTALL\\); content=re.sub\\(r'<style[^>]*>.*?</style>','',content,flags=re.DOTALL\\); content=re.sub\\(r'<[^>]+>','',content\\); lines=[l.strip\\(\\) for l in content.splitlines\\(\\) if l.strip\\(\\)]; print\\('\\\\n'.join\\(lines[:150]\\)\\)\")",
+      "WebFetch(domain:claude.com)",
+      "WebFetch(domain:www.blender.org)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:mermaid.ai)",
+      "WebFetch(domain:mcpmarket.com)",
+      "WebSearch",
+      "Bash(gh repo *)",
+      "Bash(graphify --help)",
+      "Bash(graphify update *)",
+      "Bash(open *)"
+    ],
     "deny": []
   }
 }

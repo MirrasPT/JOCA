@@ -32,10 +32,43 @@ Três patches no `graphifyy v0.7.0` aplicados a `/opt/homebrew/lib/python3.14/si
 bash JOCA/.claude/scripts/graphify-patch.sh
 ```
 
+### Workaround para projectos HTML/doc-only
+
+`graphify update <path>` via CLI falha em projectos sem ficheiros de código — o CLI reseta o cwd antes de chamar `_rebuild_code`, quebrando a detecção. Usar o script wrapper ou a Python API directamente:
+
+```bash
+# Script wrapper (recomendado — mais legível)
+bash <JOCA_PATH>/.claude/scripts/joca-graphify.sh /caminho/projecto
+
+# Alias opcional em ~/.zshrc:
+# alias joca-graphify="bash <JOCA_PATH>/.claude/scripts/joca-graphify.sh"
+```
+
+```bash
+# One-liner (alternativa directa)
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('/caminho/projecto'))"
+```
+
 **Redução de tokens documentada:**
 - 71.5x numa codebase mista (código + docs + imagens)
 - 49x em tarefas diárias em repos grandes
 - 6.8x em code review
+
+---
+
+## Script de dependências para projectos não-código
+
+`graphify-deps.py` — augmenta o `graph.json` com edges de sistema de ficheiros: pasta→ficheiro, refs HTML (`src`/`href`/`url()`), links Markdown. Útil em projectos design/HTML onde o graphify não extrai relações automaticamente.
+
+```bash
+# Aceita path como argumento — usar sempre assim (não copiar para o projecto)
+python3 <JOCA_PATH>/.claude/scripts/graphify-deps.py /caminho/para/projecto
+
+# Depois regenerar o GRAPH_REPORT.md
+graphify cluster-only /caminho/para/projecto
+```
+
+Sem argumento usa o directório do próprio script como ROOT (útil só para o JOCA em si).
 
 ---
 
@@ -99,11 +132,13 @@ graphify claude uninstall
 
 ## Comandos principais
 
+> **ATENÇÃO:** `graphify .` e `graphify <path>` **não existem** como CLI — o CLI só aceita subcomandos.
+> Para projectos HTML/doc-only usar a Python API directamente (ver abaixo).
+
 ```bash
-# Geração
-graphify .                          # corre no directório actual
-graphify ./src                      # pasta específica
-graphify . --update                 # só processa ficheiros modificados
+# Geração via CLI (só funciona se já existir graph.json com nós de código)
+graphify update <path>              # re-extrai ficheiros de código (AST, sem LLM)
+graphify cluster-only <path>        # re-corre clustering sem re-extrair
 graphify . --mode deep              # extracção semântica agressiva (usa LLM)
 graphify . --watch                  # rebuild automático ao guardar
 graphify . --no-viz                 # salta HTML, só report + JSON
@@ -195,7 +230,9 @@ Após `graphify .`, o `graphify install` faz isto automaticamente. Manualmente:
 1. Consultar `graphify-out/GRAPH_REPORT.md` antes de responder a questões de arquitectura
 2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
 3. Só ler ficheiros raw quando for necessário editar ou o graph não tiver a resposta
-4. Para actualizar: `graphify . --update`
+4. Para actualizar (projectos com código):
+   `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"` 
+   (NOTE: `graphify . --update` não existe no CLI actual)
 ```
 
 ---

@@ -16,14 +16,21 @@ Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a ent
 
 ### 3. Verificar knowledge graphs
 
+⚠ **Nota:** `graphify update .` e `graphify . --update` não funcionam (bug CLI). Usar sempre a Python API:
+```bash
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path>'))"
+```
+
 **Graph do projecto:**
-- Se não existir `graphify-out/graph.json` e houver código: sugerir `graphify update .`
-- Se existir mas for antigo (>7 dias): sugerir `graphify update .`
+- Se não existir `graphify-out/graph.json`:
+  - Projecto com código (Python/JS/PHP): correr Python API acima
+  - Projecto HTML/design/docs: correr `python3 JOCA/.claude/scripts/graphify-deps.py <path>` + `graphify cluster-only <path>`
+- Se existir mas for antigo (>7 dias): correr Python API para actualizar
 - Se existir: ler `graphify-out/GRAPH_REPORT.md`
 
 **Graph do JOCA:**
 - Se existir `<caminho JOCA>/graphify-out/GRAPH_REPORT.md`: ler para contexto de agentes e skills disponíveis
-- Se não existir: sugerir `cd <caminho JOCA> && graphify update .` para gerar
+- Se não existir: correr Python API com path do JOCA
 
 ### 4. Apresentar resumo ao utilizador
 

@@ -1,8 +1,7 @@
 ---
 name: video
-description: "When the user wants to create, generate, or produce video content using AI tools or programmatic frameworks. Also use when the user mentions 'video production,' 'AI video,' 'Remotion,' 'Hyperframes,' 'HeyGen,' 'Synthesia,' 'Veo,' 'Runway,' 'Kling,' 'Pika,' 'video generation,' 'AI avatar,' 'talking head video,' 'programmatic video,' 'video template,' 'explainer video,' 'product demo video,' 'video pipeline,' 'make me a video,' 'HTML animation to video,' 'export animation as MP4,' 'export as GIF,' 'add music to video,' 'animation pipeline,' 'render video,' or 'export animation.' Use this for video creation, generation, and production workflows. For video content strategy and what to post, see social-content. For paid video ad creative, see ad-creative."
-metadata:
-  version: 1.1.0
+description: Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. Cobre AI generation (Veo, Runway, Kling, Pika), AI avatars (HeyGen, Synthesia), editing/repurposing (Descript, Opus Clip), e HTML→Video pipeline. Para composições HTML → hyperframes skill. Para vídeo React programático → remotion skill.
+triggers: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, fazer vídeo, criar vídeo
 ---
 
 # Video
@@ -38,19 +37,24 @@ Gather this context (ask if not provided):
 
 Pick the right tool for the job:
 
-| Approach | Best For | Tools | When to Use |
-|----------|----------|-------|-------------|
-| **HTML Animation → MP4** | CSS/JS animations, motion design, product launches | Playwright + ffmpeg + ffmpeg-python | Brand animations, launch films, motion demos |
-| **Programmatic** | Templated, data-driven, batch video | Remotion, Hyperframes | Product updates, personalized videos, recurring content |
-| **AI Generation** | Original footage from text/image prompts | Veo, Runway, Kling, Pika | B-roll, hero shots, creative visuals you can't film |
-| **AI Avatars** | Talking-head presenter without filming | HeyGen, Synthesia | Explainers, tutorials, multilingual content |
-| **Editing/Repurposing** | Cutting long-form into short clips | Descript, Opus Clip, CapCut | Podcast/webinar → social clips |
+| Approach | Best For | Tools | Skill |
+|----------|----------|-------|-------|
+| **HTML → Video** | CSS/JS animations, motion design, product launches, lyric videos | HyperFrames | → `hyperframes` |
+| **React → Video** | Data-driven, batch, music visualizers, lyric videos, 3D | Remotion | → `remotion` |
+| **AI Generation** | Original footage from text/image prompts | Veo, Runway, Kling, Pika | → this skill |
+| **AI Avatars** | Talking-head presenter without filming | HeyGen, Synthesia | → this skill |
+| **Editing/Repurposing** | Cutting long-form into short clips | Descript, Opus Clip, CapCut | → this skill |
+
+**HyperFrames vs Remotion — quick decision:**
+- Agente a gerar HTML do zero → **HyperFrames** (sem build step, GSAP frame-accurate)
+- Projecto React existente, batch render, Lambda → **Remotion**
+- Licença open-source obrigatória → **HyperFrames** (Apache 2.0 vs source-available)
 
 ---
 
 ## HTML Animation → Video Export
 
-The pipeline for CSS/JS animations (brand launches, motion demos, product films) built as HTML files and exported as video. Assets live in `../.claude/skills/design/huashu-design/`.
+The pipeline for CSS/JS animations (brand launches, motion demos, product films) built as HTML files and exported as video.
 
 ### Default output: MP4 **with audio** (not silent)
 
@@ -69,28 +73,46 @@ HTML animation (Playwright recording)
     →  Final: MP4 with dual audio track (BGM low freq + SFX high freq)
 ```
 
-**Scripts** (in `../huashu-design/scripts/`):
+**Scripts** (copiar para `scripts/` do projecto):
 - `render-video.js` — Playwright-based HTML recorder, 25fps, outputs base MP4 (intermediate only)
 - `convert-formats.sh` — derives 60fps MP4 + palette-optimised GIF from base
 - `add-music.sh` — BGM selection + ffmpeg mix
+
+```bash
+node scripts/render-video.js animation.html output-25fps.mp4
+bash scripts/convert-formats.sh output-25fps.mp4
+bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
+```
 
 **Validate output:** `ffprobe -select_streams a <file>` must show audio stream. No audio stream = not finished.
 
 ### Audio: BGM + SFX dual-track
 
-**6 BGM tracks** (scene-matched, in `../huashu-design/assets/bgm/`):
-- `tech.mp3` — clean, forward-moving; product launches, SaaS
-- `ad.mp3` — energetic, punchy; marketing spots
-- `educational.mp3` — calm, focused; explainers, tutorials
-- `tutorial.mp3` — friendly, neutral; walkthroughs
-- + 2 alternate variants
+**6 BGM tracks** (scene-matched):
 
-**SFX density by type** (from `../huashu-design/assets/sfx/`):
+| Tema | Contexto |
+|------|---------|
+| `tech` | Product launch, SaaS |
+| `ad` | Campanha, promo |
+| `educational` | Tutorial, curso |
+| `tutorial` | How-to, demo |
+| `tech-alt` | Variante tech mais suave |
+| `ad-alt` | Variante ad mais energética |
+
+**SFX cue list** — definir timeline em `sfx-cues.md`:
+
+```markdown
+0.0s — whoosh (entrada de elemento)
+0.8s — click (acção)
+1.5s — success-chime (resultado)
+```
+
+**SFX density by type:**
 - Launch/hero film: ~6 cues per 10 sec
 - Product demo: ~2–3 cues per 10 sec
 - Tutorial/walkthrough: 0–2 cues per 10 sec
 
-**Frequency separation** (ffmpeg template in `../huashu-design/references/audio-design-rules.md`):
+**Frequency separation:**
 - SFX occupies high frequencies; BGM occupies low — they don't mask each other
 
 ### Animation code rules (avoid re-renders)

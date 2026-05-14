@@ -37,7 +37,7 @@ options:
 
 Correr scan:
 ```bash
-graphify update . 2>/dev/null || echo "graphify_unavailable"
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
@@ -267,15 +267,15 @@ Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 | WordPress               | WordPress, DevOps, Analytics                                     |
 | Shopify                 | Shopify, Analytics                                               |
 | Design UI/UX greenfield | UI/UX (`frontend-design`), Ilustração, Animação                  |
-| Design UI/UX iteração   | UI/UX (`impeccable`), Animação, Stitch                           |
-| Design Motion/GSAP      | Animação (`gsap/*`), UI/UX, Stitch                               |
-| Design Print            | Ilustração                                                       |
+| Design UI/UX iteração   | UI/UX (`frontend-design`), Brand Guidelines, Animação            |
+| Design Motion/GSAP      | Animação (`anima`), UI/UX                                        |
+| Design Print            | `graphic-design`                                                 |
 | Vídeo                   | Vídeo                                                            |
 | Research                | Research, Analytics                                              |
 | Marketing               | Marketing/SEO, Analytics                                         |
 | Automação / Scraping    | Automação de browser, Desenvolvimento web                        |
 
-**Nota disambiguation design:** se o projecto já tem `PRODUCT.md` ou `DESIGN.md` → sugerir `impeccable`. Se greenfield → `frontend-design`.
+**Nota disambiguation design:** se o projecto já tem `DESIGN.md` ou `PRODUCT.md` → activar também `brand-guidelines`. Se greenfield → `frontend-design`.
 
 Apresentar sugestões e perguntar se há algo a acrescentar ou remover.
 
@@ -344,7 +344,24 @@ Adicionar ao `.mcp.json` do projecto:
 
 ---
 
-## FASE 4 — Confirmação
+## FASE 4 — PRD
+
+Activar skill `prd`: ler `.claude/skills/base/prd/SKILL.md`.
+
+`AskUserQuestion`:
+```
+question: "Queres que eu gere um PRD.md para este projecto?"
+header: "PRD"
+options:
+  - "Sim — gerar agora"
+  - "Não / mais tarde"
+```
+
+Se sim: fazer as 3 perguntas mínimas da skill prd (problema, funcionalidades MVP, métricas de sucesso). Gerar PRD.md na raiz do projecto.
+
+---
+
+## FASE 5 — Confirmação
 
 ```
 PROJECTO: [nome] — [tipo]
@@ -356,6 +373,7 @@ MCPs PROJECTO: [lista]
 
 FICHEIROS A CRIAR
   CLAUDE.md                          ← navegação de código
+  PRD.md                             ← se aprovado na Fase 4
   .mcp.json                          ← se MCPs de projecto
   [joca]/memory/projects/[nome].md   ← entrada de memória
 ```
@@ -373,10 +391,14 @@ options:
 
 ## EXECUÇÃO
 
+### 0. Gerar PRD.md (se aprovado na Fase 4)
+
+Gerar na raiz do projecto com contexto recolhido. Adicionar referência no CLAUDE.md do projecto e na entrada de memória.
+
 ### 1. Correr graphify (se não correu ainda)
 
 ```bash
-graphify update .
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
 ```
 
 Se WordPress:
@@ -396,7 +418,7 @@ Se não existir, criar:
 1. Consultar `graphify-out/GRAPH_REPORT.md` — god nodes, comunidades, perguntas sugeridas
 2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
 3. Ler ficheiros raw só quando necessário para editar ou o graph não tiver a resposta
-4. Actualizar: `graphify update .`
+4. Actualizar: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
 
 ## Projecto
 **Nome:** [nome]
@@ -436,6 +458,7 @@ directorio: [caminho absoluto da pasta do projecto]
 **Objectivo:** [descrição]
 **Directório:** `[caminho absoluto]`
 **Iniciado:** [data]
+**PRD:** [PRD.md existe | não gerado]
 **Why:** [razão de existir]
 **How to apply:** [como o JOCA deve ajudar neste projecto]
 
@@ -467,8 +490,9 @@ Para cada skill nova confirmada.
 ### 7. Relatório final
 
 ```
-✓ graphify update . corrido
+✓ graphify actualizado (Python API)
 ✓ CLAUDE.md do projecto criado/actualizado
+✓ PRD.md gerado — se aprovado
 ✓ .mcp.json configurado — se aplicável
 ✓ Memória: [nome-projecto].md criado (directorio: [caminho])
 ✓ ~/CLAUDE.md actualizado

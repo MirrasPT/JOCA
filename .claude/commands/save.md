@@ -22,11 +22,13 @@ Actualizar as secções:
 
 ```bash
 # Graph do projecto (directório actual do projecto)
-graphify update .
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))"
 
-# Graph do JOCA (toolkit — navegar para a pasta JOCA)
-cd <caminho JOCA> && graphify update .
+# Graph do JOCA
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
 ```
+
+Nota: o CLI `graphify` tem bugs (sintaxe `graphify . --update` não existe; `graphify update <path>` falha em projectos HTML-only). Usar sempre a API Python directamente.
 
 Ambos correm incondicionalmente no fim de cada sessão.
 

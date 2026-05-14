@@ -5,8 +5,6 @@ Determinar alvo:
 - Ficheiro(s) HTML/componentes específicos
 - Se nada especificado: perguntar
 
-Invocar em paralelo:
-1. Agente `tester-ui-ux` — fluxos, defeitos UX, severidade
-2. Agente `tester-accessibility` — WCAG 2.1/3.0, ARIA, keyboard nav
+Invocar `tester-ui-ux` — cobre fluxos UX, defeitos visuais + acessibilidade WCAG 2.1/3.0, ARIA, keyboard nav num único agente.
 
-Consolidar num relatório único com secções separadas e severidade unificada (Critical / Important / Suggestions).
+Relatório: Critical / High / Medium com UI/UX Defects + Accessibility sections unificadas.

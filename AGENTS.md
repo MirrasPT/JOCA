@@ -40,7 +40,7 @@ JOCA/
     │   │   ├── browser-use/    ← automação browser: CLI, remote, Python lib, Cloud API
     │   │   ├── wordpress/      ← activar só em projectos WP
     │   │   └── shopify/        ← activar só em projectos Shopify
-    │   ├── marketing/          ← ads-creation, seo, seo-local, email-sequence, content-strategy, ...
+    │   ├── marketing/          ← paid-ads, seo, seo-local, email-sequence, content-strategy, ...
     │   └── video/              ← video, hyperframes/*
     ├── scripts/
     │   └── gemini-generate.py  ← geração de imagens via Gemini

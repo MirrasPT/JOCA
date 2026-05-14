@@ -25,7 +25,11 @@ Read `templates/skill-template.md` for the canonical SKILL.md format before doin
 ## Step 1: Context Gathering
 
 ### Mode: new
-1. **Scan existing JOCA skills** — list `.claude/skills/*/SKILL.md` and read descriptions to detect overlap or complementary skills
+1. **Scan existing JOCA skills** — list all skills recursively to detect overlap or complementary skills:
+   ```bash
+   find .claude/skills/ -name "SKILL.md" | sort
+   ```
+   Read `memory/INDEX.md` for quick descriptions of all 80+ skills.
 2. **Web research** — run 2-3 targeted searches:
    - `"[REQUEST] best practices site:github.com"`
    - `"Claude Code skill [REQUEST]"`
@@ -33,9 +37,15 @@ Read `templates/skill-template.md` for the canonical SKILL.md format before doin
 3. Summarise findings in 3-5 actionable bullet points. Identify: what does a great skill for this topic need to know?
 
 ### Mode: upgrade
-1. Read `.claude/skills/[SKILL_NAME]/SKILL.md` — this is `current_version`
-2. Read `.claude/skills/[SKILL_NAME]/skill-creation-log.md` if it exists (history)
-3. Note current weaknesses to address
+1. **Find skill path** — skills are in categorized directories, not depth-1:
+   ```bash
+   find .claude/skills/ -name "SKILL.md" | xargs grep -l "^name: [SKILL_NAME]$" 2>/dev/null
+   # OR search by directory name:
+   find .claude/skills/ -type d -name "[SKILL_NAME]"
+   ```
+2. Read the found `SKILL.md` — this is `current_version`
+3. Read `skill-creation-log.md` in the same directory if it exists (history)
+4. Note current weaknesses to address
 
 ---
 
@@ -119,13 +129,16 @@ Parse `best_version` frontmatter to get `name` field.
 If no `name`, derive from REQUEST: lowercase, hyphens, max 32 chars.
 
 ### 4b — Save skill
+
+Todas as skills criadas pelo pipeline vão sempre para `created-skills/`:
+
 ```bash
-mkdir -p .claude/skills/[name]/
+mkdir -p .claude/skills/created-skills/[name]/
 ```
-Write `best_version` to `.claude/skills/[name]/SKILL.md`.
+Write `best_version` to `.claude/skills/created-skills/[name]/SKILL.md`.
 
 ### 4c — Write creation log
-Write `.claude/skills/[name]/skill-creation-log.md`:
+Write `.claude/skills/created-skills/[name]/skill-creation-log.md`:
 ```markdown
 # Skill Creation Log — [name]
 
@@ -144,13 +157,13 @@ Write `.claude/skills/[name]/skill-creation-log.md`:
 ```
 
 ### 4d — Register in JOCA
-1. Add entry to `CLAUDE.md` under the appropriate category (infer from REQUEST)
-2. Add entry to `memory/INDEX.md`
+1. Add entry to `memory/INDEX.md` under `### Created Skills` section (create section if it doesn't exist)
+2. Do NOT add to `CLAUDE.md` — `created-skills/` is auto-discovered
 
 ### 4e — Report to user
 ```
 ✓ Skill ready: /[name]
-  Path:   .claude/skills/[name]/SKILL.md
+  Path:   .claude/skills/created-skills/[name]/SKILL.md
   Score:  [best_score]/10
   Iterations: [N] (stopped: [PASS threshold reached / max iterations])
 
@@ -168,5 +181,6 @@ How to use:
 
 - If both agents fail or return unparseable output, skip that iteration and continue
 - If web search returns nothing useful, proceed with general knowledge
-- For upgrades, preserve the existing skill's name and directory
+- For upgrades, preserve the existing skill's name and directory (do not move between categories)
+- All new skills always go to `created-skills/` — never to category directories (design/, dev/, etc.)
 - The pipeline is fully autonomous — only report back at the end

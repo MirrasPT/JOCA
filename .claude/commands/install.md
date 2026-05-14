@@ -84,7 +84,7 @@ options:
 Pedir o caminho da pasta do projecto (texto livre).
 
 ```bash
-graphify update . 2>/dev/null || echo "graphify_unavailable"
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify_unavailable"
 cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
 ```
 
@@ -297,7 +297,7 @@ Apresentar lista com pré-selecção e perguntar confirmação (multi-select, li
 | Animação           | lottie-animator                                                                |
 | Vídeo              | video, hyperframes/core, hyperframes/gsap, watch                               |
 | 3D                 | blender skill + blender MCP                                                    |
-| Marketing/SEO      | ads-creation, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
+| Marketing/SEO      | paid-ads, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
 | Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                       |
 | WordPress          | wordpress/* (router, triage, plugin, block, themes, rest-api, wpcli, performance, phpstan, playground, interactivity, abilities, wpds, guidelines, blueprint) |
 | Shopify            | shopify/* (router, app, theme, store-audit, store-fixer)                       |
@@ -448,6 +448,55 @@ options:
 
 ---
 
+## FASE UI — JOCA UI
+
+`AskUserQuestion`:
+```
+question: "JOCA UI é a interface visual para o Claude Code — terminal multi-sessão, file browser, sidebar de projectos. Quer configurá-lo?"
+header: "JOCA UI"
+options:
+  - "Sim — configurar e lançar JOCA UI (Recomendado)"
+  - "Mais tarde — continuar sem UI"
+  - "Já está configurado"
+```
+
+**Se "Sim — configurar":**
+
+1. Verificar dependências:
+```bash
+node --version 2>/dev/null || echo "node: NOT FOUND"
+npm --version 2>/dev/null || echo "npm: NOT FOUND"
+ls "[caminho_joca]/JOCA_UI/frontend/package.json" 2>/dev/null || echo "joca_ui: NOT FOUND"
+```
+
+2. Se Node.js não estiver instalado → instruir: `brew install node` (macOS) ou `https://nodejs.org`
+
+3. Se JOCA UI encontrado, instalar dependências e lançar:
+```bash
+cd "[caminho_joca]/JOCA_UI"
+npm install 2>/dev/null || echo "install_failed"
+```
+
+4. Perguntar como lançar:
+```
+question: "Como preferes lançar o JOCA UI?"
+header: "Launch"
+options:
+  - "Script .command (duplo-clique no Finder — macOS)"
+  - "Terminal (npm start)"
+  - "Mostrar-me como funciona"
+```
+
+- **Script .command**: `ls "[caminho_joca]/JOCA_UI/JOCA UI.command"` — se existir, está pronto. Instruir duplo-clique no Finder.
+- **Terminal**: `npm start` na pasta `JOCA_UI/` — abre em `http://localhost:3000`
+- **Como funciona**: resumo em 3 linhas: sidebar de sessões · terminal integrado · file browser
+
+5. Adicionar ao relatório final: `✓ JOCA UI configurado — lançar: [método escolhido]`
+
+**Se "Já configurado"**: verificar se `node_modules` existe, se não existir: `npm install`.
+
+---
+
 ## FASE DEP — Dependências
 
 ```bash
@@ -574,6 +623,10 @@ API KEYS
   ✓ [chave] — configurada em [localização]
   ⚠ [chave] — PENDENTE → [URL para obter]
 
+JOCA UI
+  ✓ Configurado — lançar: [duplo-clique em "JOCA UI.command" / npm start em JOCA_UI/]
+  ou: ⚠ Não configurado (correr /install de novo para configurar)
+
 JOCA pronto.
-Próximo: /init-project num projecto · /resume no início de cada sessão.
+Próximo: lançar JOCA UI · /init-project num projecto · /resume no início de cada sessão.
 ```

@@ -107,7 +107,8 @@ Ficheiros alterados:
 - .claude/commands/...
 - memory/...
 
-Próximo: graphify . --update no directório JOCA
+Próximo: actualizar grafo JOCA com Python API:
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
 ```
 
 ---
