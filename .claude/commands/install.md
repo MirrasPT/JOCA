@@ -292,10 +292,10 @@ Apresentar lista com pré-selecção e perguntar confirmação (multi-select, li
 
 | Área               | Skills activadas                                                               |
 |--------------------|--------------------------------------------------------------------------------|
-| UI/UX              | frontend-design, huashu-design                                                 |
-| Ilustração         | canvas-design, brand-guidelines                                                |
-| Animação           | lottie-animator                                                                |
-| Vídeo              | video, hyperframes/core, hyperframes/gsap, watch                               |
+| UI/UX              | frontend-design, frontend-dev, brand-guidelines                                |
+| Ilustração         | canvas-design, brand-guidelines, graphic-design                                |
+| Animação           | anima (GSAP + Lottie)                                                          |
+| Vídeo              | video, hyperframes, remotion, watch                                             |
 | 3D                 | blender skill + blender MCP                                                    |
 | Marketing/SEO      | paid-ads, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
 | Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                       |
@@ -488,7 +488,7 @@ options:
 ```
 
 - **Script .command**: `ls "[caminho_joca]/JOCA_UI/JOCA UI.command"` — se existir, está pronto. Instruir duplo-clique no Finder.
-- **Terminal**: `npm start` na pasta `JOCA_UI/` — abre em `http://localhost:3000`
+- **Terminal**: `./start.sh` na pasta `JOCA_UI/` — abre em `http://localhost:7352`
 - **Como funciona**: resumo em 3 linhas: sidebar de sessões · terminal integrado · file browser
 
 5. Adicionar ao relatório final: `✓ JOCA UI configurado — lançar: [método escolhido]`

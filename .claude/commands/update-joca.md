@@ -73,7 +73,7 @@ Categorizar cada ficheiro alterado:
 
 | Categoria | Paths | Acção |
 |-----------|-------|-------|
-| **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `CLAUDE.md`, `README.md`, `install.md`, `CREDITOS.md` | Actualizar (safe) |
+| **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `CLAUDE.md`, `README.md`, `install.md`, `CREDITOS.md`, `JOCA_UI/` | Actualizar (safe) |
 | **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md` | Proteger — não sobrescrever |
 | **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
 

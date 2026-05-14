@@ -261,19 +261,19 @@ Lista numerada:
 
 Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 
-| Tipo                    | Áreas sugeridas                                                  |
-|-------------------------|------------------------------------------------------------------|
-| Website/App             | Desenvolvimento web, DevOps, Analytics                           |
-| WordPress               | WordPress, DevOps, Analytics                                     |
-| Shopify                 | Shopify, Analytics                                               |
-| Design UI/UX greenfield | UI/UX (`frontend-design`), Ilustração, Animação                  |
-| Design UI/UX iteração   | UI/UX (`frontend-design`), Brand Guidelines, Animação            |
-| Design Motion/GSAP      | Animação (`anima`), UI/UX                                        |
-| Design Print            | `graphic-design`                                                 |
-| Vídeo                   | Vídeo                                                            |
-| Research                | Research, Analytics                                              |
-| Marketing               | Marketing/SEO, Analytics                                         |
-| Automação / Scraping    | Automação de browser, Desenvolvimento web                        |
+| Tipo                    | Áreas sugeridas                                                              |
+|-------------------------|------------------------------------------------------------------------------|
+| Website/App             | Desenvolvimento web, DevOps, Analytics                                       |
+| WordPress               | WordPress, DevOps, Analytics                                                 |
+| Shopify                 | Shopify, Analytics                                                           |
+| Design UI/UX greenfield | `frontend-design`, `brand-guidelines`, `anima`                               |
+| Design UI/UX iteração   | `frontend-design`, `frontend-dev`, `brand-guidelines`                        |
+| Design Motion/Animação  | `anima` (GSAP + Lottie), `frontend-design`                                   |
+| Design Print            | `graphic-design`, `brand-guidelines`                                         |
+| Vídeo                   | `video`, `hyperframes`, `remotion`                                           |
+| Research                | `deep-research`, Analytics                                                   |
+| Marketing               | Marketing/SEO, Analytics                                                     |
+| Automação / Scraping    | `browser-use`, Desenvolvimento web                                           |
 
 **Nota disambiguation design:** se o projecto já tem `DESIGN.md` ou `PRODUCT.md` → activar também `brand-guidelines`. Se greenfield → `frontend-design`.
 

@@ -97,16 +97,17 @@ Interface browser para o Claude Code — substitui o terminal do sistema por uma
 - Detecção de estado da sessão (working / idle) com notificações desktop
 - Atalhos rápidos: `/save`, `/compact`, `/create-skill` directamente da barra do terminal
 - Gestão de projectos: abrir sessão Claude directamente num projecto
+- WorkflowPanel: strip em tempo real com skill activa, tipo (skill/agente) e próximo passo — parseado do output do terminal
 
 **Arranque:**
 
 ```bash
 cd JOCA_UI
 npm run setup   # primeira vez — compila node-pty nativo
-npm run dev     # backend :3001 + frontend Vite :5173
+./start.sh      # backend :7351 + frontend :7352
 ```
 
-Aceder em: `http://localhost:5173`
+Aceder em: `http://localhost:7352`
 
 ---
 
@@ -201,52 +202,44 @@ Agentes correm em sub-processos isolados, em paralelo.
 |--------|-----------|
 | `prd-reviewer` | Revê PRD.md em 5 dimensões; score /100; veredito PASS/NEEDS_WORK/FAIL |
 | `tester-code` | Revê código contra plano e standards; Critical/Important/Suggestions |
-| `tester-accessibility` | WCAG 2.1/3.0, screen readers, keyboard nav, ARIA |
-| `tester-ui-ux` | Testa fluxos UI/UX; relatório defeitos com severidade e fixes |
-| `tester-performance` | Lighthouse CI, Core Web Vitals, bundle size, k6 load tests |
-| `tester-security` | CVE scan, secrets detection (gitleaks), HTTP headers |
+| `tester-ui-ux` | UI/UX + acessibilidade WCAG 2.1/3.0: fluxos, contraste, keyboard nav, ARIA |
+| `tester-performance` | Lighthouse CI, Core Web Vitals, bundle size; k6 load tests (smoke/load/stress/spike/soak) |
+| `tester-security` | CVE scan, secrets detection (gitleaks), HTTP security headers |
 | `tester-api` | Testa endpoints REST: happy path, auth, schema, edge cases, perf baseline |
 | `codex-review` | Code review adversarial via Codex CLI (OpenAI GPT/o3) |
+
+### Debug
+| Agente | O que faz |
+|--------|-----------|
+| `log-debugger` | Stack trace → root cause → fix; log pattern analysis; cascade correlation; Laravel Artisan/Tinker |
+| `query-debugger` | EXPLAIN plans, missing indexes, N+1 patterns, query rewrite |
 
 ### Search & Analysis
 | Agente | O que faz |
 |--------|-----------|
 | `deep-research` | Pesquisa web multi-fonte; Firecrawl+WebSearch; relatório citado MD+HTML+PDF |
 | `seo-analyst` | Crawl + auditoria técnica SEO (CWV, schema, meta, sitemap, E-E-A-T) |
-| `log-analyst` | Lê logs Laravel/Nginx, identifica padrões de erro, spikes, slow queries |
 | `dependency-auditor` | CVEs + packages desactualizados + deps não usadas; plano de update priorizado |
 
-### Debug
-| Agente | O que faz |
-|--------|-----------|
-| `log-debugger` | Lê stack trace, encontra root cause no código, sugere fix específico |
-| `query-debugger` | EXPLAIN plans, missing indexes, N+1 patterns, rewrite queries |
-| `error-detective` | Correlação cross-service, anomaly detection, cascade analysis, five-whys |
-| `laravel-debugger` | Debug Laravel-específico: Eloquent, queues, events, routes, Tinker |
-| `load-testing-expert` | k6 + Artillery; smoke/load/stress/spike/soak; SLA thresholds |
-
-### Deploy & Publish
+### Deploy
 | Agente | O que faz |
 |--------|-----------|
 | `deploy-forge` | Deploy via Laravel Forge CLI; confirmação obrigatória antes de produção |
-| `github-releaser` | Cria GitHub releases com release notes geradas do git log |
-| `wp-publisher` | Cria/actualiza posts e páginas WordPress via WP-CLI |
-| `gmail-sender` | Redige e envia emails via Gmail MCP; preview e confirmação obrigatória |
 
 ### Geração & Media
 | Agente | O que faz |
 |--------|-----------|
 | `img-gen-openai` | Gera imagens com gpt-image-2; texto em imagens, produtos, inpainting |
-| `img-gen-google` | Gera imagens com Gemini (Nano Banana); cenas gerais, drafts baratos |
+| `img-gen-google` | Gera imagens com Gemini; cenas gerais, drafts, aspect ratios incomuns |
 | `watch` | Analisa vídeos (URL ou local): frames + transcrição WhisperX local |
-| `gemini-brain` | Análise multimodal via Gemini CLI: vídeo, PDF, contexto 1M tokens |
+| `gemini-brain` | Análise multimodal via Gemini: vídeo, PDF, contexto 1M tokens |
 
 ### Especialistas
 | Agente | O que faz |
 |--------|-----------|
 | `flutter-expert` | Apps Flutter 3+ cross-platform: UI, state management, nativo, performance |
 | `payment-integration` | Stripe, Cashier, MB Way, PCI DSS, subscriptions, fraud prevention |
-| `skill-improver` | Melhora SKILL.md: triggers, instruções, formato |
+| `skill-improver` | Melhora SKILL.md existentes: triggers, instruções, formato, edge cases |
 | `skill-evaluator` | Avalia SKILL.md em 5 dimensões; JSON score/verdict/feedback |
 
 ---
@@ -272,6 +265,25 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/wp-perf-review [path]` | Code review WP completo |
 | `/wp-perf [path]` | Quick triage WP |
 | `/help-joca` | Referência rápida de todos os comandos, agentes e skills |
+
+---
+
+## Pipelines
+
+Sequências pré-definidas activadas automaticamente pelo tipo de tarefa:
+
+| Workflow | Sequência |
+|----------|-----------|
+| Nova feature Laravel | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
+| SaaS / multi-tenant | `plan` → `saas-patterns` → `laravel-specialist` → `tester-security` |
+| Protótipo UI | `frontend-design` → `tester-ui-ux` |
+| Frontend produção | `plan` → `frontend-dev` → `tester-performance` → `tester-security` |
+| API design + implementação | `plan` → `api-designer` → `laravel-specialist` → `tester-api` |
+| Debug | `log-debugger` → `query-debugger` (se SQL) |
+| Deploy | `devops-engineer` → `tester-security` → `deploy-forge` |
+| Nova skill JOCA | `deep-research` → `create-skill` |
+
+Cada skill notifica o próximo passo com `→ próximo: [agente]` — visível no WorkflowPanel do JOCA UI.
 
 ---
 
