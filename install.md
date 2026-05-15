@@ -440,6 +440,10 @@ FICHEIROS A CRIAR/ACTUALIZAR
   [caminho_joca]/memory/   — estrutura de memória
   [caminho_projeto]/.mcp.json  — se aplicável
 
+JOCA UI
+  [Sim — instalar] / [Não]
+  Lançar com: [caminho_joca]/JOCA_UI/JOCA UI.command
+
 Confirmas? [S/N]
 ```
 
@@ -459,6 +463,60 @@ curl -s http://localhost:3002/health 2>/dev/null
 ```
 
 Reporta o estado de cada um. Se algo em falta e for necessário para as escolhas feitas, instrui o utilizador a instalar antes de continuar.
+
+---
+
+## FASE UI — JOCA UI (interface browser)
+
+Pergunta:
+```
+Queres instalar o JOCA UI? (interface browser com terminal integrado)
+Requer Node.js 18+.
+
+[S] Instalar
+[N] Saltar
+```
+
+Se [N]: avançar para EXECUÇÃO.
+
+Se [S]:
+
+### Verificar Node.js
+
+```bash
+node --version 2>/dev/null || echo "node_missing"
+```
+
+Se `node_missing` — instruir: "Instala Node.js em nodejs.org/en/download e volta a correr /install."  
+Se Node ≥ 18 — continuar.
+
+### Instalar dependências
+
+```bash
+JOCA_UI="[caminho_joca]/JOCA_UI"
+
+cd "$JOCA_UI/backend" && npm install
+cd "$JOCA_UI/frontend" && npm install
+```
+
+Se algum `npm install` falhar — reportar o erro e parar esta fase. Dizer ao utilizador para resolver e correr `/install` de novo.
+
+### Tornar o launcher executável
+
+```bash
+chmod +x "$JOCA_UI/JOCA UI.command"
+```
+
+### Confirmar que funciona
+
+Verificar que os ficheiros chave existem:
+```bash
+test -f "$JOCA_UI/backend/node_modules/.bin/tsx" && echo "backend_ok" || echo "backend_fail"
+test -f "$JOCA_UI/frontend/node_modules/.bin/vite" && echo "frontend_ok" || echo "frontend_fail"
+```
+
+Se ambos `_ok`: reportar sucesso.  
+Se algum `_fail`: reportar e instruir a correr `npm install` manualmente na pasta indicada.
 
 ---
 
@@ -527,7 +585,18 @@ Criar `[joca]/memory/projects/[nome-projecto].md` e actualizar `INDEX.md`.
 
 Para cada skill nova confirmada, executar o pipeline create-skill.
 
-### 7. Relatório final
+### 7. Instalar JOCA UI (se confirmado na FASE UI)
+
+```bash
+JOCA_UI="[caminho_joca]/JOCA_UI"
+cd "$JOCA_UI/backend" && npm install
+cd "$JOCA_UI/frontend" && npm install
+chmod +x "$JOCA_UI/JOCA UI.command"
+```
+
+O launcher auto-detecta o caminho do JOCA a partir da sua localização — não requer configuração extra.
+
+### 8. Relatório final
 
 ```
 ✓ ~/CLAUDE.md actualizado
@@ -535,6 +604,8 @@ Para cada skill nova confirmada, executar o pipeline create-skill.
 ✓ [n] skills configuradas
 ✓ MCPs: [lista]
 [✓/✗] Dependências técnicas: [resumo]
+[✓/✗] JOCA UI: [instalado / não instalado]
+       Lançar: [caminho_joca]/JOCA_UI/JOCA UI.command  (duplo-clique no Finder)
 
 JOCA pronto.
 → Navega para um projecto e corre /init-project para o ligar ao JOCA.

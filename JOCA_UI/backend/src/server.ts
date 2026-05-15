@@ -84,7 +84,7 @@ function sessionInfo(s: Session) {
 }
 
 function createSession(
-  cwd: string = path.join(os.homedir(), 'JOCA'),
+  cwd: string = path.resolve(__dirname, '../../../'),
   resumePath?: string,
   sessionName?: string,
   projectId?: string
