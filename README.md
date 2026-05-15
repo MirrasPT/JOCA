@@ -99,15 +99,23 @@ Interface browser para o Claude Code — substitui o terminal do sistema por uma
 - Gestão de projectos: abrir sessão Claude directamente num projecto
 - WorkflowPanel: strip em tempo real com skill activa, tipo (skill/agente) e próximo passo — parseado do output do terminal
 
-**Arranque:**
+**Instalação (máquina nova):**
 
+O `/install` pergunta se queres o JOCA UI e trata de tudo automaticamente (deps + compilação nativa de `node-pty`). Requer Node.js 18+.
+
+Manual, caso precises:
 ```bash
-cd JOCA_UI
-npm run setup   # primeira vez — compila node-pty nativo
-./start.sh      # backend :7351 + frontend :7352
+cd JOCA_UI && npm run setup   # instala deps + compila node-pty nativo
 ```
 
-Aceder em: `http://localhost:7352`
+**Arranque:**
+
+Duplo-clique em `JOCA_UI/JOCA UI.command` (macOS) — ou via terminal:
+```bash
+./JOCA_UI/start.sh
+```
+
+Backend `:7351` · Frontend `:7352` · Aceder em `http://localhost:7352`
 
 ---
 
