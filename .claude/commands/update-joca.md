@@ -77,6 +77,12 @@ Categorizar cada ficheiro alterado:
 | **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md` | Proteger — não sobrescrever |
 | **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
 
+Verificar se algum `package.json` do JOCA_UI mudou:
+```bash
+git diff --name-only HEAD..origin/master | grep -E "^JOCA_UI/.*(package\.json)$" | head -5
+```
+Se output não vazio: marcar **JOCA_UI_DEPS=true** (será usado no resumo final).
+
 ### 6. Verificar conflitos com ficheiros locais modificados
 
 ```bash
@@ -162,6 +168,7 @@ Ficheiros actualizados:
 Próximo:
 → Rever alterações: git diff HEAD~N HEAD
 → Se usas graphify: python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
+[→ JOCA UI deps actualizadas — corre: cd JOCA_UI && npm run setup]   ← mostrar só se JOCA_UI_DEPS=true
 ```
 
 ---
