@@ -466,8 +466,8 @@ function createSession(
   const shellArgs = IS_WINDOWS && SHELL.includes('powershell') ? ['-NoLogo'] : [];
   const ptyProcess = pty.spawn(SHELL, shellArgs, {
     name: 'xterm-256color',
-    cols: 220,
-    rows: 50,
+    cols: 120,
+    rows: 30,
     cwd,
     env: { ...process.env } as Record<string, string>,
   });

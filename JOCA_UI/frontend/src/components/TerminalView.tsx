@@ -74,11 +74,18 @@ function ClearIcon() {
   );
 }
 
-function CopyIcon() {
+function GitPushIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  );
+}
+
+function GitPullIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <path d="M12 5v14M5 12l7 7 7-7" />
     </svg>
   );
 }
@@ -140,19 +147,22 @@ export default function TerminalView({
     }
   }, [activeId, termRefs]);
 
-  const copyLastCommand = useCallback(() => {
-    if (terminalHistory.length === 0) return;
-    const lastCmd = terminalHistory[terminalHistory.length - 1];
-    navigator.clipboard?.writeText(lastCmd).catch(() => {});
-    // Toast notification can trigger internally or via global state
-  }, [terminalHistory]);
-
   const sendSelectedPath = useCallback(() => {
     if (!activeId || !selectedPath) return;
     onInput(activeId, selectedPath + ' ');
     onClearSelectedPath();
     inputAreaRef.current?.focus();
   }, [activeId, selectedPath, onInput, onClearSelectedPath]);
+
+  const gitPush = useCallback(() => {
+    if (!activeId || !activeSession?.projectId) return;
+    onInput(activeId, 'git push\r');
+  }, [activeId, activeSession?.projectId, onInput]);
+
+  const gitPull = useCallback(() => {
+    if (!activeId || !activeSession?.projectId) return;
+    onInput(activeId, 'git pull\r');
+  }, [activeId, activeSession?.projectId, onInput]);
 
   // Fetch quick commands from project memory
   const quickCommands = useMemo(() => {
@@ -264,16 +274,25 @@ export default function TerminalView({
               </button>
             ))}
             
+            {activeSession?.projectId && (
+              <>
+                <div className="command-bar-divider" />
+                <button type="button" onClick={gitPull} className="quick-command-btn quick-command-btn--git" data-tooltip="git pull">
+                  <GitPullIcon /> Pull
+                </button>
+                <button type="button" onClick={gitPush} className="quick-command-btn quick-command-btn--git" data-tooltip="git push">
+                  <GitPushIcon /> Push
+                </button>
+              </>
+            )}
+
             <div className="command-bar-divider" />
-            
+
             {/* Terminal UX Enhancement Controls */}
             <button type="button" onClick={clearTerminalUI} className="quick-command-btn quick-command-btn--ux" data-tooltip="Limpar ecrã">
               <ClearIcon /> Clear UI
             </button>
-            <button type="button" onClick={copyLastCommand} className="quick-command-btn quick-command-btn--ux" disabled={terminalHistory.length === 0} data-tooltip="Copiar último comando">
-              <CopyIcon /> Copy Last
-            </button>
-            <button type="button" onClick={scrollTerminalToBottom} className="quick-command-btn quick-command-btn--ux" data-tooltip="Descer até ao fim">
+<button type="button" onClick={scrollTerminalToBottom} className="quick-command-btn quick-command-btn--ux" data-tooltip="Descer até ao fim">
               <ArrowDownIcon /> Scroll
             </button>
             <button

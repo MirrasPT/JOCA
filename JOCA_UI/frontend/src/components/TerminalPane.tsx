@@ -59,37 +59,37 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
 
     const term = new Terminal({
       theme: {
-        background: '#111111',
-        foreground: '#f5f5f5',
+        background: '#0c0c0c',
+        foreground: '#e0e0e0',
         cursor: '#ff4500',
-        cursorAccent: '#111111',
-        selectionBackground: 'rgba(255,69,0,0.22)',
-        selectionForeground: '#f5f5f5',
-        black: '#2c2c2c',
+        cursorAccent: '#0c0c0c',
+        selectionBackground: 'rgba(255,69,0,0.18)',
+        selectionForeground: '#ffffff',
+        black: '#1a1a1a',
         red: '#f06a6a',
         green: '#4ade80',
         yellow: '#fbbf24',
         blue: '#60a5fa',
-        magenta: '#a78bfa',
-        cyan: '#67e8f9',
-        white: '#9e9e9e',
-        brightBlack: '#666666',
+        magenta: '#c084fc',
+        cyan: '#22d3ee',
+        white: '#a0a0a0',
+        brightBlack: '#555555',
         brightRed: '#ff8888',
-        brightGreen: '#4ade80',
-        brightYellow: '#fbbf24',
-        brightBlue: '#60a5fa',
-        brightMagenta: '#a78bfa',
+        brightGreen: '#86efac',
+        brightYellow: '#fde68a',
+        brightBlue: '#93c5fd',
+        brightMagenta: '#d8b4fe',
         brightCyan: '#67e8f9',
         brightWhite: '#f5f5f5',
       },
       fontFamily: '"JetBrains Mono", "Fira Code", ui-monospace, monospace',
-      fontSize: 13.5,
-      lineHeight: 1.5,
-      letterSpacing: 0.2,
+      fontSize: 13,
+      lineHeight: 1.4,
+      letterSpacing: 0,
       cursorBlink: true,
       cursorStyle: 'bar',
       cursorWidth: 2,
-      scrollback: 5000,
+      scrollback: 10000,
       allowTransparency: false,
     });
 
@@ -117,11 +117,15 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       onResize(sessionId, term.cols, term.rows);
     });
 
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const ro = new ResizeObserver(() => {
-      if (term.element?.offsetParent !== null) {
-        fitAddon.fit();
-        onResize(sessionId, term.cols, term.rows);
-      }
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (term.element?.offsetParent !== null) {
+          fitAddon.fit();
+          onResize(sessionId, term.cols, term.rows);
+        }
+      }, 80);
     });
     ro.observe(containerRef.current);
     resizeObserver.current = ro;

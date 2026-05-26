@@ -443,14 +443,40 @@ Injecto automaticamente em ~/.claude/. [S/N]
 Se [S], injectar silenciosamente:
 ```bash
 mkdir -p ~/.claude
-# Copiar statusline-command.sh para ~/.claude/
 cp <caminho_joca>/.claude/scripts/statusline-command.sh ~/.claude/statusline-command.sh 2>/dev/null || true
 chmod +x ~/.claude/statusline-command.sh 2>/dev/null || true
 ```
 
+### Launcher (atalho de execucao rapida)
+```
+Queres criar um atalho para abrir o JOCA UI com um clique?
+O atalho inicia os servidores em background e abre o browser automaticamente.
+
+Onde criar o atalho?
+[1] Desktop
+[2] Pasta actual do JOCA
+[3] Outra pasta: ___
+[4] Nao criar
+```
+
+Se [1-3], criar atalho na localizacao escolhida:
+
+**macOS:** copiar o ficheiro `JOCA_UI/JOCA UI.command` para a pasta escolhida.
+```bash
+cp "<caminho_joca>/../JOCA_UI/JOCA UI.command" "<destino>/JOCA UI.command"
+chmod +x "<destino>/JOCA UI.command"
+```
+
+**Windows:** copiar o ficheiro `JOCA_UI/JOCA UI.vbs` para a pasta escolhida.
+```powershell
+Copy-Item "<caminho_joca>\..\JOCA_UI\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
+```
+
+O launcher inicia o backend Express e o frontend Vite em background, abre o browser e fecha a janela de terminal automaticamente (macOS) ou corre de forma invisivel (Windows).
+
 ---
 
-## FASE 4 — Confirmação
+## FASE 4 — Confirmacao
 
 Apresenta o plano completo antes de executar:
 
