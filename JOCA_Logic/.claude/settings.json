@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/track-changes.sh \"$TOOL_INPUT_FILE_PATH\"",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-test-dispatch.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

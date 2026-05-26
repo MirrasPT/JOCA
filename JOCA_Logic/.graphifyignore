@@ -1,0 +1,7 @@
+estado.md
+memory/projects/
+graphify-out/
+node_modules/
+.git/
+__pycache__/
+*.pyc
