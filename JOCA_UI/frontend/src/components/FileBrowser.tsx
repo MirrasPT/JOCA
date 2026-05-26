@@ -28,6 +28,16 @@ function shortName(seg: string) {
   return seg.length > 14 ? seg.slice(0, 12) + '…' : seg;
 }
 
+function splitPath(p: string) {
+  return p.split(/[/\\]/).filter(Boolean);
+}
+
+function joinPath(segments: string[], upTo: number) {
+  const slice = segments.slice(0, upTo);
+  if (slice.length > 0 && /^[A-Z]:$/i.test(slice[0])) return slice.join('\\');
+  return '/' + slice.join('/');
+}
+
 type FileKind =
   | 'fb-dir' | 'fb-up'
   | 'fb-file-code' | 'fb-file-img' | 'fb-file-doc' | 'fb-file-config'
@@ -180,7 +190,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     return () => { if (refreshTimer.current) clearInterval(refreshTimer.current); };
   }, [listing?.path]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const segments = (listing?.path ?? '').split('/').filter(Boolean);
+  const segments = splitPath(listing?.path ?? '');
   const visibleSegs = segments.slice(-4);
   const hasMore = segments.length > 4;
   const effectiveHome = homeDir || '';
@@ -347,7 +357,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
       {favorites.length > 0 && (
         <div className="fb-memory-strip" aria-label="File browser memory">
           {favorites.slice(0, 4).map((item) => (
-            <button key={`fav-${item}`} type="button" onClick={() => navigate(item)} title={item}>fav · {shortName(item.split('/').filter(Boolean).pop() || item)}</button>
+            <button key={`fav-${item}`} type="button" onClick={() => navigate(item)} title={item}>fav · {shortName(splitPath(item).pop() || item)}</button>
           ))}
         </div>
       )}
@@ -363,7 +373,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
         {hasMore && <span className="fb-sep">…</span>}
         {visibleSegs.map((seg, i) => {
           const absIdx = segments.length - visibleSegs.length + i;
-          const fullPath = '/' + segments.slice(0, absIdx + 1).join('/');
+          const fullPath = joinPath(segments, absIdx + 1);
           const isLast = i === visibleSegs.length - 1;
           return (
             <span key={fullPath} style={{ display:'flex', alignItems:'center', gap:2, minWidth:0 }}>

@@ -118,7 +118,7 @@ function LinkIcon() {
 }
 
 function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~');
+  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 export default function TerminalView({

@@ -21,7 +21,7 @@ interface Props {
 }
 
 function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~');
+  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function ChevronsRight() {

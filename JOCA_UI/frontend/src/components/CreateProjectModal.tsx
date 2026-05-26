@@ -36,11 +36,11 @@ const PROJECT_COLORS = [
 ];
 
 function shortPath(path: string) {
-  return path.replace(/^\/Users\/[^/]+/, '~');
+  return path.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function basename(path: string) {
-  const parts = path.split('/').filter(Boolean);
+  const parts = path.split(/[/\\]/).filter(Boolean);
   return parts[parts.length - 1] || '';
 }
 

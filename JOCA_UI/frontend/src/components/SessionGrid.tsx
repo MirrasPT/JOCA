@@ -71,7 +71,7 @@ function PlayIcon() {
 }
 
 function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~');
+  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function ProjectsView({ projects, sessions, onOpenProject, onProjectsChange }: {

@@ -119,7 +119,7 @@ const HOME = os.homedir();
 
 const IS_WINDOWS = process.platform === 'win32';
 const SHELL = IS_WINDOWS
-  ? (process.env.COMSPEC || 'powershell.exe')
+  ? 'powershell.exe'
   : (process.env.SHELL || '/bin/zsh');
 const BUFFER_MAX = 50_000;
 const IDLE_DEBOUNCE_MS = 1500;
@@ -318,7 +318,7 @@ function runShell(command: string) {
 }
 
 function commandPath(binary: string) {
-  const cmd = IS_WINDOWS ? `where ${binary}` : `command -v ${binary}`;
+  const cmd = IS_WINDOWS ? `where.exe ${binary}` : `command -v ${binary}`;
   const result = runShell(cmd);
   return (result && !result.toLowerCase().includes('not found') && !result.toLowerCase().includes('could not find'))
     ? result.split(/\r?\n/)[0]
@@ -429,7 +429,7 @@ function ensureNodePtyHelpersExecutable() {
 ensureNodePtyHelpersExecutable();
 
 function findClaude(): string {
-  const cmd = IS_WINDOWS ? 'where claude' : 'which claude';
+  const cmd = IS_WINDOWS ? 'where.exe claude' : 'which claude';
   try { return execSync(cmd, { encoding: 'utf8' }).trim().split(/\r?\n/)[0]; }
   catch { return 'claude'; }
 }
