@@ -1,6 +1,6 @@
 ---
 name: transactional-email
-description: Router skill for transactional email. Routes to the appropriate provider sub-skill. Covers Postmark, Resend, and email deliverability patterns. Use when sending emails, setting up email infrastructure, handling bounces, or debugging email deliverability.
+description: "Router skill for transactional email. MUST be invoked when the user says: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf. SHOULD also invoke when: dkim, dmarc, email template."
 triggers: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf, dkim, dmarc, email template
 ---
 

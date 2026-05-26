@@ -1,6 +1,6 @@
 ---
 name: task-breakdown
-description: "Use when decomposing large features into implementable tasks with dependencies and estimates."
+description: "Decomposing large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo. SHOULD also invoke when: how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas."
 triggers: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo, how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas, break into tasks, TASKS.md, work breakdown, WBS, priorizar, prioritize, RICE
 ---
 # Task Breakdown

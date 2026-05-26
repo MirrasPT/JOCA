@@ -112,7 +112,10 @@ function SessionItem({
         `session-item--${session.status}`,
         indented ? 'session-item--indented' : '',
       ].filter(Boolean).join(' ')}
+      role="button"
+      tabIndex={0}
       onClick={() => !editing && !confirming && onSelect()}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !editing && !confirming) { e.preventDefault(); onSelect(); } }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirming(false); }}
       aria-current={isActive ? 'page' : undefined}

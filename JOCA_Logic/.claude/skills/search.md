@@ -1,6 +1,6 @@
 ---
 name: search-engine
-description: Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. Use when adding search to an application, configuring search indexes, implementing faceted filtering, instant search dropdowns, or choosing between Meilisearch/Typesense/Algolia.
+description: "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. MUST be invoked when the user says: search, meilisearch, typesense, algolia, full-text search, faceted search, instant search, search index. SHOULD also invoke when: search engine, typo tolerance."
 triggers: search, meilisearch, typesense, algolia, full-text search, faceted search, instant search, search index, search engine, typo tolerance
 ---
 

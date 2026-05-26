@@ -1,6 +1,6 @@
 ---
 name: prd
-description: Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope
+description: "Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope. MUST be invoked when the user mentions: Gera, PRD, Claude Code."
 metadata:
   type: skill
   category: base

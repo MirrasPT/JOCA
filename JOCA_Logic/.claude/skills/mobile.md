@@ -1,6 +1,6 @@
 ---
 name: mobile
-description: "Use when building mobile applications, responsive design, PWA, or mobile-specific UI patterns."
+description: "Building mobile applications, responsive design, PWA, or mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also invoke when: notch, dynamic island, PWA, app móvel, mobile app, tablet."
 triggers: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area, notch, dynamic island, PWA, app móvel, mobile app, tablet, breakpoint, viewport, media query, gesto, gesture, pull to refresh, adaptativo, adaptive, hamburger menu, drawer, off-canvas, mobile navigation, mobile menu, thumb zone, reachability, iOS mockup, Android mockup, device frame, app design, mobile design, mobile layout, small screen
 ---
 # Mobile — Responsive & Mobile Specialist

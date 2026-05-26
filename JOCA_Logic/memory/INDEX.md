@@ -4,7 +4,7 @@
 - [soul.md](soul.md) — Personality engine: drives, decision filters, motivational states, user alignment. Foundation for all agents.
 
 ## Projects
-<!-- Populated by /save — one entry per active project -->
+- [meu-site-github.md](projects/meu-site-github.md) — Portfolio pessoal Node.js + Express + SQLite + Vanilla JS + GSAP
 
 ## Feedback
 <!-- Populated by /feedback-joca — patterns and issues detected -->

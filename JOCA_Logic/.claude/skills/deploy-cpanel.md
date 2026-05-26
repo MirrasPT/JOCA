@@ -1,6 +1,6 @@
 ---
 name: deploy-cpanel
-description: "Use when deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments."
+description: "Deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager."
 triggers: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples
 ---
 # Deploy — cPanel

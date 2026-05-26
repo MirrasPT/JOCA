@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync, execFileSync, spawn } from 'child_process';
 
 interface Session {
   id: string;
@@ -224,16 +224,17 @@ function validateToolkitContent(type: string, content: string) {
 }
 
 function sanitizeToolkitName(name: string) {
-  const safe = name.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
+  const safe = name.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[.\-]+|[.\-]+$/g, '');
   if (!safe) throw new Error('Invalid name');
   return safe;
 }
 
 function sanitizeToolkitCategory(category?: string) {
   return (category || 'created-skills')
-    .split('/')
+    .split(/[/\\]/)
+    .filter(Boolean)
     .map((segment) => sanitizeToolkitName(segment))
-    .join('/');
+    .join(path.sep);
 }
 
 
@@ -391,7 +392,7 @@ function getCliTools(): CliToolStatus[] {
     }
 
     if (installed && tool.id === 'codex') {
-      const output = runShell('codex login status 2>&1');
+      const output = runShell('codex login status');
       authStatus = output.toLowerCase().includes('logged in') ? 'logged-in' : 'not-logged-in';
       authDetail = output || authDetail;
     }
@@ -399,7 +400,7 @@ function getCliTools(): CliToolStatus[] {
     if (installed && tool.id === 'agy') {
       const settingsPath = path.join(HOME, '.gemini', 'antigravity-cli', 'settings.json');
       const hasSettings = fs.existsSync(settingsPath);
-      authStatus = hasSettings ? 'unknown' : 'unknown';
+      authStatus = 'unknown';
       authDetail = hasSettings
         ? `Settings found at ${settingsPath}. Run agy to verify browser sign-in if needed.`
         : 'Run agy. If no saved session exists, it opens Google Sign-In.';
@@ -434,7 +435,7 @@ function ensureNodePtyHelpersExecutable() {
     if (!fs.existsSync(prebuildsDir)) return;
     for (const platformDir of fs.readdirSync(prebuildsDir)) {
       const helperPath = path.join(prebuildsDir, platformDir, 'spawn-helper');
-      if (fs.existsSync(helperPath)) fs.chmodSync(helperPath, 0o755);
+      if (fs.existsSync(helperPath) && !IS_WINDOWS) fs.chmodSync(helperPath, 0o755);
     }
   } catch (e) {
     console.warn('Could not chmod node-pty spawn-helper:', e);
@@ -598,12 +599,14 @@ app.get('/projects', (_req, res) => {
 app.post('/projects', express.json(), (req, res) => {
   const { name, path: p, color } = req.body as { name?: string; path: string; color?: string };
   if (!p) return res.status(400).json({ error: 'Missing path' });
-  if (!fs.existsSync(p)) return res.status(400).json({ error: 'Path does not exist' });
+  const resolvedP = path.resolve(p);
+  if (!resolvedP.startsWith(HOME)) return res.status(400).json({ error: 'Path must be inside home directory' });
+  if (!fs.existsSync(resolvedP)) return res.status(400).json({ error: 'Path does not exist' });
   const projects = loadProjects();
   if (projects.find((pr) => pr.path === p)) return res.status(409).json({ error: 'Already exists' });
   const project: Project = {
     id: randomUUID(),
-    name: name?.trim() || p.split('/').pop() || p,
+    name: name?.trim() || path.basename(p) || p,
     path: p,
     color: color?.trim() || undefined,
   };
@@ -727,9 +730,14 @@ app.post('/projects/:id/toolkit', express.json(), (req, res) => {
 
   const projectClaudeDir = path.join(p.path, '.claude');
 
+  const safeCategory = sanitizeToolkitCategory(category);
   const itemPath = type === 'skills'
-    ? path.join(projectClaudeDir, 'skills', category || 'created-skills', safeName, 'SKILL.md')
+    ? path.join(projectClaudeDir, 'skills', safeCategory, safeName, 'SKILL.md')
     : path.join(projectClaudeDir, 'agents', `${safeName}.md`);
+
+  if (!itemPath.startsWith(projectClaudeDir)) {
+    return res.status(400).json({ error: 'Invalid path' });
+  }
 
   if (fs.existsSync(itemPath)) {
     return res.status(409).json({ error: 'Item already exists' });
@@ -761,6 +769,17 @@ Instruções para o agente ${name} no projeto ${p.name}.
 
   fs.writeFileSync(itemPath, boilerplateContent, 'utf8');
   res.json({ ok: true, path: itemPath, items: collectToolkitItems(projectClaudeDir) });
+});
+
+app.get('/rate-limits', (_req, res) => {
+  const limitsFile = path.join(os.tmpdir(), 'joca-ui', 'rate-limits.json');
+  try {
+    if (!fs.existsSync(limitsFile)) return res.json(null);
+    const data = JSON.parse(fs.readFileSync(limitsFile, 'utf8'));
+    res.json(data);
+  } catch {
+    res.json(null);
+  }
 });
 
 app.get('/runtime', (_req, res) => {
@@ -997,7 +1016,7 @@ app.get('/file-diff', (req, res) => {
     try { root = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf8' }).trim(); } catch {}
     if (!root) return res.json({ diff: '', message: 'No git repository found for this path' });
     const relative = path.relative(root, filePath);
-    const diff = execSync(`git diff -- "${relative.replace(/"/g, '\\"')}"`, { cwd: root, encoding: 'utf8', maxBuffer: 5_000_000 });
+    const diff = execFileSync('git', ['diff', '--', relative], { cwd: root, encoding: 'utf8', maxBuffer: 5_000_000 });
     res.json({ diff, root, relative });
   } catch (e) {
     res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
@@ -1057,12 +1076,14 @@ app.patch('/toolkit-item', express.json({ limit: '2mb' }), (req, res) => {
 
 app.delete('/toolkit-item', express.json(), (req, res) => {
   try {
-    const { path: itemPathRaw } = req.body as { path: string };
+    const { path: itemPathRaw, type } = req.body as { path: string; type?: string };
     const itemPath = assertClaudePath(itemPathRaw);
     if (!fs.existsSync(itemPath)) return res.status(404).json({ error: 'Not found' });
-    fs.rmSync(path.dirname(itemPath).endsWith(path.sep + 'commands') || path.dirname(itemPath).endsWith(path.sep + 'agents')
-      ? itemPath
-      : path.dirname(itemPath), { recursive: true, force: true });
+    const isFlatFile = type === 'commands' || type === 'agents';
+    fs.rmSync(
+      isFlatFile ? itemPath : path.dirname(itemPath),
+      { recursive: true, force: true },
+    );
     refreshMemoryIndexSnapshot();
     res.json({ ok: true, items: collectToolkitItems() });
   } catch (e) {
@@ -1070,11 +1091,14 @@ app.delete('/toolkit-item', express.json(), (req, res) => {
   }
 });
 
+const UPLOAD_ALLOWED_EXTS = new Set(['png','jpg','jpeg','gif','webp','svg','bmp','ico','pdf','txt','md','json','csv']);
+
 app.post('/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
-  const ext = (req.headers['x-file-ext'] as string) || 'png';
+  const ext = ((req.headers['x-file-ext'] as string) || 'png').replace(/[^\w-]/g, '').toLowerCase();
+  if (!UPLOAD_ALLOWED_EXTS.has(ext)) return res.status(400).json({ error: `Extension .${ext} not allowed` });
   const originalName = (req.headers['x-file-name'] as string) || '';
   const destDir = path.join(os.homedir(), 'Desktop');
-  const filename = safeDesktopFilename(originalName, ext.replace(/[^\w-]/g, '') || 'bin');
+  const filename = safeDesktopFilename(originalName, ext || 'bin');
   const filepath = path.join(destDir, filename);
   fs.mkdirSync(destDir, { recursive: true });
   fs.writeFileSync(filepath, req.body as Buffer);

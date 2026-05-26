@@ -1,6 +1,6 @@
 ---
 name: anima
-description: "Use when adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. Triggered by: GSAP, ScrollTrigger, Lottie, animation, motion."
+description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animação, animation, gsap, lottie, scroll animation, page transition, hover animation, animação de ícone. SHOULD also invoke when: animação de ilustração, scroll trigger, motion, animate, transição, efeito de entrada."
 triggers: animação, animation, gsap, lottie, scroll animation, page transition, hover animation, animação de ícone, animação de ilustração, scroll trigger, motion, animate, transição, efeito de entrada, animar, micro-interação, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequência animada, loading animation, skeleton, shimmer, morphing, SVG animation
 ---
 # Anima — Animation Specialist

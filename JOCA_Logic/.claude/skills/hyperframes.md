@@ -1,6 +1,6 @@
 ---
 name: hyperframes
-description: Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. Use when building HTML-based video content, syncing captions to audio, generating TTS narration, creating audio-reactive animation, or adding scene transitions. Authoritative skill for HyperFrames — covers composition authoring, CLI workflow, quality checks, and media preprocessing.
+description: "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync. SHOULD also invoke when: voiceover, tts, narração, transição de cena, scene transition, audio-reactive."
 triggers: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync, voiceover, tts, narração, transição de cena, scene transition, audio-reactive, kinetic type, product launch video, vídeo de lançamento, fazer vídeo com html
 ---
 

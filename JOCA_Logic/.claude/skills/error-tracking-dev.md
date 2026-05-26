@@ -1,6 +1,6 @@
 ---
 name: error-tracking-dev
-description: Development error tracking and debugging for Laravel. Debugbar (queries, N+1, timeline, memory), Telescope (requests, jobs, mail, cache, dumps), Ignition (error pages, solutions), Ray (desktop debugger), Log Viewer, Clockwork, Pail. Activar no inicio do desenvolvimento para tracking continuo.
+description: "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug."
 triggers: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1, slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug, debug bar, barra debug, ver queries, ver logs, painel debug, erros dev, errors dev, dump, dd, stack trace dev
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: remotion
-description: Create programmatic videos with React and Remotion. Use when building data-driven videos, templated batch video, lyric videos, music visualizers, or any video requiring React component composition. Covers useCurrentFrame, interpolate, spring, Sequence, assets, and AI voiceover integration (MiniMax TTS + Edge TTS fallback). For HTML-based video (no React required) → hyperframes skill.
+description: "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring animation. SHOULD also invoke when: lyric video, music visualizer, visualizador de música, batch video, data-driven video, vídeo dados."
 triggers: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring animation, lyric video, music visualizer, visualizador de música, batch video, data-driven video, vídeo dados, vídeo template, criar vídeo react
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: c4-diagram
-description: "Use when creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format."
+description: "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram. SHOULD also invoke when: arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid."
 triggers: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram, arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid
 ---
 # C4 Diagram

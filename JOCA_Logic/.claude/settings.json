@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/track-changes.sh \"$TOOL_INPUT_FILE_PATH\"",
+            "command": "node .claude/hooks/track-changes.js \"$TOOL_INPUT_FILE_PATH\"",
             "async": true
           }
         ]
@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/auto-test-dispatch.sh"
+            "command": "node .claude/hooks/auto-test-dispatch.js"
           }
         ]
       }

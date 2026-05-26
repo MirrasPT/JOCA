@@ -510,7 +510,7 @@ export default function App() {
   
   const rightSlotExpanded = rightPanel !== null;
   const expandedRightSlotSize = Math.round(Math.max(408, Math.min(viewportWidth * 0.32, 424)));
-  const rightSlotSize = rightSlotExpanded ? `${expandedRightSlotSize}px` : '72px';
+  const rightSlotSize = rightSlotExpanded ? `${expandedRightSlotSize}px` : '54px';
 
   useEffect(() => {
     if (contextProjectId) updateProjectMemory(contextProjectId, { rightPanel });
@@ -592,6 +592,8 @@ export default function App() {
             }}
             termRefs={termRefs}
             onNewSession={handleNewSession}
+            jocaItems={jocaItems}
+            onLoadJocaItems={loadCommandPalette}
           />
         )}
       </div>

@@ -1,6 +1,6 @@
 ---
 name: queues
-description: Router skill for job queues and background processing. Routes to BullMQ for Node.js/Redis queues, or provides general queue guidance. Use when setting up background jobs, task queues, job scheduling, workers, or choosing between queue solutions.
+description: "Router skill for job queues and background processing. MUST be invoked when the user says: queue, bullmq, background jobs, worker, job processing, task queue, inngest, trigger.dev. SHOULD also invoke when: celery, sidekiq, redis queue."
 triggers: queue, bullmq, background jobs, worker, job processing, task queue, inngest, trigger.dev, celery, sidekiq, redis queue
 ---
 

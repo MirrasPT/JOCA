@@ -1,6 +1,6 @@
 ---
 name: planning
-description: "Use when planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. Triggered by: plan, architecture, migrate, restructure."
+description: "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planear, planning, planeia o projecto, project planning, como comecar, how to start, documentacao do projecto, project documentation. SHOULD also invoke when: antes de comecar, before coding, setup do projecto, project setup, iniciar projecto, kick off."
 triggers: planear, planning, planeia o projecto, project planning, como comecar, how to start, documentacao do projecto, project documentation, antes de comecar, before coding, setup do projecto, project setup, iniciar projecto, kick off
 ---
 # Planning — Router

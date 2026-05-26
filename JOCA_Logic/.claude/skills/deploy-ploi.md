@@ -1,6 +1,6 @@
 ---
 name: deploy-ploi
-description: "Use when deploying via Ploi.io, managing servers, or configuring Ploi deployments."
+description: "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD also invoke when: site setup, deploy script, zero downtime, atomic deploy, production, producao."
 triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
 ---
 # Deploy — Ploi.io

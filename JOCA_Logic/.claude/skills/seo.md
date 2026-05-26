@@ -1,6 +1,6 @@
 ---
 name: seo
-description: "Use for anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. Triggers: 'SEO audit', 'technical SEO', 'why am I not ranking', 'traffic dropped', 'lost rankings', 'crawl errors', 'core web vitals', 'hreflang', 'AI SEO', 'AEO', 'GEO', 'LLMO', 'AI Overviews', 'optimize for ChatGPT', 'optimize for Perplexity', 'AI citations', 'show up in AI answers', 'on-page SEO', 'meta tags', 'SEO health check'."
+description: "Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. MUST be invoked when the user says: SEO audit, technical SEO, why am I not ranking, traffic dropped, lost rankings, crawl errors."
 metadata:
   version: 1.0.0
   merged_from: [ai-seo v1.2.0, seo-audit v1.2.0]

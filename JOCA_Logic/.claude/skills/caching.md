@@ -1,6 +1,6 @@
 ---
 name: caching
-description: "Use when implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns."
+description: "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache. SHOULD also invoke when: HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags."
 triggers: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache, HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags, cache stampede, thundering herd, TTL, cache warming, config:cache, route:cache, opcache, performance cache, lento, slow, rapido, fast, optimizar, optimize
 ---
 # Caching

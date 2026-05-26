@@ -12,10 +12,12 @@ Segue as fases abaixo uma de cada vez — aguarda resposta antes de avançar.
 ## Verificação inicial
 
 ```bash
+node --version 2>/dev/null || echo "node_unavailable"
 graphify --version 2>/dev/null || echo "graphify_unavailable"
 ```
 
-Se graphify não disponível: avisar "Corre `/install` primeiro para configurar as dependências." e parar.
+Se node não disponível: avisar "Node.js é necessário. Instala primeiro." e parar.
+Se graphify não disponível: avisar que knowledge graph não estará disponível, mas continuar (é opcional).
 
 ---
 
@@ -371,11 +373,12 @@ SKILLS RELEVANTES: [lista]
 SKILLS NOVAS: [lista — se gaps aprovados]
 MCPs PROJECTO: [lista]
 
-FICHEIROS A CRIAR
-  CLAUDE.md                          ← navegação de código
+FICHEIROS A CRIAR/ACTUALIZAR
+  CLAUDE.md                          ← navegação de código + projecto info
   PRD.md                             ← se aprovado na Fase 4
   .mcp.json                          ← se MCPs de projecto
   [joca]/memory/projects/[nome].md   ← entrada de memória
+  ~/CLAUDE.md                        ← adicionar à tabela de projectos activos
 ```
 
 `AskUserQuestion`:
@@ -395,10 +398,10 @@ options:
 
 Gerar na raiz do projecto com contexto recolhido. Adicionar referência no CLAUDE.md do projecto e na entrada de memória.
 
-### 1. Correr graphify (se não correu ainda)
+### 1. Correr graphify (se disponível e não correu ainda)
 
 ```bash
-python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify indisponível — a saltar knowledge graph"
 ```
 
 Se WordPress:
@@ -490,13 +493,15 @@ Para cada skill nova confirmada.
 ### 7. Relatório final
 
 ```
-✓ graphify actualizado (Python API)
 ✓ CLAUDE.md do projecto criado/actualizado
 ✓ PRD.md gerado — se aprovado
 ✓ .mcp.json configurado — se aplicável
 ✓ Memória: [nome-projecto].md criado (directorio: [caminho])
-✓ ~/CLAUDE.md actualizado
+✓ ~/CLAUDE.md actualizado (tabela de projectos)
+[✓/○] graphify actualizado — se disponível
 
-Pronto. Usa /resume no início de cada sessão neste projecto.
-Para incluir no grafo global: python3 [joca]/.claude/scripts/graphify-global.py
+Pronto.
+→ /resume no início de cada sessão
+→ /save para guardar estado e actualizar memória
+→ JOCA_UI mostra rate limits na barra do terminal (requer statusline configurada via /install)
 ```

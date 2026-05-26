@@ -1,6 +1,6 @@
 ---
 name: tech-spec
-description: Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). Data model with Mermaid ERD, API surface (endpoints/events), component breakdown, sequence diagrams for critical flows, integration points, testing strategy, definition of done. Activar apos PRD aprovado, antes de codificar.
+description: "Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
 triggers: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
 ---
 

@@ -5,6 +5,9 @@ set "DIR=%~dp0"
 set "BACKEND_PORT=7371"
 set "FRONTEND_PORT=7372"
 set "URL=http://localhost:%FRONTEND_PORT%"
+set "LOG_DIR=%TEMP%\joca-ui"
+
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
 :: Detect sibling JOCA_Logic
 if exist "%DIR%..\JOCA_Logic\.claude" (
@@ -31,27 +34,34 @@ echo Starting JOCA UI...
 
 :: Build backend
 cd /d "%DIR%backend"
-call npm run build >nul 2>&1
+call npm run build >"%LOG_DIR%\backend-build.log" 2>&1
 if !errorlevel! neq 0 (
-    echo ERROR: Backend build failed
+    echo ERROR: Backend build failed. See %LOG_DIR%\backend-build.log
     exit /b 1
 )
 
-:: Start backend
-set "PORT=%BACKEND_PORT%"
-start /b "" cmd /c "set PORT=%BACKEND_PORT%&& set JOCA_LOGIC_PATH=!JOCA_LOGIC_PATH!&& node dist/server.js >nul 2>&1"
+:: Start backend (write launcher to avoid nested quoting)
+set "BACKEND_LAUNCHER=%LOG_DIR%\run-backend.bat"
+> "!BACKEND_LAUNCHER!" echo @set PORT=%BACKEND_PORT%
+>>"!BACKEND_LAUNCHER!" echo @set JOCA_LOGIC_PATH=!JOCA_LOGIC_PATH!
+>>"!BACKEND_LAUNCHER!" echo @cd /d "%DIR%backend"
+>>"!BACKEND_LAUNCHER!" echo @node dist/server.js ^>^>"!LOG_DIR!\backend.log" 2^>^&1
+start /b "" cmd /c "!BACKEND_LAUNCHER!"
 echo Backend started on port %BACKEND_PORT%
 
 :: Wait for backend to be ready
 timeout /t 2 /nobreak >nul
 
 :: Start frontend
-cd /d "%DIR%frontend"
-start /b "" cmd /c "npx vite --host 127.0.0.1 --port %FRONTEND_PORT% >nul 2>&1"
+set "FRONTEND_LAUNCHER=%LOG_DIR%\run-frontend.bat"
+> "!FRONTEND_LAUNCHER!" echo @cd /d "%DIR%frontend"
+>>"!FRONTEND_LAUNCHER!" echo @npx vite --host 127.0.0.1 --port %FRONTEND_PORT% ^>^>"!LOG_DIR!\frontend.log" 2^>^&1
+start /b "" cmd /c "!FRONTEND_LAUNCHER!"
 echo Frontend started on port %FRONTEND_PORT%
 
 echo.
 echo JOCA UI running at %URL%
+echo Logs: %LOG_DIR%
 echo To stop: stop.bat
 
 timeout /t 3 /nobreak >nul

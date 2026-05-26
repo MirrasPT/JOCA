@@ -52,7 +52,7 @@ export default function RightWorkspace({
       style={{ width, minWidth: width, maxWidth: width, flex: `0 0 ${width}` }}
     >
       {panel && (
-        <div className="right-panel-content" key={panel}>
+        <div className="right-panel-content" key={panel} id="right-panel" role="tabpanel" aria-labelledby={`tab-${panel}`}>
           {panel === 'files' ? (
             <FilesView onPastePath={onPastePath} onPreview={onPreview} initialPath={activeSession?.cwd ?? jocaLogicInfo?.path} selectedPath={selectedPath} onClose={() => onSetPanel(null)} />
           ) : panel === 'toolkit' ? (
@@ -83,6 +83,7 @@ export default function RightWorkspace({
         {(['files', 'toolkit', 'settings'] as const).map((tab) => (
           <button
             key={tab}
+            id={`tab-${tab}`}
             role="tab"
             className={`right-tab-btn right-tab-btn--${tab} ${panel === tab ? 'active' : ''}`}
             type="button"
@@ -90,9 +91,11 @@ export default function RightWorkspace({
               toggle(tab);
               if (tab === 'toolkit') onLoadToolkit();
             }}
-            aria-label={tab}
+            aria-label={`Open ${tab} panel`}
             aria-selected={panel === tab}
-            title={tab}
+            aria-expanded={panel === tab}
+            aria-controls="right-panel"
+            title={tab.charAt(0).toUpperCase() + tab.slice(1)}
           >
             <RightTabIcon name={tab} />
             <span>{tab}</span>

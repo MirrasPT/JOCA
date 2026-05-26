@@ -1,6 +1,6 @@
 ---
 name: video
-description: Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. Cobre AI generation (Veo, Runway, Kling, Pika), AI avatars (HeyGen, Synthesia), editing/repurposing (Descript, Opus Clip), e HTML→Video pipeline. Para composições HTML → hyperframes skill. Para vídeo React programático → remotion skill.
+description: "Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
 triggers: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, fazer vídeo, criar vídeo
 ---
 

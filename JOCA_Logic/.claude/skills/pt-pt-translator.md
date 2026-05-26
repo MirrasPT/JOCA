@@ -1,6 +1,6 @@
 ---
 name: pt-pt-translator
-description: "Use when translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces."
+description: "Translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces. MUST be invoked when the user mentions: European Portuguese, PT."
 argument-hint: "[content or file path] [--register tu|voce|senhor|auto]"
 when_to_use: |
   - Translating UI copy (buttons, labels, errors, toasts, empty states)

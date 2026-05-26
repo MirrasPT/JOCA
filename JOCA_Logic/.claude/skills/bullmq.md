@@ -1,6 +1,6 @@
 ---
 name: bullmq
-description: Implement Redis-based job queues with BullMQ for Node.js. Covers queue setup, workers, job scheduling, delayed jobs, retry strategies with exponential backoff, dead letter queues, concurrency control, rate limiting, job prioritization, monitoring, and graceful shutdown. Use when setting up background jobs, task queues, job processing, scheduled tasks, or worker processes with BullMQ.
+description: "Implement Redis-based job queues with BullMQ for Node.js. MUST be invoked when the user says: bullmq, bull mq, job queue, task queue, background jobs, worker, redis queue, job processing. SHOULD also invoke when: scheduled jobs, delayed jobs, job retry, dead letter queue, queue monitoring."
 triggers: bullmq, bull mq, job queue, task queue, background jobs, worker, redis queue, job processing, scheduled jobs, delayed jobs, job retry, dead letter queue, queue monitoring
 ---
 

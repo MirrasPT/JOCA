@@ -1,6 +1,6 @@
 ---
 name: brand-positioning
-description: Help founders and marketers nail their positioning. Use when someone mentions "positioning," "value proposition," "who is this for," "how do I describe my product," "messaging," "ICP," "ideal customer," "messaging framework," "competitive differentiation," "what makes us different," or is struggling to articulate what makes their product different.
+description: "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning,, value proposition,, who is this for,, how do I describe my product,, messaging,, ICP,."
 ---
 
 # Brand Positioning

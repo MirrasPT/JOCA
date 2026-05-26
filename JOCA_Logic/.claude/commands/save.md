@@ -1,81 +1,148 @@
-# /save — Guardar estado da sessão
+# /save — Guardar sessao + feedback do projecto
 
-Corre no fim de cada sessão de trabalho. Actualiza a memória do projecto e os knowledge graphs.
+Corre no fim de cada sessao. Guarda estado, actualiza memoria, captura feedback do projecto e do JOCA. Zero perguntas ao utilizador — tudo inferido da sessao.
 
-## Passos
+---
 
-### 1. Identificar projecto actual
-Verificar em que pasta estamos. Encontrar `JOCA/memory/projects/<nome>.md`.
+## PASSO 1 — Identificar projecto
 
-### 2. Perguntar ao utilizador (se não for óbvio)
-- O que foi feito nesta sessão?
-- Alguma decisão importante tomada?
-- O que fica pendente?
+Detectar directorio actual. Resolver `memory/projects/<nome>.md`.
+Se nao existir, criar entrada minima com frontmatter.
 
-### 3. Actualizar `JOCA/memory/projects/<nome>.md`
-Actualizar as secções:
-- **Estado actual** — descrição breve do estado presente
-- **Decisões tomadas** — append com data
-- **Pendente** — substituir com lista actual
+---
 
-### 4. Actualizar knowledge graphs
+## PASSO 2 — Guardar estado da sessao
 
-```bash
-# Graph do projecto (directório actual do projecto)
-python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))"
+Actualizar `memory/projects/<nome>.md`:
 
-# Graph do JOCA
-python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
-```
+| Seccao | Accao |
+|--------|-------|
+| **Estado actual** | Substituir com descricao breve do estado presente |
+| **Decisoes tomadas** | Append com data `YYYY-MM-DD` |
+| **Pendente** | Substituir com lista actual |
+| **Ultima sessao** | Data + resumo de 1 linha |
 
-Nota: o CLI `graphify` tem bugs (sintaxe `graphify . --update` não existe; `graphify update <path>` falha em projectos HTML-only). Usar sempre a API Python directamente.
+---
 
-Ambos correm incondicionalmente no fim de cada sessão.
+## PASSO 3 — Feedback do projecto (inline, substitui /feedback-projeto)
 
-### 5. Auto-feedback (implícito)
+Analisar a conversa e extrair aprendizagens com impacto em sessoes futuras:
 
-Antes de fechar, capturar automaticamente:
+### A. Terminologia clarificada
+Expressoes que causaram ambiguidade, com definicao correcta.
 
-**Feedback do projecto** — analisar a sessão e identificar:
-- O que correu mal (erros, becos sem saída, repetições)
-- O que correu bem (abordagens que funcionaram de primeira)
-- Padrões detectados (ex: "sempre que toco em X, quebra Y")
+### B. Regras e preferencias descobertas
+Constraints ou comportamentos que se revelaram importantes.
 
-Se encontrar algo relevante: guardar em `JOCA/memory/feedback/auto-<data>.md` com frontmatter:
+### C. Limitacoes de ferramentas
+Limitacoes documentaveis de modelos, MCPs, ou APIs que afectaram o resultado.
+
+### D. Templates ou formatos validados
+Estruturas testadas e aprovadas durante a sessao.
+
+### E. Correccoes de workflow
+Passos do processo do projecto que foram corrigidos ou melhorados.
+
+**Destinos:**
+- Glossarios, regras, templates, limitacoes → append cirurgico ao `CLAUDE.md` do projecto (seccao relevante)
+- Contexto estrutural novo → append a `memory/projects/<nome>.md`
+
+**Regra:** so escrever o que a sessao trouxe de novo. Edicoes cirurgicas — nao reescrever ficheiros inteiros. Se nao ha nada relevante, saltar este passo silenciosamente.
+
+---
+
+## PASSO 4 — Feedback do JOCA (auto-extract, alimenta /upgrade-joca)
+
+Verificar se a sessao revelou gaps no toolkit JOCA:
+
+| Categoria | Exemplos |
+|-----------|----------|
+| `workflow-gap` | Passo em falta num processo que causou retrabalho |
+| `doc-gap` | Skill/comando documentado diferente do que realmente faz |
+| `missing-skill` | Skill ou comando que devia existir e nao existe |
+| `skill-improvement` | Skill existente que precisa de melhorias |
+| `tool-reliability` | MCP ou ferramenta que falhou, timeout, bloqueado |
+| `discovery-gap` | Info que devia ser pedida upfront mas nao foi |
+| `command-improvement` | Comando existente que precisa de ajuste |
+
+Se encontrar items, escrever `memory/feedback/session-<YYYY-MM-DD>-<HH-MM>.md` com frontmatter:
+
 ```yaml
 ---
-name: auto-feedback-<data>
-type: feedback
-source: auto-extracted
+type: feedback-joca
+source: auto-extracted-by-save
 session_date: <YYYY-MM-DD>
+project: <nome>
 ---
 ```
 
-**Feedback do JOCA** — verificar se alguma skill/agente:
-- Foi invocado incorrectamente (trigger errado)
-- Deveria ter sido invocado mas não foi
-- Produziu resultado insuficiente
+Cada entry com: `**Categoria:** ... | **Severidade:** critical/high/medium/low | **Descricao:** ... | **Componente afectado:** ... | **Fix sugerido:** ...`
 
-Se detectar: append a `JOCA/memory/feedback/joca-patterns.md` (criado se não existir).
+Se nao ha nada relevante, nao criar ficheiro. Nunca perguntar ao utilizador.
 
-Regra: NUNCA perguntar ao utilizador sobre feedback — extrair implicitamente da sessão. Se não houver nada relevante, não criar ficheiro.
+---
 
-### 6. Recompilar bridges (se JOCA alterado)
-
-Se ficheiros em `.claude/skills/`, `.claude/agents/`, ou `.claude/commands/` foram modificados nesta sessão:
+## PASSO 5 — Knowledge graphs (opcional, nao bloqueante)
 
 ```bash
-bash .claude/scripts/compile-bridges.sh 2>/dev/null
+# Tentar rebuild — se graphify nao disponivel, saltar silenciosamente
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))" 2>/dev/null || true
+python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || true
 ```
 
-### 7. Confirmar
+Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos.
+
+---
+
+## PASSO 6 — Recompilar bridges (se JOCA alterado)
+
+Se ficheiros em `.claude/skills/`, `.claude/agents/`, ou `.claude/commands/` foram modificados nesta sessao:
+
+```bash
+bash .claude/scripts/compile-bridges.sh 2>/dev/null || true
+```
+
+---
+
+## PASSO 7 — Actualizar ~/CLAUDE.md (se aplicavel)
+
+Se a sessao trouxe informacao nova sobre o projecto (novo directorio, mudanca de stack, novo status), actualizar a tabela de projectos em `~/CLAUDE.md`.
+
+---
+
+## PASSO 8 — Relatorio
 
 ```
-✓ Memória actualizada — JOCA/memory/projects/<nome>.md
-✓ Graph do projecto actualizado
-✓ Graph JOCA actualizado
-✓ Auto-feedback capturado (N padrões)
-[✓ Bridges recompilados]
+SAVE — <nome-projecto>
+═══════════════════════
 
-Sessão guardada.
+Estado:
+  ✓ memory/projects/<nome>.md actualizado
+  ✓ Decisoes: N registadas | Pendentes: N items
+
+Feedback projecto:
+  ✓ CLAUDE.md — N actualizacoes (glossario, regras, templates)
+  ✓ memory/projects/<nome>.md — contexto novo adicionado
+  — Sem aprendizagens novas nesta sessao
+
+Feedback JOCA:
+  ✓ memory/feedback/session-<data>.md — N items (X critical, Y high)
+    → Considerar /upgrade-joca
+  — Sem gaps detectados
+
+Extras:
+  [✓ Graphs actualizados]
+  [✓ Bridges recompilados]
+  [✓ ~/CLAUDE.md actualizado]
+
+Sessao guardada.
 ```
+
+---
+
+## Notas
+
+- ZERO perguntas. Tudo inferido da sessao.
+- Feedback do projecto substitui `/feedback-projeto` — esse comando agora redireciona para aqui.
+- Feedback do JOCA e auto-extraido, nao interactivo. Para feedback manual detalhado: `/feedback-joca`.
+- Se nao ha nada a guardar num passo, saltar silenciosamente — nao reportar "nada encontrado" para cada seccao vazia.

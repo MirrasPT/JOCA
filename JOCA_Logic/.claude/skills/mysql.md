@@ -1,6 +1,6 @@
 ---
 name: mysql
-description: "Use when writing MySQL queries, optimizing database performance, designing schemas, or debugging SQL issues."
+description: "Writing MySQL queries, optimizing database performance, designing schemas, or debugging SQL issues. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also invoke when: schema, database, base de dados, N+1, query optimization, full table scan."
 triggers: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration, schema, database, base de dados, N+1, query optimization, full table scan, covering index, composite index, deadlock, lock, InnoDB, utf8mb4, DECIMAL, JSON column, query performance, database design, normalization, denormalization, foreign key, constraint
 ---
 # MySQL

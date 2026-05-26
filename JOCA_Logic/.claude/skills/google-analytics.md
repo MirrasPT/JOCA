@@ -1,6 +1,6 @@
 ---
 name: google-analytics
-description: Query Google Analytics 4 data. Use when the user asks about website traffic, page views, sessions, user counts, conversions, top pages, traffic sources, or any analytics/metrics questions. Trigger on keywords like "analytics", "traffic", "visitors", "page views", "sessions", "GA4", "bounce rate", "conversions", "top pages", "referrals".
+description: "Query Google Analytics 4 data. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
 ---
 
 # Google Analytics 4 Skill

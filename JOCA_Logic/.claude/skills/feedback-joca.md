@@ -1,6 +1,6 @@
 ---
 name: feedback-joca
-description: "Use when capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities."
+description: "Capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities. MUST be invoked when the user says: - /feedback-joca."
 triggers:
   - /feedback-joca
   - "feedback sobre o joca"

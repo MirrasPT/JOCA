@@ -1,6 +1,6 @@
 ---
 name: img-gen
-description: Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). Use when user asks to generate, create, make, produce, design, or render an image, illustration, mockup, visual, graphic, artwork, icon, banner, photo, or poster. Decides which API to use based on content requirements; spawns img-gen-openai or img-gen-google agent (or both). Do NOT use gpt-image or gemini-image skills directly — always go through this skill.
+description: "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). MUST be invoked when the user mentions: OpenAI, Google Gemini, Nano Banana, Decides, API, Do NOT."
 ---
 
 # img-gen — Image Generation Router

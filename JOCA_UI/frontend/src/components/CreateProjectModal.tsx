@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Project } from '../types';
+import { shortPath, basename } from '../lib/paths';
 
 interface FileEntry {
   name: string;
@@ -34,15 +35,6 @@ const PROJECT_COLORS = [
   '#f97316', '#84cc16', '#14b8a6', '#0ea5e9',
   '#8b5cf6', '#ec4899',
 ];
-
-function shortPath(path: string) {
-  return path.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
-}
-
-function basename(path: string) {
-  const parts = path.split(/[/\\]/).filter(Boolean);
-  return parts[parts.length - 1] || '';
-}
 
 function normalizeColor(color: string) {
   const trimmed = color.trim();

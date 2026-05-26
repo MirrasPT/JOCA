@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import SessionCard from './SessionCard';
 import type { SessionInfo, Project } from '../types';
+import { shortPath } from '../lib/paths';
 
 interface Props {
   sessions: SessionInfo[];
@@ -68,10 +69,6 @@ function PlayIcon() {
       <polygon points="5 3 19 12 5 21 5 3" />
     </svg>
   );
-}
-
-function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function ProjectsView({ projects, sessions, onOpenProject, onProjectsChange }: {

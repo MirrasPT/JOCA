@@ -1,6 +1,6 @@
 ---
 name: security
-description: Global security skill for Laravel + React SaaS. OWASP Top 10:2025, ASVS 5.0, Laravel-specific patterns (mass assignment, IDOR, raw queries, Blade XSS), React XSS (dangerouslySetInnerHTML, href injection), CSRF/CORS, HTTP headers, secrets management, rate limiting, encryption, logging PII, server hardening. Callable by all other skills. Spawns tester-security and security-review agents.
+description: "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assignment, IDOR, SQL injection, security review, audit, hardening."
 triggers: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF, mass assignment, IDOR, SQL injection, security review, audit, hardening, headers, CSP, HSTS, secrets, encryption, encriptação, rate limit, brute force, supply chain, CVE, pentest, security check, esta seguro, is it secure, code review security
 ---
 

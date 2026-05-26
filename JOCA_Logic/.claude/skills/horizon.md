@@ -1,6 +1,6 @@
 ---
 name: horizon-queues
-description: Laravel queues and Horizon monitoring for production SaaS. Use when implementing background jobs, queue workers, or Horizon dashboard; configuring job retries, backoff, uniqueness, or encryption; setting up multi-tenant queue context; debugging failed jobs; writing Queue::fake() tests; or asked about "queues", "jobs", "Horizon", "workers", "dispatching", "chaining", "batching", "failed jobs".
+description: "Laravel queues and Horizon monitoring for production SaaS. MUST be invoked when the user says: queues, jobs, Horizon, workers, dispatching, chaining."
 when_to_use: Activate for any queue-related work in Laravel projects: job classes, event listeners with ShouldQueue, queue connections (Redis/database/SQS), supervisor daemon setup, Horizon configuration, queue priorities, tenant-scoped jobs, or production worker monitoring.
 disable-model-invocation: false
 allowed-tools: Read Write Edit Bash

@@ -1,6 +1,6 @@
 ---
 name: postmark
-description: Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. Use when implementing email sending with Postmark, setting up email webhooks, diagnosing deliverability issues, managing message streams, or building email templates.
+description: "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. MUST be invoked when the user says: postmark, transactional email, email sending, email webhook, bounce handling, email deliverability, spf dkim dmarc, message streams. SHOULD also invoke when: postmark api."
 triggers: postmark, transactional email, email sending, email webhook, bounce handling, email deliverability, spf dkim dmarc, message streams, postmark api
 ---
 

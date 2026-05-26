@@ -1,6 +1,7 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
-import type { SessionInfo, TerminalRef, ProjectMemory } from '../types';
+import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems } from '../types';
 import TerminalPane from './TerminalPane';
+import { shortPath, basename } from '../lib/paths';
 import './TerminalView.css';
 
 interface Props {
@@ -26,6 +27,8 @@ interface Props {
   onOpenCommandPalette: () => void;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   onNewSession: () => void;
+  jocaItems: JocaItems | null;
+  onLoadJocaItems: () => void;
 }
 
 // ── Lucide SVG Icons ───────────────────────────────────────────────
@@ -97,15 +100,12 @@ function LinkIcon() {
   );
 }
 
-function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
-}
-
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
   onSaveSession, onCompactSession, onInterruptSession,
-  onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession
+  onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
+  jocaItems, onLoadJocaItems
 }: Props) {
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId) ?? null,
@@ -116,6 +116,25 @@ export default function TerminalView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
 
+  interface RateLimits {
+    model: string;
+    context: { used_pct: number | null; input_tokens: number; output_tokens: number };
+    five_hour: { used_pct: number | null; resets_at: number | null };
+    seven_day: { used_pct: number | null; resets_at: number | null };
+    updated_at: number;
+  }
+  const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const poll = () => {
+      fetch('/rate-limits').then(r => r.json()).then(d => { if (mounted) setRateLimits(d); }).catch(() => {});
+    };
+    poll();
+    const id = setInterval(poll, 15000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   const addAttachment = useCallback((path: string) => {
     setAttachments((prev) => prev.includes(path) ? prev : [...prev, path]);
   }, []);
@@ -123,6 +142,36 @@ export default function TerminalView({
   const removeAttachment = useCallback((path: string) => {
     setAttachments((prev) => prev.filter((p) => p !== path));
   }, []);
+
+  const [slashIndex, setSlashIndex] = useState(-1);
+  const slashMenuRef = useRef<HTMLDivElement>(null);
+
+  const slashItems = useMemo(() => {
+    if (!terminalDraft.startsWith('/') || !jocaItems) return [];
+    const query = terminalDraft.slice(1).toLowerCase();
+    const all: { type: string; name: string; description?: string; insert: string }[] = [];
+    for (const c of jocaItems.commands) all.push({ type: 'command', name: `/${c.name}`, description: c.description, insert: `/${c.name}` });
+    for (const s of jocaItems.skills) all.push({ type: 'skill', name: s.name, description: s.description, insert: s.insert || s.name });
+    for (const a of jocaItems.agents) all.push({ type: 'agent', name: a.name, description: a.description, insert: a.insert || a.name });
+    if (!query) return all.slice(0, 12);
+    return all.filter((i) => i.name.toLowerCase().includes(query)).slice(0, 12);
+  }, [terminalDraft, jocaItems]);
+
+  const showSlashMenu = terminalDraft.startsWith('/') && slashItems.length > 0;
+
+  useEffect(() => {
+    if (showSlashMenu) setSlashIndex(0);
+    else setSlashIndex(-1);
+  }, [showSlashMenu, terminalDraft]);
+
+  useEffect(() => {
+    if (terminalDraft.startsWith('/') && !jocaItems) onLoadJocaItems();
+  }, [terminalDraft, jocaItems, onLoadJocaItems]);
+
+  const acceptSlashItem = useCallback((item: { insert: string }) => {
+    setTerminalDraft(item.insert + ' ');
+    inputAreaRef.current?.focus();
+  }, [setTerminalDraft]);
 
   useEffect(() => {
     const el = inputAreaRef.current;
@@ -259,6 +308,28 @@ export default function TerminalView({
         )}
       </div>
       
+      {rateLimits && rateLimits.five_hour?.used_pct != null && (
+        <div className="rate-limits-bar">
+          <span className="rl-model">{rateLimits.model}</span>
+          {rateLimits.context.used_pct != null && (
+            <span className="rl-item rl-ctx">
+              ctx <span className="rl-bar"><span className="rl-bar-fill" style={{ width: `${Math.min(100, rateLimits.context.used_pct)}%` }} /></span>
+              {Math.round(rateLimits.context.used_pct)}%
+            </span>
+          )}
+          <span className="rl-item rl-5h">
+            5h <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.five_hour.used_pct ?? 0)}%` }} /></span>
+            {Math.round(rateLimits.five_hour.used_pct ?? 0)}%
+          </span>
+          {rateLimits.seven_day?.used_pct != null && (
+            <span className="rl-item rl-7d">
+              7d <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--7d" style={{ width: `${Math.min(100, rateLimits.seven_day.used_pct)}%` }} /></span>
+              {Math.round(rateLimits.seven_day.used_pct)}%
+            </span>
+          )}
+        </div>
+      )}
+
       {activeSession && (
         <div className="terminal-command-bar">
           <div className="quick-command-row">
@@ -297,7 +368,7 @@ export default function TerminalView({
               {attachments.map((att) => (
                 <span key={att} className="attachment-chip">
                   <PaperclipIcon />
-                  <span className="attachment-chip-name" title={att}>{att.split('/').pop()}</span>
+                  <span className="attachment-chip-name" title={att}>{basename(att)}</span>
                   <button type="button" className="attachment-chip-remove" onClick={() => removeAttachment(att)}>&times;</button>
                 </span>
               ))}
@@ -324,6 +395,24 @@ export default function TerminalView({
             >
               <PaperclipIcon />
             </button>
+            {showSlashMenu && (
+              <div className="slash-menu" ref={slashMenuRef} role="listbox">
+                {slashItems.map((item, i) => (
+                  <div
+                    key={`${item.type}-${item.name}`}
+                    className={`slash-menu-item ${i === slashIndex ? 'slash-menu-item--active' : ''}`}
+                    role="option"
+                    aria-selected={i === slashIndex}
+                    onMouseDown={(e) => { e.preventDefault(); acceptSlashItem(item); }}
+                    onMouseEnter={() => setSlashIndex(i)}
+                  >
+                    <span className={`slash-menu-badge slash-menu-badge--${item.type}`}>{item.type}</span>
+                    <span className="slash-menu-name">{item.name}</span>
+                    {item.description && <span className="slash-menu-desc">{item.description.slice(0, 60)}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
             <textarea
               ref={inputAreaRef}
               className="terminal-command-input"
@@ -332,6 +421,14 @@ export default function TerminalView({
               rows={1}
               onChange={(e) => setTerminalDraft(e.target.value)}
               onKeyDown={(e) => {
+                if (showSlashMenu) {
+                  if (e.key === 'ArrowDown') { e.preventDefault(); setSlashIndex((i) => Math.min(i + 1, slashItems.length - 1)); return; }
+                  if (e.key === 'ArrowUp') { e.preventDefault(); setSlashIndex((i) => Math.max(i - 1, 0)); return; }
+                  if ((e.key === 'Tab' || e.key === 'Enter') && slashIndex >= 0 && slashItems[slashIndex]) {
+                    e.preventDefault(); acceptSlashItem(slashItems[slashIndex]); return;
+                  }
+                  if (e.key === 'Escape') { e.preventDefault(); setTerminalDraft(''); return; }
+                }
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   if (attachments.length > 0) {

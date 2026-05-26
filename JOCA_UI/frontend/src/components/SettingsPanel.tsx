@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { CliToolStatus, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
+import { shortPath } from '../lib/paths';
 
 interface ServiceConnection {
   id: string;
@@ -18,10 +19,6 @@ interface Props {
   onReloadRuntime: () => void;
   onRunCommand: (command: string) => void;
   onClose: () => void;
-}
-
-function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function ChevronsRight() {

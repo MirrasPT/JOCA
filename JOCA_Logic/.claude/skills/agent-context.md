@@ -1,6 +1,6 @@
 ---
 name: agent-context
-description: Always-active base principles for agent orchestration and context management. Covers multi-agent coordination patterns, context compression strategies, and context degradation detection. Apply whenever orchestrating agents, running long sessions, or designing agent systems.
+description: "Always-active base principles for agent orchestration and context management. MUST be invoked when the user mentions: Always, Apply."
 ---
 
 # Agent Context Engineering — Base Principles

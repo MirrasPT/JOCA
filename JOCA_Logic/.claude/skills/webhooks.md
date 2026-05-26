@@ -1,6 +1,6 @@
 ---
 name: webhooks
-description: Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. Use when receiving webhooks from Stripe, GitHub, Shopify, Clerk, Svix, or any provider, implementing webhook signature verification, handling duplicate deliveries, or building production webhook infrastructure.
+description: "Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the user says: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix. SHOULD also invoke when: hookdeck, webhook handler, webhook retry, hmac signature."
 triggers: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix, hookdeck, webhook handler, webhook retry, hmac signature
 ---
 

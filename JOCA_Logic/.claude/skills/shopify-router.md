@@ -1,6 +1,6 @@
 ---
 name: shopify-router
-description: "Use when the user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer)."
+description: "The user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme. MUST be invoked when the user mentions: Shopify."
 compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Some workflows require a Shopify Partner account and dev store."
 ---
 

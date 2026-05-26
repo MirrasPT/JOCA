@@ -1,6 +1,6 @@
 ---
 name: paid-ads
-description: "Use when the user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or performance optimization. Triggers: 'run ads', 'ad campaign', 'Facebook ads', 'Google ads', 'LinkedIn ads', 'TikTok ads', 'ad copy', 'ad creative', 'ROAS', 'CPA', 'PPC', 'paid media', 'retargeting', 'write me some ads', 'generate headlines', 'RSA headlines', 'ad variations', 'ad spend', 'should I run ads'."
+description: "The user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Google ads, LinkedIn ads, TikTok ads."
 metadata:
   version: 1.0.0
   merged_from: [ad-creative v1.1.0, paid-ads v1.2.0]

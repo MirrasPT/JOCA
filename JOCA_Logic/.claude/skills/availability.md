@@ -1,6 +1,6 @@
 ---
 name: availability
-description: Availability and disaster recovery for Laravel. spatie/laravel-backup (automated backups to S3/R2, DB dumps, monitoring), database replication (MySQL read replicas, Redis Sentinel, automatic failover), zero-downtime deploys (Envoy, rolling, blue/green), maintenance mode (Laravel down, secret bypass, redirect, pre-rendering), recovery runbooks (RTO/RPO, restore procedures, incident timeline). Activar no setup de producao.
+description: "Availability and disaster recovery for Laravel. MUST be invoked when the user says: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA. SHOULD also invoke when: uptime, downtime, zero downtime, maintenance mode, artisan down, restore."
 triggers: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA, uptime, downtime, zero downtime, maintenance mode, artisan down, restore, recovery, RTO, RPO, redundancy, resilience, spatie backup, laravel backup, database backup, Redis Sentinel, MySQL replication, rolling deploy, blue green, disponibilidade, recuperacao, desastre
 ---
 

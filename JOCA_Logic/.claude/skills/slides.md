@@ -1,6 +1,6 @@
 ---
 name: slides
-description: "Use when creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080."
+description: "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. SHOULD also invoke when: slide, keynote, html slides, html deck, apresentação html, criar slides."
 triggers: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch, slide, keynote, html slides, html deck, apresentação html, criar slides, fazer apresentação, pitch institucional, deck de vendas
 ---
 # Slides

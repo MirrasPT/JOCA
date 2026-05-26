@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
+import { splitPath, joinPath } from '../lib/paths';
 
 interface FileEntry {
   name: string;
@@ -26,16 +27,6 @@ function quotePath(p: string) {
 
 function shortName(seg: string) {
   return seg.length > 14 ? seg.slice(0, 12) + '…' : seg;
-}
-
-function splitPath(p: string) {
-  return p.split(/[/\\]/).filter(Boolean);
-}
-
-function joinPath(segments: string[], upTo: number) {
-  const slice = segments.slice(0, upTo);
-  if (slice.length > 0 && /^[A-Z]:$/i.test(slice[0])) return slice.join('\\');
-  return '/' + slice.join('/');
 }
 
 type FileKind =
@@ -127,6 +118,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   const [listing, setListing] = useState<DirListing | null>(null);
   const [homeDir, setHomeDir] = useState<string>('');
   const [showHidden, setShowHidden] = useState(false);
+  const showHiddenRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -137,16 +129,19 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     try { return JSON.parse(localStorage.getItem('joca:file-recents') || '[]'); } catch { return []; }
   });
   const prevInitialPath = useRef<string | undefined>(undefined);
-  const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentPathRef = useRef<string>('');
+
+  useEffect(() => { showHiddenRef.current = showHidden; }, [showHidden]);
 
   const navigate = useCallback(async (p: string) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/files?path=${encodeURIComponent(p)}&hidden=${showHidden}`);
+      const res = await fetch(`/files?path=${encodeURIComponent(p)}&hidden=${showHiddenRef.current}`);
       if (!res.ok) throw new Error('Cannot read directory');
       const data: DirListing = await res.json();
       setListing(data);
+      currentPathRef.current = data.path;
       setRecentFolders((current) => {
         const next = [data.path, ...current.filter((item) => item !== data.path)].slice(0, 6);
         localStorage.setItem('joca:file-recents', JSON.stringify(next));
@@ -159,7 +154,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     } finally {
       setLoading(false);
     }
-  }, [showHidden, homeDir]);
+  }, [homeDir]);
 
   const handleEntryKey = (event: KeyboardEvent<HTMLDivElement>, action: () => void) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -184,11 +179,10 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   }, [showHidden]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    refreshTimer.current = setInterval(() => {
-      if (listing?.path) navigate(listing.path);
-    }, 5000);
-    return () => { if (refreshTimer.current) clearInterval(refreshTimer.current); };
-  }, [listing?.path]); // eslint-disable-line react-hooks/exhaustive-deps
+    const onFocus = () => { if (currentPathRef.current) navigate(currentPathRef.current); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [navigate]);
 
   const segments = splitPath(listing?.path ?? '');
   const visibleSegs = segments.slice(-4);
@@ -269,7 +263,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   };
 
   const copyRelativePath = async (entry: FileEntry) => {
-    const relative = currentPath && entry.path.startsWith(currentPath)
+    const relative = currentPath && entry.path.toLowerCase().startsWith(currentPath.toLowerCase())
       ? entry.path.slice(currentPath.length + 1)
       : entry.path;
     await navigator.clipboard?.writeText(relative).catch(() => {});

@@ -32,6 +32,10 @@ echo "▶ JOCA UI a arrancar..."
 # Backend
 cd "$DIR/backend" || exit 1
 npm run build >/tmp/joca-backend-v2-build.log 2>&1
+if [ $? -ne 0 ]; then
+  echo "ERROR: Backend build failed. See /tmp/joca-backend-v2-build.log"
+  exit 1
+fi
 nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
   >> /tmp/joca-backend-v2.log 2>&1 < /dev/null &
 BACKEND_PID=$!

@@ -1,6 +1,6 @@
 ---
 name: marketing-router
-description: Detects marketing intent and routes to the correct marketing skill. Use when a marketing task is requested but the specific skill isn't obvious. Routes across all 15 marketing skills covering the full AARRR funnel.
+description: "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do. SHOULD also invoke when: marketing funnel, marketing workflow, plano de marketing, estrategia de marketing, como crescer."
 triggers: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do, marketing funnel, marketing workflow, plano de marketing, estrategia de marketing, como crescer
 ---
 

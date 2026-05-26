@@ -1,6 +1,6 @@
 ---
 name: microsoft-clarity
-description: Export Microsoft Clarity user behavior analytics. Use when the user asks about heatmaps, session recordings, engagement metrics, scroll depth, rage clicks, dead clicks, or user behavior data from Microsoft Clarity. Trigger on "clarity", "heatmap", "session recording", "rage clicks", "dead clicks", "scroll depth", "engagement rate", "user behavior analytics".
+description: "Export Microsoft Clarity user behavior analytics. MUST be invoked when the user says: clarity, heatmap, session recording, rage clicks, dead clicks, scroll depth."
 ---
 
 # Microsoft Clarity Analytics

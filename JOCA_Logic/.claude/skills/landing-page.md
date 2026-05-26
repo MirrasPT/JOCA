@@ -1,6 +1,6 @@
 ---
 name: landing-page
-description: End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Use when someone needs to build a new landing page for a product, offer, lead magnet, webinar, or paid ad campaign. Distinct from page-cro (which analyses existing pages) and copywriting (which writes copy for any page).
+description: "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page, webinar registration, product launch page. SHOULD also invoke when: single page offer, ad landing page, pagina de captura, pagina de conversao."
 triggers: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page, webinar registration, product launch page, single page offer, ad landing page, pagina de captura, pagina de conversao
 ---
 

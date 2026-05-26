@@ -1,6 +1,6 @@
 ---
 name: adr
-description: "Use when recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences."
+description: "Recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences. MUST be invoked when the user says: ADR, architecture decision, decisao arquitectural, porque escolhemos, why did we choose, decidimos, we decided, regista esta decisao. SHOULD also invoke when: record this decision, decisao tecnica, technical decision, alternativas, alternatives considered, tradeoff."
 triggers: ADR, architecture decision, decisao arquitectural, porque escolhemos, why did we choose, decidimos, we decided, regista esta decisao, record this decision, decisao tecnica, technical decision, alternativas, alternatives considered, tradeoff, trade-off
 ---
 # ADR — Architecture Decision Records

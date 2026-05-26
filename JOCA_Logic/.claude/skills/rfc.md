@@ -1,6 +1,6 @@
 ---
 name: rfc
-description: "Use when writing Request for Comments documents, proposing system changes, or documenting technical proposals."
+description: "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande. SHOULD also invoke when: big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar."
 triggers: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande, big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar, restructure, mudar API, change API, decisao que afecta tudo
 ---
 # RFC — Request for Comments

@@ -1,6 +1,6 @@
 ---
 name: shopify-app
-description: "Use when building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. Covers full development lifecycle from init to deploy."
+description: "Building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. MUST be invoked when the user mentions: Shopify, CLI, Admin API, GraphQL, POS, OAuth."
 compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Requires Shopify Partner account and dev store."
 ---
 

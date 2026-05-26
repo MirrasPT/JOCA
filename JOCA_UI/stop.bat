@@ -1,8 +1,8 @@
 @echo off
 setlocal
 
-set "BACKEND_PORT=7361"
-set "FRONTEND_PORT=7362"
+set "BACKEND_PORT=7371"
+set "FRONTEND_PORT=7372"
 
 echo Stopping JOCA UI...
 

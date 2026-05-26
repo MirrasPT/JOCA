@@ -1,6 +1,6 @@
 ---
 name: github
-description: "Use when working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations."
+description: "Working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations. MUST be invoked when the user says: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr. SHOULD also invoke when: gh release, pull request, PR, issue, actions, dependabot."
 triggers: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr, gh release, pull request, PR, issue, actions, dependabot, CODEOWNERS, branch protection, github cli, gh, continuous integration, continuous deployment, github container registry, ghcr, github workflow, yml workflow, yaml workflow, automatizar, automate pipeline, release, tag, versioning
 ---
 # GitHub

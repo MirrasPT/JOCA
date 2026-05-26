@@ -1,6 +1,6 @@
 ---
 name: rest-api
-description: REST API design specialist. RFC 9457 errors, URL conventions, versioning with Sunset headers, pagination, rate limiting, OpenAPI 3.1 specs, ForceJsonResponse middleware. Callable autonomously by laravel-specialist for endpoint design.
+description: "REST API design specialist. MUST be invoked when the user says: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination. SHOULD also invoke when: API error, rate limit, throttle, CORS, API documentation, api route."
 triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination, API error, rate limit, throttle, CORS, API documentation, api route, api resource, API contract, problema+json, RFC 9457, RFC 7807, API endpoint, desenhar API, definir endpoints, API architecture
 ---
 

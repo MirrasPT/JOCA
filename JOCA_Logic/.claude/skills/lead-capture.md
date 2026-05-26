@@ -1,6 +1,6 @@
 ---
 name: lead-capture
-description: Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. Use when someone wants to grow their email list, create a lead magnet, set up email capture on their site, or build a subscriber base before launching something.
+description: "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user says: lead magnet, grow email list, opt-in form, email capture, popup strategy, content upgrade, build my list, email signup. SHOULD also invoke when: newsletter growth, lead generation, checklist download, free guide, free template, subscriber growth."
 triggers: lead magnet, grow email list, opt-in form, email capture, popup strategy, content upgrade, build my list, email signup, newsletter growth, lead generation, checklist download, free guide, free template, subscriber growth, capturar leads, lista de email, crescer lista
 ---
 

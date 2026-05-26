@@ -1,6 +1,6 @@
 ---
 name: file-storage
-description: Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. Use when setting up S3 storage, configuring Cloudflare R2, implementing presigned URL uploads, adding virus scanning with ClamAV, configuring CDN delivery with CloudFront or Cloudflare, validating file uploads with magic bytes, generating signed URLs for private files, or isolating files per tenant. Also covers Storage::fake() testing, image variants with intervention/image, and EXIF stripping.
+description: "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. MUST be invoked when the user mentions: Secure, Laravel SaaS, Cloudflare, URL, ClamAV, CDN."
 when_to_use: |
   - "file upload Laravel", "upload to S3", "upload to R2", "direct upload to storage"
   - "presigned URL", "temporary upload URL", "bypass server upload"

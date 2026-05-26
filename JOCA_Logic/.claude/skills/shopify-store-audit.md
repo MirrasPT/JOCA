@@ -1,6 +1,6 @@
 ---
 name: shopify-store-audit
-description: "Use when auditing a public Shopify store across 8 dimensions: trust & credibility, conversion optimisation, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO (Answer Engine Optimisation), and GEO (Generative Engine Optimisation for AI citations)."
+description: "Auditing a public Shopify store across 8 dimensions: trust & credibility, conversion optimisation, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data. MUST be invoked when the user mentions: Shopify, Core Web Vitals, SEO, AEO, Answer Engine Optimisation, GEO."
 compatibility: "Read-only. Works with any public Shopify store. No API credentials required for public audit; Admin API required for detailed data."
 ---
 

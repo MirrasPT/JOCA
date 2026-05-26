@@ -1,6 +1,6 @@
 ---
 name: graphic-design
-description: Print and graphic design in HTML/CSS → PDF. Creates roll-ups, flyers, bifolds, trifolds, posters, business cards, and other printed materials. Philosophy-first approach with museum-quality craftsmanship. Use when user needs print collateral, marketing materials, or any designed document for printing. Exports to PDF via headless browser. Integrates brand-guidelines DESIGN.md for brand-accurate output.
+description: "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável."
 triggers: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz, cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável, banner, standee, print design, design gráfico, exportar PDF, imprimir
 ---
 

@@ -26,7 +26,9 @@ function extractPaths(e: DragEvent): string[] {
     if (!uri || uri.startsWith('#')) continue;
     if (uri.startsWith('file://')) {
       try {
-        paths.push(decodeURIComponent(new URL(uri).pathname));
+        let p = decodeURIComponent(new URL(uri).pathname);
+        if (/^\/[a-zA-Z]:/.test(p)) p = p.slice(1);
+        paths.push(p);
       } catch {}
     }
   }
@@ -89,7 +91,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       cursorBlink: true,
       cursorStyle: 'bar',
       cursorWidth: 2,
-      scrollback: 10000,
+      scrollback: 100000,
       allowTransparency: false,
     });
 
@@ -113,25 +115,30 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       fit: () => { fitAddon.fit(); onResize(sessionId, term.cols, term.rows); },
     });
 
-    requestAnimationFrame(() => {
-      fitAddon.fit();
-      onResize(sessionId, term.cols, term.rows);
-    });
+    const doFit = () => {
+      try {
+        fitAddon.fit();
+        onResize(sessionId, term.cols, term.rows);
+      } catch {}
+    };
+
+    requestAnimationFrame(doFit);
+    const t1 = setTimeout(doFit, 100);
+    const t2 = setTimeout(doFit, 300);
+    const t3 = setTimeout(doFit, 800);
 
     let resizeRaf: number | null = null;
     const ro = new ResizeObserver(() => {
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => {
-        if (term.element?.offsetParent !== null) {
-          fitAddon.fit();
-          onResize(sessionId, term.cols, term.rows);
-        }
-      });
+      resizeRaf = requestAnimationFrame(doFit);
     });
     ro.observe(containerRef.current);
     resizeObserver.current = ro;
 
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       ro.disconnect();
       term.dispose();
     };
@@ -207,15 +214,20 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
   }, [sessionId, onInput]);
 
   useLayoutEffect(() => {
-    if (isActive && fitRef.current && termRef.current) {
-      requestAnimationFrame(() => {
+    if (!isActive || !fitRef.current || !termRef.current) return;
+    const doFit = () => {
+      try {
         fitRef.current?.fit();
         if (termRef.current) {
           onResize(sessionId, termRef.current.cols, termRef.current.rows);
           termRef.current.focus();
         }
-      });
-    }
+      } catch {}
+    };
+    requestAnimationFrame(doFit);
+    const t1 = setTimeout(doFit, 100);
+    const t2 = setTimeout(doFit, 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [isActive, sessionId, onResize]);
 
   return (

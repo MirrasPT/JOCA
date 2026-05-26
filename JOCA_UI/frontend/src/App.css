@@ -32,7 +32,7 @@
   --text-normal:  #c9c9c9;
   --text-dim:     #9e9e9e;
   --text-muted:   #9e9e9e;
-  --text-ghost:   #858585;
+  --text-ghost:   #949494;
 
   --red:       #f06a6a;
   --dot-red:   #ff5f57;
@@ -2118,7 +2118,7 @@ html, body, #root {
   min-height:42px;
   padding:0 20px;
   background:#181818;
-  border-bottom:var(--border-faint);
+  border-bottom:1px solid var(--border-faint);
 }
 
 .dashboard-stats,
@@ -2510,7 +2510,7 @@ html, body, #root {
   min-height:42px;
   padding:0 16px;
   background:#181818;
-  border-bottom:var(--border-faint);
+  border-bottom:1px solid var(--border-faint);
 }
 
 .titlebar-info {
@@ -2837,12 +2837,6 @@ html, body, #root {
 
 .sidebar-collapse-glyph {
   display:inline-block;
-  transform:rotate(0deg);
-  transition:transform 180ms ease;
-}
-
-.session-sidebar--collapsed .sidebar-collapse-glyph {
-  transform:rotate(180deg);
 }
 
 .nav-menu {
@@ -2896,15 +2890,19 @@ html, body, #root {
 }
 
 .session-sidebar--collapsed {
-  width:74px;
-  min-width:74px;
-  flex-basis:74px;
+  width:62px;
+  min-width:62px;
+  flex-basis:62px;
 }
 
 .session-sidebar--collapsed .sidebar-main-bento {
-  padding:18px 10px;
+  padding:14px 0;
   align-items:center;
-  gap:16px;
+  gap:6px;
+  border-radius:0;
+  border:none;
+  background:none;
+  box-shadow:none;
 }
 
 .session-sidebar .sidebar-main-bento,
@@ -2919,8 +2917,14 @@ html, body, #root {
 
 .session-sidebar--collapsed .sb-header {
   flex-direction:column;
-  gap:12px;
+  gap:2px;
   padding:0;
+}
+
+.session-sidebar--collapsed .sb-brand {
+  width:36px;
+  height:36px;
+  justify-content:center;
 }
 
 .session-sidebar--collapsed .sb-logo-text,
@@ -2934,37 +2938,59 @@ html, body, #root {
 
 .session-sidebar--collapsed .nav-menu {
   width:100%;
+  padding:0 10px;
 }
 
 .session-sidebar--collapsed .nav-btn {
-  width:44px;
-  min-height:44px;
+  width:40px;
+  min-height:40px;
   justify-content:center;
   padding:0;
-  border-radius:13px;
+  border-radius:12px;
+  margin:0 auto;
+}
+
+.session-sidebar--collapsed .nav-btn.active {
+  background:rgba(255,69,0,0.08);
+  border-color:rgba(255,69,0,0.18);
+  box-shadow:none;
 }
 
 .session-sidebar--collapsed .nav-icon {
-  width:18px;
-  height:18px;
+  width:17px;
+  height:17px;
 }
 
 .session-sidebar--collapsed .session-sidebar-header {
   justify-content:center;
-  padding:0;
+  padding:4px 0 0;
+  border-bottom:none;
 }
 
 .session-sidebar--collapsed .sidebar-header-actions {
   flex-direction:column;
-  gap:10px;
+  gap:4px;
 }
 
 .session-sidebar--collapsed .sidebar-btn-add-project,
-.session-sidebar--collapsed .sidebar-btn-new,
+.session-sidebar--collapsed .sidebar-btn-new {
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  border-color:var(--border-faint);
+}
+
 .session-sidebar--collapsed .sidebar-collapse-btn {
-  width:38px;
-  height:38px;
-  border-radius:12px;
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  border-color:transparent;
+  background:transparent;
+}
+
+.session-sidebar--collapsed .sidebar-collapse-btn:hover {
+  border-color:rgba(255,255,255,0.09);
+  background:rgba(255,255,255,0.03);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2974,7 +3000,9 @@ html, body, #root {
   .right-panel-content,
   .right-tab-rail,
   .right-tab-btn,
-  .sidebar-collapse-glyph {
+  .sidebar-collapse-glyph,
+  .status-dot--working,
+  .status-dot--done {
     transition:none !important;
     animation:none !important;
   }
@@ -3939,142 +3967,22 @@ html, body, #root {
   color:var(--text-ghost);
 }
 
-.files-slot--open,
-.files-slot--closed {
-  --panel-ease: cubic-bezier(0.16,1,0.3,1);
-  --right-rail:64px;
-  --right-gap:12px;
-  padding:0;
-  background:transparent;
-  border:0;
-  border-radius:0;
-  overflow:visible;
-  position:relative;
-  z-index:8;
-  will-change:flex-basis, width;
-  transition:
-    width 320ms var(--panel-ease),
-    min-width 320ms var(--panel-ease),
-    max-width 320ms var(--panel-ease),
-    flex-basis 320ms var(--panel-ease);
-}
-
-.files-slot--open {
-  width:424px;
-  min-width:424px;
-}
-
-.files-slot--closed {
-  width:72px;
-  min-width:72px;
-}
-
-.right-panel-content {
-  height:100%;
-  margin-top:0;
-  position:absolute;
-  top:0;
-  right:calc(var(--right-rail) + var(--right-gap));
-  bottom:0;
-  left:0;
-  z-index:2;
-  will-change:transform, opacity;
-  transform:translateX(0);
-  opacity:1;
-  transition:transform 320ms var(--panel-ease), opacity 220ms ease-out;
-}
-
-.right-tab-rail {
-  width:var(--right-rail);
-  min-width:var(--right-rail);
-  margin-top:0;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  position:absolute;
-  top:0;
-  right:0;
-  z-index:3;
-  padding:8px;
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:24px;
-  background:
-    radial-gradient(circle at 30% 0%, rgba(255,255,255,0.06), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.014)),
-    #151515;
-  box-shadow:0 18px 38px rgba(0,0,0,0.26), inset 0 1px rgba(255,255,255,0.045);
-  overflow:hidden;
-  transition:background 240ms ease, border-color 240ms ease, box-shadow 240ms ease, transform 320ms var(--panel-ease);
-}
-
-.files-slot--open .right-tab-rail {
-  box-shadow:14px 24px 42px rgba(0,0,0,0.28);
-}
+/* Right workspace layout — see integrated rules below (.files-slot--open/closed grid) */
 
 .files-slot--open .files-view,
 .files-slot--open .settings-panel {
   border-right:0;
 }
 
+/* right-tab-btn base (shared structural props — visual overrides in grid section below) */
 .right-tab-btn {
-  width:46px;
-  min-height:116px;
-  border:1px solid rgba(255,255,255,0.055);
-  border-radius:18px;
-  background:rgba(255,255,255,0.018);
-  color:var(--text-dim);
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:12px;
+  gap:10px;
   cursor:pointer;
-  box-shadow:none;
-  transition:color 180ms ease, border-color 220ms ease, background 220ms ease, transform 240ms var(--panel-ease), box-shadow 220ms ease;
   position:relative;
-  clip-path:none;
-}
-
-.right-tab-btn:hover,
-.right-tab-btn.active {
-  color:var(--text-bright);
-  border-color:rgba(255,84,36,0.28);
-  background:rgba(255,84,36,0.08);
-}
-
-.right-tab-btn:hover {
-  transform:translateX(-1px);
-}
-
-.right-tab-btn.active {
-  box-shadow:0 12px 28px rgba(0,0,0,0.22), inset 0 1px rgba(255,255,255,0.055);
-  z-index:4;
-}
-
-.files-slot--open .right-tab-btn.active {
-  width:46px;
-  border-radius:18px;
-  background:rgba(255,84,36,0.08);
-  color:var(--text-bright);
-  transform:none;
-}
-
-.files-slot--open .right-tab-btn {
-  width:46px;
-  border:1px solid rgba(255,255,255,0.055);
-  border-radius:18px;
-  background:rgba(255,255,255,0.018);
-  color:var(--text-ghost);
-  transform:none;
-}
-
-.files-slot--open .right-tab-btn:not(.active) svg {
-  color:var(--accent);
-  opacity:0.82;
-}
-
-.files-slot--open .right-tab-btn:not(.active) span {
-  color:var(--text-dim);
 }
 
 .right-tab-btn::before,
@@ -4082,18 +3990,10 @@ html, body, #root {
   display:none;
 }
 
-.right-tab-btn svg {
-  width:20px;
-  height:20px;
-  color:var(--accent);
-}
-
 .right-tab-btn span {
   writing-mode:vertical-rl;
   transform:rotate(180deg);
-  font-size:10px;
   font-weight:800;
-  letter-spacing:0.16em;
   text-transform:uppercase;
 }
 
@@ -4521,16 +4421,30 @@ html, body, #root {
    detached pill/cutout shape that felt noisy. */
 .files-slot--open,
 .files-slot--closed {
-  --right-rail:68px;
+  --right-rail:54px;
   --right-gap:0px;
+  --panel-ease:cubic-bezier(0.16,1,0.3,1);
   display:grid;
-  grid-template-columns:minmax(0, 1fr) var(--right-rail);
-  grid-template-rows:minmax(0, 1fr);
+  grid-template-columns:minmax(0,1fr) var(--right-rail);
+  grid-template-rows:minmax(0,1fr);
   align-self:stretch;
   height:auto;
   min-height:0;
   margin:0;
   padding:0;
+  overflow:hidden;
+  transition:
+    width 280ms var(--panel-ease),
+    min-width 280ms var(--panel-ease),
+    max-width 280ms var(--panel-ease),
+    flex-basis 280ms var(--panel-ease),
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    border-radius 220ms ease;
+}
+
+.files-slot--open {
   border:1px solid rgba(255,255,255,0.075);
   border-radius:24px;
   background:
@@ -4538,22 +4452,14 @@ html, body, #root {
     linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.012)),
     #151515;
   box-shadow:0 24px 56px rgba(0,0,0,0.28), inset 0 1px rgba(255,255,255,0.035);
-  overflow:hidden;
-  transition:
-    width 340ms cubic-bezier(0.16,1,0.3,1),
-    min-width 340ms cubic-bezier(0.16,1,0.3,1),
-    max-width 340ms cubic-bezier(0.16,1,0.3,1),
-    flex-basis 340ms cubic-bezier(0.16,1,0.3,1),
-    border-color 220ms ease,
-    box-shadow 220ms ease;
 }
 
 .files-slot--closed {
   grid-template-columns:0 var(--right-rail);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012)),
-    #111;
-  box-shadow:0 18px 42px rgba(0,0,0,0.24);
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
 }
 
 .right-panel-content {
@@ -4566,10 +4472,17 @@ html, body, #root {
   height:auto;
   z-index:1;
   opacity:1;
-  transform:none;
+  transform:translateX(0);
   border-right:1px solid rgba(255,255,255,0.055);
   overflow:hidden;
-  transition:opacity 200ms ease;
+  transition:opacity 180ms ease-out, transform 280ms var(--panel-ease);
+}
+
+.files-slot--closed .right-panel-content {
+  opacity:0;
+  transform:translateX(20px);
+  pointer-events:none;
+  visibility:hidden;
 }
 
 .right-tab-rail {
@@ -4582,14 +4495,14 @@ html, body, #root {
   min-height:0;
   height:auto;
   margin:0;
-  padding:10px 9px;
+  padding:10px 6px;
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
-  gap:8px;
+  gap:6px;
   border:0;
   border-radius:0;
-  background:rgba(0,0,0,0.10);
+  background:rgba(0,0,0,0.06);
   box-shadow:none;
   overflow:hidden;
   transition:background 220ms ease;
@@ -4601,10 +4514,10 @@ html, body, #root {
 
 .right-tab-btn,
 .files-slot--open .right-tab-btn {
-  width:50px;
-  min-height:118px;
+  width:46px;
+  min-height:108px;
   border:1px solid transparent;
-  border-radius:18px;
+  border-radius:16px;
   background:rgba(0,0,0,0.18);
   color:var(--text-ghost);
   box-shadow:none;
@@ -4628,18 +4541,23 @@ html, body, #root {
 .files-slot--open .right-tab-btn.active {
   color:var(--text-bright);
   background:transparent;
-  border-color:rgba(255,255,255,0.075);
-  box-shadow:inset 0 1px rgba(255,255,255,0.04);
+  border-color:transparent;
+  box-shadow:none;
+}
+
+.right-tab-btn.active svg {
+  color:var(--accent) !important;
+  opacity:1;
 }
 
 .files-slot--open .right-tab-btn:not(.active) {
-  opacity:0.46;
+  opacity:0.38;
   color:var(--text-dim);
   background:rgba(0,0,0,0.18);
 }
 
 .files-slot--open .right-tab-btn:not(.active):hover {
-  opacity:0.82;
+  opacity:0.78;
 }
 
 .right-tab-btn svg,
@@ -4652,6 +4570,34 @@ html, body, #root {
 .right-tab-btn span {
   font-size:10px;
   letter-spacing:0.17em;
+}
+
+/* ── Collapsed right rail refinement ─────────────────────────────── */
+
+.files-slot--closed .right-tab-btn {
+  background:transparent;
+  border-color:transparent;
+}
+
+.files-slot--closed .right-tab-btn:hover {
+  background:rgba(255,255,255,0.035);
+  border-color:transparent;
+  transform:none;
+}
+
+.files-slot--closed .right-tab-btn:not(.active) {
+  opacity:0.45;
+}
+
+.files-slot--closed .right-tab-btn:not(.active):hover {
+  opacity:0.8;
+}
+
+.files-slot--closed .right-tab-btn.active {
+  background:transparent;
+  border-color:transparent;
+  box-shadow:none;
+  opacity:1;
 }
 
 .files-view,

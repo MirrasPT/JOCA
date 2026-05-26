@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. Researches the topic, drafts a skill, then runs up to 3 improvement + evaluation cycles to produce the final optimized skill. Use when you want to create a new skill, or say "--upgrade skill-name" to improve an existing one.
+description: "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. MUST be invoked when the user says: --upgrade skill-name."
 argument-hint: "[description of skill] or --upgrade [skill-name]"
 disable-model-invocation: true
 allowed-tools: Read Write Edit Bash Glob Grep WebSearch WebFetch

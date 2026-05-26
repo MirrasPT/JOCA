@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: "Use when building or auditing design systems, managing design tokens, component libraries, or style guides."
+description: "Building or auditing design systems, managing design tokens, component libraries, or style guides. MUST be invoked when the user says: design system, sistema de design, tokens, design tokens, component system, sistema de componentes, visual system, sistema visual. SHOULD also invoke when: UI system, criar design system, setup design, design setup, design foundation, fundacao visual."
 triggers: design system, sistema de design, tokens, design tokens, component system, sistema de componentes, visual system, sistema visual, UI system, criar design system, setup design, design setup, design foundation, fundacao visual
 ---
 # Design System — Router

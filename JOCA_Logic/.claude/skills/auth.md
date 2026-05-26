@@ -1,6 +1,6 @@
 ---
 name: auth
-description: "Use when implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware."
+description: "Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware. MUST be invoked when the user says: auth, authentication, login, logout, register, sanctum, token, 2fa. SHOULD also invoke when: mfa, totp, oauth, socialite, social login, google login."
 triggers: auth, authentication, login, logout, register, sanctum, token, 2fa, mfa, totp, oauth, socialite, social login, google login, facebook login, role, permission, spatie, policy, gate, authorize, password, session, csrf, guard, middleware auth, api token, access control, RBAC, permissoes, autenticacao, papel, acesso
 ---
 # Auth

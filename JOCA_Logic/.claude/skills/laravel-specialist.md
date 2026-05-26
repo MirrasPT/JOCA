@@ -1,6 +1,6 @@
 ---
 name: laravel-specialist
-description: "Use when building Laravel applications, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, or RESTful APIs. Triggered by: Laravel, Eloquent, Artisan, composer.json."
+description: "Building Laravel applications, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, or RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller. SHOULD also invoke when: middleware, service, job, queue, Sanctum, Horizon."
 triggers: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller, middleware, service, job, queue, Sanctum, Horizon, Livewire, Laravel API, Laravel auth, Laravel testing, Pest, factory, seeder, observer, event, listener, notification, policy, gate, schedule, broadcasting, Laravel config, .env, route, form request, resource, collection
 ---
 # Laravel Specialist

@@ -1,6 +1,6 @@
 ---
 name: html-review
-description: "Use when converting markdown documentation to visual HTML format for review or presentation."
+description: "Converting markdown documentation to visual HTML format for review or presentation. MUST be invoked when the user says: gerar html, review html, html do prd, html review, visualizar documento, preview do plano, exportar html, documento para revisao. SHOULD also invoke when: html bonito, render markdown, mostrar documento."
 triggers: gerar html, review html, html do prd, html review, visualizar documento, preview do plano, exportar html, documento para revisao, html bonito, render markdown, mostrar documento
 ---
 # HTML Review Generator

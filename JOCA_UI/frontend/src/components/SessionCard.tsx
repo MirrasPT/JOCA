@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import StatusDot from './StatusDot';
 import type { SessionInfo } from '../types';
+import { shortPath } from '../lib/paths';
 
 interface Props {
   session: SessionInfo;
@@ -10,10 +11,6 @@ interface Props {
   onSelect: () => void;
   onClose: () => void;
   onRename: (name: string) => void;
-}
-
-function shortPath(p: string) {
-  return p.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Z]:\\Users\\[^\\]+/, '~');
 }
 
 function XIcon() {

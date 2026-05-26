@@ -1,6 +1,6 @@
 ---
 name: error-tracking-prod
-description: Production error tracking, structured logging, health checks, and monitoring for Laravel. Sentry/Flare (error tracking), Monolog JSON (structured logs), Context facade (correlation IDs), spatie/laravel-health (health checks), Horizon monitoring, uptime monitoring. Activar no setup de producao.
+description: "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health. SHOULD also invoke when: horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors."
 triggers: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health, horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors, error monitoring, alerta, alerting, monitoring, observability, observabilidade, log producao, erro producao
 ---
 
