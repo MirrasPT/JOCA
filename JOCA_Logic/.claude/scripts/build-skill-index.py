@@ -64,18 +64,15 @@ def extract_triggers(path: Path) -> list:
 def build_index():
     entries = []
 
-    # Index skills
-    for skill_file in sorted(SKILLS_DIR.rglob("SKILL.md")):
+    # Index skills (flat structure: .claude/skills/<name>.md)
+    for skill_file in sorted(SKILLS_DIR.glob("*.md")):
         rel = skill_file.relative_to(JOCA_ROOT)
-        parts = skill_file.relative_to(SKILLS_DIR).parts
-
-        category = parts[0] if len(parts) > 1 else "root"
-        # Name is the parent dir of SKILL.md
-        name = parts[-2] if len(parts) >= 2 else parts[0]
+        name = skill_file.stem
 
         fm = parse_frontmatter(skill_file)
         desc = fm.get("description", "") or extract_first_sentence(skill_file)
         triggers = extract_triggers(skill_file)
+        category = fm.get("category", "general")
 
         entries.append({
             "type": "skill",

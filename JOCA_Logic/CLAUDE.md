@@ -35,7 +35,6 @@ JOCA/
 ├── CLAUDE.md              ← behavior base (this file)
 ├── AGENTS.md              ← cross-CLI compatibility bridge
 ├── GEMINI.md              ← context for Antigravity/Gemini CLI
-├── install.md             ← interactive setup script
 ├── README.md              ← public documentation
 ├── memory/
 │   ├── soul.md            ← personality engine (slot #1, template)
@@ -50,7 +49,6 @@ JOCA/
     ├── agents/            ← sub-agents (tester-*, orchestrator, etc.)
     ├── hooks/             ← PostToolUse + Stop hooks (auto-test pipeline)
     ├── scripts/           ← utility scripts (compile-bridges, graphify, etc.)
-    ├── output-styles/     ← response formatting templates
     └── settings.json      ← hooks and permissions config
 ```
 
@@ -87,21 +85,14 @@ No match → respond directly.
 | Detected | Activates |
 |---|---|
 | Laravel · Eloquent · Artisan | `laravel-specialist` |
-| PHP · PHPStan · Pest | `php-pro` |
-| PostgreSQL · EXPLAIN · indexes | `postgres-pro` |
-| Flutter · Dart · Riverpod | `flutter` |
-| React · Next.js · Vue · Svelte | `frontend-dev` |
-| HTML prototype · wireframe | `frontend-design` |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
 | WordPress · Gutenberg | `wordpress-router` |
 | Shopify · Liquid | `shopify-router` |
-| Node.js · Hono · Bun | `nodejs` |
 | auth · JWT · OAuth · 2FA | `auth` |
 | Stripe · payments · subscriptions | `payment-integration` (agent) |
-| deploy · CI/CD · Docker | `devops-engineer` |
 | SEO · meta tags · Core Web Vitals | `seo` |
 | copywriting · landing page · CTA | `copywriting` |
 | email sequence · drip · nurture | `email-sequence` |
@@ -113,7 +104,6 @@ No match → respond directly.
 | webhook · HMAC · idempotency | `webhooks` |
 | S3 · R2 · upload · CDN | `file-storage` |
 | SaaS · multi-tenant · tenancy | `saas-patterns` |
-| OpenAPI · REST design · GraphQL | `api-designer` |
 | PRD · requirements | `prd` |
 | plan · architecture · migrate | `plan` (auto) |
 
@@ -123,9 +113,9 @@ No match → respond directly.
 |---|---|
 | New Laravel feature | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
 | SaaS / multi-tenant | `plan` → `saas-patterns` → `laravel-specialist` → `tester-security` |
-| UI prototype | `frontend-design` → `tester-ui-ux` |
-| Frontend production | `plan` → `frontend-dev` → `tester-performance` |
-| API design | `plan` → `api-designer` → `laravel-specialist` → `tester-api` |
+| UI prototype | `frontend` → `tester-ui-ux` |
+| Frontend production | `plan` → `frontend` → `tester-performance` |
+| API design | `plan` → `rest-api` → `laravel-specialist` → `tester-api` |
 | Debug session | `log-debugger` → `query-debugger` (if SQL) |
 | One-shot (PRD→prod) | `master-orchestrator` → parallel agents → `tester-*` (auto) |
 | Self-improvement | `self-improver` → `gemini-auditor` → apply |
@@ -166,5 +156,11 @@ Regenerate: `python3 .claude/scripts/build-skill-index.py`
 | `/review-code` | tester-code + codex adversarial |
 | `/review-design` | UI/UX + accessibility |
 | `/create-skill [desc]` | new skill via research pipeline |
+| `/feedback-joca` | capture workflow issues from this session |
+| `/feedback-projeto` | update project docs |
+| `/help-joca` | quick reference |
+| `/migrate` | v1-legacy → v2.0 migration guide |
 | `/upgrade-joca` | feedback → self-improvement → apply |
 | `/update-joca` | sync with GitHub (protects `origin: local`) |
+| `/wp-perf` | quick WordPress performance triage |
+| `/wp-perf-review` | WordPress code review |

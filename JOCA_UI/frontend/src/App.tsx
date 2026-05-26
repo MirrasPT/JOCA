@@ -63,8 +63,8 @@ export default function App() {
 
   // New UX States
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [pinOutput, setPinOutput] = useState(true);
-  const pinOutputRef = useRef(true);
+  const [pinOutput, setPinOutput] = useState(false);
+  const pinOutputRef = useRef(false);
   
   const handleTogglePinOutput = useCallback(() => {
     setPinOutput((prev) => {
@@ -275,14 +275,16 @@ export default function App() {
           }
           break;
 
-        case 'buffer':
-          termRefs.current.get(msg.sessionId)?.reset();
-          termRefs.current.get(msg.sessionId)?.write(msg.data);
-          // re-parse full buffer to restore workflow state
+        case 'buffer': {
+          const ref = termRefs.current.get(msg.sessionId);
+          ref?.reset();
+          ref?.write(msg.data);
+          requestAnimationFrame(() => ref?.fit?.());
           outputBuffers.current.set(msg.sessionId, '');
           workflowRef.current.delete(msg.sessionId);
           processOutput(msg.sessionId, msg.data);
           break;
+        }
 
         case 'session_status':
           setSessions((prev) => prev.map((s) =>
@@ -490,9 +492,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [handleInterruptSession, loadCommandPalette]);
 
-  const submitTerminalDraft = useCallback(() => {
+  const submitTerminalDraft = useCallback((overrideText?: string) => {
     if (!activeId) return;
-    const text = terminalDraft.trim();
+    const text = (overrideText ?? terminalDraft).trim();
     if (!text) return;
     handleInput(activeId, `${text}\r`);
     setTerminalHistory((prev) => [...prev.filter((item) => item !== text), text].slice(-40));
@@ -576,8 +578,6 @@ export default function App() {
             selectedPath={selectedPath}
             onClearSelectedPath={() => setSelectedPath(null)}
             projectMemory={projectMemory}
-            pinOutput={pinOutput}
-            onTogglePinOutput={handleTogglePinOutput}
             onSaveSession={handleSave}
             onCompactSession={handleCompact}
             onInterruptSession={handleInterruptSession}

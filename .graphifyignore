@@ -1,0 +1,38 @@
+# Dependências
+node_modules/
+vendor/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+.next/
+.nuxt/
+.output/
+
+# Graphify próprio
+graphify-out/
+
+# Git
+.git/
+
+# Dados runtime
+*.log
+*.lock
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Ficheiros pessoais / sensíveis
+.env
+.env.*
+.DS_Store
+estado.md
+
+# Cache
+.cache/
+.vite/
+.turbo/
+.parcel-cache/

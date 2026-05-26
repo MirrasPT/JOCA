@@ -1,8 +1,8 @@
 #!/bin/bash
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-BACKEND_PORT=7361
-FRONTEND_PORT=7362
+BACKEND_PORT=7371
+FRONTEND_PORT=7372
 URL="http://localhost:$FRONTEND_PORT"
 FRONTEND_VITE="$DIR/frontend/node_modules/.bin/vite"
 

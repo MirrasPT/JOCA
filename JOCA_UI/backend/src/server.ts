@@ -84,6 +84,21 @@ interface CliToolStatus {
 const DATA_DIR = path.join(__dirname, '../../data');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 const PROJECT_MEMORY_FILE = path.join(DATA_DIR, 'project-memory.json');
+const UI_SETTINGS_FILE = path.join(DATA_DIR, 'ui-settings.json');
+
+interface UiSettings {
+  skipPermissions: boolean;
+}
+
+const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false };
+
+function loadUiSettings(): UiSettings {
+  return { ...DEFAULT_UI_SETTINGS, ...readJsonFile<Partial<UiSettings>>(UI_SETTINGS_FILE, {}) };
+}
+
+function saveUiSettings(settings: UiSettings) {
+  writeJsonFile(UI_SETTINGS_FILE, settings);
+}
 
 function loadProjects(): Project[] {
   try { return JSON.parse(fs.readFileSync(PROJECTS_FILE, 'utf8')); } catch { return []; }
@@ -121,7 +136,7 @@ const IS_WINDOWS = process.platform === 'win32';
 const SHELL = IS_WINDOWS
   ? (process.env.COMSPEC || 'powershell.exe')
   : (process.env.SHELL || '/bin/zsh');
-const BUFFER_MAX = 50_000;
+const BUFFER_MAX = 200_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
 
@@ -504,7 +519,8 @@ function createSession(
     saveProjectMemory(memory);
   }
 
-  setTimeout(() => ptyProcess.write(`${CLAUDE_BIN} --dangerously-skip-permissions\r`), 100);
+  const claudeArgs = loadUiSettings().skipPermissions ? ' --dangerously-skip-permissions' : '';
+  setTimeout(() => ptyProcess.write(`${CLAUDE_BIN}${claudeArgs}\r`), 100);
 
   if (resumePath) {
     const hasClaudeMd = fs.existsSync(path.join(resumePath, 'CLAUDE.md'));
@@ -524,7 +540,10 @@ function createSession(
   ptyProcess.onData((data: string) => {
     session.buffer += data;
     if (session.buffer.length > BUFFER_MAX) {
-      session.buffer = session.buffer.slice(session.buffer.length - BUFFER_MAX);
+      let cutAt = session.buffer.length - BUFFER_MAX;
+      const nlPos = session.buffer.indexOf('\n', cutAt);
+      if (nlPos !== -1 && nlPos < cutAt + 500) cutAt = nlPos + 1;
+      session.buffer = '\x1b[0m' + session.buffer.slice(cutAt);
     }
     broadcast({ type: 'output', sessionId: id, data });
 
@@ -761,6 +780,17 @@ app.get('/runtime', (_req, res) => {
 
 app.get('/cli-tools', (_req, res) => {
   res.json(getCliTools());
+});
+
+app.get('/ui-settings', (_req, res) => {
+  res.json(loadUiSettings());
+});
+
+app.patch('/ui-settings', express.json(), (req, res) => {
+  const current = loadUiSettings();
+  const updated = { ...current, ...req.body };
+  saveUiSettings(updated);
+  res.json(updated);
 });
 
 app.get('/project-memory', (_req, res) => {
@@ -1090,7 +1120,12 @@ wss.on('connection', (ws) => {
           const session = sessions.get(msg.sessionId!);
           if (session && msg.data !== undefined) {
             if (msg.data.trim().length > 0) session.notifyOnIdle = true;
-            session.pty.write(msg.data);
+            if (msg.data.length > 1 && msg.data.endsWith('\r')) {
+              session.pty.write(msg.data.slice(0, -1));
+              setTimeout(() => session.pty.write('\r'), 80);
+            } else {
+              session.pty.write(msg.data);
+            }
           }
           break;
         }

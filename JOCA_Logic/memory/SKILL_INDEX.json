@@ -2,703 +2,1055 @@
   {
     "type": "skill",
     "name": "ab-test-setup",
+    "category": "general",
     "path": ".claude/skills/ab-test-setup.md",
-    "description": "When the user wants to plan, design, or implement an A/B test or experiment, or build a growth experimentation program. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test th"
+    "description": "When the user wants to plan, design, or implement an A/B test or experiment, or build a growth experimentation program. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test th",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "adr",
+    "category": "general",
     "path": ".claude/skills/adr.md",
-    "description": "Architecture Decision Records — numbered files in docs/adr/ using Michael Nygard's format. Context, Decision, Alternatives Considered (with rejection reasons), Consequences (positive/negative/risks). "
+    "description": "Use when recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "agent-context",
+    "category": "general",
     "path": ".claude/skills/agent-context.md",
-    "description": "Always-active base principles for agent orchestration and context management. Covers multi-agent coordination patterns, context compression strategies, and context degradation detection. Apply wheneve"
+    "description": "Always-active base principles for agent orchestration and context management. Covers multi-agent coordination patterns, context compression strategies, and context degradation detection. Apply wheneve",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "analytics-tracking",
+    "category": "general",
     "path": ".claude/skills/analytics-tracking.md",
-    "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event trackin"
+    "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event trackin",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "anima",
+    "category": "general",
     "path": ".claude/skills/anima.md",
-    "description": "Animation specialist — GSAP for web/scroll animations and Lottie for icon/illustration/SVG animations. Routes automatically based on context. Callable autonomously by frontend skill during design, or "
+    "description": "Use when adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. Triggered by: GSAP, ScrollTrigger, Lottie, animation, motion.",
+    "triggers": [
+      "GSAP",
+      "ScrollTrigger",
+      "Lottie",
+      "animation",
+      "motion"
+    ]
   },
   {
     "type": "skill",
     "name": "auth",
+    "category": "general",
     "path": ".claude/skills/auth.md",
-    "description": "Authentication and authorization for Laravel 11+ SaaS. Sanctum API tokens + SPA cookies, Spatie RBAC roles/permissions/teams, 2FA TOTP + backup codes + trusted devices, Socialite (Google/Facebook), Po"
+    "description": "Use when implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "availability",
+    "category": "general",
     "path": ".claude/skills/availability.md",
-    "description": "Availability and disaster recovery for Laravel. spatie/laravel-backup (automated backups to S3/R2, DB dumps, monitoring), database replication (MySQL read replicas, Redis Sentinel, automatic failover)"
+    "description": "Availability and disaster recovery for Laravel. spatie/laravel-backup (automated backups to S3/R2, DB dumps, monitoring), database replication (MySQL read replicas, Redis Sentinel, automatic failover)",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "blueprint",
+    "category": "general",
     "path": ".claude/skills/blueprint.md",
-    "description": "Use when creating, editing, or reviewing WordPress Playground blueprint JSON files. Triggers on mentions of blueprints, playground configuration, or requests to set up a WordPress demo environment."
+    "description": "Use when creating, editing, or reviewing WordPress Playground blueprint JSON files. Triggers on mentions of blueprints, playground configuration, or requests to set up a WordPress demo environment.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "brand-guidelines",
+    "category": "general",
     "path": ".claude/skills/brand-guidelines.md",
-    "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. Covers logo assets, color system (OKLCH), typography, tone of voice, image style, component tokens, and "
+    "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. Covers logo assets, color system (OKLCH), typography, tone of voice, image style, component tokens, and ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "brand-positioning",
+    "category": "general",
     "path": ".claude/skills/brand-positioning.md",
-    "description": "Help founders and marketers nail their positioning. Use when someone mentions \"positioning,\" \"value proposition,\" \"who is this for,\" \"how do I describe my product,\" \"messaging,\" \"ICP,\" \"ideal customer"
+    "description": "Help founders and marketers nail their positioning. Use when someone mentions \"positioning,\" \"value proposition,\" \"who is this for,\" \"how do I describe my product,\" \"messaging,\" \"ICP,\" \"ideal customer",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "bullmq",
+    "category": "general",
     "path": ".claude/skills/bullmq.md",
-    "description": "Implement Redis-based job queues with BullMQ for Node.js. Covers queue setup, workers, job scheduling, delayed jobs, retry strategies with exponential backoff, dead letter queues, concurrency control,"
+    "description": "Implement Redis-based job queues with BullMQ for Node.js. Covers queue setup, workers, job scheduling, delayed jobs, retry strategies with exponential backoff, dead letter queues, concurrency control,",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "c4-diagram",
+    "category": "general",
     "path": ".claude/skills/c4-diagram.md",
-    "description": "C4 architecture diagrams in Mermaid. Context (system + actors + external systems) and Container (apps, services, databases) always generated. Component level on demand. Output as Markdown with embedde"
+    "description": "Use when creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "caching",
+    "category": "general",
     "path": ".claude/skills/caching.md",
-    "description": "Complete caching skill for Laravel + Redis + Cloudflare. 4 layers — application cache (Redis, remember/flexible/tags/locks/stampede prevention), HTTP caching (Cache-Control, ETag, stale-while-revalida"
+    "description": "Use when implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "caveman",
+    "category": "general",
     "path": ".claude/skills/caveman.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "competitor-profiling",
+    "category": "general",
     "path": ".claude/skills/competitor-profiling.md",
-    "description": "When the user wants to research, profile, or analyze competitors from their URLs. Also use when the user mentions \"competitor profile,\" \"competitor research,\" \"competitor analysis,\" \"profile this comp"
+    "description": "When the user wants to research, profile, or analyze competitors from their URLs. Also use when the user mentions \"competitor profile,\" \"competitor research,\" \"competitor analysis,\" \"profile this comp",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "component-system",
+    "category": "general",
     "path": ".claude/skills/component-system.md",
-    "description": "Component inventory and per-component specification documents. Generates system/component-inventory.md (master list) and system/components/<name>.md per component with anatomy, variants, sizes, 6 stat"
+    "description": "Component inventory and per-component specification documents. Generates system/component-inventory.md (master list) and system/components/<name>.md per component with anatomy, variants, sizes, 6 stat",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "content-strategy",
+    "category": "general",
     "path": ".claude/skills/content-strategy.md",
-    "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \"content strategy,\" \"what should I write about,\" \"con"
+    "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \"content strategy,\" \"what should I write about,\" \"con",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "copywriting",
+    "category": "general",
     "path": ".claude/skills/copywriting.md",
-    "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user s"
+    "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user s",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "create-skill",
+    "category": "general",
     "path": ".claude/skills/create-skill.md",
-    "description": "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. Researches the topic, drafts a skill, then runs up to 3 improvement + evaluation cycles"
+    "description": "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. Researches the topic, drafts a skill, then runs up to 3 improvement + evaluation cycles",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "deploy-cpanel",
+    "category": "general",
     "path": ".claude/skills/deploy-cpanel.md",
-    "description": "cPanel deployment specialist for Laravel and PHP apps. Folder structure, index.php path fix, .htaccess security, Git Version Control + .cpanel.yml, SSH deploy, artisan workarounds, queue with --stop-w"
+    "description": "Use when deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "deploy-docker",
+    "category": "general",
     "path": ".claude/skills/deploy-docker.md",
-    "description": "Docker deployment specialist for Laravel apps on VPS. Multi-stage Dockerfile, production docker-compose.yml, Traefik/Caddy SSL, GitHub Actions CI/CD, zero-downtime blue-green, health checks, backup st"
+    "description": "Use when containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "deploy-ploi",
+    "category": "general",
     "path": ".claude/skills/deploy-ploi.md",
-    "description": "Ploi.io deployment specialist for Laravel apps. Server provisioning, site setup, deploy scripts, zero-downtime atomic deploys, Horizon/queue daemons, SSL, .env management, PHP SDK, CLI, GitHub Actions"
+    "description": "Use when deploying via Ploi.io, managing servers, or configuring Ploi deployments.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "design-system",
+    "category": "general",
     "path": ".claude/skills/design-system.md",
-    "description": "Router for the Design System layer. Orchestrates brand-guidelines (identity), design-tokens (3-tier token architecture), and component-system (component inventory + state specs). Second layer of the s"
+    "description": "Use when building or auditing design systems, managing design tokens, component libraries, or style guides.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "design-tokens",
+    "category": "general",
     "path": ".claude/skills/design-tokens.md",
-    "description": "3-tier design token architecture — global primitives, semantic aliases, component overrides. Outputs tokens/global.json + semantic.json + component.json (W3C DTCG 2025.10 format) + tokens/tokens.css ("
+    "description": "Use when defining or managing design tokens (colors, spacing, typography) in DTCG format.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "email-sequence",
+    "category": "general",
     "path": ".claude/skills/email-sequence.md",
-    "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurtur"
+    "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurtur",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "error-tracking-dev",
+    "category": "general",
     "path": ".claude/skills/error-tracking-dev.md",
-    "description": "Development error tracking and debugging for Laravel. Debugbar (queries, N+1, timeline, memory), Telescope (requests, jobs, mail, cache, dumps), Ignition (error pages, solutions), Ray (desktop debugge"
+    "description": "Development error tracking and debugging for Laravel. Debugbar (queries, N+1, timeline, memory), Telescope (requests, jobs, mail, cache, dumps), Ignition (error pages, solutions), Ray (desktop debugge",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "error-tracking-prod",
+    "category": "general",
     "path": ".claude/skills/error-tracking-prod.md",
-    "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. Sentry/Flare (error tracking), Monolog JSON (structured logs), Context facade (correlation IDs), spatie/larave"
+    "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. Sentry/Flare (error tracking), Monolog JSON (structured logs), Context facade (correlation IDs), spatie/larave",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "feedback-joca",
+    "category": "general",
     "path": ".claude/skills/feedback-joca.md",
-    "description": "Captura problemas de workflow JOCA numa sessão — o que falhou, o que precisou de retrabalho, o que está mal documentado. Não sobre o projecto — sobre o sistema."
+    "description": "Use when capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities.",
+    "triggers": [
+      "/feedback-joca",
+      "feedback sobre o joca",
+      "o que melhorar no joca",
+      "o que correu mal nesta sessão"
+    ]
   },
   {
     "type": "skill",
     "name": "filament",
+    "category": "general",
     "path": ".claude/skills/filament.md",
-    "description": "Filament v4/v5 admin panel specialist for Laravel. Resources, Pages, Widgets, Forms, Tables, Actions, multi-tenancy scoping, Heroicon enums, Pest testing. Callable autonomously by laravel-specialist."
+    "description": "Use when building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "file-storage",
+    "category": "general",
     "path": ".claude/skills/file-storage.md",
-    "description": "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. Use when setting up S3 storage, configuring Cloudflare R2, implementing presigned URL uploads, adding virus scanning with C"
+    "description": "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. Use when setting up S3 storage, configuring Cloudflare R2, implementing presigned URL uploads, adding virus scanning with C",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "frontend",
+    "category": "general",
     "path": ".claude/skills/frontend.md",
-    "description": "Awwwards-level website and webapp designer+developer. React specialist. Anti-AI slop. Merges design thinking, prototyping, and production implementation in one skill. Calls anima (animation) and mobil"
+    "description": "Use when building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "github",
+    "category": "general",
     "path": ".claude/skills/github.md",
-    "description": "GitHub specialist. GitHub Actions CI/CD for Laravel (Pest, Pint, PHPStan, MySQL service), gh CLI (PRs, issues, releases, workflows), Dependabot, CODEOWNERS, branch protection, Environments, GHCR, conc"
+    "description": "Use when working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "google-analytics",
+    "category": "general",
     "path": ".claude/skills/google-analytics.md",
-    "description": "Query Google Analytics 4 data. Use when the user asks about website traffic, page views, sessions, user counts, conversions, top pages, traffic sources, or any analytics/metrics questions. Trigger on "
+    "description": "Query Google Analytics 4 data. Use when the user asks about website traffic, page views, sessions, user counts, conversions, top pages, traffic sources, or any analytics/metrics questions. Trigger on ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "graphic-design",
+    "category": "general",
     "path": ".claude/skills/graphic-design.md",
-    "description": "Print and graphic design in HTML/CSS → PDF. Creates roll-ups, flyers, bifolds, trifolds, posters, business cards, and other printed materials. Philosophy-first approach with museum-quality craftsmansh"
+    "description": "Print and graphic design in HTML/CSS → PDF. Creates roll-ups, flyers, bifolds, trifolds, posters, business cards, and other printed materials. Philosophy-first approach with museum-quality craftsmansh",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "horizon",
+    "category": "general",
     "path": ".claude/skills/horizon.md",
-    "description": "Laravel queues and Horizon monitoring for production SaaS. Use when implementing background jobs, queue workers, or Horizon dashboard; configuring job retries, backoff, uniqueness, or encryption; sett"
+    "description": "Laravel queues and Horizon monitoring for production SaaS. Use when implementing background jobs, queue workers, or Horizon dashboard; configuring job retries, backoff, uniqueness, or encryption; sett",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "html-review",
+    "category": "general",
     "path": ".claude/skills/html-review.md",
-    "description": "Converts planning .md documents (PRD, Tech Spec, ADR, RFC, Tasks, C4) into a visual, styled .html file for easy human review. The .md files remain the source of truth for Claude Code; the .html is a r"
+    "description": "Use when converting markdown documentation to visual HTML format for review or presentation.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "hyperframes",
+    "category": "general",
     "path": ".claude/skills/hyperframes.md",
-    "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. Use when building HTML-based video content, sy"
+    "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. Use when building HTML-based video content, sy",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "img-gen",
+    "category": "general",
     "path": ".claude/skills/img-gen.md",
-    "description": "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). Use when user asks to generate, create, make, produce, design, or render an image, illustration, mockup, visual, grap"
+    "description": "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). Use when user asks to generate, create, make, produce, design, or render an image, illustration, mockup, visual, grap",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "karpathy-guidelines",
+    "category": "general",
     "path": ".claude/skills/karpathy-guidelines.md",
-    "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiabl"
+    "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiabl",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "landing-page",
+    "category": "general",
     "path": ".claude/skills/landing-page.md",
-    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Use when someone needs to build a new landing page for a product, offer, lead magnet, webinar, or paid ad campaign. Di"
+    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Use when someone needs to build a new landing page for a product, offer, lead magnet, webinar, or paid ad campaign. Di",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "laravel-specialist",
+    "category": "general",
     "path": ".claude/skills/laravel-specialist.md",
-    "description": "Laravel 11+ backend specialist. Single-action controllers, Action classes, Form Request DTOs, ULIDs, Sanctum, Horizon, Pest testing. Calls rest-api for endpoint design, mysql for query optimization, f"
+    "description": "Use when building Laravel applications, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, or RESTful APIs. Triggered by: Laravel, Eloquent, Artisan, composer.json.",
+    "triggers": [
+      "Laravel",
+      "Eloquent",
+      "Artisan",
+      "composer"
+    ]
   },
   {
     "type": "skill",
     "name": "launch-strategy",
+    "category": "general",
     "path": ".claude/skills/launch-strategy.md",
-    "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions \"launch,\" \"Product Hunt,\" \"feature release,\" \"announcement,\" \"go-to-market,\" \"b"
+    "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions \"launch,\" \"Product Hunt,\" \"feature release,\" \"announcement,\" \"go-to-market,\" \"b",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "lead-capture",
+    "category": "general",
     "path": ".claude/skills/lead-capture.md",
-    "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. Use when someone wants to grow their email list, create a lead magnet, set up email capture"
+    "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. Use when someone wants to grow their email list, create a lead magnet, set up email capture",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "lottie-animator",
+    "category": "general",
     "path": ".claude/skills/lottie-animator.md",
-    "description": "|"
+    "description": "|",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "marketing",
+    "category": "general",
     "path": ".claude/skills/marketing.md",
-    "description": "Detects marketing intent and routes to the correct marketing skill. Use when a marketing task is requested but the specific skill isn't obvious. Routes across all 15 marketing skills covering the full"
+    "description": "Detects marketing intent and routes to the correct marketing skill. Use when a marketing task is requested but the specific skill isn't obvious. Routes across all 15 marketing skills covering the full",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "microsoft-clarity",
+    "category": "general",
     "path": ".claude/skills/microsoft-clarity.md",
-    "description": "Export Microsoft Clarity user behavior analytics. Use when the user asks about heatmaps, session recordings, engagement metrics, scroll depth, rage clicks, dead clicks, or user behavior data from Micr"
+    "description": "Export Microsoft Clarity user behavior analytics. Use when the user asks about heatmaps, session recordings, engagement metrics, scroll depth, rage clicks, dead clicks, or user behavior data from Micr",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "mobile",
+    "category": "general",
     "path": ".claude/skills/mobile.md",
-    "description": "Mobile-first and responsive design specialist. Takes designs from frontend skill and optimizes for touch, small screens, safe areas, PWA, and native-like interactions. Handles iOS/Android device frame"
+    "description": "Use when building mobile applications, responsive design, PWA, or mobile-specific UI patterns.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "mysql",
+    "category": "general",
     "path": ".claude/skills/mysql.md",
-    "description": "MySQL optimization specialist. EXPLAIN analysis, index design (composite, covering), SARGability, pagination, schema design, migrations. Callable autonomously by laravel-specialist for query optimizat"
+    "description": "Use when writing MySQL queries, optimizing database performance, designing schemas, or debugging SQL issues.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "page-cro",
+    "category": "general",
     "path": ".claude/skills/page-cro.md",
-    "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"C"
+    "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"C",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "paid-ads",
+    "category": "general",
     "path": ".claude/skills/paid-ads.md",
-    "description": "Use when the user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or performance optimi"
+    "description": "Use when the user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or performance optimi",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "plan",
+    "category": "general",
     "path": ".claude/skills/plan.md",
-    "description": "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem, e calibração de confia"
+    "description": "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem, e calibração de confia",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "planning",
+    "category": "general",
     "path": ".claude/skills/planning.md",
-    "description": "Router for the Project Planning layer. Detects context and routes to the right planning skill — plan (execution architecture), prd (requirements document), tech-spec (technical design), adr (decision "
+    "description": "Use when planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. Triggered by: plan, architecture, migrate, restructure.",
+    "triggers": [
+      "plan",
+      "architecture",
+      "migrate",
+      "restructure"
+    ]
   },
   {
     "type": "skill",
     "name": "postmark",
+    "category": "general",
     "path": ".claude/skills/postmark.md",
-    "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. Use when implementing email sending with Postmark, setting up"
+    "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. Use when implementing email sending with Postmark, setting up",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "prd",
+    "category": "general",
     "path": ".claude/skills/prd.md",
-    "description": "Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope"
+    "description": "Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "pt-pt-translator",
+    "category": "general",
     "path": ".claude/skills/pt-pt-translator.md",
-    "description": "Translate or write content in European Portuguese (PT-PT / português de Portugal). Enforces PT-PT grammar (gerund→\"a+infinitivo\", enclitic pronouns), register choice (tu/você/o senhor), PT-PT vocabula"
+    "description": "Use when translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "queues",
+    "category": "general",
     "path": ".claude/skills/queues.md",
-    "description": "Router skill for job queues and background processing. Routes to BullMQ for Node.js/Redis queues, or provides general queue guidance. Use when setting up background jobs, task queues, job scheduling, "
+    "description": "Router skill for job queues and background processing. Routes to BullMQ for Node.js/Redis queues, or provides general queue guidance. Use when setting up background jobs, task queues, job scheduling, ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "remotion",
+    "category": "general",
     "path": ".claude/skills/remotion.md",
-    "description": "Create programmatic videos with React and Remotion. Use when building data-driven videos, templated batch video, lyric videos, music visualizers, or any video requiring React component composition. Co"
+    "description": "Create programmatic videos with React and Remotion. Use when building data-driven videos, templated batch video, lyric videos, music visualizers, or any video requiring React component composition. Co",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "rest-api",
+    "category": "general",
     "path": ".claude/skills/rest-api.md",
-    "description": "REST API design specialist. RFC 9457 errors, URL conventions, versioning with Sunset headers, pagination, rate limiting, OpenAPI 3.1 specs, ForceJsonResponse middleware. Callable autonomously by larav"
+    "description": "REST API design specialist. RFC 9457 errors, URL conventions, versioning with Sunset headers, pagination, rate limiting, OpenAPI 3.1 specs, ForceJsonResponse middleware. Callable autonomously by larav",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "reverb-realtime",
+    "category": "general",
     "path": ".claude/skills/reverb-realtime.md",
-    "description": "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. Use when implementing WebSocket broadcasting, real-time notifications, presence channels, or live UI"
+    "description": "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. Use when implementing WebSocket broadcasting, real-time notifications, presence channels, or live UI",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "rfc",
+    "category": "general",
     "path": ".claude/skills/rfc.md",
-    "description": "RFC (Request for Comments) process for cross-cutting changes. Structured proposal documents in docs/rfcs/ — problem, proposed solution, alternatives, migration path, timeline, dependencies. For change"
+    "description": "Use when writing Request for Comments documents, proposing system changes, or documenting technical proposals.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "saas-patterns",
+    "category": "general",
     "path": ".claude/skills/saas-patterns.md",
-    "description": "SaaS architecture patterns for Laravel 11 multi-tenant platforms. Use when designing multi-tenancy, implementing tenant isolation, setting up stancl/tenancy, building feature flags, subscription tier "
+    "description": "SaaS architecture patterns for Laravel 11 multi-tenant platforms. Use when designing multi-tenancy, implementing tenant isolation, setting up stancl/tenancy, building feature flags, subscription tier ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "search",
+    "category": "general",
     "path": ".claude/skills/search.md",
-    "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. Use when adding search to an application, c"
+    "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. Use when adding search to an application, c",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "security",
+    "category": "general",
     "path": ".claude/skills/security.md",
-    "description": "Global security skill for Laravel + React SaaS. OWASP Top 10:2025, ASVS 5.0, Laravel-specific patterns (mass assignment, IDOR, raw queries, Blade XSS), React XSS (dangerouslySetInnerHTML, href injecti"
+    "description": "Global security skill for Laravel + React SaaS. OWASP Top 10:2025, ASVS 5.0, Laravel-specific patterns (mass assignment, IDOR, raw queries, Blade XSS), React XSS (dangerouslySetInnerHTML, href injecti",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "seo-local",
+    "category": "general",
     "path": ".claude/skills/seo-local.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "seo",
+    "category": "general",
     "path": ".claude/skills/seo.md",
-    "description": "Use for anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. Triggers: 'SEO audit', 'technical SEO', 'why am I not ranking"
+    "description": "Use for anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. Triggers: 'SEO audit', 'technical SEO', 'why am I not ranking",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "shopify-app",
+    "category": "general",
     "path": ".claude/skills/shopify-app.md",
-    "description": "Use when building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. Covers full"
+    "description": "Use when building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. Covers full",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "shopify-router",
+    "category": "general",
     "path": ".claude/skills/shopify-router.md",
-    "description": "Use when the user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme, shopify-sto"
+    "description": "Use when the user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme, shopify-sto",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "shopify-store-audit",
+    "category": "general",
     "path": ".claude/skills/shopify-store-audit.md",
-    "description": "Use when auditing a public Shopify store across 8 dimensions: trust & credibility, conversion optimisation, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO (Answer "
+    "description": "Use when auditing a public Shopify store across 8 dimensions: trust & credibility, conversion optimisation, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO (Answer ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "shopify-store-fixer",
+    "category": "general",
     "path": ".claude/skills/shopify-store-fixer.md",
-    "description": "Use when implementing fixes to a Shopify store via Admin API (GraphQL). Every write operation requires explicit user approval before execution. Covers products, metafields, pages, navigation, redirect"
+    "description": "Use when implementing fixes to a Shopify store via Admin API (GraphQL). Every write operation requires explicit user approval before execution. Covers products, metafields, pages, navigation, redirect",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "shopify-theme",
+    "category": "general",
     "path": ".claude/skills/shopify-theme.md",
-    "description": "Use when building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check linting, a"
+    "description": "Use when building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check linting, a",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "slides",
+    "category": "general",
     "path": ".claude/skills/slides.md",
-    "description": "HTML/CSS/JS presentation and pitch deck designer. Anti-slop, DESIGN.md integration, junior mode, 3 aesthetic variants. Outputs 1920×1080 HTML decks with keyboard navigation. Exports to PDF and editabl"
+    "description": "Use when creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "social-content",
+    "category": "general",
     "path": ".claude/skills/social-content.md",
-    "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn po"
+    "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn po",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "task-breakdown",
+    "category": "general",
     "path": ".claude/skills/task-breakdown.md",
-    "description": "Persistent task breakdown — generates TASKS.md with epics, stories (T-shirt sizing), and atomic tasks. Dependencies, status tracking (TODO/IN_PROGRESS/DONE/BLOCKED), RICE prioritization. Survives acro"
+    "description": "Use when decomposing large features into implementable tasks with dependencies and estimates.",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "tech-spec",
+    "category": "general",
     "path": ".claude/skills/tech-spec.md",
-    "description": "Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). Data model with Mermaid ERD, API surface (endpoints/events), component breakdown, sequence diagrams for critical flows, integ"
+    "description": "Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). Data model with Mermaid ERD, API surface (endpoints/events), component breakdown, sequence diagrams for critical flows, integ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "transactional-email",
+    "category": "general",
     "path": ".claude/skills/transactional-email.md",
-    "description": "Router skill for transactional email. Routes to the appropriate provider sub-skill. Covers Postmark, Resend, and email deliverability patterns. Use when sending emails, setting up email infrastructure"
+    "description": "Router skill for transactional email. Routes to the appropriate provider sub-skill. Covers Postmark, Resend, and email deliverability patterns. Use when sending emails, setting up email infrastructure",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "video",
+    "category": "general",
     "path": ".claude/skills/video.md",
-    "description": "Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. Cobre AI generation (Veo, Runway, Kling, Pika), AI avatars (HeyGen, Synthesia), editing/repurposing (Descript, Opus "
+    "description": "Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. Cobre AI generation (Veo, Runway, Kling, Pika), AI avatars (HeyGen, Synthesia), editing/repurposing (Descript, Opus ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "webhooks",
+    "category": "general",
     "path": ".claude/skills/webhooks.md",
-    "description": "Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. Use when receiving we"
+    "description": "Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. Use when receiving we",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wordpress-router",
+    "category": "general",
     "path": ".claude/skills/wordpress-router.md",
-    "description": "Use when the user asks about WordPress codebases (plugins, themes, block themes, Gutenberg blocks, WP core checkouts) and you need to quickly classify the repo and route to the correct workflow/skill "
+    "description": "Use when the user asks about WordPress codebases (plugins, themes, block themes, Gutenberg blocks, WP core checkouts) and you need to quickly classify the repo and route to the correct workflow/skill ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-abilities-api",
+    "category": "general",
     "path": ".claude/skills/wp-abilities-api.md",
-    "description": "Use when working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities, categories, meta, "
+    "description": "Use when working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities, categories, meta, ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-block-development",
+    "category": "general",
     "path": ".claude/skills/wp-block-development.md",
-    "description": "Use when developing WordPress (Gutenberg) blocks: block.json metadata, register_block_type(_from_metadata), attributes/serialization, supports, dynamic rendering (render.php/render_callback), deprecat"
+    "description": "Use when developing WordPress (Gutenberg) blocks: block.json metadata, register_block_type(_from_metadata), attributes/serialization, supports, dynamic rendering (render.php/render_callback), deprecat",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-block-themes",
+    "category": "general",
     "path": ".claude/skills/wp-block-themes.md",
-    "description": "Use when developing WordPress block themes: theme.json (global settings/styles), templates and template parts, patterns, style variations, and Site Editor troubleshooting (style hierarchy, overrides, "
+    "description": "Use when developing WordPress block themes: theme.json (global settings/styles), templates and template parts, patterns, style variations, and Site Editor troubleshooting (style hierarchy, overrides, ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-interactivity-api",
+    "category": "general",
     "path": ".claude/skills/wp-interactivity-api.md",
-    "description": "Use when building or debugging WordPress Interactivity API features (data-wp-* directives, @wordpress/interactivity store/state/actions, block viewScriptModule integration, wp_interactivity_*()) inclu"
+    "description": "Use when building or debugging WordPress Interactivity API features (data-wp-* directives, @wordpress/interactivity store/state/actions, block viewScriptModule integration, wp_interactivity_*()) inclu",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-performance-review",
+    "category": "general",
     "path": ".claude/skills/wp-performance-review.md",
-    "description": "WordPress performance code review and optimization analysis. Use when reviewing WordPress PHP code for performance issues, auditing themes/plugins for scalability, optimizing WP_Query, analyzing cachi"
+    "description": "WordPress performance code review and optimization analysis. Use when reviewing WordPress PHP code for performance issues, auditing themes/plugins for scalability, optimizing WP_Query, analyzing cachi",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-performance",
+    "category": "general",
     "path": ".claude/skills/wp-performance.md",
-    "description": "Use when investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers), database/query optimiz"
+    "description": "Use when investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers), database/query optimiz",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-phpstan",
+    "category": "general",
     "path": ".claude/skills/wp-phpstan.md",
-    "description": "Use when configuring, running, or fixing PHPStan static analysis in WordPress projects (plugins/themes/sites): phpstan.neon setup, baselines, WordPress-specific typing, and handling third-party plugin"
+    "description": "Use when configuring, running, or fixing PHPStan static analysis in WordPress projects (plugins/themes/sites): phpstan.neon setup, baselines, WordPress-specific typing, and handling third-party plugin",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-playground",
+    "category": "general",
     "path": ".claude/skills/wp-playground.md",
-    "description": "Use for WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting plugins/themes, switching W"
+    "description": "Use for WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting plugins/themes, switching W",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-plugin-development",
+    "category": "general",
     "path": ".claude/skills/wp-plugin-development.md",
-    "description": "Use when developing WordPress plugins: architecture and hooks, activation/deactivation/uninstall, admin UI and Settings API, data storage, cron/tasks, security (nonces/capabilities/sanitization/escapi"
+    "description": "Use when developing WordPress plugins: architecture and hooks, activation/deactivation/uninstall, admin UI and Settings API, data storage, cron/tasks, security (nonces/capabilities/sanitization/escapi",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-plugin-directory-guidelines",
+    "category": "general",
     "path": ".claude/skills/wp-plugin-directory-guidelines.md",
-    "description": "Use when reviewing WordPress plugins for GPL compliance, checking license headers or compatibility, evaluating upsell/freemium/trialware patterns, validating plugin naming or trademark rules, checking"
+    "description": "Use when reviewing WordPress plugins for GPL compliance, checking license headers or compatibility, evaluating upsell/freemium/trialware patterns, validating plugin naming or trademark rules, checking",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-project-triage",
+    "category": "general",
     "path": ".claude/skills/wp-project-triage.md",
-    "description": "Use when you need a deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, and a structured JSON report to gui"
+    "description": "Use when you need a deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, and a structured JSON report to gui",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-rest-api",
+    "category": "general",
     "path": ".claude/skills/wp-rest-api.md",
-    "description": "Use when building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route, WP_REST_Controller/controller classes, schema/argument validation, permission_callback/authenticati"
+    "description": "Use when building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route, WP_REST_Controller/controller classes, schema/argument validation, permission_callback/authenticati",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wp-wpcli-and-ops",
+    "category": "general",
     "path": ".claude/skills/wp-wpcli-and-ops.md",
-    "description": "Use when working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite, and scripting/automation with "
+    "description": "Use when working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite, and scripting/automation with ",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "wpds",
+    "category": "general",
     "path": ".claude/skills/wpds.md",
-    "description": "Use when building UIs leveraging the WordPress Design System (WPDS) and its components, tokens, patterns, etc."
+    "description": "Use when building UIs leveraging the WordPress Design System (WPDS) and its components, tokens, patterns, etc.",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "codex-review",
+    "category": "agents",
     "path": ".claude/agents/codex-review.md",
-    "description": "|"
+    "description": "|",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "deep-research",
+    "category": "agents",
     "path": ".claude/agents/deep-research.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "dependency-auditor",
+    "category": "agents",
     "path": ".claude/agents/dependency-auditor.md",
-    "description": "Use when you need to audit project dependencies for security vulnerabilities, outdated packages, or unused dependencies. Triggered by: \\\"audit dependencies\\\", \\\"check packages\\\", \\\"outdated packages\\\""
+    "description": "Use when you need to audit project dependencies for security vulnerabilities, outdated packages, or unused dependencies. Triggered by: \\\"audit dependencies\\\", \\\"check packages\\\", \\\"outdated packages\\\"",
+    "triggers": [
+      "\\\"audit dependencies\\",
+      "\\\"check packages\\",
+      "\\\"outdated packages\\",
+      "\\\"npm outdated\\",
+      "\\\"composer outdated\\",
+      "\\\"CVE in my packages\\",
+      "\\\"vulnerable dependency\\",
+      "\\\"update packages\\",
+      "\\\"cleanup dependencies\\",
+      "\\\"unused packages\\"
+    ]
   },
   {
     "type": "agent",
     "name": "design-system-audit",
+    "category": "agents",
     "path": ".claude/agents/design-system-audit.md",
-    "description": "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing"
+    "description": "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "gemini-auditor",
+    "category": "agents",
     "path": ".claude/agents/gemini-auditor.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "gemini-brain",
+    "category": "agents",
     "path": ".claude/agents/gemini-brain.md",
-    "description": "|"
+    "description": "|",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "img-gen-google",
+    "category": "agents",
     "path": ".claude/agents/img-gen-google.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "img-gen-openai",
+    "category": "agents",
     "path": ".claude/agents/img-gen-openai.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "log-debugger",
+    "category": "agents",
     "path": ".claude/agents/log-debugger.md",
-    "description": "Use when you have an error, stack trace, log to analyze, or need to debug a system. Triggered by: \\\"debug this error\\\", \\\"fix this exception\\\", \\\"stack trace\\\", \\\"500 error\\\", \\\"something is broken\\\","
+    "description": "Use when you have an error, stack trace, log to analyze, or need to debug a system. Triggered by: \\\"debug this error\\\", \\\"fix this exception\\\", \\\"stack trace\\\", \\\"500 error\\\", \\\"something is broken\\\",",
+    "triggers": [
+      "\\\"debug this error\\",
+      "\\\"fix this exception\\",
+      "\\\"stack trace\\",
+      "\\\"500 error\\",
+      "\\\"something is broken\\",
+      "\\\"why is this failing\\",
+      "\\\"PHP error\\",
+      "\\\"JavaScript error\\",
+      "\\\"TypeError\\",
+      "\\\"SQLSTATE\\"
+    ]
   },
   {
     "type": "agent",
     "name": "master-orchestrator",
+    "category": "agents",
     "path": ".claude/agents/master-orchestrator.md",
-    "description": "Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development."
+    "description": "Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development.",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "payment-integration",
+    "category": "agents",
     "path": ".claude/agents/payment-integration.md",
-    "description": "Payment integration agent. Implements Stripe, Laravel Cashier, MB Way, Multibanco, webhook handling, subscription billing, SCA/3DS. Triggered by: \\\"integrate Stripe\\\", \\\"add payments\\\", \\\"Stripe Check"
+    "description": "Payment integration agent. Implements Stripe, Laravel Cashier, MB Way, Multibanco, webhook handling, subscription billing, SCA/3DS. Triggered by: \\\"integrate Stripe\\\", \\\"add payments\\\", \\\"Stripe Check",
+    "triggers": [
+      "\\\"integrate Stripe\\",
+      "\\\"add payments\\",
+      "\\\"Stripe Checkout\\",
+      "\\\"subscription billing\\",
+      "\\\"Cashier setup\\",
+      "\\\"webhook Stripe\\",
+      "\\\"refund flow\\",
+      "\\\"PCI compliance\\",
+      "\\\"payment failed\\",
+      "\\\"3D Secure\\"
+    ]
   },
   {
     "type": "agent",
     "name": "prd-reviewer",
+    "category": "agents",
     "path": ".claude/agents/prd-reviewer.md",
-    "description": "|"
+    "description": "|",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "query-debugger",
+    "category": "agents",
     "path": ".claude/agents/query-debugger.md",
-    "description": "Use when you need to diagnose slow or broken database queries. Triggered by: \\\"slow query\\\", \\\"query taking too long\\\", \\\"EXPLAIN\\\", \\\"N+1 problem\\\", \\\"database slow\\\", \\\"missing index\\\", \\\"optimize q"
+    "description": "Use when you need to diagnose slow or broken database queries. Triggered by: \\\"slow query\\\", \\\"query taking too long\\\", \\\"EXPLAIN\\\", \\\"N+1 problem\\\", \\\"database slow\\\", \\\"missing index\\\", \\\"optimize q",
+    "triggers": [
+      "\\\"slow query\\",
+      "\\\"query taking too long\\",
+      "\\\"EXPLAIN\\",
+      "\\\"N+1 problem\\",
+      "\\\"database slow\\",
+      "\\\"missing index\\",
+      "\\\"optimize query\\",
+      "\\\"SQL slow\\",
+      "\\\"full table scan\\",
+      "\\\"query performance\\"
+    ]
   },
   {
     "type": "agent",
     "name": "security-review",
+    "category": "agents",
     "path": ".claude/agents/security-review.md",
-    "description": "Deep security code review agent. Reads code and applies OWASP ASVS 5.0 patterns for Laravel + React. Checks: authorization coverage (IDOR), FormRequest validation, mass assignment vectors, file upload"
+    "description": "Deep security code review agent. Reads code and applies OWASP ASVS 5.0 patterns for Laravel + React. Checks: authorization coverage (IDOR), FormRequest validation, mass assignment vectors, file upload",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "self-improver",
+    "category": "agents",
     "path": ".claude/agents/self-improver.md",
-    "description": ">"
+    "description": ">",
+    "triggers": [
+      "/upgrade-joca or scheduled maintenance"
+    ]
   },
   {
     "type": "agent",
     "name": "seo-analyst",
+    "category": "agents",
     "path": ".claude/agents/seo-analyst.md",
-    "description": "Use when you need a research-first SEO audit of a website. Triggered by: \\\"SEO audit\\\", \\\"audit my site SEO\\\", \\\"check my SEO\\\", \\\"technical SEO audit\\\", \\\"crawl my site\\\", \\\"Core Web Vitals SEO\\\", \\\""
+    "description": "Use when you need a research-first SEO audit of a website. Triggered by: \\\"SEO audit\\\", \\\"audit my site SEO\\\", \\\"check my SEO\\\", \\\"technical SEO audit\\\", \\\"crawl my site\\\", \\\"Core Web Vitals SEO\\\", \\\"",
+    "triggers": [
+      "\\\"SEO audit\\",
+      "\\\"audit my site SEO\\",
+      "\\\"check my SEO\\",
+      "\\\"technical SEO audit\\",
+      "\\\"crawl my site\\",
+      "\\\"Core Web Vitals SEO\\",
+      "\\\"schema markup check\\",
+      "\\\"E-E-A-T\\",
+      "\\\"crawlability\\",
+      "\\\"sitemap check\\"
+    ]
   },
   {
     "type": "agent",
     "name": "skill-evaluator",
+    "category": "agents",
     "path": ".claude/agents/skill-evaluator.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "skill-improver",
+    "category": "agents",
     "path": ".claude/agents/skill-improver.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "tester-api",
+    "category": "agents",
     "path": ".claude/agents/tester-api.md",
-    "description": "REST API testing agent. Tests endpoints for correctness, auth, schema, IDOR, performance, and edge cases. Triggered by: \\\"test my API\\\", \\\"test endpoints\\\", \\\"API testing\\\", \\\"check my routes\\\", \\\"tes"
+    "description": "REST API testing agent. Tests endpoints for correctness, auth, schema, IDOR, performance, and edge cases. Triggered by: \\\"test my API\\\", \\\"test endpoints\\\", \\\"API testing\\\", \\\"check my routes\\\", \\\"tes",
+    "triggers": [
+      "\\\"test my API\\",
+      "\\\"test endpoints\\",
+      "\\\"API testing\\",
+      "\\\"check my routes\\",
+      "\\\"test authentication\\",
+      "\\\"API broken\\",
+      "\\\"endpoint not working\\",
+      "\\\"test REST API\\",
+      "\\\"validate API response\\",
+      "\\\"API contract test\\"
+    ]
   },
   {
     "type": "agent",
     "name": "tester-code",
+    "category": "agents",
     "path": ".claude/agents/tester-code.md",
-    "description": "Code review agent. Reviews completed work against plan, coding standards, and stack-specific patterns. Triggered after major steps: feature complete, endpoint batch, refactor. Checks plan alignment, c"
+    "description": "Code review agent. Reviews completed work against plan, coding standards, and stack-specific patterns. Triggered after major steps: feature complete, endpoint batch, refactor. Checks plan alignment, c",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "tester-performance",
+    "category": "agents",
     "path": ".claude/agents/tester-performance.md",
-    "description": "Use when you need to audit web performance or run load/stress tests. Triggered by: \\\"run Lighthouse\\\", \\\"check Core Web Vitals\\\", \\\"LCP FID CLS INP\\\", \\\"performance score\\\", \\\"page speed\\\", \\\"bundle s"
+    "description": "Use when you need to audit web performance or run load/stress tests. Triggered by: \\\"run Lighthouse\\\", \\\"check Core Web Vitals\\\", \\\"LCP FID CLS INP\\\", \\\"performance score\\\", \\\"page speed\\\", \\\"bundle s",
+    "triggers": [
+      "\\\"run Lighthouse\\",
+      "\\\"check Core Web Vitals\\",
+      "\\\"LCP FID CLS INP\\",
+      "\\\"performance score\\",
+      "\\\"page speed\\",
+      "\\\"bundle size\\",
+      "\\\"load time\\",
+      "\\\"slow site\\",
+      "\\\"Lighthouse audit\\",
+      "\\\"performance report\\"
+    ]
   },
   {
     "type": "agent",
     "name": "tester-ratelimit",
+    "category": "agents",
     "path": ".claude/agents/tester-ratelimit.md",
-    "description": "Rate limit testing agent. Actively tests rate limiting by sending real HTTP requests and probing bypass vectors. 4 phases: threshold verification (are limits enforced?), header bypass probes (X-Forwar"
+    "description": "Rate limit testing agent. Actively tests rate limiting by sending real HTTP requests and probing bypass vectors. 4 phases: threshold verification (are limits enforced?), header bypass probes (X-Forwar",
+    "triggers": [
+      "'test rate limit'",
+      "'rate limit working?'",
+      "'bypass rate limit'",
+      "'brute force test'",
+      "'throttle test'",
+      "'test my API limits'"
+    ]
   },
   {
     "type": "agent",
     "name": "tester-security",
+    "category": "agents",
     "path": ".claude/agents/tester-security.md",
-    "description": "Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEB"
+    "description": "Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEB",
+    "triggers": []
   },
   {
     "type": "agent",
     "name": "tester-ui-ux",
+    "category": "agents",
     "path": ".claude/agents/tester-ui-ux.md",
-    "description": "UI/UX + accessibility audit agent. Exhaustive testing: flows, visual, keyboard nav, WCAG 2.1 AA, ARIA, screen reader. Triggered by: UI testing, UX testing, user flow testing, defect report, spacing is"
+    "description": "UI/UX + accessibility audit agent. Exhaustive testing: flows, visual, keyboard nav, WCAG 2.1 AA, ARIA, screen reader. Triggered by: UI testing, UX testing, user flow testing, defect report, spacing is",
+    "triggers": [
+      "UI testing",
+      "UX testing",
+      "user flow testing",
+      "defect report",
+      "spacing issues",
+      "visual audit",
+      "broken interactions",
+      "accessibility audit",
+      "WCAG compliance",
+      "keyboard navigation"
+    ]
   },
   {
     "type": "agent",
     "name": "watch",
+    "category": "agents",
     "path": ".claude/agents/watch.md",
-    "description": ">"
+    "description": ">",
+    "triggers": []
   }
 ]

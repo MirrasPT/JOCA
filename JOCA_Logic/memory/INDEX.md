@@ -44,5 +44,4 @@
 - `skill-evaluator` · `skill-improver`
 
 ## Tools
-- [graphify.md](tools/graphify.md) — Knowledge graph (Python API)
-- [mcp-routing.md](tools/mcp-routing.md) — MCP server routing
+<!-- Populated as tool references are created in memory/tools/ -->

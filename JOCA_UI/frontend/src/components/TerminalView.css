@@ -257,23 +257,6 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.quick-command-btn--ux {
-  background: rgba(255, 255, 255, 0.015);
-  border-color: rgba(255, 255, 255, 0.04);
-  color: var(--text-ghost);
-}
-
-.quick-command-btn--ux:hover {
-  color: var(--text-dim);
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.quick-command-btn--ux.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
 
 .quick-command-btn--highlight {
   background: rgba(74, 222, 128, 0.08);
@@ -301,27 +284,79 @@
   margin: 0 4px;
 }
 
-.terminal-command-input-wrap {
+/* ── Attachments ────────────────────────────────────────────────── */
+.attachment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.attachment-chip-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-ghost);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 0 0 2px;
+  transition: color var(--t-fast);
+}
+.attachment-chip-remove:hover { color: var(--red, #f06a6a); }
+
+.terminal-command-attach {
+  background: none;
+  border: none;
+  color: var(--text-ghost);
+  cursor: pointer;
+  padding: 4px;
+  margin-bottom: 8px;
+  border-radius: var(--r-sm);
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color var(--t-fast);
+}
+.terminal-command-attach:hover { color: var(--text-dim); }
+
+.terminal-command-input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
   border-top: 1px solid var(--border-faint);
   padding-top: 4px;
 }
 
 .terminal-command-prompt {
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 16px;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
+  display: none;
 }
 
 .terminal-command-input {
   flex: 1;
   min-width: 0;
-  max-height: 120px;
+  min-height: 42px;
+  max-height: 40vh;
+  overflow-y: auto;
   resize: none;
   border: 0;
   outline: 0;
@@ -330,7 +365,7 @@
   font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.5;
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .terminal-command-input::placeholder {
@@ -338,7 +373,8 @@
 }
 
 .terminal-command-send {
-  align-self: center;
+  align-self: flex-end;
+  margin-bottom: 4px;
   height: 36px;
   min-width: 72px;
   padding: 0 16px;

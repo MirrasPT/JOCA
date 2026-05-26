@@ -194,13 +194,7 @@ cd JOCA_UI/backend && npm install && cd ../frontend && npm install && cd ../..
 
 ### 1. Recriar soul.md (NOVO na v2.0)
 
-Se `memory/soul.md` não existir, copiar template:
-
-```bash
-cp .claude/templates/soul-template.md memory/soul.md 2>/dev/null
-```
-
-Se o template não existir, criar com a estrutura base (os valores de calibração serão preenchidos na Fase 4):
+Se `memory/soul.md` não existir, criar com a estrutura base (os valores de calibração serão preenchidos na Fase 4):
 
 ```markdown
 ---

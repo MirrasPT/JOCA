@@ -14,9 +14,9 @@ O JOCA e composto por dois modulos que funcionam em conjunto:
 
 ```
 JOCA/
+├── install.md               <- bootstrap de instalacao (maquina nova)
 ├── JOCA_Logic/              <- Motor Agenctico (skills, agents, commands, memory)
 │   ├── CLAUDE.md            <- comportamento base
-│   ├── install.md           <- assistente interactivo de instalacao
 │   ├── memory/
 │   │   ├── INDEX.md         <- catalogo de componentes
 │   │   ├── soul.md          <- personalidade e decision filters
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**133 componentes:** 92 skills + 25 agents + 16 commands.
+**134 componentes:** 92 skills + 25 agents + 17 commands.
 
 ---
 
@@ -66,10 +66,10 @@ O JOCA_UI detecta automaticamente o `JOCA_Logic` como directorio irmao — zero 
 Cola no Claude Code:
 
 ```
-Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/JOCA_Logic/install.md e segue as instrucoes.
+Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md e segue as instrucoes.
 ```
 
-O assistente faz o questionario, detecta o teu stack, selecciona skills, configura MCPs e instala o JOCA_UI.
+O assistente clona o repo, configura identidade, personalidade (soul), skills, MCPs e instala o JOCA_UI.
 
 ### Iniciar a interface
 
@@ -161,7 +161,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (16)
+## Commands (17)
 
 | Command | Funcao |
 |---------|--------|
@@ -181,6 +181,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/update-joca` | Sync com repositorio GitHub |
 | `/wp-perf-review` | Code review WP completo |
 | `/wp-perf` | Quick triage WP |
+| `/help-joca` | Referencia rapida de comandos |
 
 ---
 
