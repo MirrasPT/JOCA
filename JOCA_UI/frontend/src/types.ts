@@ -60,6 +60,7 @@ export interface TerminalRef {
   reset: () => void;
   clear?: () => void;
   scrollToBottom?: () => void;
+  fit?: () => void;
 }
 
 export interface ToolkitRegistryItem {

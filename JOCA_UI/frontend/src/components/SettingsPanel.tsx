@@ -35,6 +35,17 @@ function ChevronsRight() {
 export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, projects, services, events, onReloadRuntime, onRunCommand, onClose }: Props) {
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
+  const [skipPermissions, setSkipPermissions] = useState(false);
+
+  useEffect(() => {
+    fetch('/ui-settings').then(r => r.json()).then(s => setSkipPermissions(s.skipPermissions ?? false)).catch(() => {});
+  }, []);
+
+  const toggleSkipPermissions = useCallback(() => {
+    const next = !skipPermissions;
+    setSkipPermissions(next);
+    fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skipPermissions: next }) }).catch(() => {});
+  }, [skipPermissions]);
 
   const reloadCliTools = useCallback(() => {
     setCliLoading(true);
@@ -104,6 +115,17 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             </dl>
           </div>
         )}
+        <div className="settings-service-card">
+          <div className="settings-service-head">
+            <span className="status-pill status-pill--connected">claude</span>
+            <span>Claude Code</span>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer' }}>
+            <input type="checkbox" checked={skipPermissions} onChange={toggleSkipPermissions} />
+            <span>Skip permission prompts <code style={{ fontSize: '0.8em', opacity: 0.6 }}>--dangerously-skip-permissions</code></span>
+          </label>
+          <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
+        </div>
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">cli</span>

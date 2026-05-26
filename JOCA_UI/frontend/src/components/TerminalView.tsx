@@ -1,4 +1,4 @@
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import type { SessionInfo, TerminalRef, ProjectMemory } from '../types';
 import TerminalPane from './TerminalPane';
 import './TerminalView.css';
@@ -15,8 +15,6 @@ interface Props {
   selectedPath: string | null;
   onClearSelectedPath: () => void;
   projectMemory: Record<string, ProjectMemory>;
-  pinOutput: boolean;
-  onTogglePinOutput: () => void;
   onSaveSession: () => void;
   onCompactSession: () => void;
   onInterruptSession: () => void;
@@ -24,7 +22,7 @@ interface Props {
   onInput: (sessionId: string, data: string) => void;
   onResize: (sessionId: string, cols: number, rows: number) => void;
   onReady: (sessionId: string, ref: TerminalRef) => void;
-  submitTerminalDraft: () => void;
+  submitTerminalDraft: (overrideText?: string) => void;
   onOpenCommandPalette: () => void;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   onNewSession: () => void;
@@ -66,10 +64,10 @@ function RefreshIcon() {
   );
 }
 
-function ClearIcon() {
+function PaperclipIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
     </svg>
   );
 }
@@ -90,24 +88,6 @@ function GitPullIcon() {
   );
 }
 
-function PinIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <line x1="12" y1="17" x2="12" y2="22" />
-      <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.48A2 2 0 0 1 15 9.28V5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4.28a2 2 0 0 1-.78 1.24l-2.78 3.48A2 2 0 0 0 5 15.24z" />
-    </svg>
-  );
-}
-
-function ArrowDownIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <polyline points="19 12 12 19 5 12" />
-    </svg>
-  );
-}
-
 function LinkIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
@@ -124,7 +104,7 @@ function shortPath(p: string) {
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
-  pinOutput, onTogglePinOutput, onSaveSession, onCompactSession, onInterruptSession,
+  onSaveSession, onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession
 }: Props) {
   const activeSession = useMemo(
@@ -133,19 +113,23 @@ export default function TerminalView({
   );
 
   const inputAreaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<string[]>([]);
 
-  // Expose terminal actions
-  const clearTerminalUI = useCallback(() => {
-    if (activeId) {
-      termRefs.current.get(activeId)?.clear?.();
-    }
-  }, [activeId, termRefs]);
+  const addAttachment = useCallback((path: string) => {
+    setAttachments((prev) => prev.includes(path) ? prev : [...prev, path]);
+  }, []);
 
-  const scrollTerminalToBottom = useCallback(() => {
-    if (activeId) {
-      termRefs.current.get(activeId)?.scrollToBottom?.();
-    }
-  }, [activeId, termRefs]);
+  const removeAttachment = useCallback((path: string) => {
+    setAttachments((prev) => prev.filter((p) => p !== path));
+  }, []);
+
+  useEffect(() => {
+    const el = inputAreaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.4)}px`;
+  }, [terminalDraft]);
 
   const sendSelectedPath = useCallback(() => {
     if (!activeId || !selectedPath) return;
@@ -177,26 +161,37 @@ export default function TerminalView({
     else if (cmd === 'compact') onCompactSession();
     else if (cmd === 'clear') {
       onInput(activeId, 'clear\r');
-      clearTerminalUI();
+      termRefs.current.get(activeId)?.clear?.();
     }
     else if (cmd === 'plan') {
       setTerminalDraft('/plan');
       inputAreaRef.current?.focus();
     }
     else {
-      // General quick command in project memory
       onInput(activeId, `/${cmd}\r`);
     }
-  }, [activeId, onSaveSession, onCompactSession, onInput, clearTerminalUI, setTerminalDraft]);
+  }, [activeId, onSaveSession, onCompactSession, onInput, setTerminalDraft, termRefs]);
 
   return (
     <div
       className="terminal-area"
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
       onDrop={(e) => {
         e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          Array.from(files).forEach((f) => {
+            if ((f as any).path) addAttachment((f as any).path);
+            else addAttachment(f.name);
+          });
+          inputAreaRef.current?.focus();
+          return;
+        }
         const p = e.dataTransfer.getData('text/plain');
-        if (p && activeId) onInput(activeId, p);
+        if (p) {
+          addAttachment(p);
+          inputAreaRef.current?.focus();
+        }
       }}
     >
       <div className="terminal-panel">
@@ -267,13 +262,12 @@ export default function TerminalView({
       {activeSession && (
         <div className="terminal-command-bar">
           <div className="quick-command-row">
-            {/* Project Quick Commands */}
             {quickCommands.map((cmd) => (
               <button key={cmd} type="button" onClick={() => runQuickCommand(cmd)} className="quick-command-btn">
                 {cmd}
               </button>
             ))}
-            
+
             {activeSession?.projectId && (
               <>
                 <div className="command-bar-divider" />
@@ -286,46 +280,68 @@ export default function TerminalView({
               </>
             )}
 
-            <div className="command-bar-divider" />
-
-            {/* Terminal UX Enhancement Controls */}
-            <button type="button" onClick={clearTerminalUI} className="quick-command-btn quick-command-btn--ux" data-tooltip="Limpar ecrã">
-              <ClearIcon /> Clear UI
-            </button>
-<button type="button" onClick={scrollTerminalToBottom} className="quick-command-btn quick-command-btn--ux" data-tooltip="Descer até ao fim">
-              <ArrowDownIcon /> Scroll
-            </button>
-            <button
-              type="button"
-              onClick={onTogglePinOutput}
-              className={`quick-command-btn quick-command-btn--ux ${pinOutput ? 'active' : ''}`}
-              data-tooltip="Rolar automaticamente"
-            >
-              <PinIcon /> Pin {pinOutput ? 'On' : 'Off'}
-            </button>
-
-            {/* Selected File Path Insertion */}
             {selectedPath && (
-              <button type="button" onClick={sendSelectedPath} className="quick-command-btn quick-command-btn--highlight" data-tooltip="Colar caminho do ficheiro">
-                <LinkIcon /> Paste Path
-              </button>
+              <>
+                <div className="command-bar-divider" />
+                <button type="button" onClick={sendSelectedPath} className="quick-command-btn quick-command-btn--highlight" data-tooltip="Colar caminho do ficheiro">
+                  <LinkIcon /> Paste Path
+                </button>
+              </>
             )}
 
             <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill">+</button>
           </div>
+
+          {attachments.length > 0 && (
+            <div className="attachment-row">
+              {attachments.map((att) => (
+                <span key={att} className="attachment-chip">
+                  <PaperclipIcon />
+                  <span className="attachment-chip-name" title={att}>{att.split('/').pop()}</span>
+                  <button type="button" className="attachment-chip-remove" onClick={() => removeAttachment(att)}>&times;</button>
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="terminal-command-input-wrap">
-            <span className="terminal-command-prompt">&gt;</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files) Array.from(files).forEach((f) => addAttachment((f as any).path || f.name));
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              className="terminal-command-attach"
+              onClick={() => fileInputRef.current?.click()}
+              data-tooltip="Anexar ficheiro"
+            >
+              <PaperclipIcon />
+            </button>
             <textarea
               ref={inputAreaRef}
               className="terminal-command-input"
               value={terminalDraft}
-              placeholder="Escrever mensagem ou comando para inserir no terminal..."
+              placeholder="Escrever mensagem ou comando..."
               rows={1}
               onChange={(e) => setTerminalDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  submitTerminalDraft();
+                  if (attachments.length > 0) {
+                    const paths = attachments.map((a) => `"${a}"`).join(' ');
+                    const full = terminalDraft.trim() ? `${terminalDraft.trim()} ${paths}` : paths;
+                    setAttachments([]);
+                    submitTerminalDraft(full);
+                  } else {
+                    submitTerminalDraft();
+                  }
                 }
                 if (e.key === 'ArrowUp' && terminalHistory.length > 0) {
                   e.preventDefault();
@@ -351,9 +367,18 @@ export default function TerminalView({
             <button
               className="terminal-command-send"
               type="button"
-              onClick={submitTerminalDraft}
-              disabled={!activeId || !terminalDraft.trim()}
-              data-tooltip="Enviar comando para o terminal"
+              onClick={() => {
+                if (attachments.length > 0) {
+                  const paths = attachments.map((a) => `"${a}"`).join(' ');
+                  const full = terminalDraft.trim() ? `${terminalDraft.trim()} ${paths}` : paths;
+                  setAttachments([]);
+                  submitTerminalDraft(full);
+                } else {
+                  submitTerminalDraft();
+                }
+              }}
+              disabled={!activeId || (!terminalDraft.trim() && attachments.length === 0)}
+              data-tooltip="Enviar para o terminal"
             >
               enviar
             </button>

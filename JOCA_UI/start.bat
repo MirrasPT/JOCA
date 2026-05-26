@@ -2,8 +2,8 @@
 setlocal enabledelayedexpansion
 
 set "DIR=%~dp0"
-set "BACKEND_PORT=7361"
-set "FRONTEND_PORT=7362"
+set "BACKEND_PORT=7371"
+set "FRONTEND_PORT=7372"
 set "URL=http://localhost:%FRONTEND_PORT%"
 
 :: Detect sibling JOCA_Logic

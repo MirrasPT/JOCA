@@ -64,9 +64,9 @@ options:
 
 ---
 
-## FASE SOUL — Calibração de Personalidade
+## FASE 1 — Soul / Calibração de Personalidade
 
-Configura os parâmetros core do `memory/soul.md`. Estes valores moldam o comportamento de todo o JOCA.
+Configura os parâmetros core do `memory/soul.md`. Estes valores moldam o comportamento de todo o JOCA em todas as sessões.
 
 **Q-SOUL-1 — Nível de Autonomia**
 `AskUserQuestion`:
@@ -120,282 +120,103 @@ options:
 
 Mapear para `auto_test`: true, false
 
+**Q-SOUL-5 — Pontos Fortes** *(multi-select — lista com checkboxes)*
+```
+Quais são as tuas áreas fortes? (selecciona todas as que se aplicam)
+[ ] Design / UX
+[ ] Frontend (HTML, CSS, JS, React, Vue…)
+[ ] Backend (PHP, Python, Node, Ruby…)
+[ ] DevOps / Infra
+[ ] Marketing / Growth
+[ ] Gestão de produto
+[ ] Outro: ___
+```
+
+**Q-SOUL-6 — Áreas de Aprendizagem** *(multi-select — lista com checkboxes)*
+```
+Em que áreas estás a aprender ou tens menos experiência? (selecciona todas as que se aplicam)
+[ ] Design / UX
+[ ] Frontend
+[ ] Backend / Arquitectura
+[ ] DevOps / Infra
+[ ] Marketing / Growth
+[ ] Gestão de produto
+[ ] Outro: ___
+```
+
 ### Aplicar Calibração
 
-Após as respostas, actualizar `memory/soul.md` secção §8 (Calibration Parameters) com os valores escolhidos:
+Após as respostas, ler `memory/soul.md` e substituir os placeholders:
+
+| Placeholder | Valor |
+|-------------|-------|
+| `<USER_NAME>` | Q1 (Nome) |
+| `<USER_ROLE>` | Q2 (Papel) |
+| `<COMMUNICATION_MODE>` | Q-SOUL-2 (full / lite / normal) |
+| `<USER_STRENGTHS>` | Q-SOUL-5 (lista separada por vírgula) |
+| `<USER_LEARNING_AREAS>` | Q-SOUL-6 (lista separada por vírgula) |
+| `<STRENGTH_AREA>` | Primeiro item de Q-SOUL-5 |
+| `<LEARNING_AREA>` | Primeiro item de Q-SOUL-6 |
+
+Actualizar secção Calibration Parameters:
 
 ```yaml
-autonomy_level: [valor]
-communication_mode: [valor]
-assertiveness: [inferido: máxima autonomia → 0.85, baixa → 0.50]
-error_tolerance: [valor]
+autonomy_level: [Q-SOUL-1]
+communication_mode: [Q-SOUL-2]
+assertiveness: [inferido: máxima autonomia → 0.85, alta → 0.75, moderada → 0.60, baixa → 0.50]
+error_tolerance: [Q-SOUL-3]
 explanation_depth: on-demand
-auto_test: [valor]
+auto_test: [Q-SOUL-4]
 ```
 
-Se o ficheiro `memory/soul.md` não existir (instalação fresh): copiar template de `.claude/templates/soul-template.md`.
-
-Confirmar:
+Confirmar inline:
 ```
 ✓ Soul calibrado — autonomia [X], comunicação [Y], erros [Z]
+  Fortes: [lista] · A aprender: [lista]
 ```
 
 ---
 
-## FASE 1 — Contexto
+## FASE 2 — Áreas de Trabalho
 
-**Q5 — Intenção**
+Áreas globais que determinam quais skills ficam activas.
+
 `AskUserQuestion`:
 ```
-question: "O que queres fazer agora?"
-header: "Intenção"
+question: "Que áreas de trabalho usas?"
+header: "Áreas"
+multiSelect: true
 options:
-  - "Configurar o JOCA globalmente (sem projecto)"  → FASE 3
-  - "Ligar o JOCA a um projecto existente"           → Branch [A]
-  - "Iniciar um projecto novo"                        → Branch [B]
+  - "Design (UI/UX, branding, print, ilustração)"
+  - "Desenvolvimento web (frontend + backend)"
+  - "Marketing (SEO, ads, email, conteúdo)"
+  - "Media (vídeo, animação, 3D)"
 ```
 
----
-
-## Branch [A] — Projecto Existente
-
-Pedir o caminho da pasta do projecto (texto livre).
-
-```bash
-python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify_unavailable"
-cat CLAUDE.md 2>/dev/null || cat claude.md 2>/dev/null || echo "no_claude_md"
-```
-
-Apresentar resumo do que foi detectado e pedir confirmação antes de continuar.
-Avança para **FASE 3** com contexto do projecto activo.
-
----
-
-## Branch [B] — Projecto Novo
-
-**Q6 — Nome do projecto**
-Texto livre: "Nome do projecto?"
-
-**Q7 — Tipo de projecto**
-Lista numerada (>4 opções):
-```
-Que tipo de projecto é?
-[1] Website / App / Software
-[2] WordPress
-[3] Shopify
-[4] Design
-[5] Vídeo
-[6] Research / Análise
-[7] Marketing
-[8] Outro: ___
-```
-
-### Sub-branch: Website / App / Software
-
-**Q8 — Frontend** *(multi-select — lista com checkboxes)*
-```
-Que tecnologias de frontend usas? (selecciona todas as que se aplicam)
-[ ] Vanilla HTML/CSS/JS
-[ ] React
-[ ] Vue
-[ ] Next.js / Nuxt
-[ ] Flutter
-[ ] Nenhum
-[ ] Outro: ___
-```
-
-**Q9 — Backend** *(multi-select)*
-```
-[ ] PHP puro   [ ] Laravel   [ ] Node.js / Express
-[ ] Python     [ ] Rails     [ ] Nenhum   [ ] Outro: ___
-```
-
-**Q10 — Base de dados** *(multi-select)*
-```
-[ ] SQLite   [ ] MySQL/MariaDB   [ ] PostgreSQL
-[ ] MongoDB  [ ] Supabase/Firebase   [ ] Nenhuma   [ ] Outro: ___
-```
-
-**Q11 — Deploy**
-Lista numerada:
-```
-[1] Vercel / Netlify
-[2] cPanel
-[3] VPS
-[4] AWS / GCP / Azure
-[5] Ainda não sei
-[6] Outro: ___
-```
-
-### Sub-branch: WordPress
-
-**Q8 — Tipo de trabalho WP** *(multi-select)*
-```
-[ ] Plugin
-[ ] Tema (block theme)
-[ ] Tema (clássico)
-[ ] Bloco Gutenberg
-[ ] Site completo (FSE)
-[ ] Headless (REST/GraphQL)
-[ ] Outro: ___
-```
-
-**Q9 — Extras** *(multi-select)*
-```
-[ ] WooCommerce   [ ] Multisite   [ ] WP-CLI disponível   [ ] Nenhum
-```
-
-**Q10 — Ambiente local**
-Lista numerada:
-```
-[1] WP Playground   [2] Local by Flywheel   [3] MAMP/WAMP
-[4] Docker          [5] Staging/Prod directo   [6] Outro: ___
-```
-
-**Q11 — Deploy**
-Lista numerada:
-```
-[1] cPanel   [2] WP Engine   [3] Kinsta   [4] VPS   [5] WordPress.com   [6] Outro: ___
-```
-
-### Sub-branch: Shopify
-
-**Q8 — Tipo de trabalho Shopify** *(multi-select)*
-```
-[ ] App (integração externa, multi-loja, lógica programática)
-[ ] Extensão (checkout UI, admin UI, POS, customer account)
-[ ] Shopify Functions (descontos, entrega, pagamento)
-[ ] Tema (Online Store 2.0 / Liquid)
-[ ] Auditoria de loja (SEO, conversão, AEO/GEO)
-[ ] Outro: ___
-```
-
-**Q9 — Deploy**
-Lista numerada:
-```
-[1] Shopify App Store (público)
-[2] App privada / custom app
-[3] Shopify Plus (merchant)
-[4] Outro: ___
-```
-
-### Sub-branch: Design
-
-**Q8** *(multi-select)*:
-```
-[ ] UI/UX   [ ] Branding   [ ] Motion/Animação   [ ] Print/Large format   [ ] Ilustração   [ ] Outro
-```
-
-**Q9** *(multi-select)*:
-```
-[ ] Protótipos HTML   [ ] SVG/Figma   [ ] Lottie   [ ] Assets PNG/WebP   [ ] PDF   [ ] Outro
-```
-
-### Sub-branch: Vídeo
-
-**Q8** *(multi-select)*:
-```
-[ ] Social media   [ ] Explainer   [ ] Documental   [ ] Tutorial   [ ] Outro
-```
-
-**Q9** *(multi-select)*:
-```
-[ ] AI video   [ ] Remotion   [ ] Edição tradicional   [ ] Legendas locais   [ ] Outro
-```
-
-### Sub-branch: Research
-
-**Q8**:
-```
-[1] Mercado   [2] Tecnologia   [3] Conteúdo/SEO   [4] Científico   [5] Outro
-```
-
-**Q9** *(multi-select)*:
-```
-[ ] Relatório MD/PDF   [ ] Resumo executivo   [ ] Tabela comparativa   [ ] JSON/CSV   [ ] Outro
-```
-
-### Sub-branch: Marketing
-
-**Q8** *(multi-select)*:
-```
-[ ] SEO   [ ] Google Ads   [ ] Meta Ads   [ ] LinkedIn   [ ] Email   [ ] Social orgânico   [ ] Outro
-```
-
-**Q9**:
-```
-[1] Leads   [2] E-commerce   [3] Brand awareness   [4] Retenção   [5] Outro
-```
-
----
-
-## FASE 3 — Configuração JOCA
-
-### Áreas de trabalho
-
-Pré-seleccionar com base no projecto detectado/declarado:
-
-| Tipo                 | Pré-seleccionado                                    |
-|----------------------|-----------------------------------------------------|
-| Website/App          | Desenvolvimento web, DevOps, Analytics              |
-| WordPress            | WordPress, DevOps, Analytics                        |
-| Shopify              | Shopify, Analytics                                  |
-| Design UI/UX         | UI/UX, Ilustração, Animação                         |
-| Design Print         | Ilustração                                          |
-| Vídeo                | Vídeo                                               |
-| Research             | Research, Analytics                                 |
-| Marketing            | Marketing/SEO, Analytics                            |
-| Global               | Nenhum                                              |
-
-Apresentar lista com pré-selecção e perguntar confirmação (multi-select, lista):
-```
-Áreas de trabalho activas: (confirma ou ajusta)
-[x] Design de interfaces (UI/UX)
-[x] Ilustração / arte visual
-[ ] Animação (Lottie, motion)
-[ ] Vídeo / conteúdo
-[ ] 3D (Blender)
-[ ] Marketing / SEO / Ads
-[ ] Desenvolvimento web
-[ ] WordPress
-[ ] Shopify
-[ ] DevOps / infra
-[ ] Analytics / dados
-[ ] Research
-[ ] TODOS
-[ ] Outro: ___
-```
+Opção "Outro" (automática) permite especificar: WordPress, Shopify, Research, Analytics, DevOps, ou combinações específicas.
 
 ### Mapeamento áreas → skills
 
 | Área               | Skills activadas                                                               |
 |--------------------|--------------------------------------------------------------------------------|
 | UI/UX              | frontend-design, frontend-dev, brand-guidelines                                |
-| Ilustração         | canvas-design, brand-guidelines, graphic-design                                |
-| Animação           | anima (GSAP + Lottie)                                                          |
+| Branding           | brand-guidelines, canvas-design                                                |
+| Print              | graphic-design, brand-guidelines                                               |
+| Animação           | anima (GSAP+Lottie router), gsap/gsap-core, gsap/gsap-timeline, gsap/gsap-scrolltrigger, gsap/gsap-plugins, gsap/gsap-performance + React/Vue/Svelte se aplicável |
 | Vídeo              | video, hyperframes, remotion, watch                                             |
-| 3D                 | blender skill + blender MCP                                                    |
+| 3D                 | blender (skill + MCP)                                                          |
 | Marketing/SEO      | paid-ads, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
-| Dev web            | webapp-testing, api-designer + por stack (tabela abaixo)                       |
-| WordPress          | wordpress/* (router, triage, plugin, block, themes, rest-api, wpcli, performance, phpstan, playground, interactivity, abilities, wpds, guidelines, blueprint) |
-| Shopify            | shopify/* (router, app, theme, store-audit, store-fixer)                       |
+| Dev web            | webapp-testing, api-designer, laravel-specialist, test-master                  |
+| WordPress          | wordpress-router, wp-block-development, wp-block-themes, wp-plugin-development, wp-rest-api, wp-performance, wp-phpstan, wp-playground |
+| Shopify            | shopify-router, shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer |
 | DevOps             | devops-engineer                                                                |
 | Analytics          | google-analytics, microsoft-clarity                                            |
 | Research           | deep-research                                                                  |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill                      |
-
-Skills adicionais por stack:
-
-| Stack              | Skills                                                      |
-|--------------------|-------------------------------------------------------------|
-| Laravel            | laravel-specialist, php-pro, postgres-pro, test-master      |
-| PHP puro           | php-pro                                                     |
-| PostgreSQL         | postgres-pro                                                |
-| WP + WooCommerce   | wordpress/* + php-pro                                       |
+| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca       |
 
 ### Detecção de gaps
 
-Para cada aspecto do projecto sem cobertura directa nas skills existentes:
+Para cada área seleccionada sem cobertura directa nas skills existentes:
 1. Identificar o gap
 2. `WebSearch` em GitHub / mcpmarket.com
 3. Apresentar resultado:
@@ -416,27 +237,27 @@ Crio via /create-skill? [S/N/Mais tarde]
 [1] Procurar online  [2] Criar  [3] Ignorar
 ```
 
-### Integrações e MCPs
+---
 
-**Google** *(multi-select)*:
+## FASE 3 — MCPs e Integrações
+
+### Google *(multi-select)*
 ```
 [ ] Gmail   [ ] Google Calendar   [ ] Google Drive/Docs   [ ] Google Analytics (GA4)   [ ] Nenhuma
 ```
 
-**Ferramentas** *(multi-select)*:
+### Ferramentas *(multi-select)*
 ```
 [ ] GitHub (repositórios, PRs, issues — requer token)
 [ ] Playwright (browser automation)
 [ ] Firecrawl (web scraping — requer Docker ou API key)
 [ ] Microsoft Clarity (requer Composio API key)
-[ ] HuggingFace (modelos Hub, Spaces — requer token p/ privado)
-[ ] WordPress MCP Adapter (WP 6.8+ — só p/ projectos WP)
-[ ] Gemini CLI (análise multimodal: vídeo, PDF, contexto 1M — tier gratuito)
+[ ] Antigravity CLI (Gemini — análise multimodal, vídeo, PDF, contexto 1M)
 [ ] Codex CLI (code review adversarial — requer ChatGPT Plus ou OPENAI_API_KEY)
 [ ] Outro: ___
 ```
 
-**Geração de imagens**
+### Geração de imagens
 `AskUserQuestion`:
 ```
 question: "Que motor de geração de imagens queres usar?"
@@ -450,16 +271,15 @@ options:
 
 ---
 
-## FASE APIs — Chaves de API
+## FASE 4 — Chaves de API
 
 Com base nas selecções, determinar quais chaves são necessárias:
 
 | Ferramenta                    | Variável                        | Quando é necessária                       |
 |-------------------------------|----------------------------------|-------------------------------------------|
 | GitHub MCP                    | `GITHUB_PERSONAL_ACCESS_TOKEN`  | GitHub seleccionado                       |
-| HuggingFace MCP               | `HF_TOKEN`                      | HuggingFace seleccionado                  |
 | OpenAI (img-gen + Codex)      | `OPENAI_API_KEY`                | img-gen OpenAI ou Codex CLI               |
-| Google Gemini (img-gen + CLI) | `GEMINI_API_KEY`                | img-gen Gemini ou Gemini CLI sem OAuth    |
+| Google Gemini (img-gen + agy) | `GEMINI_API_KEY`                | img-gen Gemini ou Antigravity CLI         |
 | Firecrawl cloud               | `FIRECRAWL_API_KEY`             | Firecrawl sem Docker local                |
 | Composio (Clarity)            | `COMPOSIO_API_KEY`              | Microsoft Clarity                         |
 
@@ -474,19 +294,17 @@ options:
 ```
 
 - "Introduzir agora" → receber o valor (não mostrar em claro depois de confirmar)
-- "Já está configurada" → assumir OK, não tocar
+- "Já está configurada" → assumir OK
 - "Mais tarde" → marcar como ⚠ pendente no relatório final
 
 **Onde ficam guardadas:**
 - Chaves MCP servers → bloco `env` do servidor em `.mcp.json`
 - `OPENAI_API_KEY`, `GEMINI_API_KEY` → `env` global em `~/.claude.json`
-- Se preferir não escrever em `~/.claude.json`: instruir comando exacto:
-  - Windows: `setx OPENAI_API_KEY "<valor>"`
-  - macOS/Linux: `export OPENAI_API_KEY="<valor>"` + adicionar a `~/.zshrc`
+- Se preferir não escrever em ficheiros: instruir comando de export para o shell
 
 ---
 
-## FASE 4 — Confirmação
+## FASE 5 — Confirmação
 
 Apresentar resumo completo:
 
@@ -494,12 +312,15 @@ Apresentar resumo completo:
 IDENTIDADE
   [Nome] — [papel][, localização] — [OS]
 
+SOUL
+  Autonomia: [nível] · Comunicação: [modo] · Erros: [comportamento] · Auto-test: [sim/não]
+  Fortes: [lista] · A aprender: [lista]
+
 SKILLS ([n])
-  Base:  caveman, karpathy-guidelines, agent-context, create-skill
+  Base:  caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
   [categoria]: [lista]
 
 MCPs GLOBAIS:   [lista]
-MCPs PROJECTO:  [lista — se aplicável]
 SKILLS NOVAS:   [lista — se gaps detectados]
 
 API KEYS
@@ -509,10 +330,8 @@ API KEYS
 
 FICHEIROS
   ~/CLAUDE.md           actualizar
-  memory/               criar estrutura
-  [projecto]/.mcp.json  criar — se aplicável
-
-Confirmas?
+  memory/soul.md        preencher placeholders
+  memory/               criar estrutura (se não existir)
 ```
 
 `AskUserQuestion`:
@@ -526,110 +345,43 @@ options:
 
 ---
 
-## FASE STATUSLINE — Provisioning Autónomo (silencioso)
+## FASE 6 — Execução
 
-**Esta fase corre automaticamente após confirmação. Zero perguntas.**
+### 1. Preencher soul.md
 
-### 1. Instalar script statusline
+Ler `memory/soul.md`, substituir todos os placeholders `<...>` com os valores recolhidos nas FASE 0 e FASE 1. Actualizar Calibration Parameters.
 
-```bash
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
-cp "${JOCA_DIR}/.claude/scripts/statusline-command.sh" ~/.claude/statusline-command.sh
-chmod +x ~/.claude/statusline-command.sh
-```
+### 2. ~/CLAUDE.md
 
-### 2. Configurar settings.json global (~/.claude/settings.json)
-
-Ler o ficheiro actual, fazer merge com as configurações de statusLine e hooks (preservando o que já existe):
-
-```bash
-# Ler settings actual
-SETTINGS_FILE=~/.claude/settings.json
-CURRENT=$(cat "$SETTINGS_FILE" 2>/dev/null || echo '{}')
-
-# Merge: adicionar statusLine e hook UserPromptSubmit se não existirem
-echo "$CURRENT" | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-
-# StatusLine
-d['statusLine'] = {
-    'type': 'command',
-    'command': 'bash ~/.claude/statusline-command.sh'
-}
-
-# Hook: UserPromptSubmit (timestamp da última mensagem)
-hooks = d.setdefault('hooks', {})
-ups = hooks.setdefault('UserPromptSubmit', [])
-# Verificar se o hook já existe
-ts_hook = {'hooks': [{'type': 'command', 'command': \"date '+%H:%M' > /tmp/claude_last_user_msg.txt\"}]}
-if not any('claude_last_user_msg' in json.dumps(h) for h in ups):
-    ups.append(ts_hook)
-
-json.dump(d, sys.stdout, indent=2)
-" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-```
-
-### 3. Verificar jq disponível
-
-```bash
-which jq >/dev/null 2>&1 || echo "⚠ jq não encontrado — instalar: brew install jq (macOS) / apt install jq (Linux)"
-```
-
-### 4. Confirmar (inline, sem perguntar)
-
-```
-✓ StatusLine instalada (~/.claude/statusline-command.sh)
-✓ Hook UserPromptSubmit configurado (timestamp última mensagem)
-✓ settings.json actualizado
-```
-
----
-
-
-## FASE DEP — Dependências
-
-```bash
-python3 --version 2>/dev/null || python --version
-graphify --version 2>/dev/null || echo "graphify_unavailable"
-node --version 2>/dev/null
-bun --version 2>/dev/null
-docker --version 2>/dev/null
-curl -s http://localhost:3002/health 2>/dev/null || echo "firecrawl_unavailable"
-gemini --version 2>/dev/null || echo "gemini_cli_unavailable"
-codex --version 2>/dev/null || echo "codex_cli_unavailable"
-```
-
-Para cada ferramenta em falta que foi seleccionada, instruir instalação antes de continuar.
-
----
-
-## EXECUÇÃO
-
-### 1. ~/CLAUDE.md
-
-Ler ficheiro actual. Adicionar/actualizar secção JOCA sem apagar conteúdo existente:
+Ler ficheiro actual. Adicionar/actualizar sem apagar conteúdo existente:
 
 ```markdown
 ## Utilizador
 [Nome] — [papel][, localização]
 
+## JOCA
+Toolkit instalado em: [caminho_joca]
+Comandos: /install · /init-project · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /feedback-joca · /feedback-projeto · /help-joca · /one-shot · /upgrade-joca · /update-joca
+
+Skills activas:
+- Base: [lista]
+- [categoria]: [lista]
+
+MCPs globais: [lista]
+
+CLIs externos: [lista — se Codex/Gemini CLI seleccionados]
+
 ## Workspace
-[pasta de projectos]
 
 ## Projectos activos
 | Directório | Descrição |
 |-----------|-----------|
-| [caminho] | [stack e objectivo] |
+<!-- Entradas adicionadas por /init-project e /save -->
 
-## JOCA
-Toolkit em: [caminho_joca]
-Skills: [lista por categoria]
-MCPs globais: [lista]
-Comandos: /install, /init-project, /resume, /save, /feedback-joca, /feedback-projeto, /upgrade-joca, /update-joca, /create-skill
+@[caminho_joca]/JOCA_Logic/CLAUDE.md
 ```
 
-### 2. Estrutura de memória
+### 3. Estrutura de memória
 
 Confirmar que existem (criar se não existirem):
 - `memory/INDEX.md`
@@ -637,12 +389,12 @@ Confirmar que existem (criar se não existirem):
 - `memory/tools/`
 - `memory/feedback/` (com `.gitkeep`)
 
-### 3. MCPs globais
+### 4. MCPs globais
 
 Playwright e Firecrawl: verificar `~/.claude.json`. Se ausentes, mostrar ao utilizador o bloco JSON a adicionar.
 Google connectors: instruir activação em claude.ai/settings (OAuth nativo).
 
-### 3a. API Keys
+### 5. API Keys
 
 Para cada chave marcada como "introduzir agora":
 
@@ -652,11 +404,6 @@ Para cada chave marcada como "introduzir agora":
   "command": "npx",
   "args": ["-y", "@modelcontextprotocol/server-github"],
   "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "<valor>" }
-},
-"huggingface": {
-  "command": "npx",
-  "args": ["-y", "@huggingface/mcp-server"],
-  "env": { "HF_TOKEN": "<valor>" }
 }
 ```
 
@@ -667,50 +414,111 @@ Para cada chave marcada como "introduzir agora":
 
 Para chaves ⚠ pendentes — listar com link de obtenção:
 - `GITHUB_PERSONAL_ACCESS_TOKEN` → github.com/settings/tokens (scope: repo, read:org)
-- `HF_TOKEN` → huggingface.co/settings/tokens
 - `OPENAI_API_KEY` → platform.openai.com/api-keys
 - `GEMINI_API_KEY` → aistudio.google.com/apikey
 - `COMPOSIO_API_KEY` → app.composio.dev/settings
 
-### 3b. CLIs externos
+### 6. CLIs externos
 
-**Gemini CLI** (se seleccionado):
+**Antigravity CLI** (se seleccionado):
 ```bash
-npm install -g @google/gemini-cli
-gemini auth login          # opção 1: Google account (tier gratuito)
-# ou: definir GEMINI_API_KEY no sistema
+npm install -g @anthropic-ai/antigravity
 ```
+Instruir: `agy auth login` ou definir `GEMINI_API_KEY`.
 
 **Codex CLI** (se seleccionado):
 ```bash
 npm install -g @openai/codex
-codex login                # opção 1: ChatGPT Plus/Pro
-# ou: definir OPENAI_API_KEY no sistema
+```
+Instruir: `codex login` ou definir `OPENAI_API_KEY`.
+
+### 7. Dependências
+
+```bash
+python3 --version 2>/dev/null || python --version
+graphify --version 2>/dev/null || echo "graphify_unavailable"
+node --version 2>/dev/null
+bun --version 2>/dev/null
+docker --version 2>/dev/null
 ```
 
-### 4. .mcp.json do projecto (se Branch [A] ou [B])
+Para cada ferramenta em falta que foi seleccionada, instruir instalação.
 
-Criar ou actualizar com os MCPs específicos confirmados.
+### 8. JOCA_UI (instala por defeito)
 
-### 5. Entrada de memória do projecto (se Branch [A] ou [B])
+```bash
+cd <caminho_joca>/../JOCA_UI
+cd backend && npm install && npm run build && cd ..
+cd frontend && npm install && cd ..
+chmod +x start.sh stop.sh 2>/dev/null
+```
 
-Criar `memory/projects/[nome].md` e actualizar `memory/INDEX.md`.
+Verificar: `node <caminho_joca>/../JOCA_UI/backend/dist/server.js` inicia sem erros.
+O JOCA_UI detecta automaticamente o JOCA_Logic como directório irmão — zero configuração.
 
-### 6. Skills novas (se confirmado)
+### 9. StatusLine (silencioso)
 
-Executar `/create-skill [nome]` para cada skill nova aprovada.
+```bash
+mkdir -p ~/.claude
+cp <caminho_joca>/.claude/scripts/statusline-command.sh ~/.claude/statusline-command.sh 2>/dev/null || true
+chmod +x ~/.claude/statusline-command.sh 2>/dev/null || true
+```
 
-### 7. Relatório final
+Configurar `~/.claude/settings.json` — merge com existente:
+- `statusLine` → `bash ~/.claude/statusline-command.sh`
+- Hook `UserPromptSubmit` → timestamp última mensagem
+
+### 10. Launcher
+
+`AskUserQuestion`:
+```
+question: "Criar atalho para abrir o JOCA UI com um clique?"
+header: "Launcher"
+options:
+  - "Desktop"
+  - "Pasta do JOCA"
+  - "Outro caminho"
+  - "Não criar"
+```
+
+Se "Outro caminho": pedir caminho em texto livre.
+
+Se seleccionado:
+
+**macOS:**
+```bash
+cp "<caminho_joca>/../JOCA_UI/JOCA UI.command" "<destino>/JOCA UI.command"
+chmod +x "<destino>/JOCA UI.command"
+```
+
+**Windows:**
+```powershell
+Copy-Item "<caminho_joca>\..\JOCA_UI\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
+```
+
+### 11. Skills novas (se confirmado)
+
+Executar `/create-skill [nome]` para cada skill nova aprovada na FASE 2.
+
+### 12. Relatório final
 
 ```
+✓ Soul calibrado — [autonomia], [comunicação], [erros]
 ✓ ~/CLAUDE.md actualizado
-✓ Memória: [n] entradas
+✓ Memória: estrutura verificada
 ✓ Skills: [n] configuradas
 ✓ MCPs: [lista]
-[estado] Deps: python / graphify / node / bun / docker / firecrawl / gemini-cli / codex-cli
+✓ JOCA_UI: [instalado/saltado]
+✓ StatusLine: instalada
+[estado] Deps: python / graphify / node / bun / docker
 
 API KEYS
-  ✓ [chave] — configurada em [localização]
-  ⚠ [chave] — PENDENTE → [URL para obter]
+  ✓ [chave] — configurada
+  ⚠ [chave] — PENDENTE → [URL]
 
+JOCA pronto.
+→ Iniciar interface: bash JOCA_UI/start.sh (macOS) ou JOCA_UI\start.bat (Windows)
+→ Para ligar projectos: navega para a pasta e corre /init-project
+→ Início de sessão: /resume
+→ Referência rápida: /help-joca
 ```

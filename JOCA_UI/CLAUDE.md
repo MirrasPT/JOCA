@@ -28,10 +28,11 @@ JOCA_UI/
 cd JOCA_UI
 npm run setup
 
-# Dev (backend :3001 + frontend Vite :5173)
-npm run dev
+# Dev (backend :7371 + frontend :7372)
+bash start.sh        # macOS/Linux
+# start.bat          # Windows
 
-# Aceder em: http://localhost:5173
+# Aceder em: http://localhost:7372
 ```
 
 **Nota:** Se `posix_spawnp failed` aparecer, correr:

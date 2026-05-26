@@ -110,6 +110,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       reset: () => term.reset(),
       clear: () => term.clear(),
       scrollToBottom: () => term.scrollToBottom(),
+      fit: () => { fitAddon.fit(); onResize(sessionId, term.cols, term.rows); },
     });
 
     requestAnimationFrame(() => {
@@ -117,15 +118,15 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       onResize(sessionId, term.cols, term.rows);
     });
 
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    let resizeRaf: number | null = null;
     const ro = new ResizeObserver(() => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
         if (term.element?.offsetParent !== null) {
           fitAddon.fit();
           onResize(sessionId, term.cols, term.rows);
         }
-      }, 80);
+      });
     });
     ro.observe(containerRef.current);
     resizeObserver.current = ro;
