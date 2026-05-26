@@ -87,8 +87,14 @@ Abre automaticamente `http://localhost:7372`.
 
 ### Actualizar o JOCA
 
+**Opcao 1 — Comando (dentro de uma sessao JOCA):**
 ```
 /update-joca
+```
+
+**Opcao 2 — Prompt directo (se o comando falhar ou JOCA nao estiver configurado):**
+```
+Le o ficheiro update.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/update.md e segue as instrucoes.
 ```
 
 Sync one-way do GitHub. Protege memoria de projectos, feedback, soul calibration e componentes locais (`origin: local`).
