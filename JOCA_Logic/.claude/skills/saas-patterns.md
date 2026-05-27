@@ -1,14 +1,14 @@
 ---
 name: saas-patterns
 description: "SaaS architecture patterns for Laravel 11 multi-tenant platforms. MUST be invoked when the user says: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context."
-when_to_use: Activate for any multi-tenant SaaS built on Laravel. Covers: stancl/tenancy v3/v4, single-DB vs multi-DB vs hybrid strategy, BelongsToTenant global scope, Laravel Pennant feature flags, Cashier subscription tiers, PlanGate helper, tenant-aware Horizon queues, per-tenant audit logs, GDPR export/delete, and Pest isolation tests. Complementary to laravel-specialist skill — load for general Laravel patterns.
+when_to_use: Activate for any multi-tenant SaaS on Laravel. Covers stancl/tenancy v3/v4, single-DB vs multi-DB vs hybrid, BelongsToTenant global scope, Laravel Pennant feature flags, Cashier subscription tiers, PlanGate helper, tenant-aware Horizon queues, per-tenant audit logs, GDPR export/delete, Pest isolation tests. Complementary to laravel-specialist.
 disable-model-invocation: false
 allowed-tools: Read WebSearch WebFetch
 ---
 
-# SaaS Patterns — Laravel 11 Multi-Tenant
+# SaaS Patterns -- Laravel 11 Multi-Tenant
 
-Target: stancl/tenancy v3 (v4 differences noted). Code is Laravel 11-first; patterns are framework-adaptable.
+Target: stancl/tenancy v3 (v4 differences noted). Laravel 11-first; patterns are framework-adaptable.
 
 ---
 
@@ -23,7 +23,7 @@ MVP or early SaaS (< 500 tenants)?
          └─ NO → Hybrid: shared DB default, dedicated DB on-request for whales
 ```
 
-Do not start with multi-DB unless a compliance requirement forces it on day one.
+Skip multi-DB unless compliance demands it on day one.
 
 ---
 
@@ -49,9 +49,9 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 }
 ```
 
-### Two Modes — choose one
+### Two Modes
 - **Automatic** (recommended): add `InitializeTenancyByDomain` (or Subdomain) middleware to tenant routes. Package switches DB connection, cache prefix, filesystem disk, and queue tenant-id automatically.
-- **Manual**: call `tenancy()->initialize($tenant)` + `tenancy()->end()` in `finally` explicitly. Use for CLI commands, scheduled tasks, or jobs dispatched from central context.
+- **Manual**: call `tenancy()->initialize($tenant)` + `tenancy()->end()` in `finally`. Use for CLI commands, scheduled tasks, or jobs from central context.
 
 ### Bootstrappers (config/tenancy.php)
 ```php
@@ -75,7 +75,7 @@ Route::middleware([
 });
 ```
 
-Set `tenancy.central_domains` in `config/tenancy.php` to prevent central domain resolving as a tenant.
+Set `tenancy.central_domains` in `config/tenancy.php` to block central domain resolving as tenant.
 
 ---
 
@@ -88,7 +88,7 @@ Set `tenancy.central_domains` in `config/tenancy.php` to prevent central domain 
 | Path | `InitializeTenancyByPath` | app.com/empresa (no DNS needed) |
 | Request data | `InitializeTenancyByRequestData` | API, header `X-Tenant-ID` |
 
-If tenant is not found: `InitializeTenancyByDomain` throws `TenantCouldNotBeIdentifiedException`. Catch it in `Handler.php` and return a 404 with a clear "tenant not found" page — not a 500.
+If tenant not found: `InitializeTenancyByDomain` throws `TenantCouldNotBeIdentifiedException`. Catch in `Handler.php`, return 404 with "tenant not found" page -- not 500.
 
 ---
 
@@ -117,23 +117,23 @@ trait BelongsToTenant
 }
 ```
 
-Apply to every tenant-scoped Eloquent model. Throw on `tenant_id` missing — never silently default.
+Apply to every tenant-scoped model. Throw on missing `tenant_id` -- never silently default.
 
 ### Data Leak Prevention Checklist
 - [ ] Every tenant model uses `BelongsToTenant` trait
 - [ ] No raw `DB::table()` calls in tenant context (use Eloquent or add manual `->where('tenant_id', tenant('id'))`)
-- [ ] `withoutGlobalScopes()` only in central/admin context — guard with `abort_if(! auth()->user()->isSuperAdmin(), 403)`
-- [ ] Tenant ID never exposed as integer in public URLs — use UUID or slug
-- [ ] Cross-tenant isolation test runs in CI (see §9)
+- [ ] `withoutGlobalScopes()` only in central/admin context -- guard with `abort_if(! auth()->user()->isSuperAdmin(), 403)`
+- [ ] Tenant ID never exposed as integer in public URLs -- use UUID or slug
+- [ ] Cross-tenant isolation test runs in CI (see S9)
 
-### Multi-DB: stancl/tenancy handles the rest
-With `DatabaseTenancyBootstrapper`, the DB connection switches on tenancy initialization. No manual `tenant_id` scoping needed — each tenant has their own schema.
+### Multi-DB: stancl/tenancy handles isolation
+With `DatabaseTenancyBootstrapper`, DB connection switches on tenancy init. No manual `tenant_id` scoping needed -- each tenant has own schema.
 
 ---
 
 ## 4. Tenant Onboarding Workflow
 
-### Async provisioning via queued job (always async — never block the registration request)
+### Async provisioning (always async -- never block registration)
 ```php
 // app/Jobs/OnboardTenant.php
 class OnboardTenant implements ShouldQueue
@@ -177,11 +177,11 @@ class OnboardTenant implements ShouldQueue
 }
 ```
 
-Dispatch from a `TenantCreated` event listener: `OnboardTenant::dispatch($tenant->id)`.
+Dispatch from `TenantCreated` listener: `OnboardTenant::dispatch($tenant->id)`.
 
 ---
 
-## 5. Feature Flags — Laravel Pennant
+## 5. Feature Flags -- Laravel Pennant
 
 ```bash
 composer require laravel/pennant
@@ -218,7 +218,7 @@ Feature::for(tenant())->active('sso') || abort(403, 'SSO requires Enterprise pla
 
 ### External providers (LaunchDarkly / Flagsmith)
 Use when: >50 flags, kill switches across distributed systems, or A/B testing needed.
-Wrap in a contract; Pennant can be swapped for an external driver without changing call sites.
+Wrap in a contract so Pennant can be swapped without changing call sites.
 
 ```php
 interface FeatureFlags
@@ -233,7 +233,7 @@ interface FeatureFlags
 
 ## 6. Subscription Tiers + Permission Gates
 
-### Plan → Feature map (single source of truth in config)
+### Plan-to-Feature map (single source of truth)
 ```php
 // config/plans.php
 return [
@@ -295,9 +295,9 @@ $tenant->subscription()->cancel(); // cancel at period end
 ## 7. Background Jobs with Tenant Context
 
 ### Automatic (QueueTenancyBootstrapper active)
-Jobs dispatched from within initialized tenant context carry tenant_id automatically. No extra code required — the bootstrapper serializes and restores context.
+Jobs dispatched within initialized tenant context carry tenant_id automatically. No extra code -- bootstrapper serializes and restores context.
 
-### Manual context in job (central-dispatched or CLI)
+### Manual context (central-dispatched or CLI)
 ```php
 class ProcessTenantReport implements ShouldQueue
 {
@@ -328,9 +328,9 @@ class ProcessTenantReport implements ShouldQueue
 
 ### Queue isolation rules
 - Dedicated central connection in `config/queue.php`: `'connection' => 'central'`
-- Do not mix central + tenant jobs on the same queue connection (global state leaks)
+- Never mix central + tenant jobs on same queue connection (global state leaks)
 - Redis queue: exclude queue's Redis connection from `tenancy.redis.prefixed_connections`
-- Dispatch central jobs explicitly: `dispatch(new CentralJob())->onConnection('central')`
+- Central jobs: `dispatch(new CentralJob())->onConnection('central')`
 
 ### Horizon (separate supervisors)
 ```php
@@ -389,7 +389,7 @@ class GdprDeleteAction
 - Rate-limit per tenant, not per IP: `Limit::perMinute(60)->by(tenant('id'))`
 - Encrypt tenant secrets at rest: `'api_key' => 'encrypted:string'` cast in Eloquent
 - Validate every resource in policies: `abort_if($resource->tenant_id !== tenant('id'), 403)`
-- Never use `tenant_id` integer in public URLs — use UUID/slug for all tenant-owned resources
+- Never use `tenant_id` integer in public URLs -- use UUID/slug
 
 ---
 
@@ -414,7 +414,7 @@ beforeEach(fn () => $this->setUpTenant());
 afterEach(fn () => tenancy()->end());
 ```
 
-### Isolation test (required in CI — not optional)
+### Isolation test (required in CI)
 ```php
 it('tenant B cannot read tenant A records', function () {
     $tenantA = Tenant::factory()->create();
@@ -470,15 +470,15 @@ class TenantFactory extends Factory
 | Anti-pattern | Correct approach |
 |---|---|
 | Eloquent model in job constructor | Store only scalar IDs (`string $tenantId`) |
-| `withoutGlobalScopes()` in tenant code | Central/admin only — guard with `isSuperAdmin()` |
+| `withoutGlobalScopes()` in tenant code | Central/admin only -- guard with `isSuperAdmin()` |
 | Single queue connection for central + tenant | Separate connections; never mix |
 | `tenancy()->end()` outside `finally` | Always `try { ... } finally { tenancy()->end(); }` |
-| `Tenant::find()` result not null-checked | `$this->fail(...)` on null — don't proceed |
+| `Tenant::find()` result not null-checked | `$this->fail(...)` on null -- don't proceed |
 | Tenant ID as integer in URLs | UUID or slug for all tenant-owned resources |
-| Feature check scattered inline | `PlanGate::can()` or Policy — one place |
+| Feature check scattered inline | `PlanGate::can()` or Policy -- one place |
 | Sync tenant DB provisioning on creation | Always async via `OnboardTenant` job |
 | Raw `DB::table()` without tenant filter | Eloquent + `BelongsToTenant` trait |
-| Assuming tenancy initialized in PlanGate | Check `tenancy()->initialized` — return false if not |
+| Assuming tenancy initialized in PlanGate | Check `tenancy()->initialized` -- return false if not |
 
 ---
 
@@ -492,12 +492,12 @@ class TenantFactory extends Factory
 
 ## Workflow
 
-Pipeline desta skill na sequência JOCA:
+Pipeline sequence:
 
-→ **antes**: `plan` — arquitectura multi-tenant, decisão single-DB vs multi-DB
-→ **implementação**: `laravel-specialist` (Eloquent, queues, auth) em paralelo
-→ **após setup do tenant**: `tester-code` — isolamento de dados entre tenants
-→ **security review**: `tester-security` — tenant escape, data leakage
-→ **auth SaaS**: `auth`
+-> **antes**: `plan` -- arquitectura multi-tenant, single-DB vs multi-DB decision
+-> **implementacao**: `laravel-specialist` (Eloquent, queues, auth) in parallel
+-> **pos-setup**: `tester-code` -- cross-tenant data isolation
+-> **security review**: `tester-security` -- tenant escape, data leakage
+-> **auth SaaS**: `auth`
 
-Notificar ao concluir scaffold: `→ próximo: laravel-specialist`
+Notify on scaffold complete: `-> proximo: laravel-specialist`

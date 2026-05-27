@@ -1,6 +1,6 @@
 ---
 name: plan
-description: "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem, e. MUST be invoked when the user mentions: Planeamento, OODA."
+description: "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem. MUST be invoked when the user mentions: Planeamento, OODA."
 metadata:
   type: skill
   category: base
@@ -10,20 +10,20 @@ metadata:
 
 ## Quando auto-activar
 
-Activar **antes de qualquer execução** quando a tarefa tiver ≥ 2 destes sinais — ou **imediatamente** se detectar o sinal ★:
+Activar **antes de execução** quando a tarefa tiver >= 2 sinais — ou **imediatamente** com sinal ★:
 
 | Sinal | Prioridade |
 |-------|-----------|
-| Operação irreversível: migration, delete de dados, deploy, reset ★ | Máxima — sozinha activa |
-| ≥ 3 ficheiros ou módulos envolvidos | Alta |
+| Operação irreversível: migration, delete dados, deploy, reset ★ | Máxima — sozinha activa |
+| >= 3 ficheiros ou módulos envolvidos | Alta |
 | Passos com dependências (falhar A → B falha) | Alta |
 | Decisão de arquitectura com tradeoffs reais | Alta |
-| Pedido que menciona múltiplos sistemas ou stakeholders | Alta |
+| Pedido com múltiplos sistemas ou stakeholders | Alta |
 | Feature nova sem precedente no codebase | Média |
 | Pedido ambíguo ou mais curto que a complexidade implicada | Média |
 | Scope estimado > 5 passos atómicos ou > 20 min | Média |
 
-**Sinais verbais directos:** "planeia", "arquitectura de", "como faríamos", "implementa X e Y e Z", "migra", "reestrutura", "refactora tudo", "integra com".
+**Sinais verbais:** "planeia", "arquitectura de", "como faríamos", "implementa X e Y e Z", "migra", "reestrutura", "refactora tudo", "integra com".
 
 ---
 
@@ -31,13 +31,13 @@ Activar **antes de qualquer execução** quando a tarefa tiver ≥ 2 destes sina
 
 ### Fase 0: Orient (OODA)
 
-*Não mostrar ao utilizador — processo interno antes das outras fases.*
+*Interno — não mostrar ao utilizador.*
 
-Interpretar o pedido antes de qualquer plano:
-- Qual é o problema real (não apenas o pedido literal)?
-- Que contexto do codebase é relevante mas não foi mencionado?
-- Que não foi dito mas provavelmente é relevante para o sucesso?
-- Se há 2 formas radicalmente diferentes de implementar isto que ambas satisfazem o pedido → o pedido é ambíguo → avançar para Fase 1.
+Interpretar o pedido antes de planear:
+- Qual é o problema real (não o pedido literal)?
+- Que contexto do codebase é relevante mas não mencionado?
+- Que informação implícita é relevante para sucesso?
+- Se 2 formas radicalmente diferentes satisfazem o pedido → ambíguo → Fase 1.
 
 ---
 
@@ -45,21 +45,18 @@ Interpretar o pedido antes de qualquer plano:
 
 *Só se detectada ambiguidade na Fase 0.*
 
-Fazer **2-3 perguntas específicas** ao utilizador antes de continuar. Não mais.
-Foco em:
-- Comportamento em edge cases: "o que deve acontecer quando X?"
-- Navegação no codebase: "qual é o módulo responsável por Y?"
-- Decisão de abordagem: "preferes A ou B dado o tradeoff [...]?"
+Fazer **2-3 perguntas específicas**. Foco em:
+- Edge cases: "o que deve acontecer quando X?"
+- Navegação: "qual é o módulo responsável por Y?"
+- Abordagem: "preferes A ou B dado o tradeoff [...]?"
 
-Limite: **3 ciclos de clarificação máximo**. Depois avançar com assumptions explícitas.
+Limite: **3 ciclos de clarificação**. Depois avançar com assumptions explícitas.
 
 ---
 
 ### Fase 2: Assumptions Explícitas
 
-**Bloqueante** — o utilizador confirma antes de ver o plano.
-
-Para cada assumption relevante:
+**Bloqueante** — utilizador confirma antes de ver o plano.
 
 ```
 Assumptions a validar:
@@ -73,7 +70,7 @@ Assumptions a validar:
     Como verificar: [...]
 ```
 
-Aguardar confirmação. Se uma assumption estiver errada → corrigir antes de avançar.
+Aguardar confirmação. Assumption errada → corrigir antes de avançar.
 
 ---
 
@@ -81,7 +78,7 @@ Aguardar confirmação. Se uma assumption estiver errada → corrigir antes de a
 
 *Só para decisões de arquitectura com múltiplas opções válidas.*
 
-Apresentar 2-3 abordagens com tradeoffs explícitos:
+Apresentar 2-3 abordagens com tradeoffs:
 
 ```
 Abordagem A: [descrição]
@@ -101,15 +98,15 @@ Abordagem B: [descrição]
 
 ### Fase 4: Plano Verificável
 
-Cada passo no formato PAUL — sem verificação definida = passo incompleto:
+Cada passo no formato PAUL — sem verificação = passo incompleto:
 
 ```
 Plano: [nome da tarefa]
-Critério de sucesso: [o que significa "feito" — verificável, não vago]
+Critério de sucesso: [verificável, não vago]
 
 [ ] 1. [Acção]
        Ficheiros: [lista explícita]
-       Verificar: [como confirmar que está correcto]
+       Verificar: [como confirmar]
        Done quando: [critério observável]
 
 [ ] 2. [Acção]
@@ -119,11 +116,11 @@ Critério de sucesso: [o que significa "feito" — verificável, não vago]
 ```
 
 **Boundaries:**
-- Sempre: [o que será sempre feito]
+- Sempre: [o que será feito]
 - Perguntar primeiro se: [situações que requerem confirmação]
 - Nunca tocar: [ficheiros/áreas fora de scope]
 
-**Nota:** tarefas atómicas devem ser completáveis em ≤ 15 min. Qualquer passo acima disso deve ser subdividido.
+Tarefas atómicas completáveis em <= 15 min. Acima disso, subdividir.
 
 ---
 
@@ -131,13 +128,12 @@ Critério de sucesso: [o que significa "feito" — verificável, não vago]
 
 Duas perspectivas internas — resultado adicionado ao plano:
 
-**Sabotador:** "Assume que este plano falhou. O que correu mal?"
-→ Identificar o failure mode mais provável e como mitigar.
+**Sabotador:** "Este plano falhou. O que correu mal?"
+→ Failure mode mais provável + mitigação.
 
-**Outsider:** "O que assume este plano que alguém sem contexto veria imediatamente?"
-→ Identificar a assumption mais perigosa que ainda não está na lista da Fase 2.
+**Outsider:** "O que assume este plano que alguém sem contexto veria?"
+→ Assumption mais perigosa não listada na Fase 2.
 
-Adicionar ao plano:
 ```
 Riscos identificados:
 - [risco 1] → Mitigação: [acção]
@@ -148,7 +144,7 @@ Riscos identificados:
 
 ### Fase 6: Calibração de Confiança
 
-No fim do plano, antes de apresentar ao utilizador:
+No fim do plano, antes de apresentar:
 
 ```
 Incerteza máxima:
@@ -156,13 +152,13 @@ Incerteza máxima:
 - [área 2]: [porquê baixa confiança] — reduziria com [Y]
 ```
 
-Isto sinaliza ao utilizador onde o plano é mais frágil sem bloquear a execução.
+Sinaliza onde o plano é mais frágil sem bloquear execução.
 
 ---
 
 ## Apresentação ao Utilizador
 
-Formato compacto — não um documento, um artefacto verificável:
+Formato compacto — artefacto verificável, não documento:
 
 ```
 Plano: [nome]
@@ -184,16 +180,16 @@ Riscos: [lista com mitigações]
 Incerteza: [áreas com baixa confiança]
 ```
 
-**Aprovação:** "ok" / "avança" / silêncio → executar. Feedback negativo → ajustar primeiro.
+**Aprovação:** "ok" / "avança" / silêncio → executar. Feedback negativo → ajustar.
 
 ---
 
 ## Durante Execução
 
 - Completar cada passo antes do seguinte
-- Notificar ao completar: `✓ Passo 1 — [o que foi feito] — [critério verificado]`
-- Algo inesperado que invalida uma assumption → **parar, reportar, pedir confirmação antes de adaptar**
-- Em tarefas com > 5 passos: **checkpoint de re-planeamento** a meio (após ~50% dos passos) para ajustar se necessário
+- Notificar: `✓ Passo 1 — [feito] — [critério verificado]`
+- Assumption invalidada → **parar, reportar, pedir confirmação antes de adaptar**
+- Tarefas > 5 passos: **checkpoint de re-planeamento** a ~50% dos passos
 
 ---
 
@@ -204,6 +200,6 @@ Incerteza: [áreas com baixa confiança]
 | Activação | Auto — detecção de complexidade | Manual — utilizador invoca |
 | Aprovação | Implícita (ok / silêncio) | Explícita obrigatória (ExitPlanMode) |
 | Persistência | Inline na conversa | Ficheiro `.cursor/plans/` ou equivalente |
-| Uso | Desenvolvimento normal, features, refactors | Arquitectura crítica, produção, irreversível |
+| Uso | Dev normal, features, refactors | Arquitectura crítica, produção, irreversível |
 
 Operações em produção / dados / infraestrutura → preferir `/plan`.

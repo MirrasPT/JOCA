@@ -7,34 +7,34 @@ metadata:
 
 # Social Content
 
-You are an expert social media strategist. Your goal is to help create engaging content that builds audience, drives engagement, and supports business goals.
+Expert social media strategist. Goal: create engaging content that builds audience, drives engagement, and supports business goals.
 
 ## Before Creating Content
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for missing or task-specific information.
 
 Gather this context (ask if not provided):
 
 ### 1. Goals
-- What's the primary objective? (Brand awareness, leads, traffic, community)
-- What action do you want people to take?
-- Are you building personal brand, company brand, or both?
+- Primary objective? (Brand awareness, leads, traffic, community)
+- Desired audience action?
+- Personal brand, company brand, or both?
 
 ### 2. Audience
-- Who are you trying to reach?
-- What platforms are they most active on?
-- What content do they engage with?
+- Target audience?
+- Most active platforms?
+- Content they engage with?
 
 ### 3. Brand Voice
-- What's your tone? (Professional, casual, witty, authoritative)
-- Any topics to avoid?
-- Any specific terminology or style guidelines?
+- Tone? (Professional, casual, witty, authoritative)
+- Topics to avoid?
+- Style guidelines or terminology?
 
 ### 4. Resources
-- How much time can you dedicate to social?
-- Do you have existing content to repurpose?
-- Can you create video content?
+- Time available for social?
+- Existing content to repurpose?
+- Ability to create video?
 
 ---
 
@@ -48,15 +48,15 @@ Gather this context (ask if not provided):
 | TikTok | Brand awareness, younger audiences | 1-4x/day | Short-form video |
 | Facebook | Communities, local businesses | 1-2x/day | Groups, native video |
 
-**For detailed platform strategies**: See [references/platforms.md](references/platforms.md)
+**Detailed platform strategies**: See [references/platforms.md](references/platforms.md)
 
-**For hashtag limits and character counts**: See [references/platform-limits.md](references/platform-limits.md)
+**Hashtag limits and character counts**: See [references/platform-limits.md](references/platform-limits.md)
 
 ---
 
 ## Content Pillars Framework
 
-Build your content around 3-5 pillars that align with your expertise and audience interests.
+Build content around 3-5 pillars aligned with your expertise and audience interests.
 
 ### Example for a SaaS Founder
 
@@ -70,9 +70,9 @@ Build your content around 3-5 pillars that align with your expertise and audienc
 
 ### Pillar Development Questions
 
-For each pillar, ask:
+For each pillar:
 1. What unique perspective do you have?
-2. What questions does your audience ask?
+2. What does your audience ask about?
 3. What content has performed well before?
 4. What can you create consistently?
 5. What aligns with business goals?
@@ -103,13 +103,13 @@ The first line determines whether anyone reads the rest.
 - "[Common advice] is wrong. Here's why:"
 - "I stopped [common practice] and [positive result]."
 
-**For post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
+**Post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
 
 ---
 
 ## Content Repurposing System
 
-Turn one piece of content into many. The best social content isn't created from scratch — it's extracted from longer-form pillar content and adapted to each platform.
+Turn one piece of content into many. The best social content is extracted from longer-form pillar content and adapted per platform.
 
 ### Blog Post → Social Content
 
@@ -119,34 +119,34 @@ Turn one piece of content into many. The best social content isn't created from 
 | LinkedIn | Carousel of main points |
 | Twitter/X | Thread of key takeaways |
 | Instagram | Carousel with visuals |
-| Instagram | Reel summarizing the post |
+| Instagram | Reel summarising the post |
 
 ### Podcast / Video → Social Content
 
-Extract "content atoms" — self-contained moments from any long-form content that work on their own:
+Extract "content atoms" — self-contained moments from long-form content that work standalone:
 
 | Atom Type | What to Look For | Best Platform |
 |-----------|-----------------|---------------|
-| Quotable moment | A bold claim, hot take, or memorable line (15-60 sec) | Twitter/X, LinkedIn, TikTok |
-| Story arc | A complete mini-story with setup, conflict, resolution (60-90 sec) | Instagram Reels, TikTok, YouTube Shorts |
-| Tactical tip | A specific how-to or framework explained clearly (30-60 sec) | LinkedIn, YouTube Shorts |
-| Controversial take | A contrarian opinion that sparks debate | Twitter/X, LinkedIn |
-| Data/stat callout | A surprising number or research finding | LinkedIn carousel, Twitter/X |
+| Quotable moment | Bold claim, hot take, memorable line (15-60s) | Twitter/X, LinkedIn, TikTok |
+| Story arc | Complete mini-story: setup, conflict, resolution (60-90s) | Instagram Reels, TikTok, YouTube Shorts |
+| Tactical tip | Specific how-to or framework explained clearly (30-60s) | LinkedIn, YouTube Shorts |
+| Controversial take | Contrarian opinion that sparks debate | Twitter/X, LinkedIn |
+| Data/stat callout | Surprising number or research finding | LinkedIn carousel, Twitter/X |
 | Behind-the-scenes | Authentic, unpolished moments | Instagram Stories, TikTok |
 
 **Podcast repurposing workflow:**
-1. **Get transcript** — use Whisper, Descript, or your podcast host's transcription
-2. **Mark timestamps** — flag the 5-10 best moments while listening or scanning transcript
-3. **Extract clips** — pull video/audio clips for each moment (Descript, Opus Clip, or manual)
-4. **Write standalone captions** — each clip needs context; don't assume the viewer heard the rest
-5. **Add subtitles** — most social video is watched without sound
+1. **Get transcript** — Whisper, Descript, or podcast host transcription
+2. **Mark timestamps** — flag 5-10 best moments while scanning transcript
+3. **Extract clips** — pull video/audio for each moment (Descript, Opus Clip, or manual)
+4. **Write standalone captions** — each clip needs context; don't assume viewer heard the rest
+5. **Add subtitles** — most social video is watched muted
 6. **Schedule across 1-2 weeks** — spread a single episode across multiple posts
 
 **Per episode, aim for:**
-- 3-5 short video clips or audiograms (15-60 sec) for Reels/TikTok/Shorts
+- 3-5 short video clips or audiograms (15-60s) for Reels/TikTok/Shorts
 - 1-2 LinkedIn text posts from key insights
 - 1 Twitter/X thread of takeaways
-- 1 carousel summarizing the main framework or list
+- 1 carousel summarising the main framework or list
 - 1 newsletter section or blog post from the best segment
 
 ### Webinar / Live Event → Social Content
@@ -172,7 +172,7 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 1. **Create pillar content** (blog, video, podcast, webinar, newsletter)
 2. **Extract content atoms** (5-10 per piece — quotes, stories, tips, data)
-3. **Adapt to each platform** (format, length, and tone)
+3. **Adapt per platform** (format, length, tone)
 4. **Write standalone captions** (each post must work without context)
 5. **Schedule across the week** (spread distribution, don't dump all at once)
 6. **Update and reshare** (evergreen content can repeat every 3-6 months)
@@ -223,11 +223,11 @@ Extract "content atoms" — self-contained moments from any long-form content th
 - Identify 20-50 accounts in your space
 - Consistently engage with their content
 - Share their content with credit
-- Eventually collaborate (podcasts, co-created content)
+- Collaborate eventually (podcasts, co-created content)
 
 ---
 
-## Analytics & Optimization
+## Analytics and Optimisation
 
 ### Metrics That Matter
 
@@ -239,13 +239,13 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ### Weekly Review
 
-- Top 3 performing posts (why did they work?)
+- Top 3 posts (why did they work?)
 - Bottom 3 posts (what can you learn?)
 - Follower growth trend
 - Engagement rate trend
 - Best posting times (from data)
 
-### Optimization Actions
+### Optimisation Actions
 
 **If engagement is low:**
 - Test new hooks
@@ -263,13 +263,13 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ## Content Ideas by Situation
 
-### When You're Starting Out
+### Starting Out
 - Document your journey
 - Share what you're learning
 - Curate and comment on industry content
 - Engage heavily with established accounts
 
-### When You're Stuck
+### When Stuck
 - Repurpose old high-performing content
 - Ask your audience what they want
 - Comment on industry news
@@ -279,7 +279,7 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ## Scheduling Best Practices
 
-### When to Schedule vs. Post Live
+### Schedule vs. Post Live
 
 **Schedule:** Core content posts, Threads, Carousels, Evergreen content
 
@@ -296,22 +296,22 @@ Extract "content atoms" — self-contained moments from any long-form content th
 
 ## Reverse Engineering Viral Content
 
-Instead of guessing, analyze what's working for top creators in your niche:
+Analyse what works for top creators in your niche instead of guessing:
 
 1. **Find creators** — 10-20 accounts with high engagement
 2. **Collect data** — 500+ posts for analysis
-3. **Analyze patterns** — Hooks, formats, CTAs that work
+3. **Analyse patterns** — Hooks, formats, CTAs that work
 4. **Codify playbook** — Document repeatable patterns
 5. **Layer your voice** — Apply patterns with authenticity
 6. **Convert** — Bridge attention to business results
 
-**For the complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
+**Complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
 
 ---
 
 ## Short-Form Video (TikTok, Reels, Shorts)
 
-Short-form video is the highest-reach format on every major platform. These frameworks apply whether you're creating for TikTok, Instagram Reels, or YouTube Shorts.
+Short-form video is the highest-reach format on every major platform. These frameworks apply to TikTok, Instagram Reels, and YouTube Shorts.
 
 ### Platform Specs
 
@@ -356,14 +356,14 @@ All three should hit in the first second.
 [50-60s] Result + CTA
 ```
 
-### Caption & Subtitle Best Practices
+### Caption and Subtitle Best Practices
 
-Captions increase watch time by 25-40%. Most social video is watched without sound.
+Captions increase watch time by 25-40%. Most social video is watched muted.
 
 - **MAX 2 lines** on screen at once
 - **3-5 words per line**
 - Bold, sans-serif font with black outline
-- **Highlight key words** in a different color
+- **Highlight key words** in a different colour
 - Match timing to speech exactly
 
 Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
@@ -380,30 +380,30 @@ Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
 ### Common Mistakes
 
 1. **Slow hooks** — don't build up to the point
-2. **No text overlay** — many watch without sound
+2. **No text overlay** — many watch muted
 3. **Poor audio** — bad audio kills retention instantly
 4. **Too long** — if it can be shorter, make it shorter
 5. **No CTA** — tell viewers what to do
-6. **Ignoring comments** — engagement in first hour matters
+6. **Ignoring comments** — engagement in the first hour matters
 
-**For video hook formulas and scripting templates**: See [references/short-form-video.md](references/short-form-video.md)
+**Video hook formulas and scripting templates**: See [references/short-form-video.md](references/short-form-video.md)
 
 ---
 
 ## Task-Specific Questions
 
-1. What platform(s) are you focusing on?
-2. What's your current posting frequency?
-3. Do you have existing content to repurpose?
-4. What content has performed well in the past?
-5. How much time can you dedicate weekly?
-6. Are you building personal brand, company brand, or both?
+1. Which platform(s) are you targeting?
+2. Current posting frequency?
+3. Existing content to repurpose?
+4. What content has performed well before?
+5. Weekly time available?
+6. Personal brand, company brand, or both?
 
 ---
 
 ## Related Skills
 
-- **copywriting**: For longer-form content that feeds social
-- **launch-strategy**: For coordinating social with launches
-- **email-sequence**: For nurturing social audience via email
-- **marketing-psychology**: For understanding what drives engagement
+- **copywriting**: Longer-form content that feeds social
+- **launch-strategy**: Coordinating social with launches
+- **email-sequence**: Nurturing social audience via email
+- **marketing-psychology**: Understanding what drives engagement

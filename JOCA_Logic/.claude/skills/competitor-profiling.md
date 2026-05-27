@@ -7,21 +7,21 @@ metadata:
 
 # Competitor Profiling
 
-You are an expert competitive intelligence analyst. Your goal is to take a list of competitor URLs and produce comprehensive, structured competitor profile documents by combining live site scraping with available market data.
+Expert competitive intelligence analyst. Takes competitor URLs and produces structured, comparable profile documents via live scraping + market data.
 
-**Nota JOCA:** Esta skill usa Firecrawl MCP (disponível) para scraping e WebSearch para dados de mercado. DataForSEO não está disponível — para análise SEO profunda, usar o agente `deep-research`.
+**Nota JOCA:** Uses Firecrawl MCP for scraping and WebSearch for market data. DataForSEO unavailable — for deep SEO analysis, use the `deep-research` agent.
 
 ## Initial Assessment
 
 **Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered.
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and ask only for missing info.
 
 Before profiling, confirm:
 
-1. **Competitor URLs** — the list of competitor website URLs to profile
+1. **Competitor URLs** — list of competitor website URLs to profile
 2. **Your product** — what you do (if not in product marketing context)
-3. **Depth level** — quick scan (key facts only) or deep profile (full research)
-4. **Focus areas** — any specific dimensions to prioritize (e.g., pricing, positioning, content strategy)
+3. **Depth level** — quick scan (key facts) or deep profile (full research)
+4. **Focus areas** — specific dimensions to prioritize (e.g., pricing, positioning, content strategy)
 
 If the user provides URLs and context is available, proceed without asking.
 
@@ -30,16 +30,16 @@ If the user provides URLs and context is available, proceed without asking.
 ## Core Principles
 
 ### 1. Facts Over Opinions
-Every claim in a profile should be traceable to a source. Label inferences clearly.
+Every claim must be traceable to a source. Label inferences.
 
 ### 2. Structured and Comparable
-All profiles follow the same template so they can be compared side by side.
+All profiles follow the same template for side-by-side comparison.
 
 ### 3. Current Data
-Profiles are snapshots. Always include the date generated.
+Profiles are snapshots. Always include generation date.
 
 ### 4. Honest Assessment
-Don't exaggerate competitor weaknesses or downplay their strengths.
+No exaggerating weaknesses or downplaying strengths.
 
 ---
 
@@ -113,7 +113,7 @@ Extract: overall rating, review count, common praise themes, common complaint th
 
 ### Phase 2: Market Data (WebSearch)
 
-Use WebSearch to gather publicly available competitive intelligence. Save results to `competitor-profiles/raw/<competitor-slug>/<YYYY-MM-DD>/search/`.
+Use WebSearch for public competitive intelligence. Save results to `competitor-profiles/raw/<competitor-slug>/<YYYY-MM-DD>/search/`.
 
 **Searches to run:**
 ```
@@ -125,7 +125,7 @@ Use WebSearch to gather publicly available competitive intelligence. Save result
 "[CompanyName] backlinks referring domains"
 ```
 
-**Estimate organic traffic** from publicly available SimilarWeb or SEMrush previews in search results.
+**Estimate organic traffic** from public SimilarWeb or SEMrush previews in search results.
 
 **For deep SEO analysis:** spawn `deep-research` agent with competitor domain + "SEO analysis backlinks organic keywords".
 
@@ -133,7 +133,7 @@ Use WebSearch to gather publicly available competitive intelligence. Save result
 
 ### Phase 3: Synthesis
 
-Combine scraped content with market data to build the profile. Cross-reference claims (e.g., if they claim "10,000 customers" on site, check if their traffic profile supports that scale).
+Combine scraped content with market data. Cross-reference claims (e.g., if they claim "10,000 customers" on site, check if traffic profile supports that scale).
 
 ---
 
@@ -264,7 +264,7 @@ After profiling all competitors, generate `competitor-profiles/_summary.md`:
 
 1. **Competitor landscape overview** — one paragraph
 2. **Comparison table** — key metrics side by side
-3. **Positioning map** — where each competitor sits (e.g., simple↔complex, cheap↔premium)
+3. **Positioning map** — where each competitor sits (e.g., simple-complex, cheap-premium)
 4. **Key takeaways** — 3-5 strategic observations
 5. **Gaps and opportunities** — where the market is underserved
 
@@ -282,7 +282,7 @@ After profiling all competitors, generate `competitor-profiles/_summary.md`:
 - Market data: full WebSearch battery + optional deep-research agent for SEO
 - Output: full profile template
 
-**Default to quick scan** unless the user requests deep profiling or specifies a small number of competitors (3 or fewer).
+**Default to quick scan** unless the user requests deep profiling or specifies 3 or fewer competitors.
 
 ---
 
@@ -297,7 +297,7 @@ After profiling all competitors, generate `competitor-profiles/_summary.md`:
 
 ## Task-Specific Questions
 
-Only ask if not answered by context or input:
+Ask only if not answered by context or input:
 
 1. What competitor URLs should I profile?
 2. Quick scan or deep profile?
@@ -308,7 +308,7 @@ Only ask if not answered by context or input:
 
 ## Related Skills
 
-- **content-strategy**: For using competitor content gaps to plan your own content
-- **seo**: For auditing your own site relative to competitors
-- **paid-ads**: For analyzing competitor ad strategies
-- **brand-positioning**: For turning competitive intel into positioning decisions
+- **content-strategy**: Use competitor content gaps to plan your own content
+- **seo**: Audit your site relative to competitors
+- **paid-ads**: Analyze competitor ad strategies
+- **brand-positioning**: Turn competitive intel into positioning decisions

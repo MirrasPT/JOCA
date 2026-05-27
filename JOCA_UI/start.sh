@@ -21,10 +21,17 @@ if lsof -ti:$BACKEND_PORT > /dev/null 2>&1 && lsof -ti:$FRONTEND_PORT > /dev/nul
   exit 0
 fi
 
-# Limpar portas
-lsof -ti:$BACKEND_PORT | xargs kill -9 2>/dev/null || true
-lsof -ti:$FRONTEND_PORT | xargs kill -9 2>/dev/null || true
-sleep 1
+# Clean ports (graceful first, force after 2s)
+for PORT in $BACKEND_PORT $FRONTEND_PORT; do
+  PIDS=$(lsof -ti:$PORT 2>/dev/null)
+  if [ -n "$PIDS" ]; then
+    kill $PIDS 2>/dev/null || true
+    sleep 2
+    for pid in $PIDS; do
+      kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+    done
+  fi
+done
 
 echo "▶ JOCA UI a arrancar..."
 [ -n "$JOCA_LOGIC_PATH" ] && echo "  JOCA_Logic → $JOCA_LOGIC_PATH"

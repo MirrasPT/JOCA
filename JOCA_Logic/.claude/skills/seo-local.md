@@ -23,10 +23,10 @@ description: "Local SEO analysis covering Google Business Profile optimization, 
 
 ## Business Type Detection
 
-Detect from page signals before analysis. This determines which checks apply.
+Detect from page signals before analysis. Determines which checks apply.
 
 ### Brick-and-Mortar
-- Physical street address visible in page content or footer
+- Physical street address in page content or footer
 - Google Maps embed with pin/directions
 - "Visit us at", "Located at", "Come see us"
 - Structured address in LocalBusiness schema
@@ -41,7 +41,7 @@ Detect from page signals before analysis. This determines which checks apply.
 - Both physical address AND service area language present
 - "Visit our showroom" combined with "We also serve [areas]"
 
-**Impact on checks**: SABs skip embedded map verification and physical address consistency. Brick-and-mortar gets full NAP + map checks.
+**Impact on checks**: SABs skip embedded map and physical address checks. Brick-and-mortar gets full NAP + map checks.
 
 ---
 
@@ -69,13 +69,13 @@ If no vertical detected, use generic `LocalBusiness` analysis path.
 Primary category is the **single most important local pack factor** (Whitespark #1, score: 193). Incorrect primary category is the **#1 negative factor** (score: 176).
 
 **Check for:**
-- GBP embed or reference detectable on page (Maps iframe, place ID, reviews widget)
+- GBP embed or reference on page (Maps iframe, place ID, reviews widget)
 - Primary category appropriateness (infer from page content vs visible GBP data)
 - Evidence of secondary categories (optimal: 4 additional per BrightLocal)
 - GBP posts presence (no direct ranking impact per WebFX, but triggers Post Justifications)
 - Photos/video evidence (45% more direction requests with photos, Agency Jet)
-- Q&A content (deprecated Dec 2025, replaced by Ask Maps Gemini AI -- recommend recreating Q&A content as FAQ sections on website; GBP removed existing Q&A with no export available)
-- Google Verified badge eligibility (replaced Guaranteed/Screened in Oct 2025)
+- Q&A content (deprecated Dec 2025, replaced by Ask Maps Gemini AI -- recreate Q&A as FAQ sections on website; GBP removed existing Q&A with no export)
+- Google Verified badge eligibility (replaced Guaranteed/Screened Oct 2025)
 - GBP link URL strategy: do NOT link to strongest website page (Sterling Sky Diversity Update -- risks suppressing organic rankings)
 - Business hours visibility on page (businesses open at search time rank higher, factor #5)
 
@@ -95,7 +95,7 @@ Review velocity matters more than total count. The **18-day rule** (Sterling Sky
 - `aggregateRating` in schema (ratingValue, reviewCount, bestRating)
 - Third-party review presence (consumers use average of 6 review sites, BrightLocal 2026)
 - Owner response patterns (88% would use business that responds, BrightLocal)
-- Review gating detection: any pre-screening of satisfaction before directing to review platform is prohibited by Google (fake engagement policy) and FTC ($53,088/violation)
+- Review gating detection: pre-screening satisfaction before directing to review platform is prohibited by Google (fake engagement policy) and FTC ($53,088/violation)
 
 **Industry-specific:**
 - Healthcare: HIPAA prohibits confirming/denying reviewer is a patient in responses
@@ -117,17 +117,17 @@ Dedicated service pages = **#1 local organic factor AND #2 AI visibility factor*
 - Dedicated service pages (one page per core service)
 - Location page quality for multi-location sites:
   - **>60-70% unique content** minimum (industry consensus, no Google-confirmed threshold)
-  - **Swap test**: if you can swap the city name and content still makes sense, it's a doorway page (RicketyRoo method). HVAC company lost 80% rankings + 63% traffic after March 2024 Core Update for this pattern
+  - **Swap test**: if you can swap the city name and content still makes sense, it is a doorway page (RicketyRoo method). HVAC company lost 80% rankings + 63% traffic after March 2024 Core Update for this pattern
   - Local photos, area-specific testimonials, local FAQs
-- Embedded Google Map (geographic signal reinforcement, not direct ranking factor -- lazy-load to mitigate speed impact)
+- Embedded Google Map (geographic signal reinforcement, not direct ranking factor -- lazy-load for speed)
 - Click-to-call button (`tel:` link) and contact form above the fold
-- Internal linking architecture: hub-and-spoke, every critical page within 3 clicks of homepage
+- Internal linking: hub-and-spoke, every critical page within 3 clicks of homepage
 - 2-5 contextual internal links per 1,000 words with descriptive anchor text
 
 **Multi-location specific:**
 - Store locator with individual crawlable URLs (SSR/SSG preferred over CSR)
-- Subdirectory structure: `domain.com/locations/city-name/` (subdirectories consolidate link equity better, Bruce Clay: 50%+ traffic lift)
-- Each location page has unique LocalBusiness schema with `@id`
+- Subdirectory structure: `domain.com/locations/city-name/` (consolidates link equity, Bruce Clay: 50%+ traffic lift)
+- Each location page has own LocalBusiness schema with unique `@id`
 
 **Scoring guide:**
 - Full: City in title + H1, NAP visible, dedicated service pages, no doorway patterns, good internal linking
@@ -136,21 +136,21 @@ Dedicated service pages = **#1 local organic factor AND #2 AI visibility factor*
 
 ### 4. NAP Consistency & Citations (15%)
 
-Citations declining for traditional pack rankings but **3 of top 5 AI visibility factors are citation-related** (Whitespark 2026). Google's July 2025 documentation update removed "directories" from prominence definition.
+Citations declining for traditional pack rankings but **3 of top 5 AI visibility factors are citation-related** (Whitespark 2026). Google's July 2025 documentation removed "directories" from prominence definition.
 
 **Check for:**
 - NAP extraction: compare Name, Address, Phone from:
   1. Visible page HTML (footer, contact page)
   2. LocalBusiness JSON-LD schema
   3. Any visible GBP data
-  - Flag any discrepancies between these three sources
-- Citation presence on Tier 1 directories (check via WebFetch or site: search patterns):
+  - Flag discrepancies between these three sources
+- Citation presence on Tier 1 directories (check via WebFetch or site: search):
   - Google Business Profile signals on page
   - Yelp: `site:yelp.com "Business Name"`
   - BBB: `site:bbb.org "Business Name"`
   - Facebook business page references
 - Apple Business Connect awareness (usage doubled to 27%, BrightLocal 2026 -- recommend claiming)
-- Bing Places awareness (powers ChatGPT, Copilot, Alexa -- recommend claiming and optimizing)
+- Bing Places awareness (powers ChatGPT, Copilot, Alexa -- recommend claiming)
 - Industry-specific directory recommendations: load `references/local-schema-types.md` for per-vertical citation sources
 - Data aggregator awareness: Data Axle, Foursquare, Neustar/TransUnion (recommend submission for downstream distribution)
 
@@ -161,7 +161,7 @@ Citations declining for traditional pack rankings but **3 of top 5 AI visibility
 
 ### 5. Local Schema Markup (10%)
 
-Schema is NOT a direct ranking factor (John Mueller confirmed). But enables rich results (43% CTR increase, Webstix case study) and helps AI systems parse business information.
+Schema is NOT a direct ranking factor (John Mueller confirmed). But enables rich results (43% CTR increase, Webstix case study) and helps AI systems parse business info.
 
 **Check for:**
 - LocalBusiness schema presence (extract JSON-LD blocks)
@@ -192,14 +192,14 @@ Schema is NOT a direct ranking factor (John Mueller confirmed). But enables rich
 Links declining for local pack but remain **~26% of local organic ranking** (Whitespark 2026, #2 factor group). "Best of" list placements = **#1 AI visibility citation factor**.
 
 **Check for:**
-- Local backlink indicators detectable from page:
+- Local backlink indicators on page:
   - Chamber of Commerce mentions or links (high Trust Flow, ~80% more consumer visits, GlueUp)
   - BBB accreditation/badge (Google uses BBB for business verification)
   - Local news/press mentions
   - Community involvement signals (sponsorships, local events, partnerships)
 - "Best of" list presence (top AI visibility factor per Whitespark 2026)
-- Digital PR signals: 66.2% of PR practitioners now track AI citations as KPI (BuzzStream 2026)
-- Brand mentions correlate **3x more strongly** with AI visibility than traditional backlinks (Ahrefs: 0.664 vs 0.218 correlation)
+- Digital PR signals: 66.2% of PR practitioners track AI citations as KPI (BuzzStream 2026)
+- Brand mentions correlate **3x stronger** with AI visibility than traditional backlinks (Ahrefs: 0.664 vs 0.218)
 - Link velocity benchmark: 5-10 quality local links/month for small businesses (consensus)
 
 **Scoring guide:**
@@ -227,7 +227,7 @@ Key local AI facts:
 
 ## Reference Files
 
-Load on-demand as needed:
+Load on-demand:
 - `references/local-seo-signals.md`: Ranking factors, review benchmarks, citation tiers, GBP feature status, algorithm updates
 - `references/local-schema-types.md`: LocalBusiness subtypes by industry, schema patterns, citation sources per vertical
 
@@ -247,7 +247,7 @@ Generate `LOCAL-SEO-ANALYSIS-{domain}.md` with:
 8. **Local schema status** (present/missing/malformed + ready-to-use fix)
 9. **Location page quality** (if multi-location: unique content %, doorway risk, store locator)
 10. **Top 10 prioritized actions** (Critical > High > Medium > Low)
-11. **Limitations disclaimer**: What this analysis could NOT assess (geo-grid ranking, Domain Authority, comprehensive backlinks, GBP Insights data, real-time local pack position) and which paid tools can fill those gaps
+11. **Limitations disclaimer**: What this analysis could NOT assess (geo-grid ranking, Domain Authority, comprehensive backlinks, GBP Insights data, real-time local pack position) and which paid tools fill those gaps
 
 ---
 
@@ -255,7 +255,7 @@ Generate `LOCAL-SEO-ANALYSIS-{domain}.md` with:
 
 1. Claim and optimize Apple Business Connect (usage doubled to 27%)
 2. Claim and optimize Bing Places (powers ChatGPT, Copilot, Alexa)
-3. Fix any NAP discrepancies between page, schema, and GBP
+3. Fix NAP discrepancies between page, schema, and GBP
 4. Add LocalBusiness schema with correct industry subtype
 5. Add `geo` coordinates with 5+ decimal precision
 6. Ensure phone number uses `tel:` link for click-to-call
@@ -282,7 +282,7 @@ Generate `LOCAL-SEO-ANALYSIS-{domain}.md` with:
 
 ## DataForSEO Integration (Optional)
 
-If DataForSEO MCP tools are available, use `local_business_data` for live GBP data extraction, `google_local_pack_serp` for real-time local pack positions, and `business_listings` for automated citation auditing across directories.
+If DataForSEO MCP tools are available, use `local_business_data` for live GBP data, `google_local_pack_serp` for real-time local pack positions, and `business_listings` for automated citation auditing across directories.
 
 ---
 
@@ -290,12 +290,12 @@ If DataForSEO MCP tools are available, use `local_business_data` for live GBP da
 
 | Scenario | Action |
 |----------|--------|
-| URL unreachable (DNS failure, connection refused) | Report the error clearly. Do not guess site content. Suggest the user verify the URL and try again. |
-| No local signals detected on page | Report that no local business indicators were found. Suggest the user confirm this is a local business and provide the GBP listing URL if available. |
-| NAP not found in page HTML | Check schema and meta tags. If still absent, flag as Critical issue. Recommend adding visible NAP to footer and contact page. |
-| Industry vertical unclear | Present the top two detected verticals with supporting signals. Ask the user to confirm before applying industry-specific recommendations. |
-| Multi-location with 50+ location pages | Apply the quality gates from seo orchestrator: WARNING at 30+ pages (enforce 60%+ unique), HARD STOP at 50+ pages (require user justification before continuing). |
+| URL unreachable (DNS failure, connection refused) | Report error. Do not guess site content. Ask user to verify URL. |
+| No local signals detected on page | Report no local business indicators found. Ask user to confirm this is a local business and provide GBP listing URL if available. |
+| NAP not found in page HTML | Check schema and meta tags. If still absent, flag as Critical. Recommend adding visible NAP to footer and contact page. |
+| Industry vertical unclear | Present top two detected verticals with supporting signals. Ask user to confirm before applying industry-specific recommendations. |
+| Multi-location with 50+ location pages | Apply quality gates from seo orchestrator: WARNING at 30+ pages (enforce 60%+ unique), HARD STOP at 50+ pages (require user justification). |
 
 ## FLOW Framework Integration
 
-For prompt-guided local optimization, use `/seo flow local <url>` — FLOW's 11 local-stage prompts cover GBP optimization, meta descriptions, title tags, and structured local audit workflows.
+For prompt-guided local optimization, use `/seo flow local <url>` -- FLOW's 11 local-stage prompts cover GBP optimization, meta descriptions, title tags, and structured local audit workflows.

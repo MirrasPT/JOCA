@@ -1,6 +1,6 @@
 ---
 name: wp-project-triage
-description: "You need a deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, and a structured JSON. MUST be invoked when the user mentions: WordPress, WP, Gutenberg, JSON."
+description: "Deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, outputting structured JSON. MUST be invoked when the user mentions: WordPress, WP, Gutenberg, JSON."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
 ---
 
@@ -8,7 +8,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 
 ## When to use
 
-Use this skill to quickly understand what kind of WordPress repo you’re in and what commands/conventions to follow before making changes.
+Quickly identify what kind of WordPress repo you are in and which commands/conventions apply before making changes.
 
 ## Inputs required
 
@@ -18,21 +18,18 @@ Use this skill to quickly understand what kind of WordPress repo you’re in and
 
 1. Run the detector (prints JSON to stdout):
    - `node skills/wp-project-triage/scripts/detect_wp_project.mjs`
-2. If you need the exact output contract, read:
+2. For the exact output contract, read:
    - `skills/wp-project-triage/references/triage.schema.json`
 3. Use the report to select workflow guardrails:
-   - project kind(s)
-   - PHP/Node tooling present
-   - tests present
-   - version hints and sources
-4. If the report is missing signals you need, update the detector rather than guessing.
+   - project kind(s), PHP/Node tooling, tests present, version hints and sources.
+4. If the report lacks needed signals, update the detector instead of guessing.
 
 ## Verification
 
-- The JSON should parse and include: `project.kind`, `signals`, and `tooling`.
-- Re-run after changes that affect structure/tooling (adding `theme.json`, `block.json`, build config).
+- JSON parses and includes: `project.kind`, `signals`, `tooling`.
+- Re-run after structural/tooling changes (`theme.json`, `block.json`, build config).
 
 ## Failure modes / debugging
 
-- If it reports `unknown`, check whether the repo root is correct.
-- If scanning is slow, add/extend ignore directories in the script.
+- Reports `unknown`: check repo root is correct.
+- Scanning slow: add/extend ignore directories in the script.

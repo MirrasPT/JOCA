@@ -1,6 +1,6 @@
 ---
 name: paid-ads
-description: "The user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Google ads, LinkedIn ads, TikTok ads."
+description: "Paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy, headline iterations, creative testing. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Google ads, LinkedIn ads, TikTok ads."
 metadata:
   version: 1.0.0
   merged_from: [ad-creative v1.1.0, paid-ads v1.2.0]
@@ -8,31 +8,31 @@ metadata:
 
 # Ads Creation
 
-Expert in paid advertising — from campaign strategy and targeting to ad copy generation and performance optimization. Covers the full cycle: plan → create → launch → iterate.
+Paid advertising expert covering plan, create, launch, iterate.
 
 ## Before Starting
 
-Check for product marketing context first: if `.agents/product-marketing-context.md` exists, read it before asking questions.
+If `.agents/product-marketing-context.md` exists, read it first.
 
-Gather context not already covered:
+Gather missing context:
 
 **Campaign**
 - Platform(s)? (Google, Meta, LinkedIn, TikTok, Twitter/X)
 - Objective? (Awareness / traffic / leads / sales)
-- Budget (monthly/weekly) and target CPA or ROAS?
+- Budget and target CPA or ROAS?
 
 **Product & Offer**
-- What are you promoting? What's the core value proposition?
+- What's promoted? Core value prop?
 - Landing page URL?
 
 **Audience**
-- Who's the ideal customer? What pain points drive them?
-- Existing customer data for lookalikes?
+- Ideal customer? Pain points?
+- Existing data for lookalikes?
 
 **Current State**
-- Running ads already? What's working/failing?
-- Conversion tracking set up?
-- Performance data to iterate on?
+- Running ads? What works/fails?
+- Conversion tracking active?
+- Performance data available?
 
 ---
 
@@ -59,12 +59,11 @@ Account
 │   └── Ad Set: [Targeting variation]
 ```
 
-**Naming convention:**
-`[PLATFORM]_[Objective]_[Audience]_[Offer]_[Date]`
+**Naming:** `[PLATFORM]_[Objective]_[Audience]_[Offer]_[Date]`
 Example: `META_Conv_Lookalike-Customers_FreeTrial_2024Q1`
 
 **Budget allocation:**
-- Testing phase: 70% proven / 30% new audiences or creative
+- Testing: 70% proven / 30% new audiences or creative
 - Scaling: consolidate into winners, increase 20-30% at a time, wait 3-5 days between increases
 
 ---
@@ -98,7 +97,7 @@ Vary: word choice, specificity (numbers vs general), tone (direct/question/comma
 | Description | 90 chars | up to 4 |
 | URL path | 15 chars each | 2 |
 
-RSA rules: headlines must work independently and in any combination. Include at least 1 keyword headline + 1 benefit headline + 1 CTA headline.
+RSA rules: headlines must work independently and in any combination. Include 1 keyword headline + 1 benefit headline + 1 CTA headline minimum.
 
 **Meta (Facebook/Instagram)**
 
@@ -140,13 +139,13 @@ For 10+ variations, offer CSV format for direct upload.
 ## Copy Frameworks
 
 **Problem-Agitate-Solve (PAS):**
-[Problem] → [Agitate the pain] → [Introduce solution] → [CTA]
+[Problem] -> [Agitate the pain] -> [Introduce solution] -> [CTA]
 
 **Before-After-Bridge (BAB):**
-[Current painful state] → [Desired future state] → [Your product as bridge]
+[Current painful state] -> [Desired future state] -> [Your product as bridge]
 
 **Social Proof Lead:**
-[Impressive stat or testimonial] → [What you do] → [CTA]
+[Impressive stat or testimonial] -> [What you do] -> [CTA]
 
 **Strong headlines:** specific numbers, benefit over feature, active voice, genuine urgency.
 **Avoid:** vague superlatives ("best", "leading"), all caps, clickbait the landing page can't deliver.
@@ -163,17 +162,17 @@ For 10+ variations, offer CSV format for direct upload.
 3. Solution (8-20s) — show product/benefit
 4. CTA (20-30s) — clear next step
 
-Always add captions (85% watch without sound). Vertical for Stories/Reels, square for feed.
+Add captions (85% watch without sound). Vertical for Stories/Reels, square for feed.
 
-**Creative testing hierarchy:** concept/angle → hook/headline → visual style → body copy → CTA.
+**Creative testing hierarchy:** concept/angle, then hook/headline, then visual style, then body copy, then CTA.
 
 ---
 
 ## Iterating from Performance Data
 
 1. **Analyze winners** — winning themes, structures, word patterns
-2. **Analyze losers** — angles that fall flat, patterns in underperformers
-3. **Generate new variations** — double down on winners, test 1-2 new angles, retire losing patterns
+2. **Analyze losers** — flat angles, patterns in underperformers
+3. **Generate new variations** — double down on winners, test 1-2 new angles, retire losers
 4. **Document iteration:**
 
 ```
@@ -186,16 +185,16 @@ Always add captions (85% watch without sound). Vertical for Stories/Reels, squar
 - Angles retired: [list]
 ```
 
-Allow 1,000+ impressions before judging creative. Change one variable per test cycle.
+Wait for 1,000+ impressions before judging creative. Change one variable per test cycle.
 
 ---
 
 ## Audience Targeting
 
 **Platform strengths:**
-- Google → keywords, search intent
-- Meta → interests, behaviors, lookalikes
-- LinkedIn → job titles, companies, industries
+- Google: keywords, search intent
+- Meta: interests, behaviors, lookalikes
+- LinkedIn: job titles, companies, industries
 
 **Key principles:**
 - Lookalikes: base on best customers by LTV, not all customers
@@ -222,36 +221,36 @@ Allow 1,000+ impressions before judging creative. Change one variable per test c
 | Consideration | CTR, CPC, time on site |
 | Conversion | CPA, ROAS, conversion rate |
 
-**If CPA too high:** check landing page → tighten audience → new creative angles → improve relevance score → adjust bid strategy.
-**If CTR low:** new hooks/angles → refine targeting → refresh creative (fatigue).
-**If CPM high:** expand audience → try different placements → improve creative fit.
+**CPA too high:** check landing page, tighten audience, new creative angles, improve relevance score, adjust bid strategy.
+**CTR low:** new hooks/angles, refine targeting, refresh creative (fatigue).
+**CPM high:** expand audience, try different placements, improve creative fit.
 
-**Bid strategy progression:** manual/cost caps → gather 50+ conversions → switch to automated → monitor and adjust.
+**Bid strategy progression:** manual/cost caps, gather 50+ conversions, switch to automated, monitor and adjust.
 
 ---
 
 ## Pre-Launch Checklist
 
 - [ ] Conversion tracking tested with real conversion
-- [ ] Landing page loads <3 sec and is mobile-friendly
+- [ ] Landing page loads <3s, mobile-friendly
 - [ ] UTM parameters working
 - [ ] Budget set correctly
 - [ ] Targeting matches intended audience
-- [ ] At least 3 creative variations per ad set
+- [ ] 3+ creative variations per ad set
 - [ ] Exclusions configured (existing customers, recent converters)
 
 ---
 
-## Tracking Setup (Do This Before Launching)
+## Tracking Setup (Before Launching)
 
-Ads without proper conversion tracking waste budget. Set up before creating any campaign.
+Ads without conversion tracking waste budget. Set up before creating any campaign.
 
-### Meta (Facebook/Instagram) Pixel + Conversion API
+### Meta Pixel + Conversion API
 
-**Basic setup:**
-1. Create pixel in Events Manager → Business Settings → Data Sources
+**Setup:**
+1. Create pixel in Events Manager, Business Settings, Data Sources
 2. Install via GTM (preferred) or direct code
-3. Verify with Meta Pixel Helper Chrome extension
+3. Verify with Meta Pixel Helper extension
 
 **Required standard events:**
 - `PageView` — all pages (automatic with base code)
@@ -260,7 +259,7 @@ Ads without proper conversion tracking waste budget. Set up before creating any 
 - `Purchase` — completed purchase
 - `CompleteRegistration` — account creation
 
-**Conversion API (CAPI) — required in 2025+:**
+**Conversion API (CAPI) — required 2025+:**
 - Browser-only tracking loses 20-40% of events (iOS privacy, ad blockers)
 - CAPI sends server-side events to supplement browser events
 - Deduplication: include `event_id` in both browser and server events
@@ -273,7 +272,7 @@ Ads without proper conversion tracking waste budget. Set up before creating any 
 
 ### Google Ads Conversion Tracking
 
-1. Create conversion action in Google Ads → Goals → Conversions
+1. Create conversion action in Google Ads, Goals, Conversions
 2. Install via GTM: Google Ads Conversion Tracking tag
 3. Test with Google Tag Assistant
 
@@ -290,21 +289,21 @@ Ads without proper conversion tracking waste budget. Set up before creating any 
 
 - Single campaign handles prospecting + retargeting automatically
 - Provide 5-10 creative variations; algorithm handles targeting
-- Let run 7-14 days before judging performance
+- Let run 7-14 days before judging
 - Still set budget caps and geographic exclusions
 
 ### Google Performance Max (PMax)
 
 - Single campaign across Search, Display, Shopping, YouTube, Discover, Gmail
 - Requires: 15 headlines, 5 descriptions, 5 images, 1 video (or Google generates)
-- Asset group = the targeting unit (replace ad sets)
+- Asset group = targeting unit (replaces ad sets)
 - Audience signals = suggestions, not restrictions
 - Use search term reports to feed negative keywords
 
 ### When NOT to use AI campaigns
 
 - Budget under $3,000/month (insufficient data for algorithm)
-- Highly regulated industries (may lose control of placements)
+- Highly regulated industries (may lose placement control)
 - Brand-specific targeting needed (use standard campaigns + brand exclusions)
 
 ---
@@ -314,10 +313,10 @@ Ads without proper conversion tracking waste budget. Set up before creating any 
 - Launching without conversion tracking
 - Too many campaigns (fragmenting budget)
 - RSA headlines that only work together
-- Ignoring character limits (platforms truncate without warning)
+- Ignoring character limits (platforms truncate silently)
 - All variations sound the same (vary angles, not just words)
 - Overlapping audiences competing against each other
-- Making big budget changes (disrupts algorithm learning)
+- Big budget changes (disrupts algorithm learning)
 - Retiring creative too early (<1,000 impressions)
 - No CAPI setup (losing 20-40% conversion data)
 - Judging Advantage+/PMax before 7-14 day learning period

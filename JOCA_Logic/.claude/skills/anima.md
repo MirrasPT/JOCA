@@ -1,76 +1,76 @@
 ---
 name: anima
-description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animação, animation, gsap, lottie, scroll animation, page transition, hover animation, animação de ícone. SHOULD also invoke when: animação de ilustração, scroll trigger, motion, animate, transição, efeito de entrada."
-triggers: animação, animation, gsap, lottie, scroll animation, page transition, hover animation, animação de ícone, animação de ilustração, scroll trigger, motion, animate, transição, efeito de entrada, animar, micro-interação, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequência animada, loading animation, skeleton, shimmer, morphing, SVG animation
+description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone. SHOULD also invoke when: animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada."
+triggers: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone, animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada, animar, micro-interacao, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequencia animada, loading animation, skeleton, shimmer, morphing, SVG animation
 ---
 # Anima — Animation Specialist
 
-Especialista em animação web. Dois domínios:
+Two domains:
 
-- **GSAP** — animação de sites, scroll-triggered, page transitions, hover effects
-- **Lottie** — animação de ícones, ilustrações, SVGs, loops interactivos
+- **GSAP** — site animation, scroll-triggered, page transitions, hover effects
+- **Lottie** — icon/illustration/SVG animation, interactive loops
 
-Sempre produz código funcional. Sempre justifica cada escolha de timing.
+Produces working code. Justifies every timing choice.
 
 ---
 
 ## Router — GSAP vs Lottie
 
-Decidir antes de qualquer código:
+Decide before writing code:
 
 | Contexto | Usar |
 |----------|------|
-| Animar elementos HTML/CSS (texto, cards, secções, navbar) | **GSAP** |
-| Scroll-triggered animations (entrada quando entra no viewport) | **GSAP ScrollTrigger** |
+| Animar elementos HTML/CSS (texto, cards, secoes, navbar) | **GSAP** |
+| Scroll-triggered animations (entrada no viewport) | **GSAP ScrollTrigger** |
 | Page transitions, route animations | **GSAP** |
-| Sequências complexas com timing preciso | **GSAP Timeline** |
+| Sequencias complexas com timing preciso | **GSAP Timeline** |
 | Animar SVG paths, morphing | **GSAP MorphSVG** |
-| Ícones animados (hover, click, loop) | **Lottie** |
-| Ilustrações animadas (mascotes, loading, success/error) | **Lottie** |
+| Icones animados (hover, click, loop) | **Lottie** |
+| Ilustracoes animadas (mascotes, loading, success/error) | **Lottie** |
 | Splash screens, onboarding animations | **Lottie** |
-| Exportar animação como MP4/GIF | **HTML → ver pipeline de exportação** |
-| Animação com audio/SFX | **Ver skill `video` (HTML Animation → Video Export — BGM + SFX pipeline)** |
+| Exportar animacao como MP4/GIF | **HTML -> pipeline de exportacao** |
+| Animacao com audio/SFX | **Skill `video` (HTML Animation -> Video Export — BGM + SFX pipeline)** |
 
-Ambíguo → perguntar. Nunca assumir.
+Ambiguo -> perguntar. Nunca assumir.
 
 ---
 
-## Princípios de Animação (Anti-slop)
+## Principios de Animacao (Anti-slop)
 
-### O que é animação com propósito
+### Animacao com proposito
 
-Toda a animação deve responder a uma de 3 perguntas:
-1. **Orienta** — indica direcção, hierarquia, ou mudança de estado?
-2. **Confirma** — dá feedback de uma acção do utilizador?
-3. **Narra** — conta uma história ou conduz a atenção?
+Toda animacao responde a uma de 3 perguntas:
+1. **Orienta** — indica direccao, hierarquia, ou mudanca de estado?
+2. **Confirma** — da feedback de uma accao do utilizador?
+3. **Narra** — conta uma historia ou conduz a atencao?
 
-Se a resposta for "nenhuma das anteriores" → não animar.
+Nenhuma -> nao animar.
 
-### Regras de timing (de ui-ux-pro-max)
+### Regras de timing
 
-| Tipo | Duração | Easing |
+| Tipo | Duracao | Easing |
 |------|---------|--------|
-| Micro-interação (hover, click) | 150–200ms | ease-out-quart |
-| Transição de estado (modal, dropdown) | 200–300ms | ease-out-quart |
-| Entrada de página / hero animation | 400–600ms | ease-out-expo |
-| Scroll reveal (por elemento) | 300–500ms | ease-out-quart |
-| Exit animations | 60–70% do enter | ease-in-quart |
-| Stagger entre itens de lista | 30–50ms por item | ease-out-quart |
+| Micro-interaccao (hover, click) | 150-200ms | ease-out-quart |
+| Transicao de estado (modal, dropdown) | 200-300ms | ease-out-quart |
+| Entrada de pagina / hero animation | 400-600ms | ease-out-expo |
+| Scroll reveal (por elemento) | 300-500ms | ease-out-quart |
+| Exit animations | 60-70% do enter | ease-in-quart |
+| Stagger entre itens de lista | 30-50ms por item | ease-out-quart |
 
-**Easing padrão:**
+**Easing padrao:**
 ```js
 // ease-out-quart (suave, natural)
 "power4.out"  // GSAP
 cubic-bezier(0.16, 1, 0.3, 1)  // CSS
 
-// ease-out-expo (entrada dramática)
+// ease-out-expo (entrada dramatica)
 "expo.out"  // GSAP
 cubic-bezier(0.19, 1, 0.22, 1)  // CSS
 ```
 
 **Nunca usar:** bounce, elastic, linear para UI transitions, `ease-in` para entradas.
 
-### Performance rules (obrigatórias)
+### Performance rules (obrigatorias)
 
 ```
 ✅ Animar SEMPRE: transform (translate, scale, rotate), opacity
@@ -79,17 +79,17 @@ cubic-bezier(0.19, 1, 0.22, 1)  // CSS
 ```
 
 ```js
-// ✅ Correcto — só transform
+// ✅ Correcto — so transform
 gsap.to(".card", { x: 100, opacity: 0, duration: 0.3 });
 
 // ❌ Errado — reflow
 gsap.to(".card", { left: 100, width: 200, duration: 0.3 });
 ```
 
-**will-change:** usar só em elementos que VÃO animar (não globalmente):
+**will-change:** usar so em elementos que vao animar (nao globalmente):
 ```css
 .will-animate { will-change: transform, opacity; }
-/* Remover após animação: element.style.willChange = 'auto' */
+/* Remover apos animacao: element.style.willChange = 'auto' */
 ```
 
 **prefers-reduced-motion — sempre respeitar:**
@@ -120,7 +120,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 ### Patterns essenciais
 
-#### Entrada de página (hero)
+#### Entrada de pagina (hero)
 
 ```js
 // Staggered hero — elementos entram em cascata
@@ -134,7 +134,7 @@ gsap.from(".hero-title, .hero-subtitle, .hero-cta", {
 });
 ```
 
-#### Scroll reveal (secções)
+#### Scroll reveal (seccoes)
 
 ```js
 gsap.registerPlugin(ScrollTrigger);
@@ -148,7 +148,7 @@ gsap.utils.toArray(".reveal").forEach((el) => {
     scrollTrigger: {
       trigger: el,
       start: "top 85%",
-      once: true     // só uma vez — não repetir no scroll up
+      once: true     // so uma vez — nao repetir no scroll up
     }
   });
 });
@@ -164,7 +164,7 @@ ScrollTrigger.create({
 });
 ```
 
-#### Timeline (sequência precisa)
+#### Timeline (sequencia precisa)
 
 ```js
 const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
@@ -179,7 +179,7 @@ tl.from(".logo", { scale: 0.8, opacity: 0, duration: 0.4 })
 #### Hover effects (quickTo para performance)
 
 ```js
-// quickTo — mais rápido que gsap.to em eventos repetidos
+// quickTo — mais rapido que gsap.to em eventos repetidos
 const xTo = gsap.quickTo(".cursor", "x", { duration: 0.3, ease: "power3.out" });
 const yTo = gsap.quickTo(".cursor", "y", { duration: 0.3, ease: "power3.out" });
 
@@ -189,7 +189,7 @@ document.addEventListener("mousemove", (e) => {
 });
 ```
 
-#### Parallax simples
+#### Parallax
 
 ```js
 gsap.to(".hero-bg", {
@@ -204,9 +204,9 @@ gsap.to(".hero-bg", {
 });
 ```
 
-### Deep dives → `./gsap/` (referências API internas)
+### Deep dives -> `./gsap/`
 
-Para documentação completa da API — ler o ficheiro relevante dentro de `anima/gsap/`:
+API references inside `anima/gsap/`:
 - `./gsap/gsap-core.md` — gsap.to/from/fromTo, easing, defaults
 - `./gsap/gsap-timeline.md` — position parameter, labels, nesting
 - `./gsap/gsap-scrolltrigger.md` — pin, scrub, batch, horizontal scroll
@@ -220,12 +220,12 @@ Para documentação completa da API — ler o ficheiro relevante dentro de `anim
 
 ## Lottie
 
-### Quando usar Lottie
+### Quando usar
 
-- Ícones com animação de estado (hamburger → close, play → pause, like, checkmark)
-- Ilustrações animadas (loading, success, error, empty states, mascotes)
-- Loops de fundo (partículas, ondas, padrões subtis)
-- Animações que precisam de interactividade por segmento (hover play, click trigger)
+- Icones com animacao de estado (hamburger -> close, play -> pause, like, checkmark)
+- Ilustracoes animadas (loading, success, error, empty states, mascotes)
+- Loops de fundo (particulas, ondas, padroes subtis)
+- Animacoes que precisam de interactividade por segmento (hover play, click trigger)
 
 ### Setup
 
@@ -233,7 +233,7 @@ Para documentação completa da API — ler o ficheiro relevante dentro de `anim
 <!-- CDN -->
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
-<!-- Web Component (mais fácil) -->
+<!-- Web Component -->
 <lottie-player
   src="animation.json"
   background="transparent"
@@ -245,7 +245,7 @@ Para documentação completa da API — ler o ficheiro relevante dentro de `anim
 ```
 
 ```js
-// Controlo programático
+// Controlo programatico
 import lottie from "lottie-web";
 
 const anim = lottie.loadAnimation({
@@ -261,15 +261,15 @@ button.addEventListener("mouseenter", () => anim.play());
 button.addEventListener("mouseleave", () => anim.stop());
 
 // Segmentos
-anim.playSegments([0, 60], true);   // frames 0 → 60
+anim.playSegments([0, 60], true);   // frames 0 -> 60
 ```
 
 ### Estrutura do JSON Lottie
 
-Elementos chave para editar manualmente:
+Key fields for manual editing:
 ```json
 {
-  "nm": "nome da animação",
+  "nm": "nome da animacao",
   "fr": 60,         // framerate
   "ip": 0,          // in-point
   "op": 120,        // out-point (=2s a 60fps)
@@ -283,13 +283,13 @@ Elementos chave para editar manualmente:
 ```js
 // Procurar "c": [R,G,B,1] em valores 0-1
 // Substituir com nova cor:
-// oklch(0.6 0.2 30) → RGB(0.85, 0.4, 0.2) ≈ [0.85, 0.4, 0.2, 1]
+// oklch(0.6 0.2 30) -> RGB(0.85, 0.4, 0.2) ≈ [0.85, 0.4, 0.2, 1]
 ```
 
-### Padrões de ícones Lottie
+### Padroes de icones Lottie
 
 ```js
-// Ícone que anima no hover e volta ao estado inicial
+// Icone que anima no hover e volta ao estado inicial
 const iconAnim = lottie.loadAnimation({
   container: document.querySelector(".icon"),
   loop: false,
@@ -312,25 +312,25 @@ iconAnim.addEventListener("complete", () => {
 });
 ```
 
-### Deep dives → `./lottie-animator/` (sub-skill interna)
+### Deep dives -> `./lottie-animator/`
 
-Ler `./lottie-animator/SKILL.md` para casos avançados:
-- Criação de JSON Lottie de raiz (SVG path mastery)
-- Bezier easing avançado → `./lottie-animator/references/bezier-easing.md`
-- Técnicas profissionais (morphing, walk cycles, frame-by-frame) → `./lottie-animator/references/professional-techniques.md`
-- SVG → Lottie conversion pipeline → `./lottie-animator/references/svg-to-lottie.md`
-- Estrutura JSON completa → `./lottie-animator/references/lottie-structure.md`
+Read `./lottie-animator/SKILL.md` for advanced cases:
+- JSON Lottie from scratch (SVG path mastery)
+- Bezier easing -> `./lottie-animator/references/bezier-easing.md`
+- Pro techniques (morphing, walk cycles, frame-by-frame) -> `./lottie-animator/references/professional-techniques.md`
+- SVG -> Lottie conversion -> `./lottie-animator/references/svg-to-lottie.md`
+- Full JSON structure -> `./lottie-animator/references/lottie-structure.md`
 
 ---
 
-## Integracao com frontend skill
+## Frontend skill integration
 
-Invocada autonomamente pela skill `frontend` durante o desenvolvimento. Nao precisa de confirmacao do utilizador -- a skill principal decide quando activar.
+Invoked autonomously by the `frontend` skill during development. No user confirmation needed.
 
-### Ler design tokens
-1. Ler DESIGN.md -> `--duration-*` e `--ease-*` tokens
-2. Aplicar nos GSAP defaults
-3. GSAP para elementos HTML; Lottie para icones e ilustracoes SVG
+### Design tokens
+1. Read DESIGN.md -> `--duration-*` and `--ease-*` tokens
+2. Apply in GSAP defaults
+3. GSAP for HTML elements; Lottie for icons and SVG illustrations
 
 ### React (useGSAP)
 ```jsx
@@ -348,18 +348,18 @@ function Hero() {
 }
 ```
 
-### Exportar como MP4/GIF
-Usar skill `video` (HTML Animation -> Video Export).
+### Export as MP4/GIF
+Use skill `video` (HTML Animation -> Video Export).
 
 ---
 
-## Checklist antes de entregar
+## Checklist
 
 - [ ] `prefers-reduced-motion` respeitado
-- [ ] Só transform+opacity animados (sem width/height/top/left)
-- [ ] `will-change` apenas em elementos que vão animar
-- [ ] `once: true` no ScrollTrigger para reveals (não repete no scroll up)
-- [ ] Durations dentro do range: micro 150-200ms, transitions 200-300ms, reveals 300-500ms
-- [ ] Easing: sempre ease-out para entradas, ease-in para saídas
+- [ ] So transform+opacity animados (sem width/height/top/left)
+- [ ] `will-change` apenas em elementos que vao animar
+- [ ] `once: true` no ScrollTrigger para reveals
+- [ ] Durations no range: micro 150-200ms, transitions 200-300ms, reveals 300-500ms
+- [ ] Easing: ease-out para entradas, ease-in para saidas
 - [ ] Sem bounce/elastic em UI
 - [ ] GSAP limpo (sem event listeners duplicados, gsap.context() em React)

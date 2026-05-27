@@ -1,17 +1,17 @@
 ---
 name: mysql
-description: "Writing MySQL queries, optimizing database performance, designing schemas, or debugging SQL issues. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also invoke when: schema, database, base de dados, N+1, query optimization, full table scan."
+description: "MySQL query writing, performance optimization, schema design, SQL debugging. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also invoke when: schema, database, base de dados, N+1, query optimization, full table scan."
 triggers: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration, schema, database, base de dados, N+1, query optimization, full table scan, covering index, composite index, deadlock, lock, InnoDB, utf8mb4, DECIMAL, JSON column, query performance, database design, normalization, denormalization, foreign key, constraint
 ---
 # MySQL
 
-Optimization e design de schema MySQL. EXPLAIN analysis, indexes compostos, SARGability, pagination eficiente.
+Schema design and optimization. EXPLAIN analysis, composite indexes, SARGability, efficient pagination.
 
-Invocada autonomamente pela skill `laravel-specialist` quando queries sao lentas ou schema precisa de design.
+Auto-invoked by `laravel-specialist` for slow queries or schema design.
 
 ---
 
-## SARGability -- o killer #1 de performance
+## SARGability -- #1 performance killer
 
 ```sql
 -- MAU: funcao em coluna indexada = full table scan
@@ -48,7 +48,7 @@ CREATE INDEX idx_covering ON orders(customer_id, created_at, total_amount, statu
 
 ---
 
-## EXPLAIN -- o que procurar
+## EXPLAIN -- what to check
 
 ```sql
 EXPLAIN FORMAT=JSON SELECT ...;
@@ -60,13 +60,13 @@ EXPLAIN FORMAT=JSON SELECT ...;
 | `type: index` | Full index scan -- WARNING |
 | `type: ref/eq_ref` | Index lookup -- BOM |
 | `type: const` | Single row by PK -- OPTIMO |
-| `Extra: Using filesort` | ORDER BY nao servido por index |
-| `Extra: Using temporary` | Tabela temporaria criada |
-| `rows >>` actual rows | Estatisticas desactualizadas -- correr `ANALYZE TABLE` |
+| `Extra: Using filesort` | ORDER BY not served by index |
+| `Extra: Using temporary` | Temp table created |
+| `rows >>` actual rows | Stale stats -- run `ANALYZE TABLE` |
 
 ---
 
-## Pagination -- nunca OFFSET grande
+## Pagination -- never large OFFSET
 
 ```sql
 -- MAU: le e descarta 100.000 linhas
@@ -81,11 +81,11 @@ ORDER BY created_at DESC LIMIT 20;
 SELECT * FROM products WHERE id > 1000 ORDER BY id LIMIT 20;
 ```
 
-Em Laravel: `simplePaginate()` (sem COUNT), cursor pagination para datasets grandes.
+Laravel: `simplePaginate()` (no COUNT), cursor pagination for large datasets.
 
 ---
 
-## Patterns uteis
+## Useful patterns
 
 ### EXISTS vs COUNT
 ```sql
@@ -96,7 +96,7 @@ IF (SELECT COUNT(*) FROM orders WHERE user_id = 1) > 0
 IF EXISTS (SELECT 1 FROM orders WHERE user_id = 1)
 ```
 
-### Aggregacao condicional
+### Conditional aggregation
 ```sql
 -- MAU: 3 queries
 SELECT COUNT(*) FROM orders WHERE status = 'pending';
@@ -119,16 +119,16 @@ INSERT INTO products (name, price) VALUES ('B', 15);
 INSERT INTO products (name, price) VALUES ('A', 10), ('B', 15), ('C', 20);
 ```
 
-### JOINs -- indexar SEMPRE a coluna ON
+### JOINs -- always index the ON column
 ```sql
--- Cada JOIN ON column DEVE ter index
--- INNER JOIN quando match obrigatorio (nao LEFT JOIN)
--- Push filtros para ON clause quando possivel
+-- Every JOIN ON column MUST have an index
+-- INNER JOIN for required matches (not LEFT JOIN)
+-- Push filters to ON clause when possible
 ```
 
 ---
 
-## Schema rules MySQL
+## Schema rules
 
 | Regra | Detalhe |
 |-------|---------|
@@ -170,19 +170,19 @@ INSERT INTO products (name, price) VALUES ('A', 10), ('B', 15), ('C', 20);
 
 ---
 
-## Auditoria -- classificacao de findings
+## Findings classification
 
-- **CRITICAL**: resultados incorrectos, data loss, full scans em tabelas grandes
-- **WARNING**: performance issue significativo (missing index em JOIN)
-- **SUGGESTION**: melhoria (tipos de dados melhores)
-- **INFO**: nota educacional
+- **CRITICAL**: wrong results, data loss, full scans on large tables
+- **WARNING**: significant perf issue (missing index on JOIN)
+- **SUGGESTION**: improvement (better data types)
+- **INFO**: educational note
 
 ---
 
-## Integracao com Laravel
+## Laravel integration
 
-Regras aplicadas automaticamente quando `laravel-specialist` invoca esta skill:
-- `simplePaginate()` em vez de `paginate()`
-- Eager loading com `::with()` para evitar N+1
-- `$table->index()` em colunas de foreign key e filtros frequentes
-- `EXPLAIN` antes de aprovar queries complexas
+Rules auto-applied when `laravel-specialist` invokes this skill:
+- `simplePaginate()` over `paginate()`
+- Eager loading with `::with()` to avoid N+1
+- `$table->index()` on foreign key and frequent filter columns
+- `EXPLAIN` before approving complex queries

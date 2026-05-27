@@ -10,11 +10,11 @@ triggers: transactional email, email sending, postmark, resend, email api, bounc
 
 | Situation | Action |
 |-----------|--------|
-| Using Postmark or considering Postmark | Activate `transactional-email/postmark` |
-| Using Resend + React Email (modern TS stack) | Use general knowledge (Resend skill not yet created) |
-| General deliverability questions (SPF/DKIM/DMARC) | Activate `transactional-email/postmark` — deliverability section applies universally |
+| Using/considering Postmark | Activate `transactional-email/postmark` |
+| Using Resend + React Email (modern TS stack) | General knowledge (Resend skill not yet created) |
+| Deliverability questions (SPF/DKIM/DMARC) | Activate `transactional-email/postmark` — deliverability section applies universally |
 
-## How to Activate Sub-skills
+## Activate Sub-skills
 
 ```
 Read(".claude/skills/SKILL.md")
@@ -22,13 +22,13 @@ Read(".claude/skills/SKILL.md")
 
 ## Universal Email Rules
 
-1. **Queue sends** — never block API responses waiting for email delivery
+1. **Queue sends** — never block API responses for email delivery
 2. **Always include `TextBody`** alongside `HtmlBody`
-3. **SPF + DKIM + DMARC** must be configured on sending domain
-4. **Process bounces immediately** — hard bounces must suppress, or provider will suspend account
+3. **SPF + DKIM + DMARC** required on sending domain
+4. **Process bounces immediately** — hard bounces must suppress, or provider suspends account
 5. **Unsubscribe link** required in all marketing/bulk emails (CAN-SPAM, GDPR)
 6. **Log provider MessageID** to correlate delivery/bounce webhooks
-7. **Separate transactional from marketing** — different sending reputation, different streams
+7. **Separate transactional from marketing** — different reputation, different streams
 
 ## Provider Comparison
 

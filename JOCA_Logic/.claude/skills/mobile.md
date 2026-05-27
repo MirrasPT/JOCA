@@ -1,22 +1,22 @@
 ---
 name: mobile
-description: "Building mobile applications, responsive design, PWA, or mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also invoke when: notch, dynamic island, PWA, app móvel, mobile app, tablet."
+description: "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also invoke when: notch, dynamic island, PWA, app móvel, mobile app, tablet."
 triggers: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area, notch, dynamic island, PWA, app móvel, mobile app, tablet, breakpoint, viewport, media query, gesto, gesture, pull to refresh, adaptativo, adaptive, hamburger menu, drawer, off-canvas, mobile navigation, mobile menu, thumb zone, reachability, iOS mockup, Android mockup, device frame, app design, mobile design, mobile layout, small screen
 ---
 # Mobile — Responsive & Mobile Specialist
 
-Pega num design (da skill `frontend` ou standalone) e torna-o excelente em mobile. Touch-first, performance-first, native-feel.
+Takes a design (from `frontend` skill or standalone) and optimises it for mobile. Touch-first, performance-first, native-feel.
 
-Invocado autonomamente pela skill `frontend` apos primeiro draft, ou directamente pelo utilizador.
+Auto-invoked by `frontend` after first draft, or directly by user.
 
 ---
 
-## Principios
+## Principles
 
-1. **Mobile-first** -- desenhar para 375px primeiro, expandir depois. Nunca "encolher desktop".
-2. **Thumb zone** -- accoes primarias na metade inferior do ecra, acessiveis com o polegar.
-3. **Touch targets** -- minimo 44x44px (Apple HIG), 48x48dp (Material). Espaco 8px entre targets.
-4. **Content-first** -- em mobile, cada pixel conta. Cortar decoracao, manter informacao.
+1. **Mobile-first** -- design for 375px first, expand after. Never "shrink desktop".
+2. **Thumb zone** -- primary actions in bottom half of screen, thumb-reachable.
+3. **Touch targets** -- min 44x44px (Apple HIG), 48x48dp (Material). 8px gap between targets.
+4. **Content-first** -- every pixel counts on mobile. Cut decoration, keep information.
 5. **Native feel** -- bottom sheets > modals, swipe > click, momentum scroll, haptic feedback patterns.
 
 ---
@@ -38,27 +38,27 @@ Invocado autonomamente pela skill `frontend` apos primeiro draft, ou directament
 /* Custom quando necessario */
 ```
 
-### Regras
-- Nunca desactivar zoom: `<meta name="viewport" content="width=device-width, initial-scale=1">`
-- Sem horizontal scroll em nenhum breakpoint
-- `min-height: 100dvh` (dynamic viewport height, nao `100vh`)
-- Testar sempre em 375px (iPhone SE) -- o mais pequeno comum
-- `font-size` minimo 16px em mobile (previne auto-zoom iOS em inputs)
+### Rules
+- Never disable zoom: `<meta name="viewport" content="width=device-width, initial-scale=1">`
+- No horizontal scroll at any breakpoint
+- `min-height: 100dvh` (dynamic viewport height, not `100vh`)
+- Always test at 375px (iPhone SE) -- smallest common device
+- `font-size` min 16px on mobile (prevents iOS auto-zoom on inputs)
 
 ---
 
-## Patterns Mobile
+## Mobile Patterns
 
-### Navegacao
+### Navigation
 ```
 Desktop: navbar horizontal
 Tablet:  navbar com items colapsados
 Mobile:  bottom navigation bar (3-5 items) OU hamburger + drawer
 ```
 
-Bottom nav > hamburger quando ha <= 5 accoes primarias. Hamburger esconde -- bottom nav mostra.
+Bottom nav > hamburger when <= 5 primary actions. Hamburger hides -- bottom nav shows.
 
-### Bottom Sheet (alternativa a modals)
+### Bottom Sheet (modal alternative)
 ```css
 .bottom-sheet {
   position: fixed;
@@ -107,7 +107,7 @@ body {
 }
 ```
 
-### Imagens Responsive
+### Responsive Images
 ```html
 <picture>
   <source media="(max-width: 768px)" srcset="img-mobile.webp" />
@@ -115,9 +115,9 @@ body {
   <img src="img-desktop.webp" alt="..." width="1200" height="800" loading="lazy" />
 </picture>
 ```
-Sempre `width` + `height` ou `aspect-ratio` para prevenir CLS.
+Always set `width` + `height` or `aspect-ratio` to prevent CLS.
 
-### Tipografia Responsive
+### Responsive Typography
 ```css
 /* Fluid type -- escala suave entre breakpoints */
 .heading {
@@ -130,17 +130,17 @@ Sempre `width` + `height` ou `aspect-ratio` para prevenir CLS.
 }
 ```
 
-### Forms em Mobile
-- Labels acima do input (nunca ao lado)
-- `inputmode` correcto: `numeric`, `email`, `tel`, `url`, `search`
-- `autocomplete` em todos os campos relevantes
-- Keyboard nao esconde o input activo -- scroll into view
-- Botao submit visivel acima do keyboard
-- Validacao inline por campo, nao so no topo
+### Forms on Mobile
+- Labels above input (never beside)
+- Correct `inputmode`: `numeric`, `email`, `tel`, `url`, `search`
+- `autocomplete` on all relevant fields
+- Keyboard must not hide active input -- scroll into view
+- Submit button visible above keyboard
+- Inline validation per field, not just at top
 
 ---
 
-## Device Frames (prototipos)
+## Device Frames (prototypes)
 
 ### iPhone frame React component
 ```tsx
@@ -191,34 +191,34 @@ function IPhoneFrame({ children }: { children: React.ReactNode }) {
 
 ## PWA Patterns
 
-Quando o projecto e PWA ou web app que parece nativa:
+For PWA or native-feel web apps:
 
 - `<meta name="apple-mobile-web-app-capable" content="yes">`
 - `<meta name="theme-color" content="...">`
 - Splash screen via `apple-touch-startup-image`
-- `display: standalone` no manifest
-- Offline-first: service worker com cache strategy
-- Pull-to-refresh custom (desactivar default com `overscroll-behavior-y: contain`)
+- `display: standalone` in manifest
+- Offline-first: service worker with cache strategy
+- Custom pull-to-refresh (disable default with `overscroll-behavior-y: contain`)
 
 ---
 
 ## Checklist Mobile
 
-- [ ] 375px sem horizontal scroll
+- [ ] 375px without horizontal scroll
 - [ ] Touch targets >= 44px
-- [ ] Safe areas respeitadas (notch, home indicator)
-- [ ] Inputs com `inputmode` correcto
-- [ ] Font size >= 16px body (previne iOS auto-zoom)
-- [ ] Imagens com `width`/`height` ou `aspect-ratio`
-- [ ] `prefers-reduced-motion` respeitado
-- [ ] Bottom sheet em vez de modal (quando aplicavel)
-- [ ] Navegacao acessivel com polegar (thumb zone)
-- [ ] Landscape orientation nao quebra layout
+- [ ] Safe areas respected (notch, home indicator)
+- [ ] Inputs with correct `inputmode`
+- [ ] Font size >= 16px body (prevents iOS auto-zoom)
+- [ ] Images with `width`/`height` or `aspect-ratio`
+- [ ] `prefers-reduced-motion` respected
+- [ ] Bottom sheet instead of modal (when applicable)
+- [ ] Navigation thumb-reachable (thumb zone)
+- [ ] Landscape orientation does not break layout
 
 ---
 
-## Integracao com frontend
+## Integration with frontend
 
-Invocada autonomamente pela skill `frontend` apos primeiro draft. Aplicar patterns directamente sem perguntar ao utilizador. Notificar: `[+ mobile]`.
+Auto-invoked by `frontend` after first draft. Apply patterns directly without asking. Notify: `[+ mobile]`.
 
-Standalone: pode ser activada directamente para melhorar responsivo de qualquer projecto existente.
+Standalone: can activate directly to improve responsiveness of any existing project.

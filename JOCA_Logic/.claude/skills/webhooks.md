@@ -1,6 +1,6 @@
 ---
 name: webhooks
-description: "Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the user says: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix. SHOULD also invoke when: hookdeck, webhook handler, webhook retry, hmac signature."
+description: "Implement webhook receivers with signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the user says: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix. SHOULD also invoke when: hookdeck, webhook handler, webhook retry, hmac signature."
 triggers: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix, hookdeck, webhook handler, webhook retry, hmac signature
 ---
 
@@ -10,7 +10,7 @@ Production-ready webhook receiving: signature verification, idempotency, and ret
 
 ## The Three Rules
 
-**Verify → Parse → Handle Idempotently** — always in this order.
+**Verify -> Parse -> Handle Idempotently** — always this order.
 
 1. **Verify signature first** — use raw body; reject invalid requests with 4xx
 2. **Parse payload second** — only after verification
@@ -27,7 +27,7 @@ Production-ready webhook receiving: signature verification, idempotency, and ret
 | `5xx` | Server error | Retry with backoff |
 | `429` | Rate limited | Retry after delay |
 
-**Return 2xx fast** — do heavy processing in a background job, not in the handler.
+**Return 2xx fast** — offload heavy processing to a background job.
 
 ## Signature Verification by Provider
 
@@ -192,7 +192,7 @@ import { db } from "@/lib/db";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
-  // 1. Verify signature first (use raw body)
+  // 1. Verify signature (raw body)
   const rawBody = await req.text();
   const sig = req.headers.get("stripe-signature")!;
 
@@ -210,10 +210,8 @@ export async function POST(req: Request) {
     update: {},
     select: { createdAt: true },
   });
-  // If updatedAt === createdAt the record is new; if it existed, skip
-  // Simpler: use INSERT ... ON CONFLICT DO NOTHING RETURNING
 
-  // 3. Process event — enqueue for async processing (return fast)
+  // 3. Enqueue for async processing (return fast)
   await webhookQueue.add("stripe-event", { eventId: event.id, type: event.type });
 
   return new Response("OK", { status: 200 });
@@ -258,21 +256,21 @@ ngrok http 3000
 
 - [ ] Signature verified before parsing payload
 - [ ] Raw body used for signature (not parsed JSON)
-- [ ] `timingSafeEqual` used for HMAC comparison (not `===`)
+- [ ] `timingSafeEqual` for HMAC comparison (not `===`)
 - [ ] Idempotency implemented (event ID deduplication)
-- [ ] Handler returns 2xx within 10-30 seconds (provider timeout)
+- [ ] Handler returns 2xx within 10-30 seconds
 - [ ] Heavy processing offloaded to background queue
-- [ ] Webhook secret stored in env var, not code
+- [ ] Webhook secret in env var, not code
 - [ ] Logs include event type, ID, and timestamp
-- [ ] Webhook endpoint is not rate-limited by your own middleware
+- [ ] Webhook endpoint not rate-limited by own middleware
 
 ## Avoid
 
 - Skipping signature verification — critical security vulnerability
 - Parsing body before verifying — verification requires raw body
-- Slow processing in handler — return fast, process async
+- Slow handler processing — return fast, process async
 - Missing idempotency — webhooks retry on timeout or server error
-- Using regular string comparison for signatures — timing attack vector
+- Regular string comparison for signatures — timing attack vector
 - Assuming webhook arrival order — use event timestamps to resolve conflicts
 
 ## Resources

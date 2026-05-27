@@ -5,17 +5,17 @@ triggers: ADR, architecture decision, decisao arquitectural, porque escolhemos, 
 ---
 # ADR — Architecture Decision Records
 
-Decisoes arquitecturais persistentes em ficheiros numerados. Formato Michael Nygard.
+Persistent architecture decisions in numbered files. Michael Nygard format.
 
-**Activar** quando:
-- Utilizador escolhe entre alternativas significativas (framework, DB, pattern, API design)
-- `plan` Fase 3 (abordagens e tradeoffs) completa com decisao tomada
-- `tech-spec` sec. 8 (Technical Decisions) tem entrada significativa
-- Pedido explicito: "ADR isto", "regista esta decisao", "porque escolhemos X"
+**Activate** when:
+- User chooses between significant alternatives (framework, DB, pattern, API design)
+- `plan` Phase 3 (approaches and tradeoffs) completes with decision taken
+- `tech-spec` sec. 8 (Technical Decisions) has significant entry
+- Explicit request: "ADR isto", "regista esta decisao", "porque escolhemos X"
 
 ---
 
-## Formato ADR
+## ADR Format
 
 ```markdown
 # ADR-NNNN: [Titulo da Decisao]
@@ -60,7 +60,7 @@ Decisoes arquitecturais persistentes em ficheiros numerados. Formato Michael Nyg
 
 ---
 
-## Directorio
+## Directory
 
 ```
 docs/
@@ -72,7 +72,7 @@ docs/
     └── ...
 ```
 
-### README.md (indice)
+### README.md (index)
 
 ```markdown
 # Architecture Decision Records
@@ -87,29 +87,29 @@ docs/
 
 ## Workflow
 
-### Capturar novo ADR
+### New ADR
 
-1. **Inicializar** (primeira vez) — se `docs/adr/` nao existe, pedir confirmacao antes de criar directorio + README.md + template.md
-2. **Identificar decisao** — extrair a escolha arquitectural
-3. **Documentar contexto** — que problema motivou isto
-4. **Registar alternativas** — que mais foi considerado e porque foi rejeitado
-5. **Consequencias** — tradeoffs honestos
-6. **Numerar** — scan `docs/adr/` e incrementar
-7. **Confirmar** — mostrar draft, so escrever apos aprovacao
-8. **Actualizar indice** — append no README.md
+1. **Init** (first time) — if `docs/adr/` missing, confirm before creating dir + README.md + template.md
+2. **Identify** the architectural choice
+3. **Document context** — what problem motivated this
+4. **Record alternatives** — what else was considered, why rejected
+5. **Consequences** — honest tradeoffs
+6. **Number** — scan `docs/adr/`, increment
+7. **Confirm** — show draft, write only after approval
+8. **Update index** — append to README.md
 
-### Consultar ADR existente
+### Lookup existing ADR
 
-Quando alguem pergunta "porque escolhemos X":
+When someone asks "why did we choose X":
 
-1. Verificar se `docs/adr/` existe
-2. Scan README.md por ADRs relevantes
-3. Ler e apresentar Context + Decision
-4. Se nao encontrar: "Nenhum ADR para essa decisao. Queres registar um agora?"
+1. Check if `docs/adr/` exists
+2. Scan README.md for relevant ADRs
+3. Read and present Context + Decision
+4. If not found: "No ADR for that decision. Want to record one now?"
 
 ---
 
-## Que decisoes merecem ADR
+## What deserves an ADR
 
 | Categoria | Exemplos |
 |-----------|---------|
@@ -121,27 +121,27 @@ Quando alguem pergunta "porque escolhemos X":
 | Seguranca | Auth strategy, encryption, secret management |
 | Testing | Framework, coverage targets, E2E vs integration |
 
-### O que NAO precisa de ADR
+### What does NOT need an ADR
 
-- Naming conventions, formatting (vai no CLAUDE.md)
-- Escolhas triviais sem alternativa real
-- Decisoes ja revertidas e esquecidas
+- Naming conventions, formatting (goes in CLAUDE.md)
+- Trivial choices with no real alternative
+- Already-reverted forgotten decisions
 
 ---
 
-## Deteccao de decisoes (sinais)
+## Decision detection (signals)
 
-### Explicitos
+### Explicit
 - "Vamos usar X"
 - "Escolhemos X em vez de Y"
 - "O tradeoff vale a pena porque..."
 - "ADR isto", "regista esta decisao"
 
-### Implicitos (sugerir ADR, nao criar automaticamente)
-- Comparar dois frameworks e chegar a conclusao
-- Escolha de schema com razao explicitada
-- Decisao de auth/authz
-- Escolha de infraestrutura de deploy
+### Implicit (suggest ADR, don't auto-create)
+- Comparing two frameworks and reaching a conclusion
+- Schema choice with explicit reasoning
+- Auth/authz decision
+- Deploy infrastructure choice
 
 ---
 
@@ -151,40 +151,40 @@ Quando alguem pergunta "porque escolhemos X":
 proposed → accepted → [deprecated | superseded by ADR-NNNN]
 ```
 
-- **proposed** — em discussao, nao commitado
-- **accepted** — em vigor
-- **deprecated** — irrelevante (feature removida)
-- **superseded** — substituido por ADR mais recente (sempre linkar o substituto)
+- **proposed** — under discussion, not committed
+- **accepted** — in effect
+- **deprecated** — irrelevant (feature removed)
+- **superseded** — replaced by newer ADR (always link the replacement)
 
 ---
 
-## Boas praticas
+## Best practices
 
-### Fazer
-- Ser especifico — "Usar Pest para testes" nao "usar um framework de testes"
-- Registar o PORQUE — razao > escolha
-- Incluir alternativas rejeitadas — futuro-eu precisa de saber o que foi considerado
-- Consequencias honestas — toda decisao tem tradeoffs
-- Curto — legivel em 2 minutos
-- Presente do indicativo — "Usamos X" nao "Vamos usar X"
+### Do
+- Be specific — "Use Pest for tests" not "use a test framework"
+- Record the WHY — reason > choice
+- Include rejected alternatives — future-you needs to know what was considered
+- Honest consequences — every decision has tradeoffs
+- Keep short — readable in 2 minutes
+- Present tense — "We use X" not "We will use X"
 
-### Nao fazer
-- Decisoes triviais (naming, formatting)
-- Textos longos — se o contexto excede 10 linhas, e demais
-- Omitir alternativas — "escolhemos sem mais" nao e razao valida
-- Backfill sem marcar — se registar decisao passada, notar a data original
-- Deixar stale — decisoes substituidas devem linkar o substituto
+### Don't
+- Trivial decisions (naming, formatting)
+- Long text — if context exceeds 10 lines, it's too much
+- Omit alternatives — "we chose without more" is not a valid reason
+- Backfill without marking — if recording a past decision, note the original date
+- Leave stale — superseded decisions must link the replacement
 
 ---
 
-## Integracao com JOCA
+## JOCA integration
 
-- `plan` Fase 3 → ao concluir com decisao tomada, sugerir: "Queres registar ADR?"
-- `tech-spec` sec. 8 → decisoes significativas devem ter ADR correspondente
-- PRD Decision Log → ADR e o formato expandido; append summary line ao Decision Log do PRD
-- `/save` → se ADRs novos foram criados na sessao, notificar no resumo
+- `plan` Phase 3 → on completion with decision taken, suggest: "Record ADR?"
+- `tech-spec` sec. 8 → significant decisions should have a corresponding ADR
+- PRD Decision Log → ADR is the expanded format; append summary line to the PRD Decision Log
+- `/save` → if new ADRs were created this session, notify in summary
 
 ---
 
 ## Quality gate
-Apos sessao com decisoes: "Registaste ADRs para as decisoes de hoje?"
+After session with decisions: "Did you record ADRs for today's decisions?"

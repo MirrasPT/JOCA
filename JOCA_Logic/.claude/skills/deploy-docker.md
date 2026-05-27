@@ -3,18 +3,18 @@ name: deploy-docker
 description: "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy. SHOULD also invoke when: containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker."
 triggers: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy, containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker, docker production, docker deploy, imagem docker, docker image, registry, docker hub
 ---
-# Deploy — Docker on VPS
+# Deploy -- Docker on VPS
 
-Deploy de Laravel em Docker numa VPS propria. Controlo total sobre o ambiente.
+Laravel deployment via Docker on a dedicated VPS. Full environment control.
 
 ---
 
-## Arquitectura standard
+## Standard architecture
 
 ```
 VPS
 ├── Traefik / Caddy        <- reverse proxy + SSL
-├── app (PHP-FPM)          <- aplicacao
+├── app (PHP-FPM)          <- application
 ├── web (Nginx)            <- static files + FastCGI
 ├── db (MySQL/PostgreSQL)  <- database
 ├── redis                  <- cache / queue / sessions
@@ -64,7 +64,7 @@ EXPOSE 9000
 CMD ["php-fpm"]
 ```
 
-### opcache.ini (producao)
+### opcache.ini (production)
 ```ini
 opcache.enable=1
 opcache.memory_consumption=256
@@ -74,15 +74,15 @@ opcache.revalidate_freq=0
 opcache.validate_timestamps=0
 ```
 
-**Regras:**
-- NUNCA copiar `.env` para dentro da imagem
-- Multi-stage build para imagens pequenas (~100MB vs ~500MB)
-- `--no-dev` no composer install
-- `USER www-data` (nunca root)
+**Rules:**
+- NEVER copy `.env` into the image
+- Multi-stage build for small images (~100MB vs ~500MB)
+- `--no-dev` on composer install
+- `USER www-data` (never root)
 
 ---
 
-## docker-compose.yml (producao)
+## docker-compose.yml (production)
 
 ```yaml
 name: laravel-prod
@@ -167,9 +167,9 @@ volumes:
 
 ---
 
-## SSL -- Traefik (recomendado)
+## SSL -- Traefik (recommended)
 
-Adicionar ao docker-compose.yml:
+Add to docker-compose.yml:
 
 ```yaml
   traefik:
@@ -189,7 +189,7 @@ Adicionar ao docker-compose.yml:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - letsencrypt:/letsencrypt
 
-# Adicionar labels ao servico web:
+# Add labels to web service:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`domain.com`)"
@@ -197,7 +197,7 @@ Adicionar ao docker-compose.yml:
       - "traefik.http.routers.app.entrypoints=websecure"
 ```
 
-Alternativa simples: **Caddy** (HTTPS automatico, zero config):
+Alternative: **Caddy** (automatic HTTPS, zero config):
 ```
 # Caddyfile
 domain.com {
@@ -266,7 +266,7 @@ ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw enable
 # App directory
 mkdir -p /opt/app && chown deploy:deploy /opt/app
 
-# .env (nunca em git)
+# .env (never in git)
 scp .env.production deploy@vps:/opt/app/.env
 ```
 
@@ -284,7 +284,7 @@ docker compose exec db mysqldump -u root -p$MYSQL_ROOT_PASSWORD $DB_DATABASE | g
 docker run --rm -v laravel-prod_laravel-storage:/data -v /backups:/backup alpine tar czf /backup/storage-$(date +%Y%m%d).tar.gz /data
 ```
 
-Retencao: daily 7 dias, weekly 4 semanas.
+Retention: daily 7 days, weekly 4 weeks.
 
 ---
 
@@ -305,26 +305,26 @@ Retencao: daily 7 dias, weekly 4 semanas.
 
 ## Security
 
-- Containers como non-root (`USER www-data`)
-- DB/Redis so na rede interna (sem port mapping publico)
-- SSH key-only auth na VPS (desactivar password)
-- `cap_drop: [ALL]` nos containers
-- Actualizar base images regularmente
-- Scan com `docker scout` ou `trivy`
+- Containers as non-root (`USER www-data`)
+- DB/Redis internal network only (no public port mapping)
+- SSH key-only auth on VPS (disable password)
+- `cap_drop: [ALL]` on containers
+- Update base images regularly
+- Scan with `docker scout` or `trivy`
 
 ---
 
 ## Checklist
 
 - [ ] Dockerfile multi-stage (vendor + assets + production)
-- [ ] `.env` NAO copiado para imagem
-- [ ] Health checks em todos os servicos
-- [ ] `depends_on` com `condition: service_healthy`
-- [ ] Queue worker com `stop_grace_period: 30s`
-- [ ] Named volumes para storage e DB data
-- [ ] SSL via Traefik ou Caddy
-- [ ] Firewall: so 22, 80, 443
-- [ ] DB/Redis sem ports expostos
-- [ ] Backup automatizado (DB + storage)
-- [ ] CI/CD pipeline funcional
+- [ ] `.env` NOT copied into image
+- [ ] Health checks on all services
+- [ ] `depends_on` with `condition: service_healthy`
+- [ ] Queue worker with `stop_grace_period: 30s`
+- [ ] Named volumes for storage and DB data
+- [ ] SSL via Traefik or Caddy
+- [ ] Firewall: only 22, 80, 443
+- [ ] DB/Redis without exposed ports
+- [ ] Automated backup (DB + storage)
+- [ ] CI/CD pipeline functional
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`

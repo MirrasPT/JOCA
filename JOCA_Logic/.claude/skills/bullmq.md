@@ -6,7 +6,7 @@ triggers: bullmq, bull mq, job queue, task queue, background jobs, worker, redis
 
 # BullMQ
 
-Redis-based job queues for Node.js. Production-ready background job processing.
+Redis-based job queues for Node.js. Production-ready background processing.
 
 ## Setup
 
@@ -48,8 +48,8 @@ await emailQueue.add("send-welcome", { userId: "123", email: "user@example.com" 
 // Delayed job (fires after 5 minutes)
 await emailQueue.add("send-reminder", { userId: "123" }, { delay: 5 * 60 * 1000 });
 
-// Scheduled job with priority
-await emailQueue.add("send-receipt", { orderId: "456" }, { priority: 1 }); // lower = higher priority
+// Priority job (lower = higher priority)
+await emailQueue.add("send-receipt", { orderId: "456" }, { priority: 1 });
 ```
 
 ```ts
@@ -57,7 +57,7 @@ await emailQueue.add("send-receipt", { orderId: "456" }, { priority: 1 }); // lo
 import { Worker, Job } from "bullmq";
 
 const worker = new Worker("emails", async (job: Job) => {
-  // Job processor — must be idempotent (safe to retry)
+  // Processor must be idempotent (safe to retry)
   switch (job.name) {
     case "send-welcome":
       await sendWelcomeEmail(job.data.userId);
@@ -92,12 +92,11 @@ worker.on("failed", (job, error) => {
 ### Priority Queues (separate queues)
 
 ```ts
-// Separate queues by priority — separate workers with different concurrency
+// Separate queues by priority with different concurrency
 export const criticalQueue = new Queue("critical", { connection }); // payments
 export const defaultQueue = new Queue("default", { connection });   // emails
 export const lowQueue = new Queue("low", { connection });           // analytics, reports
 
-// Workers — allocate resources by priority
 const criticalWorker = new Worker("critical", processor, { connection, concurrency: 10 });
 const defaultWorker = new Worker("default", processor, { connection, concurrency: 5 });
 const lowWorker = new Worker("low", processor, { connection, concurrency: 2 });
@@ -106,7 +105,7 @@ const lowWorker = new Worker("low", processor, { connection, concurrency: 2 });
 ### Repeatable Jobs (Cron)
 
 ```ts
-// Add a repeatable job (runs every day at 9am UTC)
+// Runs every day at 9am UTC
 await reportQueue.add(
   "daily-report",
   { type: "daily" },
@@ -129,7 +128,7 @@ import { FlowProducer } from "bullmq";
 
 const flow = new FlowProducer({ connection });
 
-// Parent job waits for all children to complete before processing
+// Parent waits for all children to complete before processing
 await flow.add({
   name: "process-order",
   queueName: "orders",
@@ -152,7 +151,7 @@ const worker = new Worker("reports", async (job) => {
     await processItem(items[i]);
     // Update progress (0-100)
     await job.updateProgress(Math.round((i / items.length) * 100));
-    // Add log messages visible in Bull Board
+    // Log messages visible in Bull Board
     await job.log(`Processed item ${items[i].id}`);
   }
 }, { connection });
@@ -161,7 +160,7 @@ const worker = new Worker("reports", async (job) => {
 ## Retry Strategies
 
 ```ts
-// Exponential backoff with custom delays
+// Exponential backoff
 const jobOptions = {
   attempts: 5,
   backoff: {
@@ -182,7 +181,7 @@ const worker = new Worker("queue", processor, {
   connection,
   settings: {
     backoffStrategy: (attemptsMade: number) => {
-      // Return delay in ms based on attempt number
+      // Return delay in ms per attempt
       return [1000, 10000, 60000, 300000][attemptsMade - 1] ?? 300000;
     },
   },
@@ -191,14 +190,14 @@ const worker = new Worker("queue", processor, {
 
 ## Dead Letter Queue Pattern
 
-BullMQ doesn't have a built-in DLQ, but failed jobs are retained:
+BullMQ has no built-in DLQ; failed jobs are retained instead:
 
 ```ts
 // Check failed jobs (manual DLQ)
 const failedJobs = await emailQueue.getFailed(0, 50);
 for (const job of failedJobs) {
   console.log(`Failed job ${job.id}:`, job.failedReason);
-  // Optionally retry manually:
+  // Retry manually:
   await job.retry();
   // Or move to a separate queue for investigation:
   await deadLetterQueue.add(job.name, job.data, { ...job.opts });
@@ -208,7 +207,6 @@ for (const job of failedJobs) {
 // Auto-process DLQ events
 const events = new QueueEvents("emails", { connection });
 events.on("failed", async ({ jobId, failedReason }) => {
-  // Alert, log to external system, etc.
   await alerting.notify({ jobId, failedReason });
 });
 ```
@@ -254,7 +252,7 @@ app.route("/admin/queues", serverAdapter.registerPlugin());
 async function gracefulShutdown() {
   console.log("Shutting down workers...");
 
-  // Stop accepting new jobs, wait for current jobs to finish
+  // Stop accepting new jobs, wait for current to finish
   await Promise.all([
     worker.close(),
     otherWorker.close(),
@@ -271,7 +269,7 @@ process.on("SIGINT", gracefulShutdown);
 
 ## Idempotency
 
-Every job must be safe to execute multiple times:
+Every job must be safe to run multiple times:
 
 ```ts
 const worker = new Worker("payments", async (job) => {
@@ -297,13 +295,13 @@ const worker = new Worker("payments", async (job) => {
 ## Job Payload Best Practices
 
 ```ts
-// ✓ Small payload — pass IDs, not full objects
+// Pass IDs, not full objects
 await emailQueue.add("send-invoice", { userId: "123", invoiceId: "456" });
 
-// ✗ Large payload — don't store full objects in Redis
+// Don't store full objects in Redis
 await emailQueue.add("send-invoice", { user: { ...fullUserObject }, invoice: { ...fullInvoiceObject } });
 
-// Worker fetches data from DB as needed
+// Worker fetches from DB as needed
 const worker = new Worker("emails", async (job) => {
   const { userId, invoiceId } = job.data;
   const [user, invoice] = await Promise.all([
@@ -318,22 +316,22 @@ const worker = new Worker("emails", async (job) => {
 
 - [ ] All jobs have unique, traceable IDs
 - [ ] Job payloads validated before processing
-- [ ] Jobs are idempotent — safe to execute multiple times
-- [ ] Retry strategy defined with exponential backoff
+- [ ] Jobs are idempotent -- safe to run multiple times
+- [ ] Retry strategy with exponential backoff
 - [ ] Failed jobs retained for inspection (DLQ pattern)
 - [ ] Concurrency limits set to prevent resource exhaustion
 - [ ] Graceful shutdown implemented (SIGTERM/SIGINT)
 - [ ] Queue depth monitored with alerts
-- [ ] High-availability Redis (Redis Sentinel or Cluster) in production
+- [ ] High-availability Redis (Sentinel or Cluster) in production
 - [ ] Separate queues for critical/default/low priority work
 
 ## Avoid
 
-- Non-idempotent jobs — retries cause double processing
-- Large job payloads — store data in DB, pass IDs
-- Unbounded concurrency — exhausts DB connections and memory
-- Processing slow tasks in API handlers — respond fast, process async
-- `maxRetriesPerRequest: null` missing from Redis connection config (BullMQ requires it)
+- Non-idempotent jobs -- retries cause double processing
+- Large job payloads -- store data in DB, pass IDs
+- Unbounded concurrency -- exhausts DB connections and memory
+- Slow tasks in API handlers -- respond fast, process async
+- Missing `maxRetriesPerRequest: null` in Redis config (BullMQ requires it)
 
 ## Resources
 

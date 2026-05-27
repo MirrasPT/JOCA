@@ -1,15 +1,15 @@
 ---
 name: laravel-specialist
-description: "Building Laravel applications, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, or RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller. SHOULD also invoke when: middleware, service, job, queue, Sanctum, Horizon."
+description: "Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller. SHOULD also invoke when: middleware, service, job, queue, Sanctum, Horizon."
 triggers: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller, middleware, service, job, queue, Sanctum, Horizon, Livewire, Laravel API, Laravel auth, Laravel testing, Pest, factory, seeder, observer, event, listener, notification, policy, gate, schedule, broadcasting, Laravel config, .env, route, form request, resource, collection
 ---
 # Laravel Specialist
 
-Laravel 11+ backend. Single-action controllers, Action classes, strict types, ULIDs. Cada classe faz uma coisa.
+Laravel 11+ backend. Single-action controllers, Action classes, strict types, ULIDs. One class, one job.
 
 ---
 
-## Arquitectura
+## Architecture
 
 ### Controllers -- single-action, final, invokable
 ```php
@@ -37,7 +37,7 @@ final class StoreController
 }
 ```
 
-### Actions -- toda a logica de negocio
+### Actions -- all business logic
 ```php
 <?php declare(strict_types=1);
 
@@ -62,7 +62,7 @@ final class StorePostAction
 }
 ```
 
-### Form Requests -- validacao + DTO via payload()
+### Form Requests -- validation + DTO via payload()
 ```php
 <?php declare(strict_types=1);
 
@@ -119,10 +119,10 @@ final class Post extends Model
     }
 }
 
-// Migration: $table->ulid('id')->primary();  (NAO $table->id())
+// Migration: $table->ulid('id')->primary();  (NOT $table->id())
 ```
 
-### AppServiceProvider -- boot obrigatorio
+### AppServiceProvider -- required boot
 ```php
 public function boot(): void
 {
@@ -131,7 +131,7 @@ public function boot(): void
 }
 ```
 
-### Routes -- um ficheiro por recurso, versao no prefixo
+### Routes -- one file per resource, version in prefix
 ```php
 // routes/api/posts.php
 Route::prefix('v1/posts')
@@ -145,10 +145,10 @@ Route::prefix('v1/posts')
 
 ---
 
-## Convencoes
+## Conventions
 
-| Camada | Pattern | Exemplo |
-|--------|---------|---------|
+| Layer | Pattern | Example |
+|-------|---------|---------|
 | Controller | `{Action}Controller` | `StoreController` |
 | Action | `{Action}{Resource}Action` | `StorePostAction` |
 | DTO/Payload | `{Action}Payload` | `StorePayload` |
@@ -159,7 +159,7 @@ Route::prefix('v1/posts')
 
 ---
 
-## Jobs -- async retorna 202
+## Jobs -- async returns 202
 ```php
 final class DestroyPostAction
 {
@@ -168,10 +168,10 @@ final class DestroyPostAction
         dispatch(new DestroyPostJob($post));
     }
 }
-// Controller retorna Response::HTTP_ACCEPTED (202), nao 200
+// Controller returns Response::HTTP_ACCEPTED (202), not 200
 ```
 
-Todo job implementa `failed()`:
+Every job implements `failed()`:
 ```php
 public function failed(\Throwable $e): void
 {
@@ -183,20 +183,20 @@ public function failed(\Throwable $e): void
 
 ## Anti-patterns
 
-| Errado | Correcto |
-|--------|----------|
-| `$table->id()` em modelos API | `$table->ulid('id')->primary()` + HasUlids |
-| Logica de negocio no controller | Action class |
-| Controllers com multiplos metodos | Um controller final invokable por operacao |
-| `$model->toArray()` no controller | API Resource |
-| `app(Foo::class)` dentro de metodo | Constructor DI: `private readonly Foo $foo` |
-| `DB::transaction()` Facade | Injectar `DatabaseManager` |
-| `paginate()` em listas | `simplePaginate()` |
-| Route group sem `throttle:api` | Incluir sempre |
-| Exceptions retornam HTML | `ForceJsonResponse` middleware |
-| Ficheiro sem `declare(strict_types=1)` | Primeira linha apos `<?php` |
-| `if/elseif` para valor unico | `match` expression |
-| Policy check no Action | Autorizar em `FormRequest::authorize()` |
+| Wrong | Correct |
+|-------|---------|
+| `$table->id()` on API models | `$table->ulid('id')->primary()` + HasUlids |
+| Business logic in controller | Action class |
+| Controllers with multiple methods | One final invokable controller per operation |
+| `$model->toArray()` in controller | API Resource |
+| `app(Foo::class)` inside method | Constructor DI: `private readonly Foo $foo` |
+| `DB::transaction()` Facade | Inject `DatabaseManager` |
+| `paginate()` on lists | `simplePaginate()` |
+| Route group without `throttle:api` | Always include |
+| Exceptions return HTML | `ForceJsonResponse` middleware |
+| File without `declare(strict_types=1)` | First line after `<?php` |
+| `if/elseif` for single value | `match` expression |
+| Policy check in Action | Authorize in `FormRequest::authorize()` |
 
 ---
 
@@ -222,54 +222,54 @@ it('returns 401 when unauthenticated', function (): void {
         ->assertStatus(Response::HTTP_UNAUTHORIZED);
 });
 ```
-Minimo: happy path + validation error + unauthenticated por endpoint. Target >85% coverage.
+Minimum: happy path + validation error + unauthenticated per endpoint. Target >85% coverage.
 
 ---
 
-## Validacao
+## Validation
 ```bash
 php artisan migrate:status          # all Ran
-php artisan route:list --path=api   # routes visiveis
-php artisan queue:work --once       # sem exceptions
+php artisan route:list --path=api   # routes visible
+php artisan queue:work --once       # no exceptions
 php artisan test --coverage         # >85%, zero failures
 ./vendor/bin/pint --test            # PSR-12 OK
 ```
 
 ---
 
-## Invocar especialistas autonomamente
+## Auto-invoke specialists
 
 ### API design (rest-api)
-Quando preciso desenhar endpoints ou definir contratos:
+When designing endpoints or defining contracts:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Notificar: `[+ rest-api]`
+Notify: `[+ rest-api]`
 
 ### Query optimization (mysql)
-Quando queries sao lentas ou preciso de EXPLAIN:
+When queries are slow or need EXPLAIN:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Notificar: `[+ mysql]`
+Notify: `[+ mysql]`
 
 ### Admin panel (filament)
-Quando preciso de Filament Resources, Pages, Widgets:
+When needing Filament Resources, Pages, Widgets:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Notificar: `[+ filament]`
+Notify: `[+ filament]`
 
 ### Caching (caching)
-Quando preciso de cache Redis, HTTP headers, CDN, invalidacao:
+When needing Redis cache, HTTP headers, CDN, invalidation:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Notificar: `[+ caching]`
+Notify: `[+ caching]`
 
 ---
 
 ## Quality gate
-Apos implementar: "Queres `tester-code`?"
-Apos endpoints: "Queres `tester-api`?"
-Se erro: spawnar `log-debugger`
+After implementation: "Run `tester-code`?"
+After endpoints: "Run `tester-api`?"
+On error: spawn `log-debugger`

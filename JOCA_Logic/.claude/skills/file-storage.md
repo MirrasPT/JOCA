@@ -15,9 +15,9 @@ allowed-tools: Read Write Edit Bash Grep
 
 # File Storage
 
-Secure file storage and delivery for Laravel SaaS. Core rules — never deviate:
+Secure file storage and delivery for Laravel SaaS. Core rules -- never deviate:
 
-1. **Files never transit Laravel.** Client uploads directly to S3/R2 via presigned URL.
+1. **Files never transit Laravel.** Client uploads direct to S3/R2 via presigned URL.
 2. **All URLs are signed.** No public bucket ACLs, ever.
 3. **Validate content, not extension.** Magic bytes + MIME check, always.
 4. **Virus scan before serving.** File stays in `pending/` prefix until scan passes.
@@ -26,7 +26,7 @@ Secure file storage and delivery for Laravel SaaS. Core rules — never deviate:
 
 ## 1. Driver setup
 
-### Cloudflare R2 (preferred — zero egress fees)
+### Cloudflare R2 (preferred -- zero egress fees)
 
 ```php
 // config/filesystems.php
@@ -62,10 +62,10 @@ composer require league/flysystem-aws-s3-v3
 
 ### Bucket hardening (both providers)
 
-- Block all public access at the bucket/policy level — no exceptions.
+- Block all public access at bucket/policy level -- no exceptions.
 - Enable SSE-S3 encryption at rest (SSE-KMS for regulated data).
-- Enable versioning if deletion recovery is required.
-- Set bucket CORS to allow `PUT` only from your app domain:
+- Enable versioning if deletion recovery is needed.
+- Set bucket CORS to allow `PUT` from your app domain only:
 
 ```json
 [{
@@ -80,7 +80,7 @@ composer require league/flysystem-aws-s3-v3
 
 ## 2. Presigned upload pattern (the only correct upload pattern)
 
-Laravel issues a presigned URL; client uploads directly to S3/R2. Laravel never touches the bytes.
+Laravel issues a presigned URL; client uploads direct to S3/R2. Laravel never touches the bytes.
 
 ```php
 // Generating the presigned PUT URL via AWS SDK (works for R2 and S3)
@@ -141,16 +141,16 @@ public function confirm(Request $request, PendingUpload $upload): JsonResponse
 
 ## 3. File validation (three layers)
 
-### Layer 1 — Laravel validation (traditional uploads only, not presigned flow)
+### Layer 1 -- Laravel validation (traditional uploads only, not presigned flow)
 
 ```php
 $request->validate([
     'file' => ['required', 'file', 'max:51200', 'mimes:pdf,jpg,jpeg,png,webp'],
 ]);
-// 'mimes' uses PHP finfo (content-based), not just extension
+// 'mimes' uses PHP finfo (content-based), not extension alone
 ```
 
-### Layer 2 — Magic bytes (apply to all uploaded content post-receive)
+### Layer 2 -- Magic bytes (apply to all uploaded content post-receive)
 
 ```php
 function validateMagicBytes(string $filePath, array $allowedTypes): string
@@ -179,7 +179,7 @@ function validateMagicBytes(string $filePath, array $allowedTypes): string
 }
 ```
 
-### Layer 3 — AllowedMimeType rule (for presigned flow request validation)
+### Layer 3 -- AllowedMimeType rule (for presigned flow request validation)
 
 ```php
 class AllowedMimeType implements Rule
@@ -202,7 +202,7 @@ class AllowedMimeType implements Rule
 
 ## 4. Virus scanning (async, post-upload)
 
-File stays in `uploads/pending/` prefix until ClamAV clears it.
+File stays in `uploads/pending/` until ClamAV clears it.
 
 ```php
 // app/Jobs/ScanUploadedFile.php
@@ -210,7 +210,7 @@ class ScanUploadedFile implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 1;   // fail fast — do not retry; quarantine instead
+    public int $tries   = 1;   // fail fast -- quarantine instead of retry
     public int $timeout = 120;
 
     public function __construct(public PendingUpload $upload) {}
@@ -220,12 +220,12 @@ class ScanUploadedFile implements ShouldQueue
         $tmpPath = tempnam(sys_get_temp_dir(), 'clamav_');
 
         try {
-            // Stream from storage to temp — avoid loading full file into memory
+            // Stream from storage to temp -- avoid loading full file into memory
             $stream = Storage::disk('r2')->readStream($this->upload->key);
             file_put_contents($tmpPath, $stream);
             fclose($stream);
 
-            // ClamAV via socket — fail closed if socket unavailable
+            // ClamAV via socket -- fail closed if socket unavailable
             $socket = stream_socket_client('unix:///var/run/clamav/clamd.ctl', $errno, $errstr, 5);
             if (!$socket) {
                 throw new \RuntimeException("ClamAV unavailable: $errstr");
@@ -242,7 +242,7 @@ class ScanUploadedFile implements ShouldQueue
                 return;
             }
 
-            // Promote: pending/ → files/
+            // Promote: pending/ -> files/
             $cleanKey = str_replace('uploads/pending/', 'files/', $this->upload->key);
             Storage::disk('r2')->copy($this->upload->key, $cleanKey);
             Storage::disk('r2')->delete($this->upload->key);
@@ -258,7 +258,7 @@ class ScanUploadedFile implements ShouldQueue
     {
         // Scanner failure = quarantine, NOT silent allow
         $this->upload->update(['status' => 'quarantined', 'reject_reason' => 'scan_failed']);
-        Log::error('ClamAV scan failed — file quarantined', [
+        Log::error('ClamAV scan failed -- file quarantined', [
             'upload_id' => $this->upload->id,
             'error'     => $e->getMessage(),
         ]);
@@ -266,7 +266,7 @@ class ScanUploadedFile implements ShouldQueue
 }
 ```
 
-Alternative packages: `sunspikes/clamav-validator`, `ikechukwukalu/clamavfileupload`.
+Alternatives: `sunspikes/clamav-validator`, `ikechukwukalu/clamavfileupload`.
 
 ---
 
@@ -274,7 +274,7 @@ Alternative packages: `sunspikes/clamav-validator`, `ikechukwukalu/clamavfileupl
 
 ### Cloudflare (R2)
 
-Connect R2 bucket to a Cloudflare zone via "Custom Domain" in R2 settings. Files served via Cloudflare's CDN automatically.
+Connect R2 bucket to a Cloudflare zone via "Custom Domain" in R2 settings. Files served via Cloudflare CDN automatically.
 
 ```php
 // Signed temporary URL for private file access
@@ -285,7 +285,7 @@ $url = Storage::disk('r2')->temporaryUrl(
 );
 ```
 
-Cache-Control: set per file type in response headers:
+Cache-Control per file type:
 - User documents: `Cache-Control: private, no-store`
 - Public assets (logos, thumbnails): `Cache-Control: public, max-age=86400, s-maxage=604800`
 
@@ -326,7 +326,7 @@ class ProcessUploadedImage implements ShouldQueue
 
         $image = $manager->read($tmpPath);
 
-        // Strip EXIF before storing (removes GPS coordinates, device info)
+        // Strip EXIF before storing (removes GPS, device info)
         // Intervention v3: encode as WebP removes EXIF by default
 
         $variants = ['thumbnail' => [150, 150], 'medium' => [800, 600]];
@@ -347,7 +347,7 @@ class ProcessUploadedImage implements ShouldQueue
 }
 ```
 
-Always generate variants async (queue). Always strip EXIF (privacy). Store original as WebP to reduce size.
+Generate variants async (queue). Strip EXIF (privacy). Store original as WebP to reduce size.
 
 ---
 
@@ -363,7 +363,7 @@ private function buildKey(User $user, string $resourceType, string $uploadId, st
     return implode('/', [$user->tenant_id, $resourceType, $uploadId, $safeFilename]);
 }
 
-// When retrieving — ALWAYS assert tenant ownership before generating URL
+// When retrieving -- ALWAYS assert tenant ownership before generating URL
 public function download(Request $request, Upload $upload): JsonResponse
 {
     abort_if($upload->tenant_id !== $request->user()->tenant_id, 403);
@@ -372,8 +372,8 @@ public function download(Request $request, Upload $upload): JsonResponse
 }
 ```
 
-- Use prefix-per-tenant (single bucket). Only use separate buckets when compliance mandates isolation (GDPR, HIPAA data residency).
-- IAM policy: scope service credentials to `arn:aws:s3:::bucket/${tenant_id}/*` per tenant if using per-tenant API keys.
+- Use prefix-per-tenant (single bucket). Separate buckets only when compliance mandates isolation (GDPR, HIPAA data residency).
+- IAM policy: scope credentials to `arn:aws:s3:::bucket/${tenant_id}/*` per tenant if using per-tenant API keys.
 
 ---
 
@@ -433,16 +433,16 @@ it('blocks access to file from different tenant', function () {
 
 ## 9. Security checklist
 
-Deploy gate — all items required before production:
+Deploy gate -- all items required before production:
 
-- [ ] Bucket public access blocked at provider level (not just ACL)
+- [ ] Bucket public access blocked at provider level (not ACL alone)
 - [ ] CORS restricted to `PUT` from your app domain only
-- [ ] All URLs signed; no direct public object URLs anywhere in codebase
-- [ ] URL expiry ≤ 60 min for user documents; ≤ 15 min for upload presigned URLs
-- [ ] Magic bytes validation on every received file (not just Laravel `mimes:`)
+- [ ] All URLs signed; no direct public object URLs in codebase
+- [ ] URL expiry <= 60 min for user documents; <= 15 min for upload presigned URLs
+- [ ] Magic bytes validation on every received file (not Laravel `mimes:` alone)
 - [ ] ClamAV running and accessible; scan failure = quarantine (never silent allow)
-- [ ] `pending/` prefix files that are not confirmed within 30 min are deleted by a scheduled job
+- [ ] `pending/` files not confirmed within 30 min deleted by scheduled job
 - [ ] Tenant prefix in every storage key; ownership asserted before every URL generation
 - [ ] EXIF stripped from all images before storing final variant
-- [ ] Filenames sanitised through `Str::slug()` + UUID; raw user input never in storage key
-- [ ] `private.pem` (CloudFront) is outside `public/`, in `.gitignore`, loaded from `storage_path()`
+- [ ] Filenames sanitised via `Str::slug()` + UUID; raw user input never in storage key
+- [ ] `private.pem` (CloudFront) outside `public/`, in `.gitignore`, loaded from `storage_path()`

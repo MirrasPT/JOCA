@@ -73,11 +73,14 @@ cd "<destino>/JOCA/JOCA_Logic"
 Executar `/install` — o assistente configura:
 - Identidade e personalidade (soul calibration)
 - Skills (92 disponíveis, RFC 2119 trigger system)
-- CLIs externos (gh, gemini-cli, codex-cli)
+- Browser automation (browser-use CLI, Playwright Agent CLI)
+- CLIs externos (gh, gws, sentry-cli, ffmpeg, codex, agy, cli-printing-press)
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_UI (browser interface)
 - StatusLine + Rate Limits tracking (Node.js cross-platform)
 - `~/CLAUDE.md` (perfil global)
+
+> **Reinstalação segura:** o `/install` detecta instalação existente e preserva `memory/projects/`, `memory/feedback/`, `memory/soul.md` e `JOCA_UI/data/` (projectos, sessões, settings do utilizador).
 
 ---
 

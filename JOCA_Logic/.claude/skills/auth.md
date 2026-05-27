@@ -5,9 +5,9 @@ triggers: auth, authentication, login, logout, register, sanctum, token, 2fa, mf
 ---
 # Auth
 
-Auth completa para Laravel 11+ SaaS. Sanctum + Spatie RBAC + 2FA + Socialite + Policies.
+Full auth for Laravel 11+ SaaS. Sanctum + Spatie RBAC + 2FA + Socialite + Policies.
 
-Invocada autonomamente pela skill `laravel-specialist` quando detecta auth work.
+Auto-invoked by `laravel-specialist` when auth work detected.
 
 ---
 
@@ -45,14 +45,14 @@ $request->user()->tokens()->delete();              // todos
 // config/sanctum.php
 'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,127.0.0.1')),
 ```
-- SPA chama `GET /sanctum/csrf-cookie` antes de qualquer POST
-- `SESSION_DOMAIN` no `.env` deve corresponder ao dominio SPA
-- Cross-domain SPA -> usar API tokens, nao cookies
+- SPA calls `GET /sanctum/csrf-cookie` before any POST
+- `SESSION_DOMAIN` in `.env` must match the SPA domain
+- Cross-domain SPA -> use API tokens, not cookies
 
-**Regras:**
-- Nunca guardar `plainTextToken` -- hash na DB, plain text so para o client
-- Definir `expiration` em `config/sanctum.php` -- `null` = nunca expira (inseguro)
-- Abilities minimas por token
+**Rules:**
+- Never store `plainTextToken` -- hash in DB, plain text only for client
+- Set `expiration` in `config/sanctum.php` -- `null` = never expires (insecure)
+- Minimal abilities per token
 
 ---
 
@@ -90,17 +90,17 @@ $middleware->alias([
 ]);
 ```
 
-### Cache -- CRITICO
+### Cache -- CRITICAL
 ```bash
-php artisan permission:cache-reset  # deploy pipeline obrigatorio
+php artisan permission:cache-reset  # mandatory in deploy pipeline
 ```
-Permissoes stale apos deploy = cache nao foi reset.
+Stale permissions after deploy = cache not reset.
 
 ### Teams (multi-tenant RBAC)
 ```php
 // config/permission.php -> 'teams' => true
 app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($user->current_team_id);
-$user->unsetRelation('roles')->unsetRelation('permissions'); // ao mudar team
+$user->unsetRelation('roles')->unsetRelation('permissions'); // when switching team
 ```
 
 ---
@@ -120,8 +120,8 @@ $google2fa = app(\PragmaRX\Google2FA\Google2FA::class);
 $secret = $google2fa->generateSecretKey();
 $user->update(['two_factor_secret' => encrypt($secret)]);
 $qrUrl = $google2fa->getQRCodeUrl(config('app.name'), $user->email, $secret);
-// Confirmar: user entra primeiro codigo
-// Gerar backup codes (mostrar uma vez)
+// Confirm: user enters first code
+// Generate backup codes (show once)
 ```
 
 ### Enforcement middleware
@@ -139,13 +139,13 @@ public function handle(Request $request, Closure $next): Response
 ```
 
 ### Trusted devices
-Apos 2FA bem-sucedido: guardar fingerprint (sha256 de userAgent+IP) em cookie secure+httpOnly por 30 dias.
+After successful 2FA: store fingerprint (sha256 of userAgent+IP) in secure+httpOnly cookie for 30 days.
 
 ---
 
 ## 4 -- Socialite
 
-### social_accounts table (separada de users)
+### social_accounts table (separate from users)
 ```php
 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 $table->string('provider');     // 'google' | 'facebook'
@@ -158,21 +158,21 @@ $table->unique(['provider', 'provider_id']);
 ### Callback (account linking)
 ```php
 $socialUser = Socialite::driver($provider)->user();
-// 1. Social account existe -> login
-// 2. Email ja registado -> ligar social account
-// 3. Novo -> criar user + social account
+// 1. Social account exists -> login
+// 2. Email already registered -> link social account
+// 3. New -> create user + social account
 ```
 
-**Regras:**
-- `password = null` para social-only users
-- Validar `$provider` contra allowlist
-- Validar `email` non-null (alguns providers nao devolvem)
+**Rules:**
+- `password = null` for social-only users
+- Validate `$provider` against allowlist
+- Validate `email` non-null (some providers omit it)
 
 ---
 
 ## 5 -- Policies + Gates
 
-### Policies (preferir para CRUD de modelos)
+### Policies (prefer for model CRUD)
 ```php
 public function update(User $user, Article $article): bool
 {
@@ -181,18 +181,18 @@ public function update(User $user, Article $article): bool
 }
 ```
 
-### Gates (accoes nao-resource)
+### Gates (non-resource actions)
 ```php
 Gate::define('access-admin', fn(User $user) => $user->hasRole('admin'));
 Gate::before(fn(User $user) => $user->hasRole('super-admin') ? true : null);
 ```
 
-### Usar em controllers/FormRequests
+### Usage in controllers/FormRequests
 ```php
 // Controller
 $this->authorize('update', $article);
 
-// FormRequest (preferir)
+// FormRequest (prefer)
 public function authorize(): bool
 {
     return $this->user()->can('update', $this->route('article'));
@@ -219,39 +219,39 @@ RateLimiter::for('login', function (Request $request) {
 
 ### Sessions
 ```php
-$request->session()->regenerate();  // no login (previne session fixation)
+$request->session()->regenerate();  // on login (prevents session fixation)
 // config/session.php: http_only=true, secure=true, same_site=lax, lifetime=120
-// No logout: invalidate() + regenerateToken()
+// On logout: invalidate() + regenerateToken()
 ```
 
 ---
 
 ## OWASP Security Checklist
 
-Aplicar automaticamente em qualquer code review de auth:
+Apply in any auth code review:
 
 ### Input
-- [ ] Input validado server-side
-- [ ] Queries parametrizadas (nunca concatenacao)
-- [ ] Limites de tamanho enforced
+- [ ] Server-side input validation
+- [ ] Parameterized queries (never concatenation)
+- [ ] Size limits enforced
 - [ ] Allowlist > denylist
 
 ### Auth & Sessions
-- [ ] Passwords com Argon2/bcrypt (nunca MD5/SHA1)
-- [ ] Session tokens com 128+ bits entropy
-- [ ] Sessions invalidadas no logout
-- [ ] MFA disponivel para operacoes sensiveis
+- [ ] Passwords with Argon2/bcrypt (never MD5/SHA1)
+- [ ] Session tokens with 128+ bits entropy
+- [ ] Sessions invalidated on logout
+- [ ] MFA available for sensitive operations
 
 ### Access Control
 - [ ] Deny by default
-- [ ] Autorizacao verificada em cada request
-- [ ] Object references nao manipulaveis pelo user
-- [ ] Privilege escalation paths revistos
+- [ ] Authorization checked per request
+- [ ] Object references not user-manipulable
+- [ ] Privilege escalation paths reviewed
 
 ### Data
-- [ ] Dados sensiveis encriptados at rest
-- [ ] TLS para dados em transito
-- [ ] Sem dados sensiveis em URLs/logs
+- [ ] Sensitive data encrypted at rest
+- [ ] TLS for data in transit
+- [ ] No sensitive data in URLs/logs
 
 ---
 
@@ -265,8 +265,8 @@ Aplicar automaticamente em qualquer code review de auth:
 | Social `email` null | Validar antes de `User::firstWhere` |
 | CSRF 419 em SPA | SPA deve chamar `/sanctum/csrf-cookie`; verificar `SESSION_DOMAIN` |
 | 2FA redirect loop | Excluir `2fa.challenge` do middleware |
-| `remember me` bypassa 2FA | Re-prompt 2FA em restore via remember cookie |
-| Sanctum token nunca expira | Definir `sanctum.expiration` em config |
+| `remember me` bypasses 2FA | Re-prompt 2FA on restore via remember cookie |
+| Sanctum token never expires | Set `sanctum.expiration` in config |
 
 ---
 
@@ -297,4 +297,4 @@ it('blocks non-owner from updating', function () {
 ---
 
 ## Quality gate
-Apos implementar auth: "Queres `tester-security`?" + "Queres `tester-ratelimit`?" (testa brute force em login/register/password reset)
+After implementing auth: "Queres `tester-security`?" + "Queres `tester-ratelimit`?" (tests brute force on login/register/password reset)

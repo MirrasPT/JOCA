@@ -6,9 +6,9 @@ triggers: backup, backups, disaster recovery, failover, replication, read replic
 
 # Availability & Recovery
 
-Backups, failover, zero-downtime deploys e recovery procedures para Laravel.
+Backups, failover, zero-downtime deploys and recovery for Laravel.
 
-**Activar** quando `laravel-specialist` ou `deploy-*` configura ambiente de producao.
+**Activate** when `laravel-specialist` or `deploy-*` sets up production.
 
 ---
 
@@ -20,7 +20,7 @@ composer require spatie/laravel-backup
 php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"
 ```
 
-### Config essencial
+### Config
 ```php
 // config/backup.php
 'backup' => [
@@ -67,7 +67,7 @@ php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"
 ],
 ```
 
-Conta S3/R2 separada da app -- se a app e comprometida, backups sobrevivem.
+Separate S3/R2 account from the app -- if app is compromised, backups survive.
 
 ### Schedule
 ```php
@@ -78,7 +78,7 @@ Schedule::command('backup:clean')->dailyAt('04:00');
 Schedule::command('backup:monitor')->dailyAt('05:00');
 ```
 
-### DB-only backup (rapido, mais frequente)
+### DB-only backup (fast, more frequent)
 ```bash
 php artisan backup:run --only-db
 ```
@@ -122,7 +122,7 @@ BACKUP_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
 
 ## 2. Database Replication
 
-### MySQL read replicas (Laravel config)
+### MySQL read replicas
 ```php
 // config/database.php
 'mysql' => [
@@ -135,7 +135,7 @@ BACKUP_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
     'write' => [
         'host' => [env('DB_WRITE_HOST', '127.0.0.1')],
     ],
-    'sticky' => true,   // apos write, reads vao ao writer na mesma request
+    'sticky' => true,   // after write, reads go to writer in same request
     'driver' => 'mysql',
     'database' => env('DB_DATABASE'),
     'username' => env('DB_USERNAME'),
@@ -143,19 +143,19 @@ BACKUP_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
 ],
 ```
 
-`sticky: true` evita replication lag problems -- apos INSERT, SELECT seguinte le do writer.
+`sticky: true` avoids replication lag -- after INSERT, next SELECT reads from writer.
 
-### Forcear writer em reads criticos
+### Force writer on critical reads
 ```php
-// Quando precisa de dados 100% frescos (pagamentos, stock)
+// When data must be 100% fresh (payments, stock)
 DB::connection('mysql')->useWritePdo();
 $balance = Account::find($id)->balance;
 
-// Ou via connection explicita
+// Or via explicit connection
 Account::on('mysql::write')->find($id);
 ```
 
-### Redis Sentinel (failover automatico)
+### Redis Sentinel (auto failover)
 ```php
 // config/database.php
 'redis' => [
@@ -177,7 +177,7 @@ REDIS_SENTINEL_PORT=26379
 REDIS_SENTINEL_SERVICE=mymaster
 ```
 
-Sentinel monitoriza o master Redis; se cai, promove um replica a master automaticamente. Minimo 3 sentinels.
+Sentinel monitors Redis master; on failure, promotes a replica. Minimum 3 sentinels.
 
 ---
 
@@ -253,45 +253,43 @@ composer require laravel/envoy --dev
 envoy run deploy
 ```
 
-Symlink swap (`ln -nfs`) e atomico -- zero downtime. Manter 5 releases para rollback instantaneo.
+Symlink swap (`ln -nfs`) is atomic -- zero downtime. Keep 5 releases for instant rollback.
 
-### Rollback instantaneo
+### Instant rollback
 ```bash
-# Aponta symlink para release anterior
+# Point symlink to previous release
 ln -nfs /home/deploy/app/releases/YYYYMMDDHHMMSS /home/deploy/app/current
 sudo systemctl reload php8.3-fpm
 ```
 
-Rollback em <5 segundos. Nao precisa de git pull nem composer install.
+Rollback in <5 seconds. No git pull or composer install needed.
 
-### Migrations seguras (zero-downtime)
+### Safe migrations (zero-downtime)
 
-Regras para migrations que nao partem a app:
-
-| Operacao | Segura? | Como fazer |
-|----------|---------|-----------|
-| Add column (nullable) | Sim | `$table->string('x')->nullable()` |
-| Add column (NOT NULL default) | Sim (MySQL 8+) | `$table->string('x')->default('y')` |
-| Add index | Sim | `$table->index('col')` |
-| Drop column | 2 deploys | Deploy 1: remove do codigo. Deploy 2: drop migration |
+| Operation | Safe? | How |
+|----------|-------|-----|
+| Add column (nullable) | Yes | `$table->string('x')->nullable()` |
+| Add column (NOT NULL default) | Yes (MySQL 8+) | `$table->string('x')->default('y')` |
+| Add index | Yes | `$table->index('col')` |
+| Drop column | 2 deploys | Deploy 1: remove from code. Deploy 2: drop migration |
 | Rename column | 2 deploys | Deploy 1: add new + backfill. Deploy 2: drop old |
 | Rename table | 2 deploys | Deploy 1: create new + view alias. Deploy 2: drop old |
-| Change column type | Depende | Add new column + backfill + swap |
+| Change column type | Depends | Add new column + backfill + swap |
 
-**Regra de ouro:** nunca remover/renomear algo que o codigo actual ainda usa.
+**Golden rule:** never remove/rename something the current code still uses.
 
 ---
 
 ## 4. Maintenance Mode
 
-### Basico
+### Basic
 ```bash
-php artisan down                           # 503 para todos
-php artisan down --secret="bypass-token"   # acesso via /bypass-token
-php artisan down --redirect=/              # redirect em vez de 503
-php artisan down --render="errors::503"    # view custom
-php artisan down --retry=60                # header Retry-After
-php artisan up                              # voltar ao normal
+php artisan down                           # 503 for all
+php artisan down --secret="bypass-token"   # access via /bypass-token
+php artisan down --redirect=/              # redirect instead of 503
+php artisan down --render="errors::503"    # custom view
+php artisan down --retry=60                # Retry-After header
+php artisan up                              # back to normal
 ```
 
 ### Pre-rendered maintenance page
@@ -299,9 +297,9 @@ php artisan up                              # voltar ao normal
 php artisan down --render="errors::503" --status=503
 ```
 
-A view deve ser auto-contida (inline CSS, sem assets externos) -- durante maintenance, o framework pode nao servir assets normais.
+The view must be self-contained (inline CSS, no external assets) -- during maintenance the framework may not serve normal assets.
 
-### Bypass por IP (middleware custom)
+### Bypass by IP (custom middleware)
 ```php
 class AllowMaintenanceBypass
 {
@@ -324,13 +322,13 @@ php artisan optimize
 php artisan up
 ```
 
-Para zero-downtime: usar Envoy symlink deploy em vez de maintenance mode.
+For zero-downtime: use Envoy symlink deploy instead of maintenance mode.
 
 ---
 
 ## 5. Queue Resilience
 
-### Retry e backoff
+### Retry and backoff
 ```php
 class ProcessPayment implements ShouldQueue
 {
@@ -350,7 +348,6 @@ class ProcessPayment implements ShouldQueue
 
     public function failed(\Throwable $e): void
     {
-        // Notificar, registar, compensar
         Log::critical('Payment failed permanently', [
             'order_id' => $this->order->id,
             'error'    => $e->getMessage(),
@@ -361,10 +358,10 @@ class ProcessPayment implements ShouldQueue
 
 ### Dead letter / failed jobs
 ```bash
-php artisan queue:failed                    # listar
-php artisan queue:retry all                 # re-tentar todos
-php artisan queue:retry 5                   # re-tentar job #5
-php artisan queue:flush                     # limpar todos (cuidado)
+php artisan queue:failed                    # list
+php artisan queue:retry all                 # retry all
+php artisan queue:retry 5                   # retry job #5
+php artisan queue:flush                     # clear all (careful)
 ```
 
 ### Horizon failover (multiple supervisors)
@@ -376,7 +373,7 @@ php artisan queue:flush                     # limpar todos (cuidado)
             'connection' => 'redis',
             'queue'      => ['critical', 'payments'],
             'balance'    => 'auto',
-            'minProcesses' => 2,     // nunca abaixo de 2
+            'minProcesses' => 2,     // never below 2
             'maxProcesses' => 10,
             'tries'        => 5,
         ],
@@ -392,7 +389,7 @@ php artisan queue:flush                     # limpar todos (cuidado)
 ],
 ```
 
-Separar queues por criticidade. Payments nunca partilha workers com emails.
+Separate queues by criticality. Payments never share workers with emails.
 
 ---
 
@@ -400,17 +397,17 @@ Separar queues por criticidade. Payments nunca partilha workers com emails.
 
 ### RTO/RPO targets
 
-| Componente | RPO (dados perdidos max) | RTO (tempo ate recuperar) |
-|-----------|--------------------------|--------------------------|
-| Database | 4h (backup cada 4h) | 30min |
-| Uploads/media | 24h (backup diario) | 1h |
-| Redis cache | 0 (reconstruivel) | 5min (restart) |
+| Component | RPO (max data loss) | RTO (time to recover) |
+|-----------|--------------------|-----------------------|
+| Database | 4h (backup each 4h) | 30min |
+| Uploads/media | 24h (daily backup) | 1h |
+| Redis cache | 0 (rebuildable) | 5min (restart) |
 | Queue jobs | 0 (persistent) | 5min (restart workers) |
 | App code | 0 (git) | 5min (rollback symlink) |
 
 ### Restore database
 ```bash
-# Listar backups disponiveis
+# List available backups
 aws s3 ls s3://myapp-backups/myapp/backups/ --recursive | tail -10
 
 # Download
@@ -420,24 +417,24 @@ aws s3 cp s3://myapp-backups/myapp/backups/2026-05-25-03-00-00.zip /tmp/restore.
 unzip /tmp/restore.zip -d /tmp/restore
 mysql -u root -p myapp < /tmp/restore/db-dumps/mysql-myapp.sql
 
-# Verificar
+# Verify
 php artisan tinker --execute="echo User::count();"
 ```
 
-### Restore completo
+### Full restore
 ```bash
 # 1. Database
 mysql -u root -p myapp < /tmp/restore/db-dumps/mysql-myapp.sql
 
-# 2. Uploads (se necessario)
+# 2. Uploads (if needed)
 aws s3 sync s3://myapp-backups/myapp/backups/latest/storage/ /home/deploy/app/shared/storage/
 
-# 3. Verificar integridade
+# 3. Verify integrity
 php artisan migrate:status                  # migrations OK
 php artisan tinker --execute="DB::select('SELECT 1');"  # DB OK
-php artisan cache:clear                     # limpar cache stale
+php artisan cache:clear                     # clear stale cache
 
-# 4. Restart servicos
+# 4. Restart services
 sudo systemctl restart php8.3-fpm
 php artisan queue:restart
 php artisan horizon:terminate && php artisan horizon
@@ -445,18 +442,18 @@ php artisan horizon:terminate && php artisan horizon
 
 ### Incident timeline template
 ```
-[HH:MM] Deteccao: como foi detectado (alerta, report, monitoring)
-[HH:MM] Triagem: o que esta em baixo, impacto estimado
-[HH:MM] Comunicacao: stakeholders/clientes notificados
-[HH:MM] Mitigacao: accao imediata (rollback, restart, scale)
-[HH:MM] Resolucao: fix aplicado
-[HH:MM] Verificacao: confirmado funcional (health checks, smoke tests)
-[HH:MM] Post-mortem: causas raiz, accoes preventivas
+[HH:MM] Detection: how it was detected (alert, report, monitoring)
+[HH:MM] Triage: what is down, estimated impact
+[HH:MM] Communication: stakeholders/clients notified
+[HH:MM] Mitigation: immediate action (rollback, restart, scale)
+[HH:MM] Resolution: fix applied
+[HH:MM] Verification: confirmed working (health checks, smoke tests)
+[HH:MM] Post-mortem: root causes, preventive actions
 ```
 
 ---
 
-## .env producao completo
+## .env production
 
 ```ini
 # Backups
@@ -483,27 +480,27 @@ MAINTENANCE_ALLOWED_IPS=1.2.3.4,5.6.7.8
 
 ---
 
-## Checklist producao
+## Production checklist
 
-- [ ] `spatie/laravel-backup` instalado e configurado
-- [ ] Backups DB a cada 4h, full diario
-- [ ] Backups vao para S3/R2 em conta SEPARADA
-- [ ] `backup:monitor` agendado diariamente
-- [ ] Notificacoes de backup failure configuradas (mail + slack)
-- [ ] Restore testado pelo menos 1x (nao confiar em backup nao testado)
-- [ ] Read replicas configuradas (se >1000 req/min)
-- [ ] `sticky: true` activo no database config
-- [ ] Redis Sentinel configurado (se Redis e critico)
-- [ ] Deploy atomico via Envoy ou equivalente (symlink swap)
-- [ ] 5 releases mantidas para rollback instantaneo
-- [ ] Migrations seguem regras zero-downtime
-- [ ] Maintenance page pre-rendered e auto-contida
-- [ ] Queue supervisors separados por criticidade
-- [ ] `failed()` method implementado em jobs criticos
-- [ ] RTO/RPO definidos e documentados
-- [ ] Runbook de restore acessivel a toda a equipa
+- [ ] `spatie/laravel-backup` installed and configured
+- [ ] DB backups every 4h, full daily
+- [ ] Backups go to S3/R2 on SEPARATE account
+- [ ] `backup:monitor` scheduled daily
+- [ ] Backup failure notifications configured (mail + slack)
+- [ ] Restore tested at least once (never trust untested backups)
+- [ ] Read replicas configured (if >1000 req/min)
+- [ ] `sticky: true` active in database config
+- [ ] Redis Sentinel configured (if Redis is critical)
+- [ ] Atomic deploy via Envoy or equivalent (symlink swap)
+- [ ] 5 releases kept for instant rollback
+- [ ] Migrations follow zero-downtime rules
+- [ ] Maintenance page pre-rendered and self-contained
+- [ ] Queue supervisors separated by criticality
+- [ ] `failed()` method on critical jobs
+- [ ] RTO/RPO defined and documented
+- [ ] Restore runbook accessible to the whole team
 
 ---
 
 ## Quality gate
-Apos implementar availability: "Queres `tester-security`?" (verificar que backups nao expoe dados, endpoints de health protegidos)
+After implementing availability: "Queres `tester-security`?" (verify backups don't expose data, health endpoints are protected)

@@ -5,13 +5,13 @@ triggers: Filament, admin panel, admin, backoffice, Resource, Panel, filament re
 ---
 # Filament
 
-Filament v4/v5 admin panels para Laravel. Resources slim, schemas delegados, enums com HasLabel+HasColor+HasIcon.
+Filament v4/v5 admin panels for Laravel. Slim resources, delegated schemas, enums with HasLabel+HasColor+HasIcon.
 
-Invocada autonomamente pela skill `laravel-specialist` quando detecta admin panel work, ou directamente pelo utilizador.
+Invoked by `laravel-specialist` on admin panel work, or by user.
 
 ---
 
-## Resource pattern -- slim, delegado
+## Resource pattern -- slim, delegated
 
 ```php
 <?php declare(strict_types=1);
@@ -58,7 +58,7 @@ final class ProductResource extends Resource
 
 ---
 
-## Enums -- sempre 3 contratos
+## Enums -- 3 contracts required
 
 ```php
 <?php declare(strict_types=1);
@@ -138,9 +138,9 @@ $schema->components([
 
 ---
 
-## Multi-tenancy -- CRITICO
+## Multi-tenancy -- CRITICAL
 
-Form selects NAO sao auto-scoped. Scoping manual obrigatorio:
+Form selects are NOT auto-scoped. Manual scoping required:
 
 ```php
 Select::make('team_id')
@@ -155,7 +155,7 @@ Select::make('team_id')
 ->scopedExists()    // NAO ->exists()
 ```
 
-Sem isto = **data leak entre tenants**.
+Without this = **data leak between tenants**.
 
 ---
 

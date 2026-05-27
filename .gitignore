@@ -8,4 +8,5 @@ graphify-out/
 package-lock.json
 JOCA_UI/data/projects.json
 JOCA_UI/data/project-memory.json
+JOCA_UI/data/session-snapshots.json
 JOCA_UI/data/ui-settings.json

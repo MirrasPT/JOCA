@@ -93,7 +93,7 @@ Categorize every changed file:
 | **UI** | `JOCA_UI/backend/`, `JOCA_UI/frontend/`, `JOCA_UI/start.sh`, `JOCA_UI/start.bat` | Update + trigger post-update rebuild |
 | **Protected (NEVER touch)** | `memory/projects/`, `memory/feedback/` | Skip entirely |
 | **Protected (NEVER touch)** | `memory/soul.md` | Skip -- user calibration |
-| **Protected (NEVER touch)** | `JOCA_UI/data/projects.json`, `JOCA_UI/data/project-memory.json` | Skip -- user data |
+| **Protected (NEVER touch)** | `JOCA_UI/data/projects.json`, `JOCA_UI/data/project-memory.json`, `JOCA_UI/data/session-snapshots.json`, `JOCA_UI/data/ui-settings.json` | Skip -- user data |
 | **Merge-only** | `.claude/settings.json` | Merge new keys, preserve user hooks/permissions |
 | **Mixed** | `memory/tools/`, `memory/INDEX.md` | Check conflict before applying |
 | **Local-origin** | Files with `origin: local` in frontmatter | **NEVER touch** |
@@ -161,6 +161,8 @@ Protected files (will NOT be touched):
   memory/soul.md
   JOCA_UI/data/projects.json
   JOCA_UI/data/project-memory.json
+  JOCA_UI/data/session-snapshots.json
+  JOCA_UI/data/ui-settings.json
 
 Local-origin files protected:
   .claude/skills/created-skills/minha-skill/SKILL.md
@@ -194,6 +196,8 @@ These files and directories are NEVER overwritten, deleted, or reset:
 | `memory/soul.md` | User personality calibration |
 | `JOCA_UI/data/projects.json` | UI project registry |
 | `JOCA_UI/data/project-memory.json` | UI project memory |
+| `JOCA_UI/data/session-snapshots.json` | UI session history |
+| `JOCA_UI/data/ui-settings.json` | UI user preferences |
 | Files with `origin: local` frontmatter | User-created skills/agents/commands |
 
 **NEVER use:** `git reset --hard`, `git checkout .`, `git clean -f`, or any destructive git command.
@@ -334,7 +338,7 @@ Files updated: X
 Files protected (not touched): Y
   memory/projects/ (user data)
   memory/soul.md (calibration)
-  JOCA_UI/data/projects.json (user data)
+  JOCA_UI/data/ (all user data files)
   origin:local files (Z files)
 
 Post-update actions:
@@ -358,7 +362,7 @@ Next:
 
 - One direction only: GitHub -> local. Never `git push`, never `git commit`
 - NEVER overwrite `memory/projects/`, `memory/feedback/`, or `memory/soul.md`
-- NEVER overwrite `JOCA_UI/data/projects.json` or `JOCA_UI/data/project-memory.json`
+- NEVER overwrite any file in `JOCA_UI/data/` (projects.json, project-memory.json, session-snapshots.json, ui-settings.json)
 - NEVER overwrite files with `origin: local` in frontmatter
 - NEVER use destructive git commands: `git reset --hard`, `git checkout .`, `git clean -f`
 - `.claude/settings.json` is merge-only: preserve user hooks and permissions, add new upstream keys

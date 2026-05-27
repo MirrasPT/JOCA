@@ -6,12 +6,12 @@ triggers: remotion, react video, programmatic video, vídeo react, vídeo progra
 
 # Remotion
 
-Programmatic video with React. Each frame is a React component driven by `useCurrentFrame()`. Best for: batch generation, data-driven video, lyric videos, music visualization, 3D video (Three.js), complex templated production.
+Programmatic video with React. Each frame is a React component driven by `useCurrentFrame()`. Best for: batch generation, data-driven video, lyric videos, music visualization, 3D (Three.js), templated production.
 
-**Não é esta skill:**
-- HTML-based video sem React → `hyperframes` (mais fácil para agentes, sem build step)
-- AI generation (Veo, Runway, Kling) → `video`
-- AI avatars (HeyGen) → `video`
+**Not this skill:**
+- HTML video without React -> `hyperframes` (simpler, no build step)
+- AI generation (Veo, Runway, Kling) -> `video`
+- AI avatars (HeyGen) -> `video`
 
 **Remotion vs HyperFrames:**
 
@@ -33,7 +33,7 @@ cd my-video
 npm run dev    # abre Remotion Studio no browser
 ```
 
-**Estrutura do projecto:**
+**Project structure:**
 
 ```
 my-video/
@@ -50,7 +50,7 @@ my-video/
 
 ## Core Concepts
 
-### Composition — definir o vídeo
+### Composition -- define the video
 
 ```tsx
 // Root.tsx
@@ -71,7 +71,7 @@ export const RemotionRoot = () => {
 };
 ```
 
-### useCurrentFrame — o driver de tudo
+### useCurrentFrame -- drives everything
 
 ```tsx
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
@@ -90,9 +90,9 @@ export const MyVideo = () => {
 
 ---
 
-## Animação
+## Animation
 
-### interpolate — mapear frame para valor
+### interpolate -- map frame to value
 
 ```tsx
 import { interpolate, useCurrentFrame } from "remotion";
@@ -135,7 +135,7 @@ const opacity = interpolate(frame, [0, 30], [0, 1], {
 // Easing.elastic(bounciness), Easing.bounce, Easing.back(factor)
 ```
 
-### spring — animação física
+### spring -- physics-based animation
 
 ```tsx
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
@@ -147,15 +147,15 @@ const scale = spring({
   frame,
   fps,
   config: {
-    damping: 10,      // amortecimento (>10 = sem bounce)
-    stiffness: 100,   // velocidade de spring
+    damping: 10,      // >10 = no bounce
+    stiffness: 100,
     mass: 1,
   },
 });
 
-// delay: começa mais tarde
+// delay: starts later
 const scaleDelayed = spring({
-  frame: frame - 15,  // começa no frame 15
+  frame: frame - 15,  // starts at frame 15
   fps,
   config: { damping: 12, stiffness: 80 },
 });
@@ -163,7 +163,7 @@ const scaleDelayed = spring({
 
 ---
 
-## Sequence — composição temporal
+## Sequence -- temporal composition
 
 ```tsx
 import { Sequence } from "remotion";
@@ -187,10 +187,9 @@ const Main = () => {
 };
 ```
 
-`<Sequence>` é por defeito `AbsoluteFill`. Para conteúdo inline: `layout="none"`.
+`<Sequence>` defaults to `AbsoluteFill`. For inline content: `layout="none"`.
 
 ```tsx
-// Alinhar múltiplos elementos sem absolute fill
 <Sequence from={30} layout="none">
   <span style={{ fontSize: 24 }}>Texto inline</span>
 </Sequence>
@@ -200,7 +199,7 @@ const Main = () => {
 
 ## Assets
 
-Colocar em `public/` e referenciar com `staticFile()`:
+Place in `public/`, reference with `staticFile()`:
 
 ```tsx
 import { Img, staticFile } from "remotion";
@@ -222,9 +221,9 @@ import { Audio } from "@remotion/media";
 
 ---
 
-## Regras Críticas (Non-Negotiable)
+## Critical Rules (Non-Negotiable)
 
-**CSS transitions e CSS animations são PROIBIDAS** — não renderizam correctamente:
+**CSS transitions and CSS animations are FORBIDDEN** -- they don't render correctly:
 
 ```tsx
 // ❌ ERRADO — não funciona em Remotion
@@ -238,13 +237,13 @@ const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" 
 <div style={{ opacity }}>...</div>
 ```
 
-**Todas as animações derivam de `useCurrentFrame()`** — sem setTimeout, sem setInterval.
+**All animations derive from `useCurrentFrame()`** -- no setTimeout, no setInterval.
 
 ---
 
 ## Voiceover / TTS
 
-### Opção 1: MiniMax TTS (recomendado — cloud, voice cloning)
+### Option 1: MiniMax TTS (recommended -- cloud, voice cloning)
 
 ```bash
 pip install requests
@@ -274,11 +273,11 @@ def generate_tts(text: str, output_path: str):
         f.write(audio_data)
 ```
 
-**Atenção:** `api.minimax.chat` é o domínio errado — retorna "invalid api key". Usar `api.minimax.io` (internacional) ou `api.minimaxi.com` (China).
+**Note:** `api.minimax.chat` is the wrong domain -- returns "invalid api key". Use `api.minimax.io` (international) or `api.minimaxi.com` (China).
 
-**Suporte de idiomas:** Português (BR e PT), Inglês, Espanhol, Francês, Alemão, Japonês, Mandarim, Coreano.
+**Supported languages:** Portuguese (BR/PT), English, Spanish, French, German, Japanese, Mandarin, Korean.
 
-### Opção 2: Edge TTS (fallback — gratuito, sem API, sem cloning)
+### Option 2: Edge TTS (fallback -- free, no API, no cloning)
 
 ```bash
 pip install edge-tts
@@ -295,22 +294,22 @@ async def generate_tts(text: str, output_path: str, voice: str = "pt-PT-DuarteNe
 asyncio.run(generate_tts("Olá mundo", "output.mp3"))
 ```
 
-**Vozes portuguesas Edge TTS:**
-- `pt-PT-DuarteNeural` — PT masculino
-- `pt-PT-RaquelNeural` — PT feminino
-- `pt-BR-AntonioNeural` — BR masculino
-- `pt-BR-FranciscaNeural` — BR feminino
+**Portuguese Edge TTS voices:**
+- `pt-PT-DuarteNeural` -- PT male
+- `pt-PT-RaquelNeural` -- PT female
+- `pt-BR-AntonioNeural` -- BR male
+- `pt-BR-FranciscaNeural` -- BR female
 
-### Fluxo TTS → Remotion
+### TTS -> Remotion flow
 
 ```bash
-# 1. Gerar áudio
+# 1. Generate audio
 python scripts/generate_audio_minimax.py  # ou edge
 
-# 2. Mover para public/
+# 2. Move to public/
 mv output.mp3 public/narration.mp3
 
-# 3. Usar no componente
+# 3. Use in component
 ```
 
 ```tsx
@@ -328,7 +327,7 @@ export const VideoWithNarration = () => {
 
 ---
 
-## Padrões comuns
+## Common Patterns
 
 ### Lyric video / Karaoke
 
@@ -362,7 +361,7 @@ export const LyricVideo = () => {
 ### Data-driven (batch)
 
 ```tsx
-// Passar dados via props
+// Pass data via props
 interface Props { title: string; stat: number; color: string; }
 
 export const StatCard: React.FC<Props> = ({ title, stat, color }) => {
@@ -383,7 +382,7 @@ export const StatCard: React.FC<Props> = ({ title, stat, color }) => {
 ```
 
 ```tsx
-// Root.tsx — registar variantes
+// Root.tsx — register variants
 {data.map((item) => (
   <Composition
     key={item.id}
@@ -406,13 +405,13 @@ export const StatCard: React.FC<Props> = ({ title, stat, color }) => {
 # Remotion Studio (preview)
 npm run dev
 
-# Render para MP4
+# Render to MP4
 npx remotion render src/index.ts MyVideo output.mp4
 
-# Com parâmetros
+# With parameters
 npx remotion render src/index.ts MyVideo output.mp4 --props '{"title":"Olá"}'
 
-# Lambda (produção, batch)
+# Lambda (production, batch)
 npx remotion lambda render ...
 ```
 
@@ -427,20 +426,20 @@ npx remotion lambda render ...
 
 ---
 
-## Checklist antes de entregar
+## Pre-delivery checklist
 
-- [ ] Sem CSS transitions ou CSS animations (usar `interpolate`)
-- [ ] Sem setTimeout / setInterval (tudo derivado de `useCurrentFrame`)
-- [ ] Assets em `public/` referenciados via `staticFile()`
-- [ ] `useVideoConfig()` para `fps` e `durationInFrames` (nunca hardcoded)
-- [ ] TTS gerado e em `public/` antes de render
-- [ ] `extrapolateRight: "clamp"` em todos os `interpolate` (evita overflow)
-- [ ] `spring` tem delay negativo se necessário (`frame: frame - delay`)
+- [ ] No CSS transitions or CSS animations (use `interpolate`)
+- [ ] No setTimeout / setInterval (derive all from `useCurrentFrame`)
+- [ ] Assets in `public/` referenced via `staticFile()`
+- [ ] `useVideoConfig()` for `fps` and `durationInFrames` (never hardcoded)
+- [ ] TTS generated and in `public/` before render
+- [ ] `extrapolateRight: "clamp"` on all `interpolate` calls (prevents overflow)
+- [ ] `spring` uses negative delay if needed (`frame: frame - delay`)
 
 ---
 
-## Skills relacionadas
+## Related skills
 
-- `hyperframes` — vídeo HTML+GSAP sem React, mais fácil para agentes
-- `video` — router geral: AI generation, avatars, editing tools
-- `anima` — GSAP para web (não para Remotion — usar interpolate)
+- `hyperframes` -- HTML+GSAP video without React, simpler for agents
+- `video` -- general router: AI generation, avatars, editing tools
+- `anima` -- GSAP for web (not for Remotion -- use interpolate)

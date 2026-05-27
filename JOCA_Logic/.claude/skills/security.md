@@ -6,7 +6,7 @@ triggers: security, segurança, vulnerabilidade, vulnerability, OWASP, injection
 
 # Security
 
-Skill global de seguranca. OWASP Top 10:2025 + ASVS 5.0 + patterns Laravel + React. Chamavel por qualquer outra skill.
+Global security skill. OWASP Top 10:2025 + ASVS 5.0 + Laravel + React patterns. Callable by any skill.
 
 ---
 
@@ -27,7 +27,7 @@ Skill global de seguranca. OWASP Top 10:2025 + ASVS 5.0 + patterns Laravel + Rea
 
 ---
 
-## Critical patterns -- detectar sempre
+## Critical patterns -- detect always
 
 ### Mass Assignment (CRITICAL)
 ```php
@@ -54,7 +54,7 @@ DB::table('users')->orderByRaw($request->input('sort'));
 DB::select('SELECT * FROM users WHERE email = ?', [$email]);
 User::where('email', $email)->first(); // Eloquent sempre safe
 ```
-Danger zones: `DB::raw()`, `whereRaw()`, `selectRaw()`, `orderByRaw()`, `havingRaw()` com `$request` ou `$_`.
+Danger zones: `DB::raw()`, `whereRaw()`, `selectRaw()`, `orderByRaw()`, `havingRaw()` with `$request` or `$_`.
 
 ### XSS -- Blade (CRITICAL)
 ```php
@@ -132,7 +132,7 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), microphone=()" always;
 ```
 
-CSP para React SPA: comecar com `Content-Security-Policy-Report-Only`, depois apertar.
+CSP for React SPA: start with `Content-Security-Policy-Report-Only`, then tighten.
 
 ---
 
@@ -154,20 +154,20 @@ RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
 });
 
-// Operacoes caras (exports, AI)
+// Expensive ops (exports, AI)
 RateLimiter::for('expensive', function (Request $request) {
     return Limit::perHour(10)->by($request->user()->id);
 });
 ```
 
-Backing: Redis obrigatorio para multi-server. `CACHE_DRIVER=redis`.
+Backing: Redis mandatory for multi-server. `CACHE_DRIVER=redis`.
 
 ---
 
 ## Encryption
 
 ```php
-// Field-level encryption (dados sensiveis)
+// Field-level encryption (sensitive data)
 protected $casts = [
     'ssn'          => 'encrypted',
     'bank_account' => 'encrypted',
@@ -180,7 +180,7 @@ APP_PREVIOUS_KEYS=base64:oldkey1...,base64:oldkey2...
 
 ---
 
-## Logging -- o que NUNCA logar
+## Logging -- never log these
 
 ```php
 // NUNCA
@@ -193,13 +193,13 @@ Log::info('Login', ['user_id' => $user->id, 'ip' => $request->ip()]);
 Log::warning('Failed login', ['email_hash' => hash('sha256', $email), 'ip' => $request->ip()]);
 ```
 
-Producao: `LOG_LEVEL=warning` (nunca `debug`).
+Production: `LOG_LEVEL=warning` (never `debug`).
 
 ---
 
 ## Server Hardening
 
-### PHP (php.ini producao)
+### PHP (php.ini production)
 ```ini
 expose_php = Off
 display_errors = Off
@@ -218,7 +218,7 @@ location ~ /\. { deny all; return 404; }
 location ~* \.(env|git|htaccess|sql|bak)$ { deny all; return 404; }
 ```
 
-### Laravel producao
+### Laravel production
 ```
 APP_DEBUG=false
 APP_ENV=production
@@ -228,35 +228,35 @@ APP_ENV=production
 
 ## Supply Chain
 
-Ataque real (2026-05-22): laravel-lang packages comprometidos -- 233 tags reescritos, 700+ repos afectados, payload roubava cloud keys, secrets, SSH keys.
+Real attack (2026-05-22): laravel-lang packages compromised -- 233 tags rewritten, 700+ repos affected, payload stole cloud keys, secrets, SSH keys.
 
 ```bash
-# CI obrigatorio
+# CI mandatory
 composer audit --locked
 npm audit --audit-level=high
 
-# Verificar integridade
+# Verify integrity
 composer validate --strict
 
-# Pin versions em producao (nao ^1.2.3)
+# Pin versions in production (not ^1.2.3)
 "vendor/package": "1.2.3"
 ```
 
 ---
 
-## Invocar agentes de seguranca
+## Invoke security agents
 
-### Scan automatizado rapido
+### Fast automated scan
 ```
 Agent(subagent_type="tester-security", prompt="Security scan completo. Path: [path]. Stack: Laravel + React. Verificar: CVEs (composer+npm), secrets (gitleaks), HTTP headers, .env exposure, APP_DEBUG, CORS, mass assignment ($guarded=[]), raw SQL com $request, {!! !!} com user data, dangerouslySetInnerHTML, rate limiting em auth routes, Log:: com PII. Report: Critical/High/Medium/Low.")
 ```
 
-### Code review profundo
+### Deep code review
 ```
 Agent(subagent_type="security-review", prompt="Security code review. Files: [paths]. Apply OWASP ASVS 5.0. Check: authorization on every endpoint (IDOR), FormRequest validation, mass assignment, file upload, session config, error handling, encryption on PII. Report: vulnerability + exploit scenario + Laravel-native fix.")
 ```
 
-### Testar rate limiting
+### Rate limiting test
 ```
 Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Auth: Bearer [token]. Test: threshold verification (send N+10 requests, expect 429), IP header bypass (X-Forwarded-For + 10 variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle middleware). Endpoints to test: login, register, password reset, API. Report with OWASP API4:2019 mapping.")
 ```
@@ -265,7 +265,7 @@ Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Aut
 
 ## Checklist pre-deploy
 
-### Critical (bloqueia deploy)
+### Critical (blocks deploy)
 - [ ] `APP_DEBUG=false`
 - [ ] `APP_ENV=production`
 - [ ] `.env` fora do web root
@@ -276,7 +276,7 @@ Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Aut
 - [ ] `composer audit` sem CRITICAL/HIGH
 - [ ] HTTPS enforced (HSTS)
 
-### High (resolver antes de ir live)
+### High (fix before going live)
 - [ ] CORS com origens explicitas (nao wildcard)
 - [ ] Rate limiting em login/password reset
 - [ ] Session config: http_only, secure, same_site=lax
@@ -286,7 +286,7 @@ Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Aut
 - [ ] Policies em todos os resource controllers
 - [ ] `npm audit` sem HIGH
 
-### Medium (resolver em sprint seguinte)
+### Medium (fix next sprint)
 - [ ] CSP configurado (pelo menos report-only)
 - [ ] Encryption em campos PII (SSN, bank, etc.)
 - [ ] PHP disable_functions configurado

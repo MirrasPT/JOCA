@@ -1,17 +1,17 @@
 ---
 name: task-breakdown
-description: "Decomposing large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo. SHOULD also invoke when: how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas."
+description: "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo. SHOULD also invoke when: how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas."
 triggers: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo, how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas, break into tasks, TASKS.md, work breakdown, WBS, priorizar, prioritize, RICE
 ---
 # Task Breakdown
 
-Gera `TASKS.md` — ledger persistente de epics/stories/tasks que sobrevive entre sessoes.
+Generates `TASKS.md` — persistent ledger of epics/stories/tasks that survives across sessions.
 
-**Activar** apos `tech-spec` + `c4-diagram`, ou quando alguem pede estimativa ou breakdown de trabalho.
+**Activate** after `tech-spec` + `c4-diagram`, or when someone requests estimates or work breakdown.
 
 ---
 
-## Estrutura do TASKS.md
+## TASKS.md Structure
 
 ```markdown
 # TASKS — [Nome do Projecto/Feature]
@@ -82,86 +82,86 @@ Gera `TASKS.md` — ledger persistente de epics/stories/tasks que sobrevive entr
 
 ---
 
-## Geracao
+## Generation
 
-### Input necessario
+### Required input
 
 1. **PRD.md** — features P0/P1, user stories, AC
-2. **TECH_SPEC.md** — componentes, data model, endpoints
-3. Se nenhum existir: recolher directamente do utilizador
+2. **TECH_SPEC.md** — components, data model, endpoints
+3. If neither exists: gather directly from user
 
-### Processo
+### Process
 
-1. Ler PRD + Tech Spec
-2. Extrair user stories do PRD (sec. 5)
-3. Mapear stories a componentes do Tech Spec (sec. 4)
-4. Quebrar cada story em tasks atomicas (<= 4h)
-5. Identificar dependencias entre tasks
-6. Aplicar T-shirt sizing
-7. Calcular RICE scores
-8. Ordenar por prioridade
-9. Apresentar TASKS.md ao utilizador
-10. Iterar ate aprovacao
+1. Read PRD + Tech Spec
+2. Extract user stories from PRD (sec. 5)
+3. Map stories to Tech Spec components (sec. 4)
+4. Break each story into atomic tasks (<= 4h)
+5. Identify inter-task dependencies
+6. Apply T-shirt sizing
+7. Calculate RICE scores
+8. Sort by priority
+9. Present TASKS.md to user
+10. Iterate until approved
 
-### Regras de decomposicao
+### Decomposition rules
 
 | Regra | Descricao |
 |-------|-----------|
-| Atomico | Cada task completavel em <= 4h |
-| Verificavel | "Done quando" claro e observavel |
-| Ficheiros explicitos | Cada task lista os ficheiros que toca |
-| XL = subdividir | Se > 1 semana, partir em stories menores |
-| Dependencias explicitas | Nunca assumir ordem — declarar com "Depende de" |
-| 1 responsabilidade | 1 task = 1 coisa. "Criar model e controller e testes" sao 3 tasks |
+| Atomico | Each task completable in <= 4h |
+| Verificavel | Clear, observable "done when" |
+| Ficheiros explicitos | Each task lists files it touches |
+| XL = subdividir | If > 1 week, split into smaller stories |
+| Dependencias explicitas | Never assume order — declare with "Depende de" |
+| 1 responsabilidade | 1 task = 1 thing. "Create model and controller and tests" = 3 tasks |
 
-### T-shirt sizing guidelines
+### T-shirt sizing
 
 | Size | Tempo | Exemplos tipicos |
 |------|-------|-----------------|
-| S | <= 4h | Migration, model simples, config, seed |
-| M | 1-2 dias | Controller + form request + testes, integracao simples |
-| L | 3-5 dias | Feature completa com UI + API + testes, integracao complexa |
-| XL | > 1 semana | Subdividir obrigatoriamente |
+| S | <= 4h | Migration, simple model, config, seed |
+| M | 1-2 dias | Controller + form request + tests, simple integration |
+| L | 3-5 dias | Full feature with UI + API + tests, complex integration |
+| XL | > 1 semana | Must be subdivided |
 
 ### RICE scoring
 
-- **Reach** (1-10): quantos utilizadores/sessoes afecta por semana
+- **Reach** (1-10): users/sessions affected per week
 - **Impact** (1-3): 1=minor, 2=medium, 3=massive
-- **Confidence** (0.5-1.0): 0.5=especulacao, 0.8=dados indirectos, 1.0=dados directos
-- **Effort** (T-shirt → numero): S=1, M=2, L=4, XL=8
+- **Confidence** (0.5-1.0): 0.5=speculation, 0.8=indirect data, 1.0=direct data
+- **Effort** (T-shirt to number): S=1, M=2, L=4, XL=8
 - **Score** = (Reach x Impact x Confidence) / Effort
 
-Quando nao ha dados para Reach: usar estimativa informada e marcar Confidence=0.5.
+No data for Reach: use informed estimate, set Confidence=0.5.
 
 ---
 
-## Actualizacao
+## Updates
 
-### Quando actualizar
+### When to update
 
-- Task concluida → `[x]` + data
-- Task bloqueada → `[!]` + razao
-- Novo scope descoberto → adicionar stories/tasks
-- Re-priorizacao → recalcular RICE
-- `/save` → verificar TASKS.md e sugerir actualizacao se houve progresso
+- Task done → `[x]` + date
+- Task blocked → `[!]` + reason
+- New scope discovered → add stories/tasks
+- Re-prioritization → recalculate RICE
+- `/save` → check TASKS.md, suggest update if progress occurred
 
-### Integracao com `plan`
+### Integration with `plan`
 
-O `plan` e por sessao — define os passos para ESTA sessao.
-O `TASKS.md` e por projecto — define TODO o trabalho.
+`plan` is per-session — defines steps for THIS session.
+`TASKS.md` is per-project — defines ALL work.
 
-Fluxo:
-1. Abrir sessao: `/resume` le TASKS.md
-2. Escolher stories para esta sessao
-3. `plan` cria plano de execucao para as stories escolhidas
-4. Executar
-5. `/save` actualiza TASKS.md com progresso
+Flow:
+1. Open session: `/resume` reads TASKS.md
+2. Pick stories for this session
+3. `plan` creates execution plan for chosen stories
+4. Execute
+5. `/save` updates TASKS.md with progress
 
 ---
 
-## Formato Lean (feature unica)
+## Lean format (single feature)
 
-Para features pequenas que nao justificam epics:
+For small features that don't justify epics:
 
 ```markdown
 # TASKS — [Feature]
@@ -178,9 +178,9 @@ Para features pequenas que nao justificam epics:
 
 ## Workflow
 
-Pipeline desta skill na sequencia JOCA:
+Pipeline position in JOCA sequence:
 
-→ **antes**: `tech-spec` + `c4-diagram` (design tecnico como input)
-→ **apos**: `plan` (plano de execucao por sessao baseado nas tasks escolhidas)
+-> **before**: `tech-spec` + `c4-diagram` (technical design as input)
+-> **after**: `plan` (per-session execution plan based on chosen tasks)
 
-Notificar ao concluir: `→ proximo: plan (para iniciar execucao)`
+Notify on completion: `-> proximo: plan (para iniciar execucao)`

@@ -8,11 +8,11 @@ metadata:
 
 # SEO
 
-Expert in search engine optimization — both traditional (technical + on-page) and AI search (AEO, GEO, LLMO). Covers audits, fixes, content optimization, international SEO, and AI visibility.
+Expert in search engine optimization -- traditional (technical + on-page) and AI search (AEO, GEO, LLMO). Covers audits, fixes, content optimization, international SEO, and AI visibility.
 
 ## Before Starting
 
-Check for product marketing context first: `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md`.
+Check for product marketing context: `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md`.
 
 Gather context:
 - Site type? (SaaS, e-commerce, blog, docs)
@@ -20,19 +20,19 @@ Gather context:
 - Key queries/keywords?
 - Current organic traffic? Recent drops or migrations?
 - Access to Search Console / analytics?
-- AI search: do you know if your brand appears in ChatGPT, Perplexity, or Google AI Overviews?
+- AI search: does your brand appear in ChatGPT, Perplexity, or Google AI Overviews?
 
-**Se o utilizador fornece uma URL real:** antes de dar recomendações, lançar `seo-analyst` para obter dados reais do site — evita recomendações baseadas em suposições:
+**If user provides a real URL:** launch `seo-analyst` for real site data before recommending -- avoids assumption-based advice:
 
 ```
 Agent(subagent_type="seo-analyst", prompt="Technical SEO audit for [URL]. Depth: quick scan. Focus on: title tags, meta descriptions, H1s, canonical URLs, robots.txt, sitemap.xml, Core Web Vitals estimate, schema markup. Report prioritized findings so the SEO skill can make evidence-based recommendations.")
 ```
 
-Aguardar o relatório do `seo-analyst` e incorporar os dados reais nas recomendações desta skill. Se o relatório identificar issues críticos, priorizá-los acima de recomendações genéricas.
+Wait for the `seo-analyst` report and incorporate real data into recommendations. If critical issues found, prioritize them above generic advice.
 
 ---
 
-## Part 1 — Traditional SEO Audit
+## Part 1 -- Traditional SEO Audit
 
 ### Audit Priority Order
 1. Crawlability & indexation (can Google find and index it?)
@@ -43,16 +43,16 @@ Aguardar o relatório do `seo-analyst` e incorporar os dados reais nas recomenda
 
 ### Crawlability
 
-- `robots.txt` — no unintentional blocks, sitemap referenced
-- XML sitemap — exists, submitted to GSC, canonical + indexable URLs only
-- Site architecture — important pages within 3 clicks, no orphan pages
+- `robots.txt` -- no unintentional blocks, sitemap referenced
+- XML sitemap -- exists, submitted to GSC, canonical + indexable URLs only
+- Site architecture -- important pages within 3 clicks, no orphan pages
 - No crawl traps (infinite scroll, session IDs in URLs, unchecked faceted nav)
 
 ### Indexation
 
 - `site:domain.com` check vs. expected
-- GSC Coverage report — noindex on important pages, canonicals pointing wrong direction, soft 404s, redirect chains
-- Canonicalization — self-referencing canonicals, HTTPS consistency, www/non-www, trailing slash
+- GSC Coverage report -- noindex on important pages, canonicals pointing wrong, soft 404s, redirect chains
+- Canonicalization -- self-referencing canonicals, HTTPS consistency, www/non-www, trailing slash
 
 ### Site Speed & Core Web Vitals
 
@@ -68,13 +68,13 @@ Tools: PageSpeed Insights, WebPageTest, GSC Core Web Vitals report.
 ### Mobile & Security
 
 - Responsive design, tap targets, same content as desktop
-- HTTPS sitewide, valid SSL, no mixed content, HTTP → HTTPS redirects
+- HTTPS sitewide, valid SSL, no mixed content, HTTP to HTTPS redirects
 
 ### On-Page
 
 **Title tags:** unique, primary keyword near start, 50-60 chars, compelling.
 **Meta descriptions:** unique, 150-160 chars, keyword, CTA.
-**Heading structure:** one H1 with primary keyword, logical H1→H2→H3 hierarchy.
+**Heading structure:** one H1 with primary keyword, logical H1/H2/H3 hierarchy.
 **Content:** keyword in first 100 words, satisfies search intent, beats competitors in depth.
 **Images:** descriptive filenames, alt text, WebP, lazy loading.
 **Internal linking:** important pages well-linked, descriptive anchor text, no orphans.
@@ -95,16 +95,16 @@ Tools: PageSpeed Insights, WebPageTest, GSC Core Web Vitals report.
 
 ---
 
-## Part 2 — International SEO
+## Part 2 -- International SEO
 
 ### Hreflang
 
-Three valid placements: HTML `<link>` in `<head>`, HTTP `Link` headers, XML sitemap `<xhtml:link>`. Must agree — conflicting signals cause Google to drop pairs. For 10+ locales: sitemap-based.
+Three valid placements: HTML `<link>` in `<head>`, HTTP `Link` headers, XML sitemap `<xhtml:link>`. Must agree -- conflicting signals cause Google to drop pairs. For 10+ locales: sitemap-based.
 
 **Required:**
 - Self-referencing entry on every page (page must include itself)
-- Reciprocal links (if A→B, then B→A — or both ignored)
-- Valid codes: ISO 639-1 + optional ISO 3166-1 Alpha 2 (`en`, `en-GB` — never `en-UK`)
+- Reciprocal links (if A points to B, B must point to A -- or both ignored)
+- Valid codes: ISO 639-1 + optional ISO 3166-1 Alpha 2 (`en`, `en-GB` -- never `en-UK`)
 - `x-default` pointing to fallback/selector page
 - All target URLs return 200, indexable, match canonical URL
 
@@ -112,9 +112,9 @@ Three valid placements: HTML `<link>` in `<head>`, HTTP `Link` headers, XML site
 
 ### Canonicalization for Multilingual Sites
 
-- Each locale self-canonicals (`/ar/page` → `/ar/page`)
-- Never cross-locale canonical (French → English kills French indexing)
-- Canonical URL must appear in hreflang set — if not, hreflang silently ignored
+- Each locale self-canonicals (`/ar/page` canonicals to `/ar/page`)
+- Never cross-locale canonical (French to English kills French indexing)
+- Canonical URL must appear in hreflang set -- if not, hreflang silently ignored
 - Canonical overrides hreflang when they conflict
 
 ### Locale URL Structure
@@ -127,17 +127,17 @@ Three valid placements: HTML `<link>` in `<head>`, HTTP `Link` headers, XML site
 
 ### Content Quality Across Locales
 
-- Translate ALL page content — Google uses visible content to determine language
+- Translate ALL page content -- Google uses visible content to determine language
 - AI-translated content not inherently spam, but scaled low-value translations trigger abuse policy
-- Don't create locale pages you can't make genuinely helpful — many thin locales suppress strong pages site-wide
+- Do not create locale pages you cannot make genuinely helpful -- many thin locales suppress strong pages site-wide
 
 ---
 
-## Part 3 — AI SEO (AEO / GEO / LLMO)
+## Part 3 -- AI SEO (AEO / GEO / LLMO)
 
 Getting **cited** in AI-generated answers (Google AI Overviews, ChatGPT, Perplexity, Gemini, Copilot).
 
-**Key difference:** traditional SEO = rank on page 1. AI SEO = get cited even from page 2-3 — AI selects by content quality and structure, not just rank.
+**Key difference:** traditional SEO = rank on page 1. AI SEO = get cited even from page 2-3 -- AI selects by content quality and structure, not just rank.
 
 **Stats:** AI Overviews appear in ~45% of Google searches. Optimized content cited 3x more. Statistics/citations boost visibility 40%+. Brands 6.5x more likely cited via third-party sources than own domain.
 
@@ -151,16 +151,16 @@ Test 10-20 key queries across ChatGPT, Perplexity, and Google AI Overviews:
 
 For each: Are you cited? Who is? Which page?
 
-**Check AI bot access in robots.txt** — if blocked, that platform can't cite you:
-- `GPTBot`, `ChatGPT-User` — OpenAI
-- `PerplexityBot` — Perplexity
-- `ClaudeBot`, `anthropic-ai` — Anthropic
-- `Google-Extended` — Gemini + AI Overviews
-- `Bingbot` — Copilot
+**Check AI bot access in robots.txt** -- if blocked, that platform cannot cite you:
+- `GPTBot`, `ChatGPT-User` -- OpenAI
+- `PerplexityBot` -- Perplexity
+- `ClaudeBot`, `anthropic-ai` -- Anthropic
+- `Google-Extended` -- Gemini + AI Overviews
+- `Bingbot` -- Copilot
 
 ### The Three Pillars
 
-**1. Structure — make content extractable**
+**1. Structure -- make content extractable**
 
 AI extracts passages, not pages. Every key claim must work standalone.
 
@@ -172,7 +172,7 @@ AI extracts passages, not pages. Every key claim must work standalone.
 
 Rules: lead every section with direct answer, keep answer passages 40-60 words, headings match query phrasing, tables beat prose for comparisons.
 
-**2. Authority — make content citable**
+**2. Authority -- make content citable**
 
 Princeton GEO study (KDD 2024, tested on Perplexity):
 
@@ -192,7 +192,7 @@ Best combo: fluency + statistics. Low-authority sites gain up to 115% with citat
 - "Last updated" prominently displayed
 - Original data beats aggregated data
 
-**3. Presence — be where AI looks**
+**3. Presence -- be where AI looks**
 
 - Wikipedia mentions (7.8% of all ChatGPT citations)
 - Reddit discussions (1.8%)
@@ -203,7 +203,7 @@ Best combo: fluency + statistics. Low-authority sites gain up to 115% with citat
 
 ### Machine-Readable Files for AI Agents
 
-AI agents evaluate products on behalf of buyers. If pricing is JS-rendered or behind "contact sales," agents skip you.
+AI agents evaluate products for buyers. If pricing is JS-rendered or behind "contact sales," agents skip you.
 
 **`/pricing.md` or `/pricing.txt`:**
 ```markdown
@@ -220,7 +220,7 @@ AI agents evaluate products on behalf of buyers. If pricing is JS-rendered or be
 - Features: Custom domains, analytics, priority support
 ```
 
-**`/llms.txt`** — context file for AI systems ([llmstxt.org](https://llmstxt.org)): product overview, who it's for, links to key pages including pricing.
+**`/llms.txt`** -- context file for AI systems ([llmstxt.org](https://llmstxt.org)): product overview, target audience, links to key pages including pricing.
 
 ### Schema Markup for AI
 
@@ -254,16 +254,16 @@ Content with proper schema shows 30-40% higher AI visibility.
 | Otterly AI | ChatGPT, Perplexity, Google AI Overviews |
 | Peec AI | ChatGPT, Gemini, Perplexity, Claude, Copilot |
 | ZipTie | Google AI Overviews, ChatGPT, Perplexity |
-| LLMrefs | SEO keyword → AI visibility mapping |
+| LLMrefs | SEO keyword to AI visibility mapping |
 
 ---
 
 ## Audit Report Format
 
-**Executive Summary** — overall health, top 3-5 issues, quick wins.
+**Executive Summary** -- overall health, top 3-5 issues, quick wins.
 
 **Findings** (technical / on-page / AI / international):
-- **Issue:** what's wrong
+- **Issue:** what is wrong
 - **Impact:** High / Medium / Low
 - **Evidence:** how found
 - **Fix:** specific recommendation
@@ -280,14 +280,14 @@ Content with proper schema shows 30-40% higher AI visibility.
 ## Common Mistakes
 
 - Ignoring AI search (~45% of Google searches show AI Overviews)
-- Treating AI SEO as separate from SEO — traditional SEO is the foundation
-- Blocking AI bots in robots.txt — prevents citation
-- Hiding pricing behind JS or "contact sales" — AI agents skip you
-- No freshness signals — undated content loses to dated content
-- Keyword stuffing — actively reduces AI visibility (-10%)
+- Treating AI SEO as separate from SEO -- traditional SEO is the foundation
+- Blocking AI bots in robots.txt -- prevents citation
+- Hiding pricing behind JS or "contact sales" -- AI agents skip you
+- No freshness signals -- undated content loses to dated content
+- Keyword stuffing -- actively reduces AI visibility (-10%)
 - All hreflang errors: missing self-reference, no return tag, invalid codes, cross-locale canonicals
 - Thin locale pages dragging site-wide quality
-- Schema detection via `web_fetch` (doesn't render JS — use Rich Results Test instead)
+- Schema detection via `web_fetch` (does not render JS -- use Rich Results Test instead)
 - Retiring content too early without data
 
 ---

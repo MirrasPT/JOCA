@@ -3,50 +3,50 @@ name: img-gen
 description: "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). MUST be invoked when the user mentions: OpenAI, Google Gemini, Nano Banana, Decides, API, Do NOT."
 ---
 
-# img-gen — Image Generation Router
+# img-gen -- Image Generation Router
 
-Analyse the request → pick the right model → craft the optimal prompt → spawn the agent.
+Analyse request, pick model, craft prompt, spawn agent.
 
 ---
 
 ## 1. Model selection
 
 ### Use OpenAI (`img-gen-openai`) when:
-- **Text in the image** — labels, signs, product names, headlines, captions, subtitles, wine/beer labels, packaging copy, poster text, any readable text that must be accurate
-- **Specific product shots** — branded packaging, bottles with labels, product with logo, mockups where brand identity must be exact
-- **Complex precise composition** — exact object placement, multiple interacting elements where spatial relationships matter
-- **Inpainting / masking** — replace or remove a region using a PNG alpha mask
-- **Reference-image editing** — heavily transform or restyle an existing image
-- **Dense typography / diagrams** — infographics with labels, data visualisations with text, Chinese characters, scientific figures
-- **High-fidelity delivery** — final hero image, client deliverable, anything shipping-facing where quality matters more than cost
+- **Text in image** -- labels, signs, product names, headlines, captions, packaging copy, poster text, any readable text requiring accuracy
+- **Product shots** -- branded packaging, bottles with labels, logo mockups, exact brand identity
+- **Complex composition** -- exact object placement, multiple interacting elements with spatial precision
+- **Inpainting / masking** -- replace or remove regions via PNG alpha mask
+- **Reference-image editing** -- heavy transforms or restyle of existing image
+- **Dense typography / diagrams** -- infographics with labels, data viz with text, scientific figures
+- **High-fidelity delivery** -- final hero image, client deliverable, shipping-facing quality
 
 ### Use Google (`img-gen-google`) when:
-- **General imagery** — people, animals, landscapes, scenes, abstract patterns, textures, backgrounds
-- **Simple/emotional concepts** — "a cute fluffy dog", "a misty mountain", "warm café interior"
-- **Quick drafts / iteration** — explore multiple directions cheaply (flash ~$0.003/img)
-- **Unusual aspect ratios** — ultra-narrow (1:4, 1:8), ultra-wide (4:1, 8:1) — model `2` only
-- **High-volume generation** — 10+ images, batch workflows
-- **Web/UI backgrounds** — abstract gradients, textures, UI mockup backgrounds
+- **General imagery** -- people, animals, landscapes, scenes, abstract patterns, textures, backgrounds
+- **Simple/emotional concepts** -- "cute fluffy dog", "misty mountain", "warm cafe interior"
+- **Quick drafts / iteration** -- explore directions cheaply (flash ~$0.003/img)
+- **Unusual aspect ratios** -- ultra-narrow (1:4, 1:8), ultra-wide (4:1, 8:1) -- model `2` only
+- **High-volume generation** -- 10+ images, batch workflows
+- **Web/UI backgrounds** -- abstract gradients, textures, UI mockup backgrounds
 - **No text in image required**
 
 ### Use both when:
-- User explicitly asks for both or a comparison
-- High-stakes hero asset where seeing both approaches helps decide
-- Brief is ambiguous and exploring both is cheaper than iterating on the wrong model
+- User explicitly requests both or a comparison
+- High-stakes hero asset where seeing both approaches aids decision
+- Ambiguous brief where exploring both is cheaper than iterating on wrong model
 
 ---
 
 ## 2. Prompt engineering
 
 ### For OpenAI (`img-gen-openai`)
-Be explicit and literal. This model follows detailed instructions closely.
+Be explicit and literal. Model follows detailed instructions closely.
 
 **Structure:**
 ```
 [Medium/style] of [subject] [composition details] [lighting] [colour palette] [text if any] [technical specs]
 ```
 
-**Text in image — always quote exact text:**
+**Text in image -- always quote exact text:**
 > Product photography of a wine bottle with a label reading "Monte Velho Reserva 2021" in gold serif font on dark green background, studio lighting, white background, 8K
 
 **Product shots:**
@@ -56,13 +56,13 @@ Be explicit and literal. This model follows detailed instructions closely.
 - Name exact fonts if relevant: "Helvetica", "serif", "handwritten script"
 - Name exact colours: "deep navy #1a2744", "warm ivory", "Pantone 485 red"
 - Specify lighting: "studio softbox", "golden hour", "overcast diffuse", "dramatic side lighting"
-- Include: `--quality high` for final assets, `--quality low` for drafts
-- Include: `--size 1536x1024` landscape, `1024x1536` portrait, `1024x1024` square
+- `--quality high` for final assets, `--quality low` for drafts
+- `--size 1536x1024` landscape, `1024x1536` portrait, `1024x1024` square
 
-**When to use `--quality`:**
-- `low` — draft, exploration, multiple variants
-- `medium` — normal exploration
-- `high` — final asset, typography, products, anything shipping
+**`--quality` levels:**
+- `low` -- draft, exploration, multiple variants
+- `medium` -- normal exploration
+- `high` -- final asset, typography, products, shipping quality
 
 ### For Google Gemini (`img-gen-google`)
 Lead with style, then subject. Clean descriptive language.
@@ -79,16 +79,16 @@ Lead with style, then subject. Clean descriptive language.
 
 **Tips:**
 - Front-load style: "minimalist", "watercolour", "photorealistic", "isometric", "flat illustration"
-- Avoid text in image — not reliable
-- For ultra-wide/narrow: use `--aspect 21:9` or `--aspect 1:4` (model `2` only)
-- For cheap drafts: `--model flash` (~$0.003)
-- For final quality: `--model pro --size 4K`
+- Avoid text in image -- not reliable
+- Ultra-wide/narrow: `--aspect 21:9` or `--aspect 1:4` (model `2` only)
+- Cheap drafts: `--model flash` (~$0.003)
+- Final quality: `--model pro --size 4K`
 
 ---
 
 ## 3. Agent invocation
 
-Spawn with a structured brief:
+Spawn with structured brief:
 
 ```
 BRIEF: [what the user wants in plain language]
@@ -101,10 +101,10 @@ QUALITY: [draft / standard / final]
 REFERENCES: [paths to reference images, or "none"]
 ```
 
-If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel (same brief, let each adapt to their model's strengths).
+If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel (same brief, each adapts to model strengths).
 
 ---
 
 ## 4. After generation
 
-Report back: file path(s), model used, estimated cost, key parameters. If multiple images, display or list all paths.
+Report: file path(s), model used, estimated cost, key parameters. If multiple images, list all paths.

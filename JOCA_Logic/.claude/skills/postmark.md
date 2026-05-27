@@ -6,7 +6,7 @@ triggers: postmark, transactional email, email sending, email webhook, bounce ha
 
 # Postmark
 
-Complete guide for Postmark transactional email: sending, webhooks, templates, and deliverability.
+Transactional email: sending, webhooks, templates, deliverability.
 
 ## Setup
 
@@ -86,7 +86,7 @@ await client.sendEmail({
 
 ## Message Streams
 
-Postmark uses message streams to separate email types:
+Postmark separates email types via message streams:
 
 | Stream | Type | Use for |
 |--------|------|---------|
@@ -94,22 +94,22 @@ Postmark uses message streams to separate email types:
 | `broadcast` | Bulk | Newsletters, announcements (requires opt-in list) |
 | Custom | Transactional | Separate streams per product/team |
 
-Always specify `MessageStream` explicitly — don't rely on defaults.
+Always specify `MessageStream` explicitly.
 
 ## Webhooks
 
-### Webhook Event Types
+### Event Types
 
 | Event | When |
 |-------|------|
-| `Delivery` | Email successfully delivered |
+| `Delivery` | Email delivered |
 | `Bounce` | Hard or soft bounce |
 | `SpamComplaint` | Marked as spam |
 | `Open` | Email opened (if tracking enabled) |
 | `Click` | Link clicked (if tracking enabled) |
 | `SubscriptionChange` | Unsubscribe/resubscribe |
 
-### Verifying Webhook Signatures
+### Verifying Signatures
 
 ```ts
 // Next.js App Router
@@ -134,7 +134,7 @@ export async function POST(req: Request) {
 }
 ```
 
-### Handling Webhook Events
+### Handling Events
 
 ```ts
 async function handlePostmarkEvent(event: any) {
@@ -177,7 +177,7 @@ async function handlePostmarkEvent(event: any) {
 
 ## Templates
 
-### Creating Templates (API)
+### Creating via API
 
 ```ts
 const template = await client.createTemplate({
@@ -193,9 +193,9 @@ const template = await client.createTemplate({
 });
 ```
 
-Template variables use `{{variable_name}}` syntax. Always provide both `HtmlBody` and `TextBody`.
+Variables use `{{variable_name}}` syntax. Always provide both `HtmlBody` and `TextBody`.
 
-### Validating Templates
+### Validating
 
 ```ts
 const validation = await client.validateTemplate({
@@ -208,7 +208,7 @@ const validation = await client.validateTemplate({
 
 ## Deliverability
 
-### DNS Records Required
+### DNS Records
 
 ```
 # SPF — add to your domain's TXT records
@@ -221,17 +221,17 @@ pm._domainkey.yourdomain.com  TXT  k=rsa; p=<postmark-key>
 _dmarc.yourdomain.com  TXT  v=DMARC1; p=quarantine; rua=mailto:dmarc@yourdomain.com
 ```
 
-### Deliverability Checklist
+### Checklist
 
 - [ ] Custom domain set up (not postmarkapp.com)
 - [ ] SPF record includes Postmark
-- [ ] DKIM signature verified in Postmark dashboard
+- [ ] DKIM verified in dashboard
 - [ ] DMARC policy configured
-- [ ] Return-Path / envelope from uses sending domain
-- [ ] Unsubscribe link in every marketing/bulk email
-- [ ] Bounce webhook configured and processing
-- [ ] Spam complaint webhook configured and suppressing
-- [ ] Bounce rate < 2% (Postmark may suspend high-bounce accounts)
+- [ ] Return-Path uses sending domain
+- [ ] Unsubscribe link in every bulk email
+- [ ] Bounce webhook processing active
+- [ ] Spam complaint webhook suppressing active
+- [ ] Bounce rate < 2% (Postmark suspends high-bounce accounts)
 
 ### Suppression Management
 
@@ -268,7 +268,7 @@ async function sendWithRetry(emailData: any, maxRetries = 3) {
 }
 ```
 
-### Common Error Codes
+### Error Codes
 
 | Code | Meaning | Action |
 |------|---------|--------|
@@ -288,17 +288,17 @@ const testClient = new postmark.ServerClient(process.env.POSTMARK_TEST_TOKEN!);
 // Find in: Account → API Tokens → Server API Tokens → Test
 ```
 
-For local development, emails are accepted and logged in Postmark's activity feed but not delivered when using the test token.
+With the test token, emails are accepted and logged in Postmark's activity feed but not delivered.
 
 ## Best Practices
 
-- **Queue sends** — Don't block API responses waiting for email delivery; use a background job
-- **Log MessageID** — Store Postmark's `MessageID` to correlate delivery/bounce webhooks
-- **Message streams** — Use separate streams for transactional vs marketing; different IPs and reputation
-- **Plain text required** — Always include `TextBody` alongside `HtmlBody`
-- **From address** — Use a consistent `From` with your verified sending domain
-- **Bounce hygiene** — Process bounces immediately; hard bounces must be suppressed or Postmark will suspend
-- **Monitor spam complaints** — Even one complaint per 1000 affects deliverability
+- **Queue sends** -- Use background jobs; never block API responses for email delivery
+- **Log MessageID** -- Store Postmark's `MessageID` to correlate delivery/bounce webhooks
+- **Separate streams** -- Use distinct streams for transactional vs marketing (different IPs and reputation)
+- **Always include TextBody** alongside `HtmlBody`
+- **Consistent From address** -- Use your verified sending domain
+- **Bounce hygiene** -- Process hard bounces immediately; suppression required or Postmark suspends
+- **Monitor spam complaints** -- One complaint per 1000 affects deliverability
 
 ## Resources
 
@@ -307,5 +307,3 @@ For local development, emails are accepted and logged in Postmark's activity fee
 - [Template Reference](https://postmarkapp.com/developer/api/templates-api)
 - [Webhook Reference](https://postmarkapp.com/developer/webhooks/webhooks-overview)
 - [Deliverability Guide](https://postmarkapp.com/guides/email-deliverability)
-
-<!-- Adapted from: https://github.com/ActiveCampaign/postmark-skills -->

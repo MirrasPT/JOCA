@@ -1,6 +1,6 @@
 ---
 name: shopify-router
-description: "The user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme. MUST be invoked when the user mentions: Shopify."
+description: "Classifies Shopify project type and routes to the correct skill (shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer). MUST be invoked when the user mentions: Shopify."
 compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Some workflows require a Shopify Partner account and dev store."
 ---
 
@@ -8,11 +8,11 @@ compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Some workflows require a Shopi
 
 ## When to use
 
-Use this skill at the start of any Shopify task to:
+At the start of any Shopify task to:
 
-- identify the project type (app / theme / store audit / fix),
-- pick the right skill and workflow,
-- detect available tooling (CLI, MCP, Admin API access).
+- Identify the project type (app / theme / store audit / fix)
+- Pick the right skill and workflow
+- Detect available tooling (CLI, MCP, Admin API access)
 
 ## Inputs required
 

@@ -4,6 +4,13 @@ Assistente interactivo de instalacao e reconfiguracao. Pode correr em qualquer a
 
 **Repositorio:** https://github.com/MirrasPT/JOCA.git
 
+**Dados protegidos (NUNCA sobrescrever em reinstalacao):**
+- `memory/projects/` — dados de projectos do utilizador
+- `memory/feedback/` — sessoes de feedback
+- `memory/soul.md` — calibracao de personalidade
+- `JOCA_UI/data/` — projectos, sessoes, settings do UI (projects.json, project-memory.json, session-snapshots.json, ui-settings.json)
+- Ficheiros com `origin: local` no frontmatter — skills/agents criados localmente
+
 **Modo de apresentacao:**
 - Perguntas com <=4 opcoes exclusivas -> usar a ferramenta `AskUserQuestion` (selector visual com setas)
 - Perguntas com mais de 4 opcoes ou multi-select -> apresentar lista numerada/com checkboxes e aguardar input de texto

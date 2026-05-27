@@ -6,49 +6,47 @@ triggers: landing page, create landing page, build landing page, lead gen page, 
 
 # Landing Page Builder
 
-Expert in creating high-converting landing pages from scratch — structure, copy, and optional HTML scaffold. Goal: one page, one action, maximum conversion.
+Creates high-converting landing pages — structure, copy, optional HTML scaffold. One page, one action, max conversion.
 
 ## Before Building
 
 Check for product marketing context: `.agents/product-marketing-context.md`.
 
-Gather what's not covered:
+Gather what's missing:
 
 **Offer**
-- What are you offering? (product, free trial, lead magnet, webinar, demo, waitlist)
-- Primary CTA — what action should visitors take?
-- Value proposition — what's the core benefit in one sentence?
+- What's offered? (product, free trial, lead magnet, webinar, demo, waitlist)
+- Primary CTA — target visitor action?
+- Value prop — core benefit in one sentence?
 
 **Audience**
-- Who is this page for?
-- Where is traffic coming from? (ads, email, organic, social)
-- What do they already know about you?
+- Target audience?
+- Traffic source? (ads, email, organic, social)
+- Awareness level?
 
 **Proof**
-- Any social proof? (testimonials, logos, user counts, results)
-- Any objections to address?
+- Social proof available? (testimonials, logos, user counts, results)
+- Key objections?
 
 **Technical**
-- Build in HTML/CSS or provide copy for a builder (Webflow, Framer, Carrd)?
+- HTML/CSS or copy for builder (Webflow, Framer, Carrd)?
 - Mobile-first required?
 
 ---
 
 ## Landing Page Anatomy
 
-Every high-converting landing page follows this structure:
-
 ```
 [ABOVE THE FOLD]
 ├── Navigation (minimal or removed)
 ├── Headline — core value proposition
-├── Subheadline — expands on headline, adds specificity
+├── Subheadline — expands headline, adds specificity
 ├── Hero visual — product screenshot, illustration, or video
 ├── Primary CTA — button with action + outcome copy
 └── Trust signal bar — logos, review stars, user count
 
 [BELOW THE FOLD]
-├── Problem section — articulate the pain they feel
+├── Problem section — articulate their pain
 ├── Solution section — your approach, not features
 ├── Benefits section — 3-5 key outcomes (icon + headline + 1 line)
 ├── Social proof — testimonials with photo + name + title
@@ -62,7 +60,7 @@ Every high-converting landing page follows this structure:
 
 ## Headline Formulas
 
-The headline is the single highest-leverage element (27-104% conversion lift from headline optimization).
+Highest-leverage element (27-104% conversion lift from optimization).
 
 **Outcome-focused:**
 `[Achieve X] without [Pain Y]`
@@ -84,8 +82,8 @@ The headline is the single highest-leverage element (27-104% conversion lift fro
 `Why [common approach] doesn't work — and what does`
 
 Rules:
-- Specific beats generic always
-- Single-stat heroes lift +18% over generic hero
+- Specific beats generic
+- Single-stat heroes lift +18% over generic
 - Video heroes underperform text heroes on average (-7%)
 - Avoid "welcome to," "introducing," "we are"
 
@@ -123,26 +121,26 @@ Rules:
 | Generic "trusted by thousands" | ~0% | Avoid |
 
 Rules:
-- Social proof must be specific — "Used by 8 of the Fortune 50" beats "trusted by top companies"
-- Place near CTAs — social proof immediately before the CTA button converts best
-- Use real photos in testimonials — stock photos kill credibility
+- Must be specific — "Used by 8 of the Fortune 50" beats "trusted by top companies"
+- Place near CTAs — social proof before CTA button converts best
+- Use real photos — stock photos kill credibility
 - Show company logo + person name + role in every testimonial
 
 ---
 
 ## Page Types and Structures
 
-### Lead Generation Page (Lead Magnet / Free Resource)
+### Lead Generation (Lead Magnet / Free Resource)
 
 ```
 Headline: [Get/Download] [Specific Resource] [Optional qualifier]
 Subheadline: Who it's for + what they'll get + how fast
-Opt-in form: Name + Email only (add fields = kill conversion)
+Opt-in form: Name + Email only (more fields = lower conversion)
 CTA: "Send Me the [Resource]"
 Below: What's inside (3-5 bullets) + 1-2 testimonials + "No spam" line
 ```
 
-### Product/Trial Page (SaaS, App)
+### Product/Trial (SaaS, App)
 
 ```
 Headline: Outcome the product delivers
@@ -168,10 +166,10 @@ FOMO: "X spots remaining" or "Recording available for 48 hours"
 
 ### Paid Ad Landing Page
 
-Single message match — copy must mirror the ad that sent them here.
+Copy must mirror the ad (message match).
 
 Rules:
-- Remove main site navigation (increases conversions significantly)
+- Remove main site navigation (lifts conversions)
 - Headline must match the ad promise exactly
 - Single CTA, no exit links
 - Mobile-first: form above fold on mobile
@@ -209,7 +207,7 @@ If user needs working HTML, generate a single-file landing page:
 
 Style guidance:
 - 1 primary brand color for CTAs only
-- High contrast CTA button — stands out from everything else
+- High contrast CTA button — stands out from everything
 - Max width 960-1200px, centered content
 - Mobile-first breakpoints
 - System fonts or Google Fonts (1 typeface, 2 weights max)
@@ -245,9 +243,9 @@ Deliver in sections:
 
 ## Related Skills
 
-- `copywriting` — for copy-only (no structure design)
-- `page-cro` — to analyse and optimize an existing page
-- `lead-capture` — for the opt-in form and lead magnet strategy
-- `email-sequence` — for what happens after they convert
-- `paid-ads` — for driving traffic to the page
-- `ab-test-setup` — for testing headline and CTA variants
+- `copywriting` — copy-only (no structure design)
+- `page-cro` — analyse and optimize an existing page
+- `lead-capture` — opt-in form and lead magnet strategy
+- `email-sequence` — post-conversion sequence
+- `paid-ads` — driving traffic to the page
+- `ab-test-setup` — testing headline and CTA variants

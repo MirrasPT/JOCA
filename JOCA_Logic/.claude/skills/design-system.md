@@ -3,27 +3,23 @@ name: design-system
 description: "Building or auditing design systems, managing design tokens, component libraries, or style guides. MUST be invoked when the user says: design system, sistema de design, tokens, design tokens, component system, sistema de componentes, visual system, sistema visual. SHOULD also invoke when: UI system, criar design system, setup design, design setup, design foundation, fundacao visual."
 triggers: design system, sistema de design, tokens, design tokens, component system, sistema de componentes, visual system, sistema visual, UI system, criar design system, setup design, design setup, design foundation, fundacao visual
 ---
-# Design System — Router
+# Design System -- Router
 
-Segunda camada da stack. Estabelece o contrato visual que o Frontend consome.
+Contrato visual que o Frontend consome.
 
----
+## Skills
 
-## Skills disponiveis
-
-| Skill | O que produz | Quando usar |
-|-------|-------------|-------------|
-| `brand-guidelines` | DESIGN.md + BRAND.md — identidade visual | Inicio de projecto, marca nova, audit de marca |
-| `design-tokens` | tokens/*.json + tokens.css — 3 tiers (global/semantic/component) | Apos DESIGN.md, antes de qualquer UI |
+| Skill | Output | Quando |
+|-------|--------|--------|
+| `brand-guidelines` | DESIGN.md + BRAND.md -- identidade visual | Inicio de projecto, marca nova, audit |
+| `design-tokens` | tokens/*.json + tokens.css -- 3 tiers (global/semantic/component) | Apos DESIGN.md, antes de UI |
 | `component-system` | system/component-inventory.md + system/components/*.md | Apos tokens, antes de frontend |
 
 ## Agente
 
-| Agente | O que faz | Quando correr |
-|--------|-----------|---------------|
+| Agente | Funcao | Quando |
+|--------|--------|--------|
 | `design-system-audit` | Valida tokens, components, WCAG, drift | Apos design system completo |
-
----
 
 ## Pipeline
 
@@ -39,12 +35,10 @@ design-system-audit (agente) → audit/design-system-violations.md
 frontend (camada seguinte) → consome tokens.css + inventory como contrato fechado
 ```
 
----
-
 ## Routing
 
-| O utilizador diz | Activar |
-|-------------------|---------|
+| Input | Activar |
+|-------|---------|
 | "marca", "brand", "identidade visual", "DESIGN.md" | `brand-guidelines` |
 | "tokens", "design tokens", "CSS variables", "global/semantic/component" | `design-tokens` |
 | "componentes", "components", "button spec", "states", "inventario" | `component-system` |
@@ -53,21 +47,19 @@ frontend (camada seguinte) → consome tokens.css + inventory como contrato fech
 
 ### Projecto novo (pipeline completo)
 
-1. Activar `brand-guidelines` → gera DESIGN.md
-2. Activar `design-tokens` → transforma DESIGN.md em tokens 3 tiers
-3. Activar `component-system` → documenta componentes com token refs
-4. Correr `design-system-audit` → valida tudo
+1. `brand-guidelines` -- gera DESIGN.md
+2. `design-tokens` -- transforma DESIGN.md em tokens 3 tiers
+3. `component-system` -- documenta componentes com token refs
+4. `design-system-audit` -- valida tudo
 
 ### Projecto existente (com DESIGN.md)
 
 Detectar o que falta:
-- DESIGN.md existe, tokens/ nao → `design-tokens`
-- tokens/ existe, system/ nao → `component-system`
-- Tudo existe → `design-system-audit` para verificar drift
+- DESIGN.md existe, tokens/ nao -- `design-tokens`
+- tokens/ existe, system/ nao -- `component-system`
+- Tudo existe -- `design-system-audit` para verificar drift
 
----
-
-## Estrutura de ficheiros gerada
+## Estrutura gerada
 
 ```
 projecto/
@@ -89,8 +81,6 @@ projecto/
     └── design-system-violations.md    ← design-system-audit (agente)
 ```
 
----
-
 ## Como activar sub-skills
 
 ```
@@ -99,8 +89,6 @@ Read(".claude/skills/SKILL.md")
 Read(".claude/skills/SKILL.md")
 Agent(subagent_type="design-system-audit")
 ```
-
----
 
 ## Quality gate
 Apos design system completo: "Queres correr `design-system-audit`?" (valida tokens, states, WCAG, drift)

@@ -1,9 +1,24 @@
 #!/bin/bash
-echo "A parar JOCA UI..."
-lsof -ti:7371 | xargs kill -9 2>/dev/null || true
-lsof -ti:7372 | xargs kill -9 2>/dev/null || true
+echo "Stopping JOCA UI..."
+
+BACKEND_PORT=7371
+FRONTEND_PORT=7372
+
+graceful_kill() {
+  local pids="$1"
+  [ -z "$pids" ] && return
+  kill $pids 2>/dev/null || true
+  sleep 2
+  for pid in $pids; do
+    kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+  done
+}
+
+graceful_kill "$(lsof -ti:$BACKEND_PORT 2>/dev/null)"
+graceful_kill "$(lsof -ti:$FRONTEND_PORT 2>/dev/null)"
+
 if [ -f /tmp/joca-ui-v2.pids ]; then
-  kill $(cat /tmp/joca-ui-v2.pids) 2>/dev/null || true
+  graceful_kill "$(cat /tmp/joca-ui-v2.pids)"
   rm -f /tmp/joca-ui-v2.pids
 fi
-echo "✓ Parado."
+echo "✓ Stopped."

@@ -1,64 +1,62 @@
 ---
 name: video
-description: "Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
+description: "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
 triggers: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, fazer vídeo, criar vídeo
 ---
 
 # Video
 
-You are an expert video producer who helps create marketing videos using AI generation models, AI avatars, and programmatic video frameworks. Your goal is to help users produce professional video content efficiently — from product demos and explainers to social clips and ads.
+Expert video producer for marketing videos using AI generation, AI avatars, and programmatic frameworks. Goal: professional video content efficiently — demos, explainers, social clips, ads.
 
 ## Before Starting
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking. Use that context; only ask for info not covered or task-specific.
 
 Gather this context (ask if not provided):
 
 ### 1. Video Goal
-- What type of video? (Product demo, explainer, testimonial, social clip, ad, tutorial)
-- What's the target platform? (YouTube, TikTok/Reels/Shorts, website, ads, sales deck)
-- What's the desired length?
+- Type? (Product demo, explainer, testimonial, social clip, ad, tutorial)
+- Target platform? (YouTube, TikTok/Reels/Shorts, website, ads, sales deck)
+- Desired length?
 
 ### 2. Production Approach
-- Do you need a human presenter? (AI avatar vs. voiceover vs. screen recording)
-- Do you have existing footage or assets? (Screenshots, logos, product UI)
-- Do you need generated footage? (AI-generated scenes, B-roll)
-- Is this a one-off or a template for repeated use?
+- Need a human presenter? (AI avatar vs. voiceover vs. screen recording)
+- Existing footage or assets? (Screenshots, logos, product UI)
+- Need generated footage? (AI scenes, B-roll)
+- One-off or template for repeated use?
 
 ### 3. Technical Context
-- What's your tech stack? (Node.js, Python, etc.)
-- Do you have API keys for any video tools?
-- Budget constraints? (Some tools charge per minute of video)
+- Tech stack? (Node.js, Python, etc.)
+- API keys for any video tools?
+- Budget constraints? (Some tools charge per minute)
 
 ---
 
 ## Choosing Your Approach
 
-Pick the right tool for the job:
-
 | Approach | Best For | Tools | Skill |
 |----------|----------|-------|-------|
-| **HTML → Video** | CSS/JS animations, motion design, product launches, lyric videos | HyperFrames | → `hyperframes` |
-| **React → Video** | Data-driven, batch, music visualizers, lyric videos, 3D | Remotion | → `remotion` |
-| **AI Generation** | Original footage from text/image prompts | Veo, Runway, Kling, Pika | → this skill |
-| **AI Avatars** | Talking-head presenter without filming | HeyGen, Synthesia | → this skill |
-| **Editing/Repurposing** | Cutting long-form into short clips | Descript, Opus Clip, CapCut | → this skill |
+| **HTML to Video** | CSS/JS animations, motion design, product launches, lyric videos | HyperFrames | `hyperframes` |
+| **React to Video** | Data-driven, batch, music visualizers, lyric videos, 3D | Remotion | `remotion` |
+| **AI Generation** | Original footage from text/image prompts | Veo, Runway, Kling, Pika | this skill |
+| **AI Avatars** | Talking-head presenter without filming | HeyGen, Synthesia | this skill |
+| **Editing/Repurposing** | Cutting long-form into short clips | Descript, Opus Clip, CapCut | this skill |
 
 **HyperFrames vs Remotion — quick decision:**
-- Agente a gerar HTML do zero → **HyperFrames** (sem build step, GSAP frame-accurate)
-- Projecto React existente, batch render, Lambda → **Remotion**
-- Licença open-source obrigatória → **HyperFrames** (Apache 2.0 vs source-available)
+- Agent generates HTML from scratch: **HyperFrames** (no build step, GSAP frame-accurate)
+- Existing React project, batch render, Lambda: **Remotion**
+- Open-source license required: **HyperFrames** (Apache 2.0 vs source-available)
 
 ---
 
-## HTML Animation → Video Export
+## HTML Animation to Video Export
 
-The pipeline for CSS/JS animations (brand launches, motion demos, product films) built as HTML files and exported as video.
+Pipeline for CSS/JS animations (brand launches, motion demos, product films) built as HTML and exported as video.
 
-### Default output: MP4 **with audio** (not silent)
+### Default output: MP4 with audio (not silent)
 
-Silent video = unfinished product. Viewers perceive silence as "cheap" even when the visuals are excellent. Default pipeline always adds BGM + SFX.
+Silent video = unfinished. Viewers perceive silence as cheap even with excellent visuals. Pipeline always adds BGM + SFX.
 
 **Skip audio only if:** user explicitly says "no audio", "I'll add my own music", "silent version".
 
@@ -73,8 +71,8 @@ HTML animation (Playwright recording)
     →  Final: MP4 with dual audio track (BGM low freq + SFX high freq)
 ```
 
-**Scripts** (copiar para `scripts/` do projecto):
-- `render-video.js` — Playwright-based HTML recorder, 25fps, outputs base MP4 (intermediate only)
+**Scripts** (copy to project `scripts/`):
+- `render-video.js` — Playwright HTML recorder, 25fps, outputs base MP4 (intermediate only)
 - `convert-formats.sh` — derives 60fps MP4 + palette-optimised GIF from base
 - `add-music.sh` — BGM selection + ffmpeg mix
 
@@ -84,7 +82,7 @@ bash scripts/convert-formats.sh output-25fps.mp4
 bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 ```
 
-**Validate output:** `ffprobe -select_streams a <file>` must show audio stream. No audio stream = not finished.
+**Validate output:** `ffprobe -select_streams a <file>` must show audio stream. No audio = not finished.
 
 ### Audio: BGM + SFX dual-track
 
@@ -99,7 +97,7 @@ bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 | `tech-alt` | Variante tech mais suave |
 | `ad-alt` | Variante ad mais energética |
 
-**SFX cue list** — definir timeline em `sfx-cues.md`:
+**SFX cue list** — define timeline in `sfx-cues.md`:
 
 ```markdown
 0.0s — whoosh (entrada de elemento)
@@ -109,20 +107,18 @@ bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 
 **SFX density by type:**
 - Launch/hero film: ~6 cues per 10 sec
-- Product demo: ~2–3 cues per 10 sec
-- Tutorial/walkthrough: 0–2 cues per 10 sec
+- Product demo: ~2-3 cues per 10 sec
+- Tutorial/walkthrough: 0-2 cues per 10 sec
 
 **Frequency separation:**
-- SFX occupies high frequencies; BGM occupies low — they don't mask each other
+- SFX occupies high frequencies; BGM occupies low — no masking
 
 ### Animation code rules (avoid re-renders)
 
-When writing the HTML animation that feeds into this pipeline:
-
-- First frame tick must set `window.__ready = true` synchronously — recorder waits for this signal
+- First frame tick must set `window.__ready = true` synchronously — recorder waits for this
 - When `window.__recording === true`, force `loop = false` — never loop during recording
-- Never use `scrollIntoView` in animations — breaks the recording viewport
-- Don't draw progress bars/timestamps inside the canvas — those belong in player chrome, not the video frame
+- Never use `scrollIntoView` in animations — breaks recording viewport
+- Do not draw progress bars/timestamps in canvas — those belong in player chrome, not video frame
 
 ### Format selection
 
@@ -140,7 +136,7 @@ Build videos with code. Best for repeatable, templated, or data-driven video at 
 
 ### Hyperframes (HTML/CSS — recommended for agents)
 
-Open-source, Apache 2.0, from HeyGen. Uses plain HTML/CSS/JS — no framework DSL to learn. LLM-native: AI models generate better HTML than React components.
+Open-source, Apache 2.0, from HeyGen. Plain HTML/CSS/JS — no framework DSL. LLM-native: AI models generate better HTML than React components.
 
 ```bash
 npm install hyperframes
@@ -165,7 +161,7 @@ await render({
 
 **Best for:** Product announcements, changelogs, data-driven reports, personalized outreach videos.
 
-**Why agents prefer it:** Plain HTML/CSS means any coding agent can generate frames without learning a framework. Deterministic rendering — same input always produces identical output.
+**Why agents prefer it:** Plain HTML/CSS means any coding agent can generate frames. Deterministic rendering — same input always produces identical output.
 
 ### Remotion (React)
 
@@ -211,7 +207,7 @@ export const ProductDemo: React.FC<{ title: string; features: string[] }> = ({
 
 ## AI Video Generation
 
-Generate original footage from text or image prompts. Use for B-roll, hero visuals, and scenes you can't practically film.
+Generate original footage from text or image prompts. Use for B-roll, hero visuals, and scenes impractical to film.
 
 ### Model Comparison
 
@@ -222,11 +218,11 @@ Generate original footage from text or image prompts. Use for B-roll, hero visua
 | **Kling 3.0** | Up to 1080p | Up to 2 min | Volume production, lowest cost | $0.029/sec |
 | **Pika** | 1080p | Short clips | Fast generation, effects | Per-credit |
 
-**Sora (OpenAI)** has had limited availability and reliability issues. Check current status before recommending.
+**Sora (OpenAI)** has had limited availability. Check current status before recommending.
 
 ### Prompting for Video Models
 
-Good video prompts specify: **subject + action + camera + style + mood**
+Good prompts specify: **subject + action + camera + style + mood**
 
 ```
 A close-up shot of hands typing on a laptop keyboard,
@@ -237,13 +233,13 @@ cinematic color grading, 4K
 
 **Common mistakes:**
 - Too vague ("a person working") — add specifics
-- Ignoring camera movement — specify dolly, pan, static
-- Forgetting style — "cinematic," "documentary," "commercial"
+- No camera movement — specify dolly, pan, static
+- Missing style — "cinematic," "documentary," "commercial"
 - Requesting text in video — AI models struggle with readable text
 
-**For detailed prompting guides**: See [references/ai-video-prompting.md](references/ai-video-prompting.md)
+**Detailed prompting guides**: See [references/ai-video-prompting.md](references/ai-video-prompting.md)
 
-### When to Use AI Generation vs. Stock
+### AI Generation vs. Stock
 
 | Use Case | AI Generation | Stock Footage |
 |----------|:---:|:---:|
@@ -257,13 +253,13 @@ cinematic color grading, 4K
 
 ## AI Avatars
 
-Create talking-head videos without filming. An AI avatar delivers your script with realistic lip-sync, expressions, and gestures.
+Talking-head videos without filming. AI avatar delivers your script with realistic lip-sync, expressions, and gestures.
 
 ### HeyGen (recommended — has MCP server)
 
 Best lip-sync and micro-expressions. 230+ avatars, 140+ languages.
 
-**Agent integration:** HeyGen has an official MCP server — AI agents can generate avatar videos directly.
+**Agent integration:** HeyGen has an official MCP server — agents generate avatar videos directly.
 
 | Plan | Videos | Duration |
 |------|--------|----------|
@@ -283,27 +279,27 @@ Full-body avatars with expressive body language. Built-in script generation from
 
 **Best for:** Corporate training, compliance videos, enterprise presentations where professional tone > realism.
 
-### When to Use Avatars vs. Other Approaches
+### Avatars vs. Other Approaches
 
 | Scenario | Use Avatar | Use Instead |
 |----------|:---:|-------------|
-| Recurring content (weekly updates) | Yes | — |
-| Multilingual versions | Yes | — |
-| Personalized outreach at scale | Yes | — |
+| Recurring content (weekly updates) | Yes | -- |
+| Multilingual versions | Yes | -- |
+| Personalized outreach at scale | Yes | -- |
 | Authentic founder content | No | Film yourself |
 | Product UI walkthrough | No | Screen recording |
 | Creative/artistic video | No | AI generation |
 
 ---
 
-## Editing & Repurposing Tools
+## Editing and Repurposing Tools
 
 Turn existing content into multiple video formats.
 
-| Tool | What It Does | Best For |
-|------|-------------|----------|
-| **Descript** | Transcript-based editing — edit video by editing text | Cleaning up interviews, podcasts, webinars |
-| **Opus Clip** | Auto-clips long videos, scores virality potential | Long-form → short-form at scale |
+| Tool | Function | Best For |
+|------|----------|----------|
+| **Descript** | Transcript-based editing — edit video by editing text | Cleaning interviews, podcasts, webinars |
+| **Opus Clip** | Auto-clips long videos, scores virality potential | Long-form to short-form at scale |
 | **CapCut** | Visual effects, captions, platform-native styling | TikTok/Reels polish |
 | **Captions.ai** | Auto-captions, eye contact correction, AI dubbing | Solo talking-head content |
 
@@ -323,22 +319,22 @@ Distribute: TikTok, Reels, Shorts, LinkedIn
 
 ---
 
-## Video Production Workflows
+## Production Workflows
 
 ### Product Demo Video
 
-1. **Script** the key features and value props (use copywriting skill)
+1. **Script** key features and value props (use copywriting skill)
 2. **Screen record** the product flow
-3. **Programmatic overlay** — use Hyperframes/Remotion for titles, callouts, transitions
+3. **Programmatic overlay** — Hyperframes/Remotion for titles, callouts, transitions
 4. **AI B-roll** — generate establishing shots or lifestyle scenes with Veo/Runway
 5. **Voiceover** — record yourself or use AI avatar for narration
 6. **Export** at platform-appropriate specs
 
 ### Explainer Video
 
-1. **Script** the problem → solution → CTA arc
+1. **Script** the problem-solution-CTA arc
 2. **Choose presenter** — AI avatar (HeyGen) or voiceover + visuals
-3. **Build visuals** — programmatic slides, screen recordings, AI-generated scenes
+3. **Build visuals** — programmatic slides, screen recordings, AI scenes
 4. **Add captions** — always, for accessibility and engagement
 5. **Export** — landscape for YouTube/website, vertical for social
 
@@ -354,7 +350,7 @@ Distribute: TikTok, Reels, Shorts, LinkedIn
 
 ## Agent-Native Video Pipeline
 
-The most powerful setup combines tools that agents can control directly:
+The most powerful setup combines tools agents control directly:
 
 ```
 Agent writes script (from product context)
@@ -381,8 +377,8 @@ Output: Ready-to-publish video
 ## Common Mistakes
 
 1. **Starting with tools, not strategy** — decide what video you need before picking tools
-2. **AI-generated text in video** — models can't reliably render readable text; use programmatic overlays instead
-3. **Uncanny valley avatars** — if avatar quality matters, invest in HeyGen Creator+ tier
+2. **AI-generated text in video** — models cannot reliably render readable text; use programmatic overlays
+3. **Uncanny valley avatars** — if quality matters, invest in HeyGen Creator+ tier
 4. **No captions** — 85% of social video is watched without sound
 5. **Wrong aspect ratio** — 9:16 for social, 16:9 for YouTube/website, 1:1 for feeds
 6. **Over-producing** — authentic often outperforms polished, especially on TikTok
@@ -391,12 +387,12 @@ Output: Ready-to-publish video
 
 ## Task-Specific Questions
 
-1. What type of video do you need? (Demo, explainer, social clip, ad, tutorial)
-2. Do you need a human presenter or can it be voiceover/text?
-3. Is this a one-off or a repeatable template?
-4. What platform is it for? (This determines aspect ratio and length)
-5. Do you have existing assets to work with? (Screenshots, footage, scripts)
-6. What's your budget for video tools?
+1. What type of video? (Demo, explainer, social clip, ad, tutorial)
+2. Need a human presenter or voiceover/text?
+3. One-off or repeatable template?
+4. Target platform? (Determines aspect ratio and length)
+5. Existing assets? (Screenshots, footage, scripts)
+6. Budget for video tools?
 
 ---
 
@@ -413,7 +409,7 @@ Output: Ready-to-publish video
 
 ## Related Skills
 
-- **social-content**: For video content strategy, hooks, and what to post
-- **ad-creative**: For paid video ad creative and iteration
-- **copywriting**: For video scripts and messaging
-- **marketing-psychology**: For hooks and persuasion in video
+- **social-content**: Video content strategy, hooks, posting cadence
+- **ad-creative**: Paid video ad creative and iteration
+- **copywriting**: Video scripts and messaging
+- **marketing-psychology**: Hooks and persuasion in video

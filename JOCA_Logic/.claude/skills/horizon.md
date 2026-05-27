@@ -53,8 +53,8 @@ class ProcessOrder implements ShouldQueue // ShouldBeUnique | ShouldBeEncrypted 
 }
 ```
 
-**ShouldBeUnique:** lock held until job completes — use `ShouldBeUniqueUntilProcessing` to release lock before `handle()` starts.
-**ShouldBeEncrypted:** requires `APP_KEY` to be stable — key rotation breaks queued payloads.
+**ShouldBeUnique:** lock held until job completes. Use `ShouldBeUniqueUntilProcessing` to release lock before `handle()` starts.
+**ShouldBeEncrypted:** requires stable `APP_KEY`. Key rotation breaks queued payloads.
 
 ## Dispatching
 
@@ -68,12 +68,12 @@ ProcessOrder::dispatchIf($condition, $order->id);
 ProcessOrder::dispatchAfterResponse($order->id);              // after HTTP response sent
 ```
 
-**Never dispatch inside a DB transaction without `->afterCommit()`** — job may run before commit completes.
+**Never dispatch inside a DB transaction without `->afterCommit()`** -- job may run before commit completes.
 
 ## Chaining & Batching
 
 ```php
-// Chain — sequential; stops on first failure
+// Chain -- sequential; stops on first failure
 Bus::chain([
     new ValidateOrder($id),
     new ChargePayment($id),
@@ -81,7 +81,7 @@ Bus::chain([
 ])->catch(fn(Throwable $e) => Order::markFailed($id))
   ->dispatch();
 
-// Batch — parallel; callbacks on progress/completion
+// Batch -- parallel; callbacks on progress/completion
 $batch = Bus::batch([
     new ProcessRow(1), new ProcessRow(2),
 ])->then(fn(Batch $b) => Import::complete($b->id))
@@ -92,7 +92,7 @@ $batch = Bus::batch([
   ->dispatch();
 ```
 
-Inside a batchable job's `handle()`, always guard: `if ($this->batch()?->cancelled()) return;`
+Inside a batchable job's `handle()`, guard: `if ($this->batch()?->cancelled()) return;`
 
 Run `php artisan make:queue-batches-table && php artisan migrate` before using batches.
 
@@ -132,7 +132,7 @@ Run `php artisan make:queue-table && php artisan migrate` for database driver.
 
 ## Queue Priorities
 
-Workers process queues left-to-right — earlier = higher priority:
+Workers process queues left-to-right (earlier = higher priority):
 
 ```bash
 php artisan queue:work --queue=critical,high,default,low
@@ -154,7 +154,7 @@ php artisan migrate          # only needed for batch support, not Horizon itself
 ### config/horizon.php
 
 ```php
-'use'    => 'default',               // Redis connection — never name a connection 'horizon'
+'use'    => 'default',               // Redis connection -- never name a connection 'horizon'
 'prefix' => env('HORIZON_PREFIX', 'horizon:'),
 
 'waits' => [
@@ -208,7 +208,7 @@ php artisan migrate          # only needed for batch support, not Horizon itself
 php artisan horizon                           # Start (replaces queue:work in production)
 php artisan horizon:status                    # running / paused / inactive
 php artisan horizon:pause && horizon:continue # pause/resume all workers
-php artisan horizon:terminate                 # graceful shutdown — run before every deploy
+php artisan horizon:terminate                 # graceful shutdown -- run before every deploy
 php artisan horizon:snapshot                  # collect metrics (schedule every 5 min)
 php artisan horizon:forget {id}               # delete one failed job from dashboard
 php artisan horizon:forget --all              # delete all failed jobs from dashboard
@@ -245,7 +245,7 @@ Schedule::command('horizon:snapshot')->everyFiveMinutes();
 // config/horizon.php
 'silenced' => [App\Jobs\PollExternalApi::class],
 
-// Or on the job class itself:
+// Or on the job class:
 use Laravel\Horizon\Contracts\Silenced;
 class PollExternalApi implements ShouldQueue, Silenced { use Queueable; }
 ```
@@ -269,8 +269,8 @@ stopwaitsecs=3600
 sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl start horizon
 ```
 
-**`stopwaitsecs` must exceed your longest job duration** — otherwise Supervisor force-kills Horizon mid-job on restart.
-**Deploy sequence:** `horizon:terminate` → deploy code → Supervisor auto-restarts with new code.
+**`stopwaitsecs` must exceed longest job duration** -- Supervisor force-kills Horizon mid-job on restart otherwise.
+**Deploy sequence:** `horizon:terminate` -> deploy code -> Supervisor auto-restarts with new code.
 
 ## Failed Jobs (queue:* commands, not horizon:*)
 
@@ -283,21 +283,21 @@ php artisan queue:flush                    # delete all
 php artisan queue:prune-failed --hours=168 # prune jobs older than 7 days
 ```
 
-Fail a job from inside `handle()` immediately (skips remaining retries):
+Fail a job immediately from `handle()` (skips remaining retries):
 ```php
 $this->fail(new \RuntimeException('Unrecoverable error'));
 ```
 
-Disable failed job storage entirely (`config/queue.php`):
+Disable failed job storage (`config/queue.php`):
 ```php
 'failed' => ['driver' => 'null'],
 ```
 
 ## Multi-Tenant Queues (SaaS)
 
-**Rule: never serialize a tenant-scoped Eloquent model — pass IDs as scalars only.**
+**Rule: never serialize tenant-scoped Eloquent models. Pass IDs as scalars only.**
 
-### Pattern A — Manual context (no package)
+### Pattern A -- Manual context (no package)
 
 ```php
 class ProcessTenantOrder implements ShouldQueue
@@ -321,9 +321,9 @@ class ProcessTenantOrder implements ShouldQueue
 }
 ```
 
-### Pattern B — stancl/tenancy package
+### Pattern B -- stancl/tenancy
 
-`QueueTenancyBootstrapper` automatically carries tenant context from dispatch point. For jobs that must run in central context, use a dedicated connection:
+`QueueTenancyBootstrapper` carries tenant context from dispatch point automatically. For central-context jobs, use a dedicated connection:
 
 ```php
 // config/queue.php
@@ -336,7 +336,7 @@ class ProcessTenantOrder implements ShouldQueue
 
 Dispatch: `dispatch(new GenerateReport())->onConnection('central');`
 
-**Never mix central and tenant queue connections** — stale tenant state persists between jobs on the same worker.
+**Never mix central and tenant queue connections** -- stale tenant state persists between jobs on the same worker.
 
 ### Horizon Multi-Tenant: Separate supervisors per connection
 
@@ -412,7 +412,7 @@ class SendWelcomeEmail implements ShouldQueue
 }
 ```
 
-Register in EventServiceProvider normally — `ShouldQueue` makes it async automatically.
+Register in EventServiceProvider normally. `ShouldQueue` makes it async automatically.
 
 ## Critical Pitfalls
 

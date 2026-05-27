@@ -5,7 +5,7 @@ triggers: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr, 
 ---
 # GitHub
 
-GitHub specialist. Actions CI/CD para Laravel, gh CLI, Dependabot, branch protection, Environments, GHCR.
+GitHub specialist. Actions CI/CD for Laravel, gh CLI, Dependabot, branch protection, Environments, GHCR.
 
 ---
 
@@ -105,30 +105,30 @@ jobs:
         run: vendor/bin/pest --parallel
 ```
 
-**Regras criticas:**
-- `paths:` filter -- nao correr CI em changes de README/docs
-- `job.services.mysql.ports[3306]` -- porta dinamica, nunca hardcode `3306`
-- `needs: [quality]` -- testes so correm se Pint+PHPStan passam
-- `--test` no Pint -- exit code erro em violacoes (sem auto-fix)
-- `--memory-limit=1G` no PHPStan -- Laravel excede o default 128M
+**Critical rules:**
+- `paths:` filter -- skip CI on README/docs changes
+- `job.services.mysql.ports[3306]` -- dynamic port, never hardcode `3306`
+- `needs: [quality]` -- tests run only if Pint+PHPStan pass
+- `--test` on Pint -- exits with error on violations (no auto-fix)
+- `--memory-limit=1G` on PHPStan -- Laravel exceeds default 128M
 
 ---
 
-## Concurrency -- obrigatorio
+## Concurrency -- mandatory
 
 ```yaml
-# PRs -- cancelar runs stale
+# PRs -- cancel stale runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
-# Deploys producao -- NUNCA cancelar
+# Production deploys -- NEVER cancel
 concurrency:
   group: deploy-production
   cancel-in-progress: false
 ```
 
-Sem concurrency, cada push numa PR lanca run novo enquanto o anterior continua a correr.
+Without concurrency, each push on a PR launches a new run while the previous one keeps running.
 
 ---
 
@@ -137,18 +137,18 @@ Sem concurrency, cada push numa PR lanca run novo enquanto o anterior continua a
 ### Pull Requests
 ```bash
 gh pr create --title "feat: payment" --body "..." --base main --reviewer alice
-gh pr create --fill                    # usa commit messages como body
-gh pr view                             # PR da branch actual
-gh pr checkout 123                     # checkout PR local
+gh pr create --fill                    # uses commit messages as body
+gh pr view                             # PR for current branch
+gh pr checkout 123                     # checkout PR locally
 gh pr merge 123 --squash --delete-branch
-gh pr merge 123 --auto --squash        # auto-merge quando checks passam
+gh pr merge 123 --auto --squash        # auto-merge when checks pass
 gh pr list --author @me
 ```
 
 ### Issues
 ```bash
 gh issue create --title "Bug: login fails" --body "..." --label "bug"
-gh issue develop 42 --checkout          # cria branch e checkout
+gh issue develop 42 --checkout          # creates branch and checkout
 gh issue list --assignee @me
 gh issue close 42 --comment "Fixed in #123"
 ```
@@ -158,7 +158,7 @@ gh issue close 42 --comment "Fixed in #123"
 gh workflow run deploy.yml --ref main
 gh workflow run deploy.yml -f environment=staging -f version=1.2.3
 gh run list --workflow=ci.yml
-gh run watch --exit-status              # espera e sai com erro se falhar
+gh run watch --exit-status              # waits and exits with error on failure
 gh run view 12345678 --log
 gh run rerun 12345678 --failed-only
 ```
@@ -169,10 +169,10 @@ gh release create v1.2.3 --generate-notes
 gh release create v1.2.3 --notes-file CHANGELOG.md --title "v1.2.3"
 gh release create v2.0.0-beta.1 --prerelease
 gh release create v1.2.3 --draft --generate-notes
-gh release create v1.2.3 './dist/app.zip#App Bundle'  # upload com label
+gh release create v1.2.3 './dist/app.zip#App Bundle'  # upload with label
 ```
 
-### gh em workflows
+### gh in workflows
 ```yaml
 steps:
   - name: Comment on PR
@@ -257,7 +257,7 @@ jobs:
 /app/Services/Payment/      @security-lead @myorg/security
 ```
 
-Activar "Require review from Code Owners" no branch protection.
+Enable "Require review from Code Owners" in branch protection.
 
 ---
 
@@ -293,10 +293,10 @@ jobs:
       - run: ./deploy.sh production
 ```
 
-Configurar em Settings -> Environments:
-- Required reviewers (aprovacao manual antes de producao)
-- Deployment branches (so `main` para producao)
-- Environment secrets (separados dos repo secrets)
+Configure in Settings -> Environments:
+- Required reviewers (manual approval before production)
+- Deployment branches (only `main` for production)
+- Environment secrets (separate from repo secrets)
 
 ---
 
@@ -317,7 +317,7 @@ Configurar em Settings -> Environments:
     cache-to: type=gha,mode=max
 ```
 
-Dockerfile label obrigatorio para linking:
+Mandatory Dockerfile label for linking:
 ```dockerfile
 LABEL org.opencontainers.image.source="https://github.com/myorg/myrepo"
 ```
@@ -326,28 +326,28 @@ LABEL org.opencontainers.image.source="https://github.com/myorg/myrepo"
 
 ## Security
 
-### Permissions -- minimo privilegio
+### Permissions -- least privilege
 ```yaml
 permissions:
-  contents: read    # default restrictivo
+  contents: read    # restrictive default
 ```
-Escalar por job conforme necessario.
+Escalate per job as needed.
 
 ### Action pinning
 ```yaml
-# OK para actions/ oficiais
+# OK for official actions/
 - uses: actions/checkout@v4
 
-# Third-party: pin a SHA
+# Third-party: pin to SHA
 - uses: some-vendor/action@a4cc859cef29adcf8317e156194b6197f025e667
 ```
 
 ### Script injection prevention
 ```yaml
-# MAU: github context interpolado em shell
+# BAD: github context interpolated in shell
 - run: echo "Processing ${{ github.event.pull_request.title }}"
 
-# BOM: atribuir a env var
+# GOOD: assign to env var
 - env:
     PR_TITLE: ${{ github.event.pull_request.title }}
   run: echo "Processing $PR_TITLE"
@@ -364,11 +364,11 @@ steps:
       role-to-assume: ${{ vars.AWS_ROLE_ARN }}
       aws-region: eu-west-1
 ```
-Nunca guardar AWS/GCP/Azure keys como secrets -- usar OIDC.
+Never store AWS/GCP/Azure keys as secrets -- use OIDC.
 
 ---
 
-## Release automatica em tag push
+## Automatic release on tag push
 
 ```yaml
 # .github/workflows/release.yml
@@ -397,37 +397,37 @@ jobs:
 |----------|-----|
 | `::set-output` deprecated | `echo "name=value" >> $GITHUB_OUTPUT` |
 | DB_PORT hardcoded 3306 | `${{ job.services.mysql.ports[3306] }}` |
-| `cancel-in-progress: true` em deploy | So usar em test/lint jobs |
-| `fail-fast` default true em matrix | Adicionar `fail-fast: false` |
-| `pint` sem `--test` em CI | Sem `--test` faz auto-fix em vez de falhar |
+| `cancel-in-progress: true` on deploy | Use only in test/lint jobs |
+| `fail-fast` default true in matrix | Add `fail-fast: false` |
+| `pint` without `--test` in CI | Without `--test` it auto-fixes instead of failing |
 | PHPStan out of memory | `--memory-limit=1G` |
-| Environment secrets em reusable workflows | Nao propagam via `workflow_call` -- usar repo secrets |
-| Vendor/ cached com key errada | Key deve incluir `hashFiles('**/composer.lock')` |
+| Environment secrets in reusable workflows | Don't propagate via `workflow_call` -- use repo secrets |
+| Vendor/ cached with wrong key | Key must include `hashFiles('**/composer.lock')` |
 
 ---
 
-## Ficheiros standard
+## Standard files
 
 ```
 .github/
 ├── workflows/
-│   ├── ci.yml                     # CI principal
+│   ├── ci.yml                     # Main CI
 │   ├── dependabot-auto-merge.yml  # Auto-merge patch/minor
-│   └── release.yml                # Release em tag push
-├── dependabot.yml                 # Config Dependabot
-└── CODEOWNERS                     # Ownership por path
+│   └── release.yml                # Release on tag push
+├── dependabot.yml                 # Dependabot config
+└── CODEOWNERS                     # Ownership per path
 ```
 
 ---
 
-## Checklist novo projecto GitHub
+## New project checklist
 
-- [ ] CI workflow com Pint + PHPStan + Pest + MySQL service
-- [ ] Concurrency control em todos os workflows
-- [ ] `paths:` filter para evitar runs desnecessarios
-- [ ] Dependabot configurado (composer + npm + actions)
-- [ ] CODEOWNERS definido
-- [ ] Branch protection em `main`
-- [ ] Environments staging + production (se deploy automatico)
-- [ ] Permissions minimas por workflow
-- [ ] Secrets nunca em logs ou interpolados em shell
+- [ ] CI workflow with Pint + PHPStan + Pest + MySQL service
+- [ ] Concurrency control on all workflows
+- [ ] `paths:` filter to avoid unnecessary runs
+- [ ] Dependabot configured (composer + npm + actions)
+- [ ] CODEOWNERS defined
+- [ ] Branch protection on `main`
+- [ ] Environments staging + production (if auto-deploy)
+- [ ] Minimal permissions per workflow
+- [ ] Secrets never in logs or interpolated in shell

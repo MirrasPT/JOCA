@@ -6,18 +6,17 @@ allowed-tools: Read, Write, Bash, Glob, Grep
 
 # Lottie Animator - SVG to Motion Graphics
 
-Professional skill to create advanced Lottie animations from SVGs, eliminating the need for After Effects.
+Creates advanced Lottie animations from SVGs, replacing After Effects.
 
 ## When to Activate
 
-Activate this skill when the user requests:
+Activate when the user requests:
 - Animate a logo, icon, or SVG graphic
-- Create motion graphics or animations
-- Generate Lottie JSON files
+- Create motion graphics or Lottie JSON files
 - Effects: wiggle, bounce, rotate, pulse, fade, scale, morph
 - Entrance, loop, loading animations, or transitions
-- Path drawing/reveal animations (Trim Path)
-- Character animation, walking cycles
+- Trim Path (path drawing/reveal)
+- Character animation, walk cycles
 - Shape morphing (icon transitions)
 - Replace After Effects workflow
 
@@ -58,19 +57,19 @@ For C x1,y1 x2,y2 x,y from point (px, py):
 3. **Motion Metaphor**: Fluid like water, solid like rock, light like air
 
 ```
-Example: "Fintech Logo → professional + trust → precise and controlled movement"
+Example: "Fintech Logo → professional + trust → precise, controlled movement"
 Example: "Music App → creative + energy → organic with rhythmic pulses"
 Example: "Healthcare → calm + reliable → smooth, slow easings"
 ```
 
 ### Phase 2: SVG Deep Analysis
 
-Before animating, thoroughly analyze:
+Before animating, analyze:
 
 1. **Structure**: Elements, groups, paths, viewBox dimensions
 2. **Path Complexity**: Vertex count, curve types (C, Q, A commands)
-3. **Hierarchy**: Primary elements vs. secondary details
-4. **Animation Opportunities**: Independent parts, stroke-based vs fill-based
+3. **Hierarchy**: Primary vs. secondary elements
+4. **Animation Opportunities**: Independent parts, stroke vs. fill
 
 ```bash
 # Analyze SVG structure
@@ -78,10 +77,10 @@ cat icon.svg | grep -E '<(path|g|rect|circle|ellipse|line|polyline)' | head -30
 ```
 
 **Key Questions**:
-- Is it stroke-based? → Consider Trim Path animation
+- Stroke-based? → Consider Trim Path
 - Multiple paths? → Consider staggered entrance
-- Complex shape? → Consider scale/rotate instead of morph
-- Icon library (Phosphor/Lucide)? → Usually clean, minimal vertices
+- Complex shape? → Consider scale/rotate over morph
+- Icon library (Phosphor/Lucide)? → Clean, minimal vertices
 
 ### Phase 3: Animation Strategy Selection
 
@@ -95,7 +94,7 @@ cat icon.svg | grep -E '<(path|g|rect|circle|ellipse|line|polyline)' | head -30
 | Loader | Progress, spinners | Rotation + Trim Path |
 | **Frame-by-Frame** | Walk/run cycles, complex characters | ip/op layer switching |
 
-**Pro Tip**: For complex character animations (walk cycles, run cycles), use **Frame-by-Frame** technique instead of continuous animation. See [references/professional-techniques.md](references/professional-techniques.md)
+For complex character animations (walk/run cycles), use **Frame-by-Frame** over continuous animation. See [references/professional-techniques.md](references/professional-techniques.md)
 
 ### Phase 4: Create Lottie JSON
 
@@ -189,9 +188,9 @@ See: [references/shape-modifiers.md](references/shape-modifiers.md)
 
 See: [references/advanced-animation.md](references/advanced-animation.md) and [references/professional-techniques.md](references/professional-techniques.md)
 
-### Frame-by-Frame Animation (Professional Technique)
+### Frame-by-Frame Animation
 
-The most professional technique for complex character animations. Instead of continuous animation, create multiple "poses" that appear/disappear in sequence using `ip` (in point) and `op` (out point).
+The top technique for complex character animations. Creates multiple "poses" that appear/disappear in sequence using `ip` (in point) and `op` (out point).
 
 ```json
 {
@@ -203,17 +202,17 @@ The most professional technique for complex character animations. Instead of con
 }
 ```
 
-**Timing Formula**: `Total Frames = Poses × Frames_per_Pose` → `Duration = Total Frames / FPS`
+**Timing Formula**: `Total Frames = Poses x Frames_per_Pose` → `Duration = Total Frames / FPS`
 
 **When to Use**:
-- Walk/run cycles (each pose is a different leg position)
+- Walk/run cycles (each pose = different leg position)
 - Complex character animations with drastic shape changes
 - When morphing produces ugly results
-- Professional sprite-sheet style animations
+- Sprite-sheet style animations
 
 ### Layer Parenting (Bone Hierarchy)
 
-Use `parent` property to create hierarchies where moving one layer moves all children.
+The `parent` property creates hierarchies where moving one layer moves all children.
 
 ```json
 {
@@ -225,10 +224,10 @@ Use `parent` property to create hierarchies where moving one layer moves all chi
 }
 ```
 
-**Key Insight**: Child positions are **RELATIVE** to parent. Moving Shadow moves all children with it.
+**Key**: Child positions are **RELATIVE** to parent. Moving Shadow moves all children.
 
-**Professional Parent Strategies**:
-- **Shadow as Parent**: Move shadow → entire character moves (for walk cycles)
+**Parent Strategies**:
+- **Shadow as Parent**: Move shadow → entire character moves (walk cycles)
 - **Body as Parent**: Limbs and head follow body rotation
 - **Joint as Parent**: Upper arm controls forearm and hand rotation
 
@@ -371,10 +370,10 @@ Shadow (Parent for entire character)
 ## Icon Library Optimization
 
 ### Phosphor/Lucide Icons
-- **ViewBox**: Usually 256x256 (Phosphor) or 24x24 (Lucide)
+- **ViewBox**: 256x256 (Phosphor) or 24x24 (Lucide)
 - **Structure**: Clean paths, minimal vertices
 - **Strokes**: `stroke-linecap="round"` for Trim Path compatibility
-- **Scale**: Match your canvas to viewBox for 1:1
+- **Scale**: Match canvas to viewBox for 1:1
 
 ### Recommended Animation Approach
 
@@ -385,7 +384,7 @@ Shadow (Parent for entire character)
 
 ### Stroke + Fill Combination (Outline Style)
 
-For professional character animations, combine **stroke (contour) + fill (color)** in each shape:
+For character animations, combine **stroke (contour) + fill (color)** per shape:
 
 ```json
 {
@@ -405,7 +404,7 @@ For professional character animations, combine **stroke (contour) + fill (color)
 | `lc` (lineCap) | 1=Butt, 2=Round, 3=Square | Line end style |
 | `lj` (lineJoin) | 1=Miter, 2=Round, 3=Bevel | Corner style |
 
-**Professional Color Palette Example** (from Running Cat):
+**Color Palette Example** (Running Cat):
 ```json
 {
   "body_fill": [0.302, 0.604, 0.816, 1],
@@ -419,13 +418,13 @@ For professional character animations, combine **stroke (contour) + fill (color)
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| Non-looping | Last keyframe ≠ first value | Match start/end keyframe values |
+| Non-looping | Last keyframe != first value | Match start/end keyframe values |
 | Stiff movement | No easing curves | Add bezier `i`/`o` tangents |
 | Jerky animation | Keyframes too sparse | Add intermediate keyframes |
 | Morph glitches | Different vertex counts | Add/remove vertices to match |
 | Wrong rotation pivot | Incorrect anchor point | Set `a` to rotation center |
 | Path draws wrong direction | Path not reversed | Use `"d": 3` to reverse |
-| Ugly character animation | Trying to morph complex shapes | Use frame-by-frame instead |
+| Ugly character animation | Morphing complex shapes | Use frame-by-frame instead |
 
 ## Performance Guidelines
 

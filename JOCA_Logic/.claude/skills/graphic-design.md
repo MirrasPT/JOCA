@@ -6,13 +6,13 @@ triggers: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz, ca
 
 # Graphic Design
 
-Crias materiais gráficos impressos em HTML/CSS, com qualidade de impressão profissional. O HTML é o canvas — o PDF é a entrega.
+Print materials in HTML/CSS with professional press quality. HTML is the canvas, PDF is the deliverable.
 
-**Não és um web designer.** Quando fazes um roll-up, não pensas em scroll ou responsivo. Pensas em impacto visual a 3 metros de distância.
+**Not web design.** A roll-up targets visual impact at 3 metres, not scroll or responsiveness.
 
 ---
 
-## Formatos suportados
+## Supported Formats
 
 | Formato | Dimensões | Uso típico |
 |---------|-----------|------------|
@@ -31,31 +31,31 @@ Crias materiais gráficos impressos em HTML/CSS, com qualidade de impressão pro
 
 ## Workflow
 
-### Passo 1 · Clarify (1 ronda, tudo de uma vez)
+### Step 1 -- Clarify (1 round, all at once)
 
 ```
-Antes de começar:
-□ Formato? (roll-up / flyer / trifold / poster / outro)
-□ Tens brand guidelines / DESIGN.md do projecto?
-□ Conteúdo: trazes o texto todo, ou queres sugestão de estrutura?
-□ Destino de impressão: serviço online, gráfica local, impressão própria?
-□ Referências visuais? (URLs, ficheiros, marcas que admiras)
+Before starting:
+□ Format? (roll-up / flyer / trifold / poster / other)
+□ Brand guidelines / DESIGN.md available?
+□ Content: text ready, or need structure suggestion?
+□ Print destination: online service, local press, self-print?
+□ Visual references? (URLs, files, brands you admire)
 ```
 
-### Passo 2 · Design Philosophy
+### Step 2 -- Design Philosophy
 
-Para cada peça, definir a filosofia visual antes de qualquer código:
+Define the visual philosophy before writing code:
 
-**Nome do movimento** (1-2 palavras): ex "Editorial Tensão", "Brutalismo Elegante", "Respiração Zen"
+**Movement name** (1-2 words): e.g. "Editorial Tension", "Elegant Brutalism", "Zen Breathing"
 
-**3 parâmetros visuais:**
-1. **Espaço** — denso vs aerado? cheio vs vazio?
-2. **Temperatura de cor** — quente/frio/neutro? saturado/dessaturado?
-3. **Tipografia** — display agressivo vs serif clássico vs sans limpo?
+**3 visual parameters:**
+1. **Space** -- dense vs airy? full vs empty?
+2. **Colour temperature** -- warm/cool/neutral? saturated/muted?
+3. **Typography** -- aggressive display vs classic serif vs clean sans?
 
-A filosofia guia todas as decisões. Se uma escolha vai contra a filosofia → rever.
+The philosophy guides every decision. If a choice contradicts it, revise.
 
-**Exemplos de movimentos:**
+**Movement examples:**
 
 | Movimento | Expressao visual |
 |-----------|-----------------|
@@ -65,25 +65,25 @@ A filosofia guia todas as decisões. Se uma escolha vai contra a filosofia → r
 | Organic Systems | Formas arredondadas, arranjos organicos, cor da natureza via arquitectura. |
 | Geometric Silence | Precisao de grelha, fotografia bold, negativo dramatico. Swiss formalism meets brutalismo. |
 
-**Modo arte/poster artistico:**
-Para pecas artisticas (nao comerciais): tratar o output como arte de museu, nao material de marketing. Padroes repetidos, formas perfeitas, tipografia como elemento visual (nao informacao). Texto minimo — a composicao comunica. Cada alinhamento fruto de refinamento intencional.
+**Art/poster mode:**
+For artistic (non-commercial) pieces: treat output as museum art, not marketing. Repeated patterns, precise shapes, typography as visual element (not information). Minimal text -- composition communicates. Every alignment is intentional refinement.
 
-### Passo 3 · Brand Assets (se marca envolvida)
+### Step 3 -- Brand Assets (if brand involved)
 
-Ler `DESIGN.md` se existir. Se não:
-1. Pedir logo (SVG ou PNG de alta resolução ≥300dpi)
-2. Confirmar cores de marca (hex → OKLCH)
-3. Confirmar tipografia de marca
+Read `DESIGN.md` if present. Otherwise:
+1. Request logo (SVG or high-res PNG >= 300dpi)
+2. Confirm brand colours (hex -> OKLCH)
+3. Confirm brand typography
 
-**Regra de resolução para print:**
-- Imagens raster: mínimo 300dpi no tamanho final de impressão
-- Ex: imagem 10×10cm a 300dpi = 1181×1181px mínimo
+**Print resolution rule:**
+- Raster images: minimum 300dpi at final print size
+- Example: 10x10cm image at 300dpi = 1181x1181px minimum
 
-### Passo 4 · Build
+### Step 4 -- Build
 
-Construir em HTML/CSS com dimensões reais em mm/cm usando `@page` e escala para preview.
+Build in HTML/CSS with real dimensions in mm/cm using `@page` and scale for preview.
 
-### Passo 5 · Export PDF
+### Step 5 -- Export PDF
 
 ```bash
 # Via Playwright
@@ -95,9 +95,9 @@ node export-print.mjs design.html output.pdf --format A4
 
 ---
 
-## HTML/CSS para Print
+## HTML/CSS for Print
 
-### Template base
+### Base template
 
 ```html
 <!DOCTYPE html>
@@ -185,11 +185,11 @@ node export-print.mjs design.html output.pdf --format A4
 
 ---
 
-## Templates por formato
+## Format Templates
 
-### Roll-Up (85×200cm)
+### Roll-Up (85x200cm)
 
-**Estrutura típica (de baixo para cima):**
+**Typical structure (bottom to top):**
 ```
 ┌──────────────────────┐ ← Topo (logo, tagline)
 │    LOGO (topo)       │
@@ -211,12 +211,12 @@ node export-print.mjs design.html output.pdf --format A4
 └──────────────────────┘ ← Base (cor de fundo ou gradient)
 ```
 
-**Regras de visibilidade para roll-up:**
-- Texto principal ≥72pt (legível a 3 metros)
-- Contraste mínimo 4.5:1 texto/fundo
-- Máx 40 palavras no total
-- 1 mensagem principal — não uma lista de funcionalidades
-- Logo no topo E no rodapé (redundância intencional)
+**Roll-up visibility rules:**
+- Main text >= 72pt (readable at 3 metres)
+- Minimum contrast 4.5:1 text/background
+- Max 40 words total
+- 1 core message, not a feature list
+- Logo at top AND bottom (intentional redundancy)
 
 ### Flyer A5/A4
 
@@ -239,7 +239,7 @@ node export-print.mjs design.html output.pdf --format A4
 
 ### Trifold A4
 
-Dobras dividem em 3 painéis de 210×297mm cada (dobrado = 3 painéis visíveis):
+Three panels of 210x297mm each (folded = 3 visible panels):
 
 ```
 FRENTE (aberto):
@@ -255,23 +255,23 @@ TRÁS (dobrado):
 └──────────────────────────────────┘
 ```
 
-**Painel 1 = Capa** — headline + visual forte, sem informação densa
-**Painel 6 = Back** — contactos, QR code, CTA final
-**Painéis 2-5 = Interior** — conteúdo, serviços, benefícios
+**Panel 1 = Cover** -- headline + strong visual, no dense info
+**Panel 6 = Back** -- contacts, QR code, final CTA
+**Panels 2-5 = Interior** -- content, services, benefits
 
 ---
 
-## Princípios de design gráfico
+## Graphic Design Principles
 
-### Regras de composição
+### Composition Rules
 
-1. **Hierarquia visual** — o olhar segue: maior → mais contrastado → mais colorido. Garantir que o mais importante é o mais dominante.
-2. **Espaço negativo** — breathing room não é espaço vazio, é design. Especialmente em formatos premium.
-3. **Alinhamento** — só 2 alinhamentos por peça (ex: esquerda + centro). Misturar 3+ = caos visual.
-4. **Repetição** — elementos repetidos (cor, forma, estilo) criam coesão. Mínimo 1 elemento repetido.
-5. **Contraste** — sem contraste não há hierarquia. Usar escala, cor, peso, ou espaço.
+1. **Visual hierarchy** -- eye follows: largest -> highest contrast -> most colourful. The most important element must dominate.
+2. **Negative space** -- breathing room is design, not emptiness. Essential for premium formats.
+3. **Alignment** -- max 2 alignments per piece (e.g. left + centre). 3+ = visual chaos.
+4. **Repetition** -- repeated elements (colour, shape, style) create cohesion. Minimum 1 repeated element.
+5. **Contrast** -- no contrast = no hierarchy. Use scale, colour, weight, or space.
 
-### Anti-slop para print
+### Anti-slop for Print
 
 | Evitar | Porquê |
 |--------|--------|
@@ -283,18 +283,18 @@ TRÁS (dobrado):
 | Imagens raster < 300dpi | Pixelado em print |
 | Texto muito pequeno (< 7pt) | Ilegível impresso |
 
-### Typography para print
+### Print Typography
 
-- **Display/Headline**: serifas clássicas (Playfair Display, Cormorant, EB Garamond) ou sans-serif bold forte (Neue Haas, Aktiv Grotesk)
-- **Body**: nunca menos de 10pt em impressão, linha máxima 65 caracteres
-- **Contraste**: bold/regular (não medium/regular — diferença insuficiente para print)
-- **EVITAR**: fontes Web light/ultralight (desaparecem em impressão pequena)
+- **Display/Headline**: classic serifs (Playfair Display, Cormorant, EB Garamond) or strong bold sans (Neue Haas, Aktiv Grotesk)
+- **Body**: never below 10pt in print, max 65 characters per line
+- **Contrast**: bold/regular (not medium/regular -- insufficient difference for print)
+- **Avoid**: light/ultralight web fonts (vanish at small print sizes)
 
 ---
 
-## Export para PDF
+## PDF Export
 
-### Via Playwright (recomendado)
+### Via Playwright (recommended)
 
 ```js
 // export-print.mjs
@@ -334,19 +334,19 @@ console.log("PDF exportado: design.pdf");
 }
 ```
 
-### Instruções de exportação para gráfica
+### Press Export Instructions
 
-Incluir no PDF output:
-- Dimensões exactas em mm (ex: "85mm × 200mm finais + 3mm bleed = 91mm × 206mm")
-- Perfil de cor: sRGB (para gráficas digitais) ou converter para CMYK manualmente
-- Resolução: ≥300dpi para imagens raster
-- Fontes embebidas (garantir que @font-face usa formato correcto)
+Include in PDF output:
+- Exact dimensions in mm (e.g. "85mm x 200mm final + 3mm bleed = 91mm x 206mm")
+- Colour profile: sRGB (digital press) or manual CMYK conversion
+- Resolution: >= 300dpi for raster images
+- Embedded fonts (ensure @font-face uses correct format)
 
 ---
 
-## Integração com brand-guidelines
+## Brand-guidelines Integration
 
-Se existir `DESIGN.md`:
+If `DESIGN.md` exists:
 ```
 1. Ler logo paths → usar nos assets
 2. Ler --color-primary, --color-secondary → aplicar no design
@@ -354,18 +354,18 @@ Se existir `DESIGN.md`:
 4. Ler anti-references → confirmar que o design não se parece com estas
 ```
 
-Se não existir `DESIGN.md` → correr brand-guidelines skill primeiro, ou pedir assets ao utilizador.
+If no `DESIGN.md`, run brand-guidelines skill first or request assets from user.
 
 ---
 
-## Checklist antes de entregar
+## Pre-delivery Checklist
 
-- [ ] Dimensões correctas em mm/cm
-- [ ] Safe zone de 5mm respeitada
-- [ ] Contraste texto/fundo ≥4.5:1
-- [ ] Fontes ≥7pt em print (≥10pt para body)
-- [ ] Imagens ≥300dpi (ou SVG)
-- [ ] Logo em SVG ou PNG ≥600px
-- [ ] PDF exportado + validado no browser
-- [ ] Máx 3 fontes no total
-- [ ] Hierarquia visual clara (1 elemento dominante)
+- [ ] Correct dimensions in mm/cm
+- [ ] 5mm safe zone respected
+- [ ] Text/background contrast >= 4.5:1
+- [ ] Fonts >= 7pt in print (>= 10pt for body)
+- [ ] Images >= 300dpi (or SVG)
+- [ ] Logo in SVG or PNG >= 600px
+- [ ] PDF exported + validated in browser
+- [ ] Max 3 fonts total
+- [ ] Clear visual hierarchy (1 dominant element)

@@ -6,13 +6,13 @@ triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versio
 
 # REST API
 
-Design de APIs REST. URLs resource-oriented, RFC 9457 errors, versioning com Sunset, pagination eficiente.
+REST API design. Resource-oriented URLs, RFC 9457 errors, Sunset versioning, efficient pagination.
 
-Invocada autonomamente pela skill `laravel-specialist` quando preciso desenhar endpoints ou definir contratos.
+Auto-invoked by `laravel-specialist` for endpoint design or contract definition.
 
 ---
 
-## URL design -- recursos, nao verbos
+## URL design -- resources, not verbs
 
 ```
 GET    /api/v1/team-members          # listar
@@ -31,11 +31,11 @@ POST   /api/v1/orders/{id}/cancellation      # nao /cancelOrder
 POST   /api/v1/users/{id}/email-verification  # nao /verifyEmail
 ```
 
-**Convencoes:** plural, kebab-case, `/v1/` desde o dia 1.
+**Convencoes:** plural, kebab-case, `/v1/` from day 1.
 
 ---
 
-## Status codes -- constantes Symfony
+## Status codes -- Symfony constants
 
 ```php
 Response::HTTP_OK                    // 200 GET sucesso
@@ -51,7 +51,7 @@ Response::HTTP_TOO_MANY_REQUESTS     // 429 rate limit
 Response::HTTP_INTERNAL_SERVER_ERROR // 500 erro inesperado
 ```
 
-Nunca usar inteiros bare (422). Sempre `Response::HTTP_*`.
+Never bare integers (422). Always `Response::HTTP_*`.
 
 ---
 
@@ -69,12 +69,12 @@ Nunca usar inteiros bare (422). Sempre `Response::HTTP_*`.
 }
 ```
 
-- Content-Type: `application/problem+json` (nao `application/json`)
-- `type` e URI estavel e documentada
-- `detail` e human-readable e actionable
-- `errors` para validacao field-level
+- Content-Type: `application/problem+json` (not `application/json`)
+- `type` = stable, documented URI
+- `detail` = human-readable, actionable
+- `errors` for field-level validation
 
-### ForceJsonResponse middleware -- PRIMEIRO na stack
+### ForceJsonResponse middleware -- FIRST in stack
 ```php
 final class ForceJsonResponse
 {
@@ -85,7 +85,7 @@ final class ForceJsonResponse
     }
 }
 ```
-Garante que exceptions nunca retornam HTML na API.
+Prevents HTML error responses in API routes.
 
 ---
 
@@ -102,14 +102,13 @@ Route::prefix('v2/posts')
     ->group(function (): void { ... });
 ```
 
-Regras:
-- Maximo 2 versoes activas (actual + anterior)
-- Minimo 6 meses de deprecation notice
-- Sunset header (RFC 8594) em rotas deprecated
+- Max 2 active versions (current + previous)
+- Min 6 months deprecation notice
+- Sunset header (RFC 8594) on deprecated routes
 
 ---
 
-## Pagination -- simplePaginate sempre
+## Pagination -- simplePaginate always
 
 ```php
 // simplePaginate(): sem COUNT(*), mais eficiente
@@ -130,14 +129,14 @@ $posts = Post::query()->simplePaginate(20);
 }
 ```
 
-Cursor pagination para datasets grandes:
+Cursor pagination for large datasets:
 ```php
 $posts = Post::query()->cursorPaginate(20);
 ```
 
 ---
 
-## Filtering e sorting
+## Filtering and sorting
 
 ```
 GET /api/v1/products?status=active&sort=-created_at
@@ -162,9 +161,9 @@ Retry-After: 60       # incluido na resposta 429
 ```
 
 Tiers:
-- Anonimo: 30/min
-- Autenticado: 100/min
-- Redis-backed (nunca in-memory per-process)
+- Anonymous: 30/min
+- Authenticated: 100/min
+- Redis-backed (never in-memory per-process)
 
 ---
 
@@ -172,7 +171,7 @@ Tiers:
 ```
 Authorization: Bearer <token>
 ```
-Sanctum stateless tokens para APIs. Nunca session-based para APIs puras.
+Sanctum stateless tokens for APIs. Never session-based for pure APIs.
 
 ## CORS
 ```php
@@ -200,33 +199,33 @@ Sanctum stateless tokens para APIs. Nunca session-based para APIs puras.
 
 ---
 
-## OpenAPI 3.1 -- spec obrigatoria
+## OpenAPI 3.1 -- mandatory spec
 
-Cada API deve ter spec OpenAPI:
-- Todos os endpoints documentados
-- Schemas de erro RFC 9457 incluidos
-- `operationId` em cada operacao
-- Exemplos de request/response
-- Validar com: `npx @redocly/cli lint openapi.yaml`
+Every API needs an OpenAPI spec:
+- All endpoints documented
+- RFC 9457 error schemas included
+- `operationId` on each operation
+- Request/response examples
+- Validate: `npx @redocly/cli lint openapi.yaml`
 
 ---
 
-## Checklist pre-deploy
+## Pre-deploy checklist
 
-- [ ] URLs: plural, kebab-case, sem verbos
-- [ ] HTTP verbs correctos (PUT = full replace, PATCH = partial)
-- [ ] Status codes via constantes Symfony
-- [ ] RFC 9457 errors com `application/problem+json`
-- [ ] `ForceJsonResponse` como primeiro middleware
-- [ ] `throttle:api` em todos os route groups
-- [ ] `simplePaginate()` em todas as listas
-- [ ] ULIDs em modelos API-exposed
-- [ ] CORS com origens explicitas em producao
-- [ ] `/v1/` prefix desde dia 1
-- [ ] OpenAPI spec validada
-- [ ] Auth middleware em rotas protegidas
+- [ ] URLs: plural, kebab-case, no verbs
+- [ ] Correct HTTP verbs (PUT = full replace, PATCH = partial)
+- [ ] Status codes via Symfony constants
+- [ ] RFC 9457 errors with `application/problem+json`
+- [ ] `ForceJsonResponse` as first middleware
+- [ ] `throttle:api` on all route groups
+- [ ] `simplePaginate()` on all list endpoints
+- [ ] ULIDs on API-exposed models
+- [ ] CORS with explicit origins in production
+- [ ] `/v1/` prefix from day 1
+- [ ] OpenAPI spec validated
+- [ ] Auth middleware on protected routes
 
 ---
 
 ## Quality gate
-Apos implementar rate limiting: "Queres `tester-ratelimit`?" -- testa threshold, bypass headers, path manipulation, config.
+After implementing rate limiting: "Run `tester-ratelimit`?" -- tests threshold, bypass headers, path manipulation, config.

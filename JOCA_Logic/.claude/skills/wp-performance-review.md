@@ -3,7 +3,7 @@ name: wp-performance-review
 description: "WordPress performance code review and optimization analysis. MUST be invoked when the user says: performance review, optimization audit, slow WordPress, slow queries, high-traffic, scale WordPress."
 ---
 
-# WordPress Performance Review Skill
+# WordPress Performance Review
 
 ## Overview
 
@@ -18,89 +18,80 @@ Systematic performance code review for WordPress themes, plugins, and custom cod
 - Optimizing WP_Query or database operations
 - Investigating memory exhaustion or DB locks
 
-**Don't use for:**
-- Security-only audits (use wp-security-review when available)
-- Gutenberg block development patterns (use wp-gutenberg-blocks when available)
-- General PHP code review not specific to WordPress
+**Skip for:**
+- Security-only audits (use wp-security-review)
+- Gutenberg block patterns (use wp-gutenberg-blocks)
+- General PHP code review not WordPress-specific
 
-> **Profiling a live/slow site?** Use `wp-performance` instead — it covers WP-CLI profiling, Query Monitor headless, Server-Timing, and runtime diagnosis without a browser.
+> **Profiling a live/slow site?** Use `wp-performance` instead -- covers WP-CLI profiling, Query Monitor headless, Server-Timing, and runtime diagnosis without a browser.
 
 ## Code Review Workflow
 
-1. **Identify file type** and apply relevant checks below
-2. **Scan for critical patterns first** (OOM, unbounded queries, cache bypass)
+1. **Identify file type** and apply relevant checks
+2. **Scan critical patterns first** (OOM, unbounded queries, cache bypass)
 3. **Check warnings** (inefficient but not catastrophic)
-4. **Note optimizations** (nice-to-have improvements)
+4. **Note optimizations** (nice-to-have)
 5. **Report with line numbers** using output format below
 
-## File-Type Specific Checks
+## File-Type Checks
 
-### Plugin/Theme PHP Files (`functions.php`, `plugin.php`, `*.php`)
-Scan for:
-- `query_posts()` → CRITICAL: Never use - breaks main query
-- `posts_per_page.*-1` or `numberposts.*-1` → CRITICAL: Unbounded query
-- `session_start()` → CRITICAL: Bypasses page cache
-- `add_action.*init.*` or `add_action.*wp_loaded` → Check if expensive code runs every request
-- `update_option` or `add_option` in non-admin context → WARNING: DB writes on page load
-- `wp_remote_get` or `wp_remote_post` without caching → WARNING: Blocking HTTP
+### Plugin/Theme PHP (`functions.php`, `plugin.php`, `*.php`)
+- `query_posts()` -- CRITICAL: breaks main query
+- `posts_per_page.*-1` or `numberposts.*-1` -- CRITICAL: unbounded query
+- `session_start()` -- CRITICAL: bypasses page cache
+- `add_action.*init.*` or `add_action.*wp_loaded` -- check if expensive code runs every request
+- `update_option` or `add_option` in non-admin context -- WARNING: DB writes on page load
+- `wp_remote_get` or `wp_remote_post` without caching -- WARNING: blocking HTTP
 
 ### WP_Query / Database Code
-Scan for:
-- Missing `posts_per_page` argument → WARNING: Defaults to blog setting
-- `'meta_query'` with `'value'` comparisons → WARNING: Unindexed column scan
-- `post__not_in` with large arrays → WARNING: Slow exclusion
-- `LIKE '%term%'` (leading wildcard) → WARNING: Full table scan
-- Missing `no_found_rows => true` when not paginating → INFO: Unnecessary count
+- Missing `posts_per_page` -- WARNING: defaults to blog setting
+- `'meta_query'` with `'value'` comparisons -- WARNING: unindexed column scan
+- `post__not_in` with large arrays -- WARNING: slow exclusion
+- `LIKE '%term%'` (leading wildcard) -- WARNING: full table scan
+- Missing `no_found_rows => true` when not paginating -- INFO: unnecessary count
 
 ### AJAX Handlers (`wp_ajax_*`, REST endpoints)
-Scan for:
-- `admin-ajax.php` usage → INFO: Consider REST API instead
-- POST method for read operations → WARNING: Bypasses cache
-- `setInterval` or polling patterns → CRITICAL: Self-DDoS risk
-- Missing nonce verification → Security issue (not performance, but flag it)
+- `admin-ajax.php` usage -- INFO: consider REST API
+- POST for read operations -- WARNING: bypasses cache
+- `setInterval` or polling patterns -- CRITICAL: self-DDoS risk
+- Missing nonce verification -- security issue (flag it)
 
 ### Template Files (`*.php` in theme)
-Scan for:
-- `get_template_part` in loops → WARNING: Consider caching output
-- Database queries inside loops (N+1) → CRITICAL: Query multiplication
-- `wp_remote_get` in templates → WARNING: Blocks rendering
+- `get_template_part` in loops -- WARNING: consider caching output
+- Database queries in loops (N+1) -- CRITICAL: query multiplication
+- `wp_remote_get` in templates -- WARNING: blocks rendering
 
 ### JavaScript Files
-Scan for:
-- `$.post(` for read operations → WARNING: Use GET for cacheability
-- `setInterval.*fetch\|ajax` → CRITICAL: Polling pattern
-- `import _ from 'lodash'` → WARNING: Full library import bloats bundle
-- Inline `<script>` making AJAX calls on load → Check necessity
+- `$.post(` for reads -- WARNING: use GET for cacheability
+- `setInterval.*fetch|ajax` -- CRITICAL: polling pattern
+- `import _ from 'lodash'` -- WARNING: full library bloats bundle
+- Inline `<script>` making AJAX calls on load -- check necessity
 
-### Block Editor / Gutenberg Files (`block.json`, `*.js` in blocks/)
-Scan for:
-- Many `registerBlockStyle()` calls → WARNING: Each creates preview iframe
-- `wp_kses_post($content)` in render callbacks → WARNING: Breaks InnerBlocks
-- Static blocks without `render_callback` → INFO: Consider dynamic for maintainability
+### Block Editor / Gutenberg (`block.json`, `*.js` in blocks/)
+- Many `registerBlockStyle()` calls -- WARNING: each creates preview iframe
+- `wp_kses_post($content)` in render callbacks -- WARNING: breaks InnerBlocks
+- Static blocks without `render_callback` -- INFO: consider dynamic for maintainability
 
 ### Asset Registration (`functions.php`, `*.php`)
-Scan for:
-- `wp_enqueue_script` without version → INFO: Cache busting issues
-- `wp_enqueue_script` without `defer`/`async` strategy → INFO: Blocks rendering
-- Missing `THEME_VERSION` constant → INFO: Version management
-- `wp_enqueue_script` without conditional check → WARNING: Assets load globally when only needed on specific pages
+- `wp_enqueue_script` without version -- INFO: cache busting issues
+- `wp_enqueue_script` without `defer`/`async` strategy -- INFO: blocks rendering
+- Missing `THEME_VERSION` constant -- INFO: version management
+- `wp_enqueue_script` without conditional check -- WARNING: assets load globally when only needed on specific pages
 
 ### Transients & Options
-Scan for:
-- `set_transient` with dynamic keys (e.g., `user_{$id}`) → WARNING: Table bloat without object cache
-- `set_transient` for frequently-changing data → WARNING: Defeats caching purpose
-- Large data in transients on shared hosting → WARNING: DB bloat without object cache
+- `set_transient` with dynamic keys (e.g., `user_{$id}`) -- WARNING: table bloat without object cache
+- `set_transient` for frequently-changing data -- WARNING: defeats caching purpose
+- Large transient data on shared hosting -- WARNING: DB bloat without object cache
 
 ### WP-Cron
-Scan for:
-- Missing `DISABLE_WP_CRON` constant → INFO: Cron runs on page requests
-- Long-running cron callbacks (loops over all users/posts) → CRITICAL: Blocks cron queue
-- `wp_schedule_event` without checking if already scheduled → WARNING: Duplicate schedules
+- Missing `DISABLE_WP_CRON` -- INFO: cron runs on page requests
+- Long-running cron callbacks (loops over all users/posts) -- CRITICAL: blocks cron queue
+- `wp_schedule_event` without checking existing schedule -- WARNING: duplicates
 
-## Search Patterns for Quick Detection
+## Quick Detection Patterns
 
 ```bash
-# Critical issues - scan these first
+# Critical issues - scan first
 grep -rn "posts_per_page.*-1\|numberposts.*-1" .
 grep -rn "query_posts\s*(" .
 grep -rn "session_start\s*(" .
@@ -118,7 +109,7 @@ grep -rn "wp_remote_get\|wp_remote_post\|file_get_contents.*http" .
 # Cache bypass risks
 grep -rn "setcookie\|session_start" .
 
-# PHP code anti-patterns
+# PHP anti-patterns
 grep -rn "in_array\s*(" . | grep -v "true\s*)" # Missing strict comparison
 grep -rn "<<<" .  # Heredoc/nowdoc syntax
 grep -rn "cache_results.*false" .
@@ -140,24 +131,22 @@ grep -rn "wp_schedule_event" . | grep -v "wp_next_scheduled"  # Missing schedule
 
 ## Platform Context
 
-Different hosting environments require different approaches:
-
-**Managed WordPress Hosts** (WP Engine, Pantheon, Pressable, WordPress VIP, etc.):
+**Managed WP Hosts** (WP Engine, Pantheon, Pressable, WordPress VIP):
 - Often provide object caching out of the box
-- May have platform-specific helper functions (e.g., `wpcom_vip_*` on VIP)
-- Check host documentation for recommended patterns
+- May have platform-specific helpers (e.g., `wpcom_vip_*` on VIP)
+- Check host docs for recommended patterns
 
-**Self-Hosted / Standard Hosting**:
-- Implement object caching wrappers manually for expensive functions
-- Consider Redis or Memcached plugins for persistent object cache
-- More responsibility for caching layer configuration
+**Self-Hosted / Standard**:
+- Implement object caching wrappers manually
+- Consider Redis or Memcached for persistent object cache
+- More responsibility for caching layer config
 
 **Shared Hosting**:
-- Be extra cautious about unbounded queries and external HTTP
-- Limited resources mean performance issues surface faster
+- Extra caution with unbounded queries and external HTTP
+- Limited resources surface performance issues faster
 - May lack persistent object cache entirely
 
-## Quick Reference: Critical Anti-Patterns
+## Anti-Pattern Reference
 
 ### Database Queries
 ```php
@@ -451,7 +440,7 @@ echo $response['body']; // Check is_wp_error() first!
 // Better: Presence of 'is_featured' key = true, absence = false.
 ```
 
-**For deeper context on any pattern:** Load `references/anti-patterns.md`
+**Deeper context on any pattern:** Load `references/anti-patterns.md`
 
 ## Severity Definitions
 
@@ -462,8 +451,6 @@ echo $response['body']; // Check is_wp_error() first!
 | **Info** | Optimization opportunity |
 
 ## Output Format
-
-Structure findings as:
 
 ```markdown
 ## Performance Review: [filename/component]
@@ -482,27 +469,23 @@ Structure findings as:
 - Estimated impact: [High/Medium/Low]
 ```
 
-## Common Mistakes
+## Common Review Mistakes
 
-When performing performance reviews, avoid these errors:
-
-| Mistake | Why It's Wrong | Fix |
-|---------|----------------|-----|
-| Flagging `posts_per_page => -1` in admin-only code | Admin queries don't face public scale | Check context - admin, CLI, cron are lower risk |
-| Missing the `session_start()` buried in a plugin | Cache bypass affects entire site | Always grep for `session_start` across all code |
+| Mistake | Why Wrong | Fix |
+|---------|-----------|-----|
+| Flagging `posts_per_page => -1` in admin-only code | Admin queries don't face public scale | Check context -- admin, CLI, cron are lower risk |
+| Missing `session_start()` buried in a plugin | Cache bypass affects entire site | Always grep for `session_start` across all code |
 | Ignoring `no_found_rows` for non-paginated queries | Small optimization but adds up | Flag as INFO, not WARNING |
 | Recommending object cache on shared hosting | Many shared hosts lack persistent cache | Check hosting environment first |
 | Only reviewing PHP, missing JS polling | JS `setInterval` + fetch = self-DDoS | Review `.js` files for polling patterns |
 
 ## Deep-Dive References
 
-Load these references based on the task:
-
-| Task | Reference to Load |
-|------|-------------------|
-| Reviewing PHP code for issues | `references/anti-patterns.md` |
-| Optimizing WP_Query calls | `references/wp-query-guide.md` |
+| Task | Reference |
+|------|-----------|
+| Reviewing PHP code | `references/anti-patterns.md` |
+| Optimizing WP_Query | `references/wp-query-guide.md` |
 | Implementing caching | `references/caching-guide.md` |
 | High-traffic event prep | `references/measurement-guide.md` |
 
-**Note**: For standard code reviews, `anti-patterns.md` contains all patterns needed. Other references provide deeper context when specifically optimizing queries, implementing caching strategies, or preparing for traffic events.
+**Note**: For standard reviews, `anti-patterns.md` covers all patterns. Other references provide deeper context for specific optimization, caching, or traffic event scenarios.

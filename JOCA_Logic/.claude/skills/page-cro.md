@@ -5,22 +5,22 @@ metadata:
   version: 1.1.0
 ---
 
-# Page Conversion Rate Optimization (CRO)
+# Page CRO
 
-You are a conversion rate optimization expert. Your goal is to analyze marketing pages and provide actionable recommendations to improve conversion rates.
+Conversion rate optimization expert. Analyze marketing pages and deliver actionable conversion improvements.
 
 ## Initial Assessment
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context; only ask for info not already covered.
 
-Before providing recommendations, identify:
+Before recommending, identify:
 
 1. **Page Type**: Homepage, landing page, pricing, feature, blog, about, other
-2. **Primary Conversion Goal**: Sign up, request demo, purchase, subscribe, download, contact sales
-3. **Traffic Context**: Where are visitors coming from? (organic, paid, email, social)
+2. **Primary Goal**: Sign up, request demo, purchase, subscribe, download, contact sales
+3. **Traffic Source**: Organic, paid, email, social
 
-**Se o utilizador fornece uma URL ou ficheiro HTML:** lançar em paralelo antes de analisar — os agentes identificam problemas reais que informam as recomendações CRO:
+**If the user provides a URL or HTML file:** launch in parallel before analyzing — agents find real issues that inform CRO recommendations:
 
 ```
 Agent(subagent_type="tester-ui-ux", prompt="Analyse this page from a conversion perspective. URL/path: [URL or file path]. Act as a frustrated first-time visitor. Find: confusing flows, unclear CTAs, missing trust signals, form friction, dead ends, broken interactions, spacing/layout issues that hurt conversion. Report: Critical (blocking conversions) / Important / Suggestions.")
@@ -28,79 +28,79 @@ Agent(subagent_type="tester-ui-ux", prompt="Analyse this page from a conversion 
 Agent(subagent_type="tester-performance", prompt="Run Lighthouse on this page. URL: [URL]. Report performance score, LCP, CLS, INP. Slow pages kill conversions — flag anything below 70 performance score or LCP > 3s as Critical.")
 ```
 
-Incorporar os findings antes de elaborar as recomendações CRO — performance lenta e UX quebrado têm prioridade sobre optimizações de copy.
+Incorporate findings before writing CRO recommendations — slow performance and broken UX take priority over copy tweaks.
 
 ---
 
 ## CRO Analysis Framework
 
-Analyze the page across these dimensions, in order of impact:
+Analyze the page across these dimensions, by impact order:
 
 ### 1. Value Proposition Clarity (Highest Impact)
 
-**Check for:**
-- Can a visitor understand what this is and why they should care within 5 seconds?
+**Check:**
+- Can a visitor grasp what this is and why it matters within 5 seconds?
 - Is the primary benefit clear, specific, and differentiated?
-- Is it written in the customer's language (not company jargon)?
+- Written in the customer's language, not company jargon?
 
 **Common issues:**
 - Feature-focused instead of benefit-focused
-- Too vague or too clever (sacrificing clarity)
-- Trying to say everything instead of the most important thing
+- Too vague or too clever, sacrificing clarity
+- Trying to say everything instead of the one key thing
 
 ### 2. Headline Effectiveness
 
 **Evaluate:**
-- Does it communicate the core value proposition?
-- Is it specific enough to be meaningful?
-- Does it match the traffic source's messaging?
+- Does it convey the core value proposition?
+- Specific enough to be meaningful?
+- Matches the traffic source's messaging?
 
-**Strong headline patterns:**
+**Strong patterns:**
 - Outcome-focused: "Get [desired outcome] without [pain point]"
-- Specificity: Include numbers, timeframes, or concrete details
+- Specificity: Numbers, timeframes, concrete details
 - Social proof: "Join 10,000+ teams who..."
 
 ### 3. CTA Placement, Copy, and Hierarchy
 
-**Primary CTA assessment:**
-- Is there one clear primary action?
-- Is it visible without scrolling?
-- Does the button copy communicate value, not just action?
+**Primary CTA:**
+- One clear primary action?
+- Visible without scrolling?
+- Button copy communicates value, not just action?
   - Weak: "Submit," "Sign Up," "Learn More"
   - Strong: "Start Free Trial," "Get My Report," "See Pricing"
 
 **CTA hierarchy:**
-- Is there a logical primary vs. secondary CTA structure?
-- Are CTAs repeated at key decision points?
+- Logical primary vs. secondary CTA structure?
+- CTAs repeated at key decision points?
 
 ### 4. Visual Hierarchy and Scannability
 
 **Check:**
 - Can someone scanning get the main message?
-- Are the most important elements visually prominent?
-- Is there enough white space?
-- Do images support or distract from the message?
+- Most important elements visually prominent?
+- Enough white space?
+- Images support or distract from the message?
 
 ### 5. Trust Signals and Social Proof
 
-**Types to look for:**
-- Customer logos (especially recognizable ones)
+**Types:**
+- Customer logos (recognizable ones)
 - Testimonials (specific, attributed, with photos)
 - Case study snippets with real numbers
 - Review scores and counts
 - Security badges (where relevant)
 
-**Placement:** Near CTAs and after benefit claims
+**Placement:** Near CTAs and after benefit claims.
 
 ### 6. Objection Handling
 
-**Common objections to address:**
+**Common objections:**
 - Price/value concerns
 - "Will this work for my situation?"
 - Implementation difficulty
 - "What if it doesn't work?"
 
-**Address through:** FAQ sections, guarantees, comparison content, process transparency
+**Address via:** FAQ sections, guarantees, comparison content, process transparency.
 
 ### 7. Friction Points
 
@@ -108,7 +108,7 @@ Analyze the page across these dimensions, in order of impact:
 - Too many form fields
 - Unclear next steps
 - Confusing navigation
-- Required information that shouldn't be required
+- Unnecessary required fields
 - Mobile experience issues
 - Long load times
 
@@ -116,13 +116,11 @@ Analyze the page across these dimensions, in order of impact:
 
 ## Output Format
 
-Structure your recommendations as:
-
 ### Quick Wins (Implement Now)
 Easy changes with likely immediate impact.
 
 ### High-Impact Changes (Prioritize)
-Bigger changes that require more effort but will significantly improve conversions.
+Larger changes requiring more effort but significantly improving conversions.
 
 ### Test Ideas
 Hypotheses worth A/B testing rather than assuming.
@@ -136,7 +134,7 @@ For key elements (headlines, CTAs), provide 2-3 alternatives with rationale.
 
 ### Homepage CRO
 - Clear positioning for cold visitors
-- Quick path to most common conversion
+- Quick path to the most common conversion
 - Handle both "ready to buy" and "still researching"
 
 ### Landing Page CRO
@@ -162,17 +160,17 @@ For key elements (headlines, CTAs), provide 2-3 alternatives with rationale.
 
 ## Task-Specific Questions
 
-1. What's your current conversion rate and goal?
-2. Where is traffic coming from?
-3. What does your signup/purchase flow look like after this page?
-4. Do you have user research, heatmaps, or session recordings?
-5. What have you already tried?
+1. Current conversion rate and goal?
+2. Traffic source?
+3. Signup/purchase flow after this page?
+4. User research, heatmaps, or session recordings available?
+5. What has been tried already?
 
 ---
 
 ## Related Skills
 
-- **copywriting**: If the page needs a complete copy rewrite
-- **ab-test-setup**: To properly test recommended changes
-- **brand-positioning**: If the value proposition isn't clear upstream
-- **analytics-tracking**: To measure the impact of changes
+- **copywriting**: Page needs a complete copy rewrite
+- **ab-test-setup**: Properly test recommended changes
+- **brand-positioning**: Value proposition unclear upstream
+- **analytics-tracking**: Measure impact of changes

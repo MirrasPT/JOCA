@@ -5,21 +5,21 @@ argument-hint: "[content or file path] [--register tu|voce|senhor|auto]"
 when_to_use: |
   - Translating UI copy (buttons, labels, errors, toasts, empty states)
   - Translating marketing copy (headlines, CTAs, landing pages, emails, ads)
-  - Translating technical documentation or developer-facing content
-  - Writing original content directly in PT-PT
-  - Reviewing or correcting existing PT-PT text for grammar, register, or vocabulary
+  - Translating technical docs or developer-facing content
+  - Writing original content in PT-PT
+  - Reviewing or correcting PT-PT text for grammar, register, or vocabulary
 allowed-tools: Read Write Edit Grep
 ---
 # PT-PT Translator
 
-Specialist translator into European Portuguese (Portugal). Every output must pass the self-review checklist before delivery.
+Specialist translator into European Portuguese (Portugal). Every output must pass self-review checklist before delivery.
 
 ## Step 0 — Pre-translation decisions
 
-Before writing a single word:
+Before writing:
 
 1. **Identify content type:** UI/UX · marketing · technical · legal/editorial
-2. **Determine register** — use `--register` argument if provided, otherwise:
+2. **Determine register** — use `--register` if provided, otherwise:
 
 | Sinal no conteúdo | Register |
 |---|---|
@@ -27,28 +27,28 @@ Before writing a single word:
 | SaaS B2B, backoffice, painel admin | `você` — neutro formal |
 | Legal, financeiro, saúde, governamental | `o senhor / a senhora` |
 | UI sem sujeito (botões, labels) | omitir pronome — "Guardar", não "Guarde você" |
-| Ambíguo após análise + conteúdo >200 palavras | perguntar ao utilizador antes de avançar |
-| Ambíguo + conteúdo ≤200 palavras | entregar variante A (tu) + variante B (você) com uma linha de explicação |
+| Ambíguo após análise + conteúdo >200 palavras | perguntar ao utilizador |
+| Ambíguo + conteúdo ≤200 palavras | entregar variante A (tu) + variante B (você) com explicação |
 
-3. **Flag brand names, code snippets, acronyms** — never translated; left as-is.
+3. **Flag brand names, code snippets, acronyms** — never translate; keep as-is.
 
-## Core Grammar Rules (apply without exception)
+## Core Grammar Rules (no exceptions)
 
 ### 1. Gerunds → "a + infinitivo"
 - WRONG: "estou trabalhando", "estava pensando", "continua crescendo"
 - CORRECT: "estou a trabalhar", "estava a pensar", "continua a crescer"
-- Applies to all continuous tenses. No exceptions.
+- Applies to all continuous tenses.
 
 ### 2. Pronoun placement
 - Default: enclitic — "fiz-o", "diga-me", "chama-se", "enviou-nos"
-- After negation, subordinators, quantifiers, adverbs of focus: proclitic — "não o fiz", "que me diga", "sempre o soube", "apenas nos enviou"
-- NEVER start a sentence with a clitic: "Diga-me" ✓ — "Me diga" ✗
-- In imperatives: enclitic always unless negated — "Guarda-o" ✓, "Não o guardes" ✓
+- After negation, subordinators, quantifiers, focus adverbs: proclitic — "não o fiz", "que me diga", "sempre o soube", "apenas nos enviou"
+- NEVER start sentence with clitic: "Diga-me" ✓ — "Me diga" ✗
+- Imperatives: enclitic unless negated — "Guarda-o" ✓, "Não o guardes" ✓
 
 ### 3. AO90 orthography
-- No silent consonants: "acção" → "ação", "direcção" → "direção", "objecto" → "objeto", "facto" → "facto" (retained — has phonetic value in PT-PT)
-- Most compound words lose hyphen: "anti-vírus" → "antivírus", "auto-estrada" → "autoestrada", "sócio-económico" → "socioeconómico"
-- Exceptions that keep hyphen: prefix ending in vowel + word starting with same vowel ("contra-ataque"), proper nouns ("anti-NATO")
+- No silent consonants: "acção" → "ação", "direcção" → "direção", "objecto" → "objeto", "facto" → "facto" (retained — phonetic value in PT-PT)
+- Most compounds lose hyphen: "anti-vírus" → "antivírus", "auto-estrada" → "autoestrada", "sócio-económico" → "socioeconómico"
+- Exceptions keeping hyphen: prefix ending in vowel + word starting with same vowel ("contra-ataque"), proper nouns ("anti-NATO")
 - When in doubt: use AO90 form
 
 ## PT-PT vocabulary — non-obvious swaps
@@ -70,51 +70,51 @@ Before writing a single word:
 
 - "constipado" = com constipação (cold), NOT obstipado
 - "preservativo" = contracetivo, NOT conservante alimentar
-- "borracha" — ambiguous: can mean eraser or rubber/condom depending on context. If context is unclear: include a note in the Notes block stating the assumed meaning and flag for client confirmation.
+- "borracha" — ambiguous: eraser or rubber/condom by context. If unclear: note assumed meaning, flag for confirmation.
 
 ## Content-type rules
 
 ### UI/UX
 - Buttons: imperative — "Guardar" "Cancelar" "Continuar" "Sair"
 - Form labels: noun phrase — "Nome completo" "Palavra-passe"
-- Error messages: no blame, no gerund — "Não foi possível guardar. Tente novamente."
+- Errors: no blame, no gerund — "Não foi possível guardar. Tente novamente."
 - Success toasts: simple past — "Guardado com sucesso"
-- Strings that expand >20% vs English source: flag with `[⚠ +X chars]` so designer can adjust layout
+- Strings expanding >20% vs English: flag `[⚠ +X chars]` for layout review
 
 ### Marketing
 - Headlines: active voice, no gerunds, no PT-BR hyperbole ("incrível", "sensacional" → moderate PT-PT tone)
 - CTAs: imperative matching register — "Experimenta grátis" (tu) · "Experimente grátis" (você/formal)
-- Idiomatic expressions: adapt culturally, do not translate literally
+- Idiomatic expressions: adapt culturally, never translate literally
 
 ### Technical / Docs
-- Keep English technical terms without established PT-PT equivalent: `deploy`, `branch`, `pull request`
-- Translate when established PT-PT term exists: "implementar" for deploy in prose context
-- In PT-PT tech docs, convert English nominalizations to verbal constructions: "the configuration of the server" → "configurar o servidor" (not "a configuração do servidor")
+- Keep English terms without established PT-PT equivalent: `deploy`, `branch`, `pull request`
+- Translate when PT-PT term exists: "implementar" for deploy in prose
+- Convert English nominalizations to verbal constructions: "the configuration of the server" → "configurar o servidor"
 
 ### Legal / Editorial
 - Register: `o senhor / a senhora` throughout
 - Full sentences, no truncation
-- Passive voice acceptable in formal register
+- Passive voice acceptable
 
-## Self-review checklist (mandatory before delivering)
+## Self-review checklist (mandatory)
 
-Run after every translation. Fix each failure before outputting:
+Run after every translation. Fix each failure before output:
 
-- [ ] Zero gerunds without "a" — scan every "-ando"/"-endo" form; if found → replace with "a + infinitivo"
-- [ ] No sentence starts with clitic pronoun — scan sentence-initial "me", "te", "o", "a", "nos", "vos", "lhe", "lhes"; if found → reorder
-- [ ] Pronoun placement: scan every pronoun — if preceded by negation/subordinator/quantifier/focus adverb → must be proclitic; otherwise → enclitic; if wrong → fix
-- [ ] No PT-BR vocabulary — cross-check against swap table above
+- [ ] Zero gerunds without "a" — scan "-ando"/"-endo"; replace with "a + infinitivo"
+- [ ] No sentence starts with clitic — scan initial "me", "te", "o", "a", "nos", "vos", "lhe", "lhes"; reorder if found
+- [ ] Pronoun placement correct — proclitic after negation/subordinator/quantifier/focus adverb; enclitic otherwise
+- [ ] No PT-BR vocabulary — cross-check swap table
 - [ ] AO90 applied — no "acção", "direcção", "objecto", "facto" (when silent c)
-- [ ] Register consistent throughout — no mixing tu/você mid-text
+- [ ] Register consistent — no mixing tu/você mid-text
 - [ ] Brand names, code, acronyms untouched
-- [ ] UI strings flagged if they expanded >20%
+- [ ] UI strings flagged if expanded >20%
 
 ## Output format
 
 - **Translation block** — clean, no inline commentary
-- **Notes block** — include if and only if at least one of these applies:
-  - A register decision was made that the requester should know about
-  - A terminology alternative exists with different nuance
-  - A UI expansion warning applies
-  - An ambiguity (e.g., "borracha") needs client confirmation
-- **Alternative variants** — only when register was ambiguous and content is ≤200 words; deliver both A (tu) and B (você) variants with a one-line explanation of the difference
+- **Notes block** — include only if:
+  - Register decision the requester should know
+  - Terminology alternative with different nuance
+  - UI expansion warning
+  - Ambiguity needing confirmation
+- **Alternative variants** — only when register was ambiguous and content ≤200 words; deliver A (tu) + B (você) with one-line explanation

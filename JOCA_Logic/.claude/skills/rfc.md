@@ -3,22 +3,22 @@ name: rfc
 description: "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande. SHOULD also invoke when: big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar."
 triggers: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande, big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar, restructure, mudar API, change API, decisao que afecta tudo
 ---
-# RFC — Request for Comments
+# RFC -- Request for Comments
 
-Propostas estruturadas para mudancas cross-cutting. Ficheiros em `docs/rfcs/`.
+Structured proposals for cross-cutting changes. Files in `docs/rfcs/`.
 
-**Activar** quando a mudanca:
-- Afecta multiplos modulos/servicos
-- Quebra API publica ou contratos existentes
-- Introduz pattern novo no codebase
-- Requer investimento significativo (> 1 semana)
-- Define precedente que futuras features vao seguir
+**Activate** when the change:
+- Affects multiple modules/services
+- Breaks public API or existing contracts
+- Introduces a new pattern in the codebase
+- Requires significant investment (> 1 week)
+- Sets precedent for future features
 
-**NAO usar** para: features normais (usar PRD), decisoes pontuais (usar ADR), bug fixes.
+**Skip** for: normal features (use PRD), one-off decisions (use ADR), bug fixes.
 
 ---
 
-## Formato RFC
+## RFC Format
 
 ```markdown
 # RFC: [Titulo descritivo]
@@ -145,7 +145,7 @@ Propostas estruturadas para mudancas cross-cutting. Ficheiros em `docs/rfcs/`.
 
 ---
 
-## Directorio
+## Directory
 
 ```
 docs/
@@ -166,41 +166,41 @@ docs/
 
 ---
 
-## Processo
+## Process
 
-1. **Identificar necessidade** — sinais de mudanca cross-cutting
-2. **Draft** — gerar RFC usando template acima
-3. **Perguntas minimas** ao utilizador:
-   - "Qual o problema principal?"
-   - "Que alternativas ja foram consideradas?"
-   - "Timeline e flexivel ou hard deadline?"
-4. **Apresentar draft** para review
-5. **Iterar** ate aprovacao
-6. **Escrever** em `docs/rfcs/` + actualizar README.md
-7. **Derivar trabalho** → `tech-spec` para design detalhado → `adr` para decisoes → `task-breakdown` para execucao
+1. **Identify need** -- cross-cutting change detected
+2. **Draft** -- generate RFC using the template above
+3. **Minimal questions** to the user:
+   - "What is the core problem?"
+   - "What alternatives were considered?"
+   - "Flexible timeline or hard deadline?"
+4. **Present draft** for review
+5. **Iterate** until approved
+6. **Write** to `docs/rfcs/` + update README.md
+7. **Derive work** -- `tech-spec` for detailed design -- `adr` for decisions -- `task-breakdown` for execution
 
 ---
 
-## Quando RFC vs. ADR vs. PRD
+## When RFC vs. ADR vs. PRD
 
-| Situacao | Usar |
-|----------|------|
-| Feature nova com requisitos de produto | PRD |
-| Escolha entre duas opcoes (1 decisao) | ADR |
-| Mudanca tecnica grande que afecta multiplas areas | **RFC** |
-| Migracao de tecnologia | **RFC** |
-| Novo pattern no codebase | **RFC** |
-| Breaking change em API | **RFC** |
+| Situation | Use |
+|-----------|-----|
+| New feature with product requirements | PRD |
+| Choice between two options (1 decision) | ADR |
+| Large technical change across multiple areas | **RFC** |
+| Technology migration | **RFC** |
+| New codebase pattern | **RFC** |
+| Breaking API change | **RFC** |
 
-RFC pode gerar multiplos ADRs (um por decisao significativa tomada durante a implementacao).
+An RFC can spawn multiple ADRs (one per significant decision during implementation).
 
 ---
 
 ## Workflow
 
-Skill lateral — nao faz parte da pipeline sequencial. Invocada situacionalmente.
+Lateral skill -- not part of the sequential pipeline. Invoked situationally.
 
-→ **apos RFC aceite**: `tech-spec` (design detalhado) → `adr` (decisoes) → `task-breakdown` (trabalho)
-→ **se RFC rejeitado**: documentar razao no estado, manter ficheiro para historico
+-- **after accepted RFC**: `tech-spec` (detailed design) -- `adr` (decisions) -- `task-breakdown` (work)
+-- **if RFC rejected**: document reason in state, keep file for history
 
-Notificar ao concluir RFC aceite: `→ proximo: tech-spec`
+Notify on accepted RFC: `-- next: tech-spec`
