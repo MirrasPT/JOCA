@@ -338,7 +338,7 @@ export default function SessionSidebar({
         <div className="sb-header">
           <div className="sb-brand">
             <div className="sb-logo-rings" aria-hidden />
-            <span className="sb-logo-text">JOCA <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>DEV</span></span>
+            <span className="sb-logo-text">JOCA <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>DEV 0.3.1</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"

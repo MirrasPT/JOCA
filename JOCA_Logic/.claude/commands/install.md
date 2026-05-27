@@ -249,25 +249,31 @@ Crio via /create-skill? [S/N/Mais tarde]
 
 ## FASE 3 — Integracoes e Ferramentas
 
-### Browser Automation
+### Browser Automation *(multi-select)*
 `AskUserQuestion`:
 ```
-question: "Queres Playwright para browser automation (testes, scraping, screenshots)?"
-header: "Playwright"
+question: "Que ferramentas de browser automation queres instalar?"
+header: "Browser"
 options:
-  - "Sim — instalar MCP"
-  - "Nao"
+  - "browser-use CLI (scraping, screenshots, automacao com AI)"
+  - "Playwright Agent CLI (browser control para coding agents)"
+  - "Ambos (recomendado)"
+  - "Nenhum"
 ```
 
-Se sim: configurar Playwright MCP em `~/.claude.json` (ver FASE EXECUCAO).
+Se seleccionado: instalar via comandos na FASE EXECUCAO.
 
 ### CLIs Externos *(multi-select)*
 ```
 Que CLIs queres configurar?
 [ ] gh (GitHub CLI — repos, PRs, issues, code search)
+[ ] gws (Google Workspace CLI — Drive, Gmail, Calendar, Sheets, todas as APIs)
+[ ] ffmpeg (video/audio processing, encoding, conversao, thumbnails)
+[ ] sentry-cli (error tracking, releases, source maps, deploy tracking)
 [ ] huggingface-cli (modelos, datasets, spaces)
 [ ] Antigravity CLI (Gemini — analise multimodal, video, PDF, contexto 1M)
 [ ] Codex CLI (code review adversarial — requer ChatGPT Plus ou OPENAI_API_KEY)
+[ ] CLI Printing Press (gera CLIs + MCP servers a partir de APIs — requer Go 1.26+)
 [ ] Nenhum
 ```
 
@@ -438,7 +444,7 @@ SKILLS (92 — trigger system RFC 2119)
   [categoria]: [lista]
 
 INTEGRACOES
-  Playwright MCP: [sim/nao]
+  Browser: [browser-use CLI / playwright-cli / ambos / nenhum]
   CLIs: [gh, huggingface-cli, agy, codex — os que foram seleccionados]
   Google: [lista — se algum]
   Img Gen: [motor(es)]
@@ -530,20 +536,33 @@ touch memory/projects/.gitkeep memory/feedback/.gitkeep
 [ -f memory/INDEX.md ] || touch memory/INDEX.md
 ```
 
-### 4. Playwright MCP (se seleccionado)
+### 4. Browser Automation (se seleccionado)
 
-Verificar `~/.claude.json`. Se ausente, adicionar o bloco:
+**browser-use CLI:**
 
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
-    }
-  }
-}
+macOS / Linux:
+```bash
+curl -fsSL https://browser-use.com/cli/install.sh | bash
 ```
+
+Windows (PowerShell):
+```powershell
+& "C:\Program Files\Git\bin\bash.exe" -c 'curl -fsSL https://browser-use.com/cli/install.sh | bash'
+```
+
+Apos instalar:
+```bash
+source ~/.zshrc   # ou ~/.bashrc
+browser-use doctor
+```
+
+**Playwright Agent CLI:**
+
+```bash
+npm install -g @playwright/cli
+```
+
+Verificar: `playwright-cli --help`
 
 Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
 
@@ -568,6 +587,58 @@ Para chaves PENDENTE — listar com link de obtencao:
 Correr: gh auth login
 Segue as instrucoes interactivas para autenticar via browser.
 ```
+
+**gws** (se seleccionado):
+
+```bash
+npm install -g @googleworkspace/cli
+```
+
+Autenticar:
+```bash
+gws auth setup    # cria projecto Cloud + activa APIs + login (requer gcloud)
+gws auth login    # logins subsequentes
+```
+
+Sem gcloud: configurar OAuth client manualmente no Cloud Console, download JSON para `~/.config/gws/client_secret.json`, depois `gws auth login`.
+
+**sentry-cli** (se seleccionado):
+
+macOS:
+```bash
+brew install getsentry/tools/sentry-cli
+```
+
+Linux:
+```bash
+curl -sL https://sentry.io/get-cli/ | sh
+```
+
+Windows (Scoop):
+```powershell
+scoop install sentry-cli
+```
+
+Instruir: `sentry-cli login` para autenticar, ou definir `SENTRY_AUTH_TOKEN` em env.
+
+**ffmpeg** (se seleccionado):
+
+macOS:
+```bash
+brew install ffmpeg
+```
+
+Linux (apt):
+```bash
+sudo apt install ffmpeg
+```
+
+Windows (Scoop):
+```powershell
+scoop install ffmpeg
+```
+
+Verificar: `ffmpeg -version`
 
 **huggingface-cli** (se seleccionado):
 
@@ -610,6 +681,26 @@ npm install -g @openai/codex
 ```
 
 Instruir: `codex login` ou definir `OPENAI_API_KEY`.
+
+**CLI Printing Press** (se seleccionado):
+
+Prerequisito — Go 1.26+:
+macOS: `brew install go`
+Linux: `sudo apt install golang` ou download de golang.org
+Windows: download de golang.org/dl
+
+Garantir `$GOPATH/bin` no PATH:
+```bash
+echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Instalar:
+```bash
+go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest
+```
+
+Verificar: `cli-printing-press --version`
 
 ### 7. settings.json do projecto
 
@@ -725,7 +816,7 @@ OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
 OK Skills: 92 configuradas (RFC 2119 trigger system)
-OK Integracoes: [Playwright MCP: sim/nao] · [CLIs: lista]
+OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
 OK JOCA_UI: instalado (backend :7371, frontend :7372)
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
