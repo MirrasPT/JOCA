@@ -34,12 +34,12 @@ JOCA/
 └── JOCA_UI/                 <- Interface Visual (browser)
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- projects.json, project-memory.json
+    ├── data/                <- user data (projects, sessions, settings — protected on update)
     ├── start.sh / start.bat <- launchers cross-platform
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**134 componentes:** 92 skills + 25 agents + 17 commands.
+**135 componentes:** 92 skills + 26 agents + 17 commands.
 
 ---
 
@@ -47,10 +47,10 @@ JOCA/
 
 Dashboard browser com terminal multi-sessao, file browser, toolkit panel e rate limits em tempo real.
 
-- **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty (scrollback 100k linhas)
+- **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty (scrollback 500k linhas, buffer 1MB)
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com filtragem
-- **Rate limits bar:** contexto%, 5h% e 7d% sempre visiveis, actualizados via statusline Node.js
-- **Dashboard:** projectos, sessoes activas, JOCA_Logic engine status
+- **Rate limits dashboard:** Claude (5h, 7d, Sonnet via OAuth), Codex (SQLite), Gemini (agy statusline)
+- **Dashboard:** projectos, sessoes activas, JOCA_Logic engine status, rate limits multi-CLI
 - **Toolkit panel:** browse/search/edit dos 134 componentes do JOCA_Logic
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
@@ -68,7 +68,7 @@ O JOCA_UI detecta automaticamente o `JOCA_Logic` como directorio irmao — zero 
 Cola no Claude Code:
 
 ```
-Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md e segue as instrucoes.
+Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/master/install.md e segue as instrucoes.
 ```
 
 O assistente clona o repo, configura identidade, personalidade (soul), skills, CLIs e instala o JOCA_UI.
@@ -94,7 +94,7 @@ Abre automaticamente `http://localhost:7372`.
 
 **Opcao 2 — Prompt directo (se o comando falhar ou JOCA nao estiver configurado):**
 ```
-Le o ficheiro update.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/update.md e segue as instrucoes.
+Le o ficheiro update.md em https://raw.githubusercontent.com/MirrasPT/JOCA/master/update.md e segue as instrucoes.
 ```
 
 Sync one-way do GitHub. Protege memoria de projectos, feedback, soul calibration e componentes locais (`origin: local`).
@@ -153,7 +153,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 
 ---
 
-## Agents (25)
+## Agents (26)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -170,7 +170,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 `master-orchestrator` · `self-improver` · `gemini-auditor`
 
 ### Generation & Media
-`img-gen-openai` · `img-gen-google` · `watch` · `gemini-brain`
+`img-gen-openai` · `img-gen-google` · `video-gen` · `watch` · `gemini-brain`
 
 ### Specialists
 `payment-integration` · `skill-evaluator` · `skill-improver` · `security-review`
@@ -182,7 +182,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | Command | Funcao |
 |---------|--------|
 | `/install` | Setup interactivo — identidade, soul, skills, CLIs, statusline, JOCA_UI |
-| `/init-project` | Liga um projecto ao JOCA (PRD, skills, MCPs) |
+| `/init-project` | Liga um projecto ao JOCA (PRD, skills, CLIs) |
 | `/resume` | Carrega contexto no inicio da sessao |
 | `/save` | Guarda estado + feedback projecto + feedback toolkit (auto) |
 | `/plan` | Plan Mode — arquitectura |
@@ -239,7 +239,7 @@ bash .claude/scripts/compile-bridges.sh
 - **Node.js 18+** (para JOCA_UI e hooks cross-platform)
 - **macOS** ou **Windows** (Linux experimental)
 - **gh CLI** (GitHub — `winget install GitHub.cli` / `brew install gh`)
-- Opcional: Python 3.10+ (graphify), jq (statusline legacy), Codex CLI, Gemini CLI
+- Opcional: Python 3.10+ (graphify), Codex CLI, Antigravity CLI (agy), browser-use CLI, playwright-cli, sentry-cli, ffmpeg, gws
 
 ---
 

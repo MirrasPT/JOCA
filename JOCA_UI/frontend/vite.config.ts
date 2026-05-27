@@ -23,6 +23,7 @@ export default defineConfig({
       '/file-diff': { target: 'http://localhost:7371' },
       '/project-memory': { target: 'http://localhost:7371' },
       '/ui-settings': { target: 'http://localhost:7371' },
+      '/rate-limits': { target: 'http://localhost:7371' },
       '/joca-logic': { target: 'http://localhost:7371' },
       '/knowledge-graph': { target: 'http://localhost:7371' },
     },

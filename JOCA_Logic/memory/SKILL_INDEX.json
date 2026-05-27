@@ -4,7 +4,7 @@
     "name": "ab-test-setup",
     "category": "general",
     "path": ".claude/skills/ab-test-setup.md",
-    "description": "When the user wants to plan, design, or implement an A/B test or experiment, or build a growth experimentation program. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test th",
+    "description": "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test,, split test,, experiment,, test this change,, variant cop",
     "triggers": []
   },
   {
@@ -12,7 +12,7 @@
     "name": "adr",
     "category": "general",
     "path": ".claude/skills/adr.md",
-    "description": "Use when recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences.",
+    "description": "Recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences. MUST be invoked when the user says: ADR, architecture decision, decisao arquitectu",
     "triggers": []
   },
   {
@@ -20,7 +20,7 @@
     "name": "agent-context",
     "category": "general",
     "path": ".claude/skills/agent-context.md",
-    "description": "Always-active base principles for agent orchestration and context management. Covers multi-agent coordination patterns, context compression strategies, and context degradation detection. Apply wheneve",
+    "description": "Always-active base principles for agent orchestration and context management. MUST be invoked when the user mentions: Always, Apply.",
     "triggers": []
   },
   {
@@ -28,7 +28,7 @@
     "name": "analytics-tracking",
     "category": "general",
     "path": ".claude/skills/analytics-tracking.md",
-    "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event trackin",
+    "description": "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking,, GA4,, Google Analytics,, conversion tracking,, event tracking,, UTM parameters,.",
     "triggers": []
   },
   {
@@ -36,21 +36,15 @@
     "name": "anima",
     "category": "general",
     "path": ".claude/skills/anima.md",
-    "description": "Use when adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. Triggered by: GSAP, ScrollTrigger, Lottie, animation, motion.",
-    "triggers": [
-      "GSAP",
-      "ScrollTrigger",
-      "Lottie",
-      "animation",
-      "motion"
-    ]
+    "description": "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll an",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "auth",
     "category": "general",
     "path": ".claude/skills/auth.md",
-    "description": "Use when implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware.",
+    "description": "Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware. MUST be invoked when the user says: auth, authentication, login, logout, register, sanctum,",
     "triggers": []
   },
   {
@@ -58,7 +52,7 @@
     "name": "availability",
     "category": "general",
     "path": ".claude/skills/availability.md",
-    "description": "Availability and disaster recovery for Laravel. spatie/laravel-backup (automated backups to S3/R2, DB dumps, monitoring), database replication (MySQL read replicas, Redis Sentinel, automatic failover)",
+    "description": "Availability and disaster recovery for Laravel. MUST be invoked when the user says: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA. SHOULD also invoke w",
     "triggers": []
   },
   {
@@ -66,7 +60,7 @@
     "name": "blueprint",
     "category": "general",
     "path": ".claude/skills/blueprint.md",
-    "description": "Use when creating, editing, or reviewing WordPress Playground blueprint JSON files. Triggers on mentions of blueprints, playground configuration, or requests to set up a WordPress demo environment.",
+    "description": "Creating, editing, or reviewing WordPress Playground blueprint JSON files. MUST be invoked when the user mentions: WordPress Playground, JSON, Triggers, WordPress.",
     "triggers": []
   },
   {
@@ -74,7 +68,7 @@
     "name": "brand-guidelines",
     "category": "general",
     "path": ".claude/skills/brand-guidelines.md",
-    "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. Covers logo assets, color system (OKLCH), typography, tone of voice, image style, component tokens, and ",
+    "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, bra",
     "triggers": []
   },
   {
@@ -82,7 +76,7 @@
     "name": "brand-positioning",
     "category": "general",
     "path": ".claude/skills/brand-positioning.md",
-    "description": "Help founders and marketers nail their positioning. Use when someone mentions \"positioning,\" \"value proposition,\" \"who is this for,\" \"how do I describe my product,\" \"messaging,\" \"ICP,\" \"ideal customer",
+    "description": "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning,, value proposition,, who is this for,, how do I describe my product,, messaging,, ICP,.",
     "triggers": []
   },
   {
@@ -90,7 +84,7 @@
     "name": "bullmq",
     "category": "general",
     "path": ".claude/skills/bullmq.md",
-    "description": "Implement Redis-based job queues with BullMQ for Node.js. Covers queue setup, workers, job scheduling, delayed jobs, retry strategies with exponential backoff, dead letter queues, concurrency control,",
+    "description": "Implement Redis-based job queues with BullMQ for Node.js. MUST be invoked when the user says: bullmq, bull mq, job queue, task queue, background jobs, worker, redis queue, job processing. SHOULD also ",
     "triggers": []
   },
   {
@@ -98,7 +92,7 @@
     "name": "c4-diagram",
     "category": "general",
     "path": ".claude/skills/c4-diagram.md",
-    "description": "Use when creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format.",
+    "description": "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, sy",
     "triggers": []
   },
   {
@@ -106,7 +100,7 @@
     "name": "caching",
     "category": "general",
     "path": ".claude/skills/caching.md",
-    "description": "Use when implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns.",
+    "description": "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, c",
     "triggers": []
   },
   {
@@ -114,7 +108,7 @@
     "name": "caveman",
     "category": "general",
     "path": ".claude/skills/caveman.md",
-    "description": ">",
+    "description": "Ultra-compressed communication mode. MUST be invoked when the user says: caveman mode, talk like caveman, use caveman, less tokens, be brief.",
     "triggers": []
   },
   {
@@ -122,7 +116,7 @@
     "name": "competitor-profiling",
     "category": "general",
     "path": ".claude/skills/competitor-profiling.md",
-    "description": "When the user wants to research, profile, or analyze competitors from their URLs. Also use when the user mentions \"competitor profile,\" \"competitor research,\" \"competitor analysis,\" \"profile this comp",
+    "description": "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile,, competitor research,, competitor analysis,, profile this competitor,, analyze compet",
     "triggers": []
   },
   {
@@ -130,7 +124,7 @@
     "name": "component-system",
     "category": "general",
     "path": ".claude/skills/component-system.md",
-    "description": "Component inventory and per-component specification documents. Generates system/component-inventory.md (master list) and system/components/<name>.md per component with anatomy, variants, sizes, 6 stat",
+    "description": "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component s",
     "triggers": []
   },
   {
@@ -138,7 +132,7 @@
     "name": "content-strategy",
     "category": "general",
     "path": ".claude/skills/content-strategy.md",
-    "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \"content strategy,\" \"what should I write about,\" \"con",
+    "description": "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy,, what should I write about,, content ideas,, blog stra",
     "triggers": []
   },
   {
@@ -146,7 +140,7 @@
     "name": "copywriting",
     "category": "general",
     "path": ".claude/skills/copywriting.md",
-    "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user s",
+    "description": "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy ",
     "triggers": []
   },
   {
@@ -154,7 +148,7 @@
     "name": "create-skill",
     "category": "general",
     "path": ".claude/skills/create-skill.md",
-    "description": "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. Researches the topic, drafts a skill, then runs up to 3 improvement + evaluation cycles",
+    "description": "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. MUST be invoked when the user says: --upgrade skill-name.",
     "triggers": []
   },
   {
@@ -162,7 +156,7 @@
     "name": "deploy-cpanel",
     "category": "general",
     "path": ".claude/skills/deploy-cpanel.md",
-    "description": "Use when deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments.",
+    "description": "Deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, ",
     "triggers": []
   },
   {
@@ -170,7 +164,7 @@
     "name": "deploy-docker",
     "category": "general",
     "path": ".claude/skills/deploy-docker.md",
-    "description": "Use when containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration.",
+    "description": "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, ",
     "triggers": []
   },
   {
@@ -178,7 +172,7 @@
     "name": "deploy-ploi",
     "category": "general",
     "path": ".claude/skills/deploy-ploi.md",
-    "description": "Use when deploying via Ploi.io, managing servers, or configuring Ploi deployments.",
+    "description": "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD a",
     "triggers": []
   },
   {
@@ -186,7 +180,7 @@
     "name": "design-system",
     "category": "general",
     "path": ".claude/skills/design-system.md",
-    "description": "Use when building or auditing design systems, managing design tokens, component libraries, or style guides.",
+    "description": "Building or auditing design systems, managing design tokens, component libraries, or style guides. MUST be invoked when the user says: design system, sistema de design, tokens, design tokens, componen",
     "triggers": []
   },
   {
@@ -194,7 +188,7 @@
     "name": "design-tokens",
     "category": "general",
     "path": ".claude/skills/design-tokens.md",
-    "description": "Use when defining or managing design tokens (colors, spacing, typography) in DTCG format.",
+    "description": "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic to",
     "triggers": []
   },
   {
@@ -202,7 +196,7 @@
     "name": "email-sequence",
     "category": "general",
     "path": ".claude/skills/email-sequence.md",
-    "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurtur",
+    "description": "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence,, drip campaign,, nurture sequence,, onboardin",
     "triggers": []
   },
   {
@@ -210,7 +204,7 @@
     "name": "error-tracking-dev",
     "category": "general",
     "path": ".claude/skills/error-tracking-dev.md",
-    "description": "Development error tracking and debugging for Laravel. Debugbar (queries, N+1, timeline, memory), Telescope (requests, jobs, mail, cache, dumps), Ignition (error pages, solutions), Ray (desktop debugge",
+    "description": "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow qu",
     "triggers": []
   },
   {
@@ -218,7 +212,7 @@
     "name": "error-tracking-prod",
     "category": "general",
     "path": ".claude/skills/error-tracking-prod.md",
-    "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. Sentry/Flare (error tracking), Monolog JSON (structured logs), Context facade (correlation IDs), spatie/larave",
+    "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlat",
     "triggers": []
   },
   {
@@ -226,7 +220,7 @@
     "name": "feedback-joca",
     "category": "general",
     "path": ".claude/skills/feedback-joca.md",
-    "description": "Use when capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities.",
+    "description": "Capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities. MUST be invoked when the user says: - /feedback-joca.",
     "triggers": [
       "/feedback-joca",
       "feedback sobre o joca",
@@ -239,7 +233,7 @@
     "name": "filament",
     "category": "general",
     "path": ".claude/skills/filament.md",
-    "description": "Use when building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets.",
+    "description": "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament ",
     "triggers": []
   },
   {
@@ -247,7 +241,7 @@
     "name": "file-storage",
     "category": "general",
     "path": ".claude/skills/file-storage.md",
-    "description": "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. Use when setting up S3 storage, configuring Cloudflare R2, implementing presigned URL uploads, adding virus scanning with C",
+    "description": "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. MUST be invoked when the user mentions: Secure, Laravel SaaS, Cloudflare, URL, ClamAV, CDN.",
     "triggers": []
   },
   {
@@ -255,7 +249,7 @@
     "name": "frontend",
     "category": "general",
     "path": ".claude/skills/frontend.md",
-    "description": "Use when building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks.",
+    "description": "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, i",
     "triggers": []
   },
   {
@@ -263,7 +257,7 @@
     "name": "github",
     "category": "general",
     "path": ".claude/skills/github.md",
-    "description": "Use when working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations.",
+    "description": "Working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations. MUST be invoked when the user says: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr. SHOULD",
     "triggers": []
   },
   {
@@ -271,7 +265,7 @@
     "name": "google-analytics",
     "category": "general",
     "path": ".claude/skills/google-analytics.md",
-    "description": "Query Google Analytics 4 data. Use when the user asks about website traffic, page views, sessions, user counts, conversions, top pages, traffic sources, or any analytics/metrics questions. Trigger on ",
+    "description": "Query Google Analytics 4 data. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4.",
     "triggers": []
   },
   {
@@ -279,7 +273,7 @@
     "name": "graphic-design",
     "category": "general",
     "path": ".claude/skills/graphic-design.md",
-    "description": "Print and graphic design in HTML/CSS → PDF. Creates roll-ups, flyers, bifolds, trifolds, posters, business cards, and other printed materials. Philosophy-first approach with museum-quality craftsmansh",
+    "description": "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, business ",
     "triggers": []
   },
   {
@@ -287,7 +281,7 @@
     "name": "horizon",
     "category": "general",
     "path": ".claude/skills/horizon.md",
-    "description": "Laravel queues and Horizon monitoring for production SaaS. Use when implementing background jobs, queue workers, or Horizon dashboard; configuring job retries, backoff, uniqueness, or encryption; sett",
+    "description": "Laravel queues and Horizon monitoring for production SaaS. MUST be invoked when the user says: queues, jobs, Horizon, workers, dispatching, chaining.",
     "triggers": []
   },
   {
@@ -295,7 +289,7 @@
     "name": "html-review",
     "category": "general",
     "path": ".claude/skills/html-review.md",
-    "description": "Use when converting markdown documentation to visual HTML format for review or presentation.",
+    "description": "Converting markdown documentation to visual HTML format for review or presentation. MUST be invoked when the user says: gerar html, review html, html do prd, html review, visualizar documento, preview",
     "triggers": []
   },
   {
@@ -303,7 +297,7 @@
     "name": "hyperframes",
     "category": "general",
     "path": ".claude/skills/hyperframes.md",
-    "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. Use when building HTML-based video content, sy",
+    "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframe",
     "triggers": []
   },
   {
@@ -311,7 +305,7 @@
     "name": "img-gen",
     "category": "general",
     "path": ".claude/skills/img-gen.md",
-    "description": "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). Use when user asks to generate, create, make, produce, design, or render an image, illustration, mockup, visual, grap",
+    "description": "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). MUST be invoked when the user mentions: OpenAI, Google Gemini, Nano Banana, Decides, API, Do NOT.",
     "triggers": []
   },
   {
@@ -319,7 +313,7 @@
     "name": "karpathy-guidelines",
     "category": "general",
     "path": ".claude/skills/karpathy-guidelines.md",
-    "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiabl",
+    "description": "Behavioral guidelines to reduce common LLM coding mistakes. MUST be invoked when the user mentions: Behavioral, LLM.",
     "triggers": []
   },
   {
@@ -327,7 +321,7 @@
     "name": "landing-page",
     "category": "general",
     "path": ".claude/skills/landing-page.md",
-    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Use when someone needs to build a new landing page for a product, offer, lead magnet, webinar, or paid ad campaign. Di",
+    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze page",
     "triggers": []
   },
   {
@@ -335,20 +329,15 @@
     "name": "laravel-specialist",
     "category": "general",
     "path": ".claude/skills/laravel-specialist.md",
-    "description": "Use when building Laravel applications, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, or RESTful APIs. Triggered by: Laravel, Eloquent, Artisan, composer.json.",
-    "triggers": [
-      "Laravel",
-      "Eloquent",
-      "Artisan",
-      "composer"
-    ]
+    "description": "Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, c",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "launch-strategy",
     "category": "general",
     "path": ".claude/skills/launch-strategy.md",
-    "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions \"launch,\" \"Product Hunt,\" \"feature release,\" \"announcement,\" \"go-to-market,\" \"b",
+    "description": "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch,, Product Hunt,, feature release,, announcement,, go-to-market,, beta launch,.",
     "triggers": []
   },
   {
@@ -356,7 +345,7 @@
     "name": "lead-capture",
     "category": "general",
     "path": ".claude/skills/lead-capture.md",
-    "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. Use when someone wants to grow their email list, create a lead magnet, set up email capture",
+    "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user says: lead magnet, grow email list, opt-in form, email captur",
     "triggers": []
   },
   {
@@ -364,7 +353,7 @@
     "name": "lottie-animator",
     "category": "general",
     "path": ".claude/skills/lottie-animator.md",
-    "description": "|",
+    "description": "Generates professional Lottie animations from static SVGs. Replaces After Effects for motion graphics. MUST be invoked when the user says: animate logo, create lottie, svg animation, motion graphics, ",
     "triggers": []
   },
   {
@@ -372,7 +361,7 @@
     "name": "marketing",
     "category": "general",
     "path": ".claude/skills/marketing.md",
-    "description": "Detects marketing intent and routes to the correct marketing skill. Use when a marketing task is requested but the specific skill isn't obvious. Routes across all 15 marketing skills covering the full",
+    "description": "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing h",
     "triggers": []
   },
   {
@@ -380,7 +369,7 @@
     "name": "microsoft-clarity",
     "category": "general",
     "path": ".claude/skills/microsoft-clarity.md",
-    "description": "Export Microsoft Clarity user behavior analytics. Use when the user asks about heatmaps, session recordings, engagement metrics, scroll depth, rage clicks, dead clicks, or user behavior data from Micr",
+    "description": "Export Microsoft Clarity user behavior analytics. MUST be invoked when the user says: clarity, heatmap, session recording, rage clicks, dead clicks, scroll depth.",
     "triggers": []
   },
   {
@@ -388,7 +377,7 @@
     "name": "mobile",
     "category": "general",
     "path": ".claude/skills/mobile.md",
-    "description": "Use when building mobile applications, responsive design, PWA, or mobile-specific UI patterns.",
+    "description": "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also i",
     "triggers": []
   },
   {
@@ -396,7 +385,7 @@
     "name": "mysql",
     "category": "general",
     "path": ".claude/skills/mysql.md",
-    "description": "Use when writing MySQL queries, optimizing database performance, designing schemas, or debugging SQL issues.",
+    "description": "MySQL query writing, performance optimization, schema design, SQL debugging. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also i",
     "triggers": []
   },
   {
@@ -404,7 +393,7 @@
     "name": "page-cro",
     "category": "general",
     "path": ".claude/skills/page-cro.md",
-    "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"C",
+    "description": "Optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. MUST be invoked when the user says: CRO,, conversion ",
     "triggers": []
   },
   {
@@ -412,7 +401,7 @@
     "name": "paid-ads",
     "category": "general",
     "path": ".claude/skills/paid-ads.md",
-    "description": "Use when the user needs anything related to paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy generation, headline iterations, creative testing, or performance optimi",
+    "description": "Paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy, headline iterations, creative testing. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Goog",
     "triggers": []
   },
   {
@@ -420,7 +409,7 @@
     "name": "plan",
     "category": "general",
     "path": ".claude/skills/plan.md",
-    "description": "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem, e calibração de confia",
+    "description": "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem. MUST be invoked when t",
     "triggers": []
   },
   {
@@ -428,20 +417,15 @@
     "name": "planning",
     "category": "general",
     "path": ".claude/skills/planning.md",
-    "description": "Use when planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. Triggered by: plan, architecture, migrate, restructure.",
-    "triggers": [
-      "plan",
-      "architecture",
-      "migrate",
-      "restructure"
-    ]
+    "description": "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planear, planning, planeia o projecto, project planning, como com",
+    "triggers": []
   },
   {
     "type": "skill",
     "name": "postmark",
     "category": "general",
     "path": ".claude/skills/postmark.md",
-    "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. Use when implementing email sending with Postmark, setting up",
+    "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. MUST be invoked when the user says: postmark, transactional e",
     "triggers": []
   },
   {
@@ -449,7 +433,7 @@
     "name": "prd",
     "category": "general",
     "path": ".claude/skills/prd.md",
-    "description": "Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope",
+    "description": "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /init-project, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, ",
     "triggers": []
   },
   {
@@ -457,7 +441,7 @@
     "name": "pt-pt-translator",
     "category": "general",
     "path": ".claude/skills/pt-pt-translator.md",
-    "description": "Use when translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces.",
+    "description": "Translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces. MUST be invoked when the user mentions: European Portuguese, PT.",
     "triggers": []
   },
   {
@@ -465,7 +449,7 @@
     "name": "queues",
     "category": "general",
     "path": ".claude/skills/queues.md",
-    "description": "Router skill for job queues and background processing. Routes to BullMQ for Node.js/Redis queues, or provides general queue guidance. Use when setting up background jobs, task queues, job scheduling, ",
+    "description": "Router skill for job queues and background processing. MUST be invoked when the user says: queue, bullmq, background jobs, worker, job processing, task queue, inngest, trigger.dev. SHOULD also invoke ",
     "triggers": []
   },
   {
@@ -473,7 +457,7 @@
     "name": "remotion",
     "category": "general",
     "path": ".claude/skills/remotion.md",
-    "description": "Create programmatic videos with React and Remotion. Use when building data-driven videos, templated batch video, lyric videos, music visualizers, or any video requiring React component composition. Co",
+    "description": "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring",
     "triggers": []
   },
   {
@@ -481,7 +465,7 @@
     "name": "rest-api",
     "category": "general",
     "path": ".claude/skills/rest-api.md",
-    "description": "REST API design specialist. RFC 9457 errors, URL conventions, versioning with Sunset headers, pagination, rate limiting, OpenAPI 3.1 specs, ForceJsonResponse middleware. Callable autonomously by larav",
+    "description": "REST API design specialist. MUST be invoked when the user says: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination. SHOULD also invoke when: API error, rate lim",
     "triggers": []
   },
   {
@@ -489,7 +473,7 @@
     "name": "reverb-realtime",
     "category": "general",
     "path": ".claude/skills/reverb-realtime.md",
-    "description": "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. Use when implementing WebSocket broadcasting, real-time notifications, presence channels, or live UI",
+    "description": "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. MUST be invoked when the user says: real-time, WebSockets, broadcasting, Reverb, Echo, presence.",
     "triggers": []
   },
   {
@@ -497,7 +481,7 @@
     "name": "rfc",
     "category": "general",
     "path": ".claude/skills/rfc.md",
-    "description": "Use when writing Request for Comments documents, proposing system changes, or documenting technical proposals.",
+    "description": "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposa",
     "triggers": []
   },
   {
@@ -505,7 +489,7 @@
     "name": "saas-patterns",
     "category": "general",
     "path": ".claude/skills/saas-patterns.md",
-    "description": "SaaS architecture patterns for Laravel 11 multi-tenant platforms. Use when designing multi-tenancy, implementing tenant isolation, setting up stancl/tenancy, building feature flags, subscription tier ",
+    "description": "SaaS architecture patterns for Laravel 11 multi-tenant platforms. MUST be invoked when the user says: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboa",
     "triggers": []
   },
   {
@@ -513,7 +497,7 @@
     "name": "search",
     "category": "general",
     "path": ".claude/skills/search.md",
-    "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. Use when adding search to an application, c",
+    "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. MUST be invoked when the user says: search,",
     "triggers": []
   },
   {
@@ -521,7 +505,7 @@
     "name": "security",
     "category": "general",
     "path": ".claude/skills/security.md",
-    "description": "Global security skill for Laravel + React SaaS. OWASP Top 10:2025, ASVS 5.0, Laravel-specific patterns (mass assignment, IDOR, raw queries, Blade XSS), React XSS (dangerouslySetInnerHTML, href injecti",
+    "description": "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assi",
     "triggers": []
   },
   {
@@ -529,7 +513,7 @@
     "name": "seo-local",
     "category": "general",
     "path": ".claude/skills/seo-local.md",
-    "description": ">",
+    "description": "Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health, review signals, local schema markup, location page quality, multi-location SEO. MUST be invoked when",
     "triggers": []
   },
   {
@@ -537,7 +521,7 @@
     "name": "seo",
     "category": "general",
     "path": ".claude/skills/seo.md",
-    "description": "Use for anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. Triggers: 'SEO audit', 'technical SEO', 'why am I not ranking",
+    "description": "Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. MUST be invoked when the user says: SEO audit, technical SEO, why am ",
     "triggers": []
   },
   {
@@ -545,7 +529,7 @@
     "name": "shopify-app",
     "category": "general",
     "path": ".claude/skills/shopify-app.md",
-    "description": "Use when building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. Covers full",
+    "description": "Building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. MUST be invoked when",
     "triggers": []
   },
   {
@@ -553,7 +537,7 @@
     "name": "shopify-router",
     "category": "general",
     "path": ".claude/skills/shopify-router.md",
-    "description": "Use when the user asks about Shopify projects (apps, themes, extensions, store audits) and you need to classify the project type and route to the correct skill (shopify-app, shopify-theme, shopify-sto",
+    "description": "Classifies Shopify project type and routes to the correct skill (shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer). MUST be invoked when the user mentions: Shopify.",
     "triggers": []
   },
   {
@@ -561,7 +545,7 @@
     "name": "shopify-store-audit",
     "category": "general",
     "path": ".claude/skills/shopify-store-audit.md",
-    "description": "Use when auditing a public Shopify store across 8 dimensions: trust & credibility, conversion optimisation, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO (Answer ",
+    "description": "Auditing a public Shopify store across 8 dimensions: trust, conversion, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO, GEO. MUST be invoked when the user mentions",
     "triggers": []
   },
   {
@@ -569,7 +553,7 @@
     "name": "shopify-store-fixer",
     "category": "general",
     "path": ".claude/skills/shopify-store-fixer.md",
-    "description": "Use when implementing fixes to a Shopify store via Admin API (GraphQL). Every write operation requires explicit user approval before execution. Covers products, metafields, pages, navigation, redirect",
+    "description": "Implementing fixes to a Shopify store via Admin API (GraphQL). MUST be invoked when the user mentions: Shopify, Admin API, GraphQL, Every.",
     "triggers": []
   },
   {
@@ -577,7 +561,7 @@
     "name": "shopify-theme",
     "category": "general",
     "path": ".claude/skills/shopify-theme.md",
-    "description": "Use when building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check linting, a",
+    "description": "Building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check. MUST be invoked wh",
     "triggers": []
   },
   {
@@ -585,7 +569,7 @@
     "name": "slides",
     "category": "general",
     "path": ".claude/skills/slides.md",
-    "description": "Use when creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080.",
+    "description": "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. SH",
     "triggers": []
   },
   {
@@ -593,7 +577,7 @@
     "name": "social-content",
     "category": "general",
     "path": ".claude/skills/social-content.md",
-    "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn po",
+    "description": "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post,, Twitter thr",
     "triggers": []
   },
   {
@@ -601,7 +585,7 @@
     "name": "task-breakdown",
     "category": "general",
     "path": ".claude/skills/task-breakdown.md",
-    "description": "Use when decomposing large features into implementable tasks with dependencies and estimates.",
+    "description": "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto ",
     "triggers": []
   },
   {
@@ -609,7 +593,7 @@
     "name": "tech-spec",
     "category": "general",
     "path": ".claude/skills/tech-spec.md",
-    "description": "Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). Data model with Mermaid ERD, API surface (endpoints/events), component breakdown, sequence diagrams for critical flows, integ",
+    "description": "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, mode",
     "triggers": []
   },
   {
@@ -617,7 +601,7 @@
     "name": "transactional-email",
     "category": "general",
     "path": ".claude/skills/transactional-email.md",
-    "description": "Router skill for transactional email. Routes to the appropriate provider sub-skill. Covers Postmark, Resend, and email deliverability patterns. Use when sending emails, setting up email infrastructure",
+    "description": "Router skill for transactional email. MUST be invoked when the user says: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf. SHOULD also invoke when: dkim, d",
     "triggers": []
   },
   {
@@ -625,7 +609,7 @@
     "name": "video",
     "category": "general",
     "path": ".claude/skills/video.md",
-    "description": "Router para produção de vídeo — decide qual ferramenta usar e activa a skill certa. Cobre AI generation (Veo, Runway, Kling, Pika), AI avatars (HeyGen, Synthesia), editing/repurposing (Descript, Opus ",
+    "description": "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, e",
     "triggers": []
   },
   {
@@ -633,7 +617,7 @@
     "name": "webhooks",
     "category": "general",
     "path": ".claude/skills/webhooks.md",
-    "description": "Implement webhook receivers with proper signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. Use when receiving we",
+    "description": "Implement webhook receivers with signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the use",
     "triggers": []
   },
   {
@@ -641,7 +625,7 @@
     "name": "wordpress-router",
     "category": "general",
     "path": ".claude/skills/wordpress-router.md",
-    "description": "Use when the user asks about WordPress codebases (plugins, themes, block themes, Gutenberg blocks, WP core checkouts) and you need to quickly classify the repo and route to the correct workflow/skill ",
+    "description": "Classifies WordPress repos (plugin, theme, block theme, core, full site) and routes to the correct domain skill. MUST be invoked when the user mentions: WordPress, Gutenberg, WP, REST API, CLI.",
     "triggers": []
   },
   {
@@ -649,7 +633,7 @@
     "name": "wp-abilities-api",
     "category": "general",
     "path": ".claude/skills/wp-abilities-api.md",
-    "description": "Use when working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities, categories, meta, ",
+    "description": "Working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities. MUST be invoked when the us",
     "triggers": []
   },
   {
@@ -657,7 +641,7 @@
     "name": "wp-block-development",
     "category": "general",
     "path": ".claude/skills/wp-block-development.md",
-    "description": "Use when developing WordPress (Gutenberg) blocks: block.json metadata, register_block_type(_from_metadata), attributes/serialization, supports, dynamic rendering (render.php/render_callback), deprecat",
+    "description": "Developing WordPress (Gutenberg) blocks: block.json metadata, register_block_type(_from_metadata), attributes/serialization, supports, dynamic rendering. MUST be invoked when the user mentions: WordPr",
     "triggers": []
   },
   {
@@ -665,7 +649,7 @@
     "name": "wp-block-themes",
     "category": "general",
     "path": ".claude/skills/wp-block-themes.md",
-    "description": "Use when developing WordPress block themes: theme.json (global settings/styles), templates and template parts, patterns, style variations, and Site Editor troubleshooting (style hierarchy, overrides, ",
+    "description": "Block theme development: theme.json settings/styles, templates, template parts, patterns, style variations, Site Editor debugging. MUST be invoked when the user mentions: WordPress, Site Editor.",
     "triggers": []
   },
   {
@@ -673,7 +657,7 @@
     "name": "wp-interactivity-api",
     "category": "general",
     "path": ".claude/skills/wp-interactivity-api.md",
-    "description": "Use when building or debugging WordPress Interactivity API features (data-wp-* directives, @wordpress/interactivity store/state/actions, block viewScriptModule integration, wp_interactivity_*()) inclu",
+    "description": "Building or debugging WordPress Interactivity API features (data-wp-* directives, @wordpress/interactivity store/state/actions, block viewScriptModule integration. MUST be invoked when the user mentio",
     "triggers": []
   },
   {
@@ -681,7 +665,7 @@
     "name": "wp-performance-review",
     "category": "general",
     "path": ".claude/skills/wp-performance-review.md",
-    "description": "WordPress performance code review and optimization analysis. Use when reviewing WordPress PHP code for performance issues, auditing themes/plugins for scalability, optimizing WP_Query, analyzing cachi",
+    "description": "WordPress performance code review and optimization analysis. MUST be invoked when the user says: performance review, optimization audit, slow WordPress, slow queries, high-traffic, scale WordPress.",
     "triggers": []
   },
   {
@@ -689,7 +673,7 @@
     "name": "wp-performance",
     "category": "general",
     "path": ".claude/skills/wp-performance.md",
-    "description": "Use when investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers), database/query optimiz",
+    "description": "Investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers). MUST be invoked when the user m",
     "triggers": []
   },
   {
@@ -697,7 +681,7 @@
     "name": "wp-phpstan",
     "category": "general",
     "path": ".claude/skills/wp-phpstan.md",
-    "description": "Use when configuring, running, or fixing PHPStan static analysis in WordPress projects (plugins/themes/sites): phpstan.neon setup, baselines, WordPress-specific typing, and handling third-party plugin",
+    "description": "Configuring, running, or fixing PHPStan static analysis in WordPress projects (plugins/themes/sites): phpstan.neon setup, baselines, WordPress-specific typing, and handling. MUST be invoked when the u",
     "triggers": []
   },
   {
@@ -705,7 +689,7 @@
     "name": "wp-playground",
     "category": "general",
     "path": ".claude/skills/wp-playground.md",
-    "description": "Use for WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting plugins/themes, switching W",
+    "description": "WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting. MUST be invoked when the user ment",
     "triggers": []
   },
   {
@@ -713,7 +697,7 @@
     "name": "wp-plugin-development",
     "category": "general",
     "path": ".claude/skills/wp-plugin-development.md",
-    "description": "Use when developing WordPress plugins: architecture and hooks, activation/deactivation/uninstall, admin UI and Settings API, data storage, cron/tasks, security (nonces/capabilities/sanitization/escapi",
+    "description": "Plugin architecture, hooks, activation/deactivation/uninstall, admin UI, Settings API, data storage, cron, security. MUST be invoked when the user mentions: WordPress, UI, Settings API.",
     "triggers": []
   },
   {
@@ -721,7 +705,7 @@
     "name": "wp-plugin-directory-guidelines",
     "category": "general",
     "path": ".claude/skills/wp-plugin-directory-guidelines.md",
-    "description": "Use when reviewing WordPress plugins for GPL compliance, checking license headers or compatibility, evaluating upsell/freemium/trialware patterns, validating plugin naming or trademark rules, checking",
+    "description": "Reviewing WordPress plugins for GPL compliance, checking license headers or compatibility, evaluating upsell/freemium/trialware patterns, validating plugin naming or trademark. MUST be invoked when th",
     "triggers": []
   },
   {
@@ -729,7 +713,7 @@
     "name": "wp-project-triage",
     "category": "general",
     "path": ".claude/skills/wp-project-triage.md",
-    "description": "Use when you need a deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, and a structured JSON report to gui",
+    "description": "Deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, outputting structured JSON. MUST be invoked when the us",
     "triggers": []
   },
   {
@@ -737,7 +721,7 @@
     "name": "wp-rest-api",
     "category": "general",
     "path": ".claude/skills/wp-rest-api.md",
-    "description": "Use when building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route, WP_REST_Controller/controller classes, schema/argument validation, permission_callback/authenticati",
+    "description": "Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route, WP_REST_Controller/controller classes, schema/argument validation. MUST be invoked when the user mentions: W",
     "triggers": []
   },
   {
@@ -745,7 +729,7 @@
     "name": "wp-wpcli-and-ops",
     "category": "general",
     "path": ".claude/skills/wp-wpcli-and-ops.md",
-    "description": "Use when working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite, and scripting/automation with ",
+    "description": "Working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite. MUST be invoked when the user mentions:",
     "triggers": []
   },
   {
@@ -753,7 +737,7 @@
     "name": "wpds",
     "category": "general",
     "path": ".claude/skills/wpds.md",
-    "description": "Use when building UIs leveraging the WordPress Design System (WPDS) and its components, tokens, patterns, etc.",
+    "description": "Building UIs with the WordPress Design System (WPDS): components, tokens, patterns. MUST be invoked when the user mentions: UIs, WordPress Design System, WPDS.",
     "triggers": []
   },
   {

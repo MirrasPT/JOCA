@@ -1,11 +1,11 @@
 ---
 name: deploy-cpanel
-description: "Use when deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments."
+description: "Deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager."
 triggers: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples
 ---
 # Deploy — cPanel
 
-Deploy de Laravel/PHP em cPanel. Workarounds para limitacoes de shared hosting.
+Deploy Laravel/PHP em cPanel. Workarounds para shared hosting.
 
 ---
 
@@ -25,13 +25,13 @@ Deploy de Laravel/PHP em cPanel. Workarounds para limitacoes de shared hosting.
     └── assets/
 ```
 
-**NUNCA colocar a raiz do Laravel dentro de `public_html/`** -- expoe `.env`, config, e todo o codigo.
+**NUNCA colocar raiz do Laravel dentro de `public_html/`** -- expoe `.env`, config, e codigo.
 
 ---
 
 ## Corrigir index.php
 
-Copiar `laravel/public/*` para `public_html/` e corrigir paths em `public_html/index.php`:
+Copiar `laravel/public/*` para `public_html/`, corrigir paths em `public_html/index.php`:
 
 ```php
 // Laravel < 11
@@ -46,7 +46,7 @@ $app = require_once __DIR__.'/../laravel/bootstrap/app.php';
 
 ## .htaccess security
 
-Adicionar a `public_html/.htaccess`:
+Em `public_html/.htaccess`:
 
 ```apache
 RewriteEngine On
@@ -85,7 +85,7 @@ php artisan view:cache
 ### C. cPanel Git Version Control + .cpanel.yml
 1. cPanel -> Git Version Control -> Create
 2. URL do repo (SSH para privados)
-3. Adicionar deploy key gerada pelo cPanel ao GitHub
+3. Adicionar deploy key do cPanel ao GitHub
 4. Criar `.cpanel.yml` na raiz do repo:
 
 ```yaml
@@ -101,7 +101,7 @@ deployment:
     - cd $DEPLOYPATH && php artisan route:cache
 ```
 
-**Limitacao:** `.cpanel.yml` usa `cp` (copia), nao `rsync` -- ficheiros apagados do repo NAO sao removidos do servidor.
+**Limitacao:** `.cpanel.yml` usa `cp` nao `rsync` -- ficheiros apagados do repo NAO sao removidos do servidor.
 
 ---
 
@@ -139,9 +139,9 @@ Correr uma vez, depois remover.
 ```
 * * * * *   /usr/local/bin/php /home/username/laravel/artisan queue:work --stop-when-empty --tries=3 --timeout=90
 ```
-`--stop-when-empty` e CRITICO -- previne processos long-running que cPanel mata.
+`--stop-when-empty` CRITICO -- previne processos long-running que cPanel mata.
 
-Usar `QUEUE_CONNECTION=database` se Redis nao disponivel.
+Usar `QUEUE_CONNECTION=database` se Redis indisponivel.
 
 ---
 
@@ -163,7 +163,7 @@ Usar `QUEUE_CONNECTION=database` se Redis nao disponivel.
 ## Database
 
 - Criar: cPanel -> MySQL Databases -> Create Database + Create User + Add User to Database
-- **Atencao:** nomes sao prefixados com username cPanel (ex: `john_myapp`, nao `myapp`)
+- Nomes prefixados com username cPanel (ex: `john_myapp`, nao `myapp`)
 - Import: phpMyAdmin -> seleccionar DB -> Import -> upload `.sql`
 - `.env`: `DB_HOST=localhost`, `DB_USERNAME=cpanel_prefix_user`
 

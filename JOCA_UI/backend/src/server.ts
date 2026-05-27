@@ -136,7 +136,7 @@ const IS_WINDOWS = process.platform === 'win32';
 const SHELL = IS_WINDOWS
   ? 'powershell.exe'
   : (process.env.SHELL || '/bin/zsh');
-const BUFFER_MAX = 200_000;
+const BUFFER_MAX = 1_000_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
 
@@ -771,17 +771,6 @@ Instruções para o agente ${name} no projeto ${p.name}.
   res.json({ ok: true, path: itemPath, items: collectToolkitItems(projectClaudeDir) });
 });
 
-app.get('/rate-limits', (_req, res) => {
-  const limitsFile = path.join(os.tmpdir(), 'joca-ui', 'rate-limits.json');
-  try {
-    if (!fs.existsSync(limitsFile)) return res.json(null);
-    const data = JSON.parse(fs.readFileSync(limitsFile, 'utf8'));
-    res.json(data);
-  } catch {
-    res.json(null);
-  }
-});
-
 app.get('/runtime', (_req, res) => {
   const projects = loadProjects();
   res.json({
@@ -795,6 +784,54 @@ app.get('/runtime', (_req, res) => {
     projectCount: projects.length,
     sessions: [...sessions.values()].map(sessionInfo),
   });
+});
+
+app.get('/rate-limits', (_req, res) => {
+  const result: Record<string, unknown> = {};
+
+  try {
+    const claudeFile = path.join(os.tmpdir(), 'joca-ui', 'rate-limits.json');
+    if (fs.existsSync(claudeFile)) {
+      const claude = JSON.parse(fs.readFileSync(claudeFile, 'utf8'));
+      const oauthFile = path.join(os.tmpdir(), 'joca-ui', 'oauth-usage.json');
+      if (fs.existsSync(oauthFile)) {
+        const oauth = JSON.parse(fs.readFileSync(oauthFile, 'utf8'));
+        if (oauth.five_hour?.utilization != null) claude.five_hour = { used_pct: oauth.five_hour.utilization, resets_at: oauth.five_hour.resets_at };
+        if (oauth.seven_day?.utilization != null) claude.seven_day = { used_pct: oauth.seven_day.utilization, resets_at: oauth.seven_day.resets_at };
+        if (oauth.seven_day_sonnet?.utilization != null) claude.sonnet_seven_day = { used_pct: oauth.seven_day_sonnet.utilization, resets_at: oauth.seven_day_sonnet.resets_at };
+      }
+      result.claude = claude;
+    }
+  } catch {}
+
+  try {
+    const codexDb = path.join(os.homedir(), '.codex', 'logs_2.sqlite');
+    if (fs.existsSync(codexDb)) {
+      const out = execSync(
+        `sqlite3 "${codexDb}" "SELECT feedback_log_body FROM logs WHERE feedback_log_body LIKE '%codex.rate_limits%' ORDER BY ts DESC LIMIT 1;"`,
+        { timeout: 3000, encoding: 'utf8' }
+      );
+      const match = out.match(/\{"type":"codex\.rate_limits".*?\}(?=\s|$)/);
+      if (match) {
+        const d = JSON.parse(match[0]);
+        const rl = d.rate_limits || {};
+        result.codex = {
+          plan: d.plan_type || null,
+          five_hour: { used_pct: rl.primary?.used_percent ?? null },
+          seven_day: { used_pct: rl.secondary?.used_percent ?? null },
+        };
+      }
+    }
+  } catch {}
+
+  try {
+    const agyFile = path.join(os.tmpdir(), 'joca-ui', 'agy-rate-limits.json');
+    if (fs.existsSync(agyFile)) {
+      result.agy = JSON.parse(fs.readFileSync(agyFile, 'utf8'));
+    }
+  } catch {}
+
+  res.json(Object.keys(result).length > 0 ? result : null);
 });
 
 app.get('/cli-tools', (_req, res) => {

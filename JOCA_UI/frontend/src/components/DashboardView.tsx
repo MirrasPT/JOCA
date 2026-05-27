@@ -102,6 +102,30 @@ export default function DashboardView({
     action();
   };
 
+  const [rateLimits, setRateLimits] = useState<{
+    claude?: {
+      five_hour: { used_pct: number | null };
+      seven_day: { used_pct: number | null };
+      sonnet_seven_day?: { used_pct: number | null };
+    };
+    codex?: {
+      five_hour: { used_pct: number | null };
+      seven_day: { used_pct: number | null };
+    };
+    agy?: {
+      model: string;
+      plan: string | null;
+      context: { used_pct: number | null; input_tokens: number; output_tokens: number };
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    const load = () => fetch('/rate-limits').then(r => r.json()).then(d => setRateLimits(d)).catch(() => {});
+    load();
+    const interval = setInterval(load, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingProjectName, setEditingProjectName] = useState('');
   const editProjectInputRef = useRef<HTMLInputElement>(null);
@@ -660,6 +684,93 @@ export default function DashboardView({
               <span>{jocaLogicInfo.commandCount} commands</span>
               {jocaLogicInfo.hasGraph && <span>graph</span>}
               {jocaLogicInfo.hasSoul && <span>soul</span>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {rateLimits && (rateLimits.claude || rateLimits.codex || rateLimits.agy) && (
+        <div className="db-rate-limits">
+          {rateLimits.claude && (
+            <div className="db-rate-limits-section">
+              <div className="db-rate-limits-header">
+                <span className="db-rate-limits-model">Claude</span>
+              </div>
+              <div className="db-rate-limits-bars">
+                {rateLimits.claude.five_hour?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">5 hours</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.claude.five_hour.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.five_hour.used_pct)}%</span>
+                  </div>
+                )}
+                {rateLimits.claude.seven_day?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">7 days</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--7d" style={{ width: `${Math.min(100, rateLimits.claude.seven_day.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.seven_day.used_pct)}%</span>
+                  </div>
+                )}
+                {rateLimits.claude.sonnet_seven_day?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">Sonnet 7d</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--sonnet" style={{ width: `${Math.min(100, rateLimits.claude.sonnet_seven_day.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.sonnet_seven_day.used_pct)}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {rateLimits.codex && (
+            <div className="db-rate-limits-section">
+              <div className="db-rate-limits-header">
+                <span className="db-rate-limits-model">Codex</span>
+              </div>
+              <div className="db-rate-limits-bars">
+                {rateLimits.codex.five_hour?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">5 hours</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--codex-5h" style={{ width: `${Math.min(100, rateLimits.codex.five_hour.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{Math.round(rateLimits.codex.five_hour.used_pct)}%</span>
+                  </div>
+                )}
+                {rateLimits.codex.seven_day?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">7 days</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--codex-7d" style={{ width: `${Math.min(100, rateLimits.codex.seven_day.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{Math.round(rateLimits.codex.seven_day.used_pct)}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {rateLimits.agy && (
+            <div className="db-rate-limits-section">
+              <div className="db-rate-limits-header">
+                <span className="db-rate-limits-model">Gemini</span>
+                {rateLimits.agy.plan && <span className="db-rate-limits-plan">{rateLimits.agy.plan}</span>}
+              </div>
+              <div className="db-rate-limits-bars">
+                {rateLimits.agy.context?.used_pct != null && (
+                  <div className="db-rate-bar">
+                    <span className="db-rate-bar-label">Context</span>
+                    <div className="db-rate-bar-track">
+                      <div className="db-rate-bar-fill db-rate-bar-fill--agy" style={{ width: `${Math.min(100, rateLimits.agy.context.used_pct)}%` }} />
+                    </div>
+                    <span className="db-rate-bar-pct">{rateLimits.agy.context.used_pct < 1 ? '<1' : Math.round(rateLimits.agy.context.used_pct)}%</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

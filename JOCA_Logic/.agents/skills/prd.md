@@ -1,306 +1,247 @@
 ---
 name: prd
-description: Gera e mantém PRD.md — documento de requisitos vivo, optimizado para Claude Code parsing; activado no /init-project e actualizado em cada /save quando há mudanças de scope
+description: "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /init-project, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requirements doc, product spec."
 metadata:
   type: skill
   category: base
 ---
 
-# Skill: prd
+# PRD
 
-## Quando activar
+## Activation
 
-- **Sempre** no `/init-project` — perguntar se o utilizador quer PRD
-- Pedido explícito: "cria um PRD", "documento de requisitos", "especificação do produto"
-- Nova feature/mudança de scope sem documentação
-- `/save` quando `PRD.md` existe e houve mudanças de scope na sessão
+- Always on `/init-project` — ask if user wants PRD
+- Explicit request: "create PRD", "requirements doc", "product spec"
+- New feature or scope change without documentation
+- `/save` when `PRD.md` exists and scope changed during session
 
 ---
 
-## Estrutura do PRD.md
+## PRD.md Structure
 
-> Regra de parsing: headers únicos e hierárquicos — Claude navega por headers. User Stories atómicas (1 por story). Acceptance Criteria como bullets verificáveis. Constraints em secção separada (nunca enterradas em prosa).
+Parsing rules: unique hierarchical headers. Atomic User Stories (1 per story). Acceptance Criteria as verifiable bullets. Constraints in separate section, never buried in prose.
 
 ```markdown
-# PRD — [Nome do Projecto]
+# PRD — [Project Name]
 
-**Versão:** 0.1
-**Estado:** Draft | Em desenvolvimento | Estável
-**Última actualização:** [data]
-**North Star Metric:** [1 métrica — o número que prova que o produto funciona]
-
----
-
-## 1. Visão Geral
-
-### Problema
-[1-3 frases: que problema resolve, para quem, com que evidência]
-
-### Solução
-[1-3 frases: o que o produto faz — não como, o quê]
-
-### Fora de Scope
-- [o que explicitamente não vai ser feito nesta versão]
-- [cada item numa linha — sem ambiguidade]
+**Version:** 0.1
+**Status:** Draft | In Development | Stable
+**Updated:** [date]
+**North Star Metric:** [1 metric proving product works]
 
 ---
 
-## 2. Métricas de Sucesso
+## 1. Overview
 
-**North Star:** [métrica única que define sucesso]
+### Problem
+[1-3 sentences: what problem, for whom, with what evidence]
 
-| Tipo | Métrica | Baseline | Target | Prazo |
-|------|---------|----------|--------|-------|
-| Leading | [métrica antecipada] | [actual] | [alvo] | [data] |
-| Lagging | [métrica de resultado] | [actual] | [alvo] | [data] |
+### Solution
+[1-3 sentences: what product does — not how, what]
 
-*Framework usado: AARRR | HEART | OKRs — [escolher e manter consistente]*
-
----
-
-## 3. Utilizadores-Alvo
-
-| Persona | Descrição | Job-to-be-Done | Principal dor |
-|---------|-----------|----------------|---------------|
-| [Persona 1] | [quem é] | Quando [situação], quero [motivação], para [outcome] | [dor] |
-| [Persona 2] | [quem é] | Quando [situação], quero [motivação], para [outcome] | [dor] |
+### Out of Scope
+- [explicitly not in this version]
 
 ---
 
-## 4. Funcionalidades
+## 2. Success Metrics
 
-### MVP — P0 (obrigatório para lançar)
+**North Star:** [single metric defining success]
 
-| ID | Funcionalidade | Descrição | Persona |
-|----|----------------|-----------|---------|
-| F1 | [nome] | [o quê, não o como] | [Persona] |
-| F2 | [nome] | [o quê, não o como] | [Persona] |
+| Type | Metric | Baseline | Target | Deadline |
+|------|--------|----------|--------|----------|
+| Leading | [early indicator] | [current] | [target] | [date] |
+| Lagging | [outcome metric] | [current] | [target] | [date] |
 
-### Fase 2 — P1 (pós-MVP)
-
-| ID | Funcionalidade | Descrição | Persona |
-|----|----------------|-----------|---------|
-| F-2-1 | [nome] | [descrição] | [Persona] |
+*Framework: AARRR | HEART | OKRs — pick one, stay consistent*
 
 ---
 
-## 5. User Stories e Acceptance Criteria
+## 3. Target Users
 
-> Formato: 1 story por item. Acceptance Criteria em Given/When/Then. Incluir happy path + edge case + error state.
-
-### [F1] [Nome da Funcionalidade]
-
-**Como** [persona], **quero** [acção] **para** [benefício].
-
-**Critérios de Aceitação:**
-- Dado que [contexto], Quando [acção], Então [resultado esperado]
-- Dado que [edge case], Quando [acção], Então [resultado de erro esperado]
-- Dado que [contexto de recuperação], Quando [acção], Então [resultado de recuperação]
-
-### [F2] [Nome da Funcionalidade]
-
-**Como** [persona], **quero** [acção] **para** [benefício].
-
-**Critérios de Aceitação:**
-- Dado que [contexto], Quando [acção], Então [resultado esperado]
+| Persona | Description | Job-to-be-Done | Main Pain |
+|---------|-------------|----------------|-----------|
+| [P1] | [who] | When [situation], want [motivation], to [outcome] | [pain] |
 
 ---
 
-## 6. Requisitos Não-Funcionais
+## 4. Features
 
-| Categoria | Requisito | Threshold | Prioridade |
-|-----------|-----------|-----------|------------|
-| Performance | Tempo de resposta p95 | < 200ms | P0 |
-| Performance | Throughput mínimo | [req/s] | P1 |
-| Segurança | Autenticação | [standard] | P0 |
-| Acessibilidade | Standard | WCAG 2.1 AA | P1 |
-| Fiabilidade | Uptime | 99.9% | P0 |
-| Manutenibilidade | Test coverage | > 80% | P1 |
-| Compatibilidade | Browsers | [lista] | P1 |
+### MVP — P0 (required to launch)
 
----
+| ID | Feature | Description | Persona |
+|----|---------|-------------|---------|
+| F1 | [name] | [what, not how] | [P] |
 
-## 7. Constraints Técnicas
+### Phase 2 — P1 (post-MVP)
 
-- Stack: [detectada no projecto]
-- [constraint adicional — ex: "deve usar API existente X"]
-- [constraint de negócio — ex: "GDPR: sem dados de utilizador fora da UE"]
-- [constraint de plataforma — ex: "máximo 5MB por request"]
+| ID | Feature | Description | Persona |
+|----|---------|-------------|---------|
+| F-2-1 | [name] | [description] | [P] |
 
 ---
 
-## 8. Analytics & Telemetria
+## 5. User Stories & Acceptance Criteria
 
-### Eventos a Rastrear
+Format: 1 story per item. AC in Given/When/Then. Include happy path + edge case + error state.
 
-| Evento | Propriedades | Propósito |
-|--------|-------------|-----------|
-| [event_name] | [prop1, prop2] | [o que mede] |
+### [F1] [Feature Name]
 
-### Dashboards
+**As** [persona], **I want** [action] **to** [benefit].
 
-- [Dashboard X] — monitoriza [métricas Y e Z]
-
-### Alertas
-
-- Alert se [métrica] < [threshold] durante [período] → [acção]
+**AC:**
+- Given [context], When [action], Then [expected result]
+- Given [edge case], When [action], Then [error result]
 
 ---
 
-## 9. Fases & Timeline
+## 6. Non-Functional Requirements
 
-| Fase | Entregável | Critério de Conclusão | Data |
-|------|-----------|----------------------|------|
-| Fase 0 | Design / PRD | PRD aprovado, protótipo validado | [data] |
-| Fase 1 | MVP | Features P0 em produção, métricas baseline definidas | [data] |
-| Fase 2 | [nome] | [critério verificável] | [data] |
-
----
-
-## 10. Rollout & Operações
-
-### Plano de Rollout
-
-| Fase | Audiência | Mecanismo | Duração |
-|------|-----------|-----------|---------|
-| Alpha | Equipa interna | Sem flag | [X dias] |
-| Beta | [% early adopters] | Feature flag `[nome_flag]` | [X dias] |
-| GA | 100% | Remover flag | — |
-
-### Rollback Triggers
-
-- Error rate > [X]% → rollback automático
-- [Métrica crítica] < [threshold] → pausar rollout
-
-### Comunicação
-
-- Notificar utilizadores afectados [X] dias antes de mudanças breaking
+| Category | Requirement | Threshold | Priority |
+|----------|-------------|-----------|----------|
+| Performance | p95 response time | < 200ms | P0 |
+| Security | Auth | [standard] | P0 |
+| Accessibility | Standard | WCAG 2.1 AA | P1 |
+| Reliability | Uptime | 99.9% | P0 |
+| Maintainability | Test coverage | > 80% | P1 |
 
 ---
 
-## 11. Questões em Aberto
+## 7. Technical Constraints
 
-| # | Questão | Owner | Prazo | Estado |
-|---|---------|-------|-------|--------|
-| Q1 | [questão] | [quem] | [data/TBD] | Aberta |
+- Stack: [detected from project]
+- [additional constraint — e.g. "must use existing API X"]
+- [business constraint — e.g. "GDPR: no user data outside EU"]
+
+---
+
+## 8. Analytics & Telemetry
+
+| Event | Properties | Purpose |
+|-------|-----------|---------|
+| [event_name] | [prop1, prop2] | [what it measures] |
+
+Alert if [metric] < [threshold] for [period] → [action]
+
+---
+
+## 9. Phases & Timeline
+
+| Phase | Deliverable | Done Criteria | Date |
+|-------|-------------|---------------|------|
+| Phase 0 | Design / PRD | PRD approved, prototype validated | [date] |
+| Phase 1 | MVP | P0 features in prod, baseline metrics set | [date] |
+
+---
+
+## 10. Rollout
+
+| Phase | Audience | Mechanism | Duration |
+|-------|----------|-----------|----------|
+| Alpha | Internal team | No flag | [X days] |
+| Beta | [% early adopters] | Feature flag `[name]` | [X days] |
+| GA | 100% | Remove flag | — |
+
+Rollback: error rate > [X]% → auto rollback. [Critical metric] < [threshold] → pause.
+
+---
+
+## 11. Open Questions
+
+| # | Question | Owner | Deadline | Status |
+|---|----------|-------|----------|--------|
+| Q1 | [question] | [who] | [date/TBD] | Open |
 
 ---
 
 ## 12. Decision Log
 
-| Data | Decisão | Alternativas Consideradas | Racional |
-|------|---------|--------------------------|----------|
-| [data] | [decisão tomada] | [alternativa A, alternativa B] | [porquê esta] |
+| Date | Decision | Alternatives | Rationale |
+|------|----------|-------------|-----------|
+| [date] | [decision] | [alt A, alt B] | [why] |
 
 ---
 
-## 13. Glossário
+## 13. Glossary
 
-| Termo | Definição no contexto deste produto |
-|-------|-------------------------------------|
-| [termo] | [definição precisa — elimina ambiguidade] |
+| Term | Definition |
+|------|-----------|
+| [term] | [precise definition — eliminates ambiguity] |
 
 ---
 
-## 14. Histórico de Versões
+## 14. Version History
 
-| Versão | Data | Mudanças |
-|--------|------|----------|
-| 0.1 | [data] | ADDED: draft inicial |
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.1 | [date] | ADDED: initial draft |
 
-*Semântica: ADDED · CHANGED · REMOVED · DECIDED*
+*Semantics: ADDED · CHANGED · REMOVED · DECIDED*
 ```
 
 ---
 
-## Geração no /init-project
+## Generation in /init-project
 
-Após FASE 1 (contexto recolhido), antes de EXECUÇÃO:
+After Phase 1 (context gathered), before execution:
 
-1. Perguntar com `AskUserQuestion`:
-   ```
-   question: "Queres que eu gere um PRD.md para este projecto?"
-   header: "PRD"
-   options:
-     - "Sim — gerar agora"
-     - "Não / mais tarde"
-   ```
-
-2. Se sim, fazer as perguntas mínimas não cobertas pelo questionário:
-   - "Qual o problema central que este produto resolve? (1-2 frases)"
-   - "Quais as 3 funcionalidades obrigatórias para o MVP?"
-   - "North Star Metric — o número que prova que funciona?"
-   - "Quem são os utilizadores principais e o que tentam fazer?"
-
-3. Gerar `PRD.md` na raiz do projecto com a estrutura acima, preenchida com o contexto.
-
-4. Adicionar referência no CLAUDE.md do projecto:
-   ```markdown
-   **PRD:** [PRD.md](PRD.md)
-   ```
-
-5. Registar na entrada de memória do projecto:
-   ```markdown
-   **PRD:** PRD.md existe — actualizar via skill prd em /save
-   ```
+1. Ask with `AskUserQuestion`: "Generate PRD.md for this project?" → Yes / No
+2. If yes, ask minimum questions not covered by questionnaire:
+   - "Core problem this product solves? (1-2 sentences)"
+   - "3 mandatory MVP features?"
+   - "North Star Metric — number proving it works?"
+   - "Main users and what they're trying to do?"
+3. Generate `PRD.md` at project root with structure above
+4. Add to project CLAUDE.md: `**PRD:** [PRD.md](PRD.md)`
+5. Register in project memory: `**PRD:** PRD.md exists — update via prd skill on /save`
 
 ---
 
-## Actualização do PRD
+## PRD Updates
 
-### Critérios para propor actualização
+### Trigger criteria
+- Feature implemented or discarded
+- Scope change (in or out)
+- Phase completed
+- KPI or North Star redefined
+- Open question answered → move to Decision Log
+- Significant technical decision → register in Decision Log
+- New constraint discovered
 
-- Feature implementada ou descartada
-- Mudança de scope (dentro ou fora)
-- Fase concluída
-- KPI ou North Star redefinido
-- Questão em aberto respondida → mover para Decision Log
-- Decisão técnica significativa tomada → registar em Decision Log
-- Constraint nova descoberta
+### Process
+1. Read current `PRD.md`
+2. Identify outdated sections (diagnosis in ≤ 3 lines)
+3. Propose: "PRD outdated in: [sections]. Update?"
+4. If yes: edit surgically, move resolved questions to Decision Log, increment version, update date, add History line
 
-### Processo
+### Validation on /save
 
-1. Ler `PRD.md` actual
-2. Identificar secções desactualizadas (diagnóstico em ≤ 3 linhas)
-3. Propor em 1 linha: "PRD desactualizado em: [secções]. Actualizo?"
-4. Se sim:
-   - Editar cirurgicamente — só o que mudou
-   - Mover questões resolvidas de Open Questions → Decision Log
-   - Incrementar versão (0.1 → 0.2)
-   - Actualizar data
-   - Adicionar linha no Histórico com semântica ADDED/CHANGED/REMOVED/DECIDED
-
-### Validação no /save
-
-Se `PRD.md` existir, verificar e alertar se:
-- Feature P0 sem Acceptance Criteria definida
-- NFRs completamente vazios
-- Open Questions sem owner ou sem prazo
-- North Star Metric em branco
-- Rollout plan em falta para feature prestes a ser lançada
-
-Alertar em 1 linha por gap encontrado. Não bloquear o /save.
+If `PRD.md` exists, check and alert (1 line per gap, don't block /save):
+- P0 feature without Acceptance Criteria
+- NFRs completely empty
+- Open Questions without owner or deadline
+- North Star Metric blank
+- Missing Rollout plan for feature about to launch
 
 ---
 
-## Formatos alternativos
+## Alternative Formats
 
-**Lean PRD (features pequenas, &lt; 1 semana de trabalho):**
-Usar apenas: Problema · Solução · User Stories + AC · NFRs críticos · Definition of Done.
-Omitir: Analytics, Rollout, Glossário, Personas completas.
+**Lean PRD (small features, < 1 week):**
+Keep: Problem · Solution · User Stories + AC · Critical NFRs · Definition of Done.
+Skip: Analytics, Rollout, Glossary, full Personas.
 
-**Technical PRD (sem PM, só eng):**
-Enfatizar: NFRs · Constraints · Decision Log · Acceptance Criteria como testes.
-Reduzir: Personas, JTBD, Métricas de negócio.
+**Technical PRD (no PM, eng only):**
+Emphasise: NFRs · Constraints · Decision Log · AC as tests.
+Reduce: Personas, JTBD, business metrics.
 
 ---
 
 ## Workflow
 
-Pipeline desta skill na sequência JOCA:
+Pipeline sequence:
+→ after PRD generated: `prd-reviewer` agent — validates completeness + AI-parsability
+→ after PRD approved: `plan` — technical architecture from requirements
+→ continuous: re-run `prd-reviewer` after each major update
 
-→ **após gerar PRD**: `prd-reviewer` (agente) — valida completeness e AI-parsability
-→ **após aprovação PRD**: `plan` — arquitectura técnica baseada nos requisitos
-→ **validação contínua**: re-correr `prd-reviewer` após cada actualização major
-
-Notificar ao concluir PRD: `→ próximo: prd-reviewer`
+Notify on completion: `→ next: prd-reviewer`

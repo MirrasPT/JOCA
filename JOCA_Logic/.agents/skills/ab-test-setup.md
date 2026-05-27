@@ -1,22 +1,22 @@
 ---
 name: ab-test-setup
-description: When the user wants to plan, design, or implement an A/B test or experiment, or build a growth experimentation program. Also use when the user mentions "A/B test," "split test," "experiment," "test this change," "variant copy," "multivariate test," "hypothesis," "should I test this," "which version is better," "test two versions," "statistical significance," "how long should I run this test," "growth experiments," "experiment velocity," "experiment backlog," "ICE score," "experimentation program," or "experiment playbook."
+description: "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test,, split test,, experiment,, test this change,, variant copy,, multivariate test,."
 metadata:
   version: 1.2.0
 ---
 
 # A/B Test Setup
 
-You are an expert in experimentation and A/B testing. Your goal is to help design tests that produce statistically valid, actionable results.
+Expert in experimentation and A/B testing. Design tests that produce statistically valid, actionable results.
 
 ## Initial Assessment
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking questions. Use that context; only ask for info not covered or specific to this task.
 
 Before designing a test, understand:
 
-1. **Test Context** - What are you trying to improve? What change are you considering?
+1. **Test Context** - What are you improving? What change are you considering?
 2. **Current State** - Baseline conversion rate? Current traffic volume?
 3. **Constraints** - Technical complexity? Timeline? Tools available?
 
@@ -25,8 +25,7 @@ Before designing a test, understand:
 ## Core Principles
 
 ### 1. Start with a Hypothesis
-- Not just "let's see what happens"
-- Specific prediction of outcome
+- Specific prediction of outcome, not "let's see what happens"
 - Based on reasoning or data
 
 ### 2. Test One Thing
@@ -95,8 +94,8 @@ We'll know this is true when [metrics].
 
 ### Primary Metric
 - Single metric that matters most
-- Directly tied to hypothesis
-- What you'll use to call the test
+- Tied to hypothesis
+- Used to call the test
 
 ### Secondary Metrics
 - Support primary metric interpretation
@@ -145,7 +144,7 @@ We'll know this is true when [metrics].
 
 ### Client-Side
 - JavaScript modifies page after load
-- Quick to implement, can cause flicker
+- Quick to set up, can cause flicker
 - Tools: PostHog, Optimizely, VWO
 
 ### Server-Side
@@ -173,12 +172,12 @@ We'll know this is true when [metrics].
 - Document external factors
 
 **Avoid:**
-- Peek at results and stop early
-- Make changes to variants
-- Add traffic from new sources
+- Peeking at results and stopping early
+- Changing variants mid-test
+- Adding traffic from new sources
 
 ### The Peeking Problem
-Looking at results before reaching sample size and stopping early leads to false positives and wrong decisions. Pre-commit to sample size and trust the process.
+Looking at results before reaching sample size and stopping early leads to false positives. Pre-commit to sample size and trust the process.
 
 ---
 
@@ -187,15 +186,15 @@ Looking at results before reaching sample size and stopping early leads to false
 ### Statistical Significance
 - 95% confidence = p-value < 0.05
 - Means <5% chance result is random
-- Not a guarantee — just a threshold
+- Not a guarantee -- a threshold
 
 ### Analysis Checklist
 
-1. **Reach sample size?** If not, result is preliminary
+1. **Reached sample size?** If not, result is preliminary
 2. **Statistically significant?** Check confidence intervals
 3. **Effect size meaningful?** Compare to MDE, project impact
 4. **Secondary metrics consistent?** Support the primary?
-5. **Guardrail concerns?** Anything get worse?
+5. **Guardrail concerns?** Anything got worse?
 6. **Segment differences?** Mobile vs. desktop? New vs. returning?
 
 ### Interpreting Results
@@ -205,7 +204,7 @@ Looking at results before reaching sample size and stopping early leads to false
 | Significant winner | Implement variant |
 | Significant loser | Keep control, learn why |
 | No significant difference | Need more traffic or bolder test |
-| Mixed signals | Dig deeper, maybe segment |
+| Mixed signals | Dig deeper, segment |
 
 ---
 

@@ -1,163 +1,163 @@
 ---
 name: slides
-description: "Use when creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080."
+description: "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. SHOULD also invoke when: slide, keynote, html slides, html deck, apresentação html, criar slides."
 triggers: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch, slide, keynote, html slides, html deck, apresentação html, criar slides, fazer apresentação, pitch institucional, deck de vendas
 ---
 # Slides
 
-Designer de apresentações. HTML é o canvas — decks que correm em qualquer browser, exportam para PDF e PPTX, e não se parecem com templates genéricos.
+Presentation designer. HTML is the canvas — decks run in any browser, export to PDF and PPTX, and avoid generic templates.
 
-**Não é esta skill:**
+**Not this skill:**
 - Web components, UI, app mockups → `frontend`
-- Animação exportada como MP4/GIF → `video`
-- Materiais impressos (flyers, roll-ups) → `graphic-design`
+- Animation exported as MP4/GIF → `video`
+- Print materials (flyers, roll-ups) → `graphic-design`
 
 ---
 
 ## #0 Fact Verification
 
-Se a tarefa envolve produto, marca, ou tecnologia específica: **WebSearch primeiro, nunca assumir.**
-Igual ao `frontend` skill rule #0.
+If the task involves a specific product, brand, or technology: **WebSearch first, never assume.**
+Same as `frontend` skill rule #0.
 
 ---
 
 ## #1 DESIGN.md Integration
 
-Se existir `DESIGN.md` no projecto → **ler antes de qualquer código**.
+If `DESIGN.md` exists in the project → **read before any code**.
 
 ```
 Read("DESIGN.md")
 ```
 
-Extrair: `--color-*`, tipografia, logo paths. Aplicar directamente no deck CSS.
+Extract: `--color-*`, typography, logo paths. Apply directly in deck CSS.
 
-Se não existir e há marca definida → sugerir `brand-guidelines` skill, ou pedir assets.
-
----
-
-## #2 Architecture Decision (primeiro, sempre)
-
-**Decidir antes de escrever uma linha.** Escolha errada = reescrever tudo.
-
-| Cenário | Arquitectura | Asset chave |
-|---------|-------------|-------------|
-| ≤10 slides, pitch/portfolio, estado partilhado | **Single-file** (`deck_stage.js` web component) | script do projecto — ver #9 |
-| ≥10 slides, curso, build multi-agente paralelo | **Multi-file** (cada slide = HTML próprio, agregado) | `deck_index.html` template — ver #9 |
-
-**Single-file regras hardcoded (CSS/JS scope issues se violadas):**
-- `<script>` tag vai **depois** de `</deck-stage>` (nunca antes)
-- `display: flex` em sections só na classe `.active`, nunca no base `section`
-
-**Multi-file regras hardcoded:**
-- Cada slide é self-contained (sem CSS partilhado, sem estado partilhado)
-- Rename `deck_index.html` → `index.html`, editar MANIFEST para listar todos os slides
-- iFrame isolation previne CSS bleeding entre slides
-
-Anunciar escolha ao utilizador com uma frase de justificação. Aguardar confirmação antes de escrever.
+If absent but brand is defined → suggest `brand-guidelines` skill, or request assets.
 
 ---
 
-## #3 Design Philosophy (antes de qualquer código)
+## #2 Architecture Decision (always first)
 
-Para cada deck, definir filosofia antes de escolher cores ou layout:
+**Decide before writing a single line.** Wrong choice = full rewrite.
 
-**Nome do movimento** (1-2 palavras): ex "Tensão Editorial", "Brutalismo Calculado", "Respiração Minimalista"
+| Scenario | Architecture | Key Asset |
+|----------|-------------|-----------|
+| ≤10 slides, pitch/portfolio, shared state | **Single-file** (`deck_stage.js` web component) | project script — see #9 |
+| ≥10 slides, course, parallel multi-agent build | **Multi-file** (each slide = own HTML, aggregated) | `deck_index.html` template — see #9 |
 
-**3 parâmetros:**
-1. **Espaço** — denso vs aerado? Comprimido vs respirado?
-2. **Temperatura de cor** — quente/frio/neutro? Saturado/dessaturado?
-3. **Tipografia** — display agressivo vs serif clássico vs sans limpo?
+**Single-file hard rules (CSS/JS scope breaks if violated):**
+- `<script>` tag goes **after** `</deck-stage>` (never before)
+- `display: flex` on sections only in `.active` class, never on base `section`
 
-A filosofia guia todas as decisões. Escolha que vai contra a filosofia → rever.
+**Multi-file hard rules:**
+- Each slide is self-contained (no shared CSS, no shared state)
+- Rename `deck_index.html` → `index.html`, edit MANIFEST to list all slides
+- iFrame isolation prevents CSS bleeding between slides
 
-### Estratégia de cor (OKLCH)
+Announce choice with one justification sentence. Await confirmation before writing.
+
+---
+
+## #3 Design Philosophy (before any code)
+
+Define philosophy before choosing colours or layout:
+
+**Movement name** (1-2 words): e.g. "Editorial Tension", "Calculated Brutalism", "Minimal Breath"
+
+**3 parameters:**
+1. **Space** — dense vs airy? Compressed vs breathing?
+2. **Colour temperature** — warm/cool/neutral? Saturated/desaturated?
+3. **Typography** — aggressive display vs classic serif vs clean sans?
+
+Philosophy guides all decisions. Any choice contradicting it → revise.
+
+### Colour Strategy (OKLCH)
 
 ```css
 :root {
-  --color-primary: oklch(L C H);   /* nunca #000/#fff puros */
+  --color-primary: oklch(L C H);   /* never pure #000/#fff */
   --color-surface: oklch(L C H);
   --color-text: oklch(L C H);
   --color-accent: oklch(L C H);
 }
 ```
 
-Estratégia antes das cores:
-- **Restrained** — neutrals + 1 accent ≤10% dos slides
-- **Committed** — 1 cor saturada 30-60% com presença forte
-- **Drenched** — a superfície É a cor (slides de impacto, transições)
+Strategy before colours:
+- **Restrained** — neutrals + 1 accent ≤10% of slides
+- **Committed** — 1 saturated colour 30-60% with strong presence
+- **Drenched** — the surface IS the colour (impact slides, transitions)
 
 ---
 
 ## #4 Junior Designer Mode
 
-Mostrar o raciocínio antes de executar. Sempre.
+Show reasoning before executing. Always.
 
-1. Definir: quantos slides, narrativa, direcção estética → mostrar ao utilizador
-2. Construir 2 slides showcase → Playwright screenshot → "Grammar visual correcta?"
-3. Aguardar confirmação antes de construir o deck completo
-4. Check-in a ~50% do deck
+1. Define: slide count, narrative, aesthetic direction → show user
+2. Build 2 showcase slides → Playwright screenshot → "Visual grammar correct?"
+3. Await confirmation before building full deck
+4. Check-in at ~50% of deck
 
-**Checkpoint script:** "Fiz X slides. A seguir: Y. Confirmas?" — e aguardar realmente.
+**Checkpoint script:** "Built X slides. Next: Y. Confirm?" — and actually wait.
 
-Direcção errada em 2 slides = 10 min fix. Direcção errada em 20 slides = começar do zero.
+Wrong direction at 2 slides = 10 min fix. Wrong direction at 20 slides = start over.
 
 ---
 
 ## #5 Workflow
 
-### Step 1 — Clarify (1 ronda, tudo de uma vez)
+### Step 1 — Clarify (1 round, all at once)
 
 ```
-Antes de começar — confirmar (máx. 5 perguntas):
-□ Quantos slides? (determina arquitectura)
-□ Output final: HTML / PDF / PPTX editável?
-□ Tens brand guidelines, DESIGN.md, ou deck de referência?
-□ Audiência e contexto: pitch investidor / conferência / interno / curso?
-□ Tom: informativo / persuasivo / visual-heavy / data-heavy?
+Before starting — confirm (max 5 questions):
+□ How many slides? (determines architecture)
+□ Final output: HTML / PDF / editable PPTX?
+□ Have brand guidelines, DESIGN.md, or reference deck?
+□ Audience and context: investor pitch / conference / internal / course?
+□ Tone: informative / persuasive / visual-heavy / data-heavy?
 ```
 
 ### Step 2 — Architecture + Direction
 
-Declarar: escolha de arquitectura + direcção estética (1 frase cada). Aguardar confirmação.
+Declare: architecture choice + aesthetic direction (1 sentence each). Await confirmation.
 
-Se direcção pouco clara → oferecer 3 opções estéticas de escolas diferentes (nunca 2 da mesma). Gerar 2 slides demo por opção → Playwright screenshot → utilizador escolhe.
+If direction unclear → offer 3 aesthetic options from different schools (never 2 from the same). Generate 2 demo slides per option → Playwright screenshot → user chooses.
 
 ### Step 3 — Showcase First (≥5 slides)
 
-2 slides showcase → screenshot → "Grammar visual correcta?" → só avançar após confirmação.
+2 showcase slides → screenshot → "Visual grammar correct?" → proceed only after confirmation.
 
 ### Step 4 — Full Build
 
-Construir slides restantes. Check-in a ~50%.
+Build remaining slides. Check-in at ~50%.
 
 ### Step 5 — Export
 
-PDF, PPTX só se pedido explicitamente. HTML sempre incluído.
+PDF, PPTX only if explicitly requested. HTML always included.
 
 ---
 
 ## #6 Variants, Not Answers
 
-Nunca dar uma única direcção "correcta". Para briefs abertos, oferecer 3 variações em escolas diferentes:
+Never give a single "correct" direction. For open briefs, offer 3 variations from different schools:
 
-| Escola | Carácter |
-|--------|---------|
-| Arquitectura de Informação (Pentagram) | Racional, data-driven, contido |
-| Motion Poetry (Field.io) | Dinâmico, imersivo |
-| Minimalismo (Kenya Hara) | Espaço negativo, refinado |
-| Vanguarda Experimental | Avant-garde, impacto visual |
+| School | Character |
+|--------|-----------|
+| Information Architecture (Pentagram) | Rational, data-driven, restrained |
+| Motion Poetry (Field.io) | Dynamic, immersive |
+| Minimalism (Kenya Hara) | Negative space, refined |
+| Experimental Vanguard | Avant-garde, visual impact |
 
 ---
 
 ## #7 Design Rules
 
-### Fixed-size rendering (obrigatório)
+### Fixed-size rendering (mandatory)
 
-Slides são 1920×1080 fixos. Implementar JS auto-scale + letterboxing.
+Slides are fixed 1920x1080. Implement JS auto-scale + letterboxing.
 
 ```js
-// deck_stage.js gere automaticamente em single-file
-// Multi-file: implementar scale wrapper por slide
+// deck_stage.js handles this automatically in single-file
+// Multi-file: implement scale wrapper per slide
 function scaleSlide() {
   const scaleX = window.innerWidth / 1920;
   const scaleY = window.innerHeight / 1080;
@@ -168,72 +168,72 @@ window.addEventListener('resize', scaleSlide);
 scaleSlide();
 ```
 
-### Ritmo de layouts
+### Layout rhythm
 
-Nunca repetir a mesma estrutura em slides consecutivos:
+Never repeat the same structure on consecutive slides:
 
-| Layout | Quando usar |
+| Layout | When to use |
 |--------|------------|
-| **Hero text** | 1 afirmação bold, nada mais — transição, abertura, fecho |
-| **Data** | gráfico/número é o hero; caption é secundário |
-| **Image-dominant** | visual full-bleed, texto mínimo overlay |
-| **Split** | visual esquerda + texto direita (ou invertido) |
-| **Quote** | 1 citação atribuída, espaço negativo generoso |
-| **List** | só quando enumeração serve genuinamente o conteúdo |
-| **Transition** | entre secções — cor/tipografia diferentes, sem conteúdo denso |
+| **Hero text** | 1 bold statement, nothing else — transition, opening, closing |
+| **Data** | chart/number is the hero; caption is secondary |
+| **Image-dominant** | full-bleed visual, minimal text overlay |
+| **Split** | visual left + text right (or inverted) |
+| **Quote** | 1 attributed quote, generous negative space |
+| **List** | only when enumeration genuinely serves content |
+| **Transition** | between sections — different colour/typography, no dense content |
 
-### Posicionamento por slide
+### Per-slide positioning
 
-Antes de escrever cada slide, responder a 4 perguntas:
+Before writing each slide, answer 4 questions:
 
-| Pergunta | Opções |
-|----------|--------|
-| **Papel narrativo** | Hero / Transição / Dados / Citação / Fecho |
-| **Distância do viewer** | 10cm telefone / 1m laptop / 10m projecção |
-| **Temperatura visual** | Quiet / Exciting / Calm / Authoritative / Warm / Tense |
-| **Estimativa de conteúdo** | 3 thumbnails de 5s — cabe? |
+| Question | Options |
+|----------|---------|
+| **Narrative role** | Hero / Transition / Data / Quote / Closing |
+| **Viewer distance** | 10cm phone / 1m laptop / 10m projection |
+| **Visual temperature** | Quiet / Exciting / Calm / Authoritative / Warm / Tense |
+| **Content estimate** | 3 thumbnails at 5s — fits? |
 
-### Tipografia para slides
+### Slide typography
 
-- Display: fonte com carácter (Playfair Display, Cormorant, Clash Display, Space Grotesk — nunca Inter/Roboto como display)
-- Contraste mínimo: bold/regular (não medium/regular — diferença insuficiente a distância)
-- Hierarquia via scale + weight (ratio ≥1.5 entre levels em apresentações)
-- Projecção (≥10m): headline mínimo 60px, body mínimo 28px
+- Display: font with character (Playfair Display, Cormorant, Clash Display, Space Grotesk — never Inter/Roboto as display)
+- Minimum contrast: bold/regular (not medium/regular — insufficient difference at distance)
+- Hierarchy via scale + weight (ratio ≥1.5 between levels in presentations)
+- Projection (≥10m): headline minimum 60px, body minimum 28px
 
-### Espaço e composição
+### Space and composition
 
-- Grids assimétricos > colunas centradas
-- Full-bleed images > imagem numa caixa
-- Espaço negativo generoso > cramming
-- 1 elemento dominante por slide — nunca vários a competir
+- Asymmetric grids > centred columns
+- Full-bleed images > boxed images
+- Generous negative space > cramming
+- 1 dominant element per slide — never multiple competing
 
 ---
 
-## #8 Anti-Slop para Slides
+## #8 Anti-Slop for Slides
 
-**Reflex check (dois níveis):**
-- Alguém consegue adivinhar o tema + paleta só pela categoria do slide? ("tech startup → dark blue + purple gradient") → rever
-- Com categoria + anti-referências, ainda reconhecem a família estética genérica? → rever novamente
+**Reflex check (two levels):**
+- Can someone guess theme + palette from the slide category alone? ("tech startup → dark blue + purple gradient") → revise
+- With category + anti-references, still recognise the generic aesthetic family? → revise again
 
-| Evitar | Porquê |
-|--------|--------|
-| Inter/Roboto como display | Google Docs — zero carácter visual |
-| Mesmo layout em slides consecutivos | Monotonia = baixo esforço |
-| Bullet list após bullet list | Death by PowerPoint |
-| Gradientes roxos | Cliché AI-generated |
-| Emoji em contexto business | Sinal amateur |
-| Título centrado + body centrado em cada slide | Template padrão PowerPoint |
-| Ícones decorativos em cada bullet | Icon slop — ruído visual, zero significado |
-| Stats decorativos com gradient fills | Data slop — só dados reais e relevantes |
-| Cards idênticas repetidas | Grid slop |
+| Avoid | Why |
+|-------|-----|
+| Inter/Roboto as display | Google Docs look — zero visual character |
+| Same layout on consecutive slides | Monotony = low effort |
+| Bullet list after bullet list | Death by PowerPoint |
+| Purple gradients | AI-generated cliche |
+| Emoji in business context | Amateur signal |
+| Centred title + centred body on every slide | Default PowerPoint template |
+| Decorative icons on every bullet | Icon slop — visual noise, zero meaning |
+| Decorative stats with gradient fills | Data slop — only real, relevant data |
+| Identical repeated cards | Grid slop |
 
 ---
 
 ## #9 /export-pdf Command
 
-Exportar deck para PDF via Playwright.
+Export deck to PDF via Playwright.
 
-### Script de exportação
+### Export script
 
 ```js
 // export-slides.mjs
@@ -244,7 +244,7 @@ const page = await browser.newPage();
 await page.setViewportSize({ width: 1920, height: 1080 });
 await page.goto(`file://${process.cwd()}/deck.html`);
 
-// Navegar por todos os slides e exportar
+// Navigate through all slides and export
 const slideCount = await page.evaluate(() => 
   document.querySelectorAll('section').length
 );
@@ -265,65 +265,62 @@ console.log(`PDF exportado: deck.pdf (${slideCount} slides)`);
 node export-slides.mjs
 ```
 
-**Notas de exportação:**
-- Texto é vector/searchable (não rasterizado)
-- Animações GSAP: pausar no estado final antes de exportar (`gsap.globalTimeline.pause()`)
-- Verificar no browser antes de exportar: todos os slides renderizam
+**Export notes:**
+- Text is vector/searchable (not rasterised)
+- GSAP animations: pause at final state before exporting (`gsap.globalTimeline.pause()`)
+- Verify in browser before exporting: all slides render
 
 ---
 
-## ⚠️ PPTX Warning
+## PPTX Warning
 
-PPTX editável requer 4 constraints HTML estritas desde a primeira linha. Retrofit = 2-3h.
+Editable PPTX requires 4 strict HTML constraints from the first line. Retrofit = 2-3h.
 
-Se utilizador quer PPTX editável → confirmar no Step 1 → avisar o utilizador das 4 constraints antes de escrever qualquer código:
+If user wants editable PPTX → confirm in Step 1 → warn about the 4 constraints before writing any code.
 
-PDF only: sem constraints especiais, qualquer HTML válido funciona.
+PDF only: no special constraints, any valid HTML works.
 
 ---
 
 ## #10 Speaker Notes
 
-`deck_stage.js` suporta speaker notes — adicionar `<aside>` dentro de cada `<section>`. Premir `S` no browser para abrir speaker view.
+`deck_stage.js` supports speaker notes — add `<aside>` inside each `<section>`. Press `S` in browser for speaker view.
 
 ---
 
 ## #11 Expert Critique
 
-A pedido ("review", "score", "está bom?") — ou proactivamente quando output parece incerto:
+On request ("review", "score", "is it good?") — or proactively when output seems uncertain:
 
-0-10 em 5 dimensões:
-1. **Coerência filosófica** — o deck parece intencional?
-2. **Hierarquia visual** — percebe-se a prioridade em 3 segundos?
-3. **Ritmo narrativo** — fluxo de layouts varia? Tem progressão?
-4. **Execução de detalhe** — spacing, alinhamento, tipografia
-5. **Originalidade** — evita os clichês listados acima?
+0-10 across 5 dimensions:
+1. **Philosophical coherence** — does the deck feel intentional?
+2. **Visual hierarchy** — is priority clear in 3 seconds?
+3. **Narrative rhythm** — do layouts vary? Is there progression?
+4. **Detail execution** — spacing, alignment, typography
+5. **Originality** — avoids the cliches listed above?
 
-Output: total + **Keep** (o que funciona) + **Fix** (⚠️ crítico / ⚡ importante / 💡 optimização) + **Quick Wins** (top 3 em menos de 5 min).
-
----
+Output: total + **Keep** (what works) + **Fix** (critical / important / optimisation) + **Quick Wins** (top 3 under 5 min).
 
 ---
 
-## Checklist antes de entregar
+## Checklist before delivery
 
-- [ ] Abre no browser, todos os slides renderizam
-- [ ] Keyboard navigation funciona (setas, espaço, S para speaker view)
-- [ ] Sem erros JS na consola
-- [ ] Fixed-size content escala correctamente em diferentes tamanhos de janela
-- [ ] Contraste texto/fundo ≥4.5:1
-- [ ] Ritmo de layouts — nunca o mesmo em slides consecutivos
-- [ ] Tipografia: display com carácter (não Inter/Roboto)
-- [ ] PDF: texto é vector/searchable (não rasterizado)
-- [ ] PPTX (se pedido): texto editável (double-click no PowerPoint = texto editável)
+- [ ] Opens in browser, all slides render
+- [ ] Keyboard navigation works (arrows, space, S for speaker view)
+- [ ] No JS errors in console
+- [ ] Fixed-size content scales correctly at different window sizes
+- [ ] Text/background contrast ≥4.5:1
+- [ ] Layout rhythm — never the same on consecutive slides
+- [ ] Typography: display with character (not Inter/Roboto)
+- [ ] PDF: text is vector/searchable (not rasterised)
+- [ ] PPTX (if requested): text is editable (double-click in PowerPoint = editable text)
 
 ---
 
-## Skills relacionadas
+## Related skills
 
-- `frontend` — protótipos web, UI, app mockups
-- `video` — pipeline MP4/GIF para animações HTML exportadas
-- `brand-guidelines` — gerar DESIGN.md antes desta skill
-- `anima` — animações GSAP + Lottie
-- `graphic-design` — materiais impressos (roll-ups, flyers, trifolds)
-- `video` — exportar animação de slides como MP4/GIF
+- `frontend` — web prototypes, UI, app mockups
+- `video` — MP4/GIF pipeline for exported HTML animations
+- `brand-guidelines` — generate DESIGN.md before this skill
+- `anima` — GSAP + Lottie animations
+- `graphic-design` — print materials (roll-ups, flyers, trifolds)

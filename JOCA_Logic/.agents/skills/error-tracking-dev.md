@@ -1,21 +1,21 @@
 ---
 name: error-tracking-dev
-description: Development error tracking and debugging for Laravel. Debugbar (queries, N+1, timeline, memory), Telescope (requests, jobs, mail, cache, dumps), Ignition (error pages, solutions), Ray (desktop debugger), Log Viewer, Clockwork, Pail. Activar no inicio do desenvolvimento para tracking continuo.
+description: "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug."
 triggers: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1, slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug, debug bar, barra debug, ver queries, ver logs, painel debug, erros dev, errors dev, dump, dd, stack trace dev
 ---
 
 # Error Tracking — Development
 
-Ferramentas de debug para desenvolvimento. Activar no inicio do projecto para tracking continuo de queries, exceptions, performance, e jobs.
+Debug tools for dev. Activate at project start for continuous tracking of queries, exceptions, performance, and jobs.
 
-**Activar automaticamente** quando `laravel-specialist` detecta ambiente local/dev.
+**Auto-activate** when `laravel-specialist` detects local/dev environment.
 
 ---
 
-## Setup rapido (novo projecto)
+## Quick setup (new project)
 
 ```bash
-# Core — instalar tudo de uma vez
+# Core — install all at once
 composer require fruitcake/laravel-debugbar --dev
 composer require laravel/telescope --dev
 composer require beyondcode/laravel-query-detector --dev
@@ -36,9 +36,9 @@ LOG_LEVEL=debug
 
 ---
 
-## 1. Debugbar — barra no browser
+## 1. Debugbar — browser bar
 
-Mostra em tempo real no fundo do browser:
+Real-time overlay at bottom of browser:
 
 | Painel | O que mostra |
 |--------|-------------|
@@ -54,7 +54,7 @@ Mostra em tempo real no fundo do browser:
 | Events | Eventos disparados (activar) |
 | Auth | Estado de login (activar) |
 
-### Config recomendada
+### Recommended config
 ```php
 // config/debugbar.php
 'collectors' => [
@@ -69,7 +69,7 @@ Mostra em tempo real no fundo do browser:
 ],
 ```
 
-### N+1 detection automatico
+### Auto N+1 detection
 ```bash
 composer require beyondcode/laravel-query-detector --dev
 ```
@@ -82,7 +82,7 @@ composer require beyondcode/laravel-query-detector --dev
 ],
 ```
 
-### Medir blocos de codigo
+### Measure code blocks
 ```php
 Debugbar::startMeasure('render', 'Render blade');
 // ... codigo ...
@@ -96,11 +96,11 @@ Debugbar::measure('complex-op', function () {
 
 ---
 
-## 2. Telescope — dashboard web
+## 2. Telescope — web dashboard
 
-Dashboard em `/telescope`. Grava TUDO: requests, queries, jobs, mail, cache, exceptions.
+Dashboard at `/telescope`. Records everything: requests, queries, jobs, mail, cache, exceptions.
 
-### Registar so em dev
+### Register in dev only
 ```php
 // app/Providers/AppServiceProvider.php
 public function register(): void
@@ -113,7 +113,7 @@ public function register(): void
 ```
 
 ```json
-// composer.json — prevenir auto-discovery
+// composer.json — prevent auto-discovery
 "extra": {
     "laravel": {
         "dont-discover": ["laravel/telescope"]
@@ -121,7 +121,7 @@ public function register(): void
 }
 ```
 
-### Watchers essenciais
+### Essential watchers
 ```php
 // config/telescope.php
 Watchers\QueryWatcher::class => [
@@ -137,7 +137,7 @@ Watchers\RequestWatcher::class   => true,
 Watchers\ModelWatcher::class     => ['enabled' => true, 'hydrations' => true],
 ```
 
-### Pruning obrigatorio
+### Pruning required
 ```php
 // routes/console.php
 Schedule::command('telescope:prune --hours=48')->daily();
@@ -145,12 +145,12 @@ Schedule::command('telescope:prune --hours=48')->daily();
 
 ---
 
-## 3. Ignition — paginas de erro ricas
+## 3. Ignition — rich error pages
 
-Pre-instalado no Laravel. Mostra:
-- Stack trace interactivo (clicar para abrir no editor)
-- Sugestoes de solucao automaticas
-- Contexto: request, headers, session, query string
+Pre-installed in Laravel. Shows:
+- Interactive stack trace (click to open in editor)
+- Auto solution suggestions
+- Context: request, headers, session, query string
 
 ### Config
 ```php
@@ -179,9 +179,9 @@ class InvalidConfigException extends \RuntimeException implements ProvidesSoluti
 
 ---
 
-## 4. Ray — desktop debugger (opcional)
+## 4. Ray — desktop debugger (optional)
 
-App desktop que recebe debug output sem poluir o browser ou logs. Excelente para jobs e eventos.
+Desktop app that receives debug output without polluting browser or logs. Great for jobs and events.
 
 ```bash
 composer require spatie/laravel-ray --dev
@@ -200,53 +200,53 @@ ray()->trace();             // stack trace
 ray()->pause();             // pausa execucao
 ```
 
-Licenca: EUR 49/ano. Free tier: 20 mensagens por sessao.
+License: EUR 49/year. Free tier: 20 messages per session.
 
 ---
 
-## 5. Log Viewer — logs no browser
+## 5. Log Viewer — logs in browser
 
 ```bash
 composer require opcodesio/log-viewer --dev
 ```
 
-Aceder em `{URL}/log-viewer`. Pesquisa, filtros por nivel, real-time tailing.
+Access at `{URL}/log-viewer`. Search, level filters, real-time tailing.
 
 ```php
-// Autorizar acesso
+// Authorize access
 LogViewer::auth(fn ($request) => $request->user()?->hasRole('admin'));
 ```
 
 ---
 
-## 6. Pail — tail logs no terminal
+## 6. Pail — tail logs in terminal
 
 ```bash
 composer require laravel/pail --dev
-php artisan pail              # tail basico
-php artisan pail -vv          # com stack traces
+php artisan pail              # basic tail
+php artisan pail -vv          # with stack traces
 php artisan pail --level=error
 php artisan pail --filter="QueryException"
-php artisan pail --user=42    # filtrar por user
+php artisan pail --user=42    # filter by user
 ```
 
-Requer `pcntl` extension (Linux/macOS).
+Requires `pcntl` extension (Linux/macOS).
 
 ---
 
-## 7. Clockwork — alternativa ao Debugbar
+## 7. Clockwork — Debugbar alternative
 
-Nao injecta HTML na pagina. Dados aparecem no DevTools do browser (Chrome/Firefox extension).
+No HTML injection. Data appears in browser DevTools (Chrome/Firefox extension).
 
 ```bash
 composer require itsgoingd/clockwork
 ```
 
-Melhor para APIs (Debugbar polui respostas JSON). Instalar extension "Clockwork" no browser.
+Better for APIs (Debugbar pollutes JSON responses). Install "Clockwork" browser extension.
 
 ---
 
-## .env desenvolvimento completo
+## Full dev .env
 
 ```ini
 APP_ENV=local
@@ -260,7 +260,7 @@ RAY_ENABLED=true
 
 ---
 
-## Quando activar cada ferramenta
+## When to use each tool
 
 | Contexto | Ferramenta |
 |----------|-----------|
@@ -275,12 +275,12 @@ RAY_ENABLED=true
 
 ---
 
-## Limpar antes de deploy
+## Clean before deploy
 
 ```bash
-# Verificar que nao ficaram ray() calls
+# Check no ray() calls remain
 grep -rn "ray(" app/ --include="*.php"
 
-# Verificar que Telescope nao esta registado em producao
+# Check Telescope not registered in production
 grep -rn "TelescopeServiceProvider" app/Providers/
 ```

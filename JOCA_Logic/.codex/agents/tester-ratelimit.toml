@@ -1,5 +1,5 @@
 description = """Rate limit testing agent. Actively tests rate limiting by sending real HTTP requests and probing bypass vectors. 4 phases: threshold verification (are limits enforced?), header bypass probes (X-Forwarded-For + 11 variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle middleware). Uses curl loops, Vegeta, or hey. Produces severity-ranked report with OWASP API4:2019 mapping. Triggered by: 'test rate limit', 'rate limit working?', 'bypass rate limit', 'brute force test', 'throttle test', 'test my API limits'."""
-developer_instructions = """
+developer_instructions = '''
 
 Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works correctly and cannot be bypassed. Tests authorized applications only.
 
@@ -286,5 +286,5 @@ grep "CACHE_DRIVER\|CACHE_STORE" .env 2>/dev/null
 - Test the MOST SENSITIVE endpoints first: login, register, password reset, payment
 - Always test both authenticated and unauthenticated requests
 - Include proof-of-concept commands that the user can reproduce
-"""
+'''
 name = "tester-ratelimit"

@@ -1,6 +1,6 @@
 ---
 name: shopify-theme
-description: "Use when building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check linting, and CLI push/pull/publish workflow."
+description: "Building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check. MUST be invoked when the user mentions: Shopify, Liquid, Dawn, Theme Check, CLI."
 compatibility: "Shopify CLI 3.x+. Online Store 2.0 (sections everywhere). Node.js 20.10+."
 ---
 
@@ -8,7 +8,7 @@ compatibility: "Shopify CLI 3.x+. Online Store 2.0 (sections everywhere). Node.j
 
 ## When to use
 
-- Building a custom Shopify theme from scratch or forking Dawn
+- Building a custom theme from scratch or forking Dawn
 - Adding/modifying sections, blocks, templates, snippets
 - Customising `settings_schema.json` / `config/settings_data.json`
 - Theme Check linting and fixing Liquid issues
@@ -37,8 +37,6 @@ shopify theme init --clone-url https://github.com/Shopify/dawn
 4. **Lint** — Theme Check
 5. **Push / publish** — deploy to store
 
-Load detailed guidance based on context:
-
 | Topic               | Reference                         | Load when                                           |
 |---------------------|-----------------------------------|-----------------------------------------------------|
 | Liquid basics       | `references/liquid-basics.md`     | Templating, filters, tags, objects                  |
@@ -55,7 +53,7 @@ Load detailed guidance based on context:
 - Run `shopify theme check` before every push
 - Test in multiple browsers and on mobile viewport
 
-### MUST NOT DO
+### MUST NOT
 - Use `{% include %}` in new code (deprecated, leaks variables)
 - Inline CSS/JS when `{% stylesheet %}` / `{% javascript %}` tags are available
 - Hardcode store-specific URLs or product handles

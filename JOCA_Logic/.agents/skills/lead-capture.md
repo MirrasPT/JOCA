@@ -1,37 +1,37 @@
 ---
 name: lead-capture
-description: Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. Use when someone wants to grow their email list, create a lead magnet, set up email capture on their site, or build a subscriber base before launching something.
+description: "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user says: lead magnet, grow email list, opt-in form, email capture, popup strategy, content upgrade, build my list, email signup. SHOULD also invoke when: newsletter growth, lead generation, checklist download, free guide, free template, subscriber growth."
 triggers: lead magnet, grow email list, opt-in form, email capture, popup strategy, content upgrade, build my list, email signup, newsletter growth, lead generation, checklist download, free guide, free template, subscriber growth, capturar leads, lista de email, crescer lista
 ---
 
 # Lead Capture
 
-Expert in building email lists through high-converting lead magnets, opt-in forms, and popup strategies. Goal: capture the right subscribers with minimal friction and maximum relevance.
+Build email lists through high-converting lead magnets, opt-in forms, and popup strategies. Capture the right subscribers with minimal friction and maximum relevance.
 
 ## Before Starting
 
 Check for product marketing context: `.agents/product-marketing-context.md`.
 
-Understand:
-1. **Goal** — build a newsletter, pre-launch waitlist, or nurture-to-sale list?
-2. **Audience** — who are you trying to capture? What problem are they actively solving?
-3. **Current state** — existing list size? Any existing opt-in forms?
-4. **Platform** — what email tool? (ConvertKit/Kit, Mailchimp, ActiveCampaign, Brevo)
-5. **Site tech** — WordPress, Webflow, custom code? What popup/form tool is available?
+Gather:
+1. **Goal** — newsletter, pre-launch waitlist, or nurture-to-sale?
+2. **Audience** — target segment and active problem they face.
+3. **Current state** — list size, existing opt-in forms.
+4. **Platform** — email tool (Kit, Mailchimp, ActiveCampaign, Brevo).
+5. **Site tech** — WordPress, Webflow, custom? Popup/form tool available?
 
 ---
 
 ## Phase 1: Lead Magnet Design
 
-### What Makes a Lead Magnet Convert
+### What Converts
 
-Short-form written content (checklists, toolkits, templates) outperforms long-form 58.6% of the time. Best lead magnets:
+Short-form content (checklists, toolkits, templates) outperforms long-form 58.6% of the time. Best lead magnets:
 
-- Solve ONE specific problem fast (under 10 minutes to consume)
+- Solve ONE specific problem fast (under 10 min to consume)
 - Deliver an immediate "aha" result
 - Connect directly to what you sell
 
-Opt-in rates with strategic lead magnets: 5-15% vs. 1.95% average without.
+Strategic lead magnets: 5-15% opt-in vs. 1.95% without.
 
 ### Lead Magnet Types by Conversion Rate
 
@@ -47,18 +47,18 @@ Opt-in rates with strategic lead magnets: 5-15% vs. 1.95% average without.
 | Quiz with personalized results | Segmentation + engagement | High |
 | Waitlist + early access | Pre-launch momentum | Depends |
 
-### Lead Magnet Selection Framework
+### Selection Framework
 
-Answer these 3 questions:
+Answer 3 questions:
 
-1. **What's the #1 question my audience asks before they need my product?**
-   The lead magnet answers that question.
+1. **What's the #1 question my audience asks before needing my product?**
+   The lead magnet answers that.
 
-2. **What do I want them to do next after consuming it?**
-   The lead magnet naturally leads to that next step.
+2. **What should they do next after consuming it?**
+   The lead magnet leads to that step.
 
-3. **Can someone see results from this in under 15 minutes?**
-   If no, simplify it.
+3. **Can someone see results in under 15 minutes?**
+   If no, simplify.
 
 **Title formula:** `[Action] [Specific Outcome] [Qualifier]`
 - "The 5-Minute SEO Checklist for SaaS Founders"
@@ -78,9 +78,9 @@ Answer these 3 questions:
 | Name + Email + 1 segmentation Q | Medium | Segmentation priority |
 | 3+ fields | Lowest | Only for high-intent (webinar, free tool) |
 
-Every extra field costs conversions. Only ask for data you'll actually use to personalize.
+Every extra field costs conversions. Only ask for data you will use to personalize.
 
-### CTA Copy for Forms
+### CTA Copy
 
 Weak: "Subscribe," "Sign Up," "Submit"
 Strong: "Send Me the [Specific Thing]," "Get My Free [Checklist/Template]," "Join the Waitlist"
@@ -89,7 +89,7 @@ First-person ("Me/My") outperforms second-person ("You/Your") by up to 90%.
 
 ### Privacy Micro-copy
 
-Place immediately below the submit button:
+Place below the submit button:
 - "No spam. Unsubscribe anytime."
 - "Your data is safe. We never share it."
 - "Join [N]+ [audience] already on the list."
@@ -98,7 +98,7 @@ Place immediately below the submit button:
 
 ## Phase 3: Popup & Trigger Strategy
 
-### Popup Types by Use Case
+### Popup Types
 
 | Type | Trigger | Best For |
 |------|---------|----------|
@@ -109,9 +109,9 @@ Place immediately below the submit button:
 | Sticky bar | Persistent top/bottom bar | Lightweight, always visible |
 | Welcome mat | First visit, homepage | High-priority list building |
 
-**Multi-step popup strategy:** Step 1 = low-commitment yes/no ("Want the checklist?") → Step 2 = email form. Multi-step averages 5.17% conversion, outperforming single-step by 12%.
+**Multi-step popup:** Step 1 = low-commitment yes/no ("Want the checklist?") then Step 2 = email form. Multi-step averages 5.17% conversion, outperforming single-step by 12%.
 
-### Trigger Timing Guidelines
+### Trigger Timing
 
 | Trigger | Timing | Why |
 |---------|--------|-----|
@@ -120,9 +120,9 @@ Place immediately below the submit button:
 | Exit-intent | Cursor leaves viewport | Last chance, high intent |
 | Page-specific | Only on relevant content | Content upgrade match |
 
-**Never show:** popup immediately on page load, popup to email subscribers, popup more than once per session.
+**Never show:** popup on page load, popup to existing subscribers, popup more than once per session.
 
-### Popup Tools Reference
+### Popup Tools
 
 | Tool | Best For | Free Tier |
 |------|----------|:---------:|
@@ -134,7 +134,7 @@ Place immediately below the submit button:
 
 ---
 
-## Phase 4: Delivery & Segmentation Workflow
+## Phase 4: Delivery & Segmentation
 
 ### Delivery Timeline
 
@@ -144,9 +144,9 @@ Place immediately below the submit button:
          → Day 2: First email of nurture sequence → email-sequence skill
 ```
 
-Deliver within 5 minutes of signup. Delays kill trust and open rates.
+Deliver within 5 minutes. Delays kill trust and open rates.
 
-### Segmentation Tags to Apply at Signup
+### Segmentation Tags at Signup
 
 | Signal | Tag Example |
 |--------|-------------|
@@ -156,19 +156,19 @@ Deliver within 5 minutes of signup. Delays kill trust and open rates.
 | Self-selected interest | `interest:social`, `interest:email` |
 | Engagement level | `engaged:yes` (opened + clicked delivery email) |
 
-### Platform-Specific Patterns
+### Platform Patterns
 
-**ConvertKit/Kit:** Use tags (not lists) for everything. One subscriber — many tags. Never create a new list per lead magnet.
+**Kit:** Tags (not lists) for everything. One subscriber, many tags. Never create a new list per lead magnet.
 
-**Mailchimp:** Use groups + tags. Groups for broad categories, tags for behavioral signals.
+**Mailchimp:** Groups + tags. Groups for broad categories, tags for behavioral signals.
 
 **ActiveCampaign:** Tags + lists. Lists for broad segments, tags for granular behavior. Automation triggers from tag applied.
 
-**Klaviyo:** Segment-first approach. Create smart segments from properties. No manual list management needed.
+**Klaviyo:** Segment-first. Create smart segments from properties. No manual list management needed.
 
 ---
 
-## Phase 5: List Health & Growth Tracking
+## Phase 5: List Health & Growth
 
 ### Key Metrics
 
@@ -180,22 +180,22 @@ Deliver within 5 minutes of signup. Delays kill trust and open rates.
 | List growth rate (monthly) | >5% | Add more capture points |
 | Unsubscribe rate | <0.5% | Segment better, reduce frequency |
 
-### Where to Place Capture Points (priority order)
+### Capture Point Placement (priority order)
 
-1. Homepage hero (if lead magnet fits the homepage audience)
-2. Blog posts (content upgrade matching each topic)
+1. Homepage hero (if lead magnet fits homepage audience)
+2. Blog posts (content upgrade per topic)
 3. High-traffic organic landing pages
 4. Exit-intent popup on all pages
 5. Dedicated landing page (`/free-[resource-name]`)
 6. Social media bio links (Linktree or direct)
-7. Podcast show notes (if applicable)
+7. Podcast show notes
 8. Guest posts / PR mentions
 
 ---
 
 ## Transactional Upsell Triggers (Bridge to email-sequence)
 
-After capturing and confirming the subscriber, hand off to `email-sequence`:
+After confirming the subscriber, hand off to `email-sequence`:
 
 ```
 → Trigger: signup_confirmed
@@ -210,19 +210,19 @@ After capturing and confirming the subscriber, hand off to `email-sequence`:
 ## Output Format
 
 1. **Lead magnet recommendation** — type, title, format, 3 title options
-2. **Opt-in form copy** — headline, CTA button copy, privacy micro-copy, 3 variations
-3. **Popup strategy** — which trigger types, timing, placement
+2. **Opt-in form copy** — headline, CTA button, privacy micro-copy, 3 variations
+3. **Popup strategy** — trigger types, timing, placement
 4. **Delivery workflow** — step-by-step automation in their email platform
 5. **Segmentation map** — tags to apply + when
-6. **Growth plan** — where to place capture points, priority order
+6. **Growth plan** — capture point placement, priority order
 
 ---
 
 ## Related Skills
 
-- `landing-page` — for dedicated opt-in page design
-- `email-sequence` — for nurture sequences post-capture
-- `page-cro` — to optimize conversion on pages with forms
-- `copywriting` — for opt-in copy refinement
-- `ab-test-setup` — to test lead magnets and form variants
-- `analytics-tracking` — to measure opt-in conversion rate
+- `landing-page` — dedicated opt-in page design
+- `email-sequence` — nurture sequences post-capture
+- `page-cro` — optimize conversion on pages with forms
+- `copywriting` — opt-in copy refinement
+- `ab-test-setup` — test lead magnets and form variants
+- `analytics-tracking` — measure opt-in conversion rate

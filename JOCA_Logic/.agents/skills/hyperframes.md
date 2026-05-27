@@ -1,6 +1,6 @@
 ---
 name: hyperframes
-description: Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. Use when building HTML-based video content, syncing captions to audio, generating TTS narration, creating audio-reactive animation, or adding scene transitions. Authoritative skill for HyperFrames — covers composition authoring, CLI workflow, quality checks, and media preprocessing.
+description: "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync. SHOULD also invoke when: voiceover, tts, narração, transição de cena, scene transition, audio-reactive."
 triggers: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync, voiceover, tts, narração, transição de cena, scene transition, audio-reactive, kinetic type, product launch video, vídeo de lançamento, fazer vídeo com html
 ---
 
@@ -8,9 +8,9 @@ triggers: hyperframes, video html, html video, composição de vídeo, criar ví
 
 HTML is the source of truth for video. A composition is an HTML file with `data-*` attributes for timing, a GSAP timeline for animation, and CSS for appearance. The framework handles clip visibility, media playback, and timeline sync.
 
-**Não é esta skill:**
-- Vídeo React programático → `remotion`
-- Geração AI (Veo, Runway, Kling) → `video`
+**Not this skill:**
+- React programmatic video → `remotion`
+- AI generation (Veo, Runway, Kling) → `video`
 - AI avatars (HeyGen, Synthesia) → `video`
 
 ---
@@ -19,9 +19,9 @@ HTML is the source of truth for video. A composition is an HTML file with `data-
 
 ### Discovery (exploratory requests only)
 
-For open-ended requests where the user hasn't committed to a direction, clarify intent first:
+For open-ended requests where the user hasn't picked a direction, clarify:
 
-- **Audience** — who watches this?
+- **Audience** — who watches?
 - **Platform** — social (15s), website hero, product demo, internal?
 - **Priority** — motion quality? content accuracy? brand fidelity? speed?
 
@@ -29,23 +29,23 @@ For specific requests ("add a title card", "fix timing"), skip discovery.
 
 ### Step 1: Design System
 
-If `DESIGN.md` exists → **read it first**. It's the source of truth for brand colors, fonts, and constraints. Use its exact values — don't invent colors or substitute fonts.
+If `DESIGN.md` exists → **read it first**. Source of truth for brand colors, fonts, constraints. Use its exact values.
 
-If `DESIGN.md` doesn't exist → ask 3 questions before writing any HTML:
-1. What's the mood? (explosive / cinematic / fluid / technical / warm / chaotic)
+If `DESIGN.md` doesn't exist → ask 3 questions before writing HTML:
+1. Mood? (explosive / cinematic / fluid / technical / warm / chaotic)
 2. Light or dark canvas?
-3. Any brand colors, fonts, or visual references?
+3. Brand colors, fonts, or visual references?
 
 <HARD-GATE>
-Before writing ANY composition HTML — verify you have a visual identity. If you're reaching for `#333`, `#3b82f6`, or `Roboto`, you skipped this step.
+Before writing ANY composition HTML — verify you have a visual identity. If you reach for `#333`, `#3b82f6`, or `Roboto`, you skipped this step.
 </HARD-GATE>
 
 ### Step 2: Plan
 
-1. **What** — what should the viewer experience? Narrative arc, key moments, emotional beats.
+1. **What** — viewer experience? Narrative arc, key moments, emotional beats.
 2. **Structure** — how many compositions, sub-compositions vs inline, what tracks carry what.
-3. **Rhythm** — which scenes are quick hits, which are holds, where does energy peak.
-4. **Timing** — which clips drive the duration, where transitions land.
+3. **Rhythm** — quick hits vs holds, where energy peaks.
+4. **Timing** — which clips drive duration, where transitions land.
 5. **Layout** — build end-state first (see below).
 6. **Animate** — add motion after layout is verified.
 
@@ -55,12 +55,12 @@ Before writing ANY composition HTML — verify you have a visual identity. If yo
 
 ## Layout Before Animation
 
-Position every element where it should be at its **most visible moment** — the frame where it's fully entered, correctly placed, and not yet exiting. Write this as static HTML+CSS first. No GSAP yet.
+Position every element at its **most visible moment** — fully entered, correctly placed, not yet exiting. Write static HTML+CSS first. No GSAP yet.
 
 ### The process
 
-1. **Identify the hero frame** — the moment when the most elements are simultaneously visible.
-2. **Write static CSS** for that frame. The `.scene-content` container MUST fill the full scene:
+1. **Identify the hero frame** — the moment when most elements are simultaneously visible.
+2. **Write static CSS** for that frame. `.scene-content` MUST fill the full scene:
    ```css
    .scene-content {
      display: flex;
@@ -74,8 +74,8 @@ Position every element where it should be at its **most visible moment** — the
    }
    ```
    Use padding to push content inward — NEVER `position: absolute; top: Npx` on a content container. Reserve `position: absolute` for decoratives only.
-3. **Add entrances with `gsap.from()`** — animate FROM offscreen/invisible TO the CSS position.
-4. **Add exits with `gsap.to()`** — animate TO offscreen/invisible FROM the CSS position.
+3. **Entrances with `gsap.from()`** — animate FROM offscreen/invisible TO the CSS position.
+4. **Exits with `gsap.to()`** — animate TO offscreen/invisible FROM the CSS position.
 
 **WRONG — hardcoded absolute positioning:**
 ```css
@@ -112,7 +112,7 @@ Position every element where it should be at its **most visible moment** — the
 | `data-composition-id` | Yes | Unique composition ID |
 | `data-start` | Yes | Start time (root composition: use `"0"`) |
 | `data-duration` | Yes | Takes precedence over GSAP timeline duration |
-| `data-width` / `data-height` | Yes | Pixel dimensions (1920×1080 or 1080×1920) |
+| `data-width` / `data-height` | Yes | Pixel dimensions (1920x1080 or 1080x1920) |
 | `data-composition-src` | No | Path to external HTML file |
 
 ---
@@ -121,7 +121,7 @@ Position every element where it should be at its **most visible moment** — the
 
 **Standalone compositions** (`index.html`) — put `data-composition-id` div directly in `<body>`. Do NOT use `<template>`.
 
-**Sub-compositions** (loaded via `data-composition-src`) — use `<template>` wrapper:
+**Sub-compositions** (via `data-composition-src`) — use `<template>` wrapper:
 
 ```html
 <template id="my-comp-template">
@@ -173,11 +173,11 @@ Video must be `muted playsinline`. Audio is always a separate `<audio>` element:
 ```
 
 **Rules:**
-- The registry key must match the composition root's `data-composition-id`
-- All timelines start `{ paused: true }` — the player controls playback
-- Do not call `tl.play()` for render-critical motion
-- Do not build timelines inside async code, timers, or event handlers
-- Duration comes from `data-duration`, not from GSAP timeline length
+- Registry key must match the composition root's `data-composition-id`
+- All timelines start `{ paused: true }` — player controls playback
+- Never call `tl.play()` for render-critical motion
+- Never build timelines inside async code, timers, or event handlers
+- Duration comes from `data-duration`, not GSAP timeline length
 - Never create empty tweens to set duration
 
 ---
@@ -201,7 +201,7 @@ Video must be `muted playsinline`. Audio is always a separate `<audio>` element:
 8. Use `repeat: -1` on any timeline or tween
 9. Build timelines asynchronously
 10. Use `gsap.set()` on clip elements from later scenes — they don't exist in DOM at page load. Use `tl.set(selector, vars, timePosition)` inside the timeline at or after the clip's `data-start` time.
-11. Use `<br>` in content text — forces line breaks that don't account for actual rendered font width. Let text wrap via `max-width` instead. Exception: short display titles where each word is deliberately on its own line.
+11. Use `<br>` in content text — forces line breaks that ignore rendered font width. Let text wrap via `max-width`. Exception: short display titles where each word is deliberately on its own line.
 
 ---
 
@@ -211,7 +211,7 @@ Every multi-scene composition MUST follow ALL of these rules:
 
 1. **ALWAYS use transitions between scenes.** No jump cuts. No exceptions.
 2. **ALWAYS use entrance animations on every scene.** Every element animates IN via `gsap.from()`. No element may appear fully-formed.
-3. **NEVER use exit animations** except on the final scene. The transition IS the exit. The outgoing scene's content MUST be fully visible at the moment the transition starts.
+3. **NEVER use exit animations** except on the final scene. The transition IS the exit. The outgoing scene's content MUST be fully visible when the transition starts.
 4. **Final scene only:** The last scene may fade elements out. This is the ONLY scene where `gsap.to(..., { opacity: 0 })` is allowed.
 
 **WRONG — exit animation before transition:**
@@ -232,8 +232,8 @@ tl.from("#s2-heading", { x: -40, opacity: 0, duration: 0.6, ease: "expo.out" }, 
 
 ## Animation Guardrails
 
-- Offset first animation 0.1–0.3s (not t=0)
-- Vary eases across entrance tweens — use at least 3 different eases per scene
+- Offset first animation 0.1-0.3s (not t=0)
+- Vary eases across entrance tweens — at least 3 different eases per scene
 - Don't repeat an entrance pattern within a scene
 - Avoid full-screen linear gradients on dark backgrounds (H.264 banding — use radial or solid + localized glow)
 - 60px+ headlines, 20px+ body, 16px+ data labels for rendered video
@@ -243,16 +243,16 @@ tl.from("#s2-heading", { x: -40, opacity: 0, duration: 0.6, ease: "expo.out" }, 
 
 ## Typography
 
-- **Fonts** — just write the `font-family` in CSS. The compiler embeds supported fonts automatically.
-- 700–900 weight for headlines, 300–400 for body
+- **Fonts** — write `font-family` in CSS. The compiler embeds supported fonts automatically.
+- 700-900 weight for headlines, 300-400 for body
 - Serif + sans (not two sans)
 - 60px+ headlines, 20px+ body
 
-**Evitar (AI tells):**
+**Avoid (AI tells):**
 - Gradient text (`background-clip: text` + gradient)
 - Left-edge accent stripes
 - Cyan-on-dark / purple-to-blue gradients / neon accents
-- Pure `#000` ou `#fff` — tint toward accent hue
+- Pure `#000` or `#fff` — tint toward accent hue
 - Identical card grids
 - Everything centered with equal weight
 
@@ -295,7 +295,7 @@ Catches: missing `data-composition-id`, overlapping tracks, unregistered timelin
 Opens composition in headless Chrome, seeks through timeline, reports:
 - Text spilling outside container/bubble
 - Text clipped by fixed-width/height box
-- Text extending outside the canvas
+- Text extending outside canvas
 - Children escaping clipping containers
 
 ```bash
@@ -313,79 +313,79 @@ WCAG AA contrast audit — seeks to 5 timestamps, screenshots, samples backgroun
 npx hyperframes validate
 ```
 
-Failures: `⚠ WCAG AA contrast warnings`. Fix by brightening (dark bg) or darkening (light bg) the failing color until it clears 4.5:1 (normal text) or 3:1 (large text, 24px+ or 19px+ bold). Stay within the palette family.
+Failures: `WCAG AA contrast warnings`. Fix by brightening (dark bg) or darkening (light bg) the failing color until it clears 4.5:1 (normal text) or 3:1 (large text, 24px+ or 19px+ bold). Stay within the palette family.
 
 ---
 
-## TTS — Texto para Fala (local, sem API)
+## TTS — Local Text-to-Speech (no API)
 
-Gerar narração com **Kokoro-82M** — sem API key, sem custo.
+Generate narration with **Kokoro-82M** — no API key, no cost.
 
 ```bash
 npx hyperframes tts "Texto aqui" --voice af_nova --output narration.wav
 npx hyperframes tts script.txt --voice bf_emma --output narration.wav
-npx hyperframes tts --list    # listar as 54 vozes disponíveis
+npx hyperframes tts --list    # list all 54 voices
 ```
 
-**Vozes por tipo de conteúdo:**
+**Voices by content type:**
 
-| Conteúdo | Voz | Porquê |
+| Content | Voice | Why |
 |---|---|---|
-| Demo de produto | `af_heart` / `af_nova` | Warm, professional |
-| Tutorial | `am_adam` / `bf_emma` | Neutral, easy to follow |
+| Product demo | `af_heart` / `af_nova` | Warm, professional |
+| Tutorial | `am_adam` / `bf_emma` | Neutral, clear |
 | Marketing/promo | `af_sky` / `am_michael` | Energetic or authoritative |
 | Casual/social | `af_heart` / `af_sky` | Approachable, natural |
-| Português (BR) | `pf_dora` / `pm_alex` | Brazilian Portuguese |
+| Portuguese (BR) | `pf_dora` / `pm_alex` | Brazilian Portuguese |
 
-**Velocidade:**
-- `0.7–0.8` — tutorial, conteúdo complexo
-- `1.0` — ritmo natural (default)
-- `1.1–1.2` — intros, transições
+**Speed:**
+- `0.7-0.8` — tutorial, complex content
+- `1.0` — natural pace (default)
+- `1.1-1.2` — intros, transitions
 
-**Requisitos:** Python 3.8+ com `kokoro-onnx` e `soundfile` (`pip install kokoro-onnx soundfile`). Modelo descarregado na primeira execução (~311 MB).
+**Requirements:** Python 3.8+ with `kokoro-onnx` and `soundfile` (`pip install kokoro-onnx soundfile`). Model downloaded on first run (~311 MB).
 
 ---
 
-## Transcrição — Captions / Legendas
+## Transcription — Captions / Subtitles
 
 ```bash
 npx hyperframes transcribe audio.mp3
 npx hyperframes transcribe video.mp4 --model small --language pt
-npx hyperframes transcribe subtitles.srt   # importar SRT existente
+npx hyperframes transcribe subtitles.srt   # import existing SRT
 ```
 
-**Regra de linguagem (non-negotiable):**
-- Nunca usar modelos `.en` (ex: `small.en`) a não ser que o áudio seja explicitamente inglês. Os modelos `.en` **traduzem** áudio não-inglês para inglês em vez de transcrever.
-- Default model: `small` (sem `.en`, sem `--language`) — whisper auto-detects.
+**Language rule (non-negotiable):**
+- Never use `.en` models (e.g., `small.en`) unless audio is explicitly English. `.en` models **translate** non-English audio to English instead of transcribing.
+- Default model: `small` (no `.en`, no `--language`) — Whisper auto-detects.
 
-**Modelos Whisper:**
+**Whisper models:**
 
-| Modelo | Velocidade | Precisão | VRAM |
+| Model | Speed | Accuracy | VRAM |
 |---|---|---|---|
-| `tiny` / `tiny.en` | Mais rápido | Mais baixa | <1 GB |
-| `small` | Rápido | Boa | ~2 GB |
-| `medium` | Médio | Muito boa | ~5 GB |
-| `large-v2` | Lento | Excelente | ~10 GB |
+| `tiny` / `tiny.en` | Fastest | Lowest | <1 GB |
+| `small` | Fast | Good | ~2 GB |
+| `medium` | Medium | Very good | ~5 GB |
+| `large-v2` | Slow | Excellent | ~10 GB |
 
 ---
 
-## Checklist antes de entregar
+## Pre-delivery Checklist
 
-- [ ] `npx hyperframes lint` passa sem erros
-- [ ] `npx hyperframes inspect` passa (ou overflow marcado como intencional)
-- [ ] `npx hyperframes validate` sem warnings de contraste
-- [ ] Cada cena tem entrances (sem elementos que aparecem fully-formed)
-- [ ] Sem exit animations (excepto na cena final)
-- [ ] `window.__timelines` registado com o `data-composition-id` correcto
-- [ ] Sem `repeat: -1` em qualquer tween
-- [ ] Video: `muted playsinline` + `<audio>` separado
-- [ ] Layout construído em estado final antes de animações
+- [ ] `npx hyperframes lint` passes
+- [ ] `npx hyperframes inspect` passes (or overflow marked intentional)
+- [ ] `npx hyperframes validate` — no contrast warnings
+- [ ] Every scene has entrances (no elements appear fully-formed)
+- [ ] No exit animations (except final scene)
+- [ ] `window.__timelines` registered with correct `data-composition-id`
+- [ ] No `repeat: -1` on any tween
+- [ ] Video: `muted playsinline` + separate `<audio>`
+- [ ] Layout built at end-state before animations
 
 ---
 
 ## GSAP Reference
 
-Para documentação completa da API GSAP → ler skills em `../../anima/gsap/`:
+For full GSAP API docs → read skills in `../../anima/gsap/`:
 - `gsap-core.md` — gsap.to/from/fromTo, easing, defaults
 - `gsap-timeline.md` — position parameter, labels, nesting
 - `gsap-scrolltrigger.md` — pin, scrub, batch
@@ -400,9 +400,9 @@ Para documentação completa da API GSAP → ler skills em `../../anima/gsap/`:
 
 ---
 
-## Skills relacionadas
+## Related Skills
 
-- `video` — router geral: AI generation (Veo/Runway), avatars (HeyGen), editing
-- `remotion` — vídeo React programático (Sequence, useCurrentFrame, interpolate)
-- `anima` — GSAP e Lottie para web (não para HyperFrames render)
-- `brand-guidelines` — gerar DESIGN.md antes de começar composição
+- `video` — general router: AI generation (Veo/Runway), avatars (HeyGen), editing
+- `remotion` — React programmatic video (Sequence, useCurrentFrame, interpolate)
+- `anima` — GSAP and Lottie for web (not for HyperFrames render)
+- `brand-guidelines` — generate DESIGN.md before starting composition

@@ -1,17 +1,17 @@
 ---
 name: c4-diagram
-description: "Use when creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format."
+description: "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram. SHOULD also invoke when: arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid."
 triggers: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram, arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid
 ---
 # C4 Diagram
 
-Diagramas de arquitectura em Mermaid usando o modelo C4 de Simon Brown. Output em `docs/architecture/`.
+Mermaid architecture diagrams using Simon Brown's C4 model. Output to `docs/architecture/`.
 
-**Activar** apos `tech-spec` (sec. 4 Component Breakdown), ou quando alguem pede visao geral do sistema.
+**Activate** after `tech-spec` (sec. 4 Component Breakdown), or on system overview requests.
 
 ---
 
-## Niveis C4
+## C4 Levels
 
 | Nivel | Diagrama | Mermaid | Audiencia |
 |-------|----------|---------|-----------|
@@ -20,13 +20,13 @@ Diagramas de arquitectura em Mermaid usando o modelo C4 de Simon Brown. Output e
 | 3 | **Component** | `C4Component` | Devs — estrutura interna de um container |
 | 4 | **Code** | `classDiagram` | Devs — classes/funcoes (raro, on demand) |
 
-**Regra de ouro (Simon Brown):** Context + Container sao suficientes para a maioria das equipas. So gerar nivel 3/4 se pedido explicitamente ou se o container e complexo.
+**Golden rule:** Context + Container suffice for most teams. Generate level 3/4 only if requested or the container is complex.
 
 ---
 
-## Mode detection
+## Mode Detection
 
-Antes de produzir qualquer diagrama, identificar o modo:
+Identify mode before producing any diagram:
 
 | Sinal | Modo |
 |-------|------|
@@ -36,13 +36,13 @@ Antes de produzir qualquer diagrama, identificar o modo:
 | Diagrama existente + "esta bem?" | **Review** |
 | Diagrama existente + "adiciona X" | **Update** |
 
-Se nao for claro, perguntar: "Queres (a) desenhar arquitectura nova, (b) documentar sistema existente, ou (c) rever/actualizar diagrama?"
+If unclear, ask: "Queres (a) desenhar arquitectura nova, (b) documentar sistema existente, ou (c) rever/actualizar diagrama?"
 
 ---
 
 ## Output
 
-### Directorio
+### Directory
 
 ```
 docs/
@@ -52,7 +52,7 @@ docs/
     └── 03-component-[nome].md    ← so se pedido
 ```
 
-### Template por nivel
+### Template per Level
 
 ```markdown
 # [Nivel] — [Nome do Sistema]
@@ -89,28 +89,28 @@ C4Container
 
 ---
 
-## Regras de notacao (non-negotiable)
+## Notation Rules (non-negotiable)
 
-### Diagrama
-- Titulo explicito sempre
-- Legenda no documento Markdown
-- Acronimos explicados
+### Diagram
+- Explicit title always
+- Legend in the Markdown doc
+- Acronyms explained
 
-### Elementos
-- Tipo explicito (Person, System, Container, Component, DB, Queue)
-- Descricao curta da responsabilidade
-- **Tecnologia obrigatoria** em Container e Component (ex: "Java, Spring Boot", "PostgreSQL 15")
+### Elements
+- Explicit type (Person, System, Container, Component, DB, Queue)
+- Short responsibility description
+- **Technology mandatory** on Container and Component (e.g. "Java, Spring Boot", "PostgreSQL 15")
 
-### Relacoes
-- Setas **unidireccionais** (evitar BiRel — dividir em dois Rel)
-- Labels com **intent concreto** — PROIBIDO: "Uses", "Calls", "Reads". CORRECTO: "Reads account balances from", "Publishes OrderCreated events to"
-- Relacoes inter-container devem indicar **protocolo** (HTTPS/JSON, gRPC, AMQP, JDBC, SMTP)
+### Relations
+- **Unidirectional** arrows (avoid BiRel -- split into two Rel)
+- Labels with **concrete intent** -- FORBIDDEN: "Uses", "Calls", "Reads". CORRECT: "Reads account balances from", "Publishes OrderCreated events to"
+- Inter-container relations must state **protocol** (HTTPS/JSON, gRPC, AMQP, JDBC, SMTP)
 
 ---
 
-## Mermaid C4 — cheatsheet
+## Mermaid C4 Cheatsheet
 
-### Elementos
+### Elements
 
 ```
 Person(alias, "Label", "Description")
@@ -134,7 +134,7 @@ System_Boundary(alias, "System") { ... }
 Container_Boundary(alias, "Container") { ... }
 ```
 
-### Relacoes
+### Relations
 
 ```
 Rel(from, to, "Intent label", "Protocol")
@@ -142,7 +142,7 @@ Rel_D(from, to, "Label")    # down
 Rel_R(from, to, "Label")    # right
 ```
 
-### Exemplo — Container diagram Laravel
+### Example -- Laravel Container Diagram
 
 ```mermaid
 C4Container
@@ -179,46 +179,46 @@ C4Container
 
 ---
 
-## Processo
+## Process
 
 ### Design (greenfield)
 
-1. Recolher contexto: ler PRD + TECH_SPEC se existirem
-2. Perguntas (max 5 por batch):
-   - Quem sao os actores? (utilizadores, admins, sistemas externos)
-   - Que sistemas externos integra?
-   - Monolito ou servicos separados?
-3. Produzir Context diagram (nivel 1)
-4. Apresentar, iterar
-5. Produzir Container diagram (nivel 2)
-6. Apresentar, iterar
-7. So escrever ficheiros apos aprovacao explicita
+1. Gather context: read PRD + TECH_SPEC if they exist
+2. Questions (max 5 per batch):
+   - Who are the actors? (users, admins, external systems)
+   - Which external systems does it integrate?
+   - Monolith or separate services?
+3. Produce Context diagram (level 1)
+4. Present, iterate
+5. Produce Container diagram (level 2)
+6. Present, iterate
+7. Write files only after explicit approval
 
 ### Document-code (retro)
 
-1. Explorar codebase: `composer.json`/`package.json`, routes, config, `.env.example`
-2. Identificar containers (apps, DBs, caches, queues, servicos externos)
-3. Gerar diagramas a partir do codigo real
-4. Marcar assumptions (inferencias nao confirmadas)
-5. Apresentar para validacao
+1. Explore codebase: `composer.json`/`package.json`, routes, config, `.env.example`
+2. Identify containers (apps, DBs, caches, queues, external services)
+3. Generate diagrams from real code
+4. Mark assumptions (unconfirmed inferences)
+5. Present for validation
 
 ### Review
 
-1. Ler diagrama existente
-2. Verificar contra checklist (notacao, labels, tecnologias)
-3. Reportar issues: missing technologies, vague labels, mixed levels
-4. Sugerir correccoes
+1. Read existing diagram
+2. Check against checklist (notation, labels, technologies)
+3. Report issues: missing technologies, vague labels, mixed levels
+4. Suggest fixes
 
 ### Update
 
-1. Ler diagrama existente
-2. Aplicar mudanca pedida
-3. Verificar consistencia entre niveis
-4. Apresentar diff
+1. Read existing diagram
+2. Apply requested change
+3. Verify cross-level consistency
+4. Present diff
 
 ---
 
-## Erros comuns
+## Common Mistakes
 
 | Erro | Problema | Fix |
 |------|----------|-----|
@@ -233,10 +233,10 @@ C4Container
 
 ## Workflow
 
-Pipeline desta skill na sequencia JOCA:
+Pipeline position in the JOCA sequence:
 
-→ **antes**: `tech-spec` (sec. 4 Component Breakdown como input)
-→ **lateral**: `adr` (decisoes arquitecturais registadas durante o diagrama)
-→ **apos**: `task-breakdown` (quebrar componentes em trabalho atomico)
+-> **before**: `tech-spec` (sec. 4 Component Breakdown as input)
+-> **lateral**: `adr` (architectural decisions logged during diagramming)
+-> **after**: `task-breakdown` (break components into atomic work)
 
-Notificar ao concluir: `→ proximo: task-breakdown`
+Notify on completion: `-> proximo: task-breakdown`

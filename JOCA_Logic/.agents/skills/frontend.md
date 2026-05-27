@@ -1,13 +1,13 @@
 ---
 name: frontend
-description: "Use when building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks."
+description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, protótipo, prototype, ui, ux."
 triggers: website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme
 ---
 # Frontend
 
-Designer + developer. HTML e React. Awwwards como standard, nao como aspiracao.
+Designer + developer. HTML and React. Awwwards as standard, not aspiration.
 
-Cada projecto e diferente. Nunca convergir nas mesmas escolhas. Se alguem olha e diz "IA fez isto" -- falhou.
+Each project is different. Never converge on the same choices. If someone looks and says "AI made this" -- failed.
 
 ---
 
@@ -23,24 +23,24 @@ Cada projecto e diferente. Nunca convergir nas mesmas escolhas. Se alguem olha e
 
 ## #0 Fact Verification
 
-Se a tarefa envolve produto, marca, ou tecnologia especifica: **WebSearch primeiro, nunca assumir.**
+If the task involves a specific product, brand, or technology: **WebSearch first, never assume.**
 
-Triggers: nome de produto, datas de lancamento, versoes, specs recentes, "acho que...", "provavelmente...".
+Triggers: product name, launch dates, versions, recent specs, "I think...", "probably...".
 
-Regra: `WebSearch "<produto> 2026 latest"`. Ler 1-3 resultados. Se incerto -- perguntar.
+Rule: `WebSearch "<product> 2026 latest"`. Read 1-3 results. If uncertain -- ask.
 
 ---
 
 ## #1 DESIGN.md + Brand Assets
 
 ### DESIGN.md
-Se existir no projecto -- **ler antes de qualquer codigo.** Extrair `--color-*` tokens, tipografia, logo paths. Aplicar em CSS `:root {}`.
+If present in project -- **read before any code.** Extract `--color-*` tokens, typography, logo paths. Apply in CSS `:root {}`.
 
-Se nao existir e houver marca -- sugerir `brand-guidelines` skill primeiro.
+If absent and brand exists -- suggest `brand-guidelines` skill first.
 
-### Brand Asset Protocol (quando marca envolvida)
+### Brand Asset Protocol (when brand involved)
 
-Reconhecimento de marca vem de assets reais, nao de paletas.
+Brand recognition comes from real assets, not palettes.
 
 | Prioridade | Asset | Impacto |
 |-----------|-------|---------|
@@ -49,119 +49,119 @@ Reconhecimento de marca vem de assets reais, nao de paletas.
 | 3 | Cores (extraidas de assets reais) | Medio |
 | 4 | Tipografia | Suporte |
 
-**Protocolo:**
-1. Perguntar lista completa (logo, imagens, cores, fontes, guidelines)
-2. Procurar `brand.com/press`, `/brand`, `/press-kit`; extrair SVG inline do header
-3. Download com `curl` ou Python `urllib`
-4. Verificar qualidade: logo abre limpo, imagens >= 2000px, UI e versao actual
-5. Escrever `brand-spec.md` com paths + CSS variables
+**Protocol:**
+1. Ask for full list (logo, images, colors, fonts, guidelines)
+2. Search `brand.com/press`, `/brand`, `/press-kit`; extract SVG inline from header
+3. Download via `curl` or Python `urllib`
+4. Verify quality: logo opens clean, images >= 2000px, UI is current version
+5. Write `brand-spec.md` with paths + CSS variables
 
-**Nunca:** CSS shapes ou SVG drawings para substituir fotos reais. Parar e perguntar antes de usar filler.
+**Never:** CSS shapes or SVG drawings to replace real photos. Stop and ask before using filler.
 
 ---
 
 ## #2 Junior Designer Mode
 
-Mostrar raciocinio antes de executar. Sempre.
+Show reasoning before executing. Always.
 
-1. Escrever assumptions + reasoning + placeholders primeiro
-2. Mostrar cedo -- blocos cinzentos com etiquetas OK
-3. Checkpoint a ~50%: "Fiz X. A seguir: Y. Confirmas?"
-4. So polish apos confirmacao
+1. Write assumptions + reasoning + placeholders first
+2. Show early -- grey blocks with labels OK
+3. Checkpoint at ~50%: "Did X. Next: Y. Confirm?"
+4. Polish only after confirmation
 
-Direccao errada em placeholder = 5 min fix. Em implementacao completa = 2h refactor.
+Wrong direction in placeholder = 5 min fix. In full implementation = 2h refactor.
 
 ---
 
-## #3 Design Thinking (antes de qualquer codigo)
+## #3 Design Thinking (before any code)
 
-Responder 3 perguntas:
+Answer 3 questions:
 
-- **Proposito** -- que problema resolve? quem usa?
-- **Tom** -- escolher UM extremo e executar com precisao: brutalist / maximalist / editorial / luxury / organic / playful / industrial / quiet sophistication / raw energy / retro-futuristic
-- **Elemento inesquecivel** -- qual e o unico elemento que o utilizador vai lembrar?
+- **Purpose** -- what problem does it solve? who uses it?
+- **Tone** -- pick ONE extreme and execute with precision: brutalist / maximalist / editorial / luxury / organic / playful / industrial / quiet sophistication / raw energy / retro-futuristic
+- **Unforgettable element** -- the one element the user will remember?
 
-Se a visao e maximalist -- o codigo e elaborado com animacoes extensas.
-Se a visao e minimal -- restraint, precisao, spacing e tipografia.
+If vision is maximalist -- code is elaborate with extensive animations.
+If vision is minimal -- restraint, precision, spacing and typography.
 Match execution depth to vision intensity.
 
 ### Cor
-- OKLCH. Reduzir chroma quando lightness se aproxima de 0 ou 100.
-- Nunca `#000` ou `#fff` puros -- tint para cor de marca (chroma 0.005-0.01).
-- Escolher estrategia:
-  - **Restrained** -- neutrals + 1 accent <= 10% (default produto)
-  - **Committed** -- 1 cor saturada 30-60% (identidade forte)
-  - **Drenched** -- a superficie E a cor (heroes, campaigns)
-- CSS variables semanticas. Nunca hex raw em componentes.
-- Light e dark desenhados juntos, nao um depois do outro.
+- OKLCH. Reduce chroma when lightness approaches 0 or 100.
+- Never pure `#000` or `#fff` -- tint toward brand color (chroma 0.005-0.01).
+- Pick strategy:
+  - **Restrained** -- neutrals + 1 accent <= 10% (default product)
+  - **Committed** -- 1 saturated color 30-60% (strong identity)
+  - **Drenched** -- the surface IS the color (heroes, campaigns)
+- Semantic CSS variables. Never raw hex in components.
+- Light and dark designed together, not one after the other.
 - WCAG 4.5:1 body text, 3:1 large text.
 
 ### Tema (dark vs light)
-Nunca um default. Escrever 1 frase de cena fisica: quem usa, onde, que luz ambiente. Se a frase nao forca a resposta, nao e concreta o suficiente.
+Never a default. Write 1 sentence of physical scene: who uses it, where, what ambient light. If the sentence doesn't force the answer, it's not concrete enough.
 
 ### Tipografia
-- Distinctive display + refined body. Ratio >= 1.25 entre steps.
-- Line length: 65-75ch texto longo, 35-60ch mobile.
-- Variar fontes entre geracoes -- nunca convergir na mesma.
-- 16px minimo body em mobile.
+- Distinctive display + refined body. Ratio >= 1.25 between steps.
+- Line length: 65-75ch long text, 35-60ch mobile.
+- Vary fonts between generations -- never converge on the same one.
+- 16px minimum body on mobile.
 
 ### Layout
-- Variar spacing para ritmo. Mesmo padding em todo o lado = monotonia.
-- Assimetria, overlap, diagonal flow, grid-breaking > centrado simetrico.
-- Cards sao a resposta preguicosa -- so quando genuinamente o melhor affordance.
-- Z-index scale definido como tokens, nunca ad-hoc.
+- Vary spacing for rhythm. Same padding everywhere = monotony.
+- Asymmetry, overlap, diagonal flow, grid-breaking > centered symmetric.
+- Cards are the lazy answer -- use only when genuinely the best affordance.
+- Z-index scale defined as tokens, never ad-hoc.
 
 ---
 
 ## #4 Anti-AI Slop
 
-**Reflex check (dois niveis):**
-1. Alguem adivinha o tema + paleta so pela categoria? ("SaaS = dark blue", "health = white + teal") -> rever
-2. Alguem adivinha a familia estetica com categoria+anti-referencias? -> rever novamente
+**Reflex check (two levels):**
+1. Can someone guess theme + palette from category alone? ("SaaS = dark blue", "health = white + teal") -> revise
+2. Can someone guess the aesthetic family with category+anti-references? -> revise again
 
 ### Bans absolutos
 
 | Evitar | Porque |
 |--------|--------|
-| Gradientes roxos em fundo branco | Cliche "tech/AI" -- zero identidade |
-| Inter/Roboto/Arial/Space Grotesk como display | Sem caracter visual, convergencia AI |
+| Gradientes roxos em fundo branco | Cliche "tech/AI" -- zero identity |
+| Inter/Roboto/Arial/Space Grotesk como display | No visual character, AI convergence |
 | Card + left colored border accent | 2020-2024 slop |
-| SVG-drawn people/faces/objects | Proporcoes sempre erradas |
-| CSS silhuetas em vez de fotos produto | "Tech animation" generica, destroi brand identity |
-| Emoji como icones | Sinal amateur |
-| Stats/icons/gradients decorativos | Data slop, icon slop, gradient slop |
+| SVG-drawn people/faces/objects | Proportions always wrong |
+| CSS silhouettes instead of product photos | Generic "tech animation", destroys brand identity |
+| Emoji como icones | Amateur signal |
+| Decorative stats/icons/gradients | Data slop, icon slop, gradient slop |
 | Side-stripe borders como accent | `border-left/right` > 1px colorido |
-| Gradient text | `background-clip: text` + gradient. Decorativo, nunca meaningful |
-| Glassmorphism como default | Blurs decorativos sem proposito |
-| Hero-metric template | Numero grande + label + stats + gradient (SaaS cliche) |
-| Card grids identicas repetidas | Mesmas cards icon+heading+text |
-| Modal como primeira opcao | Modais sao preguica -- esgotar alternativas inline |
-| PowerPoint transitions | Cenas independentes que fade in/out separadamente |
+| Gradient text | `background-clip: text` + gradient. Decorative, never meaningful |
+| Glassmorphism como default | Decorative blurs without purpose |
+| Hero-metric template | Big number + label + stats + gradient (SaaS cliche) |
+| Identical repeated card grids | Same cards icon+heading+text |
+| Modal como primeira opcao | Modals are lazy -- exhaust inline alternatives |
+| PowerPoint transitions | Independent scenes that fade in/out separately |
 
-**Regra:** se remover um elemento nao perde informacao, nao o adicionar.
+**Rule:** if removing an element loses no info, don't add it.
 
 ---
 
-## #5 Design Advisor (direccao nao definida)
+## #5 Design Advisor (direction undefined)
 
 Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
 
-Nao adivinhar e construir. Entrar em modo advisor:
+Don't guess and build. Enter advisor mode:
 
-1. Max 3 perguntas: publico, mensagem principal, tom emocional
-2. Reiterar brief em 100-150 palavras
-3. Recomendar 3 direccoes de 3 escolas diferentes:
+1. Max 3 questions: audience, main message, emotional tone
+2. Restate brief in 100-150 words
+3. Recommend 3 directions from 3 different schools:
 
 | Escola | Caracter |
 |--------|---------|
-| Arquitectura de Informacao (Pentagram) | Racional, data-driven, contido |
-| Motion Poetry (Field.io) | Dinamico, imersivo, beleza tecnica |
-| Minimalismo (Kenya Hara) | Ordem, espaco negativo, refinado |
-| Vanguarda Experimental (Sagmeister) | Avant-garde, generative, impacto |
-| Filosofia Oriental | Quente, poetico, contemplativo |
+| Arquitectura de Informacao (Pentagram) | Rational, data-driven, contained |
+| Motion Poetry (Field.io) | Dynamic, immersive, technical beauty |
+| Minimalismo (Kenya Hara) | Order, negative space, refined |
+| Vanguarda Experimental (Sagmeister) | Avant-garde, generative, impact |
+| Filosofia Oriental | Warm, poetic, contemplative |
 
-4. Gerar 3 quick HTML demos com conteudo real -> Playwright screenshot -> mostrar
-5. Utilizador escolhe -> Junior Designer mode com direccao escolhida
+4. Generate 3 quick HTML demos with real content -> Playwright screenshot -> show
+5. User picks -> Junior Designer mode with chosen direction
 
 ---
 
@@ -172,7 +172,7 @@ Nao adivinhar e construir. Entrar em modo advisor:
 React 19 + TypeScript + Vite + Tailwind CSS 4
 ```
 
-Alternativas aceites: Next.js (SSR/SSG), Remix, Astro (quando faz sentido).
+Alternatives accepted: Next.js (SSR/SSG), Remix, Astro (when it fits).
 
 ### Component architecture
 ```
@@ -247,15 +247,15 @@ function Button({ variant, size, loading, className, children, ...props }: Butto
 ```
 
 ### Anti-patterns React
-- Nunca `const styles = {...}` generico -- sempre nomes unicos (`heroStyles`, `cardStyles`)
-- Nunca `any` em TypeScript
-- Nunca componentes monoliticos > 200 linhas -- compor
-- Nunca inline styles para estilos repetidos -- Tailwind ou CSS class
-- Nunca hex raw -- `var(--color-*)` ou Tailwind tokens
-- Nunca `scrollIntoView` -- quebra scroll de container
+- Never generic `const styles = {...}` -- always unique names (`heroStyles`, `cardStyles`)
+- Never `any` in TypeScript
+- Never monolithic components > 200 lines -- compose
+- Never inline styles for repeated styling -- Tailwind or CSS class
+- Never raw hex -- `var(--color-*)` or Tailwind tokens
+- Never `scrollIntoView` -- breaks container scroll
 
 ### Prototype mode (single-file)
-Quando nao ha projecto React:
+When no React project exists:
 ```html
 <script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
@@ -264,130 +264,130 @@ Quando nao ha projecto React:
   // React inline -- abre com file://
 </script>
 ```
-- Nunca `const styles = {...}` sem nomes unicos
-- Scripts babel multiplos nao partilham scope -- exportar via `Object.assign(window, {...})`
+- Never `const styles = {...}` without unique names
+- Multiple babel scripts don't share scope -- export via `Object.assign(window, {...})`
 
 ---
 
-## #7 UX Rules (aplicar sempre, sem pedir)
+## #7 UX Rules (apply always, without asking)
 
 ### Accessibility (CRITICAL)
-- Contraste minimo 4.5:1 texto/fundo, 3:1 large text
-- Focus rings visiveis (2-4px) em todos os interactivos
-- Alt text em imagens significativas
-- Labels em todos os inputs (nao so placeholder)
-- Keyboard navigation funciona
-- `prefers-reduced-motion` respeitado
-- Nenhuma info conveyed so por cor
+- Minimum contrast 4.5:1 text/background, 3:1 large text
+- Visible focus rings (2-4px) on all interactives
+- Alt text on meaningful images
+- Labels on all inputs (not placeholder alone)
+- Keyboard navigation works
+- `prefers-reduced-motion` respected
+- No info conveyed by color alone
 - Tab order = visual order
 
 ### Touch & Interaction
-- Elementos clicaveis >= 44px (HIG) / >= 48px (Material)
-- Espaco minimo 8px entre targets
-- Cursor pointer em clicaveis
-- Loading feedback em accoes async
-- Todas as animacoes interruptiveis -- UI activa durante motion
+- Clickable elements >= 44px (HIG) / >= 48px (Material)
+- Minimum 8px between targets
+- Cursor pointer on clickables
+- Loading feedback on async actions
+- All animations interruptible -- UI active during motion
 
 ### Layout & Responsive
 - Mobile-first breakpoints: 375 / 768 / 1024 / 1440
-- `viewport-meta` correcto (nunca desactivar zoom)
-- Sem horizontal scroll em mobile
-- `min-height: 100dvh` (nao `100vh`)
-- `aspect-ratio` ou `width`/`height` explicitos em imagens (CLS prevention)
+- Correct `viewport-meta` (never disable zoom)
+- No horizontal scroll on mobile
+- `min-height: 100dvh` (not `100vh`)
+- `aspect-ratio` or explicit `width`/`height` on images (CLS prevention)
 
 ---
 
-## #8 Invocar especialistas autonomamente
+## #8 Invoke specialists autonomously
 
-Durante o desenvolvimento, invocar sem perguntar ao utilizador:
+During development, invoke without asking the user:
 
-### Animacao (anima)
-Quando o design precisa de motion -- scroll reveals, hero entrance, hover effects, page transitions:
+### Animation (anima)
+When design needs motion -- scroll reveals, hero entrance, hover effects, page transitions:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Aplicar os patterns directamente. Para animacoes complexas (timeline sequences, scroll-driven narratives), spawnar agente:
+Apply patterns directly. For complex animations (timeline sequences, scroll-driven narratives), spawn agent:
 ```
-Agent(subagent_type="general-purpose", prompt="[brief com ficheiro + tipo de animacao + constraints]")
+Agent(subagent_type="general-purpose", prompt="[brief with file + animation type + constraints]")
 ```
 
 ### Mobile/Responsive (mobile)
-Apos primeiro draft do design, invocar para melhorar responsivo:
+After first design draft, invoke to improve responsive:
 ```
 Read(".claude/skills/SKILL.md")
 ```
-Aplicar patterns de touch, safe areas, e responsive automaticamente.
+Apply touch, safe areas, and responsive patterns automatically.
 
-Notificar em 1 linha: `[+ anima]` ou `[+ mobile]` quando activar.
+Notify in 1 line: `[+ anima]` or `[+ mobile]` when activating.
 
 ---
 
 ## #9 /components
 
-Quando pedido `/components` ou "gera component library":
+When asked `/components` or "generate component library":
 
-1. `components.md` -- design tokens + tipografia + cada componente com props e estados
-2. `components.html` -- biblioteca visual interactiva com preview de todos os componentes
+1. `components.md` -- design tokens + typography + each component with props and states
+2. `components.html` -- interactive visual library with preview of all components
 
 ---
 
 ## #10 Expert Critique
 
-A pedido ("review", "score", "esta bom?") ou proactivamente quando output parece incerto:
+On request ("review", "score", "is this good?") or proactively when output seems uncertain:
 
-0-10 em 5 dimensoes:
-1. **Coerencia filosofica** -- o todo parece intencional?
-2. **Hierarquia visual** -- prioridade percebia em 3 segundos?
-3. **Execucao de detalhe** -- spacing, alinhamento, tipografia
-4. **Funcionalidade** -- funciona como UI?
-5. **Originalidade** -- evita cliches?
+0-10 on 5 dimensions:
+1. **Philosophical coherence** -- does the whole feel intentional?
+2. **Visual hierarchy** -- priority perceived in 3 seconds?
+3. **Detail execution** -- spacing, alignment, typography
+4. **Functionality** -- works as UI?
+5. **Originality** -- avoids cliches?
 
-Output: total + **Keep** + **Fix** (critico / importante / optimizacao) + **Quick Wins** (top 3 em < 5 min).
+Output: total + **Keep** + **Fix** (critical / important / optimization) + **Quick Wins** (top 3 in < 5 min).
 
 ---
 
 ## #11 Performance (production)
 
-- Imagens: WebP/AVIF com `srcset`, `loading="lazy"` abaixo do fold
-- Fonts: `font-display: swap`, preload so criticas
-- Code splitting: `React.lazy()` + dynamic imports por rota
-- Bundle: verificar com `vite-bundle-visualizer`
-- `font-display: swap` ou `optional`
-- Virtualizar listas 50+ items
+- Images: WebP/AVIF with `srcset`, `loading="lazy"` below the fold
+- Fonts: `font-display: swap`, preload only critical
+- Code splitting: `React.lazy()` + dynamic imports per route
+- Bundle: verify with `vite-bundle-visualizer`
+- `font-display: swap` or `optional`
+- Virtualize lists with 50+ items
 
 ---
 
-## Validacao antes de entregar
+## Validation before delivery
 
 ### Prototype
-- [ ] Abre no browser sem erros JS
-- [ ] Mobile 375px testado
-- [ ] Contraste verificado
-- [ ] Keyboard navigation funciona
+- [ ] Opens in browser without JS errors
+- [ ] Mobile 375px tested
+- [ ] Contrast verified
+- [ ] Keyboard navigation works
 
 ### Production
-- [ ] TypeScript sem erros (`npm run type-check`)
-- [ ] Build sem erros (`npm run build`)
+- [ ] TypeScript error-free (`npm run type-check`)
+- [ ] Build error-free (`npm run build`)
 - [ ] Lighthouse >= 90 performance, >= 90 accessibility
 - [ ] Mobile 375px, tablet 768px, desktop 1280px
-- [ ] CSS variables do DESIGN.md aplicadas
-- [ ] Sem `any` em TypeScript
-- [ ] Focus visible em todos os interactivos
+- [ ] CSS variables from DESIGN.md applied
+- [ ] No `any` in TypeScript
+- [ ] Focus visible on all interactives
 
 ---
 
 ## Quality Gate
 
-Apos entregar, sugerir: "Queres `tester-ui-ux`?"
+After delivery, suggest: "Want `tester-ui-ux`?"
 
-Para production, sugerir tambem: "Queres `tester-performance`?"
+For production, also suggest: "Want `tester-performance`?"
 
 ---
 
-## Skills relacionadas
+## Related skills
 
-- `brand-guidelines` -- gerar DESIGN.md antes desta skill
-- `anima` -- animacoes GSAP + Lottie (invocado autonomamente)
-- `mobile` -- responsivo e mobile-first (invocado autonomamente)
-- `img-gen` -- gerar imagens quando necessario
-- `video` -- exportar animacoes HTML como MP4/GIF
+- `brand-guidelines` -- generate DESIGN.md before this skill
+- `anima` -- GSAP + Lottie animations (invoked autonomously)
+- `mobile` -- responsive and mobile-first (invoked autonomously)
+- `img-gen` -- generate images when needed
+- `video` -- export HTML animations as MP4/GIF

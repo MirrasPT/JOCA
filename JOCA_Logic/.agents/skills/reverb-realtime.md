@@ -1,7 +1,7 @@
 ---
 name: reverb-realtime
-description: Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. Use when implementing WebSocket broadcasting, real-time notifications, presence channels, or live UI updates; configuring Reverb server or Laravel Echo; setting up private/public/presence channels; writing broadcast events; deploying Reverb to production; or asked about "real-time", "WebSockets", "broadcasting", "Reverb", "Echo", "presence", "channels", "live updates", "whisper", "BroadcastNotification".
-when_to_use: Activate for any broadcasting or WebSocket work in Laravel: ShouldBroadcast events, channel authorization in routes/channels.php, Laravel Echo frontend integration, Reverb production deployment (Nginx/Caddy, SSL, horizontal scaling), client events (whisper), notification broadcasting, or Event::fake() testing of broadcast events.
+description: "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. MUST be invoked when the user says: real-time, WebSockets, broadcasting, Reverb, Echo, presence."
+when_to_use: Activate for broadcasting or WebSocket work in Laravel: ShouldBroadcast events, channel auth in routes/channels.php, Echo frontend integration, Reverb production deploy (Nginx/Caddy, SSL, scaling), client events (whisper), notification broadcasting, or Event::fake() testing.
 disable-model-invocation: false
 allowed-tools: Read Write Edit Bash
 ---
@@ -16,7 +16,7 @@ php artisan install:broadcasting
 # Configures .env with BROADCAST_CONNECTION=reverb
 ```
 
-Required .env variables:
+Required .env:
 ```env
 BROADCAST_CONNECTION=reverb
 
@@ -45,10 +45,10 @@ npm install --save-dev laravel-echo pusher-js
 php artisan reverb:start                             # Start on 0.0.0.0:8080
 php artisan reverb:start --host=127.0.0.1 --port=9000
 php artisan reverb:start --debug                     # Verbose connection logging
-php artisan reverb:restart                           # Graceful restart (drain connections first)
+php artisan reverb:restart                           # Graceful restart (drains first)
 ```
 
-**Queue must be running** — broadcast events are dispatched as queued jobs. Run `php artisan queue:work` alongside Reverb.
+Queue must run alongside Reverb -- broadcast events dispatch as queued jobs. Run `php artisan queue:work`.
 
 ## Broadcast Events
 
@@ -76,7 +76,7 @@ class OrderStatusUpdated implements ShouldBroadcast
             'id'     => $this->order->id,
             'status' => $this->order->status,
         ];
-        // Return only what the frontend needs — never serialize full Eloquent models
+        // Return only what frontend needs -- never serialize full Eloquent models
     }
 
     public function broadcastWhen(): bool
@@ -91,20 +91,20 @@ class OrderStatusUpdated implements ShouldBroadcast
 }
 ```
 
-**ShouldBroadcastNow** — skip queue, broadcast synchronously (bypasses queue worker requirement):
+**ShouldBroadcastNow** -- skip queue, broadcast synchronously:
 ```php
 class OrderStatusUpdated implements ShouldBroadcastNow { ... }
 ```
 
-**afterCommit()** — if dispatching inside a DB transaction, add `->afterCommit()` to the dispatch call or use `$dispatchesEvents` with `afterCommit: true` — otherwise event may fire before commit.
+**afterCommit()** -- when dispatching inside a DB transaction, add `->afterCommit()` or use `$dispatchesEvents` with `afterCommit: true`. Otherwise event may fire before commit.
 
 ## Dispatching Broadcast Events
 
 ```php
-// Standard — queued by default
+// Standard -- queued by default
 OrderStatusUpdated::dispatch($order);
 
-// Using broadcast() helper — supports ->toOthers()
+// broadcast() helper -- supports ->toOthers()
 broadcast(new OrderStatusUpdated($order));
 broadcast(new OrderStatusUpdated($order))->toOthers();  // exclude sender's socket
 
@@ -115,7 +115,7 @@ Broadcast::on('orders.'.$order->id)
     ->send();
 ```
 
-**`toOthers()`** requires frontend to send `X-Socket-ID` header in HTTP requests:
+`toOthers()` requires frontend to send `X-Socket-ID` header:
 ```javascript
 axios.defaults.headers.common['X-Socket-ID'] = Echo.socketId();
 ```
@@ -131,12 +131,12 @@ axios.defaults.headers.common['X-Socket-ID'] = Echo.socketId();
 ## Channel Authorization (routes/channels.php)
 
 ```php
-// Private channel — return true/false
+// Private channel -- return true/false
 Broadcast::channel('orders.{orderId}', function (User $user, int $orderId) {
     return $user->id === Order::findOrFail($orderId)->user_id;
 });
 
-// Model binding (resolves Order from DB automatically)
+// Model binding (resolves Order automatically)
 Broadcast::channel('orders.{order}', function (User $user, Order $order) {
     return $user->id === $order->user_id;
 });
@@ -146,16 +146,16 @@ Broadcast::channel('orders.{order}', function (User $user, Order $order) {
     return $user->can('view', $order);
 });
 
-// Presence channel — return array of user data (not bool)
+// Presence channel -- return user data array (not bool)
 Broadcast::channel('chat.{roomId}', function (User $user, int $roomId) {
     if ($user->canJoinRoom($roomId)) {
         return ['id' => $user->id, 'name' => $user->name, 'avatar' => $user->avatar_url];
     }
-    // return null/false to deny access
+    // return null/false to deny
 });
 ```
 
-Use channel classes for complex logic:
+Channel classes for complex logic:
 ```bash
 php artisan make:channel OrderChannel
 ```
@@ -163,7 +163,7 @@ php artisan make:channel OrderChannel
 Broadcast::channel('orders.{order}', OrderChannel::class);
 ```
 
-## Laravel Echo — Frontend
+## Laravel Echo -- Frontend
 
 ```javascript
 // resources/js/echo.js (or bootstrap.js)
@@ -196,14 +196,14 @@ Echo.channel('announcements')
 // Private channel
 Echo.private(`orders.${orderId}`)
     .listen('OrderStatusUpdated', (e) => {
-        // e.id, e.status — matches broadcastWith() return
+        // e.id, e.status -- matches broadcastWith() return
     })
     .listen('.order.updated', (e) => { });  // dot prefix = custom broadcastAs() name
 
 // Stop listening
 Echo.private(`orders.${orderId}`).stopListening('OrderStatusUpdated');
 
-// Leave channel entirely
+// Leave channel
 Echo.leave(`orders.${orderId}`);         // leaves private AND presence
 Echo.leaveChannel(`orders.${orderId}`);  // leaves only the specific variant
 ```
@@ -213,7 +213,7 @@ Echo.leaveChannel(`orders.${orderId}`);  // leaves only the specific variant
 ```javascript
 Echo.join(`chat.${roomId}`)
     .here((users) => {
-        // users = array of all currently connected users (from channel auth return value)
+        // users = all currently connected users (from channel auth return)
         this.onlineUsers = users;
     })
     .joining((user) => {
@@ -232,7 +232,7 @@ Echo.join(`chat.${roomId}`)
 
 ## Client Events (Whisper)
 
-Peer-to-peer events without hitting the server — private and presence channels only:
+Peer-to-peer events without hitting the server -- private and presence channels only:
 
 ```javascript
 // Send whisper
@@ -272,7 +272,7 @@ class OrderShipped extends Notification implements ShouldBroadcast
             'message'  => 'Your order has shipped.',
         ]);
     }
-    // Channel: App.Models.User.{id} (automatic for notifiable User model)
+    // Channel: App.Models.User.{id} (automatic for notifiable User)
 }
 ```
 
@@ -299,7 +299,7 @@ class Post extends Model
     {
         return match ($event) {
             'deleted' => [],                     // don't broadcast deletes
-            default   => [$this, $this->user],   // broadcast on model channel + user channel
+            default   => [$this, $this->user],   // broadcast on model + user channel
         };
     }
 }
@@ -364,7 +364,7 @@ stopwaitsecs=30
 minfds=10000
 ```
 
-**Deploy sequence:** `reverb:restart` → Supervisor restarts cleanly (drains all connections first).
+Deploy: `reverb:restart` -- Supervisor restarts cleanly (drains connections first).
 
 ### Performance
 
@@ -380,9 +380,9 @@ pecl install uv
 REVERB_SCALING_ENABLED=true
 ```
 
-Requires a shared Redis instance. All Reverb nodes subscribe to the same pub/sub channel. Put all nodes behind a load balancer (sticky sessions not required — pub/sub distributes to all nodes).
+Requires shared Redis. All Reverb nodes subscribe to the same pub/sub channel. Place nodes behind a load balancer (sticky sessions not required -- pub/sub distributes to all).
 
-Run `php artisan pulse:check` on **one node only** to collect Reverb metrics.
+Run `php artisan pulse:check` on one node only for Reverb metrics.
 
 ## Laravel Pulse (Monitoring)
 
@@ -416,19 +416,19 @@ Event::assertDispatched(OrderStatusUpdated::class, fn($e) => $e->order->id === $
 Event::assertNotDispatched(OrderCancelled::class);
 ```
 
-Test channel authorization endpoints directly:
+Test channel auth endpoints directly:
 ```php
-// Private channel — authorized user
+// Private channel -- authorized user
 $this->actingAs($owner)
      ->post('/broadcasting/auth', ['channel_name' => 'private-orders.'.$order->id])
      ->assertStatus(200);
 
-// Private channel — unauthorized user
+// Private channel -- unauthorized user
 $this->actingAs($stranger)
      ->post('/broadcasting/auth', ['channel_name' => 'private-orders.'.$order->id])
      ->assertStatus(403);
 
-// Presence channel — check returned user data shape
+// Presence channel -- check returned user data shape
 $this->actingAs($member)
      ->post('/broadcasting/auth', ['channel_name' => 'presence-chat.'.$room->id])
      ->assertStatus(200)
@@ -445,7 +445,7 @@ $this->assertEquals([new PrivateChannel('orders.'.$order->id)], $event->broadcas
 
 ## Pusher as Fallback
 
-If Reverb is unavailable, switch to Pusher by changing `.env` only:
+Switch to Pusher by changing `.env` only:
 
 ```env
 BROADCAST_CONNECTION=pusher
@@ -455,7 +455,7 @@ PUSHER_APP_SECRET=your-pusher-app-secret
 PUSHER_APP_CLUSTER=eu
 ```
 
-Frontend (`resources/js/echo.js`), swap out the broadcaster:
+Frontend (`resources/js/echo.js`), swap the broadcaster:
 ```javascript
 window.Echo = new Echo({
     broadcaster: 'pusher',
@@ -465,17 +465,17 @@ window.Echo = new Echo({
 });
 ```
 
-No PHP code changes needed — Reverb speaks the Pusher protocol, so `routes/channels.php` auth and event classes are identical.
+No PHP changes needed -- Reverb speaks the Pusher protocol, so `routes/channels.php` auth and event classes stay identical.
 
 ## Critical Pitfalls
 
 | Pitfall | Fix |
 |---|---|
-| WebSocket connects but events don't arrive | Verify queue worker is running — broadcast jobs require a worker |
+| WebSocket connects but events don't arrive | Verify queue worker is running -- broadcast jobs need a worker |
 | `toOthers()` delivers to sender | Send `X-Socket-ID: Echo.socketId()` header on all HTTP requests |
-| Private channel auth 403 | Check `routes/channels.php` is loaded; auth route is `/broadcasting/auth` by default |
+| Private channel auth 403 | Check `routes/channels.php` is loaded; auth route is `/broadcasting/auth` |
 | Presence channel returns `{}` for users | Channel auth callback must return an array, not `true` |
-| Reverb restart drops active connections | Use `reverb:restart` not process kill — it drains connections first |
-| High connection count causes "too many open files" | Set `ulimit -n 10000` + Supervisor `minfds=10000` |
-| broadcastWith() serializes Eloquent model | Return only scalar/array values — never Eloquent instances |
-| Horizontal scaling — events only reach some users | Enable `REVERB_SCALING_ENABLED=true` + shared Redis |
+| Reverb restart drops connections | Use `reverb:restart` not process kill -- drains connections first |
+| High connection count "too many open files" | Set `ulimit -n 10000` + Supervisor `minfds=10000` |
+| broadcastWith() serializes Eloquent model | Return only scalar/array values -- never Eloquent instances |
+| Horizontal scaling -- events reach some users only | Enable `REVERB_SCALING_ENABLED=true` + shared Redis |

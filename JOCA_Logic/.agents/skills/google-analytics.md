@@ -1,25 +1,25 @@
 ---
 name: google-analytics
-description: Query Google Analytics 4 data. Use when the user asks about website traffic, page views, sessions, user counts, conversions, top pages, traffic sources, or any analytics/metrics questions. Trigger on keywords like "analytics", "traffic", "visitors", "page views", "sessions", "GA4", "bounce rate", "conversions", "top pages", "referrals".
+description: "Query Google Analytics 4 data. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
 ---
 
 # Google Analytics 4 Skill
 
-Query GA4 property data using the Google Analytics Data API v1.
+Query GA4 property data via the Google Analytics Data API v1.
 
 ## Setup
 
-Edit `ga_query.py` and set at the top:
-- `CREDENTIALS_PATH` — path to your service account JSON key
-- `PROPERTY_ID` — your GA4 property ID (number only, e.g. `123456789`)
+Edit `ga_query.py` and set:
+- `CREDENTIALS_PATH` — service account JSON key path
+- `PROPERTY_ID` — GA4 property ID (number only, e.g. `123456789`)
 
-Or set via environment variables:
+Or use environment variables:
 ```bash
 export GA4_CREDENTIALS=/path/to/service-account.json
 export GA4_PROPERTY_ID=123456789
 ```
 
-**Python dependency**: handled automatically via `uv run` (no install needed).
+**Python dependency**: handled via `uv run` (no install needed).
 
 ## Script path
 
@@ -27,7 +27,7 @@ export GA4_PROPERTY_ID=123456789
 ${CLAUDE_SKILL_DIR}/ga_query.py
 ```
 
-Run with:
+Run:
 ```bash
 uv run "${CLAUDE_SKILL_DIR}/ga_query.py" --report <type> [options]
 ```

@@ -1,6 +1,6 @@
 ---
 name: blueprint
-description: Use when creating, editing, or reviewing WordPress Playground blueprint JSON files. Triggers on mentions of blueprints, playground configuration, or requests to set up a WordPress demo environment.
+description: "Creating, editing, or reviewing WordPress Playground blueprint JSON files. MUST be invoked when the user mentions: WordPress Playground, JSON, Triggers, WordPress."
 compatibility: "WordPress 6.9+, PHP 7.2.24+. Optionally Playground CLI or a browser"
 ---
 
@@ -8,7 +8,7 @@ compatibility: "WordPress 6.9+, PHP 7.2.24+. Optionally Playground CLI or a brow
 
 ## Overview
 
-A Blueprint is a JSON file that declaratively configures a WordPress Playground instance — installing plugins/themes, setting options, running PHP/SQL, manipulating files, and more.
+A Blueprint is a JSON file that declaratively configures a WordPress Playground instance -- installing plugins/themes, setting options, running PHP/SQL, manipulating files.
 
 **Core principle:** Blueprints are trusted JSON-only declarations. No arbitrary JavaScript. They work on web, Node.js, and CLI.
 
@@ -25,30 +25,30 @@ A Blueprint is a JSON file that declaratively configures a WordPress Playground 
 
 ## Top-Level Properties
 
-All optional. Only documented keys are allowed — the schema rejects unknown properties.
+All optional. The schema rejects unknown properties.
 
 | Property | Type | Notes |
 |----------|------|-------|
 | `$schema` | string | Always `"https://playground.wordpress.net/blueprint-schema.json"` |
 | `landingPage` | string | Relative path, e.g. `/wp-admin/` |
-| `meta` | object | `{ title, author, description?, categories? }` — title and author required |
-| `preferredVersions` | object | `{ php, wp }` — both required when present |
-| `features` | object | `{ networking?: boolean, intl?: boolean }` — **only** these two keys, nothing else. Networking defaults to `true` |
-| `extraLibraries` | array | `["wp-cli"]` — auto-included when any `wp-cli` step is present |
+| `meta` | object | `{ title, author, description?, categories? }` -- title and author required |
+| `preferredVersions` | object | `{ php, wp }` -- both required when present |
+| `features` | object | `{ networking?: boolean, intl?: boolean }` -- **only** these two keys. Networking defaults to `true` |
+| `extraLibraries` | array | `["wp-cli"]` -- auto-included when any `wp-cli` step is present |
 | `constants` | object | Shorthand for `defineWpConfigConsts`. Values: string/boolean/number |
 | `plugins` | array | Shorthand for `installPlugin` steps. Strings = wp.org slugs |
 | `siteOptions` | object | Shorthand for `setSiteOptions` |
-| `login` | boolean or object | `true` = login as admin. Object = `{ username?, password? }` (both default to `"admin"`/`"password"`) |
+| `login` | boolean or object | `true` = login as admin. Object = `{ username?, password? }` (default `"admin"`/`"password"`) |
 | `steps` | array | Main execution pipeline. Runs after shorthands |
 
 ### preferredVersions Values
 
-- **php:** Major.minor only (e.g. `"8.3"`, `"7.4"`), or `"latest"`. Patch versions like `"7.4.1"` are invalid. Check the schema for currently supported versions.
-- **wp:** Recent major versions (e.g. `"6.7"`, `"6.8"`), `"latest"`, `"nightly"`, `"beta"`, or a URL to a custom zip. Check the schema for the full list.
+- **php:** Major.minor only (e.g. `"8.3"`, `"7.4"`), or `"latest"`. Patch versions like `"7.4.1"` are invalid.
+- **wp:** Recent major versions (e.g. `"6.7"`, `"6.8"`), `"latest"`, `"nightly"`, `"beta"`, or a URL to a custom zip.
 
 ### Shorthands vs Steps
 
-Shorthands (`login`, `plugins`, `siteOptions`, `constants`) are expanded and prepended to `steps` in an **unspecified order**. Use explicit steps when execution order matters.
+Shorthands (`login`, `plugins`, `siteOptions`, `constants`) expand and prepend to `steps` in **unspecified order**. Use explicit steps when execution order matters.
 
 ## Resource References
 
@@ -63,9 +63,9 @@ Resources tell Playground where to find files. Used by `installPlugin`, `install
 | `literal` | `name`, `contents` | `{ "resource": "literal", "name": "file.txt", "contents": "hello" }` |
 | `literal:directory` | `name`, `files` | See below |
 | `bundled` | `path` | References a file within a blueprint bundle (e.g. `{ "resource": "bundled", "path": "/plugin.zip" }`) |
-| `zip` | `inner` | Wraps another resource in a ZIP — use when a step expects a zip but your source isn't one (e.g. wrapping a `url` resource pointing to a raw directory) |
+| `zip` | `inner` | Wraps another resource in a ZIP -- use when a step expects a zip but your source isn't one |
 
-### git:directory — Installing from GitHub
+### git:directory -- Installing from GitHub
 
 ```json
 {
@@ -77,10 +77,10 @@ Resources tell Playground where to find files. Used by `installPlugin`, `install
 }
 ```
 
-- When using a branch or tag name for `ref`, you **must** set `refType` (`"branch"` | `"tag"` | `"commit"` | `"refname"`). Without it, only `"HEAD"` resolves reliably.
+- When using a branch or tag for `ref`, you **must** set `refType` (`"branch"` | `"tag"` | `"commit"` | `"refname"`). Without it, only `"HEAD"` resolves reliably.
 - `path` selects a subdirectory (defaults to repo root).
 
-### literal:directory — Inline File Trees
+### literal:directory -- Inline File Trees
 
 ```json
 {
@@ -95,12 +95,12 @@ Resources tell Playground where to find files. Used by `installPlugin`, `install
 }
 ```
 
-- `files` uses nested objects for subdirectories — keys are filenames or directory names, values are **plain strings** (file content) or **objects** (subdirectories). Never use resource references as values.
-- **Do NOT use path separators in keys** (e.g. `"includes/helper.php"` is wrong — use a nested `"includes": { "helper.php": "..." }` object).
+- `files` uses nested objects for subdirectories -- keys are filenames or directory names, values are **plain strings** (content) or **objects** (subdirectories). Never use resource references as values.
+- **Do NOT use path separators in keys** (e.g. `"includes/helper.php"` is wrong -- use nested `"includes": { "helper.php": "..." }`).
 
 ## Steps Reference
 
-Every step requires `"step": "<name>"`. Any step can optionally include `"progress": { "weight": 1, "caption": "Installing..." }` for UI feedback.
+Every step requires `"step": "<name>"`. Any step can include `"progress": { "weight": 1, "caption": "Installing..." }` for UI feedback.
 
 ### Plugin & Theme Installation
 
@@ -122,14 +122,14 @@ Every step requires `"step": "<name>"`. Any step can optionally include `"progre
 }
 ```
 
-- Use `pluginData` / `themeData` — **NOT** the deprecated `pluginZipFile` / `themeZipFile`.
-- `pluginData` / `themeData` accept any FileReference or DirectoryReference — a zip URL, a `wordpress.org/plugins` slug, a `git:directory`, or a `literal:directory` (no `zip` wrapper needed).
-- `options.activate` controls activation. No need for a separate `activatePlugin`/`activateTheme` step when using `installPlugin`/`installTheme`.
+- Use `pluginData` / `themeData` -- **NOT** the deprecated `pluginZipFile` / `themeZipFile`.
+- `pluginData` / `themeData` accept any FileReference or DirectoryReference -- a zip URL, a `wordpress.org/plugins` slug, a `git:directory`, or a `literal:directory` (no `zip` wrapper needed).
+- `options.activate` controls activation. No separate `activatePlugin`/`activateTheme` step needed.
 - `ifAlreadyInstalled`: `"overwrite"` | `"skip"` | `"error"`
 
 ### Activation (standalone)
 
-Only needed for plugins/themes already on disk (e.g. after `writeFile`/`writeFiles`):
+For plugins/themes already on disk (e.g. after `writeFile`/`writeFiles`):
 
 ```json
 { "step": "activatePlugin", "pluginPath": "my-plugin/my-plugin.php" }
@@ -144,7 +144,7 @@ Only needed for plugins/themes already on disk (e.g. after `writeFile`/`writeFil
 { "step": "writeFile", "path": "/wordpress/wp-content/mu-plugins/custom.php", "data": "<?php // code" }
 ```
 
-`data` accepts a plain string (as shown above) or a resource reference (e.g. `{ "resource": "url", "url": "https://..." }`).
+`data` accepts a plain string or a resource reference (e.g. `{ "resource": "url", "url": "https://..." }`).
 
 ```json
 {
@@ -163,7 +163,7 @@ Only needed for plugins/themes already on disk (e.g. after `writeFile`/`writeFil
 }
 ```
 
-**`writeFiles` requires a DirectoryReference** (`literal:directory` or `git:directory`) as `filesTree` — not a plain object.
+**`writeFiles` requires a DirectoryReference** (`literal:directory` or `git:directory`) as `filesTree` -- not a plain object.
 
 Other file operations: `mkdir`, `cp`, `mv`, `rm`, `rmdir`, `unzip`.
 
@@ -209,10 +209,10 @@ The step name is `wp-cli` (with hyphen), NOT `cli` or `wpcli`.
 | `enableMultisite` | (no required props) |
 | `importWxr` | `file` (FileReference) |
 | `importThemeStarterContent` | `themeSlug?` |
-| `importWordPressFiles` | `wordPressFilesZip`, `pathInZip?` — imports a full WordPress directory from a zip |
+| `importWordPressFiles` | `wordPressFilesZip`, `pathInZip?` -- imports full WordPress directory from a zip |
 | `request` | `request: { url, method?, headers?, body? }` |
 | `updateUserMeta` | `userId`, `meta` |
-| `runWpInstallationWizard` | `options?` — runs the WP install wizard with given options |
+| `runWpInstallationWizard` | `options?` -- runs the WP install wizard |
 | `resetData` | (no props) |
 
 ## Common Patterns
@@ -246,7 +246,7 @@ The step name is `wp-cli` (with hyphen), NOT `cli` or `wpcli`.
 }
 ```
 
-Then activate it with a separate step:
+Then activate with a separate step:
 
 ```json
 { "step": "activatePlugin", "pluginPath": "my-plugin/my-plugin.php" }
@@ -276,26 +276,26 @@ Then activate it with a separate step:
 | Flat object as `writeFiles.filesTree` | Must be a `literal:directory` or `git:directory` resource |
 | Path separators in `files` keys | Use nested objects for subdirectories |
 | `runPHP` without `wp-load.php` | Always `require '/wordpress/wp-load.php';` for WP functions |
-| Invented top-level keys | Only documented keys work — schema rejects unknown properties |
+| Invented top-level keys | Schema rejects unknown properties |
 | Inventing proxy URLs for GitHub | Use `git:directory` resource type |
-| Omitting `refType` with branch/tag `ref` | Required — only `"HEAD"` works without it |
-| Resource references in `literal:directory` `files` values | Values must be plain strings (content) or objects (subdirectories) — never resource refs |
-| `features.debug` or other invented feature keys | `features` only supports `networking` and `intl` — use `constants: { "WP_DEBUG": true }` for debug mode |
-| `require wp-load.php` in mu-plugin code | Only needed in `runPHP` steps — mu-plugins already run within WordPress |
+| Omitting `refType` with branch/tag `ref` | Required -- only `"HEAD"` works without it |
+| Resource references in `literal:directory` `files` values | Values must be plain strings or objects -- never resource refs |
+| `features.debug` or invented feature keys | `features` supports only `networking` and `intl` -- use `constants: { "WP_DEBUG": true }` |
+| `require wp-load.php` in mu-plugin code | Only needed in `runPHP` steps -- mu-plugins run within WordPress |
 | Schema URL with `.org` domain | Must be `playground.wordpress.net`, not `playground.wordpress.org` |
 
 ## Full Reference
 
-This skill covers the most common steps and patterns. For the complete API, see:
+This skill covers the most common steps and patterns. For the complete API:
 
 - **Blueprint docs:** https://wordpress.github.io/wordpress-playground/blueprints
 - **JSON schema:** https://playground.wordpress.net/blueprint-schema.json
 
-Additional steps not covered above: `runPHPWithOptions` (run PHP with custom `ini` settings), `runWpInstallationWizard`, and resource types `vfs` and `bundled` (for advanced embedding scenarios).
+Additional steps: `runPHPWithOptions` (PHP with custom `ini` settings), `runWpInstallationWizard`, and resource types `vfs` and `bundled` (for advanced embedding).
 
 ## Blueprint Bundles
 
-Bundles are self-contained packages that include a `blueprint.json` along with all the resources it references (plugins, themes, WXR files, etc.). Instead of hosting assets externally, bundle them alongside the blueprint.
+Bundles are self-contained packages: a `blueprint.json` plus all referenced resources (plugins, themes, WXR files). Assets are bundled alongside the blueprint instead of hosted externally.
 
 ### Bundle Structure
 
@@ -308,7 +308,7 @@ my-bundle/
     └── sample-content.wxr
 ```
 
-Plugins and themes must be zipped before bundling — `installPlugin` expects a zip, not a raw directory. To create the zip from a plugin directory:
+Plugins and themes must be zipped before bundling -- `installPlugin` expects a zip, not a raw directory:
 
 ```bash
 cd my-bundle
@@ -317,7 +317,7 @@ zip -r my-plugin.zip my-plugin/
 
 ### Referencing Bundled Resources
 
-Use the `bundled` resource type to reference files within the bundle:
+Use the `bundled` resource type:
 
 ```json
 {
@@ -340,14 +340,14 @@ Use the `bundled` resource type to reference files within the bundle:
 }
 ```
 
-### Creating a Bundle Step by Step
+### Creating a Bundle
 
-1. Create the bundle directory and add `blueprint.json` at its root.
-2. Write your plugin/theme source files in a subdirectory (e.g. `my-plugin/my-plugin.php`).
+1. Create the bundle directory with `blueprint.json` at root.
+2. Write plugin/theme source files in a subdirectory (e.g. `my-plugin/my-plugin.php`).
 3. Zip the plugin directory: `zip -r my-plugin.zip my-plugin/`
-4. Reference it in `blueprint.json` using `{ "resource": "bundled", "path": "/my-plugin.zip" }`.
+4. Reference in `blueprint.json` using `{ "resource": "bundled", "path": "/my-plugin.zip" }`.
 
-Full example — a bundle that installs a custom plugin:
+Full example:
 
 ```
 dashboard-widget-bundle/
@@ -382,19 +382,19 @@ dashboard-widget-bundle/
 | Local directory | CLI: `npx @wp-playground/cli server --blueprint=./my-bundle/ --blueprint-may-read-adjacent-files` |
 | Git repository directory | Point `blueprint-url` at a repo directory containing `blueprint.json` |
 
-**GOTCHA:** Local directory bundles always need `--blueprint-may-read-adjacent-files` for the CLI to read bundled resources. Without it, any `"resource": "bundled"` reference will fail with a "File not found" error. ZIP bundles don't need this flag — all files are self-contained inside the archive.
+**GOTCHA:** Local directory bundles need `--blueprint-may-read-adjacent-files` for the CLI to read bundled resources. Without it, `"resource": "bundled"` references fail with "File not found". ZIP bundles don't need this flag -- files are self-contained.
 
 ## Testing Blueprints
 
 ### Inline Blueprints (quick test, no bundles)
 
-Minify the blueprint JSON (no extra whitespace), prepend `https://playground.wordpress.net/#`, and open the URL in a browser:
+Minify the JSON, prepend `https://playground.wordpress.net/#`, and open in a browser:
 
 ```
 https://playground.wordpress.net/#{"$schema":"https://playground.wordpress.net/blueprint-schema.json","preferredVersions":{"php":"8.3","wp":"latest"},"steps":[{"step":"login"}]}
 ```
 
-Very large blueprints may exceed browser URL length limits; use the CLI instead.
+Large blueprints may exceed URL length limits; use the CLI instead.
 
 ### Local CLI Testing
 
@@ -414,4 +414,4 @@ npx @wp-playground/cli run-blueprint --blueprint=./my-bundle/ --blueprint-may-re
 
 ### Testing with the wordpress-playground-server Skill
 
-Use the `wordpress-playground-server` skill to start a local Playground instance with `--blueprint /path/to/blueprint.json`, then verify the expected state with Playwright MCP. For directory bundles, pass `--blueprint-may-read-adjacent-files` as an extra argument.
+Use the `wordpress-playground-server` skill to start a local Playground instance with `--blueprint /path/to/blueprint.json`, then verify expected state with Playwright MCP. For directory bundles, pass `--blueprint-may-read-adjacent-files`.

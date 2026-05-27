@@ -1,14 +1,14 @@
 ---
 name: component-system
-description: Component inventory and per-component specification documents. Generates system/component-inventory.md (master list) and system/components/<name>.md per component with anatomy, variants, sizes, 6 states (default/hover/focus/active/disabled/loading), exact token references, touch targets, ARIA spec, responsive behaviour, do/don't. The closed contract that Frontend consumes — prevents token fabrication across sessions.
+description: "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec. SHOULD also invoke when: input spec, card spec, UI components, UI kit, component library, component documentation."
 triggers: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec, input spec, card spec, UI components, UI kit, component library, component documentation, anatomia do componente, component anatomy
 ---
 
 # Component System
 
-Inventario e especificacao de componentes. Contrato fechado que o Frontend consome.
+Inventario e spec de componentes. Contrato fechado que o Frontend consome.
 
-**Activar** apos `design-tokens` gerar tokens/, antes de qualquer implementacao UI.
+**Activar** apos `design-tokens` gerar tokens/, antes de implementacao UI.
 
 ---
 
@@ -50,9 +50,9 @@ Master list. Lido pelo frontend no inicio de CADA sessao.
 
 ## Regra de sessao
 
-> Antes de escrever qualquer UI, ler este ficheiro + tokens/tokens.css.
+> Antes de escrever UI, ler este ficheiro + tokens/tokens.css.
 > Usar APENAS componentes e tokens listados aqui.
-> Nunca inventar variantes, estados ou tokens que nao existam neste inventario.
+> Nunca inventar variantes, estados ou tokens fora deste inventario.
 
 ## Componentes
 
@@ -100,7 +100,7 @@ NUNCA usar `outline: none` sem alternativa visivel. NUNCA usar `:focus` sem `:fo
 
 ### Touch targets
 
-Minimo 44x44px para qualquer elemento interactivo (WCAG 2.5.8). Se o componente visual e menor (ex: checkbox 20px), expandir hit area com padding ou pseudo-element.
+Minimo 44x44px para elementos interactivos (WCAG 2.5.8). Se o componente visual e menor (ex: checkbox 20px), expandir hit area com padding ou pseudo-element.
 ```
 
 ---
@@ -114,7 +114,7 @@ Cada `system/components/<name>.md` segue esta estrutura:
 
 ## Anatomy
 
-[Descricao das partes do componente — ex: container, label, icon-left, icon-right, spinner]
+[Partes do componente — ex: container, label, icon-left, icon-right, spinner]
 
 ## Variants
 
@@ -165,7 +165,7 @@ Cada `system/components/<name>.md` segue esta estrutura:
 | Usar primary para 1 CTA por vista | 2+ primary buttons na mesma vista |
 | Label com verbo de accao ("Guardar", "Enviar") | Labels vagas ("Ok", "Submeter") |
 | Ghost para accoes terciarias | Ghost para accoes destrutivas |
-| Disabled com tooltip explicativo | Disabled sem explicacao (frustrating) |
+| Disabled com tooltip explicativo | Disabled sem explicacao |
 ```
 
 ---
@@ -176,18 +176,18 @@ Cada `system/components/<name>.md` segue esta estrutura:
 
 1. **tokens/tokens.css** — obrigatorio (token refs para states)
 2. **DESIGN.md** — tipografia, espacamento
-3. **PRD.md** — se existir, extrair features para identificar componentes necessarios
-4. **Codebase existente** — se ja tem componentes, documentar os que existem
+3. **PRD.md** — se existir, extrair features para mapear componentes
+4. **Codebase existente** — se ja tem componentes, documentar os existentes
 
 ### Processo
 
 1. Ler tokens/tokens.css
 2. Identificar componentes necessarios:
-   - Se PRD existe: mapear features a componentes
-   - Se nao: gerar set base (button, input, card, badge, avatar, modal, toast)
+   - PRD existe: mapear features a componentes
+   - Sem PRD: gerar set base (button, input, card, badge, avatar, modal, toast)
 3. Gerar component-inventory.md
-4. Gerar spec por componente (prioridade: os mais usados primeiro)
-5. Apresentar ao utilizador para review
+4. Gerar spec por componente (prioridade: mais usados primeiro)
+5. Apresentar para review
 6. Iterar ate aprovacao
 
 ### Perguntas minimas
@@ -205,7 +205,7 @@ Quando a skill `frontend` e activada, DEVE:
 2. `Read("tokens/tokens.css")`
 3. Para cada componente a implementar: `Read("system/components/<name>.md")`
 
-Isto fecha o token set — o frontend nao pode inventar variantes, estados ou tokens que nao existam no inventario.
+Fecha o token set — o frontend nao pode inventar variantes, estados ou tokens fora do inventario.
 
 ---
 
@@ -213,17 +213,17 @@ Isto fecha o token set — o frontend nao pode inventar variantes, estados ou to
 
 Actualizar quando:
 - Componente novo necessario (adicionar spec + entry no inventory)
-- Token mudou (verificar que component refs ainda resolvem)
-- Feedback do `design-system-audit` (agent) — states em falta, ARIA incorrectos
+- Token mudou (verificar que component refs resolvem)
+- Feedback do `design-system-audit` — states em falta, ARIA incorrectos
 - Feature nova no PRD requer variante nova
 
 ---
 
 ## Workflow
 
-Pipeline desta skill na sequencia JOCA:
+Pipeline na sequencia JOCA:
 
-→ **antes**: `design-tokens` (tokens como input)
-→ **apos**: `design-system-audit` (agente — valida sistema completo) → `frontend` (consome como contrato)
+-> **antes**: `design-tokens` (tokens como input)
+-> **apos**: `design-system-audit` (valida sistema completo) -> `frontend` (consome como contrato)
 
-Notificar ao concluir: `→ proximo: design-system-audit`
+Notificar ao concluir: `-> proximo: design-system-audit`

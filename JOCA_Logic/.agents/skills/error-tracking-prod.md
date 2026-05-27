@@ -1,14 +1,14 @@
 ---
 name: error-tracking-prod
-description: Production error tracking, structured logging, health checks, and monitoring for Laravel. Sentry/Flare (error tracking), Monolog JSON (structured logs), Context facade (correlation IDs), spatie/laravel-health (health checks), Horizon monitoring, uptime monitoring. Activar no setup de producao.
+description: "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health. SHOULD also invoke when: horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors."
 triggers: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health, horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors, error monitoring, alerta, alerting, monitoring, observability, observabilidade, log producao, erro producao
 ---
 
 # Error Tracking — Production
 
-Monitoring e logging para producao. Sentry/Flare + structured logging + health checks.
+Monitoring and logging for production. Sentry/Flare + structured logging + health checks.
 
-**Activar** quando `laravel-specialist` ou `deploy-*` configura ambiente de producao.
+**Activate** when `laravel-specialist` or `deploy-*` configures production environment.
 
 ---
 
@@ -66,13 +66,13 @@ SENTRY_TRACES_SAMPLE_RATE=0.1
 SENTRY_RELEASE=1.0.0
 ```
 
-Desactivar local: `SENTRY_LARAVEL_DSN=null`
+Disable local: `SENTRY_LARAVEL_DSN=null`
 
 ---
 
-## 2. Flare — alternativa Laravel-native
+## 2. Flare — Laravel-native alternative
 
-Do team Spatie. GDPR-native (Belgica/EU). Mais contexto Laravel que Sentry.
+Spatie team. GDPR-native (Belgium/EU). Deeper Laravel context than Sentry.
 
 ```bash
 composer require spatie/laravel-flare
@@ -96,7 +96,7 @@ php artisan flare:test
 | GDPR/EU | Belgica | US (EU disponivel) |
 | Multi-linguagem | PHP/Laravel | 50+ plataformas |
 
-**Recomendacao:** Sentry para equipas multi-stack. Flare para solo/agencia Laravel-only.
+**Recommendation:** Sentry for multi-stack teams. Flare for solo/agency Laravel-only.
 
 ---
 
@@ -119,7 +119,7 @@ class JsonFormatter
 }
 ```
 
-### Channels producao
+### Production channels
 ```php
 // config/logging.php
 'channels' => [
@@ -170,34 +170,34 @@ class AttachRequestContext
 }
 ```
 
-Registar em `bootstrap/app.php`:
+Register in `bootstrap/app.php`:
 ```php
 $middleware->prepend(\App\Http\Middleware\AttachRequestContext::class);
 ```
 
-Cada `Log::*` inclui automaticamente request_id, url, ip, user_id. Propaga para jobs via queue.
+Each `Log::*` auto-includes request_id, url, ip, user_id. Propagates to jobs via queue.
 
-### Log levels producao
+### Log levels — production
 
-| Level | Quando usar |
+| Level | When to use |
 |-------|------------|
-| emergency | Sistema down |
-| critical | Componente falhou |
-| error | Runtime errors -- sempre notificar |
-| warning | Degradado, recuperavel |
-| info/debug | **Nunca em producao** |
+| emergency | System down |
+| critical | Component failed |
+| error | Runtime errors — always notify |
+| warning | Degraded, recoverable |
+| info/debug | **Never in production** |
 
 ```ini
 LOG_LEVEL=warning
 ```
 
-### O que NUNCA logar
+### Never log
 - Passwords, hashes
 - API keys, tokens, secrets
-- Cartoes credito, contas bancarias
-- PII completo (emails, telefones, NIFs)
-- `$request->all()` (apanha passwords)
-- Modelos inteiros (`$user` -- serializa tudo)
+- Credit cards, bank accounts
+- Full PII (emails, phones, NIFs)
+- `$request->all()` (captures passwords)
+- Whole models (`$user` — serializes everything)
 
 ### PII scrubber
 ```php
@@ -227,7 +227,7 @@ php artisan vendor:publish --tag="health-migrations"
 php artisan migrate
 ```
 
-### Checks recomendados
+### Recommended checks
 ```php
 // AppServiceProvider::boot()
 Health::checks([
@@ -245,7 +245,7 @@ Health::checks([
 ]);
 ```
 
-### Agendar
+### Schedule
 ```php
 Schedule::command(RunHealthChecksCommand::class)->everyMinute();
 Schedule::command(DispatchQueueCheckJobsCommand::class)->everyMinute();
@@ -256,7 +256,7 @@ Schedule::command(DispatchQueueCheckJobsCommand::class)->everyMinute();
 Route::get('/health', HealthCheckResultsController::class);
 ```
 
-### Notificacoes
+### Notifications
 ```php
 // config/health.php
 'notifications' => [
@@ -270,17 +270,17 @@ Route::get('/health', HealthCheckResultsController::class);
 
 ## 5. Horizon Monitoring
 
-### Metrics (obrigatorio para dashboard)
+### Metrics (required for dashboard)
 ```php
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
 ```
 
-### Autorizacao
+### Authorization
 ```php
 Gate::define('viewHorizon', fn (User $user) => $user->hasRole('admin'));
 ```
 
-### Alertas de wait time
+### Wait time alerts
 ```php
 // config/horizon.php
 'waits' => [
@@ -289,7 +289,7 @@ Gate::define('viewHorizon', fn (User $user) => $user->hasRole('admin'));
 ],
 ```
 
-### Notificacoes
+### Notifications
 ```php
 Horizon::routeMailNotificationsTo('[email protected]');
 Horizon::routeSlackNotificationsTo(env('HORIZON_SLACK_WEBHOOK'));
@@ -299,17 +299,17 @@ Horizon::routeSlackNotificationsTo(env('HORIZON_SLACK_WEBHOOK'));
 
 ## 6. Uptime Monitoring
 
-| Tool | Tipo | Melhor para |
+| Tool | Type | Best for |
 |------|------|------------|
-| Oh Dear | Managed | Laravel-native (integra com laravel-health) |
+| Oh Dear | Managed | Laravel-native (integrates with laravel-health) |
 | Better Stack | Managed | Logs + uptime + on-call |
-| Uptime Kuma | Self-hosted | Gratis, Docker |
+| Uptime Kuma | Self-hosted | Free, Docker |
 
-Oh Dear monitoriza: uptime, SSL expiry, cron heartbeats, broken links, health endpoint.
+Oh Dear monitors: uptime, SSL expiry, cron heartbeats, broken links, health endpoint.
 
 ---
 
-## .env producao completo
+## .env production
 
 ```ini
 APP_ENV=production
@@ -327,19 +327,19 @@ HORIZON_SLACK_WEBHOOK=https://hooks.slack.com/services/yyy
 
 ---
 
-## Checklist producao
+## Production checklist
 
 - [ ] `APP_DEBUG=false`
 - [ ] `LOG_LEVEL=warning`
-- [ ] Sentry/Flare configurado e `sentry:test` passa
-- [ ] `ignore_exceptions` configurado (401, 403, 404, 422)
-- [ ] JSON log formatter activo
-- [ ] Correlation ID middleware registado
-- [ ] PII scrubber registado
+- [ ] Sentry/Flare configured and `sentry:test` passes
+- [ ] `ignore_exceptions` set (401, 403, 404, 422)
+- [ ] JSON log formatter active
+- [ ] Correlation ID middleware registered
+- [ ] PII scrubber registered
 - [ ] `send_default_pii=false`
-- [ ] Health checks agendados (everyMinute)
-- [ ] `/health` endpoint exposto para monitoring
-- [ ] `horizon:snapshot` agendado (every5Minutes)
-- [ ] Slack/email alertas verificados
-- [ ] Uptime monitor apontado a `/health` ou `/up`
-- [ ] `telescope:prune` agendado (se Telescope em producao)
+- [ ] Health checks scheduled (everyMinute)
+- [ ] `/health` endpoint exposed for monitoring
+- [ ] `horizon:snapshot` scheduled (every5Minutes)
+- [ ] Slack/email alerts verified
+- [ ] Uptime monitor pointed at `/health` or `/up`
+- [ ] `telescope:prune` scheduled (if Telescope in production)

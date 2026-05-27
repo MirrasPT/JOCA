@@ -1,6 +1,6 @@
 ---
 name: shopify-app
-description: "Use when building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. Covers full development lifecycle from init to deploy."
+description: "Building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. MUST be invoked when the user mentions: Shopify, CLI, Admin API, GraphQL, POS, OAuth."
 compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Requires Shopify Partner account and dev store."
 ---
 
@@ -8,8 +8,8 @@ compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Requires Shopify Partner accou
 
 ## When to use
 
-- Scaffolding a new Shopify app (`shopify app init`)
-- Building or modifying app extensions (checkout UI, admin UI, theme app extensions, Functions)
+- Scaffolding a new app (`shopify app init`)
+- Building or modifying extensions (checkout UI, admin UI, theme app extensions, Functions)
 - Querying or mutating store data via Admin API (GraphQL)
 - Implementing OAuth, webhooks, billing
 - Deploying and releasing app versions
@@ -49,12 +49,10 @@ npx skills add Shopify/shopify-ai-toolkit --skill shopify-admin
 ## Core workflow
 
 1. **Init / link** — scaffold or link existing app
-2. **Dev** — local development with live preview on dev store
+2. **Dev** — local dev with live preview on dev store
 3. **Build extensions** — scaffold + implement
 4. **Test** — webhook triggers, function local runs
 5. **Deploy + release** — push config and extensions, publish version
-
-Load detailed guidance based on context:
 
 | Topic               | Reference                          | Load when                                             |
 |---------------------|------------------------------------|-------------------------------------------------------|
@@ -66,21 +64,21 @@ Load detailed guidance based on context:
 ## Constraints
 
 ### MUST DO
-- Use GraphQL Admin API for all new work (REST is legacy/maintenance only)
+- Use GraphQL Admin API for all new work (REST is legacy only)
 - Request only required fields — Shopify throttles by query cost, not count
 - Use cursor-based pagination for large datasets
 - Store credentials in env vars (never hardcode API keys)
 - Verify all webhook payloads via HMAC signature
-- Use OAuth for public apps; use custom app tokens only for private/internal use
-- Respect API rate limits — monitor `X-Shopify-Shop-Api-Call-Limit` header
+- Use OAuth for public apps; custom app tokens only for private/internal use
+- Respect rate limits — monitor `X-Shopify-Shop-Api-Call-Limit` header
 - Validate all user input before passing to Admin API
 
-### MUST NOT DO
+### MUST NOT
 - Use REST Admin API for new features (deprecated path)
 - Hardcode store domains or API credentials in source
 - Skip webhook HMAC verification (security vulnerability)
 - Run bulk operations without checking status + handling failures
-- Deploy to production without first testing on dev store
+- Deploy to production without testing on dev store first
 
 ## Verification
 

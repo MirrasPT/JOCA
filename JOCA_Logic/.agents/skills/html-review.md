@@ -1,30 +1,30 @@
 ---
 name: html-review
-description: "Use when converting markdown documentation to visual HTML format for review or presentation."
+description: "Converting markdown documentation to visual HTML format for review or presentation. MUST be invoked when the user says: gerar html, review html, html do prd, html review, visualizar documento, preview do plano, exportar html, documento para revisao. SHOULD also invoke when: html bonito, render markdown, mostrar documento."
 triggers: gerar html, review html, html do prd, html review, visualizar documento, preview do plano, exportar html, documento para revisao, html bonito, render markdown, mostrar documento
 ---
 # HTML Review Generator
 
-Converte documentos `.md` do planning num `.html` visual para revisao humana.
+Converts planning `.md` docs to a self-contained `.html` for human review.
 
-**Input:** qualquer `.md` gerado pelo planning (PRD, TECH_SPEC, ADR, RFC, TASKS, C4 diagrams)
-**Output:** `docs/review/<nome>.html` — ficheiro self-contained, sem dependencias externas
-
----
-
-## Quando activar
-
-- Final da pipeline de planning (apos gerar qualquer documento)
-- Pedido explicito de review/visualizacao
-- Antes de partilhar documento com stakeholders
+**Input:** any `.md` from planning (PRD, TECH_SPEC, ADR, RFC, TASKS, C4 diagrams)
+**Output:** `docs/review/<name>.html` — self-contained, no external dependencies
 
 ---
 
-## Processo
+## When to activate
 
-### 1. Identificar documentos
+- End of planning pipeline (after generating any document)
+- Explicit review/visualisation request
+- Before sharing with stakeholders
 
-Procurar na raiz do projecto e em `docs/`:
+---
+
+## Process
+
+### 1. Identify documents
+
+Search project root and `docs/`:
 - `PRD.md`
 - `TECH_SPEC.md`
 - `TASKS.md`
@@ -32,7 +32,7 @@ Procurar na raiz do projecto e em `docs/`:
 - `docs/rfcs/*.md`
 - `docs/architecture/*.md`
 
-Se o utilizador especificar um ficheiro, converter so esse. Se nao, perguntar:
+If user specifies a file, convert only that. Otherwise ask:
 ```
 Qual documento queres em HTML?
 1. PRD
@@ -41,9 +41,9 @@ Qual documento queres em HTML?
 4. Todos os documentos (bundle)
 ```
 
-### 2. Converter markdown para HTML
+### 2. Convert markdown to HTML
 
-Usar script bash com ferramentas disponiveis:
+Use available bash tools:
 
 ```bash
 # Opcao A: pandoc (se disponivel)
@@ -62,9 +62,9 @@ print(html)
 # Ler o .md, gerar HTML directamente com Write tool
 ```
 
-### 3. Aplicar template HTML
+### 3. Apply HTML template
 
-O HTML final DEVE ser self-contained. Template:
+Final HTML MUST be self-contained. Template:
 
 ```html
 <!DOCTYPE html>
@@ -263,52 +263,51 @@ O HTML final DEVE ser self-contained. Template:
 </html>
 ```
 
-### 4. Conversao de Mermaid
+### 4. Mermaid conversion
 
-Se o `.md` contem blocos ` ```mermaid `:
-- Envolver em `<div class="mermaid">...</div>` (renderiza client-side via CDN)
+If the `.md` contains ` ```mermaid ` blocks, wrap in `<div class="mermaid">...</div>` (renders client-side via CDN).
 
-### 5. Conversao de status/checkboxes
+### 5. Status/checkbox conversion
 
-- `- [x]` → `<span class="status-badge status-done">Done</span>`
-- `- [ ]` → `<span class="status-badge status-pending">Pending</span>`
+- `- [x]` -> `<span class="status-badge status-done">Done</span>`
+- `- [ ]` -> `<span class="status-badge status-pending">Pending</span>`
 
 ---
 
 ## Output
 
-Guardar em `docs/review/<nome>.html`:
-- `PRD.md` → `docs/review/prd.html`
-- `TECH_SPEC.md` → `docs/review/tech-spec.html`
-- `TASKS.md` → `docs/review/tasks.html`
-- `docs/adr/0001-*.md` → `docs/review/adr-0001.html`
-- `docs/rfcs/RFC-001.md` → `docs/review/rfc-001.html`
+Save to `docs/review/<name>.html`:
+- `PRD.md` -> `docs/review/prd.html`
+- `TECH_SPEC.md` -> `docs/review/tech-spec.html`
+- `TASKS.md` -> `docs/review/tasks.html`
+- `docs/adr/0001-*.md` -> `docs/review/adr-0001.html`
+- `docs/rfcs/RFC-001.md` -> `docs/review/rfc-001.html`
 
-Bundle mode: `docs/review/planning-bundle.html` — todos num so ficheiro com tabs/navegacao.
+Bundle mode: `docs/review/planning-bundle.html` — all docs in one file with tabs/navigation.
 
-Abrir automaticamente:
+Auto-open:
 ```bash
 open "docs/review/<nome>.html"
 ```
 
 ---
 
-## Regras
+## Rules
 
-1. O `.html` e read-only — NUNCA editar o HTML; editar o `.md` e re-gerar
-2. O `.md` e a fonte de verdade para Claude Code
-3. O `.html` e para revisao humana e partilha com stakeholders
-4. Self-contained: zero dependencias externas alem do Mermaid CDN
-5. Nao commitar os `.html` por defeito — adicionar a `.gitignore` se nao pedido
+1. The `.html` is read-only — NEVER edit it; edit the `.md` and regenerate
+2. The `.md` is the source of truth for Claude Code
+3. The `.html` is for human review and stakeholder sharing
+4. Self-contained: zero external dependencies beyond Mermaid CDN
+5. Do not commit `.html` by default — add to `.gitignore` unless requested
 
 ---
 
 ## Pipeline integration
 
-Etapa final do planning. Apos qualquer skill do planning gerar/actualizar um `.md`:
+Final step of planning. After any planning skill generates/updates a `.md`:
 
 ```
-prd → prd-reviewer → tech-spec → c4-diagram → task-breakdown → plan → html-review
+prd -> prd-reviewer -> tech-spec -> c4-diagram -> task-breakdown -> plan -> html-review
 ```
 
-Notificar: "Documento gerado. Queres HTML para review?"
+Notify: "Documento gerado. Queres HTML para review?"

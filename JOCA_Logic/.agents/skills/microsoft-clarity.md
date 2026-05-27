@@ -1,6 +1,6 @@
 ---
 name: microsoft-clarity
-description: Export Microsoft Clarity user behavior analytics. Use when the user asks about heatmaps, session recordings, engagement metrics, scroll depth, rage clicks, dead clicks, or user behavior data from Microsoft Clarity. Trigger on "clarity", "heatmap", "session recording", "rage clicks", "dead clicks", "scroll depth", "engagement rate", "user behavior analytics".
+description: "Export Microsoft Clarity user behavior analytics. MUST be invoked when the user says: clarity, heatmap, session recording, rage clicks, dead clicks, scroll depth."
 ---
 
 # Microsoft Clarity Analytics
@@ -9,7 +9,7 @@ Export Clarity heatmap data, session metrics, and engagement analytics via Compo
 
 ## MCP Setup (one-time)
 
-Requires the Composio MCP server via rube.app:
+Requires Composio MCP server via rube.app:
 
 ```json
 // Add to .mcp.json → mcpServers:
@@ -19,13 +19,13 @@ Requires the Composio MCP server via rube.app:
 }
 ```
 
-Get your token at [rube.app/mcp](https://rube.app/mcp). Connect your Microsoft Clarity account when prompted.
+Get token at [rube.app/mcp](https://rube.app/mcp). Connect Microsoft Clarity account when prompted.
 
 ---
 
 ## Tool: `MICROSOFT_CLARITY_DATA_EXPORT`
 
-**Only one tool available.** Single call, up to 3 dimensions.
+Single tool. One call, up to 3 dimensions.
 
 ```
 numOfDays   required   1, 2, or 3 only (last 24h / 48h / 72h)
@@ -52,7 +52,7 @@ dimension3  optional   third breakdown dimension
 
 ## Common Patterns
 
-**Device performance** (responsive design audit):
+**Device performance** (responsive audit):
 ```
 numOfDays: 3, dimension1: "Device", dimension2: "Browser"
 ```
@@ -81,9 +81,9 @@ numOfDays: 3, dimension1: "Campaign", dimension2: "Channel", dimension3: "Device
 
 ## Pitfalls
 
-- `numOfDays` only accepts `1`, `2`, or `3` — no other values
-- Dimension names must match **exactly** (`Country/Region` not `country`)
-- Max 3 dimensions per call — run multiple exports for more complex breakdowns
-- `URL` + other dimensions = large payloads — narrow the time window
-- Very recent data (last few minutes) may not appear due to processing lag
-- Heatmap visualisations and session recordings require the Clarity web dashboard — not available via API
+- `numOfDays` accepts only `1`, `2`, or `3`
+- Dimension names must match exactly (`Country/Region` not `country`)
+- Max 3 dimensions per call — run multiple exports for broader breakdowns
+- `URL` + other dimensions = large payloads — narrow time window
+- Recent data (last few minutes) may lag due to processing delay
+- Heatmap visuals and session recordings require Clarity web dashboard — not available via API

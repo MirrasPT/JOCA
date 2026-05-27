@@ -1,6 +1,6 @@
 ---
 name: search-engine
-description: Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. Use when adding search to an application, configuring search indexes, implementing faceted filtering, instant search dropdowns, or choosing between Meilisearch/Typesense/Algolia.
+description: "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. MUST be invoked when the user says: search, meilisearch, typesense, algolia, full-text search, faceted search, instant search, search index. SHOULD also invoke when: search engine, typo tolerance."
 triggers: search, meilisearch, typesense, algolia, full-text search, faceted search, instant search, search index, search engine, typo tolerance
 ---
 
@@ -14,7 +14,7 @@ triggers: search, meilisearch, typesense, algolia, full-text search, faceted sea
 | **Typesense** | Advanced features: geo-search, joins, analytics built-in | Self-hosted or Typesense Cloud |
 | **Algolia** | Best DX, instant search widgets — expensive at scale | Managed only |
 
-**Default choice:** Meilisearch for self-hosted, Algolia if budget allows and you want the best widget ecosystem.
+**Default:** Meilisearch self-hosted. Algolia if budget allows and widget ecosystem matters.
 
 ## Meilisearch Setup
 
@@ -49,7 +49,7 @@ MEILI_SEARCH_KEY=<search-only key for client — never expose master key>
 ```ts
 const index = client.index("products");
 
-// Configure searchable attributes (explicit, don't index everything)
+// Searchable attributes (explicit, don't index everything)
 await index.updateSearchableAttributes([
   "name",        // highest priority
   "description",
@@ -57,7 +57,7 @@ await index.updateSearchableAttributes([
   "sku",
 ]);
 
-// Configure filterable attributes (define upfront for categories, facets)
+// Filterable attributes (define upfront for categories, facets)
 await index.updateFilterableAttributes([
   "category",
   "brand",
@@ -66,7 +66,7 @@ await index.updateFilterableAttributes([
   "tags",
 ]);
 
-// Configure sortable attributes
+// Sortable attributes
 await index.updateSortableAttributes(["price", "created_at", "popularity_score"]);
 
 // Custom ranking rules
@@ -130,7 +130,7 @@ const results = await index.search("shoes", {
 // Sync on write — after creating/updating a record
 async function createProduct(data: ProductInput) {
   const product = await db.product.create({ data });
-  // Sync to search index asynchronously (don't block response)
+  // Queue async sync (don't block response)
   await searchQueue.add("sync-product", { id: product.id, operation: "upsert" });
   return product;
 }
@@ -199,7 +199,7 @@ const client = new Typesense.Client({
   connectionTimeoutSeconds: 2,
 });
 
-// Schema-first — define schema before adding documents
+// Schema-first — define before adding documents
 await client.collections().create({
   name: "products",
   fields: [
@@ -232,15 +232,15 @@ await index.setSettings({
 await index.saveObjects(products, { autoGenerateObjectIDIfNotExist: true });
 ```
 
-For the UI, use `instantsearch.js` or `react-instantsearch` for production-ready widgets.
+For UI, use `instantsearch.js` or `react-instantsearch` for production-ready widgets.
 
 ## Avoid
 
-- Database `LIKE` queries for search — slow, no relevance ranking, no typo tolerance
+- Database `LIKE` for search — slow, no relevance ranking, no typo tolerance
 - Indexing large text blobs without truncation — index summaries or first 500 chars
 - Exposing admin API keys to the client — use search-only keys with rate limits
-- Rebuilding the entire index on every document change — use partial updates
-- Polling intervals under 3s for search-as-you-type — use debounce instead
+- Full index rebuild on every document change — use partial updates
+- Poll intervals under 3s for search-as-you-type — use debounce instead
 
 ## Resources
 

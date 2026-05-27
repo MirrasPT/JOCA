@@ -311,7 +311,7 @@ export default function TerminalView({
       {rateLimits && rateLimits.five_hour?.used_pct != null && (
         <div className="rate-limits-bar">
           <span className="rl-model">{rateLimits.model}</span>
-          {rateLimits.context.used_pct != null && (
+          {rateLimits.context?.used_pct != null && (
             <span className="rl-item rl-ctx">
               ctx <span className="rl-bar"><span className="rl-bar-fill" style={{ width: `${Math.min(100, rateLimits.context.used_pct)}%` }} /></span>
               {Math.round(rateLimits.context.used_pct)}%

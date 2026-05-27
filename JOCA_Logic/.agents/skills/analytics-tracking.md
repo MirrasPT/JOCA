@@ -1,26 +1,26 @@
 ---
 name: analytics-tracking
-description: When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," "tracking plan," "how do I measure this," "track conversions," "attribution," "Mixpanel," "Segment," "are my events firing," or "analytics isn't working." Use this whenever someone asks how to know if something is working or wants to measure marketing results. For A/B test measurement → ab-test-setup. For GA4 queries and reports → google-analytics skill (in tools/).
+description: "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking,, GA4,, Google Analytics,, conversion tracking,, event tracking,, UTM parameters,."
 metadata:
   version: 1.1.0
 ---
 
 # Analytics Tracking
 
-You are an expert in analytics implementation and measurement. Your goal is to help set up tracking that provides actionable insights for marketing and product decisions.
+Expert in analytics implementation and measurement. Sets up tracking that provides actionable insights for marketing and product decisions.
 
-**Nota JOCA:** Esta skill cobre *implementação* de tracking (setup de eventos, GTM, UTM, tracking plan). Para *queries e relatórios GA4* → usar a skill `google-analytics` em `tools/`.
+**Nota JOCA:** This skill covers tracking *implementation* (event setup, GTM, UTM, tracking plan). For GA4 *queries and reports* use the `google-analytics` skill in `tools/`.
 
 ## Initial Assessment
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking questions. Use that context; only ask for info not covered.
 
-Before implementing tracking, understand:
+Before implementing, understand:
 
-1. **Business Context** - What decisions will this data inform? What are key conversions?
-2. **Current State** - What tracking exists? What tools are in use?
-3. **Technical Context** - What's the tech stack? Any privacy/compliance requirements?
+1. **Business Context** - What decisions will this data inform? Key conversions?
+2. **Current State** - What tracking exists? What tools in use?
+3. **Technical Context** - Tech stack? Privacy/compliance requirements?
 
 ---
 
@@ -33,8 +33,8 @@ Before implementing tracking, understand:
 
 ### 2. Start with the Questions
 - What do you need to know?
-- What actions will you take based on this data?
-- Work backwards to what you need to track
+- What actions follow from this data?
+- Work backwards to required tracking
 
 ### 3. Name Things Consistently
 - Naming conventions matter
@@ -70,7 +70,7 @@ Event Name | Category | Properties | Trigger | Notes
 
 ## Event Naming Conventions
 
-### Recommended Format: Object-Action
+### Format: Object-Action
 
 ```
 signup_completed
@@ -80,11 +80,11 @@ article_read
 checkout_payment_completed
 ```
 
-### Best Practices
+### Rules
 - Lowercase with underscores
-- Be specific: `cta_hero_clicked` vs. `button_clicked`
+- Be specific: `cta_hero_clicked` vs `button_clicked`
 - Include context in properties, not event name
-- Avoid spaces and special characters
+- No spaces or special characters
 - Document decisions
 
 ---
@@ -122,11 +122,11 @@ checkout_payment_completed
 | Campaign | source, medium, campaign, content, term |
 | Product | product_id, product_name, category, price |
 
-### Best Practices
+### Rules
 - Use consistent property names
 - Include relevant context
 - Don't duplicate automatic properties
-- Avoid PII in properties
+- No PII in properties
 
 ---
 
@@ -185,7 +185,7 @@ dataLayer.push({
 | utm_content | Differentiate versions | hero_cta |
 | utm_term | Paid search keywords | running+shoes |
 
-### Naming Conventions
+### Naming Rules
 - Lowercase everything
 - Use underscores or hyphens consistently
 - Be specific but concise: `blog_footer_cta`, not `cta1`
@@ -224,16 +224,16 @@ dataLayer.push({
 
 ## Privacy and Compliance
 
-### Considerations
+### Requirements
 - Cookie consent required in EU/UK/CA
 - No PII in analytics properties
-- Data retention settings
-- User deletion capabilities
+- Configure data retention settings
+- Provide user deletion capabilities
 
 ### Implementation
 - Use consent mode (wait for consent)
 - IP anonymization
-- Only collect what you need
+- Collect only what you need
 - Integrate with consent management platform
 
 ---
@@ -273,7 +273,7 @@ dataLayer.push({
 1. What tools are you using (GA4, Mixpanel, etc.)?
 2. What key actions do you want to track?
 3. What decisions will this data inform?
-4. Who implements — dev team or marketing?
+4. Who implements -- dev team or marketing?
 5. Are there privacy/consent requirements?
 6. What's already tracked?
 

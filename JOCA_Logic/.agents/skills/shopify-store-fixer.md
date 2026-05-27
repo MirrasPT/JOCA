@@ -1,6 +1,6 @@
 ---
 name: shopify-store-fixer
-description: "Use when implementing fixes to a Shopify store via Admin API (GraphQL). Every write operation requires explicit user approval before execution. Covers products, metafields, pages, navigation, redirects, and theme settings."
+description: "Implementing fixes to a Shopify store via Admin API (GraphQL). MUST be invoked when the user mentions: Shopify, Admin API, GraphQL, Every."
 compatibility: "Requires Shopify Admin API access (OAuth token or custom app token). GraphQL Admin API 2024-01+."
 ---
 
@@ -8,7 +8,7 @@ compatibility: "Requires Shopify Admin API access (OAuth token or custom app tok
 
 ## When to use
 
-- Implementing fixes identified by `shopify-store-audit`
+- Implementing fixes from `shopify-store-audit`
 - Bulk-updating products, metafields, or collections via Admin API
 - Creating/updating pages, navigation menus, redirects programmatically
 - Patching theme settings without direct theme file access
@@ -17,17 +17,17 @@ compatibility: "Requires Shopify Admin API access (OAuth token or custom app tok
 
 ## Inputs required
 
-- Admin API token (OAuth or custom app — never hardcode, use env var `SHOPIFY_ADMIN_API_TOKEN`)
+- Admin API token (use env var `SHOPIFY_ADMIN_API_TOKEN` — never hardcode)
 - Store domain (`SHOPIFY_STORE_DOMAIN`, e.g. `mystore.myshopify.com`)
 - List of fixes to implement (from audit output or user specification)
-- Approval from user before each write or batch
+- User approval before each write or batch
 
 ## Guardrails
 
 ```
 Before every write:
 1. Show the exact mutation/operation to the user
-2. Show which resources will be affected (IDs, count)
+2. Show affected resources (IDs, count)
 3. Wait for explicit confirmation: "yes / proceed / approve"
 4. Log the operation after completion
 ```
@@ -56,8 +56,6 @@ shopify app execute graphql --query products.graphql
 ```
 
 ### Write (requires approval)
-
-Common fix patterns:
 
 **Update product SEO (title + description)**
 ```graphql
@@ -110,7 +108,7 @@ For each fix batch:
 ```
 FIX PLAN — [description]
 Operations: [n] writes
-Resources: [list of affected IDs or resource type + count]
+Resources: [affected IDs or resource type + count]
 Reversible: [yes/no — explain if no]
 
 Approve? [yes/no]
@@ -121,12 +119,12 @@ Proceed only after explicit "yes".
 ## Verification
 
 After each write:
-- Check `userErrors` in mutation response — abort batch if any error
-- Re-query the affected resources to confirm changes
+- Check `userErrors` in mutation response — abort batch on any error
+- Re-query affected resources to confirm changes
 - Log: operation type, resource IDs, timestamp
 
 ## Escalation
 
-- For theme file changes: use `shopify-theme` + `shopify theme push`
-- For app logic changes: use `shopify-app`
-- If bulk operation fails: `shopify app bulk cancel` + investigate error log
+- Theme file changes: use `shopify-theme` + `shopify theme push`
+- App logic changes: use `shopify-app`
+- Bulk operation failure: `shopify app bulk cancel` + investigate error log

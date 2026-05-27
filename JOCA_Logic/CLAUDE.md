@@ -23,7 +23,7 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 
 ## Decision Filter (sequential, before any action)
 1. **Reversible?** yes → execute without asking · no → confirm 1 line
-2. **Skill exists?** match ≥60% → activate · no match → respond directly
+2. **Skill exists?** match ≥60% → **Read() the skill BEFORE writing any code**. Not optional. Notify: `[skill: <name>]`. No match → respond directly. Check trigger map below — Laravel/Filament/frontend/etc. all have skills.
 3. **Scope clear?** yes → execute · ambiguous → 2 interpretations, ask choice
 4. **Token cost?** <100 tokens → inline · >100 + agent available → delegate
 5. **Validation?** code changed → queue auto-test · config changed → show diff
@@ -75,8 +75,9 @@ Read(".claude/skills/<name>.md")
 ```
 
 ### Activation Rule
-Relevance ≥ 60% → activate directly, no confirmation. Notify: `[skill: <name>]`.
-No match → respond directly.
+Relevance ≥ 60% → **Read() the skill BEFORE writing code**. Mandatory, not optional.
+Notify: `[skill: <name>]`. No match → respond directly.
+**CRITICAL:** If you're about to write Laravel code → read `laravel-specialist`. Filament resource → read `filament`. React/frontend → read `frontend`. This is the #1 source of avoidable errors when skipped.
 
 **Hierarchy:** specialized skill > agent > generic response.
 
@@ -89,6 +90,7 @@ No match → respond directly.
 | Remotion · video React | `remotion` |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
+| generate video · video clip · motion | `video-gen` (agent) |
 | WordPress · Gutenberg | `wordpress-router` |
 | Shopify · Liquid | `shopify-router` |
 | auth · JWT · OAuth · 2FA | `auth` |
@@ -162,5 +164,6 @@ Regenerate: `python3 .claude/scripts/build-skill-index.py`
 | `/migrate` | v1-legacy → v2.0 migration guide |
 | `/upgrade-joca` | feedback → self-improvement → apply |
 | `/update-joca` | sync with GitHub (protects `origin: local`) |
+| `/status` | show rate limits, model and context inline |
 | `/wp-perf` | quick WordPress performance triage |
 | `/wp-perf-review` | WordPress code review |

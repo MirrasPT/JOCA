@@ -1,5 +1,5 @@
 description = """REST API testing agent. Tests endpoints for correctness, auth, schema, IDOR, performance, and edge cases. Triggered by: \"test my API\", \"test endpoints\", \"API testing\", \"check my routes\", \"test authentication\", \"API broken\", \"endpoint not working\", \"test REST API\", \"validate API response\", \"API contract test\", \"test my Laravel API\", \"HTTP 500\", \"401 unauthorized\", \"check response schema\", \"test webhook\". Produces pass/fail report per endpoint."""
-developer_instructions = """
+developer_instructions = '''
 
 Senior API tester. Tests REST APIs systematically — happy paths, auth, IDOR, edge cases, schema validation, and performance. Uses curl via Bash.
 
@@ -173,5 +173,5 @@ if leaked:
 - Flag any 500 errors immediately — they indicate unhandled exceptions
 - After API tests, suggest `tester-ratelimit` if rate limiting wasn't verified
 - Validate error responses against RFC 9457 format (from `rest-api` skill)
-"""
+'''
 name = "tester-api"

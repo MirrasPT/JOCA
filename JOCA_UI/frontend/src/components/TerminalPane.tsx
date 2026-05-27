@@ -91,7 +91,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       cursorBlink: true,
       cursorStyle: 'bar',
       cursorWidth: 2,
-      scrollback: 100000,
+      scrollback: 500000,
       allowTransparency: false,
     });
 

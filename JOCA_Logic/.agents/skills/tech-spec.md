@@ -1,18 +1,18 @@
 ---
 name: tech-spec
-description: Generates TECH_SPEC.md — the bridge between PRD (what/why) and code (how). Data model with Mermaid ERD, API surface (endpoints/events), component breakdown, sequence diagrams for critical flows, integration points, testing strategy, definition of done. Activar apos PRD aprovado, antes de codificar.
+description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
 triggers: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
 ---
 
 # Tech Spec
 
-Documento ponte entre PRD (o que/porque) e codigo (como). Produz `TECH_SPEC.md` na raiz do projecto.
+Bridge between PRD (what/why) and code (how). Produces `TECH_SPEC.md` at project root.
 
-**Activar** apos PRD aprovado e `prd-reviewer` passar. Antes de qualquer codigo.
+**Activate** after PRD is approved and `prd-reviewer` passes. Before any code.
 
 ---
 
-## Estrutura do TECH_SPEC.md
+## TECH_SPEC.md Structure
 
 ```markdown
 # Tech Spec — [Nome do Projecto/Feature]
@@ -26,7 +26,7 @@ Documento ponte entre PRD (o que/porque) e codigo (como). Produz `TECH_SPEC.md` 
 
 ## 1. Overview
 
-[1 paragrafo: o que vai ser construido e a abordagem tecnica escolhida]
+[1 paragraph: what will be built and the chosen technical approach]
 
 ---
 
@@ -47,7 +47,7 @@ erDiagram
     ORDER_ITEM }o--|| PRODUCT : references
 \```
 
-### Decisoes de schema
+### Schema decisions
 
 - [decisao 1 — ex: "soft deletes em orders para audit trail"]
 - [decisao 2 — ex: "JSONB para metadata flexivel em products"]
@@ -63,7 +63,7 @@ erDiagram
 | POST | /api/v1/orders | Criar order | Bearer | CreateOrderRequest | OrderResource |
 | GET | /api/v1/orders/{id} | Detalhe order | Bearer | — | OrderResource |
 
-### Events (se event-driven)
+### Events (if event-driven)
 
 | Evento | Payload | Publicado por | Consumido por |
 |--------|---------|--------------|---------------|
@@ -71,7 +71,7 @@ erDiagram
 
 ### Error responses
 
-Seguir RFC 9457 (Problem Details). Ver skill `rest-api` para patterns completos.
+Follow RFC 9457 (Problem Details). See skill `rest-api` for full patterns.
 
 ---
 
@@ -81,7 +81,7 @@ Seguir RFC 9457 (Problem Details). Ver skill `rest-api` para patterns completos.
 |-----------|-----------------|------------|-----------|
 | [nome] | [o que faz] | [stack] | [componentes] |
 
-### Diagrama de componentes
+### Component diagram
 
 \```mermaid
 graph TD
@@ -93,9 +93,9 @@ graph TD
 
 ---
 
-## 5. Sequence Diagrams — Fluxos Criticos
+## 5. Sequence Diagrams — Critical Flows
 
-### [Nome do fluxo — ex: Checkout]
+### [Flow name — ex: Checkout]
 
 \```mermaid
 sequenceDiagram
@@ -136,14 +136,14 @@ sequenceDiagram
 | Feature | Endpoints, fluxos | Pest + RefreshDatabase | Happy path + edge cases |
 | Browser | Fluxos criticos UI | Playwright | Checkout, auth, onboarding |
 
-### O que mockar vs. testar real
+### Mock vs. real
 
 | Componente | Mock | Real | Razao |
 |-----------|------|------|-------|
-| Database | Nunca | Sempre | Divergencia mock/prod causa bugs |
-| Payment gateway | Sim (sandbox) | Em staging | Rate limits + custos |
-| Email | Sim (Mail::fake) | Em staging | Sem spam em testes |
-| Redis | Nunca | Sempre | Comportamento cache real |
+| Database | Nunca | Sempre | Mock/prod divergence causes bugs |
+| Payment gateway | Sim (sandbox) | Em staging | Rate limits + costs |
+| Email | Sim (Mail::fake) | Em staging | No spam in tests |
+| Redis | Nunca | Sempre | Real cache behaviour needed |
 
 ---
 
@@ -153,19 +153,19 @@ sequenceDiagram
 |---------|-------------|-------|
 | [decisao] | [A, B] | [porque esta] |
 
-> Decisoes significativas devem tambem ter um ADR em `docs/adr/`. Ver skill `adr`.
+> Significant decisions should also have an ADR in `docs/adr/`. See skill `adr`.
 
 ---
 
 ## 9. Definition of Done
 
-- [ ] Todos os endpoints da sec. 3 implementados e testados
-- [ ] Data model migrado e seeded
-- [ ] Sequence diagrams reflectem implementacao real
-- [ ] Edge cases cobertos em testes (sec. 7)
-- [ ] Integracoes externas configuradas em staging
-- [ ] Code review passado
-- [ ] Performance: p95 < [Xms] (do NFR no PRD)
+- [ ] All endpoints from sec. 3 implemented and tested
+- [ ] Data model migrated and seeded
+- [ ] Sequence diagrams reflect actual implementation
+- [ ] Edge cases covered in tests (sec. 7)
+- [ ] External integrations configured in staging
+- [ ] Code review passed
+- [ ] Performance: p95 < [Xms] (from NFR in PRD)
 
 ---
 
@@ -178,54 +178,54 @@ sequenceDiagram
 
 ---
 
-## Geracao
+## Generation
 
-### Input necessario
+### Required input
 
-1. **PRD.md** — ler primeiro (obrigatorio)
-2. **Codebase existente** — se projecto ja tem codigo, ler estrutura e patterns
-3. **CLAUDE.md** do projecto — stack, constraints
+1. **PRD.md** — read first (mandatory)
+2. **Existing codebase** — if project has code, read structure and patterns
+3. **CLAUDE.md** of project — stack, constraints
 
-### Processo
+### Process
 
-1. Ler PRD.md — extrair features P0, NFRs, constraints
-2. Perguntas minimas (so o que o PRD nao responde):
-   - "Qual a base de dados?" (se nao definido)
-   - "APIs externas a integrar?"
-   - "Estimativa de escala? (utilizadores, requests/min)"
-3. Gerar TECH_SPEC.md com a estrutura acima
-4. Apresentar ao utilizador para review
-5. Iterar ate aprovacao
+1. Read PRD.md — extract P0 features, NFRs, constraints
+2. Minimal questions (only what PRD doesn't answer):
+   - "Which database?" (if undefined)
+   - "External APIs to integrate?"
+   - "Scale estimate? (users, requests/min)"
+3. Generate TECH_SPEC.md with structure above
+4. Present to user for review
+5. Iterate until approved
 
-### Formato Lean (features pequenas)
+### Lean format (small features)
 
-Para features que nao justificam spec completo, usar apenas:
-- Overview (1 paragrafo)
-- Data model changes (diff do existente)
-- API endpoints (tabela)
-- Sequence diagram (1 fluxo critico)
+For features that don't justify a full spec, use only:
+- Overview (1 paragraph)
+- Data model changes (diff from existing)
+- API endpoints (table)
+- Sequence diagram (1 critical flow)
 - Definition of Done
 
 ---
 
-## Actualizacao
+## Updates
 
-Actualizar TECH_SPEC.md quando:
-- Feature adicionada/removida do PRD
-- Decisao tecnica muda durante implementacao
-- Integracao nova descoberta
-- Schema evolui significativamente
+Update TECH_SPEC.md when:
+- Feature added/removed from PRD
+- Technical decision changes during implementation
+- New integration discovered
+- Schema evolves significantly
 
-Processo: editar cirurgicamente, incrementar versao, adicionar linha ao historico se existir.
+Process: edit surgically, increment version, add line to history if it exists.
 
 ---
 
 ## Workflow
 
-Pipeline desta skill na sequencia JOCA:
+Pipeline position in JOCA sequence:
 
-→ **antes**: `prd` + `prd-reviewer` (requisitos validados)
-→ **durante**: `adr` (capturar decisoes significativas da sec. 8)
-→ **apos**: `c4-diagram` (visualizar componentes da sec. 4) → `task-breakdown` (quebrar em trabalho atomico)
+-> **before**: `prd` + `prd-reviewer` (validated requirements)
+-> **during**: `adr` (capture significant decisions from sec. 8)
+-> **after**: `c4-diagram` (visualize components from sec. 4) -> `task-breakdown` (break into atomic work)
 
-Notificar ao concluir: `→ proximo: c4-diagram`
+Notify on completion: `-> proximo: c4-diagram`

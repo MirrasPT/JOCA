@@ -1,41 +1,41 @@
 ---
 name: email-sequence
-description: When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions "email sequence," "drip campaign," "nurture sequence," "onboarding emails," "welcome sequence," "re-engagement emails," "email automation," "lifecycle emails," "trigger-based emails," "email funnel," "email workflow," "what emails should I send," "welcome series," or "email cadence." Use this for any multi-email automated flow. For cold outreach emails, see cold-email. For in-app onboarding, see onboarding-cro.
+description: "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence,, drip campaign,, nurture sequence,, onboarding emails,, welcome sequence,, re-engagement emails,."
 metadata:
   version: 1.1.0
 ---
 
 # Email Sequence Design
 
-You are an expert in email marketing and automation. Your goal is to create email sequences that nurture relationships, drive action, and move people toward conversion.
+Expert in email marketing and automation. Creates sequences that nurture relationships, drive action, and convert.
 
 ## Initial Assessment
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking. Use that context and only ask for missing info specific to this task.
 
 Before creating a sequence, understand:
 
 1. **Sequence Type**
-   - Welcome/onboarding sequence
-   - Lead nurture sequence
-   - Re-engagement sequence
-   - Post-purchase sequence
-   - Event-based sequence
-   - Educational sequence
-   - Sales sequence
+   - Welcome/onboarding
+   - Lead nurture
+   - Re-engagement
+   - Post-purchase
+   - Event-based
+   - Educational
+   - Sales
 
 2. **Audience Context**
    - Who are they?
-   - What triggered them into this sequence?
-   - What do they already know/believe?
-   - What's their current relationship with you?
+   - What triggered entry into this sequence?
+   - What do they know/believe?
+   - Current relationship with you?
 
 3. **Goals**
    - Primary conversion goal
    - Relationship-building goals
    - Segmentation goals
-   - What defines success?
+   - Success criteria?
 
 ---
 
@@ -44,7 +44,6 @@ Before creating a sequence, understand:
 ### 1. One Email, One Job
 - Each email has one primary purpose
 - One main CTA per email
-- Don't try to do everything
 
 ### 2. Value Before Ask
 - Lead with usefulness
@@ -63,7 +62,7 @@ Before creating a sequence, understand:
 
 ---
 
-## Email Sequence Strategy
+## Sequence Strategy
 
 ### Sequence Length
 - Welcome: 3-7 emails
@@ -71,10 +70,7 @@ Before creating a sequence, understand:
 - Onboarding: 5-10 emails
 - Re-engagement: 3-5 emails
 
-Depends on:
-- Sales cycle length
-- Product complexity
-- Relationship stage
+Depends on: sales cycle length, product complexity, relationship stage.
 
 ### Timing/Delays
 - Welcome email: Immediately
@@ -82,7 +78,7 @@ Depends on:
 - Nurture: 2-4 days apart
 - Long-term: Weekly or bi-weekly
 
-Consider:
+Considerations:
 - B2B: Avoid weekends
 - B2C: Test weekends
 - Time zones: Send at local time
@@ -92,7 +88,7 @@ Consider:
 - Specific > Vague
 - Benefit or curiosity-driven
 - 40-60 characters ideal
-- Test emoji (they're polarizing)
+- Test emoji (polarizing)
 
 **Patterns that work:**
 - Question: "Still struggling with X?"
@@ -109,7 +105,7 @@ Consider:
 
 ---
 
-## Sequence Types Overview
+## Sequence Types
 
 ### Welcome Sequence (Post-Signup)
 **Length**: 5-7 emails over 12-14 days
@@ -152,7 +148,7 @@ Key emails:
 ### Onboarding Sequence (Product Users)
 **Length**: 5-7 emails over 14 days
 **Goal**: Activate, drive to aha moment, upgrade
-**Note**: Coordinate with in-app onboarding—email supports, doesn't duplicate
+**Note**: Coordinate with in-app onboarding -- email supports, doesn't duplicate
 
 Key emails:
 1. Welcome + first step (immediate)
@@ -163,7 +159,7 @@ Key emails:
 6. Advanced tip (day 10-12)
 7. Upgrade/expand (day 14+)
 
-**For detailed templates**: See [references/sequence-templates.md](references/sequence-templates.md)
+**Detailed templates**: See [references/sequence-templates.md](references/sequence-templates.md)
 
 ---
 
@@ -186,9 +182,9 @@ Key emails:
 
 ### Transactional Email Upsell Logic
 
-Transactional emails have the highest open rates (45-80%) because they contain expected information. This creates a window for contextual upsells — but compliance rules are strict.
+Transactional emails have the highest open rates (45-80%) because they contain expected info. This creates a window for contextual upsells -- but compliance rules are strict.
 
-**What's legal vs. what crosses the line:**
+**Legal vs. not:**
 
 | Allowed | Not Allowed |
 |---------|-------------|
@@ -222,11 +218,11 @@ Subject: You're hitting the [X] limit on [Product]
 ```
 
 **Key Rules:**
-1. Usage-based timing only — upsell when behavior signals readiness, not on a calendar
-2. One upsell per transactional email — never stack multiple upgrade asks
-3. Show the path, not the pitch — "here's what you unlock" beats "buy now"
+1. Usage-based timing only -- upsell when behavior signals readiness, not on a calendar
+2. One upsell per transactional email -- never stack multiple upgrade asks
+3. Show the path, not the pitch -- "here's what you unlock" beats "buy now"
 4. Upselling existing customers converts at 60-70% vs. 5-20% for new acquisition
-5. Separate unsubscribes — marketing opt-out must not block transactional emails
+5. Separate unsubscribes -- marketing opt-out must not block transactional emails
 
 ### Billing Emails
 - Switch to annual
@@ -250,7 +246,7 @@ Subject: You're hitting the [X] limit on [Product]
 - Industry news roundup
 - Pricing updates
 
-**For detailed email type reference**: See [references/email-types.md](references/email-types.md)
+**Detailed email type reference**: See [references/email-types.md](references/email-types.md)
 
 ---
 
@@ -274,7 +270,7 @@ Subject: You're hitting the [X] limit on [Product]
 - Conversational, not formal
 - First-person (I/we) and second-person (you)
 - Active voice
-- Read it out loud—does it sound human?
+- Read aloud -- does it sound human?
 
 ### Length
 - 50-125 words for transactional
@@ -287,7 +283,7 @@ Subject: You're hitting the [X] limit on [Product]
 - One clear primary CTA per email
 - Button text: Action + outcome
 
-**For detailed copy, personalization, and testing guidelines**: See [references/copy-guidelines.md](references/copy-guidelines.md)
+**Detailed copy, personalization, and testing guidelines**: See [references/copy-guidelines.md](references/copy-guidelines.md)
 
 ---
 
@@ -323,7 +319,7 @@ What to measure and benchmarks
 
 1. What triggers entry to this sequence?
 2. What's the primary goal/conversion action?
-3. What do they already know about you?
+3. What do they know about you?
 4. What other emails are they receiving?
 5. What's your current email performance?
 
@@ -346,8 +342,8 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key email
 
 ## Related Skills
 
-- **lead-magnets**: For planning lead magnets that feed into nurture sequences
-- **churn-prevention**: For cancel flows, save offers, and dunning strategy (email supports this)
+- **lead-magnets**: For lead magnets that feed into nurture sequences
+- **churn-prevention**: For cancel flows, save offers, and dunning strategy
 - **onboarding-cro**: For in-app onboarding (email supports this)
 - **copywriting**: For landing pages emails link to
 - **ab-test-setup**: For testing email elements

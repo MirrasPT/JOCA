@@ -1,17 +1,17 @@
 ---
 name: design-tokens
-description: "Use when defining or managing design tokens (colors, spacing, typography) in DTCG format."
+description: "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture. SHOULD also invoke when: DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index."
 triggers: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture, DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index, dark mode, dark theme, tema escuro, colour tokens, color tokens, shadow tokens, motion tokens, token file, tokens.css, tokens.json
 ---
 # Design Tokens
 
-Arquitectura de tokens em 3 camadas. Transforma DESIGN.md em ficheiros consumiveis pelo frontend.
+3-tier token architecture. Transforms DESIGN.md into frontend-consumable files.
 
-**Activar** apos `brand-guidelines` gerar DESIGN.md, antes de qualquer UI.
+**Activate** after `brand-guidelines` generates DESIGN.md, before any UI work.
 
 ---
 
-## Arquitectura 3 tiers
+## 3-Tier Architecture
 
 ```
 global.json     → RAW VALUES (sem semantica)
@@ -23,13 +23,13 @@ component.json  → PER-COMPONENT (overrides consumidos por UI)
 tokens.css      → CSS custom properties flat (o que o frontend usa)
 ```
 
-**Regra fundamental:** zero raw values nos tiers semantic e component. So `{references}` para globals. Raw values vivem APENAS em global.json.
+**Core rule:** zero raw values in semantic/component tiers. Only `{references}` to globals. Raw values live in global.json alone.
 
 ---
 
 ## Output: tokens/global.json
 
-Primitivas puras. Sem semantica — so valores.
+Pure primitives. No semantics — values only.
 
 ```json
 {
@@ -148,7 +148,7 @@ Primitivas puras. Sem semantica — so valores.
 
 ## Output: tokens/semantic.json
 
-Aliases com intent. Referenciam globals.
+Intent-based aliases. Reference globals.
 
 ```json
 {
@@ -187,7 +187,7 @@ Aliases com intent. Referenciam globals.
 
 ## Output: tokens/component.json
 
-Per-component. Referenciam semantics.
+Per-component overrides. Reference semantics.
 
 ```json
 {
@@ -230,7 +230,7 @@ Per-component. Referenciam semantics.
 
 ## Output: tokens/tokens.css
 
-Compilado flat. O que o frontend importa.
+Compiled flat output. The file frontend imports.
 
 ```css
 :root {
@@ -329,63 +329,63 @@ Compilado flat. O que o frontend importa.
 
 ---
 
-## Geracao
+## Generation
 
 ### Input
 
-1. **DESIGN.md** — ler cores, tipografia, tokens existentes (obrigatorio)
-2. **Projecto existente** — se ja tem CSS/Tailwind, extrair valores actuais
-3. Se nenhum existir: sugerir correr `brand-guidelines` primeiro
+1. **DESIGN.md** -- read colors, typography, existing tokens (required)
+2. **Existing project** -- if CSS/Tailwind exists, extract current values
+3. If neither exists: suggest running `brand-guidelines` first
 
-### Processo
+### Process
 
-1. Ler DESIGN.md
-2. Extrair cores → gerar paleta completa (50-950) em OKLCH para cada cor de marca
-3. Gerar neutral palette tinted ao hue da cor primaria
-4. Mapear spacing, radius, shadows do DESIGN.md para global.json
-5. Definir breakpoints e grid (perguntar se nao especificado)
-6. Gerar semantic.json com aliases
-7. Gerar component.json para componentes base (button, input, card, badge, avatar)
-8. Compilar tokens.css
-9. Gerar dark mode resolver
-10. Apresentar ao utilizador para review
+1. Read DESIGN.md
+2. Extract colors, generate full palette (50-950) in OKLCH per brand color
+3. Generate neutral palette tinted to primary color hue
+4. Map spacing, radius, shadows from DESIGN.md to global.json
+5. Set breakpoints and grid (ask if unspecified)
+6. Generate semantic.json with aliases
+7. Generate component.json for base components (button, input, card, badge, avatar)
+8. Compile tokens.css
+9. Generate dark mode resolver
+10. Present for review
 
-### Perguntas minimas (so se DESIGN.md nao responde)
+### Minimal questions (only if DESIGN.md lacks the answer)
 
-- "Breakpoints custom ou defaults (640/768/1024/1280)?"
-- "Grid: 12 colunas ou outro?"
-- "Dark mode necessario?"
-
----
-
-## Regras non-negotiable
-
-1. **OKLCH everywhere** — zero hex, zero hsl, zero rgb nos ficheiros de tokens
-2. **Neutrals tinted** — nunca `#000` ou `#fff` puros; tint para o hue da cor primaria (chroma 0.002-0.008)
-3. **No raw in semantic/component** — so `{references}`. Raw values = global.json APENAS
-4. **4px grid** — todo spacing e multiplo de 4
-5. **Contrast check** — text sobre surface >= 4.5:1 (WCAG AA); large text >= 3:1
-6. **Reduced motion** — sempre incluir `@media (prefers-reduced-motion: reduce)`
+- "Custom breakpoints or defaults (640/768/1024/1280)?"
+- "Grid: 12 columns or other?"
+- "Dark mode needed?"
 
 ---
 
-## Actualizacao
+## Non-Negotiable Rules
 
-Actualizar tokens quando:
-- DESIGN.md muda (novas cores, fonts)
-- Componente novo adicionado ao sistema
-- Dark mode adicionado ou modificado
-- Feedback do `design-system-audit` agent
+1. **OKLCH everywhere** -- zero hex, zero hsl, zero rgb in token files
+2. **Neutrals tinted** -- never pure `#000` or `#fff`; tint to primary hue (chroma 0.002-0.008)
+3. **No raw in semantic/component** -- only `{references}`. Raw values = global.json only
+4. **4px grid** -- all spacing is a multiple of 4
+5. **Contrast check** -- text on surface >= 4.5:1 (WCAG AA); large text >= 3:1
+6. **Reduced motion** -- always include `@media (prefers-reduced-motion: reduce)`
 
-Processo: editar ficheiros JSON, recompilar tokens.css, verificar que semantic/component refs ainda resolvem.
+---
+
+## Updates
+
+Update tokens when:
+- DESIGN.md changes (new colors, fonts)
+- New component added to the system
+- Dark mode added or modified
+- Feedback from `design-system-audit` agent
+
+Process: edit JSON files, recompile tokens.css, verify semantic/component refs still resolve.
 
 ---
 
 ## Workflow
 
-Pipeline desta skill na sequencia JOCA:
+Pipeline position in JOCA sequence:
 
-→ **antes**: `brand-guidelines` (DESIGN.md como input)
-→ **apos**: `component-system` (consome tokens para specs de componentes)
+-> **before**: `brand-guidelines` (DESIGN.md as input)
+-> **after**: `component-system` (consumes tokens for component specs)
 
-Notificar ao concluir: `→ proximo: component-system`
+Notify on completion: `-> proximo: component-system`

@@ -835,3 +835,107 @@
   padding: 3px 8px;
   border-radius: 4px;
 }
+
+/* ─── Rate Limits Widget ─────────────────────────────────────── */
+
+.db-rate-limits {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 24px;
+}
+
+.db-rate-limits-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.db-rate-limits-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.db-rate-limits-model {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.db-rate-limits-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.db-rate-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.db-rate-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.db-rate-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.db-rate-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.db-rate-bar-fill--5h {
+  background: #a78bfa;
+}
+
+.db-rate-bar-fill--7d {
+  background: #60a5fa;
+}
+
+.db-rate-bar-fill--sonnet {
+  background: #4ade80;
+}
+
+.db-rate-bar-fill--codex-5h {
+  background: #f97316;
+}
+
+.db-rate-bar-fill--codex-7d {
+  background: #fb923c;
+}
+
+.db-rate-bar-fill--agy {
+  background: #34d399;
+}
+
+.db-rate-limits-plan {
+  font-size: 10px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 8px;
+}
+
+.db-rate-bar-pct {
+  font-size: 11px;
+  color: var(--text-dim);
+  width: 32px;
+  text-align: right;
+  font-family: var(--font-mono, monospace);
+  flex-shrink: 0;
+}

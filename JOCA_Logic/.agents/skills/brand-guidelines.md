@@ -1,24 +1,24 @@
 ---
 name: brand-guidelines
-description: Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. Covers logo assets, color system (OKLCH), typography, tone of voice, image style, component tokens, and anti-references. Use when starting a new project, auditing a brand, or preparing context for frontend / frontend / slides skills.
+description: "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide. SHOULD also invoke when: brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md."
 triggers: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide, brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md, criar BRAND.md, sistema de marca, documentação de marca, brand colors, brand typography, brand guide, diretrizes de marca, visual identity
 ---
 
 # Brand Guidelines
 
-Geras um documento de sistema de marca completo e metódico. Output: `DESIGN.md` + `BRAND.md` — ficheiros que alimentam directamente as skills `frontend`, `frontend`, e `slides`.
+Gera documento de sistema de marca completo. Output: `DESIGN.md` + `BRAND.md` — alimenta as skills `frontend` e `slides`.
 
-**Não és um designer de outputs visuais.** És um consultor de identidade de marca que produz a documentação estruturada que os designers precisam para trabalhar.
+**Não és designer visual.** És consultor de identidade de marca que produz documentação estruturada para designers.
 
 ---
 
 ## #0 Fact Verification (prioridade máxima)
 
-Se a marca é conhecida ou específica (Anthropic, Nike, Stripe, marca local, etc.):
+Se a marca é conhecida (Anthropic, Nike, Stripe, marca local, etc.):
 
-1. `WebSearch "<marca> brand guidelines 2026"` → confirmar: existe? versão actual? mudanças recentes?
-2. Verificar se já existem ficheiros `DESIGN.md` / `BRAND.md` no projecto → não reescrever do zero, actualizar
-3. Nunca assumir cores, fontes, ou tom de voz sem verificação — training data está desactualizada
+1. `WebSearch "<marca> brand guidelines 2026"` → confirmar existência, versão actual, mudanças recentes
+2. Verificar se `DESIGN.md` / `BRAND.md` existem no projecto → actualizar, não reescrever
+3. Nunca assumir cores, fontes, ou tom de voz sem verificação — training data desactualizada
 
 ---
 
@@ -29,32 +29,32 @@ Se a marca é conhecida ou específica (Anthropic, Nike, Stripe, marca local, et
 Uma ronda, tudo de uma vez:
 
 ```
-Antes de começar o documento de marca, confirma:
+Antes de começar, confirma:
 
 1. Nome da marca e tipo de negócio?
-2. Tens algum ficheiro de marca existente? (guidelines PDF, Figma, assets ZIP, website)
-3. Qual é o público-alvo? (idade, contexto, nível de sofisticação)
+2. Ficheiro de marca existente? (guidelines PDF, Figma, assets ZIP, website)
+3. Público-alvo? (idade, contexto, nível de sofisticação)
 4. Tom de voz — que adjectivos descrevem a marca? (ex: "sério mas acessível", "irreverente e jovem")
 5. 2-3 marcas que admiras esteticamente (não necessariamente no mesmo sector)?
-6. 2-3 marcas que NÃO devem ser referência? (anti-referências são tão importantes quanto referências)
+6. 2-3 marcas que NÃO devem ser referência?
 ```
 
 Se o utilizador já forneceu contexto suficiente, saltar para Passo 2.
 
 ---
 
-### Passo 2 · Asset Collection (Protocol obrigatório)
+### Passo 2 · Asset Collection (obrigatório)
 
 > Sem assets reais não existe sistema de marca. CSS shapes ou cores inventadas não são marca.
 
 #### 2.1 Logo
 
-**Hierarquia de obtenção (tentar por ordem):**
+**Hierarquia de obtenção (por ordem):**
 1. Utilizador fornece ficheiro
 2. `<marca>.com/brand`, `/press`, `/press-kit`, `/media-kit`
 3. Inline SVG no header da homepage (`curl -A "Mozilla/5.0" <url>` → extrair `<svg>`)
-4. GitHub/npmjs (marcas tech frequentemente têm SVG no repo)
-5. → Se nada funcionar: parar e pedir ao utilizador
+4. GitHub/npmjs (marcas tech têm SVG no repo)
+5. → Se nada funcionar: pedir ao utilizador
 
 ```bash
 curl -s -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" \
@@ -73,7 +73,7 @@ grep -o '<svg[^>]*>.*</svg>' /tmp/homepage.html | head -5
 
 ```bash
 grep -hoE '#[0-9A-Fa-f]{6}' assets/homepage.html | sort | uniq -c | sort -rn | head -20
-# Filtrar cinzentos (#000000, #ffffff, #f5f5f5) → identificar as 3-5 cores de marca
+# Filtrar cinzentos (#000000, #ffffff, #f5f5f5) → identificar 3-5 cores de marca
 ```
 
 #### 2.4 Tipografia
@@ -100,9 +100,9 @@ Converter todas as cores para OKLCH. Definir 7 papéis semânticos:
 | `--color-accent` | Destaque ou alerta | Badges, highlights |
 
 **Regras OKLCH:**
-- Nunca usar `#000` ou `#fff` puros — tint para a cor da marca (chroma 0.005–0.01)
-- Reduzir chroma à medida que lightness se aproxima de 0 ou 100 (extremos sem chroma = mais limpos)
-- Estratégia de cor antes de escolher cores:
+- Nunca `#000` ou `#fff` puros — tint para a cor da marca (chroma 0.005–0.01)
+- Reduzir chroma à medida que lightness se aproxima de 0 ou 100
+- Estratégia de cor antes de escolher:
   - **Restrained**: neutrals tinted + 1 accent ≤10% → default produto
   - **Committed**: 1 cor saturada 30–60% → identidade forte
   - **Drenched**: a superfície É a cor → heroes, campaigns
@@ -116,9 +116,9 @@ Converter todas as cores para OKLCH. Definir 7 papéis semânticos:
 Definir 3 níveis:
 
 ```
-Display: <fonte-display> — use para títulos principais, hero text
-Heading: <fonte-heading> — use para secções, cards, subtítulos
-Body: <fonte-body> — use para texto longo, parágrafos
+Display: <fonte-display> — títulos principais, hero text
+Heading: <fonte-heading> — secções, cards, subtítulos
+Body: <fonte-body> — texto longo, parágrafos
 Mono: <fonte-mono> — código, dados, preços
 ```
 
@@ -134,7 +134,7 @@ xl: 24px / line-height 1.3
 4xl: 64px / line-height 1.05
 ```
 
-**Regras (de ui-ux-pro-max):**
+**Regras:**
 - Body minimum 16px (evita iOS auto-zoom)
 - Line length: 65–75ch para texto longo
 - Hierarquia via scale + weight contrast (ratio ≥1.25 entre steps)
@@ -144,7 +144,7 @@ xl: 24px / line-height 1.3
 
 ### Passo 5 · Tone of Voice
 
-Estruturado em 3 secções:
+3 secções:
 
 #### 5.1 Personalidade (3-5 adjectivos)
 Ex: "Directo, cuidadoso, sem jargão técnico, humano"
@@ -152,21 +152,21 @@ Ex: "Directo, cuidadoso, sem jargão técnico, humano"
 #### 5.2 Regras de escrita
 - **Sim:** frases curtas, voz activa, verbos fortes
 - **Não:** jargão corporativo, superlativos sem substância, maiúsculas decorativas
-- **Forma de tratamento:** formal/informal, tutear/vouvoar
+- **Tratamento:** formal/informal, tutear/vouvoar
 - **Comprimentos:** headlines (5-8 palavras), subtítulos (15-25 palavras), CTAs (2-4 palavras)
 
 #### 5.3 Exemplos contrastantes
 
 | Errado | Correcto |
 |--------|---------|
-| "Solução empresarial de ponta" | "Software que a equipa realmente usa" |
+| "Solução empresarial de ponta" | "Software que a equipa usa" |
 | "Potenciamos o crescimento sustentado" | "Cresce mais depressa, com menos esforço" |
 
 ---
 
 ### Passo 6 · Image & Visual Style
 
-Definir em 4 dimensões:
+4 dimensões:
 
 1. **Fotografia**: Estilo (editorial/produto/lifestyle), mood (quente/frio/neutro), composição (close-up/wide/overhead), paleta (saturada/dessaturada/monocromática)
 2. **Ilustração**: Usar ou não? Se sim: estilo (flat/linha/3D/hand-drawn), complexidade, uso (decorativa/funcional/hero)
@@ -200,7 +200,7 @@ Definir em 4 dimensões:
 
 ### Passo 8 · Output DESIGN.md
 
-Gerar o ficheiro com este template exacto:
+Gerar com este template:
 
 ```markdown
 # DESIGN.md — <Nome da Marca>
@@ -234,8 +234,8 @@ Gerar o ficheiro com este template exacto:
 ## Tone of Voice
 <Personalidade da marca em 3-5 adjectivos>
 
-**Sim:** <lista de regras de escrita>
-**Não:** <lista de anti-padrões>
+**Sim:** <regras de escrita>
+**Não:** <anti-padrões>
 
 ## Image Style
 - Fotografia: <descrição>
@@ -254,15 +254,15 @@ Não deves parecer com: <lista de marcas/estilos a evitar>
 brand | product  (delete one)
 ```
 
-E gerar `BRAND.md` com asset paths, checksums e data de actualização para rastrear quando os assets precisam de refresh.
+Gerar `BRAND.md` com asset paths, checksums e data de actualização para rastrear refresh de assets.
 
 ---
 
 ## Regras de qualidade
 
-- **Sem invenção**: se não conseguiste confirmar uma cor/fonte, marca como `[A VERIFICAR]` — nunca inventes
+- **Sem invenção**: cor/fonte não confirmada → marcar `[A VERIFICAR]` — nunca inventar
 - **OKLCH sempre**: converter hex → OKLCH antes de documentar
-- **Asset path real**: listar só assets que existem no directório, não assets desejados
+- **Asset path real**: listar só assets existentes no directório
 - **Contraste verificado**: calcular rácio text/background antes de documentar
 - **Anti-references obrigatórias**: sem anti-refs o sistema não tem guardrails
 

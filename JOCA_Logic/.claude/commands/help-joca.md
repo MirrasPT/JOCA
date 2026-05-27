@@ -34,6 +34,8 @@ FEEDBACK & MANUTENÇÃO
 /feedback-projeto    Actualiza docs do projecto com aprendizagens da sessão
 /upgrade-joca        Lê feedback acumulado → implementa melhorias ao JOCA
 /update-joca         Verifica e aplica updates do repositório oficial GitHub
+/status              Mostra rate limits, modelo e contexto actual
+
 
 WORDPRESS
 /wp-perf             Quick triage WordPress — issues críticos (rápido)

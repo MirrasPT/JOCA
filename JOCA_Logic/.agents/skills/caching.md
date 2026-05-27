@@ -1,11 +1,11 @@
 ---
 name: caching
-description: "Use when implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns."
+description: "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache. SHOULD also invoke when: HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags."
 triggers: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache, HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags, cache stampede, thundering herd, TTL, cache warming, config:cache, route:cache, opcache, performance cache, lento, slow, rapido, fast, optimizar, optimize
 ---
 # Caching
 
-4 camadas de cache para Laravel + Redis + Cloudflare. Chamavel autonomamente pelo `laravel-specialist`.
+4 cache layers for Laravel + Redis + Cloudflare. Auto-invoked by `laravel-specialist`.
 
 ---
 
@@ -15,7 +15,7 @@ triggers: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN
 php artisan optimize   # config + route + view + event cache
 ```
 
-Correr em CADA deploy. Apos `config:cache`, `.env` nao e lido -- `env()` so funciona dentro de `config/*.php`.
+Run on EVERY deploy. After `config:cache`, `.env` is not read -- `env()` works only inside `config/*.php`.
 
 ---
 
@@ -30,7 +30,7 @@ REDIS_CACHE_DB=1    # cache isolado
 REDIS_SESSION_DB=2  # sessions isoladas
 ```
 
-phpredis obrigatorio em producao (2-3x mais rapido que predis).
+phpredis required in production (2-3x faster than predis).
 
 ### remember() -- cache-aside
 ```php
@@ -46,9 +46,9 @@ $listings = Cache::flexible('listings.active', [30, 120], function () {
     return Listing::active()->paginate(20);
 });
 ```
-Usar quando staleness de 30-120s e aceitavel (listagens, feeds, dashboards).
+Use when 30-120s staleness is acceptable (listings, feeds, dashboards).
 
-### Cache tags -- invalidacao agrupada
+### Cache tags -- grouped invalidation
 ```php
 // Guardar com tags
 Cache::tags(['products', "category:{$catId}"])
@@ -59,7 +59,7 @@ Cache::tags(['products'])->flush();         // todos os produtos
 Cache::tags(["category:{$catId}"])->flush(); // so uma categoria
 ```
 
-### rememberForever() + invalidacao explicita
+### rememberForever() + explicit invalidation
 ```php
 Cache::rememberForever('app.settings', fn() => Setting::all()->pluck('value', 'key'));
 
@@ -67,20 +67,20 @@ Cache::rememberForever('app.settings', fn() => Setting::all()->pluck('value', 'k
 Cache::forget('app.settings');
 ```
 
-### Null values -- ARMADILHA
+### Null values -- TRAP
 ```php
-// MAU: null nunca e guardado -> query a cada request
+// BAD: null nunca e guardado -> query a cada request
 Cache::remember('user.404', 3600, fn() => User::find(9999));
 
-// BOM: sentinel value
+// GOOD: sentinel value
 Cache::remember('user.404', 3600, fn() => User::find(9999) ?? false);
 ```
 
 ---
 
-## Invalidacao
+## Invalidation
 
-### Strategy 1: Model Observer (recomendado)
+### Strategy 1: Model Observer (recommended)
 ```php
 class ProductObserver
 {
@@ -103,7 +103,7 @@ class PriceUpdatedListener
 }
 ```
 
-### Strategy 3: Version-based (sem invalidacao explicita)
+### Strategy 3: Version-based (no explicit invalidation)
 ```php
 $version = Cache::increment('products.version');
 $products = Cache::remember("products.all.v{$version}", 3600, fn() => Product::all());
@@ -138,13 +138,13 @@ Lock TTL > worst-case computation time.
 // Pattern: tenant:{id}:resource:{id}:qualifier
 Cache::put("tenant:{$tenantId}:user:{$userId}:profile", $profile, 3600);
 
-// Flush por tenant (nunca Cache::flush() em SaaS!)
+// Flush per tenant (never Cache::flush() in SaaS!)
 Cache::tags(["tenant:{$tenantId}"])->flush();
 ```
 
 ---
 
-## TTL por tipo de dados
+## TTL by data type
 
 | Dados | TTL | Strategy |
 |-------|-----|----------|
@@ -158,7 +158,7 @@ Cache::tags(["tenant:{$tenantId}"])->flush();
 
 ---
 
-## Redis producao
+## Redis production
 
 ```conf
 maxmemory 512mb
@@ -177,7 +177,7 @@ redis-cli --bigkeys                                                # memory hogs
 
 ## Layer 2 -- HTTP Caching
 
-### Public API (read-only, mesmo para todos)
+### Public API (read-only, same for all)
 ```php
 return response()->json($data)
     ->header('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=30');
@@ -208,7 +208,7 @@ Route::get('/products', ProductController::class)
 ```bash
 composer require spatie/laravel-responsecache
 ```
-Cacheia a resposta HTTP inteira -- de 200ms para 5ms. So para rotas publicas sem sessao.
+Caches the entire HTTP response -- 200ms to 5ms. Public routes without session only.
 
 ---
 
@@ -234,7 +234,7 @@ IF URI starts with /api/ (excluindo Rule 1)
 THEN: Cache, Edge TTL = 60s
 ```
 
-### Purge programatico
+### Programmatic purge
 ```php
 // Via yediyuz/laravel-cloudflare-cache
 CloudflareCache::purgeByUrls([route('products.index')]);
@@ -248,13 +248,13 @@ Http::withToken(config('services.cloudflare.token'))
 ```
 
 ### Cloudflare + Laravel sessions
-Laravel mete `Set-Cookie` em cada request -> Cloudflare nao cacheia. Usar middleware group stateless para rotas cacheaveis (sem StartSession, sem EncryptCookies).
+Laravel adds `Set-Cookie` on every request -> Cloudflare skips caching. Use a stateless middleware group for cacheable routes (no StartSession, no EncryptCookies).
 
 ---
 
 ## Layer 4 -- Nginx
 
-### Assets estaticos (Vite content-hashed)
+### Static assets (Vite content-hashed)
 ```nginx
 location ~* \.(js|css|woff|woff2|png|jpg|webp|svg|ico)$ {
     expires 1y;
@@ -263,7 +263,7 @@ location ~* \.(js|css|woff|woff2|png|jpg|webp|svg|ico)$ {
 }
 ```
 
-### index.html (React SPA) -- NUNCA cachear
+### index.html (React SPA) -- NEVER cache
 ```nginx
 location = /index.html {
     add_header Cache-Control "no-cache, no-store, must-revalidate";
@@ -286,7 +286,7 @@ location = /index.html {
 
 ---
 
-## Cache warming (pos-deploy)
+## Cache warming (post-deploy)
 ```php
 // Artisan command
 class WarmCache extends Command
@@ -304,7 +304,7 @@ class WarmCache extends Command
 }
 ```
 
-Adicionar ao deploy: `php artisan cache:warm`
+Add to deploy: `php artisan cache:warm`
 
 ---
 
@@ -319,4 +319,4 @@ Adicionar ao deploy: `php artisan cache:warm`
 ---
 
 ## Quality gate
-Apos implementar caching: "Queres `tester-performance`?" (Lighthouse + load test para verificar impacto)
+After implementing caching: "Queres `tester-performance`?" (Lighthouse + load test to verify impact)

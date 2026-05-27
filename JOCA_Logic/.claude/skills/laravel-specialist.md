@@ -197,6 +197,9 @@ public function failed(\Throwable $e): void
 | File without `declare(strict_types=1)` | First line after `<?php` |
 | `if/elseif` for single value | `match` expression |
 | Policy check in Action | Authorize in `FormRequest::authorize()` |
+| `json_encode()` on field with `array` cast | Let Eloquent handle serialization — double-encode bug |
+| Assume decimal fields arrive as `number` in JS | Eloquent serializes decimal as string. Use `Number(value)` or `'decimal'` cast |
+| `rm` storage files without checking FK | Always query `media` table before deleting physical files |
 
 ---
 

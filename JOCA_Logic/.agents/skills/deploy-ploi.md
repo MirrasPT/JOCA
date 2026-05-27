@@ -1,33 +1,33 @@
 ---
 name: deploy-ploi
-description: "Use when deploying via Ploi.io, managing servers, or configuring Ploi deployments."
+description: "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD also invoke when: site setup, deploy script, zero downtime, atomic deploy, production, producao."
 triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
 ---
 # Deploy — Ploi.io
 
-Ploi.io e a plataforma principal de deploy. Provisiona servidores, configura sites Laravel automaticamente, e faz deploy com zero-downtime.
+Ploi.io is the primary deploy platform. Provisions servers, configures Laravel sites, deploys with zero-downtime.
 
 ---
 
 ## Server provisioning
 
-1. Conectar cloud provider (DigitalOcean, Hetzner, Vultr, AWS) via API key em Server Providers
-2. Criar servidor: escolher PHP version, tipo (web/worker/database/Redis), regiao, plano
-3. Ploi instala LEMP stack automaticamente
+1. Connect cloud provider (DigitalOcean, Hetzner, Vultr, AWS) via API key in Server Providers
+2. Create server: choose PHP version, type (web/worker/database/Redis), region, plan
+3. Ploi installs LEMP stack automatically
 
-Tipos de servidor: web, load balancer, database dedicado, Redis/Valkey, worker, storage (MinIO), search (Meilisearch).
+Server types: web, load balancer, dedicated database, Redis/Valkey, worker, storage (MinIO), search (Meilisearch).
 
 ---
 
 ## Site setup
 
-1. Criar site no servidor -- dominio, web directory `/public`, project directory `/`
-2. Conectar repo Git (GitHub/GitLab/Bitbucket) -- gera deploy script inicial
-3. Configurar DNS (A record para IP do servidor)
-4. SSL -- tab SSL, Let's Encrypt automatico
-5. Editar `.env` via environment editor (sem SSH)
-6. Criar database via tab Databases
-7. Primeiro deploy
+1. Create site -- domain, web directory `/public`, project directory `/`
+2. Connect Git repo (GitHub/GitLab/Bitbucket) -- generates initial deploy script
+3. Configure DNS (A record to server IP)
+4. SSL -- tab SSL, automatic Let's Encrypt
+5. Edit `.env` via environment editor (no SSH needed)
+6. Create database via Databases tab
+7. First deploy
 
 ---
 
@@ -47,19 +47,19 @@ php artisan queue:restart
 php artisan horizon:terminate
 ```
 
-**CRITICO:** Sempre `--force` em `php artisan migrate` -- sem ele, prompt interactivo bloqueia o deploy.
+**CRITICAL:** Always `--force` on `php artisan migrate` -- without it, interactive prompt blocks the deploy.
 
 ---
 
-## Triggers de deploy
+## Deploy triggers
 
-### Panel -- botao Deploy no UI
+### Panel -- Deploy button in UI
 
 ### Webhook (GitHub/GitLab)
 ```
 POST https://ploi.io/webhooks/servers/{server_id}/sites/{site_id}/deploy?token=xxx
 ```
-Copiar URL da tab Repository e configurar como push webhook no GitHub.
+Copy URL from Repository tab, configure as push webhook in GitHub.
 
 ### GitHub Actions
 ```yaml
@@ -75,29 +75,29 @@ jobs:
 ```
 
 ### Skip deploy
-Incluir `[skip ci]` ou `[ci skip]` na mensagem de commit.
+Include `[skip ci]` or `[ci skip]` in commit message.
 
 ---
 
 ## Zero-downtime (atomic deploy)
 
-Activar em Settings do site (requer plano Pro ou Unlimited).
+Activate in site Settings (requires Pro or Unlimited plan).
 
-Como funciona:
-1. Cria directorio `{domain}-deploy/`
-2. Cada deploy cria subdirectorio timestamped
-3. Apos sucesso, symlink atomico para nova release
-4. Mantem 3 releases (oldest, recent, current)
+How it works:
+1. Creates `{domain}-deploy/` directory
+2. Each deploy creates timestamped subdirectory
+3. On success, atomic symlink to new release
+4. Keeps 3 releases (oldest, recent, current)
 
-**Storage:** criar pasta `storage` dentro de `{domain}-deploy/` e symlink para persistir uploads entre releases.
+**Storage:** create `storage` folder inside `{domain}-deploy/` and symlink to persist uploads across releases.
 
-**Web root:** configurar como `/current/public` quando atomic deploy activo.
+**Web root:** set to `/current/public` when atomic deploy is active.
 
 ---
 
-## Queues e daemons
+## Queues and daemons
 
-### Queue workers (tab Queues do site)
+### Queue workers (site Queues tab)
 ```
 Connection: redis
 Queue: default,high,low
@@ -107,13 +107,13 @@ Max tries: 3
 Processes: 1
 ```
 
-### Horizon (tab Daemons do servidor)
+### Horizon (server Daemons tab)
 ```
 Command: php /home/ploi/my-app.com/artisan horizon
 User: ploi
 Processes: 1
 ```
-Ploi cria config supervisor automaticamente. Adicionar `php artisan horizon:terminate` ao deploy script.
+Ploi creates supervisor config automatically. Add `php artisan horizon:terminate` to deploy script.
 
 ---
 
@@ -164,14 +164,14 @@ ploi login   # API token
 
 ---
 
-## Checklist deploy
+## Deploy checklist
 
-- [ ] Deploy script inclui `--force` em migrate
-- [ ] Deploy script inclui `horizon:terminate` (se Horizon)
-- [ ] Deploy script inclui PHP-FPM reload
-- [ ] `.env` configurado via Ploi (nunca em git)
-- [ ] SSL Let's Encrypt activo
-- [ ] Queue worker configurado (se aplicavel)
-- [ ] Scheduler configurado automaticamente
-- [ ] Webhook GitHub configurado para auto-deploy
-- [ ] `APP_ENV=production` e `APP_DEBUG=false`
+- [ ] Deploy script includes `--force` on migrate
+- [ ] Deploy script includes `horizon:terminate` (if Horizon)
+- [ ] Deploy script includes PHP-FPM reload
+- [ ] `.env` configured via Ploi (never in git)
+- [ ] SSL Let's Encrypt active
+- [ ] Queue worker configured (if applicable)
+- [ ] Scheduler configured
+- [ ] GitHub webhook configured for auto-deploy
+- [ ] `APP_ENV=production` and `APP_DEBUG=false`

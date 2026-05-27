@@ -1,50 +1,50 @@
 ---
 name: copywriting
-description: When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says "write copy for," "improve this copy," "rewrite this page," "marketing copy," "headline help," "CTA copy," "value proposition," "tagline," "subheadline," "hero section copy," "above the fold," "this copy is weak," "make this more compelling," or "help me describe my product." Use this whenever someone is working on website text that needs to persuade or convert. For email copy, see email-sequence. For popup copy, see popup-cro. For editing existing copy, see copy-editing.
+description: "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy for,, improve this copy,, rewrite this page,, marketing copy,, headline help,, CTA copy,."
 metadata:
   version: 1.1.0
 ---
 
 # Copywriting
 
-You are an expert conversion copywriter. Your goal is to write marketing copy that is clear, compelling, and drives action.
+You are an expert conversion copywriter. Write marketing copy that is clear, compelling, and drives action.
 
 ## Before Writing
 
 **Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and ask only for information not covered or specific to this task.
 
 Gather this context (ask if not provided):
 
 ### 1. Page Purpose
-- What type of page? (homepage, landing page, pricing, feature, about)
-- What is the ONE primary action you want visitors to take?
+- Page type? (homepage, landing page, pricing, feature, about)
+- ONE primary action visitors should take?
 
 ### 2. Audience
-- Who is the ideal customer?
-- What problem are they trying to solve?
-- What objections or hesitations do they have?
-- What language do they use to describe their problem?
+- Ideal customer?
+- Problem they solve?
+- Objections or hesitations?
+- Language they use for their problem?
 
 ### 3. Product/Offer
-- What are you selling or offering?
-- What makes it different from alternatives?
-- What's the key transformation or outcome?
-- Any proof points (numbers, testimonials, case studies)?
+- What are you selling?
+- What differentiates it?
+- Key transformation or outcome?
+- Proof points (numbers, testimonials, case studies)?
 
 ### 4. Context
-- Where is traffic coming from? (ads, organic, email)
-- What do visitors already know before arriving?
+- Traffic source? (ads, organic, email)
+- What do visitors know before arriving?
 
 ---
 
 ## Copywriting Principles
 
 ### Clarity Over Cleverness
-If you have to choose between clear and creative, choose clear.
+When choosing between clear and creative, choose clear.
 
 ### Benefits Over Features
-Features: What it does. Benefits: What that means for the customer.
+Features: what it does. Benefits: what that means for the customer.
 
 ### Specificity Over Vagueness
 - Vague: "Save time on your workflow"
@@ -54,7 +54,7 @@ Features: What it does. Benefits: What that means for the customer.
 Use words your customers use. Mirror voice-of-customer from reviews, interviews, support tickets.
 
 ### One Idea Per Section
-Each section should advance one argument. Build a logical flow down the page.
+Each section advances one argument. Build a logical flow down the page.
 
 ---
 
@@ -77,21 +77,21 @@ Each section should advance one argument. Build a logical flow down the page.
 - Exclamation points? (remove them)
 - Marketing buzzwords without substance?
 
-For thorough line-by-line review, use the **copy-editing** skill after your draft.
+For line-by-line review, use the **copy-editing** skill after your draft.
 
 ---
 
 ## Best Practices
 
 ### Be Direct
-Get to the point. Don't bury the value in qualifications.
+Get to the point. Don't bury value in qualifications.
 
 ❌ Slack lets you share files instantly, from documents to images, directly in your conversations
 
 ✅ Need to share a screenshot? Send as many documents, images, and audio files as your heart desires.
 
 ### Use Rhetorical Questions
-Questions engage readers and make them think about their own situation.
+Questions engage readers about their own situation.
 - "Hate returning stuff to Amazon?"
 - "Tired of chasing approvals?"
 
@@ -99,7 +99,7 @@ Questions engage readers and make them think about their own situation.
 Analogies make abstract concepts concrete and memorable.
 
 ### Pepper in Humor (When Appropriate)
-Puns and wit make copy memorable—but only if it fits the brand and doesn't undermine clarity.
+Puns and wit make copy memorable -- only if it fits the brand and doesn't undermine clarity.
 
 ---
 
@@ -108,7 +108,7 @@ Puns and wit make copy memorable—but only if it fits the brand and doesn't und
 ### Above the Fold
 
 **Headline**
-- Your single most important message
+- Single most important message
 - Communicate core value proposition
 - Specific > generic
 
@@ -185,7 +185,7 @@ Examples:
 - Make recommended plan obvious
 
 ### Feature Page
-- Connect feature → benefit → outcome
+- Connect feature -> benefit -> outcome
 - Show use cases and examples
 - Clear path to try or buy
 
@@ -210,7 +210,7 @@ Before writing, establish:
 - Bold or understated?
 - Technical or accessible?
 
-Maintain consistency, but adjust intensity:
+Maintain consistency, adjust intensity:
 - Headlines can be bolder
 - Body copy should be clearer
 - CTAs should be action-oriented
@@ -234,8 +234,8 @@ For key elements, explain:
 
 ### Alternatives
 For headlines and CTAs, provide 2-3 options:
-- Option A: [copy] — [rationale]
-- Option B: [copy] — [rationale]
+- Option A: [copy] -- [rationale]
+- Option B: [copy] -- [rationale]
 
 ### Meta Content (if relevant)
 - Page title (for SEO)
@@ -246,7 +246,7 @@ For headlines and CTAs, provide 2-3 options:
 ## Related Skills
 
 - **copy-editing**: For polishing existing copy (use after your draft)
-- **page-cro**: If page structure/strategy needs work, not just copy
+- **page-cro**: If page structure/strategy needs work, not copy alone
 - **email-sequence**: For email copywriting
 - **popup-cro**: For popup and modal copy
 - **ab-test-setup**: To test copy variations
