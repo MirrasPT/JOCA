@@ -467,6 +467,14 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // Escape closes the command palette. stopImmediatePropagation prevents any other modal
+      // (e.g. FilePreview) from also responding to the same keypress.
+      if (event.key === 'Escape' && commandPaletteOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setCommandPaletteOpen(false);
+        return;
+      }
       const mod = event.metaKey || event.ctrlKey;
       if (!mod) return;
       const key = event.key.toLowerCase();
@@ -488,9 +496,45 @@ export default function App() {
         handleInterruptSession();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleInterruptSession, loadCommandPalette]);
+    // Capture phase: this listener fires BEFORE any bubble-phase listener (e.g. FilePreview's).
+    // Combined with stopImmediatePropagation above, ensures palette Escape never leaks to other modals.
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [handleInterruptSession, loadCommandPalette, commandPaletteOpen]);
+
+  // CommandPalette focus management: trap Tab inside, restore focus to opener on close.
+  const paletteTriggerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (commandPaletteOpen) {
+      paletteTriggerRef.current = document.activeElement as HTMLElement;
+      // Focus the first interactive element in the modal after the next paint.
+      requestAnimationFrame(() => {
+        const modal = document.querySelector('.command-palette-modal');
+        if (!modal) return;
+        const first = modal.querySelector<HTMLElement>('button, [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+        first?.focus();
+      });
+      const trap = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+        const modal = document.querySelector('.command-palette-modal');
+        if (!modal) return;
+        const focusables = Array.from(modal.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter((el) => el.getClientRects().length > 0);
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement;
+        if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+      };
+      window.addEventListener('keydown', trap);
+      return () => window.removeEventListener('keydown', trap);
+    } else if (paletteTriggerRef.current) {
+      paletteTriggerRef.current.focus();
+      paletteTriggerRef.current = null;
+    }
+  }, [commandPaletteOpen]);
 
   const submitTerminalDraft = useCallback((overrideText?: string) => {
     if (!activeId) return;

@@ -47,17 +47,33 @@ JOCA/
 
 Dashboard browser com terminal multi-sessao, file browser, toolkit panel e rate limits em tempo real.
 
-- **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty (scrollback 500k linhas, buffer 1MB)
-- **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com filtragem
-- **Rate limits dashboard:** Claude (5h, 7d, Sonnet via OAuth), Codex (SQLite), Gemini (agy statusline)
+- **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty (scrollback 2M linhas, buffer 5MB por sessao, cap 30 sessoes simultaneas)
+- **File preview:** janela redimensionavel com drag, suporta codigo (highlight.js), markdown, HTML (iframe sandbox), PDF, imagens, audio, video — focus trap + ARIA dialog
+- **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
+- **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Logic engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 134 componentes do JOCA_Logic
+- **Toolkit panel:** browse/search/edit dos 135+ componentes do JOCA_Logic
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Sidebars colapsaveis:** left rail (62px) e right rail (54px) com animacoes suaves (280ms ease-out-quart)
 - **Cross-platform:** macOS (zsh) e Windows (PowerShell) — deteccao automatica de OS
 
 O JOCA_UI detecta automaticamente o `JOCA_Logic` como directorio irmao — zero configuracao.
+
+### Seguranca (local-only, single-user)
+
+O `JOCA_UI` corre apenas em `127.0.0.1` e implementa hardening defense-in-depth contra tabs de browser maliciosos:
+
+- **Origin guard:** middleware HTTP rejeita mutacoes (POST/PATCH/DELETE) de origens non-loopback; WebSocket usa `verifyClient` para rejeitar pre-handshake (HTTP 401)
+- **Path safety:** helper unico `safePath()` aplicado a todas as rotas FS — resolve symlinks via `fs.realpathSync.native()`, refusa HOME root, e bloqueia subdirs sensitive (`.ssh`, `.gnupg`, `.aws`, `.kube`, `.config/gh`, `.gitconfig`, `.env`, `.zshrc`, `Library/Keychains`, etc)
+- **Write/rename:** `O_EXCL` (openSync `wx`) + `lstat` recusam symlink targets; refusa `nlink > 1` (hardlink → ficheiros sensitive)
+- **`/open`:** allowlist de extensoes seguras (docs/media) + check de bit executavel + `stat.isFile()` (rejeita FIFO/socket/device)
+- **`/file-content`:** SVG com CSP `sandbox`; HTML serve `Content-Disposition: attachment` excepto quando `Sec-Fetch-Dest: empty` (fetch/XHR); `nosniff` global
+- **PTY:** `resumePath` validado por allowlist Unicode (`\p{L}\p{N}`); cap de 30 sessoes simultaneas; resize bounds (cols 10-500, rows 5-200)
+- **FilePreview iframe:** sandbox sem `allow-same-origin` para HTML, `tabIndex={-1}` para conter focus trap, focus-bounce em mouse-click
+- **OAuth:** statusline usa `https` nativo (sem shell), token validado por regex antes de Bearer injection, cache em `tmpdir` com mode `0600`
+
+> Modelo de ameaca: machine compromise = jogo over (qualquer ferramenta dev cai). Mas em uso solo normal + tabs random no mesmo browser, o JOCA_UI esta hardened a um nivel equivalente ao Vite dev server / Storybook.
 
 ---
 
@@ -239,7 +255,7 @@ bash .claude/scripts/compile-bridges.sh
 - **Node.js 18+** (para JOCA_UI e hooks cross-platform)
 - **macOS** ou **Windows** (Linux experimental)
 - **gh CLI** (GitHub — `winget install GitHub.cli` / `brew install gh`)
-- Opcional: Python 3.10+ (graphify), Codex CLI, Antigravity CLI (agy), browser-use CLI, playwright-cli, sentry-cli, ffmpeg, gws
+- Opcional: Python 3.10+ (graphify), Codex CLI, Antigravity CLI (agy), browser-use CLI, playwright-cli, sentry-cli, ffmpeg, gws, zmail-cli (Java 11+)
 
 ---
 

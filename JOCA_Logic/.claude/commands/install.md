@@ -233,7 +233,7 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 
 Para cada area seleccionada sem cobertura directa nas skills existentes:
 1. Identificar o gap
-2. `WebSearch` em GitHub / mcpmarket.com
+2. `WebSearch` em GitHub e awesome-lists (procurar skill ou CLI relevante)
 3. Apresentar resultado:
 
 ```
@@ -270,17 +270,31 @@ options:
 
 Se seleccionado: instalar via comandos na FASE EXECUCAO.
 
-### CLIs Externos *(multi-select)*
+### CLIs Externos *(multi-select, agrupados)*
+
 ```
-Que CLIs queres configurar?
-[ ] gh (GitHub CLI — repos, PRs, issues, code search)
-[ ] gws (Google Workspace CLI — Drive, Gmail, Calendar, Sheets, todas as APIs)
-[ ] ffmpeg (video/audio processing, encoding, conversao, thumbnails)
-[ ] sentry-cli (error tracking, releases, source maps, deploy tracking)
-[ ] huggingface-cli (modelos, datasets, spaces)
-[ ] Antigravity CLI (Gemini — analise multimodal, video, PDF, contexto 1M)
-[ ] Codex CLI (code review adversarial — requer ChatGPT Plus ou OPENAI_API_KEY)
-[ ] CLI Printing Press (gera CLIs + MCP servers a partir de APIs — requer Go 1.26+)
+Source control & cloud
+[ ] gh             — GitHub (repos, PRs, issues, code search)
+[ ] gws            — Google Workspace (Drive, Gmail, Calendar, Sheets) — requer gcloud
+[ ] gcloud         — Google Cloud (prereq para gws auth setup)
+[ ] aws-cli        — AWS S3, deploy, file-storage skill
+
+AI assistants (cross-CLI bridge)
+[ ] Antigravity (agy)    — Gemini multimodal (video, PDF, 1M ctx)
+[ ] Codex                — OpenAI code review adversarial (ChatGPT Plus ou OPENAI_API_KEY)
+[ ] huggingface-cli      — modelos, datasets, spaces
+
+Media & content
+[ ] ffmpeg         — video/audio processing, encoding, thumbnails
+[ ] yt-dlp         — download de video (usado pelo agent `watch`)
+[ ] whisperx       — transcricao local STT (usado pelo agent `watch`)
+[ ] zmail-cli      — Zoho Mail terminal (envio/leitura) — requer Java 11+
+
+Dev & observability
+[ ] sentry-cli         — error tracking, releases, source maps
+[ ] stripe-cli         — webhooks listen, payment testing local
+[ ] cli-printing-press — gera CLIs/MCP servers a partir de APIs (requer Go 1.26+)
+
 [ ] Nenhum
 ```
 
@@ -302,12 +316,6 @@ options:
   - "Nao preciso"
 ```
 
-### Outros *(multi-select)*
-```
-[ ] Microsoft Clarity (requer Composio API key)
-[ ] Outro: ___
-```
-
 ---
 
 ## FASE APIs — Chaves de API
@@ -319,13 +327,7 @@ Com base nas seleccoes, determinar quais chaves sao necessarias. Apenas duas cha
 | OpenAI (img-gen + Codex)      | `OPENAI_API_KEY`                | img-gen OpenAI ou Codex CLI               |
 | Google Gemini (img-gen + agy) | `GEMINI_API_KEY`                | img-gen Gemini ou Antigravity CLI         |
 
-Chaves adicionais (se ferramentas especificas seleccionadas):
-
-| Ferramenta                    | Variavel                        | Quando e necessaria                       |
-|-------------------------------|----------------------------------|-------------------------------------------|
-| Composio (Clarity)            | `COMPOSIO_API_KEY`              | Microsoft Clarity                         |
-
-**Nota:** GitHub usa `gh auth login` (OAuth interactivo) — nao precisa de token manual. HuggingFace usa `huggingface-cli login`.
+**Nota:** GitHub usa `gh auth login` (OAuth interactivo) — nao precisa de token manual. HuggingFace usa `huggingface-cli login`. Sentry/Stripe usam tokens proprios (`SENTRY_AUTH_TOKEN`, `STRIPE_API_KEY`) ou login interactivo.
 
 Para cada chave necessaria, perguntar via `AskUserQuestion`:
 ```
@@ -452,8 +454,8 @@ SKILLS (92 — trigger system RFC 2119)
 
 INTEGRACOES
   Browser: [browser-use CLI / playwright-cli / ambos / nenhum]
-  CLIs: [gh, huggingface-cli, agy, codex — os que foram seleccionados]
-  Google: [lista — se algum]
+  CLIs:    [seleccionados — agrupar por categoria: source/AI/media/dev]
+  Google:  [lista — se algum connector]
   Img Gen: [motor(es)]
 
 SKILLS NOVAS:   [lista — se gaps detectados]
@@ -585,7 +587,8 @@ Para cada chave marcada como "introduzir agora":
 Para chaves PENDENTE — listar com link de obtencao:
 - `OPENAI_API_KEY` -> platform.openai.com/api-keys
 - `GEMINI_API_KEY` -> aistudio.google.com/apikey
-- `COMPOSIO_API_KEY` -> app.composio.dev/settings
+- `SENTRY_AUTH_TOKEN` -> sentry.io/settings/account/api/auth-tokens
+- `STRIPE_API_KEY` -> dashboard.stripe.com/apikeys (test mode)
 
 ### 6. CLIs externos
 
@@ -646,6 +649,48 @@ scoop install ffmpeg
 ```
 
 Verificar: `ffmpeg -version`
+
+**yt-dlp** (se seleccionado — usado pelo agent `watch`):
+
+macOS: `brew install yt-dlp`
+Linux: `pip3 install -U yt-dlp` ou `sudo apt install yt-dlp`
+Windows: `scoop install yt-dlp` ou `pip install -U yt-dlp`
+
+Verificar: `yt-dlp --version`
+
+**whisperx** (se seleccionado — transcricao local sem API):
+
+Prereq: Python 3.10+ e ffmpeg.
+```bash
+pip install -U whisperx
+```
+Primeira execucao descarrega modelo (~3GB para `large-v3`).
+
+Verificar: `whisperx --help`
+
+**stripe-cli** (se seleccionado):
+
+macOS: `brew install stripe/stripe-cli/stripe`
+Linux: download de github.com/stripe/stripe-cli/releases
+Windows: `scoop install stripe`
+
+Instruir: `stripe login` (OAuth interactivo) e usar `stripe listen --forward-to localhost:8000/webhook` para testes locais.
+
+**aws-cli** (se seleccionado):
+
+macOS: `brew install awscli`
+Linux: `sudo apt install awscli` ou installer oficial em aws.amazon.com/cli
+Windows: `winget install Amazon.AWSCLI`
+
+Instruir: `aws configure` (key, secret, region, output).
+
+**gcloud** (se seleccionado — prereq para `gws auth setup`):
+
+macOS: `brew install --cask google-cloud-sdk`
+Linux: `curl https://sdk.cloud.google.com | bash`
+Windows: `winget install Google.CloudSDK`
+
+Instruir: `gcloud init` para autenticar e seleccionar projecto.
 
 **huggingface-cli** (se seleccionado):
 
@@ -708,6 +753,37 @@ go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@late
 ```
 
 Verificar: `cli-printing-press --version`
+
+**Zoho Mail CLI** (se seleccionado):
+
+Prerequisito — Java 11+:
+- macOS: `brew install openjdk@21` (keg-only, adicionar `/opt/homebrew/opt/openjdk@21/bin` ao PATH)
+- Linux: `sudo apt install openjdk-21-jdk` ou equivalente
+- Windows: download de adoptium.net (Eclipse Temurin)
+
+Verificar: `java -version` (deve mostrar 11+)
+
+Instalar:
+```bash
+mkdir -p ~/.local/bin/zmail-cli
+curl -L -o ~/.local/bin/zmail-cli/zmail-cli.jar \
+  https://www.zohowebstatic.com/mail/3938191/ZMAIL_CLI/zmail-cli.jar
+```
+
+Criar wrapper `~/.local/bin/zmail`:
+```bash
+#!/usr/bin/env bash
+export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
+exec java -jar "$HOME/.local/bin/zmail-cli/zmail-cli.jar" "$@"
+```
+
+Tornar executável: `chmod +x ~/.local/bin/zmail`
+
+Verificar: `zmail` (abre prompt interactivo — pede password de encriptação no primeiro arranque para proteger refresh tokens locais).
+
+Instruir: `zmail:>login` para OAuth via browser. Para data centers regionais usar `login --dc <tld>` (`.com`, `.eu`, `.in`, `.au`, `.jp`, `.ca`, `.sa`).
+
+Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
 ### 7. settings.json do projecto
 

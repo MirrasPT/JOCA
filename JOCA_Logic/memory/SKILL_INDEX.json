@@ -305,7 +305,7 @@
     "name": "img-gen",
     "category": "general",
     "path": ".claude/skills/img-gen.md",
-    "description": "Route and generate images via OpenAI (gpt-image-2) or Google Gemini (Nano Banana). MUST be invoked when the user mentions: OpenAI, Google Gemini, Nano Banana, Decides, API, Do NOT.",
+    "description": "Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). MUST be invoked when the user mentions: generate image, create image, illustration, product shot, mockup, hero",
     "triggers": []
   },
   {
@@ -1027,6 +1027,20 @@
       "accessibility audit",
       "WCAG compliance",
       "keyboard navigation"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "video-gen",
+    "category": "agents",
+    "path": ".claude/agents/video-gen.md",
+    "description": ">",
+    "triggers": [
+      "generate video",
+      "create video",
+      "video clip",
+      "motion",
+      "animate scene"
     ]
   },
   {

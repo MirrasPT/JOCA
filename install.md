@@ -74,7 +74,7 @@ Executar `/install` — o assistente configura:
 - Identidade e personalidade (soul calibration)
 - Skills (92 disponíveis, RFC 2119 trigger system)
 - Browser automation (browser-use CLI, Playwright Agent CLI)
-- CLIs externos (gh, gws, sentry-cli, ffmpeg, codex, agy, cli-printing-press)
+- CLIs externos (gh, gws, sentry-cli, ffmpeg, codex, agy, cli-printing-press, zmail-cli)
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_UI (browser interface)
 - StatusLine + Rate Limits tracking (Node.js cross-platform)

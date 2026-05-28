@@ -1,5 +1,5 @@
 description = """Use when you need to diagnose slow or broken database queries. Triggered by: \"slow query\", \"query taking too long\", \"EXPLAIN\", \"N+1 problem\", \"database slow\", \"missing index\", \"optimize query\", \"SQL slow\", \"full table scan\", \"query performance\", \"database bottleneck\", \"laravel query debug\", \"DB::listen\", \"query log\", \"timeout in query\", \"too many queries\". Analyzes EXPLAIN plans, identifies missing indexes, N+1 patterns, and suggests optimized rewrites."""
-developer_instructions = '''
+developer_instructions = """
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.
 
@@ -180,5 +180,5 @@ User::withCount('posts')->get();
 - For PostgreSQL, use `CREATE INDEX CONCURRENTLY` to avoid table locks in production
 - Verify improvement by re-running EXPLAIN after adding index
 - Never suggest adding multiple indexes at once — one at a time, measure each
-'''
+"""
 name = "query-debugger"

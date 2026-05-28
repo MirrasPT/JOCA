@@ -136,9 +136,12 @@ const IS_WINDOWS = process.platform === 'win32';
 const SHELL = IS_WINDOWS
   ? 'powershell.exe'
   : (process.env.SHELL || '/bin/zsh');
-const BUFFER_MAX = 1_000_000;
+const BUFFER_MAX = 5_000_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
+const MAX_SESSIONS = 30;
+// Path allowlist for any value written into a PTY shell line. Unicode letters/numbers + safe punctuation.
+const PATH_SAFE = /^[\p{L}\p{N}._/\- @()&,+:']+$/u;
 
 function findJocaLogicRoot(): string {
   if (process.env.JOCA_LOGIC_PATH) {
@@ -177,16 +180,73 @@ function isInside(root: string, targetPath: string) {
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
+// Resolve symlinks to their real physical path before any boundary check.
+// Falls back to the lexical path if realpath fails (file doesn't exist yet, etc).
+function realPathSafe(p: string): string {
+  try { return fs.realpathSync.native(p); } catch { return p; }
+}
+
+// Sensitive subdirs of $HOME that must NEVER be served via the file APIs, regardless of any
+// other guard. Path is HOME-relative (no leading slash).
+const SENSITIVE_HOME_SUBDIRS = [
+  '.ssh', '.gnupg', '.aws', '.kube', '.docker', '.npmrc', '.netrc', '.pgpass',
+  '.config/gcloud', '.config/gh', '.config/op', '.config/rclone',
+  '.bash_history', '.zsh_history', '.python_history', '.psql_history', '.mysql_history',
+  '.subversion/auth', '.cargo/credentials.toml', '.cargo/credentials',
+  'Library/Keychains',
+  // Shell/tool config: writes here = persistence vector on next terminal/process launch.
+  '.zshrc', '.bashrc', '.bash_profile', '.profile', '.zprofile', '.zshenv', '.bash_logout',
+  '.gitconfig', '.git-credentials', '.env', '.envrc',
+];
+function isSensitivePath(absPath: string): boolean {
+  const rel = path.relative(HOME, absPath);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) return false;
+  return SENSITIVE_HOME_SUBDIRS.some((d) => rel === d || rel.startsWith(d + path.sep));
+}
+
+class HttpError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
+
+// Single source of truth for any user-supplied path that the backend will read/write/exec.
+// Resolves symlinks, blocks escape via planted symlinks, blocks sensitive dirs, refuses HOME itself.
+// Returns the REAL (symlink-resolved) path, or throws HttpError(403/400).
+function safePath(targetPath: string): string {
+  if (!targetPath) throw new HttpError('Missing path', 400);
+  const real = realPathSafe(path.resolve(targetPath));
+  if (!isInsideHome(real)) throw new HttpError('Forbidden', 403);
+  if (isSensitivePath(real)) throw new HttpError('Forbidden', 403);
+  // HOME itself must never be a target — would delete/overwrite the entire user account.
+  if (path.resolve(real) === path.resolve(HOME)) throw new HttpError('Forbidden', 403);
+  return real;
+}
+
 function assertHomePath(targetPath: string) {
-  const resolved = path.resolve(targetPath);
-  if (!isInsideHome(resolved)) throw new Error('Forbidden');
-  return resolved;
+  return safePath(targetPath);
+}
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true; // direct calls (curl, server-side) have no Origin header
+  // Only loopback origins on http (any port — vite dev + prod served origin both qualify).
+  // External attackers cannot forge a loopback origin from a remote browser tab.
+  return /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
+}
+
+function requireSafeOrigin(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  if (!isAllowedOrigin(req.headers.origin as string | undefined)) {
+    return res.status(403).json({ error: 'Forbidden origin' });
+  }
+  next();
 }
 
 function assertClaudePath(targetPath: string) {
-  const resolved = path.resolve(targetPath);
-  if (!isInside(CLAUDE_DIR, resolved)) throw new Error('Forbidden');
-  return resolved;
+  const lexical = path.resolve(targetPath);
+  // Resolve any symlinks before checking containment — prevents symlink-escape
+  // (planted symlink inside .claude pointing to /etc).
+  const real = realPathSafe(lexical);
+  if (!isInside(CLAUDE_DIR, real)) throw new HttpError('Forbidden', 403);
+  return lexical;
 }
 
 function safeDesktopFilename(name: string, fallbackExt: string) {
@@ -524,12 +584,17 @@ function createSession(
   setTimeout(() => ptyProcess.write(`${CLAUDE_BIN}${claudeArgs}\r`), 100);
 
   if (resumePath) {
-    const hasClaudeMd = fs.existsSync(path.join(resumePath, 'CLAUDE.md'));
-    const cmd = hasClaudeMd ? `/resume "${resumePath}"` : `/init-project "${resumePath}"`;
-    setTimeout(() => {
-      ptyProcess.write(cmd);
-      setTimeout(() => ptyProcess.write('\r'), 80);
-    }, 1200);
+    let resolved: string | null = null;
+    try { resolved = safePath(resumePath); } catch {}
+    const safe = resolved && PATH_SAFE.test(resolved) && fs.existsSync(resolved);
+    if (safe && resolved) {
+      const hasClaudeMd = fs.existsSync(path.join(resolved, 'CLAUDE.md'));
+      const cmd = hasClaudeMd ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
+      setTimeout(() => {
+        ptyProcess.write(cmd);
+        setTimeout(() => ptyProcess.write('\r'), 80);
+      }, 1200);
+    }
   }
 
   if (initialInput) {
@@ -584,8 +649,13 @@ function createSession(
 }
 
 const app = express();
+app.use(requireSafeOrigin);
 const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({
+  server,
+  path: '/ws',
+  verifyClient: (info: { origin?: string }) => isAllowedOrigin(info.origin),
+});
 
 // Projects CRUD
 app.get('/projects', (_req, res) => {
@@ -599,16 +669,19 @@ app.get('/projects', (_req, res) => {
 app.post('/projects', express.json(), (req, res) => {
   const { name, path: p, color } = req.body as { name?: string; path: string; color?: string };
   if (!p) return res.status(400).json({ error: 'Missing path' });
-  const resolvedP = path.resolve(p);
-  if (!resolvedP.startsWith(HOME)) return res.status(400).json({ error: 'Path must be inside home directory' });
+  let resolvedP: string;
+  try { resolvedP = safePath(p); }
+  catch { return res.status(400).json({ error: 'Path must be inside home directory (and not a sensitive subdir)' }); }
   if (!fs.existsSync(resolvedP)) return res.status(400).json({ error: 'Path does not exist' });
   const projects = loadProjects();
-  if (projects.find((pr) => pr.path === p)) return res.status(409).json({ error: 'Already exists' });
+  if (projects.find((pr) => pr.path === resolvedP)) return res.status(409).json({ error: 'Already exists' });
+  const cleanName = (name?.trim() || path.basename(resolvedP) || resolvedP).slice(0, 120);
+  const cleanColor = color?.trim().slice(0, 50) || undefined;
   const project: Project = {
     id: randomUUID(),
-    name: name?.trim() || path.basename(p) || p,
-    path: p,
-    color: color?.trim() || undefined,
+    name: cleanName,
+    path: resolvedP,
+    color: cleanColor,
   };
   projects.push(project);
   saveProjects(projects);
@@ -633,17 +706,25 @@ app.patch('/projects/:id', express.json(), (req, res) => {
   const projects = loadProjects();
   const p = projects.find((pr) => pr.id === req.params.id);
   if (!p) return res.status(404).json({ error: 'Not found' });
-  if (req.body.name) p.name = String(req.body.name).trim();
-  if (typeof req.body.path === 'string') {
-    const nextPath = req.body.path.trim();
-    if (!nextPath) return res.status(400).json({ error: 'Missing path' });
-    if (!fs.existsSync(nextPath)) return res.status(400).json({ error: 'Path does not exist' });
-    if (projects.find((pr) => pr.id !== p.id && pr.path === nextPath)) return res.status(409).json({ error: 'Already exists' });
-    p.path = nextPath;
+  if (typeof req.body.name === 'string') {
+    const trimmed = req.body.name.trim().slice(0, 120);
+    if (trimmed.length === 0) return res.status(400).json({ error: 'Name cannot be empty' });
+    p.name = trimmed;
   }
-  if (typeof req.body.color === 'string') p.color = req.body.color || undefined;
+  if (typeof req.body.path === 'string') {
+    const nextPathRaw = req.body.path.trim();
+    if (!nextPathRaw) return res.status(400).json({ error: 'Missing path' });
+    let resolvedNext: string;
+    try { resolvedNext = safePath(nextPathRaw); }
+    catch { return res.status(400).json({ error: 'Path must be inside home directory (and not a sensitive subdir)' }); }
+    if (!fs.existsSync(resolvedNext)) return res.status(400).json({ error: 'Path does not exist' });
+    if (projects.find((pr) => pr.id !== p.id && pr.path === resolvedNext)) return res.status(409).json({ error: 'Already exists' });
+    p.path = resolvedNext;
+  }
+  if (typeof req.body.color === 'string') p.color = (req.body.color.trim().slice(0, 50)) || undefined;
   if (req.body.githubRepo !== undefined) {
-    p.githubRepo = req.body.githubRepo ? String(req.body.githubRepo).trim() : undefined;
+    const repo = req.body.githubRepo ? String(req.body.githubRepo).trim().slice(0, 500) : '';
+    p.githubRepo = repo || undefined;
   }
   saveProjects(projects);
   const memory = loadProjectMemory();
@@ -725,8 +806,10 @@ app.post('/projects/:id/toolkit', express.json(), (req, res) => {
     return res.status(400).json({ error: 'Invalid type' });
   }
 
-  const safeName = name.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
-  if (!safeName) return res.status(400).json({ error: 'Invalid name' });
+  // Use the shared sanitizer (same one as global /toolkit-item) — no drift.
+  let safeName: string;
+  try { safeName = sanitizeToolkitName(name); }
+  catch { return res.status(400).json({ error: 'Invalid name' }); }
 
   const projectClaudeDir = path.join(p.path, '.claude');
 
@@ -735,8 +818,9 @@ app.post('/projects/:id/toolkit', express.json(), (req, res) => {
     ? path.join(projectClaudeDir, 'skills', safeCategory, safeName, 'SKILL.md')
     : path.join(projectClaudeDir, 'agents', `${safeName}.md`);
 
-  if (!itemPath.startsWith(projectClaudeDir)) {
-    return res.status(400).json({ error: 'Invalid path' });
+  // Path-aware containment check (startsWith is fooled by sibling dirs with prefix).
+  if (!isInside(projectClaudeDir, itemPath)) {
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
   if (fs.existsSync(itemPath)) {
@@ -745,26 +829,31 @@ app.post('/projects/:id/toolkit', express.json(), (req, res) => {
 
   fs.mkdirSync(path.dirname(itemPath), { recursive: true });
 
+  // Escape any user-supplied scalar that lands in YAML frontmatter (newlines/colons/quotes
+  // would otherwise inject arbitrary keys or break the document).
+  const yamlString = (s: string) => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]/g, ' ').slice(0, 200)}"`;
+  const safeNameDisplay = safeName.slice(0, 80);
+  const safeProjectName = p.name.slice(0, 80);
   const boilerplateContent = type === 'skills'
     ? `---
-name: ${name}
-description: Exclusiva para o projeto ${p.name}
+name: ${yamlString(safeNameDisplay)}
+description: ${yamlString(`Exclusiva para o projeto ${safeProjectName}`)}
 triggers:
-  - "${safeName}"
+  - ${yamlString(safeName)}
 ---
 
-# ${name}
+# ${safeNameDisplay}
 
-Instruções para a skill ${name} no projeto ${p.name}.
+Instruções para a skill ${safeNameDisplay} no projeto ${safeProjectName}.
 `
     : `---
-name: ${name}
-description: Agente exclusivo para o projeto ${p.name}
+name: ${yamlString(safeNameDisplay)}
+description: ${yamlString(`Agente exclusivo para o projeto ${safeProjectName}`)}
 ---
 
-# ${name}
+# ${safeNameDisplay}
 
-Instruções para o agente ${name} no projeto ${p.name}.
+Instruções para o agente ${safeNameDisplay} no projeto ${safeProjectName}.
 `;
 
   fs.writeFileSync(itemPath, boilerplateContent, 'utf8');
@@ -786,16 +875,23 @@ app.get('/runtime', (_req, res) => {
   });
 });
 
+const MAX_RATE_LIMITS_FILE_SIZE = 100_000;
+function readBoundedJson(file: string): unknown {
+  if (!fs.existsSync(file)) return null;
+  if (fs.statSync(file).size > MAX_RATE_LIMITS_FILE_SIZE) return null;
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
 app.get('/rate-limits', (_req, res) => {
   const result: Record<string, unknown> = {};
 
   try {
     const claudeFile = path.join(os.tmpdir(), 'joca-ui', 'rate-limits.json');
-    if (fs.existsSync(claudeFile)) {
-      const claude = JSON.parse(fs.readFileSync(claudeFile, 'utf8'));
+    const claude = readBoundedJson(claudeFile) as Record<string, unknown> | null;
+    if (claude) {
       const oauthFile = path.join(os.tmpdir(), 'joca-ui', 'oauth-usage.json');
-      if (fs.existsSync(oauthFile)) {
-        const oauth = JSON.parse(fs.readFileSync(oauthFile, 'utf8'));
+      const oauth = readBoundedJson(oauthFile) as Record<string, { utilization?: number; resets_at?: string }> | null;
+      if (oauth) {
         if (oauth.five_hour?.utilization != null) claude.five_hour = { used_pct: oauth.five_hour.utilization, resets_at: oauth.five_hour.resets_at };
         if (oauth.seven_day?.utilization != null) claude.seven_day = { used_pct: oauth.seven_day.utilization, resets_at: oauth.seven_day.resets_at };
         if (oauth.seven_day_sonnet?.utilization != null) claude.sonnet_seven_day = { used_pct: oauth.seven_day_sonnet.utilization, resets_at: oauth.seven_day_sonnet.resets_at };
@@ -807,28 +903,52 @@ app.get('/rate-limits', (_req, res) => {
   try {
     const codexDb = path.join(os.homedir(), '.codex', 'logs_2.sqlite');
     if (fs.existsSync(codexDb)) {
-      const out = execSync(
-        `sqlite3 "${codexDb}" "SELECT feedback_log_body FROM logs WHERE feedback_log_body LIKE '%codex.rate_limits%' ORDER BY ts DESC LIMIT 1;"`,
+      const out = execFileSync(
+        'sqlite3',
+        [codexDb, "SELECT feedback_log_body FROM logs WHERE feedback_log_body LIKE '%codex.rate_limits%' ORDER BY ts DESC LIMIT 1;"],
         { timeout: 3000, encoding: 'utf8' }
       );
-      const match = out.match(/\{"type":"codex\.rate_limits".*?\}(?=\s|$)/);
-      if (match) {
-        const d = JSON.parse(match[0]);
-        const rl = d.rate_limits || {};
-        result.codex = {
-          plan: d.plan_type || null,
-          five_hour: { used_pct: rl.primary?.used_percent ?? null },
-          seven_day: { used_pct: rl.secondary?.used_percent ?? null },
-        };
+      // sqlite3 returns one row of JSON text; parse whole row, then validate
+      try {
+        const d = JSON.parse(out.trim());
+        if (d?.type === 'codex.rate_limits') {
+          const rl = d.rate_limits || {};
+          result.codex = {
+            plan: d.plan_type || null,
+            five_hour: { used_pct: rl.primary?.used_percent ?? null },
+            seven_day: { used_pct: rl.secondary?.used_percent ?? null },
+          };
+        }
+      } catch {
+        // fallback: row contains nested objects — extract by structural scan
+        const idx = out.indexOf('"type":"codex.rate_limits"');
+        const start = idx !== -1 ? out.lastIndexOf('{', idx) : -1;
+        if (start >= 0) {
+          let depth = 0;
+          for (let i = start; i < out.length; i++) {
+            if (out[i] === '{') depth++;
+            else if (out[i] === '}') { depth--; if (depth === 0) {
+              try {
+                const d = JSON.parse(out.slice(start, i + 1));
+                const rl = d.rate_limits || {};
+                result.codex = {
+                  plan: d.plan_type || null,
+                  five_hour: { used_pct: rl.primary?.used_percent ?? null },
+                  seven_day: { used_pct: rl.secondary?.used_percent ?? null },
+                };
+              } catch {}
+              break;
+            } }
+          }
+        }
       }
     }
   } catch {}
 
   try {
     const agyFile = path.join(os.tmpdir(), 'joca-ui', 'agy-rate-limits.json');
-    if (fs.existsSync(agyFile)) {
-      result.agy = JSON.parse(fs.readFileSync(agyFile, 'utf8'));
-    }
+    const agy = readBoundedJson(agyFile);
+    if (agy) result.agy = agy;
   } catch {}
 
   res.json(Object.keys(result).length > 0 ? result : null);
@@ -844,7 +964,9 @@ app.get('/ui-settings', (_req, res) => {
 
 app.patch('/ui-settings', express.json(), (req, res) => {
   const current = loadUiSettings();
-  const updated = { ...current, ...req.body };
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const updated = { ...current };
+  if ('skipPermissions' in body) updated.skipPermissions = body.skipPermissions === true;
   saveUiSettings(updated);
   res.json(updated);
 });
@@ -871,17 +993,21 @@ app.patch('/project-memory/:id', express.json(), (req, res) => {
     rightPanel: 'files',
     updatedAt: new Date().toISOString(),
   };
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const rightPanelValue = body.rightPanel;
+  const validRightPanel = rightPanelValue === 'files' || rightPanelValue === 'toolkit' || rightPanelValue === 'settings' || rightPanelValue === null;
+  // `path` is authoritative on the project record itself, not client-writable via project-memory.
   memory[projectId] = {
     ...current,
-    ...req.body,
     projectId,
-    color: typeof req.body.color === 'string' ? req.body.color : current.color,
-    path: typeof req.body.path === 'string' ? req.body.path : current.path,
-    recentSessions: Array.isArray(req.body.recentSessions) ? req.body.recentSessions.slice(0, 20) : current.recentSessions,
-    favoriteSkills: Array.isArray(req.body.favoriteSkills) ? req.body.favoriteSkills.slice(0, 30) : current.favoriteSkills,
-    favoriteAgents: Array.isArray(req.body.favoriteAgents) ? req.body.favoriteAgents.slice(0, 30) : current.favoriteAgents,
-    quickCommands: Array.isArray(req.body.quickCommands) ? req.body.quickCommands.slice(0, 12) : current.quickCommands,
-    openFiles: Array.isArray(req.body.openFiles) ? req.body.openFiles.slice(0, 20) : current.openFiles,
+    color: typeof body.color === 'string' ? body.color : current.color,
+    path: project.path,
+    recentSessions: Array.isArray(body.recentSessions) ? (body.recentSessions as string[]).filter((x) => typeof x === 'string').slice(0, 20) : current.recentSessions,
+    favoriteSkills: Array.isArray(body.favoriteSkills) ? (body.favoriteSkills as string[]).filter((x) => typeof x === 'string').slice(0, 30) : current.favoriteSkills,
+    favoriteAgents: Array.isArray(body.favoriteAgents) ? (body.favoriteAgents as string[]).filter((x) => typeof x === 'string').slice(0, 30) : current.favoriteAgents,
+    quickCommands: Array.isArray(body.quickCommands) ? (body.quickCommands as string[]).filter((x) => typeof x === 'string').slice(0, 12) : current.quickCommands,
+    openFiles: Array.isArray(body.openFiles) ? (body.openFiles as string[]).filter((x) => typeof x === 'string').slice(0, 20) : current.openFiles,
+    rightPanel: validRightPanel ? rightPanelValue as ProjectMemory['rightPanel'] : current.rightPanel,
     updatedAt: new Date().toISOString(),
   };
   saveProjectMemory(memory);
@@ -924,10 +1050,11 @@ app.get('/knowledge-graph', (_req, res) => {
 
 app.get('/file-content', (req, res) => {
   const filePath = req.query.path as string;
-  if (!filePath) return res.status(400).send('Missing path');
+  if (!filePath) return res.status(400).json({ error: 'Missing path' });
+  let resolved: string;
+  try { resolved = safePath(filePath); }
+  catch { return res.status(403).json({ error: 'Forbidden' }); }
   try {
-    const resolved = path.resolve(filePath);
-    if (!isInsideHome(resolved)) return res.status(403).send('Forbidden');
     const ext = path.extname(resolved).toLowerCase().slice(1);
     const mimeMap: Record<string, string> = {
       png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
@@ -936,40 +1063,95 @@ app.get('/file-content', (req, res) => {
       mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', m4a: 'audio/mp4', flac: 'audio/flac',
       pdf: 'application/pdf', html: 'text/html', htm: 'text/html',
     };
+    if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'Not found' });
+    if (fs.statSync(resolved).isDirectory()) return res.status(400).json({ error: 'Cannot read directory' });
     res.setHeader('Content-Type', mimeMap[ext] || 'text/plain; charset=utf-8');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    // Active-content protection:
+    //   SVG: <img> ignores CSP (just rasterizes); direct nav is blocked by CSP sandbox.
+    //   HTML: only sandbox CSP on top-level direct navigation (Sec-Fetch-Dest=document).
+    //         When loaded by the FilePreview iframe (dest=iframe), browsers compose iframe.sandbox
+    //         AND response CSP sandbox using the MORE restrictive — applying CSP sandbox there would
+    //         strip `allow-scripts` and break the intended interactive preview.
+    if (ext === 'svg') {
+      res.setHeader('Content-Security-Policy', "sandbox; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; font-src 'self' data:");
+    } else if (ext === 'html' || ext === 'htm') {
+      // Only `Sec-Fetch-Dest: empty` (XHR/fetch) is a safe render context. document/iframe/frame/
+      // embed/object/worker are ALL active-render — cross-site iframe of /file-content would otherwise
+      // load with same-origin to our backend API.
+      const dest = req.headers['sec-fetch-dest'];
+      if (dest !== 'empty') {
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(resolved).replace(/"/g, '')}"`);
+      }
+    }
     res.sendFile(resolved);
-  } catch (e) { res.status(400).send(String(e)); }
+  } catch { res.status(400).json({ error: 'Read failed' }); }
 });
+
+// /open: macOS `open` dispatches by file metadata — extension AND executable mode bit AND shebang.
+// Use an ALLOWLIST of known-safe document/media types. Extensionless files, scripts, and apps are
+// rejected even if their extension is missing.
+const OPEN_ALLOWED_EXTS = new Set([
+  'png','jpg','jpeg','gif','webp','bmp','svg','ico','pdf',
+  'mp4','mov','webm','m4v','mkv','avi',
+  'mp3','wav','m4a','ogg','flac','aac',
+  'md','txt','json','csv','tsv','log','yaml','yml','toml','xml',
+  'html','htm',
+]);
 
 app.post('/open', express.json(), (req, res) => {
   const { path: filePath } = req.body as { path: string };
   if (!filePath) return res.status(400).json({ error: 'Missing path' });
+  let resolved: string;
+  try { resolved = safePath(filePath); }
+  catch { return res.status(403).json({ error: 'Forbidden' }); }
+  if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'Path does not exist' });
+  const stat = fs.statSync(resolved);
+  // Only regular files and directories are openable. FIFOs/sockets/device files cause `open` to
+  // block indefinitely or trigger unintended kernel behavior.
+  if (stat.isDirectory()) {
+    // Finder window — safe.
+  } else if (stat.isFile()) {
+    const ext = path.extname(resolved).toLowerCase().slice(1);
+    if (!OPEN_ALLOWED_EXTS.has(ext)) {
+      return res.status(400).json({ error: 'File type not allowed for /open (only documents/media)' });
+    }
+    // Defense in depth: refuse any file with executable mode bits set, regardless of extension.
+    if (stat.mode & 0o111) {
+      return res.status(400).json({ error: 'Executable files cannot be opened' });
+    }
+  } else {
+    return res.status(400).json({ error: 'Only regular files and directories can be opened' });
+  }
   try {
-    const resolved = path.resolve(filePath);
-    if (!isInsideHome(resolved)) return res.status(403).json({ error: 'Forbidden' });
-    if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'Path does not exist' });
     const openCmd = IS_WINDOWS ? 'explorer' : 'open';
     spawn(openCmd, [resolved], { detached: true, stdio: 'ignore' }).unref();
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+  } catch { res.status(500).json({ error: 'Open failed' }); }
 });
 
 app.get('/files', (req, res) => {
   const dirPath = (req.query.path as string) || HOME;
-  const showHidden = req.query.hidden === 'true';
+  // Accept both `hidden=true` (legacy) and `showHidden=true` (frontend convention).
+  const showHidden = req.query.hidden === 'true' || req.query.showHidden === 'true';
+  let resolved: string;
+  try { resolved = safePath(dirPath); }
+  catch { return res.status(403).json({ error: 'Forbidden' }); }
   try {
-    const resolved = path.resolve(dirPath);
-    if (!isInsideHome(resolved)) return res.status(403).json({ error: 'Forbidden' });
+    if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'Not found' });
+    if (!fs.statSync(resolved).isDirectory()) return res.status(400).json({ error: 'Not a directory' });
     const entries = fs.readdirSync(resolved, { withFileTypes: true });
     const result = entries
       .filter((e) => showHidden || !e.name.startsWith('.'))
+      // Hide sensitive subdirs even when showHidden=true (e.g. .ssh, .aws).
+      .filter((e) => !isSensitivePath(path.join(resolved, e.name)))
       .map((e) => ({ name: e.name, path: path.join(resolved, e.name), isDir: e.isDirectory() }))
       .sort((a, b) => {
         if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
         return a.name.localeCompare(b.name);
       });
     res.json({ path: resolved, parent: path.dirname(resolved), entries: result });
-  } catch (e) { res.status(400).json({ error: String(e) }); }
+  } catch { res.status(400).json({ error: 'Read failed' }); }
 });
 
 app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
@@ -989,9 +1171,22 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
       if (!safeName) return res.status(400).json({ error: 'Missing name' });
       const nextPath = assertHomePath(path.join(parent, safeName));
       if (!isInside(parent, nextPath)) return res.status(403).json({ error: 'Forbidden' });
-      if (fs.existsSync(nextPath)) return res.status(409).json({ error: 'Already exists' });
-      if (action === 'create_folder') fs.mkdirSync(nextPath, { recursive: true });
-      else fs.writeFileSync(nextPath, content ?? '');
+      // lstat (no symlink follow) — if path exists as a symlink, reject. Prevents post-validation
+      // symlink TOCTOU where attacker plants a symlink pointing outside HOME.
+      try {
+        const lst = fs.lstatSync(nextPath);
+        if (lst.isSymbolicLink()) return res.status(403).json({ error: 'Symlink targets not allowed' });
+        return res.status(409).json({ error: 'Already exists' });
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
+      }
+      if (action === 'create_folder') {
+        fs.mkdirSync(nextPath); // no recursive — refuses if exists (incl. symlink)
+      } else {
+        // O_CREAT | O_EXCL: refuses pre-existing path AND symlinks (even dangling).
+        const fd = fs.openSync(nextPath, 'wx');
+        try { fs.writeFileSync(fd, content ?? ''); } finally { fs.closeSync(fd); }
+      }
       return res.json({ ok: true, path: nextPath });
     }
 
@@ -999,7 +1194,13 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
     if (!fs.existsSync(resolvedSource)) return res.status(404).json({ error: 'Path does not exist' });
 
     if (action === 'write_file') {
-      if (fs.statSync(resolvedSource).isDirectory()) return res.status(400).json({ error: 'Cannot write a directory' });
+      // lstat — refuse symlink target (otherwise we'd write to whatever it points to).
+      const lst = fs.lstatSync(resolvedSource);
+      if (lst.isSymbolicLink()) return res.status(403).json({ error: 'Symlink targets not allowed' });
+      if (lst.isDirectory()) return res.status(400).json({ error: 'Cannot write a directory' });
+      // Refuse multi-hardlink files — they can alias sensitive files outside HOME.
+      // lstat cannot distinguish a hardlink from a regular file; nlink>1 is the only signal.
+      if (lst.nlink > 1) return res.status(403).json({ error: 'Multi-hardlink targets not allowed' });
       fs.writeFileSync(resolvedSource, content ?? '');
       return res.json({ ok: true, path: resolvedSource });
     }
@@ -1013,6 +1214,14 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
       const safeName = path.basename(String(name || '').trim());
       if (!safeName) return res.status(400).json({ error: 'Missing name' });
       const nextPath = assertHomePath(path.join(path.dirname(resolvedSource), safeName));
+      // Refuse if target already exists as a symlink (renameSync would replace it).
+      try {
+        const lst = fs.lstatSync(nextPath);
+        if (lst.isSymbolicLink()) return res.status(403).json({ error: 'Symlink targets not allowed' });
+        return res.status(409).json({ error: 'Already exists' });
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
+      }
       fs.renameSync(resolvedSource, nextPath);
       return res.json({ ok: true, path: nextPath });
     }
@@ -1020,6 +1229,13 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
     if (action === 'move') {
       const destinationDir = assertHomePath(targetPath || '');
       const nextPath = assertHomePath(path.join(destinationDir, path.basename(resolvedSource)));
+      try {
+        const lst = fs.lstatSync(nextPath);
+        if (lst.isSymbolicLink()) return res.status(403).json({ error: 'Symlink targets not allowed' });
+        return res.status(409).json({ error: 'Already exists' });
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
+      }
       fs.renameSync(resolvedSource, nextPath);
       return res.json({ ok: true, path: nextPath });
     }
@@ -1028,9 +1244,23 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
       const parsed = path.parse(resolvedSource);
       let nextPath = path.join(parsed.dir, `${parsed.name} copy${parsed.ext}`);
       let index = 2;
-      while (fs.existsSync(nextPath)) {
-        nextPath = path.join(parsed.dir, `${parsed.name} copy ${index}${parsed.ext}`);
-        index++;
+      // Use lstat (not existsSync) so symlinks are detected as "exists" and we skip past them.
+      while (true) {
+        try {
+          const lst = fs.lstatSync(nextPath);
+          if (lst.isSymbolicLink()) {
+            // Skip past planted symlinks — never write through them.
+            nextPath = path.join(parsed.dir, `${parsed.name} copy ${index}${parsed.ext}`);
+            index++;
+            continue;
+          }
+          // Regular file/dir at nextPath — try next name.
+          nextPath = path.join(parsed.dir, `${parsed.name} copy ${index}${parsed.ext}`);
+          index++;
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code === 'ENOENT') break;
+          throw e;
+        }
       }
       const stat = fs.statSync(resolvedSource);
       if (stat.isDirectory()) fs.cpSync(resolvedSource, nextPath, { recursive: true });
@@ -1040,23 +1270,33 @@ app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
 
     res.status(400).json({ error: 'Unknown action' });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    // Map OS errors to semantically correct HTTP codes.
+    const code = (e as NodeJS.ErrnoException).code;
+    const isPermission = code === 'EACCES' || code === 'EPERM';
+    const status = e instanceof HttpError ? e.status : isPermission ? 403 : 400;
+    const message = e instanceof Error ? e.message : String(e);
+    res.status(status).json({ error: message });
   }
 });
 
 app.get('/file-diff', (req, res) => {
   try {
-    const filePath = assertHomePath(String(req.query.path || ''));
+    const raw = String(req.query.path || '').trim();
+    if (!raw) return res.status(400).json({ error: 'Missing path' });
+    const filePath = assertHomePath(raw);
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Path does not exist' });
     const cwd = fs.statSync(filePath).isDirectory() ? filePath : path.dirname(filePath);
     let root = '';
     try { root = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf8' }).trim(); } catch {}
     if (!root) return res.json({ diff: '', message: 'No git repository found for this path' });
+    // Git can resolve to a worktree/submodule outside HOME — re-validate the resolved root.
+    if (!isInsideHome(realPathSafe(root))) return res.json({ diff: '', message: 'Git root outside home' });
     const relative = path.relative(root, filePath);
     const diff = execFileSync('git', ['diff', '--', relative], { cwd: root, encoding: 'utf8', maxBuffer: 5_000_000 });
     res.json({ diff, root, relative });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    const status = e instanceof HttpError ? e.status : 400;
+    res.status(status).json({ error: e instanceof Error ? e.message : String(e) });
   }
 });
 
@@ -1071,7 +1311,8 @@ app.get('/toolkit-item', (req, res) => {
     const content = fs.readFileSync(itemPath, 'utf8');
     res.json({ path: itemPath, content, frontmatter: parseFrontmatter(content) });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    const status = e instanceof HttpError ? e.status : 400;
+    res.status(status).json({ error: e instanceof Error ? e.message : String(e) });
   }
 });
 
@@ -1092,7 +1333,8 @@ app.post('/toolkit-item', express.json({ limit: '2mb' }), (req, res) => {
     refreshMemoryIndexSnapshot();
     res.json({ ok: true, path: itemPath, items: collectToolkitItems() });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    const status = e instanceof HttpError ? e.status : 400;
+    res.status(status).json({ error: e instanceof Error ? e.message : String(e) });
   }
 });
 
@@ -1107,39 +1349,79 @@ app.patch('/toolkit-item', express.json({ limit: '2mb' }), (req, res) => {
     refreshMemoryIndexSnapshot();
     res.json({ ok: true, path: itemPath, items: collectToolkitItems() });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    const status = e instanceof HttpError ? e.status : 400;
+    res.status(status).json({ error: e instanceof Error ? e.message : String(e) });
   }
 });
 
 app.delete('/toolkit-item', express.json(), (req, res) => {
   try {
-    const { path: itemPathRaw, type } = req.body as { path: string; type?: string };
+    const { path: itemPathRaw, type } = req.body as { path?: string; type?: string };
+    if (!itemPathRaw) return res.status(400).json({ error: 'Missing path' });
+    if (type !== 'commands' && type !== 'agents' && type !== 'skills') {
+      return res.status(400).json({ error: 'Invalid type' });
+    }
     const itemPath = assertClaudePath(itemPathRaw);
     if (!fs.existsSync(itemPath)) return res.status(404).json({ error: 'Not found' });
-    const isFlatFile = type === 'commands' || type === 'agents';
-    fs.rmSync(
-      isFlatFile ? itemPath : path.dirname(itemPath),
-      { recursive: true, force: true },
-    );
+
+    // Determine deletion target:
+    //   - commands/agents: flat .md files → delete file
+    //   - skills: may be flat .md OR a subdir-packaged SKILL.md
+    //     For subdir-packaged: delete the PARENT dir, BUT only if PARENT is a DIRECT child
+    //     of .claude/skills/ (i.e. .claude/skills/<name>/SKILL.md → delete .claude/skills/<name>).
+    //     A nested case (.claude/skills/category/<name>/SKILL.md) would otherwise delete the
+    //     entire category — refuse.
+    let deleteTarget = itemPath;
+    if (type === 'skills' && path.basename(itemPath).toLowerCase() === 'skill.md') {
+      const parent = path.dirname(itemPath);
+      const skillsRoot = path.join(CLAUDE_DIR, 'skills');
+      const parentReal = realPathSafe(parent);
+      const skillsReal = realPathSafe(skillsRoot);
+      const grandparent = path.dirname(parentReal);
+      // Parent must be a DIRECT child of skills/ (depth=1). Reject root or any deeper nesting.
+      if (parentReal === skillsReal || grandparent !== skillsReal) {
+        return res.status(400).json({ error: 'Refusing to delete: target would escape skill scope' });
+      }
+      deleteTarget = parent;
+    }
+    fs.rmSync(deleteTarget, { recursive: true, force: true });
     refreshMemoryIndexSnapshot();
     res.json({ ok: true, items: collectToolkitItems() });
   } catch (e) {
-    res.status(400).json({ error: String(e instanceof Error ? e.message : e) });
+    const status = e instanceof HttpError ? e.status : 400;
+    res.status(status).json({ error: e instanceof Error ? e.message : String(e) });
   }
 });
 
-const UPLOAD_ALLOWED_EXTS = new Set(['png','jpg','jpeg','gif','webp','svg','bmp','ico','pdf','txt','md','json','csv']);
+// Note: 'svg' intentionally excluded — SVG can contain executable scripts (XSS risk via /file-content).
+const UPLOAD_ALLOWED_EXTS = new Set(['png','jpg','jpeg','gif','webp','bmp','ico','pdf','txt','md','json','csv']);
 
 app.post('/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
-  const ext = ((req.headers['x-file-ext'] as string) || 'png').replace(/[^\w-]/g, '').toLowerCase();
+  // Strip CR/LF from headers — Express may receive multiple values when a client splits with \r\n.
+  // We take only the first valid token and reject any non-alphanumeric/dash content.
+  const rawExt = (req.headers['x-file-ext'] as string) || 'png';
+  if (/[\r\n]/.test(rawExt)) return res.status(400).json({ error: 'Invalid extension header' });
+  const ext = rawExt.replace(/[^\w-]/g, '').toLowerCase();
   if (!UPLOAD_ALLOWED_EXTS.has(ext)) return res.status(400).json({ error: `Extension .${ext} not allowed` });
   const originalName = (req.headers['x-file-name'] as string) || '';
+  // Reject null bytes, CR, LF in filename — Node path.join truncates at \x00, bypassing ext check.
+  if (/[\x00\r\n]/.test(originalName)) return res.status(400).json({ error: 'Invalid filename' });
   const destDir = path.join(os.homedir(), 'Desktop');
   const filename = safeDesktopFilename(originalName, ext || 'bin');
   const filepath = path.join(destDir, filename);
   fs.mkdirSync(destDir, { recursive: true });
   fs.writeFileSync(filepath, req.body as Buffer);
   res.json({ path: filepath });
+});
+
+// JSON error handler — must precede static + catch-all to intercept errors from API routes
+// before the SPA fallback swallows them. 5xx responses use a generic message to avoid leaking
+// internal paths or stack info to the client (full err logged server-side).
+app.use((err: Error & { status?: number; type?: string }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const status = err.status || 500;
+  if (status >= 500) console.error('[error]', err);
+  const message = status >= 500 ? 'Internal error' : (err.message || 'Error');
+  res.status(status).json({ error: message });
 });
 
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
@@ -1161,7 +1443,34 @@ wss.on('connection', (ws) => {
 
       switch (msg.type) {
         case 'create_session': {
-          const session = createSession(msg.cwd, msg.resumePath, msg.sessionName, msg.projectId, msg.initialInput);
+          if (sessions.size >= MAX_SESSIONS) {
+            send(ws, { type: 'error', error: `Max ${MAX_SESSIONS} concurrent sessions reached` });
+            break;
+          }
+          let safeCwd: string | undefined = undefined;
+          if (typeof msg.cwd === 'string' && msg.cwd.trim()) {
+            try {
+              const raw = msg.cwd.trim();
+              // Reject ~user/... (other users' homes) — only ~/path is supported.
+              if (raw.startsWith('~') && raw.length > 1 && raw[1] !== '/') {
+                send(ws, { type: 'error', error: 'Only ~/path tilde expansion is supported' });
+                break;
+              }
+              const expanded = raw.startsWith('~') ? path.join(HOME, raw.slice(1)) : raw;
+              // safePath resolves symlinks AND blocks sensitive dirs, matching all other file APIs.
+              const resolved = safePath(expanded);
+              if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+                safeCwd = resolved;
+              } else {
+                send(ws, { type: 'error', error: 'Invalid cwd — must be an existing directory inside your home' });
+                break;
+              }
+            } catch {
+              send(ws, { type: 'error', error: 'Invalid cwd' });
+              break;
+            }
+          }
+          const session = createSession(safeCwd, msg.resumePath, msg.sessionName, msg.projectId, msg.initialInput);
           broadcast({ type: 'session_created', session: sessionInfo(session) });
           break;
         }
@@ -1200,7 +1509,9 @@ wss.on('connection', (ws) => {
         case 'resize': {
           const session = sessions.get(msg.sessionId!);
           if (session && msg.cols && msg.rows) {
-            try { session.pty.resize(msg.cols, msg.rows); } catch {}
+            const cols = Math.max(10, Math.min(Math.floor(msg.cols), 500));
+            const rows = Math.max(5, Math.min(Math.floor(msg.rows), 200));
+            try { session.pty.resize(cols, rows); } catch {}
           }
           break;
         }
@@ -1213,9 +1524,11 @@ wss.on('connection', (ws) => {
 
         case 'rename_session': {
           const session = sessions.get(msg.sessionId!);
-          if (session && msg.name) {
-            session.name = msg.name;
-            broadcast({ type: 'session_renamed', sessionId: msg.sessionId, name: msg.name });
+          if (session && typeof msg.name === 'string') {
+            const cleaned = msg.name.replace(/[\x00-\x1f]/g, '').slice(0, 80).trim();
+            if (cleaned.length === 0) break;
+            session.name = cleaned;
+            broadcast({ type: 'session_renamed', sessionId: msg.sessionId, name: cleaned });
           }
           break;
         }

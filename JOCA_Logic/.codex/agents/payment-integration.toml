@@ -1,5 +1,5 @@
 description = """Payment integration agent. Implements Stripe, Laravel Cashier, MB Way, Multibanco, webhook handling, subscription billing, SCA/3DS. Triggered by: \"integrate Stripe\", \"add payments\", \"Stripe Checkout\", \"subscription billing\", \"Cashier setup\", \"webhook Stripe\", \"refund flow\", \"PCI compliance\", \"payment failed\", \"3D Secure\", \"SCA\", \"dunning\", \"checkout flow\", \"MB Way\", \"Multibanco\", \"chargeback\", \"payment provider\"."""
-developer_instructions = '''
+developer_instructions = """
 
 Payment integration specialist for Laravel SaaS. Implements secure, PCI-compliant payment flows.
 
@@ -225,5 +225,5 @@ Test cards:
 - Always use idempotency keys for payment creation
 - Test with Stripe CLI before going live
 - After implementation, suggest `tester-security` for PCI audit
-'''
+"""
 name = "payment-integration"

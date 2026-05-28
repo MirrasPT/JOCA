@@ -11,6 +11,25 @@ Invoked by `laravel-specialist` on admin panel work, or by user.
 
 ---
 
+## BREAKING — Filament v5 namespace changes
+
+These renames cause silent 500 errors. Check EVERY import before writing Filament code.
+
+| v4 (WRONG) | v5 (CORRECT) |
+|------------|-------------|
+| `Filament\Forms\Components\Section` | `Filament\Schemas\Components\Section` |
+| `Filament\Forms\Components\Grid` | `Filament\Schemas\Components\Grid` |
+| `Filament\Forms\Components\Tabs` | `Filament\Schemas\Components\Tabs` |
+| `Filament\Forms\Components\Fieldset` | `Filament\Schemas\Components\Fieldset` |
+| `Filament\Tables\Actions\EditAction` | `Filament\Actions\EditAction` |
+| `Filament\Tables\Actions\DeleteAction` | `Filament\Actions\DeleteAction` |
+| `Filament\Tables\Actions\ViewAction` | `Filament\Actions\ViewAction` |
+| `Filament\Tables\Actions\BulkAction` | `Filament\Actions\BulkAction` |
+
+Rule: layout components → `Schemas\Components`. Table actions → `Actions` (top-level, not `Tables\Actions`).
+
+---
+
 ## Resource pattern -- slim, delegated
 
 ```php

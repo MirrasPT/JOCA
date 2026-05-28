@@ -253,6 +253,9 @@ function Button({ variant, size, loading, className, children, ...props }: Butto
 - Never inline styles for repeated styling -- Tailwind or CSS class
 - Never raw hex -- `var(--color-*)` or Tailwind tokens
 - Never `scrollIntoView` -- breaks container scroll
+- Never `opacity: 0` for hover-reveal elements -- use `display: none` → `display: flex` or `position: absolute` overlay. `opacity: 0` still occupies layout space
+- Never assume API decimal fields are `number` -- Laravel/Eloquent serializes decimal as string. Use `Number(value)` before `.toFixed()` or arithmetic
+- Never `<li>` nested inside `<li>` -- React 19 enforces strict DOM nesting. Use `<span>` or `<div>` for inner wrappers
 
 ### Prototype mode (single-file)
 When no React project exists:

@@ -126,13 +126,19 @@ export default function TerminalView({
   const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
 
   useEffect(() => {
+    const ac = new AbortController();
     let mounted = true;
     const poll = () => {
-      fetch('/rate-limits').then(r => r.json()).then(d => { if (mounted) setRateLimits(d); }).catch(() => {});
+      fetch('/rate-limits', { signal: ac.signal })
+        .then(r => r.json())
+        // Endpoint returns multi-tool shape { claude, codex, agy }. The terminal bar only consumes the
+        // Claude slice, which already matches the flat RateLimits shape used here.
+        .then(d => { if (mounted) setRateLimits(d?.claude ?? null); })
+        .catch(() => {});
     };
     poll();
     const id = setInterval(poll, 15000);
-    return () => { mounted = false; clearInterval(id); };
+    return () => { mounted = false; clearInterval(id); ac.abort(); };
   }, []);
 
   const addAttachment = useCallback((path: string) => {
@@ -157,12 +163,16 @@ export default function TerminalView({
     return all.filter((i) => i.name.toLowerCase().includes(query)).slice(0, 12);
   }, [terminalDraft, jocaItems]);
 
-  const showSlashMenu = terminalDraft.startsWith('/') && slashItems.length > 0;
+  const [slashDismissed, setSlashDismissed] = useState(false);
+  const showSlashMenu = terminalDraft.startsWith('/') && slashItems.length > 0 && !slashDismissed;
 
   useEffect(() => {
     if (showSlashMenu) setSlashIndex(0);
     else setSlashIndex(-1);
   }, [showSlashMenu, terminalDraft]);
+
+  // Reset dismissal whenever the draft changes (user typing reopens the menu).
+  useEffect(() => { setSlashDismissed(false); }, [terminalDraft]);
 
   useEffect(() => {
     if (terminalDraft.startsWith('/') && !jocaItems) onLoadJocaItems();
@@ -308,7 +318,7 @@ export default function TerminalView({
         )}
       </div>
       
-      {rateLimits && rateLimits.five_hour?.used_pct != null && (
+      {rateLimits && (rateLimits.context?.used_pct != null || rateLimits.five_hour?.used_pct != null || rateLimits.seven_day?.used_pct != null) && (
         <div className="rate-limits-bar">
           <span className="rl-model">{rateLimits.model}</span>
           {rateLimits.context?.used_pct != null && (
@@ -317,10 +327,12 @@ export default function TerminalView({
               {Math.round(rateLimits.context.used_pct)}%
             </span>
           )}
-          <span className="rl-item rl-5h">
-            5h <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.five_hour.used_pct ?? 0)}%` }} /></span>
-            {Math.round(rateLimits.five_hour.used_pct ?? 0)}%
-          </span>
+          {rateLimits.five_hour?.used_pct != null && (
+            <span className="rl-item rl-5h">
+              5h <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.five_hour.used_pct)}%` }} /></span>
+              {Math.round(rateLimits.five_hour.used_pct)}%
+            </span>
+          )}
           {rateLimits.seven_day?.used_pct != null && (
             <span className="rl-item rl-7d">
               7d <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--7d" style={{ width: `${Math.min(100, rateLimits.seven_day.used_pct)}%` }} /></span>
@@ -396,10 +408,11 @@ export default function TerminalView({
               <PaperclipIcon />
             </button>
             {showSlashMenu && (
-              <div className="slash-menu" ref={slashMenuRef} role="listbox">
+              <div className="slash-menu" id="slash-listbox" ref={slashMenuRef} role="listbox" aria-label="Comandos disponíveis">
                 {slashItems.map((item, i) => (
                   <div
                     key={`${item.type}-${item.name}`}
+                    id={`slash-opt-${item.type}-${item.name}`}
                     className={`slash-menu-item ${i === slashIndex ? 'slash-menu-item--active' : ''}`}
                     role="option"
                     aria-selected={i === slashIndex}
@@ -418,7 +431,12 @@ export default function TerminalView({
               className="terminal-command-input"
               value={terminalDraft}
               placeholder="Escrever mensagem ou comando..."
-              rows={1}
+              aria-label="Mensagem ou comando"
+              role="combobox"
+              aria-expanded={showSlashMenu}
+              aria-controls={showSlashMenu ? 'slash-listbox' : undefined}
+              aria-activedescendant={showSlashMenu && slashItems[slashIndex] ? `slash-opt-${slashItems[slashIndex].type}-${slashItems[slashIndex].name}` : undefined}
+              rows={4}
               onChange={(e) => setTerminalDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (showSlashMenu) {
@@ -427,7 +445,7 @@ export default function TerminalView({
                   if ((e.key === 'Tab' || e.key === 'Enter') && slashIndex >= 0 && slashItems[slashIndex]) {
                     e.preventDefault(); acceptSlashItem(slashItems[slashIndex]); return;
                   }
-                  if (e.key === 'Escape') { e.preventDefault(); setTerminalDraft(''); return; }
+                  if (e.key === 'Escape') { e.preventDefault(); setSlashDismissed(true); return; }
                 }
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

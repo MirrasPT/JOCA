@@ -158,16 +158,6 @@ Lista numerada:
 [1] cPanel   [2] WP Engine   [3] Kinsta   [4] VPS   [5] WordPress.com   [6] Outro: ___
 ```
 
-**Q8 — WordPress MCP Adapter?** *(expõe WP Abilities como MCP tools; requer WP 6.8+)*
-`AskUserQuestion`:
-```
-question: "Instalar WordPress MCP Adapter neste projecto?"
-header: "WP MCP"
-options:
-  - "Sim — instalar via Composer"
-  - "Não"
-```
-
 ### Sub-branch: Shopify
 
 **Q4 — Tipo de trabalho Shopify** *(multi-select)*
@@ -179,27 +169,7 @@ options:
 [ ] Outro: ___
 ```
 
-**Q5 — Shopify AI Toolkit MCP?** *(docs + schema em contexto; requer Node.js 18+)*
-`AskUserQuestion`:
-```
-question: "Instalar Shopify AI Toolkit MCP?"
-header: "Shopify MCP"
-options:
-  - "Sim — MCP server local (sem auth)"
-  - "Sim — plugin (auto-updates)"
-  - "Não"
-```
-
-Se seleccionado:
-```bash
-# Opção 1 — MCP server local
-claude mcp add --transport stdio shopify-dev-mcp -- npx -y @shopify/dev-mcp@latest
-
-# Opção 2 — Plugin
-/plugin marketplace add Shopify/shopify-ai-toolkit
-```
-
-**Q6 — Deploy**
+**Q5 — Deploy**
 Lista numerada:
 ```
 [1] Shopify App Store (público)
@@ -285,7 +255,7 @@ Apresentar sugestões e perguntar se há algo a acrescentar ou remover.
 
 Para cada aspecto específico sem cobertura directa:
 1. Identificar o gap
-2. `WebSearch` em GitHub / mcpmarket.com
+2. `WebSearch` em GitHub e awesome-lists (procurar skill ou CLI relevante)
 3. Apresentar resultado:
 
 ```
@@ -306,43 +276,69 @@ Criar via /create-skill? [S/N/Mais tarde]
 
 ---
 
-## FASE 3 — MCPs do projecto
+## FASE 3 — CLIs do projecto
 
-Apresentar lista de MCPs específicos de projecto:
+Pré-selecção automática baseada no tipo de projecto:
+
+| Tipo projecto       | CLIs sugeridos (pré-marcados)                    |
+|---------------------|--------------------------------------------------|
+| WordPress           | `wp-cli`, `composer`                             |
+| Shopify             | `shopify-cli` (theme/app)                        |
+| Laravel             | `composer`, `stripe-cli` (se usar pagamentos)    |
+| Web app genérico    | `stripe-cli` (se pagamentos), `aws-cli` (se S3)  |
+| Vídeo / Media       | `ffmpeg`, `yt-dlp` — já globais via /install     |
+| Research / Design   | nenhum CLI extra obrigatório                     |
+
+Apresentar lista contextual:
 ```
-Que MCPs específicos este projecto precisa?
-[ ] Blender (3D)
-[ ] Browser Use (automação browser AI-driven)
-[ ] WordPress MCP Adapter (WP 6.8+ — só projectos WP)
-[ ] Shopify AI Toolkit MCP (só projectos Shopify)
+Que CLIs específicos este projecto precisa?
+[ ] wp-cli         — WordPress core/plugin/post management (só projectos WP)
+[ ] shopify-cli    — Shopify dev (theme/app, requer Node 18+)
+[ ] stripe-cli     — webhooks listen, payments testing
+[ ] composer       — PHP package manager (Laravel/WP)
+[ ] aws-cli        — S3, deploy (se file-storage skill activa)
 [ ] Outro: ___
 [ ] Nenhum
 ```
 
-Se Browser Use seleccionado:
-```bash
-pip install browser-use
-```
-Adicionar ao `.mcp.json`:
-```json
-"browser-use": {
-  "command": "uvx",
-  "args": ["browser-use-mcp"]
-}
-```
+> CLIs globais (gh, agy, codex, ffmpeg, yt-dlp, whisperx, sentry-cli, zmail, etc.) instalam-se em `/install` — só listar aqui se faltarem.
 
-Se WordPress MCP Adapter seleccionado:
+**Comandos de instalação:**
+
+**wp-cli** (se seleccionado):
 ```bash
-composer require wordpress/mcp-adapter
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar && sudo mv wp-cli.phar /usr/local/bin/wp
 ```
-Adicionar ao `.mcp.json` do projecto:
-```json
-"wordpress-mcp": {
-  "command": "wp",
-  "args": ["mcp", "start"],
-  "env": { "WP_PATH": "<caminho-para-wp>" }
-}
+Windows: `scoop install wp-cli` (precisa de PHP).
+Verificar: `wp --info`
+
+**shopify-cli** (se seleccionado, projecto Shopify):
+```bash
+npm install -g @shopify/cli @shopify/theme
 ```
+Verificar: `shopify version`. Login: `shopify auth login`.
+
+**stripe-cli** (se seleccionado):
+- macOS: `brew install stripe/stripe-cli/stripe`
+- Linux: download em github.com/stripe/stripe-cli/releases
+- Windows: `scoop install stripe`
+
+Verificar: `stripe --version`. Login: `stripe login`. Teste webhook: `stripe listen --forward-to localhost:8000/webhook`.
+
+**composer** (se seleccionado e em falta):
+- macOS: `brew install composer`
+- Linux: `curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer`
+- Windows: installer em getcomposer.org/download
+
+Verificar: `composer --version`
+
+**aws-cli** (se seleccionado e em falta):
+- macOS: `brew install awscli`
+- Linux: `sudo apt install awscli`
+- Windows: `winget install Amazon.AWSCLI`
+
+Configurar: `aws configure`.
 
 ---
 
@@ -370,13 +366,12 @@ PROJECTO: [nome] — [tipo]
 Stack: [detectado ou declarado]
 
 SKILLS RELEVANTES: [lista]
-SKILLS NOVAS: [lista — se gaps aprovados]
-MCPs PROJECTO: [lista]
+SKILLS NOVAS:      [lista — se gaps aprovados]
+CLIs PROJECTO:     [lista — wp-cli, shopify-cli, stripe-cli, etc.]
 
 FICHEIROS A CRIAR/ACTUALIZAR
   CLAUDE.md                          ← navegação de código + projecto info
   PRD.md                             ← se aprovado na Fase 4
-  .mcp.json                          ← se MCPs de projecto
   [joca]/memory/projects/[nome].md   ← entrada de memória
   ~/CLAUDE.md                        ← adicionar à tabela de projectos activos
 ```
@@ -432,18 +427,11 @@ Se não existir, criar:
 
 Se já existir, adicionar secção de navegação sem apagar conteúdo existente.
 
-### 3. Criar .mcp.json (se MCPs de projecto confirmados)
+### 3. Instalar CLIs do projecto (se confirmados na FASE 3)
 
-```json
-{
-  "mcpServers": {
-    "[nome-mcp]": {
-      "command": "[comando]",
-      "args": ["[args]"]
-    }
-  }
-}
-```
+Correr os comandos de instalação listados na FASE 3 para cada CLI seleccionado. Verificar cada um após instalar (`wp --info`, `shopify version`, `stripe --version`, etc.).
+
+Se algum CLI falhar a instalação, registar como PENDENTE no relatório final com o comando para o utilizador correr manualmente.
 
 ### 4. Criar entrada de memória no JOCA
 
@@ -495,7 +483,7 @@ Para cada skill nova confirmada.
 ```
 ✓ CLAUDE.md do projecto criado/actualizado
 ✓ PRD.md gerado — se aprovado
-✓ .mcp.json configurado — se aplicável
+✓ CLIs do projecto instalados — [lista] (ou PENDENTE com comando manual)
 ✓ Memória: [nome-projecto].md criado (directorio: [caminho])
 ✓ ~/CLAUDE.md actualizado (tabela de projectos)
 [✓/○] graphify actualizado — se disponível
