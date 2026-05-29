@@ -401,59 +401,6 @@
   box-shadow: none;
 }
 
-/* ─── Rate Limits Bar ────────────────────────────────────────────── */
-
-.rate-limits-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 5px 16px;
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
-  color: var(--text-dim, #9e9e9e);
-  border-top: 1px solid var(--border-faint, rgba(255,255,255,0.06));
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-
-.rl-model {
-  color: var(--accent, #ff4500);
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.02em;
-}
-
-.rl-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.rl-ctx { color: #fbbf24; }
-.rl-5h { color: #c084fc; }
-.rl-7d { color: #60a5fa; }
-
-.rl-bar {
-  display: inline-block;
-  width: 52px;
-  height: 4px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 2px;
-  overflow: hidden;
-  vertical-align: middle;
-}
-
-.rl-bar-fill {
-  display: block;
-  height: 100%;
-  background: #fbbf24;
-  border-radius: 2px;
-  transition: width 300ms ease;
-}
-
-.rl-bar-fill--5h { background: #c084fc; }
-.rl-bar-fill--7d { background: #60a5fa; }
 
 .term-svg-icon {
   flex-shrink: 0;

@@ -208,15 +208,21 @@ class HttpError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 
-// Single source of truth for any user-supplied path that the backend will read/write/exec.
-// Resolves symlinks, blocks escape via planted symlinks, blocks sensitive dirs, refuses HOME itself.
-// Returns the REAL (symlink-resolved) path, or throws HttpError(403/400).
-function safePath(targetPath: string): string {
+// Read-only variant: allows HOME itself for directory listing.
+// Use for GET operations only — never for mutations.
+function safePathForRead(targetPath: string): string {
   if (!targetPath) throw new HttpError('Missing path', 400);
   const real = realPathSafe(path.resolve(targetPath));
   if (!isInsideHome(real)) throw new HttpError('Forbidden', 403);
   if (isSensitivePath(real)) throw new HttpError('Forbidden', 403);
-  // HOME itself must never be a target — would delete/overwrite the entire user account.
+  return real;
+}
+
+// Mutation variant: additionally blocks HOME itself to prevent accidental deletion/overwrite.
+// Use for file-op and any write path.
+function safePath(targetPath: string): string {
+  const real = safePathForRead(targetPath);
+  // HOME itself must never be a mutation target — would delete/overwrite the entire user account.
   if (path.resolve(real) === path.resolve(HOME)) throw new HttpError('Forbidden', 403);
   return real;
 }
@@ -1135,7 +1141,7 @@ app.get('/files', (req, res) => {
   // Accept both `hidden=true` (legacy) and `showHidden=true` (frontend convention).
   const showHidden = req.query.hidden === 'true' || req.query.showHidden === 'true';
   let resolved: string;
-  try { resolved = safePath(dirPath); }
+  try { resolved = safePathForRead(dirPath); }
   catch { return res.status(403).json({ error: 'Forbidden' }); }
   try {
     if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'Not found' });
@@ -1150,7 +1156,10 @@ app.get('/files', (req, res) => {
         if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
         return a.name.localeCompare(b.name);
       });
-    res.json({ path: resolved, parent: path.dirname(resolved), entries: result });
+    // When at HOME, expose parent === path so the frontend hides the ".." entry
+    // (navigating above HOME is not allowed).
+    const parent = path.resolve(resolved) === path.resolve(HOME) ? resolved : path.dirname(resolved);
+    res.json({ path: resolved, parent, entries: result });
   } catch { res.status(400).json({ error: 'Read failed' }); }
 });
 

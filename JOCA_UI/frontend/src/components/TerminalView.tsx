@@ -116,30 +116,6 @@ export default function TerminalView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
 
-  interface RateLimits {
-    model: string;
-    context: { used_pct: number | null; input_tokens: number; output_tokens: number };
-    five_hour: { used_pct: number | null; resets_at: number | null };
-    seven_day: { used_pct: number | null; resets_at: number | null };
-    updated_at: number;
-  }
-  const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
-
-  useEffect(() => {
-    const ac = new AbortController();
-    let mounted = true;
-    const poll = () => {
-      fetch('/rate-limits', { signal: ac.signal })
-        .then(r => r.json())
-        // Endpoint returns multi-tool shape { claude, codex, agy }. The terminal bar only consumes the
-        // Claude slice, which already matches the flat RateLimits shape used here.
-        .then(d => { if (mounted) setRateLimits(d?.claude ?? null); })
-        .catch(() => {});
-    };
-    poll();
-    const id = setInterval(poll, 15000);
-    return () => { mounted = false; clearInterval(id); ac.abort(); };
-  }, []);
 
   const addAttachment = useCallback((path: string) => {
     setAttachments((prev) => prev.includes(path) ? prev : [...prev, path]);
@@ -318,29 +294,6 @@ export default function TerminalView({
         )}
       </div>
       
-      {rateLimits && (rateLimits.context?.used_pct != null || rateLimits.five_hour?.used_pct != null || rateLimits.seven_day?.used_pct != null) && (
-        <div className="rate-limits-bar">
-          <span className="rl-model">{rateLimits.model}</span>
-          {rateLimits.context?.used_pct != null && (
-            <span className="rl-item rl-ctx">
-              ctx <span className="rl-bar"><span className="rl-bar-fill" style={{ width: `${Math.min(100, rateLimits.context.used_pct)}%` }} /></span>
-              {Math.round(rateLimits.context.used_pct)}%
-            </span>
-          )}
-          {rateLimits.five_hour?.used_pct != null && (
-            <span className="rl-item rl-5h">
-              5h <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.five_hour.used_pct)}%` }} /></span>
-              {Math.round(rateLimits.five_hour.used_pct)}%
-            </span>
-          )}
-          {rateLimits.seven_day?.used_pct != null && (
-            <span className="rl-item rl-7d">
-              7d <span className="rl-bar"><span className="rl-bar-fill rl-bar-fill--7d" style={{ width: `${Math.min(100, rateLimits.seven_day.used_pct)}%` }} /></span>
-              {Math.round(rateLimits.seven_day.used_pct)}%
-            </span>
-          )}
-        </div>
-      )}
 
       {activeSession && (
         <div className="terminal-command-bar">

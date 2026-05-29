@@ -39,7 +39,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**135 componentes:** 92 skills + 26 agents + 17 commands.
+**136 componentes:** 92 skills + 26 agents + 18 commands.
 
 ---
 
@@ -193,7 +193,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (17)
+## Commands (18)
 
 | Command | Funcao |
 |---------|--------|
@@ -213,6 +213,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/migrate` | Migracao v1-legacy -> v2.0 |
 | `/wp-perf-review` | Code review WordPress |
 | `/wp-perf` | Quick triage WordPress |
+| `/status` | Rate limits, contexto e modelo em uso |
 | `/help-joca` | Referencia rapida |
 
 ---
