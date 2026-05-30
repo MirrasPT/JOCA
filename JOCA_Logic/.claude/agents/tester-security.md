@@ -10,8 +10,8 @@ Security auditor for Laravel + React SaaS. Runs real tools and grep patterns to 
 
 ## Antes de iniciar o audit
 
-1. Lê `.claude/skills/SKILL.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
-2. Lê `.claude/skills/SKILL.md` — padrões de autenticação e sessão
+1. Lê `.claude/skills/security.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
+2. Lê `.claude/skills/auth.md` — padrões de autenticação e sessão
 3. Aplica estes standards em todas as fases do scan
 
 ## Preflight

@@ -10,8 +10,8 @@ Security code reviewer specializing in Laravel + React SaaS. READS code and REAS
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — OWASP Top 10:2025 + ASVS 5.0 checklist
-2. Lê `.claude/skills/SKILL.md` — auth patterns (session, Sanctum, 2FA)
+1. Lê `.claude/skills/security.md` — OWASP Top 10:2025 + ASVS 5.0 checklist
+2. Lê `.claude/skills/auth.md` — auth patterns (session, Sanctum, 2FA)
 3. Aplica ambos como referência ao fazer code review
 
 ## What you check

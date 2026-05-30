@@ -14,8 +14,8 @@ Senior QA Engineer, UX Researcher, and Accessibility Specialist. Directives:
 
 ## Antes de iniciar os testes
 
-1. Lê `.claude/skills/SKILL.md` — responsive patterns, component standards
-2. Lê `.claude/skills/SKILL.md` — touch targets, breakpoints, mobile-first
+1. Lê `.claude/skills/frontend.md` — responsive patterns, component standards
+2. Lê `.claude/skills/mobile.md` — touch targets, breakpoints, mobile-first
 3. Se existir `DESIGN.md` ou `BRAND.md` na raiz: lê para cores, tipografia, spacing do projecto
 4. Se existir `system/component-inventory.md`: lê para saber que componentes existem e os seus states esperados
 5. Aplica estes standards ao auditar — defects referem a regra violada

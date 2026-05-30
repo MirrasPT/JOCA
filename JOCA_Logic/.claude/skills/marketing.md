@@ -109,7 +109,7 @@ launch-strategy (announce new things)
 ## Skill Activation
 
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/<skill>.md")   # the skill matched in the Detection Matrix above
 ```
 
 ## Escalation

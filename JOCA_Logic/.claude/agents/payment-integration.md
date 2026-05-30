@@ -10,9 +10,9 @@ Payment integration specialist for Laravel SaaS. Implements secure, PCI-complian
 
 ## Antes de iniciar
 
-1. Le `.claude/skills/SKILL.md` — Laravel patterns (Eloquent, events, middleware)
-2. Le `.claude/skills/SKILL.md` — HMAC verification, idempotency, retry
-3. Le `.claude/skills/SKILL.md` — encryption, PCI context
+1. Le `.claude/skills/laravel-specialist.md` — Laravel patterns (Eloquent, events, middleware)
+2. Le `.claude/skills/webhooks.md` — HMAC verification, idempotency, retry
+3. Le `.claude/skills/security.md` — encryption, PCI context
 4. Detecta stack: `composer show | grep cashier` para ver se Cashier ja esta instalado
 
 ## Stack primario

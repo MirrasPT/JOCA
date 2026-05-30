@@ -85,6 +85,13 @@ Notify: `[skill: <name>]`. No match → respond directly.
 
 | Detected | Activates |
 |---|---|
+| website · landing page · UI · interface · frontend | `frontend` (director — routes to code specialists) |
+| React perf · re-render · useEffect · RSC · waterfall · bundle | `react-patterns` |
+| compound component · component API · slots · boolean props | `react-composition` |
+| Tailwind · cva · cn() · utility classes · dark mode | `tailwind` |
+| shadcn · shadcn/ui · components.json · npx shadcn · radix component | `shadcn` |
+| React Email · email template · client-safe HTML | `react-email` |
+| design review · is this good · AI slop · critique UI · score design | `design-review` |
 | Laravel · Eloquent · Artisan | `laravel-specialist` |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
@@ -93,6 +100,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | generate video · video clip · motion | `video-gen` (agent) |
 | WordPress · Gutenberg | `wordpress-router` |
 | Shopify · Liquid | `shopify-router` |
+| Wix · Wix CLI · dashboard extension | `wix-cli` |
 | auth · JWT · OAuth · 2FA | `auth` |
 | Stripe · payments · subscriptions | `payment-integration` (agent) |
 | SEO · meta tags · Core Web Vitals | `seo` |
@@ -115,8 +123,10 @@ Notify: `[skill: <name>]`. No match → respond directly.
 |---|---|
 | New Laravel feature | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
 | SaaS / multi-tenant | `plan` → `saas-patterns` → `laravel-specialist` → `tester-security` |
-| UI prototype | `frontend` → `tester-ui-ux` |
-| Frontend production | `plan` → `frontend` → `tester-performance` |
+| Plan design review | `plan` → `design-review` (plan-mode) → `frontend` |
+| UI prototype | `frontend` → `design-review` → `tester-ui-ux` |
+| Frontend production | `design-system` → `frontend` → `react-composition` + `tailwind` + `react-patterns` → `anima` → `design-review` (taste/slop) + `tester-ui-ux` (flows/WCAG) + `tester-performance` (perf) |
+| Email build | `react-email` → `copywriting` → `postmark`/`transactional-email` (send) |
 | API design | `plan` → `rest-api` → `laravel-specialist` → `tester-api` |
 | Debug session | `log-debugger` → `query-debugger` (if SQL) |
 | One-shot (PRD→prod) | `master-orchestrator` → parallel agents → `tester-*` (auto) |

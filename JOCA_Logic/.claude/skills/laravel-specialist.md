@@ -245,28 +245,28 @@ php artisan test --coverage         # >85%, zero failures
 ### API design (rest-api)
 When designing endpoints or defining contracts:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/rest-api.md")
 ```
 Notify: `[+ rest-api]`
 
 ### Query optimization (mysql)
 When queries are slow or need EXPLAIN:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/mysql.md")
 ```
 Notify: `[+ mysql]`
 
 ### Admin panel (filament)
 When needing Filament Resources, Pages, Widgets:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/filament.md")
 ```
 Notify: `[+ filament]`
 
 ### Caching (caching)
 When needing Redis cache, HTTP headers, CDN, invalidation:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/caching.md")
 ```
 Notify: `[+ caching]`
 

@@ -344,7 +344,7 @@ Configurar: `aws configure`.
 
 ## FASE 4 — PRD
 
-Activar skill `prd`: ler `.claude/skills/SKILL.md`.
+Activar skill `prd`: ler `.claude/skills/prd.md`.
 
 `AskUserQuestion`:
 ```

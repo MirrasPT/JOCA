@@ -9,8 +9,8 @@ Design system auditor. Validates completeness, consistency, and accessibility co
 
 ## Antes de iniciar o audit
 
-1. Lê `.claude/skills/SKILL.md` — regras de tokens (3-tier, DTCG, OKLCH)
-2. Lê `.claude/skills/SKILL.md` — regras de componentes (6 states, ARIA, touch targets)
+1. Lê `.claude/skills/design-tokens.md` — regras de tokens (3-tier, DTCG, OKLCH)
+2. Lê `.claude/skills/component-system.md` — regras de componentes (6 states, ARIA, touch targets)
 3. Se existir `DESIGN.md` ou `BRAND.md` na raiz: lê para paleta e tipografia do projecto
 4. Usa estes standards como referência para todas as validações
 

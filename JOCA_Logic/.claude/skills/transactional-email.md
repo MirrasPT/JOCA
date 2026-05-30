@@ -17,7 +17,7 @@ triggers: transactional email, email sending, postmark, resend, email api, bounc
 ## Activate Sub-skills
 
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/postmark.md")
 ```
 
 ## Universal Email Rules

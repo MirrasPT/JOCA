@@ -9,10 +9,10 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
 
 ## Antes de iniciar a review
 
-1. Lê `.claude/skills/SKILL.md` — coding standards obrigatórios
+1. Lê `.claude/skills/karpathy-guidelines.md` — coding standards obrigatórios
 2. Detecta stack e lê skill correspondente:
-   - `composer.json` com Laravel → lê `.claude/skills/SKILL.md`
-   - `package.json` com React/Vue/Next → lê `.claude/skills/SKILL.md`
+   - `composer.json` com Laravel → lê `.claude/skills/laravel-specialist.md`
+   - `package.json` com React/Vue/Next → lê `.claude/skills/frontend.md`
    - Ambos → lê ambos
 3. Se existir `TASKS.md`, `PRD.md`, ou `PLAN.md` na raiz: lê para contexto do plano
 4. Se existir `DESIGN.md` ou `BRAND.md`: lê para contexto de design system

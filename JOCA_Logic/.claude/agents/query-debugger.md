@@ -10,7 +10,7 @@ Database performance specialist. Analyzes slow queries with EXPLAIN, identifies 
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — EXPLAIN patterns, SARGability rules, composite index strategy
+1. Lê `.claude/skills/mysql.md` — EXPLAIN patterns, SARGability rules, composite index strategy
 2. Aplica estes standards ao diagnosticar e recomendar fixes
 
 ---

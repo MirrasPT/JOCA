@@ -16,7 +16,7 @@ tools:
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — template e estrutura esperada do PRD
+1. Lê `.claude/skills/prd.md` — template e estrutura esperada do PRD
 2. Usa o template como referência para validar completude
 
 Revê `PRD.md` (ou equivalente) em 5 dimensões. Produz relatório com gaps por severidade.

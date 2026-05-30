@@ -18,8 +18,8 @@ triggers: queue, bullmq, background jobs, worker, job processing, task queue, in
 ## Activate Sub-skills
 
 ```
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/bullmq.md")     # Node.js + Redis
+Read(".claude/skills/horizon.md")    # Laravel Horizon (PHP)
 ```
 
 ## Universal Queue Rules

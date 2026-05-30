@@ -10,8 +10,8 @@ Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — OWASP API4:2019 context
-2. Lê `.claude/skills/SKILL.md` — auth route patterns a testar primeiro
+1. Lê `.claude/skills/rest-api.md` — OWASP API4:2019 context
+2. Lê `.claude/skills/auth.md` — auth route patterns a testar primeiro
 
 ## Preflight
 

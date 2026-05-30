@@ -10,7 +10,7 @@ Debugging specialist. Given an error, log file, or symptom, finds root cause in 
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — ferramentas de debug disponíveis (Debugbar, Telescope, Ray, Clockwork, Pail)
+1. Lê `.claude/skills/error-tracking-dev.md` — ferramentas de debug disponíveis (Debugbar, Telescope, Ray, Clockwork, Pail)
 2. Se encontrar slow queries → sugerir `query-debugger` como follow-up
 3. Se encontrar padrões recorrentes cross-service → sugerir `error-detective` (agente built-in)
 

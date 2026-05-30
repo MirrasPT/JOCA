@@ -3,11 +3,13 @@ name: frontend
 description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, protótipo, prototype, ui, ux."
 triggers: website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme
 ---
-# Frontend
+# Frontend — Design Director + Router
 
 Designer + developer. HTML and React. Awwwards as standard, not aspiration.
 
 Each project is different. Never converge on the same choices. If someone looks and says "AI made this" -- failed.
+
+**This skill is the director.** It owns design *direction* (philosophy, taste, UX, anti-slop) and **routes code work to specialists**. Read the relevant specialist BEFORE writing that layer's code.
 
 ---
 
@@ -18,6 +20,34 @@ Each project is different. Never converge on the same choices. If someone looks 
 | "protótipo", "mockup", "mostra-me", "testa isto", explorar ideias, sem repo React existente | **Prototype** -- single-file HTML+React+Babel via CDN, abre com duplo-clique |
 | Repo React/Next.js existente, "implementa", "componente", "produção", PR, deploy | **Production** -- React+TypeScript+Tailwind, component architecture |
 | Ambiguo | Perguntar |
+
+---
+
+## Routing — invoke specialists (read before writing that layer)
+
+The director decides direction, then delegates craft. Notify in 1 line: `[+ <skill>]`.
+
+| Layer / task | Specialist | Read |
+|--------------|-----------|------|
+| **Design contract** (tokens, component specs, brand) | `design-system` (router) → `brand-guidelines` · `design-tokens` · `component-system` | `Read(".claude/skills/design-system.md")` |
+| **React perf/correctness** (re-renders, effects, data-fetching, RSC, bundle) | `react-patterns` | `Read(".claude/skills/react-patterns.md")` |
+| **Component API shape** (compound, context, slots, React 19 ref, kill boolean soup) | `react-composition` | `Read(".claude/skills/react-composition.md")` |
+| **Styling** (Tailwind 4, cva, cn, dark mode, responsive) | `tailwind` | `Read(".claude/skills/tailwind.md")` |
+| **shadcn/ui project** (has `components.json`, Radix+Tailwind copy-paste components) | `shadcn` | `Read(".claude/skills/shadcn.md")` |
+| **Email templates** (React Email, client-safe HTML) | `react-email` | `Read(".claude/skills/react-email.md")` |
+| **Motion** (GSAP scroll/hero/hover, Lottie icons) | `anima` | `Read(".claude/skills/anima.md")` |
+| **Responsive/touch depth** | `mobile` | `Read(".claude/skills/mobile.md")` |
+| **Images** | `img-gen` | `Read(".claude/skills/img-gen.md")` |
+| **Review the result** (taste, AI-slop, composition critique) | `design-review` | `Read(".claude/skills/design-review.md")` |
+
+**Typical production flow:**
+```
+design-system (contract) → frontend (direction + assembly)
+   → react-composition (component shape) + tailwind (styling) + react-patterns (perf)
+   → anima (motion) → design-review (taste/slop/composition) + tester-ui-ux (flows/WCAG) + tester-performance (perf)
+```
+(`html-review` is NOT a UI reviewer — it converts planning `.md` docs to HTML. Design critique = `design-review`.)
+Read specialists on demand when their layer comes up — never pre-load all of them.
 
 ---
 
@@ -36,7 +66,7 @@ Rule: `WebSearch "<product> 2026 latest"`. Read 1-3 results. If uncertain -- ask
 ### DESIGN.md
 If present in project -- **read before any code.** Extract `--color-*` tokens, typography, logo paths. Apply in CSS `:root {}`.
 
-If absent and brand exists -- suggest `brand-guidelines` skill first.
+If absent and brand exists -- suggest `brand-guidelines` skill first (via `design-system`).
 
 ### Brand Asset Protocol (when brand involved)
 
@@ -81,6 +111,15 @@ Answer 3 questions:
 - **Tone** -- pick ONE extreme and execute with precision: brutalist / maximalist / editorial / luxury / organic / playful / industrial / quiet sophistication / raw energy / retro-futuristic
 - **Unforgettable element** -- the one element the user will remember?
 
+### Written pre-build artifact (before any production code)
+
+Write 3 lines, show them, then build to them:
+1. **Visual thesis** — one sentence: mood + material + energy ("warm editorial, paper texture, calm confidence").
+2. **Content plan** — section list, each with ONE job: explain / prove / deepen / convert (hero → support → detail → final CTA).
+3. **Interaction thesis** — 2-3 motions that change how the page *feels* (one hero entrance + one scroll/depth + one hover/reveal).
+
+Hard caps unless an existing strong system overrides: **max 2 typefaces, 1 accent color, one dominant idea per section.**
+
 If vision is maximalist -- code is elaborate with extensive animations.
 If vision is minimal -- restraint, precision, spacing and typography.
 Match execution depth to vision intensity.
@@ -92,7 +131,7 @@ Match execution depth to vision intensity.
   - **Restrained** -- neutrals + 1 accent <= 10% (default product)
   - **Committed** -- 1 saturated color 30-60% (strong identity)
   - **Drenched** -- the surface IS the color (heroes, campaigns)
-- Semantic CSS variables. Never raw hex in components.
+- Semantic CSS variables. Never raw hex in components. (Tokens → `design-tokens`; Tailwind mapping → `tailwind`.)
 - Light and dark designed together, not one after the other.
 - WCAG 4.5:1 body text, 3:1 large text.
 
@@ -108,7 +147,9 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 ### Layout
 - Vary spacing for rhythm. Same padding everywhere = monotony.
 - Asymmetry, overlap, diagonal flow, grid-breaking > centered symmetric.
-- Cards are the lazy answer -- use only when genuinely the best affordance.
+- **Cardless by default.** Sections, columns, dividers, lists, media blocks > cards. A card only when the card IS the interaction. If a panel works as plain layout without losing meaning, drop the card treatment. (Stacked-cards app UI is the #1 AI tell.)
+- **Full-bleed hero:** hero runs edge-to-edge — no inherited page gutters, framed container, or shared max-width; constrain only the inner text/action column. First viewport is a poster, not a document.
+- **Viewport budget:** sticky/fixed header counts against the hero. Header + hero must fit the initial viewport — use `calc(100svh - var(--header-h))` or overlay the header, don't stack.
 - Z-index scale defined as tokens, never ad-hoc.
 
 ---
@@ -140,6 +181,10 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 
 **Rule:** if removing an element loses no info, don't add it.
 
+### Anti-convergence (output diversity)
+
+Before committing fonts / accent / aesthetic: check `memory/projects/` for the last JOCA-generated project's choices and **deliberately diverge.** Never converge on the same display font (e.g. Space Grotesk) or palette across projects. If every JOCA page would look alike, the direction failed.
+
 ---
 
 ## #5 Design Advisor (direction undefined)
@@ -165,110 +210,28 @@ Don't guess and build. Enter advisor mode:
 
 ---
 
-## #6 React + Production
+## #6 Production stack (then delegate)
 
-### Stack default
+Default stack the specialists assume:
 ```
 React 19 + TypeScript + Vite + Tailwind CSS 4
 ```
-
 Alternatives accepted: Next.js (SSR/SSG), Remix, Astro (when it fits).
 
-### Component architecture
+Standard component architecture:
 ```
 src/
-  components/
-    ui/            -- Button, Input, Card, Modal (base)
-    layout/        -- Header, Footer, Sidebar, Container
-    sections/      -- Hero, Features, Pricing, Testimonials
-  hooks/           -- custom hooks
-  lib/
-    utils.ts       -- cn(), formatters
-    constants.ts
-  styles/
-    globals.css    -- design tokens (:root CSS variables)
-  types/           -- TypeScript interfaces
-  pages/           -- route components
+  components/{ui,layout,sections}/   hooks/   lib/{utils.ts,constants.ts}
+  styles/globals.css                 types/   pages/
 ```
 
-### Design tokens -> CSS
-```css
-:root {
-  --color-primary: oklch(0.6 0.15 250);
-  --color-surface: oklch(0.98 0.01 250);
-  --color-text: oklch(0.15 0.02 250);
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Source Sans 3', sans-serif;
-  --space-1: 4px; --space-2: 8px; --space-4: 16px;
-  --space-8: 32px; --space-16: 64px;
-  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 150ms; --duration-base: 250ms;
-}
-```
+Then hand off the craft:
+- **Component shape & API** → `react-composition` (compound, context, slots, controlled/uncontrolled)
+- **Styling & variants** → `tailwind` (`@theme`, `cva`, `cn`, dark mode)
+- **Performance & data** → `react-patterns` (re-renders, effects, waterfalls, RSC, bundle, Lighthouse targets)
+- **Motion** → `anima`
 
-### Component pattern (cva + TypeScript)
-```tsx
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
-
-const buttonVariants = cva(
-  'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed',
-  {
-    variants: {
-      variant: {
-        primary: 'bg-primary text-white hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-      },
-      size: {
-        sm: 'h-9 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-11 px-8 text-base',
-      }
-    },
-    defaultVariants: { variant: 'primary', size: 'md' }
-  }
-);
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof buttonVariants> {
-  loading?: boolean;
-}
-
-function Button({ variant, size, loading, className, children, ...props }: ButtonProps) {
-  return (
-    <button className={cn(buttonVariants({ variant, size }), className)} disabled={loading || props.disabled} {...props}>
-      {loading && <Spinner className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
-      {children}
-    </button>
-  );
-}
-```
-
-### Anti-patterns React
-- Never generic `const styles = {...}` -- always unique names (`heroStyles`, `cardStyles`)
-- Never `any` in TypeScript
-- Never monolithic components > 200 lines -- compose
-- Never inline styles for repeated styling -- Tailwind or CSS class
-- Never raw hex -- `var(--color-*)` or Tailwind tokens
-- Never `scrollIntoView` -- breaks container scroll
-- Never `opacity: 0` for hover-reveal elements -- use `display: none` → `display: flex` or `position: absolute` overlay. `opacity: 0` still occupies layout space
-- Never assume API decimal fields are `number` -- Laravel/Eloquent serializes decimal as string. Use `Number(value)` before `.toFixed()` or arithmetic
-- Never `<li>` nested inside `<li>` -- React 19 enforces strict DOM nesting. Use `<span>` or `<div>` for inner wrappers
-
-### Prototype mode (single-file)
-When no React project exists:
-```html
-<script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel">
-  // React inline -- abre com file://
-</script>
-```
-- Never `const styles = {...}` without unique names
-- Multiple babel scripts don't share scope -- export via `Object.assign(window, {...})`
+The director assembles sections and enforces direction; specialists own their layer's correctness.
 
 ---
 
@@ -298,30 +261,33 @@ When no React project exists:
 - `min-height: 100dvh` (not `100vh`)
 - `aspect-ratio` or explicit `width`/`height` on images (CLS prevention)
 
+### Utility copy (product UI ≠ marketing)
+
+Dashboards/admin/app surfaces use **utility copy**, not marketing copy:
+- Headings say what the area IS or what you can do: "Selected KPIs", "Plan status", "Last sync" — not "Unlock powerful insights".
+- Litmus: an operator scanning only headings/labels/numbers understands the page.
+- **No hero on a dashboard** unless explicitly asked.
+- Active voice, Title Case, numerals for counts ("8 deployments"), specific button labels ("Save API Key" not "Continue"), error messages that state the fix.
+
+(Marketing/landing copy → `copywriting`, `landing-page`.)
+
 ---
 
-## #8 Invoke specialists autonomously
+## #8 Prototype mode (single-file)
 
-During development, invoke without asking the user:
+When no React project exists:
+```html
+<script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+  // React inline -- abre com file://
+</script>
+```
+- Never `const styles = {...}` without unique names (`heroStyles`, `cardStyles`)
+- Multiple babel scripts don't share scope -- export via `Object.assign(window, {...})`
 
-### Animation (anima)
-When design needs motion -- scroll reveals, hero entrance, hover effects, page transitions:
-```
-Read(".claude/skills/SKILL.md")
-```
-Apply patterns directly. For complex animations (timeline sequences, scroll-driven narratives), spawn agent:
-```
-Agent(subagent_type="general-purpose", prompt="[brief with file + animation type + constraints]")
-```
-
-### Mobile/Responsive (mobile)
-After first design draft, invoke to improve responsive:
-```
-Read(".claude/skills/SKILL.md")
-```
-Apply touch, safe areas, and responsive patterns automatically.
-
-Notify in 1 line: `[+ anima]` or `[+ mobile]` when activating.
+Prototype is the director's own territory (fast, no build) — specialists kick in for production repos.
 
 ---
 
@@ -331,6 +297,8 @@ When asked `/components` or "generate component library":
 
 1. `components.md` -- design tokens + typography + each component with props and states
 2. `components.html` -- interactive visual library with preview of all components
+
+(Formal specs → `component-system`; styling implementation → `tailwind` + `react-composition`.)
 
 ---
 
@@ -347,16 +315,16 @@ On request ("review", "score", "is this good?") or proactively when output seems
 
 Output: total + **Keep** + **Fix** (critical / important / optimization) + **Quick Wins** (top 3 in < 5 min).
 
----
+### Falsifiable self-tests (run before delivery)
 
-## #11 Performance (production)
+Not opinions — pass/fail gates:
+- **Remove-the-image test** — if the first viewport still works without the hero image, the image is too weak.
+- **Hide-the-nav test** — if the brand disappears when the nav is hidden, the hierarchy is too weak.
+- **Delete-30%-copy test** — if cutting 30% of copy improves the page, keep cutting.
+- **Remove-shadows test** — if it stops feeling premium with all decorative shadows removed, the design leaned on decoration.
+- **Cardless test** — if any panel becomes plain layout without losing meaning, remove the card.
 
-- Images: WebP/AVIF with `srcset`, `loading="lazy"` below the fold
-- Fonts: `font-display: swap`, preload only critical
-- Code splitting: `React.lazy()` + dynamic imports per route
-- Bundle: verify with `vite-bundle-visualizer`
-- `font-display: swap` or `optional`
-- Virtualize lists with 50+ items
+For a full, structured review pass (3-pillar rubric, AI-slop reject, file:line lint, verdict) → hand to the **`design-review`** skill. This #10 is the quick inline critique during generation.
 
 ---
 
@@ -376,21 +344,36 @@ Output: total + **Keep** + **Fix** (critical / important / optimization) + **Qui
 - [ ] CSS variables from DESIGN.md applied
 - [ ] No `any` in TypeScript
 - [ ] Focus visible on all interactives
+- [ ] Code-craft specialists' checklists passed (`react-patterns`, `react-composition`, `tailwind`)
 
 ---
 
 ## Quality Gate
 
-After delivery, suggest: "Want `tester-ui-ux`?"
+After delivery, suggest the right reviewer by need:
+- **`design-review`** (skill) — taste, AI-slop, composition critique + file:line lint. The default "is this good?" pass.
+- **`tester-ui-ux`** (agent) — QA flows + deep WCAG/screen-reader/keyboard.
+- **`tester-performance`** (agent) — Lighthouse / load (production).
 
-For production, also suggest: "Want `tester-performance`?"
+(`html-review` is unrelated — it converts planning `.md` to HTML for stakeholders, not UI review.)
 
 ---
 
 ## Related skills
 
-- `brand-guidelines` -- generate DESIGN.md before this skill
-- `anima` -- GSAP + Lottie animations (invoked autonomously)
-- `mobile` -- responsive and mobile-first (invoked autonomously)
-- `img-gen` -- generate images when needed
+**Code craft (invoked by this director):**
+- `react-patterns` -- re-renders, effects, data fetching, bundle, RSC
+- `react-composition` -- compound components, context, slots, React 19
+- `tailwind` -- Tailwind 4, cva, cn, dark mode, responsive
+- `shadcn` -- shadcn/ui component toolkit (Radix + Tailwind, CLI-driven)
+- `react-email` -- email templates (React Email)
+
+**Design contract:**
+- `design-system` -- router for `brand-guidelines` → `design-tokens` → `component-system`
+
+**Support:**
+- `anima` -- GSAP + Lottie (invoked autonomously)
+- `mobile` -- responsive and mobile-first
+- `img-gen` -- generate images
+- `html-review` -- review UI vs current web standards
 - `video` -- export HTML animations as MP4/GIF

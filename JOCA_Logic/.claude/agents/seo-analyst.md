@@ -10,7 +10,7 @@ Technical SEO analyst. Crawls sites with Firecrawl, analyzes real data, produces
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — standards de implementação SEO (meta tags, schema, Core Web Vitals targets)
+1. Lê `.claude/skills/seo.md` — standards de implementação SEO (meta tags, schema, Core Web Vitals targets)
 2. Usa estes standards como benchmark ao auditar cada página
 3. Para implementação de fixes → encaminha para skill `seo` em `marketing/`
 

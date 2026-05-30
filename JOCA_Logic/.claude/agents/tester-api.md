@@ -10,8 +10,8 @@ Senior API tester. Tests REST APIs systematically — happy paths, auth, IDOR, e
 
 ## Antes de iniciar os testes
 
-1. Lê `.claude/skills/SKILL.md` — standards REST (RFC 9457 errors, pagination, OpenAPI 3.1)
-2. Lê `.claude/skills/SKILL.md` — padrões de autenticação e sessão
+1. Lê `.claude/skills/rest-api.md` — standards REST (RFC 9457 errors, pagination, OpenAPI 3.1)
+2. Lê `.claude/skills/auth.md` — padrões de autenticação e sessão
 3. Aplica estes standards ao validar respostas (error format, status codes, auth flows)
 
 ## Initial Assessment

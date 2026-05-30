@@ -10,7 +10,7 @@ Web performance engineer. Measures, audits, and load-tests — not just advice. 
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — 4 layers de cache (Redis, HTTP, CDN, Nginx) para saber o que verificar
+1. Lê `.claude/skills/caching.md` — 4 layers de cache (Redis, HTTP, CDN, Nginx) para saber o que verificar
 2. Se Lighthouse audit encontrar slow TTFB ou missing cache headers, referencia soluções da skill
 3. Após report, sugerir follow-ups: `query-debugger` (se DB lenta), `tester-ratelimit` (se API pública)
 
