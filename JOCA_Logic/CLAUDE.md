@@ -93,6 +93,11 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | React Email · email template · client-safe HTML | `react-email` |
 | design review · is this good · AI slop · critique UI · score design | `design-review` |
 | Laravel · Eloquent · Artisan | `laravel-specialist` |
+| Filament · admin panel · backoffice · CMS · widget · infolist | `filament` |
+| scaffold filament · build resource from model · admin for model | `filament-builder` (agent) |
+| connect admin to frontend · Inertia · Sanctum SPA · share types | `laravel-react` |
+| refactor laravel · dead code · optimize · Larastan · scale | `laravel-refactor` (agent) |
+| security code review · IDOR · mass assignment · OWASP | `security-review` (agent) |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
 | slides · pitch deck | `slides` |
@@ -123,6 +128,10 @@ Notify: `[skill: <name>]`. No match → respond directly.
 |---|---|
 | New Laravel feature | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
 | SaaS / multi-tenant | `plan` → `saas-patterns` → `laravel-specialist` → `tester-security` |
+| Admin panel (Filament) | `laravel-specialist` → `filament` / `filament-builder` (agent) → `tester-code` |
+| Admin ↔ frontend | `laravel-react` → (backend `laravel-specialist` · API) + (frontend `frontend` cluster · consume) |
+| Backend hardening | `laravel-refactor` (agent: dead code/complexity/Larastan/scale) + `query-debugger` (queries) + `security-review` (security) |
+| E-commerce full-stack | `plan` → `saas-patterns` → `laravel-specialist` → `filament-builder` (admin) → `laravel-react` (API) → `frontend`+`shadcn` (storefront) → `payment-integration` → hardening |
 | Plan design review | `plan` → `design-review` (plan-mode) → `frontend` |
 | UI prototype | `frontend` → `design-review` → `tester-ui-ux` |
 | Frontend production | `design-system` → `frontend` → `react-composition` + `tailwind` + `react-patterns` → `anima` → `design-review` (taste/slop) + `tester-ui-ux` (flows/WCAG) + `tester-performance` (perf) |

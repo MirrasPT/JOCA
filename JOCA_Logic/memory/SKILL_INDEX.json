@@ -334,6 +334,14 @@
   },
   {
     "type": "skill",
+    "name": "laravel-react",
+    "category": "general",
+    "path": ".claude\\skills\\laravel-react.md",
+    "description": "Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA cookie or token), CORS, API contracts, TypeScript type sharing. MUST be invoked when the user says: lara",
+    "triggers": []
+  },
+  {
+    "type": "skill",
     "name": "laravel-specialist",
     "category": "general",
     "path": ".claude\\skills\\laravel-specialist.md",
@@ -841,6 +849,22 @@
   },
   {
     "type": "agent",
+    "name": "filament-builder",
+    "category": "agents",
+    "path": ".claude\\agents\\filament-builder.md",
+    "description": "Use to scaffold a complete Filament (v4/v5) admin resource from an Eloquent model — form, table, infolist, relation managers, and policy. Triggered by: \\\"build filament resource\\\", \\\"scaffold filame",
+    "triggers": [
+      "\\\"build filament resource\\",
+      "\\\"scaffold filament\\",
+      "\\\"generate admin for\\",
+      "\\\"filament crud for\\",
+      "\\\"make filament resource\\",
+      "\\\"admin panel for this model\\",
+      "\\\"filament resource from model\\"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "gemini-auditor",
     "category": "agents",
     "path": ".claude\\agents\\gemini-auditor.md",
@@ -870,6 +894,25 @@
     "path": ".claude\\agents\\img-gen-openai.md",
     "description": ">",
     "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "laravel-refactor",
+    "category": "agents",
+    "path": ".claude\\agents\\laravel-refactor.md",
+    "description": "Use to refactor and optimize Laravel code for scale — remove dead code, reduce complexity, fix N+1s, extract to Actions, run Larastan/PHPStan, and harden for scalability. Triggered by: \\\"refactor la",
+    "triggers": [
+      "\\\"refactor laravel\\",
+      "\\\"optimize laravel\\",
+      "\\\"clean up this code\\",
+      "\\\"dead code\\",
+      "\\\"unused code\\",
+      "\\\"reduce complexity\\",
+      "\\\"larastan\\",
+      "\\\"phpstan\\",
+      "\\\"fat controller\\",
+      "\\\"scale this\\"
+    ]
   },
   {
     "type": "agent",
