@@ -26,23 +26,48 @@ If not installed: `npm install -g @anthropic-ai/antigravity` then `agy auth logi
 
 ## Image generation via agy
 
+**CRITICAL — `agy --print` reads the prompt from STDIN, not as an argument.**
+Passing the prompt as `agy -p "..."` or `agy --print "..."` (positional/value) leaves stdin
+empty and the process **hangs forever** waiting for input. Always **pipe the prompt via stdin**
+and pass `--dangerously-skip-permissions` so tool calls (image gen, file reads) auto-approve.
+
 ```bash
-agy -p "Generate an image: PROMPT_HERE. Save the image to OUTPUT_PATH."
+# macOS / Linux — pipe prompt via stdin
+echo "Generate an image: PROMPT_HERE. Save the generated image to OUTPUT_PATH." \
+  | agy --print --dangerously-skip-permissions
 ```
 
-For complex prompts:
+```powershell
+# Windows PowerShell — write prompt to a file, pipe with -Raw (avoids quoting issues)
+Get-Content -Raw prompt.txt | agy --print --dangerously-skip-permissions
+```
 
-```bash
-agy -p "Generate an image with these specifications:
+For complex prompts, write the full brief to a temp file and pipe it:
+
+```
+Generate an image with these specifications:
 Subject: [subject]
 Style: [style]
 Aspect ratio: [ratio]
 Colour palette: [colours]
 Mood: [atmosphere]
-Save the generated image as: OUTPUT_PATH"
+Reference images to read first: [absolute paths, if any]
+Save the generated image as: OUTPUT_PATH
 ```
 
-Images are saved to `~/.gemini/antigravity-cli/brain/<session>/` by default — copy to the requested path after.
+Notes:
+- `agy` is agentic: to use reference images, give absolute paths in the prompt and tell it to
+  read them first (no `-i` flag exists on `agy`).
+- The model's text reply is rendered to the TUI and is **not** reliably captured by stdout pipes —
+  do not rely on stdout. Verify success by checking the saved file instead.
+- Images are saved to `~/.gemini/antigravity-cli/brain/<session>/` by default. If `agy` does not
+  write directly to the requested path, copy the newest PNG from that dir to the destination after.
+- **Aspect ratio: `agy`/nano_banana only outputs 1:1 (1024×1024).** It IGNORES aspect-ratio requests
+  in the prompt (verified — asking for 16:9 still returns square). If the user needs a non-square
+  ratio: either deliver 1:1, or extend to the target ratio afterwards (codex/gpt-image-2 outpaint, or
+  ffmpeg pad/crop). Outpainting via another model can soften rendered label text — for crisp text in a
+  wide ratio, prefer `img-gen-openai` (gpt-image-2 honours 16:9 natively, ~1672×941; upscale to 2K with
+  `ffmpeg -vf scale=2048:1152:flags=lanczos`).
 
 ## Prompt construction rules
 

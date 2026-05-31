@@ -9,6 +9,8 @@ Analyse request, pick CLI, craft prompt, spawn agent.
 
 ## 1. Model selection
 
+**ROUTING RULE:** Gemini = 1:1 only (ignores ratio). Ratio != 1:1 -> use img-gen-openai.
+
 ### Use Codex CLI / OpenAI (`img-gen-openai`) when:
 - **Text in image** -- labels, signs, product names, headlines, packaging copy, any readable text requiring accuracy
 - **Product shots** -- branded packaging, bottles with labels, logo mockups, exact brand identity
@@ -17,12 +19,12 @@ Analyse request, pick CLI, craft prompt, spawn agent.
 - **Reference-image editing** -- heavy transforms or restyle of existing image
 - **Dense typography / diagrams** -- infographics with labels, data viz with text
 - **High-fidelity delivery** -- final hero image, client deliverable
+- **Any non-square aspect ratio** (16:9, portrait, ultra-wide) -- gpt-image-2 honours ratios natively (~1672x941 for 16:9); upscale to 2K via `ffmpeg scale=2048:1152:flags=lanczos`
 
 ### Use Antigravity CLI / Gemini (`img-gen-google`) when:
 - **General imagery** -- people, animals, landscapes, scenes, abstract patterns, textures, backgrounds
 - **Simple/emotional concepts** -- "cute fluffy dog", "misty mountain", "warm cafe interior"
 - **Quick drafts / iteration** -- explore directions cheaply
-- **Unusual aspect ratios** -- ultra-narrow (1:4), ultra-wide (4:1, 21:9)
 - **High-volume generation** -- 10+ images, batch workflows
 - **Web/UI backgrounds** -- abstract gradients, textures, UI mockup backgrounds
 - **No text in image required**
