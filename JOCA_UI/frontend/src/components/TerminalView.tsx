@@ -100,6 +100,38 @@ function LinkIcon() {
   );
 }
 
+// Built-in Claude Code slash commands (shown alongside JOCA's own /commands).
+const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
+  { name: 'add-dir', description: 'Add a working directory' },
+  { name: 'agents', description: 'Manage custom subagents' },
+  { name: 'bug', description: 'Report a bug to Anthropic' },
+  { name: 'clear', description: 'Clear conversation history' },
+  { name: 'compact', description: 'Compact conversation to save context' },
+  { name: 'config', description: 'Open settings' },
+  { name: 'context', description: 'Show token / context usage' },
+  { name: 'cost', description: 'Show token cost of this session' },
+  { name: 'doctor', description: 'Diagnose Claude Code setup' },
+  { name: 'export', description: 'Export the conversation' },
+  { name: 'help', description: 'Show help and available commands' },
+  { name: 'hooks', description: 'Manage hooks' },
+  { name: 'ide', description: 'Connect to an IDE' },
+  { name: 'init', description: 'Generate a CLAUDE.md for the project' },
+  { name: 'login', description: 'Switch Anthropic account' },
+  { name: 'logout', description: 'Sign out' },
+  { name: 'mcp', description: 'Manage MCP servers' },
+  { name: 'memory', description: 'Edit Claude memory files' },
+  { name: 'model', description: 'Change the active model' },
+  { name: 'output-style', description: 'Change the output style' },
+  { name: 'permissions', description: 'Manage tool permissions' },
+  { name: 'pr-comments', description: 'Get comments from a GitHub PR' },
+  { name: 'release-notes', description: 'Show release notes' },
+  { name: 'resume', description: 'Resume a previous conversation' },
+  { name: 'review', description: 'Review a pull request' },
+  { name: 'status', description: 'Show account & system status' },
+  { name: 'terminal-setup', description: 'Configure terminal key bindings' },
+  { name: 'vim', description: 'Toggle vim editing mode' },
+];
+
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
@@ -129,12 +161,20 @@ export default function TerminalView({
   const slashMenuRef = useRef<HTMLDivElement>(null);
 
   const slashItems = useMemo(() => {
-    if (!terminalDraft.startsWith('/') || !jocaItems) return [];
+    if (!terminalDraft.startsWith('/')) return [];
     const query = terminalDraft.slice(1).toLowerCase();
     const all: { type: string; name: string; description?: string; insert: string }[] = [];
-    for (const c of jocaItems.commands) all.push({ type: 'command', name: `/${c.name}`, description: c.description, insert: `/${c.name}` });
-    for (const s of jocaItems.skills) all.push({ type: 'skill', name: s.name, description: s.description, insert: s.insert || s.name });
-    for (const a of jocaItems.agents) all.push({ type: 'agent', name: a.name, description: a.description, insert: a.insert || a.name });
+    const jocaCommandNames = new Set<string>();
+    if (jocaItems) {
+      for (const c of jocaItems.commands) { jocaCommandNames.add(c.name.toLowerCase()); all.push({ type: 'command', name: `/${c.name}`, description: c.description, insert: `/${c.name}` }); }
+      for (const s of jocaItems.skills) all.push({ type: 'skill', name: s.name, description: s.description, insert: s.insert || s.name });
+      for (const a of jocaItems.agents) all.push({ type: 'agent', name: a.name, description: a.description, insert: a.insert || a.name });
+    }
+    // Base Claude Code commands — skip any name a JOCA command already provides.
+    for (const b of CLAUDE_BASE_COMMANDS) {
+      if (jocaCommandNames.has(b.name)) continue;
+      all.push({ type: 'claude', name: `/${b.name}`, description: b.description, insert: `/${b.name}` });
+    }
     if (!query) return all.slice(0, 12);
     return all.filter((i) => i.name.toLowerCase().includes(query)).slice(0, 12);
   }, [terminalDraft, jocaItems]);
