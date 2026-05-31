@@ -141,7 +141,8 @@ const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
 const MAX_SESSIONS = 30;
 // Path allowlist for any value written into a PTY shell line. Unicode letters/numbers + safe punctuation.
-const PATH_SAFE = /^[\p{L}\p{N}._/\- @()&,+:']+$/u;
+// Includes both / and \ so Windows absolute paths (C:\Users\...) pass; still rejects shell metachars (" ; | $ ` newline).
+const PATH_SAFE = /^[\p{L}\p{N}._/\\ @()&,+:'-]+$/u;
 
 function findJocaLogicRoot(): string {
   if (process.env.JOCA_LOGIC_PATH) {
@@ -168,12 +169,6 @@ const JOCA_LOGIC_ROOT = findJocaLogicRoot();
 const CLAUDE_DIR = path.join(JOCA_LOGIC_ROOT, '.claude');
 const MEMORY_INDEX_FILE = path.join(JOCA_LOGIC_ROOT, 'memory', 'INDEX.md');
 
-function isInsideHome(targetPath: string) {
-  const resolved = path.resolve(targetPath);
-  const relative = path.relative(HOME, resolved);
-  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
-}
-
 function isInside(root: string, targetPath: string) {
   const resolved = path.resolve(targetPath);
   const relative = path.relative(path.resolve(root), resolved);
@@ -184,6 +179,40 @@ function isInside(root: string, targetPath: string) {
 // Falls back to the lexical path if realpath fails (file doesn't exist yet, etc).
 function realPathSafe(p: string): string {
   try { return fs.realpathSync.native(p); } catch { return p; }
+}
+
+// Roots the file APIs are allowed to serve. HOME is always allowed. On Windows every
+// existing fixed drive (C:\, D:\, ...) is allowed so the user can browse and add
+// projects that live across disks. Override / extend with JOCA_EXTRA_ROOTS
+// (path-list separated by ';' on Windows, ':' elsewhere). Sensitive-path blocking
+// (.ssh, credentials, ...) still applies on top of this, scoped to HOME.
+function computeAllowedRoots(): string[] {
+  const roots = new Set<string>([path.resolve(HOME)]);
+  const extra = process.env.JOCA_EXTRA_ROOTS;
+  if (extra) {
+    for (const r of extra.split(IS_WINDOWS ? ';' : ':')) {
+      const trimmed = r.trim();
+      if (trimmed) roots.add(path.resolve(trimmed));
+    }
+  }
+  if (IS_WINDOWS) {
+    for (let code = 65 /* A */; code <= 90 /* Z */; code++) {
+      const drive = `${String.fromCharCode(code)}:\\`;
+      try { if (fs.existsSync(drive)) roots.add(path.resolve(drive)); } catch { /* drive not ready */ }
+    }
+  }
+  return [...roots];
+}
+const ALLOWED_ROOTS = computeAllowedRoots();
+
+function isInsideAllowedRoot(targetPath: string): boolean {
+  const resolved = path.resolve(targetPath);
+  return ALLOWED_ROOTS.some((root) => isInside(root, resolved));
+}
+
+function isAllowedRoot(targetPath: string): boolean {
+  const resolved = path.resolve(targetPath);
+  return ALLOWED_ROOTS.some((root) => resolved === path.resolve(root));
 }
 
 // Sensitive subdirs of $HOME that must NEVER be served via the file APIs, regardless of any
@@ -213,17 +242,17 @@ class HttpError extends Error {
 function safePathForRead(targetPath: string): string {
   if (!targetPath) throw new HttpError('Missing path', 400);
   const real = realPathSafe(path.resolve(targetPath));
-  if (!isInsideHome(real)) throw new HttpError('Forbidden', 403);
+  if (!isInsideAllowedRoot(real)) throw new HttpError('Forbidden', 403);
   if (isSensitivePath(real)) throw new HttpError('Forbidden', 403);
   return real;
 }
 
-// Mutation variant: additionally blocks HOME itself to prevent accidental deletion/overwrite.
+// Mutation variant: additionally blocks any allowed root itself (HOME, drive roots) to
+// prevent accidental deletion/overwrite of an entire account or disk.
 // Use for file-op and any write path.
 function safePath(targetPath: string): string {
   const real = safePathForRead(targetPath);
-  // HOME itself must never be a mutation target — would delete/overwrite the entire user account.
-  if (path.resolve(real) === path.resolve(HOME)) throw new HttpError('Forbidden', 403);
+  if (isAllowedRoot(real)) throw new HttpError('Forbidden', 403);
   return real;
 }
 
@@ -1156,11 +1185,23 @@ app.get('/files', (req, res) => {
         if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
         return a.name.localeCompare(b.name);
       });
-    // When at HOME, expose parent === path so the frontend hides the ".." entry
-    // (navigating above HOME is not allowed).
-    const parent = path.resolve(resolved) === path.resolve(HOME) ? resolved : path.dirname(resolved);
+    // Expose parent === path (frontend hides the ".." entry) when at a filesystem root
+    // or when going up would leave every allowed root. Otherwise navigation up is allowed.
+    const up = path.dirname(resolved);
+    const parent = (up === resolved || !isInsideAllowedRoot(up)) ? resolved : up;
     res.json({ path: resolved, parent, entries: result });
   } catch { res.status(400).json({ error: 'Read failed' }); }
+});
+
+// Roots the file browser may jump straight to: HOME plus every allowed drive/extra root.
+// Lets the UI offer a drive selector (C:\, D:\, ...) instead of forcing ".." navigation.
+app.get('/roots', (_req, res) => {
+  const roots = ALLOWED_ROOTS.map((r) => ({
+    path: r,
+    label: r === path.resolve(HOME) ? '~' : r,
+    isHome: r === path.resolve(HOME),
+  }));
+  res.json({ home: path.resolve(HOME), roots });
 });
 
 app.post('/file-op', express.json({ limit: '10mb' }), (req, res) => {
@@ -1298,8 +1339,8 @@ app.get('/file-diff', (req, res) => {
     let root = '';
     try { root = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf8' }).trim(); } catch {}
     if (!root) return res.json({ diff: '', message: 'No git repository found for this path' });
-    // Git can resolve to a worktree/submodule outside HOME — re-validate the resolved root.
-    if (!isInsideHome(realPathSafe(root))) return res.json({ diff: '', message: 'Git root outside home' });
+    // Git can resolve to a worktree/submodule outside the allowed roots — re-validate.
+    if (!isInsideAllowedRoot(realPathSafe(root))) return res.json({ diff: '', message: 'Git root outside allowed roots' });
     const relative = path.relative(root, filePath);
     const diff = execFileSync('git', ['diff', '--', relative], { cwd: root, encoding: 'utf8', maxBuffer: 5_000_000 });
     res.json({ diff, root, relative });

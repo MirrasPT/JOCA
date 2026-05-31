@@ -128,6 +128,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   const [recentFolders, setRecentFolders] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('joca:file-recents') || '[]'); } catch { return []; }
   });
+  const [roots, setRoots] = useState<{ path: string; label: string; isHome: boolean }[]>([]);
   const prevInitialPath = useRef<string | undefined>(undefined);
   const currentPathRef = useRef<string>('');
 
@@ -166,6 +167,13 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     navigate(initialPath ?? '');
     prevInitialPath.current = initialPath;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetch('/roots')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data?.roots) setRoots(data.roots); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (initialPath !== undefined && initialPath !== prevInitialPath.current) {
@@ -357,6 +365,14 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
       )}
 
       {/* Breadcrumb */}
+      {roots.filter((r) => !r.isHome).length > 0 && (
+        <div className="fb-memory-strip" aria-label="Drives">
+          {roots.filter((r) => !r.isHome).map((r) => (
+            <button key={`root-${r.path}`} type="button" onClick={() => navigate(r.path)} title={r.path}>{r.label}</button>
+          ))}
+        </div>
+      )}
+
       <div className="fb-breadcrumb">
         <button
           className="fb-crumb fb-crumb-home"

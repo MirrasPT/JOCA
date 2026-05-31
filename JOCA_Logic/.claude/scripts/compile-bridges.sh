@@ -45,7 +45,7 @@ sync_skills() {
 
     if [[ ! -f "$dest" ]] || ! cmp -s "$skill_file" "$dest"; then
       dry "cp $rel_path" && cp "$skill_file" "$dest"
-      ((count++))
+      count=$((count + 1))
     fi
   done < <(find "$SKILLS_DIR" -name "SKILL.md" -print0 2>/dev/null)
 
@@ -61,7 +61,7 @@ sync_skills() {
 
     if [[ ! -f "$dest" ]] || ! cmp -s "$skill_file" "$dest"; then
       dry "cp $rel_path" && cp "$skill_file" "$dest"
-      ((count++))
+      count=$((count + 1))
     fi
   done < <(find "$SKILLS_DIR" -maxdepth 2 -name "*.md" ! -name "SKILL.md" -print0 2>/dev/null)
 
@@ -121,7 +121,7 @@ developer_instructions = """
 ${body}"""
 name = "${name}"
 TOML
-      ((count++))
+      count=$((count + 1))
     fi
   done
 
@@ -165,16 +165,14 @@ Terse. Sem artigos, filler, hedging. Fragmentos OK. Termos técnicos exactos. C�
 4. Verificável — define critérios de sucesso antes de começar
 
 ## Skills disponíveis
-Skills vivem em `.claude/skills/<categoria>/<nome>/SKILL.md`. Ler directamente quando relevante.
-
-Categorias: base/ · design/ · dev/ · tools/ · marketing/ · video/
+Skills vivem em `.claude/skills/<nome>.md` (flat, depth 1). Ler directamente quando relevante.
 
 ### Activação
 Detectar contexto da tarefa e ler a skill relevante:
-- Laravel/Eloquent → `.claude/skills/dev/laravel-specialist/SKILL.md`
-- React/frontend → `.claude/skills/design/frontend-dev/SKILL.md`
-- SEO/meta → `.claude/skills/marketing/seo/SKILL.md`
-- Vídeo/animation → `.claude/skills/video/SKILL.md`
+- Laravel/Eloquent → `.claude/skills/laravel-specialist.md`
+- React/frontend → `.claude/skills/frontend.md`
+- SEO/meta → `.claude/skills/seo.md`
+- Vídeo/animation → `.claude/skills/video.md`
 
 ## Agentes
 Agentes vivem em `.claude/agents/<nome>.md`. São sub-tarefas especializadas.
@@ -183,7 +181,7 @@ Principais: tester-code, tester-api, tester-security, tester-ui-ux, tester-perfo
 
 ## Estrutura
 ```
-.claude/skills/   ← skills por categoria
+.claude/skills/   ← skills flat (1 .md por skill)
 .claude/agents/   ← agentes especializados
 .claude/commands/ ← comandos slash
 .claude/scripts/  ← scripts utilitários
@@ -236,8 +234,7 @@ Desactivar: "stop caveman" / "normal mode". Auto-clarify em: avisos de seguranç
 4. **Verificável** — define critérios de sucesso antes de começar; multi-step: plano com check por step
 
 ## Skills
-Skills vivem em `.agents/skills/<categoria>/<nome>/SKILL.md` (mirror de `.claude/skills/`).
-Categorias: base/ · design/ · dev/ · tools/ · marketing/ · video/
+Skills vivem em `.agents/skills/<nome>.md` (flat mirror of `.claude/skills/`).
 
 Activar = ler directamente o SKILL.md relevante. Nunca responder genericamente quando existe skill.
 
@@ -259,7 +256,7 @@ Principais:
 | Workflow | Sequência |
 |---|---|
 | Nova feature Laravel | plan → laravel-specialist → tester-code → tester-api |
-| Frontend produção | plan → frontend-dev → tester-performance → tester-security |
+| Frontend produção | plan → frontend → tester-performance → tester-security |
 | Debug sessão | log-debugger → query-debugger (se SQL) |
 
 ## Regras de Orquestração
