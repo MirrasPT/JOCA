@@ -84,9 +84,9 @@ projecto/
 ## Como activar sub-skills
 
 ```
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/brand-guidelines.md")
+Read(".claude/skills/design-tokens.md")
+Read(".claude/skills/component-system.md")
 Agent(subagent_type="design-system-audit")
 ```
 

@@ -200,6 +200,8 @@ public function failed(\Throwable $e): void
 | `json_encode()` on field with `array` cast | Let Eloquent handle serialization — double-encode bug |
 | Assume decimal fields arrive as `number` in JS | Eloquent serializes decimal as string. Use `Number(value)` or `'decimal'` cast |
 | `rm` storage files without checking FK | Always query `media` table before deleting physical files |
+| Nested route binding without scope | `->scopeBindings()` on nested groups — child must belong to parent (prevents cross-tenant/cross-parent record leak via ID swap) |
+| Service/repository for one-off logic | Action class (no single-use abstraction) |
 
 ---
 
@@ -236,6 +238,7 @@ php artisan route:list --path=api   # routes visible
 php artisan queue:work --once       # no exceptions
 php artisan test --coverage         # >85%, zero failures
 ./vendor/bin/pint --test            # PSR-12 OK
+vendor/bin/phpstan analyse          # Larastan — zero errors at configured level
 ```
 
 ---
@@ -245,34 +248,44 @@ php artisan test --coverage         # >85%, zero failures
 ### API design (rest-api)
 When designing endpoints or defining contracts:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/rest-api.md")
 ```
 Notify: `[+ rest-api]`
 
 ### Query optimization (mysql)
 When queries are slow or need EXPLAIN:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/mysql.md")
 ```
 Notify: `[+ mysql]`
 
 ### Admin panel (filament)
 When needing Filament Resources, Pages, Widgets:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/filament.md")
 ```
 Notify: `[+ filament]`
 
 ### Caching (caching)
 When needing Redis cache, HTTP headers, CDN, invalidation:
 ```
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/caching.md")
 ```
 Notify: `[+ caching]`
+
+### Connect to a React frontend (laravel-react)
+When wiring the API/admin to a React SPA or storefront (Sanctum, CORS, Inertia, type sharing):
+```
+Read(".claude/skills/laravel-react.md")
+```
+Notify: `[+ laravel-react]`
 
 ---
 
 ## Quality gate
 After implementation: "Run `tester-code`?"
 After endpoints: "Run `tester-api`?"
+Refactor / dead code / scale / Larastan: spawn `laravel-refactor` agent
+Full Filament resource from a model: spawn `filament-builder` agent
+Security code review: spawn `security-review` agent
 On error: spawn `log-debugger`

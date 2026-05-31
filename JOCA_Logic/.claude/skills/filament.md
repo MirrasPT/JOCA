@@ -28,6 +28,8 @@ These renames cause silent 500 errors. Check EVERY import before writing Filamen
 
 Rule: layout components → `Schemas\Components`. Table actions → `Actions` (top-level, not `Tables\Actions`).
 
+Navigation props (`$navigationGroup`) must be typed `string|\UnitEnum|null`, not `?string`, or `discoverPages` fatals with "Type must be UnitEnum|string|null" and 500s the panel.
+
 ---
 
 ## Resource pattern -- slim, delegated
@@ -46,7 +48,7 @@ final class ProductResource extends Resource
     protected static ?string $slug = 'products';
     protected static ?string $recordTitleAttribute = 'name'; // obrigatorio -- global search
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
-    protected static ?string $navigationGroup = 'Shop';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -115,7 +117,7 @@ enum OrderStatus: string implements HasLabel, HasColor, HasIcon
         };
     }
 
-    public function getIcon(): string|null
+    public function getIcon(): string|\BackedEnum|null
     {
         return match ($this) {
             self::Pending    => Heroicon::OutlinedClock,
@@ -126,6 +128,8 @@ enum OrderStatus: string implements HasLabel, HasColor, HasIcon
     }
 }
 ```
+
+> **Gotcha:** `HasIcon::getIcon()` returns `string|\BackedEnum|null` in v5 — return the Heroicon enum **case** (`Heroicon::OutlinedClock`), never `->value`. Returning the string value bypasses the enum's SVG resolution and throws `Svg ... not found` when the badge renders.
 
 ---
 
@@ -175,6 +179,41 @@ Select::make('team_id')
 ```
 
 Without this = **data leak between tenants**.
+
+---
+
+## RBAC / Filament Shield
+
+`shield:install` does **not** migrate the spatie permissions table. Run the steps in this order or `shield:generate` fails with *"Table 'permissions' doesn't exist"*:
+
+```bash
+php artisan shield:install <panel>
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate
+php artisan shield:generate --all
+php artisan shield:super-admin --user=1
+```
+
+`shield:generate` creates one Policy per resource (`$user->can('ViewAny:X')`). Under `RefreshDatabase` the DB has no permissions, so every Filament test 403s. Add a super_admin bypass in `AppServiceProvider::boot()` — more robust than seeded permissions (which `RefreshDatabase` wipes) and how the real admin gets full access:
+
+```php
+use Illuminate\Support\Facades\Gate;
+
+Gate::before(fn ($user, $ability) =>
+    method_exists($user, 'hasRole') && $user->hasRole('super_admin') ? true : null);
+```
+
+TestCase helper — `findOrCreate` the role and assign it to the acting user:
+
+```php
+protected function superAdmin(): User
+{
+    $role = \Spatie\Permission\Models\Role::findOrCreate('super_admin');
+    $user = User::factory()->create();
+    $user->assignRole($role);
+    return $user;
+}
+```
 
 ---
 

@@ -77,14 +77,14 @@ O que precisas agora?
 ## Activating sub-skills
 
 ```
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
-Read(".claude/skills/SKILL.md")
+Read(".claude/skills/plan.md")            # execution plan per session
+Read(".claude/skills/prd.md")             # PRD.md — requirements
+Read(".claude/skills/tech-spec.md")       # TECH_SPEC.md — technical design
+Read(".claude/skills/adr.md")             # decisions
+Read(".claude/skills/c4-diagram.md")      # Mermaid architecture diagrams
+Read(".claude/skills/task-breakdown.md")  # TASKS.md — epics/stories
+Read(".claude/skills/rfc.md")             # proposals / breaking changes
+Read(".claude/skills/html-review.md")     # docs → HTML for stakeholders
 ```
 
 ---

@@ -28,6 +28,8 @@ These renames cause silent 500 errors. Check EVERY import before writing Filamen
 
 Rule: layout components → `Schemas\Components`. Table actions → `Actions` (top-level, not `Tables\Actions`).
 
+Navigation props (`$navigationGroup`) must be typed `string|\UnitEnum|null`, not `?string`, or `discoverPages` fatals with "Type must be UnitEnum|string|null" and 500s the panel.
+
 ---
 
 ## Resource pattern -- slim, delegated
@@ -46,7 +48,7 @@ final class ProductResource extends Resource
     protected static ?string $slug = 'products';
     protected static ?string $recordTitleAttribute = 'name'; // obrigatorio -- global search
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
-    protected static ?string $navigationGroup = 'Shop';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -115,7 +117,7 @@ enum OrderStatus: string implements HasLabel, HasColor, HasIcon
         };
     }
 
-    public function getIcon(): string|null
+    public function getIcon(): string|\BackedEnum|null
     {
         return match ($this) {
             self::Pending    => Heroicon::OutlinedClock,
@@ -126,6 +128,8 @@ enum OrderStatus: string implements HasLabel, HasColor, HasIcon
     }
 }
 ```
+
+> **Gotcha:** `HasIcon::getIcon()` returns `string|\BackedEnum|null` in v5 — return the Heroicon enum **case** (`Heroicon::OutlinedClock`), never `->value`. Returning the string value bypasses the enum's SVG resolution and throws `Svg ... not found` when the badge renders.
 
 ---
 
@@ -175,6 +179,162 @@ Select::make('team_id')
 ```
 
 Without this = **data leak between tenants**.
+
+---
+
+## RBAC / Filament Shield
+
+`shield:install` does **not** migrate the spatie permissions table. Run the steps in this order or `shield:generate` fails with *"Table 'permissions' doesn't exist"*:
+
+```bash
+php artisan shield:install <panel>
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate
+php artisan shield:generate --all
+php artisan shield:super-admin --user=1
+```
+
+`shield:generate` creates one Policy per resource (`$user->can('ViewAny:X')`). Under `RefreshDatabase` the DB has no permissions, so every Filament test 403s. Add a super_admin bypass in `AppServiceProvider::boot()` — more robust than seeded permissions (which `RefreshDatabase` wipes) and how the real admin gets full access:
+
+```php
+use Illuminate\Support\Facades\Gate;
+
+Gate::before(fn ($user, $ability) =>
+    method_exists($user, 'hasRole') && $user->hasRole('super_admin') ? true : null);
+```
+
+TestCase helper — `findOrCreate` the role and assign it to the acting user:
+
+```php
+protected function superAdmin(): User
+{
+    $role = \Spatie\Permission\Models\Role::findOrCreate('super_admin');
+    $user = User::factory()->create();
+    $user->assignRole($role);
+    return $user;
+}
+```
+
+---
+
+## Advanced building blocks
+
+### Infolists (View page — read-only)
+```php
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
+
+public static function infolist(Schema $schema): Schema
+{
+    return $schema->components([
+        Section::make('Order')->schema([
+            TextEntry::make('reference')->copyable(),
+            TextEntry::make('status')->badge(),          // enum HasColor/HasIcon → coloured badge
+            TextEntry::make('total')->money('EUR'),
+        ])->columns(3),
+    ]);
+}
+```
+
+### Relation Managers (hasMany / belongsToMany on the Edit/View page)
+```php
+php artisan make:filament-relation-manager OrderResource items name
+```
+```php
+final class ItemsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'items';
+    public function table(Table $table): Table
+    {
+        return $table->columns([...])->headerActions([CreateAction::make()])
+            ->recordActions([EditAction::make(), DeleteAction::make()]);
+    }
+}
+// Register in the Resource: public static function getRelations(): array { return [ItemsRelationManager::class]; }
+```
+
+### Widgets (dashboard)
+```php
+// Stats overview
+final class OrderStats extends StatsOverviewWidget
+{
+    protected function getStats(): array
+    {
+        return [
+            Stat::make('Revenue (30d)', Number::currency($revenue, 'EUR'))
+                ->chart($spark)->color('success'),
+            Stat::make('Pending', $pending)->color('warning'),
+        ];
+    }
+}
+// Chart widget → extends ChartWidget; Table widget → extends TableWidget.
+// Register: getHeaderWidgets()/getFooterWidgets() on a Page, or auto-discovered Dashboard widgets.
+```
+
+### Custom Actions (row / bulk / header)
+```php
+use Filament\Actions\Action;
+
+Action::make('refund')
+    ->requiresConfirmation()
+    ->schema([TextInput::make('amount')->numeric()->required()])   // modal form: ->schema NOT ->form
+    ->action(fn (Order $record, array $data) => app(RefundAction::class)->handle($record, $data))
+    ->visible(fn (Order $record) => $record->isRefundable());
+```
+Business logic stays in an Action class (`laravel-specialist`) — the Filament action only collects input and delegates.
+
+### Global search
+```php
+protected static ?string $recordTitleAttribute = 'name';          // required
+public static function getGloballySearchableAttributes(): array { return ['name', 'sku', 'reference']; }
+public static function getGlobalSearchResultDetails(Model $record): array {
+    return ['Category' => $record->category->name];
+}
+```
+
+### Import / Export (bulk data — CMS/e-commerce)
+```php
+use Filament\Actions\ImportAction; use Filament\Actions\ExportAction;
+// toolbarActions([ ImportAction::make()->importer(ProductImporter::class),
+//                  ExportAction::make()->exporter(ProductExporter::class) ])
+php artisan make:filament-importer Product --generate
+php artisan make:filament-exporter Product --generate
+```
+Importers/exporters run on the **queue** by default (offload — see `queues`/`horizon`).
+
+### Notifications
+```php
+use Filament\Notifications\Notification;
+Notification::make()->title('Saved')->success()->send();            // to current user
+Notification::make()->title('New order')->sendToDatabase($admin);   // persistent + bell badge
+```
+
+---
+
+## CMS / content patterns
+
+- **Pages/blocks:** `Builder` field (repeatable typed blocks: hero, text, gallery, CTA) → renders to the storefront via `laravel-react`.
+- **Media:** `spatie/laravel-medialibrary` + `SpatieMediaLibraryFileUpload` (conversions, responsive images → `file-storage`).
+- **Menus/navigation:** dedicated resource + ordering (`->reorderable()`).
+- **SEO fields:** a `Section::make('SEO')` (meta title/description/og-image) on content resources.
+- **Slugs:** `TextInput::make('slug')->live(onBlur:true)` from title; unique/`scopedUnique`.
+- **Publishing:** `published_at` + status enum; storefront query filters `whereNotNull('published_at')`.
+
+---
+
+## Validation tooling
+
+- **FilaCheck** (`aldesrahim/filacheck`) — static analyzer for Filament code; catches deprecated methods + v5 namespace errors (our #1 silent-500 source). Run before delivery: `vendor/bin/filacheck`.
+- **Filament Compass** (`aldesrahim/filament-compass`) — Filament v5 docs structured for LLMs; load via Laravel Boost MCP for accurate, current API reference instead of guessing.
+
+---
+
+## Generation
+
+For a full resource from an existing model (form + table + infolist + relation managers + policy + validation), use the **`filament-builder`** agent:
+```
+Agent(subagent_type="filament-builder", prompt="Build a Filament resource for App\\Models\\Product — full CRUD + View")
+```
 
 ---
 
