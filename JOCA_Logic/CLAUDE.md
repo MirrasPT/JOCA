@@ -108,6 +108,8 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | Wix · Wix CLI · dashboard extension | `wix-cli` |
 | auth · JWT · OAuth · 2FA | `auth` |
 | Stripe · payments · subscriptions | `payment-integration` (agent) |
+| ifthenpay · Multibanco · MB WAY · pagamento PT | `portugal-payments` |
+| Moloni · faturação · fatura · nota de crédito · IVA PT | `portugal-invoicing` |
 | SEO · meta tags · Core Web Vitals | `seo` |
 | copywriting · landing page · CTA | `copywriting` |
 | email sequence · drip · nurture | `email-sequence` |

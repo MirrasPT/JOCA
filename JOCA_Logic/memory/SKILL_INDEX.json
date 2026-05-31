@@ -779,6 +779,44 @@
   },
   {
     "type": "skill",
+    "name": "portugal-invoicing",
+    "category": "general",
+    "path": ".claude\\skills\\portugal-invoicing.md",
+    "description": "Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or Vendus — invoices, invoice-receipts, credit notes, IVA, AT series communication, ATCUD/QR. MUST b",
+    "triggers": [
+      "Moloni",
+      "faturação",
+      "fatura",
+      "fatura-recibo",
+      "invoice Portugal",
+      "nota de crédito",
+      "credit note Portugal",
+      "InvoiceXpress",
+      "Vendus",
+      "AT comunicação"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "portugal-payments",
+    "category": "general",
+    "path": ".claude\\skills\\portugal-payments.md",
+    "description": "Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. MUST be invoked when the user says: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, refer�",
+    "triggers": [
+      "ifthenpay",
+      "Multibanco",
+      "MB WAY",
+      "MBWay",
+      "MBWAY",
+      "pagamento Portugal",
+      "referencia multibanco",
+      "referência multibanco",
+      "anti-phishing key",
+      "antiPhishingKey"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "postmark",
     "category": "general",
     "path": ".claude\\skills\\postmark.md",
@@ -1219,7 +1257,7 @@
     "name": "wix-cli",
     "category": "general",
     "path": ".claude\\skills\\wix-cli.md",
-    "description": "Develop, build and deploy Wix CLI projects (apps + headless sites): project structure, extension types (dashboard/backend/site), CLI commands, and bootstrap of the official Wix skills + MCP. MUST be i",
+    "description": "Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI commands, official Wix skills; (2) edit an EXISTING classic Wix Editor site's catalog/content via the W",
     "triggers": []
   },
   {

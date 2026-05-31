@@ -70,6 +70,22 @@ Codex generates images natively through OpenAI's gpt-image-2 model. Output goes 
 `~/.codex/generated_images/<session>/` by default — codex copies to the requested path when told,
 otherwise copy the newest PNG from that dir afterwards.
 
+## Reliability (Windows/codex)
+
+- **LF line endings in prompt files.** Write `prompt.txt` with LF, not CRLF. PowerShell `Set-Content`
+  emits CRLF, which makes codex warn `carriage return must be followed by newline`. Normalize:
+  `[IO.File]::WriteAllText($path, ($body -replace "`r`n","`n"))` or pipe the prompt via stdin string.
+- **Force the imagegen tool, no web search.** In ~1/3 of runs codex derails into a web search
+  (e.g. "how to save generated image from API") instead of calling the tool. The prompt MUST state
+  explicitly: "use the imagegen tool directly, do NOT web search". Launch **N+1 attempts** for N
+  requested images to absorb derailed runs.
+- **Prefer inline over delegated on Windows.** When spawned as a subagent, codex sometimes behaves as
+  if it has no shell and just echoes the command back as text. On Windows, generation runs more
+  reliably **inline via PowerShell** than delegated to a subagent.
+- **API-doc fallback (WebFetch).** WebFetch cannot read JS-rendered API docs (Swagger/Redoc/Scalar) —
+  it returns an empty shell. Fall back to the raw OpenAPI spec path (`/openapi.json`, `/swagger.json`)
+  or use firecrawl.
+
 ## Prompt construction rules
 
 Be explicit and literal. The model follows detailed instructions closely.

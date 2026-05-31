@@ -87,6 +87,10 @@ Generative edits drift — discipline prevents it:
 - Compositing: describe the interaction ("place subject from Image 2 into the scene of Image 1, matching its lighting").
 - Masks / `input_fidelity` / background-transparency → these are CLI-only params (`img-gen-openai`), never on a built-in tool.
 
+### Product shots with fixed layout/colour (refs)
+- **Use the official composite/scene photo as the single reference**, not loose individual components. Passing separate bottles/objects as refs makes gpt-image-2 invent composition and colour (observed: Rosé rendered coral/peach, capsule colour wrong, variants swapped). One canonical scene ref preserves identity.
+- **"Real glass vs mockup" 2nd pass:** first generation often looks like a flat mockup. A second pass emphasising "real photographed glass / physical product, natural reflections" corrects the plastic/flat look.
+
 ## 3. Agent invocation
 
 Spawn with structured brief:
@@ -112,3 +116,5 @@ If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel.
 - Never overwrite an existing asset unless replacement is explicitly requested — write a sibling versioned name (`hero-v2.png`).
 
 **Report:** taxonomy slug, CLI used, final saved path(s), final prompt, key parameters. If multiple images, list all paths.
+
+**Colour-faithful conversion:** for "convert without changing colours" (e.g. JPG→WEBP), check the source colour space first. **ffmpeg shifts CMYK** images (with ICC profile) — it treats the 4th channel as YUV/alpha. Use **Pillow** instead: `ImageCms.profileToProfile(img, src_icc, srgb, outputMode='RGB')` then save WEBP `lossless=True, exact=True`. ffmpeg is fine for RGB sources.

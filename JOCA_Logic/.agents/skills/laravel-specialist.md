@@ -157,6 +157,9 @@ Route::prefix('v1/posts')
 | Job | `{Action}{Resource}Job` | `PublishPostJob` |
 | Route name | `{resource}:{version}:{action}` | `posts:v1:store` |
 
+### Windows + Sail (no host PHP)
+`./vendor/bin/sail` is a bash script and won't run in PowerShell. Drive Sail via `docker compose` directly, exporting `$env:WWWUSER`/`$env:WWWGROUP` first; on PHP 8.5 fix `storage/` perms (tempnam returns 500 otherwise). Full host-specific note: see the `laravel-sail-windows` memory.
+
 ---
 
 ## Jobs -- async returns 202

@@ -23,7 +23,53 @@ Se graphify não disponível: avisar que knowledge graph não estará disponíve
 
 ## FASE 1 — Contexto do projecto
 
-**Q1 — Estado do projecto**
+**Q1 — Natureza do projecto** *(branch cedo — define todo o fluxo)*
+`AskUserQuestion`:
+```
+question: "Que tipo de trabalho é este projecto?"
+header: "Natureza"
+options:
+  - "Dev (código) — construir/manter software"
+  - "Conteúdo / Marketing — site ou canal existente (copy, SEO, conteúdo)"
+```
+
+- **Dev** → fluxo completo (graphify + stack/backend/db). Continua para Q2.
+- **Conteúdo / Marketing** → SALTAR graphify e perguntas de stack/backend/db. Ir direto para **Q2-C** abaixo, depois **FASE 2** (rota copy/SEO/content).
+
+---
+
+### Branch [C] — Conteúdo / Marketing
+
+Projecto = site/canal existente. Sem código a manter. Não correr graphify nem perguntas de stack.
+
+**Q2-C — Plataforma e foco**
+Lista numerada:
+```
+Onde vive o conteúdo e qual o foco?
+[1] Wix (site existente, editor)        → browser + Wix Stores REST API
+[2] WordPress (site existente)          → copy/SEO sobre WP
+[3] Shopify (loja existente)            → copy/SEO + auditoria loja
+[4] Site genérico / landing             → copy/SEO/CRO
+[5] Canal social / email                → social/email
+[6] Outro: ___
+```
+
+Pré-seleccionar skills de conteúdo conforme escolha:
+- (1) Wix → `wix-cli` (secção Backend/REST: Wix Stores REST API via browser/HTTP), `seo`, `seo-local`, `copywriting`, `content-strategy`
+- (2) WordPress → `seo`, `copywriting`, `content-strategy` (sem dev WP)
+- (3) Shopify → `shopify-store-audit`, `seo`, `copywriting`
+- (4) Genérico → `copywriting`, `landing-page`, `page-cro`, `seo`
+- (5) Social/email → `social-content`, `email-sequence`, `copywriting`
+
+Continua para **FASE 2** (saltar Q3–Q7 e CLIs de dev).
+
+---
+
+### Fluxo Dev — Estado do projecto
+
+*(só se Q1 = Dev)*
+
+**Q2 — Estado do projecto**
 `AskUserQuestion`:
 ```
 question: "Este projecto já tem código ou estrutura?"
@@ -33,9 +79,14 @@ options:
   - "Projecto novo (a começar do zero)"
 ```
 
+- "Já tem código" → **Branch [A]**.
+- "Projecto novo" → **Branch [B]**.
+
 ---
 
 ### Branch [A] — Projecto Existente
+
+*(só fluxo Dev)*
 
 Correr scan:
 ```bash
@@ -69,22 +120,25 @@ Continua para **FASE 2**.
 
 ### Branch [B] — Projecto Novo
 
-**Q2 — Nome do projecto**
+**Q3 — Nome do projecto**
 Texto livre: "Nome do projecto?"
 
-**Q3 — Tipo de projecto**
+**Q4 — Tipo de projecto**
 Lista numerada (>4 opções):
 ```
 Que tipo de projecto é?
 [1] Website / App / Software
 [2] WordPress
 [3] Shopify
-[4] Design
-[5] Vídeo
-[6] Research / Análise
-[7] Marketing
-[8] Outro: ___
+[4] Wix
+[5] Design
+[6] Vídeo
+[7] Research / Análise
+[8] Marketing
+[9] Outro: ___
 ```
+
+> Sub-perguntas de stack/tipo abaixo numeradas Q5+ (deslocadas de Q4+).
 
 ### Sub-branch: Website / App / Software
 
@@ -179,6 +233,23 @@ Lista numerada:
 [5] Outro: ___
 ```
 
+### Sub-branch: Wix
+
+**Q5 — Modo Wix** *(define dev vs conteúdo)*
+Lista numerada:
+```
+Que tipo de trabalho Wix?
+[1] Site existente no Wix Editor       → conteúdo/copy/SEO
+[2] Wix CLI app / headless             → dev
+[3] Velo + git                         → dev
+```
+
+- **(1) Editor existente** → fluxo CONTEÚDO. Saltar stack/backend/db e CLIs de dev.
+  Skills: `wix-cli` (secção Backend/REST — Wix Stores REST API via browser/HTTP), `seo`, `seo-local`, `copywriting`, `content-strategy`.
+  Acesso: browser (Playwright) + Wix Stores REST API. Não há repo local a indexar.
+- **(2) Wix CLI app / headless** → fluxo DEV. Skills: `wix-cli`. CLI: `@wix/cli`.
+- **(3) Velo + git** → fluxo DEV. Skills: `wix-cli`. CLI: `@wix/cli` (Velo sync via git).
+
 ### Sub-branch: Design
 
 **Q4** *(multi-select)*:
@@ -238,6 +309,9 @@ Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 | Website/App             | Desenvolvimento web, DevOps, Analytics                                       |
 | WordPress               | WordPress, DevOps, Analytics                                                 |
 | Shopify                 | Shopify, Analytics                                                           |
+| Wix — dev (CLI/Velo)    | `wix-cli`, Analytics                                                         |
+| Wix — Editor (conteúdo) | `wix-cli` (REST/Stores), `seo`, `seo-local`, `copywriting`, `content-strategy` |
+| Conteúdo / Marketing    | `seo`, `copywriting`, `content-strategy` (+ `page-cro`/`social`/`email` cf. canal) |
 | Design UI/UX greenfield | `frontend`, `brand-guidelines`, `mobile`                                     |
 | Design UI/UX iteração   | `frontend`, `brand-guidelines`                                               |
 | Design Motion/Animação  | `anima` (GSAP + Lottie), `frontend`                                          |
@@ -284,6 +358,8 @@ Pré-selecção automática baseada no tipo de projecto:
 |---------------------|--------------------------------------------------|
 | WordPress           | `wp-cli`, `composer`                             |
 | Shopify             | `shopify-cli` (theme/app)                        |
+| Wix — dev (CLI/Velo)| `@wix/cli`                                       |
+| Wix — Editor / Conteúdo / Marketing | nenhum CLI de dev — browser + REST |
 | Laravel             | `composer`, `stripe-cli` (se usar pagamentos)    |
 | Web app genérico    | `stripe-cli` (se pagamentos), `aws-cli` (se S3)  |
 | Vídeo / Media       | `ffmpeg`, `yt-dlp` — já globais via /install     |
@@ -294,6 +370,7 @@ Apresentar lista contextual:
 Que CLIs específicos este projecto precisa?
 [ ] wp-cli         — WordPress core/plugin/post management (só projectos WP)
 [ ] shopify-cli    — Shopify dev (theme/app, requer Node 18+)
+[ ] @wix/cli       — Wix dev (CLI app / Velo) — só fluxo Wix dev
 [ ] stripe-cli     — webhooks listen, payments testing
 [ ] composer       — PHP package manager (Laravel/WP)
 [ ] aws-cli        — S3, deploy (se file-storage skill activa)
@@ -318,6 +395,12 @@ Verificar: `wp --info`
 npm install -g @shopify/cli @shopify/theme
 ```
 Verificar: `shopify version`. Login: `shopify auth login`.
+
+**@wix/cli** (se seleccionado, fluxo Wix dev):
+```bash
+npm install -g @wix/cli
+```
+Verificar: `wix --version`. Login: `wix login`. (Só fluxo dev — Wix Editor/conteúdo usa browser + REST, sem CLI.)
 
 **stripe-cli** (se seleccionado):
 - macOS: `brew install stripe/stripe-cli/stripe`
@@ -393,7 +476,9 @@ options:
 
 Gerar na raiz do projecto com contexto recolhido. Adicionar referência no CLAUDE.md do projecto e na entrada de memória.
 
-### 1. Correr graphify (se disponível e não correu ainda)
+### 1. Correr graphify (só fluxo Dev — saltar em Conteúdo/Marketing e Wix Editor)
+
+> Branch Conteúdo / Marketing (Q1) e Wix Editor (Q5=1): SALTAR este passo. Sem código a indexar.
 
 ```bash
 python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || echo "graphify indisponível — a saltar knowledge graph"
@@ -408,7 +493,9 @@ wp plugin list --status=active --format=csv 2>/dev/null
 
 ### 2. Criar/actualizar CLAUDE.md do projecto
 
-Se não existir, criar:
+> Fluxo Conteúdo/Marketing e Wix Editor: OMITIR a secção "Navegação de Código" (não há graphify). Incluir só o bloco `## Projecto` + plataforma/foco e skills de conteúdo.
+
+Se não existir, criar (fluxo Dev):
 
 ```markdown
 ## Navegação de Código
