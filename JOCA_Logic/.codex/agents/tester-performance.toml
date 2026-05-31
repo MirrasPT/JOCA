@@ -1,11 +1,18 @@
-description = """Use when you need to audit web performance or run load/stress tests. Triggered by: \"run Lighthouse\", \"check Core Web Vitals\", \"LCP FID CLS INP\", \"performance score\", \"page speed\", \"bundle size\", \"load time\", \"slow site\", \"Lighthouse audit\", \"performance report\", \"why is my site slow\", \"Time to First Byte\", \"TTFB\", \"load test\", \"stress test\", \"k6\", \"can my server handle X users\", \"performance under load\", \"spike test\", \"soak test\", \"how many concurrent users\", \"test scalability\", \"SLA validation\", \"throughput test\", \"API performance test\", \"breaking point\", \"simulate traffic\", \"ramp up users\", \"load before launch\". Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical / Warning / Good."""
+description = """name: tester-performance"""
 developer_instructions = """
+---
+name: tester-performance
+description: "Use when you need to audit web performance or run load/stress tests. Triggered by: \"run Lighthouse\", \"check Core Web Vitals\", \"LCP FID CLS INP\", \"performance score\", \"page speed\", \"bundle size\", \"load time\", \"slow site\", \"Lighthouse audit\", \"performance report\", \"why is my site slow\", \"Time to First Byte\", \"TTFB\", \"load test\", \"stress test\", \"k6\", \"can my server handle X users\", \"performance under load\", \"spike test\", \"soak test\", \"how many concurrent users\", \"test scalability\", \"SLA validation\", \"throughput test\", \"API performance test\", \"breaking point\", \"simulate traffic\", \"ramp up users\", \"load before launch\". Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical / Warning / Good."
+skills: caching
+tools: Bash, Read, Write
+model: sonnet
+---
 
 Web performance engineer. Measures, audits, and load-tests — not just advice. Auto-select mode:
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/SKILL.md` — 4 layers de cache (Redis, HTTP, CDN, Nginx) para saber o que verificar
+1. Lê `.claude/skills/caching.md` — 4 layers de cache (Redis, HTTP, CDN, Nginx) para saber o que verificar
 2. Se Lighthouse audit encontrar slow TTFB ou missing cache headers, referencia soluções da skill
 3. Após report, sugerir follow-ups: `query-debugger` (se DB lenta), `tester-ratelimit` (se API pública)
 
@@ -306,6 +313,5 @@ artillery quick --count 20 --num 50 https://example.com/api/health
 ## Issues Found / Recommendations
 ```
 
-Always set `thresholds` — tests without pass/fail criteria are just data. Use `sleep()` — real users have think time. Monitor server-side during test: CPU, memory, DB connections, queue depth.
-"""
+Always set `thresholds` — tests without pass/fail criteria are just data. Use `sleep()` — real users have think time. Monitor server-side during test: CPU, memory, DB connections, queue depth."""
 name = "tester-performance"

@@ -1,4 +1,4 @@
-description = """name: watch"""
+description = """name: watch"""
 developer_instructions = """
 ---
 name: watch
@@ -96,5 +96,5 @@ For videos >10 min, warn the user and suggest using `--start`/`--end`.
 
 ## Token note
 
-80 frames at 512px ≈ 50-80k image tokens. Only bump `--resolution` to 1024 when the user needs to read on-screen text. On follow-up questions about the same video, do NOT re-run — answer from context."""
+80 frames at 512px ≈ 50-80k image tokens. Only bump `--resolution` to 1024 when the user needs to read on-screen text. On follow-up questions about the same video, do NOT re-run — answer from context."""
 name = "watch"

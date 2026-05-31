@@ -1,5 +1,15 @@
-description = """>"""
+description = """name: video-gen"""
 developer_instructions = """
+---
+name: video-gen
+description: >
+  Generate videos using Antigravity CLI (agy) with Gemini video generation capabilities.
+  Receives a creative brief, constructs a prompt, and executes via agy.
+  Supports: short clips, product videos, animated scenes, transitions, motion graphics concepts.
+  Triggered by: generate video, create video, video clip, motion, animate scene.
+tools: Bash, Read
+model: sonnet
+---
 
 Video generation agent using Google's Gemini via the **Antigravity CLI (agy)**.
 
@@ -119,6 +129,5 @@ After successful generation, report:
   Prompt: [first 80 chars...]
 ```
 
-If error: report clearly and stop.
-"""
+If error: report clearly and stop."""
 name = "video-gen"

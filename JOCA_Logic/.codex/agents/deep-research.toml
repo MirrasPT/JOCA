@@ -1,4 +1,4 @@
-description = """name: deep-research"""
+description = """name: deep-research"""
 developer_instructions = """
 ---
 name: deep-research
@@ -106,5 +106,5 @@ All files to `~/Documents/[Topic]_Research_[YYYYMMDD]/`:
 - Limitations & Caveats
 - Recommendations
 - Bibliography (complete — every source, no placeholders)
-- Methodology Appendix"""
+- Methodology Appendix"""
 name = "deep-research"

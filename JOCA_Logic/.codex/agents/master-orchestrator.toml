@@ -1,5 +1,24 @@
-description = """Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development."""
+description = """name: master-orchestrator"""
 developer_instructions = """
+---
+name: master-orchestrator
+description: "Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development."
+model: opus
+skills:
+  - plan
+  - agent-context
+  - karpathy-guidelines
+tools:
+  - Agent
+  - Read
+  - Write
+  - Bash
+  - Glob
+  - Grep
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
+---
 
 # Master Orchestrator Agent
 
@@ -88,6 +107,5 @@ Total agents dispatched: X
 - Agent returns error → log it, continue other streams, report at end
 - Dependency conflict → resolve in favor of the later (consumer) stream
 - Test failure → include in report, don't auto-fix (user decides)
-- Context overflow → split large stream into 2 sub-streams, re-dispatch
-"""
+- Context overflow → split large stream into 2 sub-streams, re-dispatch"""
 name = "master-orchestrator"

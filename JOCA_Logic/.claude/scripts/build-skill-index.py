@@ -44,7 +44,16 @@ def extract_triggers(path: Path) -> list:
     text = path.read_text(errors="ignore")
     triggers = []
 
-    # From frontmatter triggers: field
+    # From frontmatter triggers: field — inline comma-separated form
+    # (e.g. `triggers: a, b, c`)
+    inline_match = re.search(r"^triggers?:[ \t]*(?!\n)(.+)$", text, re.MULTILINE)
+    if inline_match:
+        for item in inline_match.group(1).split(","):
+            item = item.strip().strip('"').strip("'").strip()
+            if item:
+                triggers.append(item)
+
+    # From frontmatter triggers: field — YAML-list form
     fm_match = re.search(r"^triggers?:\s*\n((?:\s+-\s+.+\n)+)", text, re.MULTILINE)
     if fm_match:
         for line in fm_match.group(1).splitlines():

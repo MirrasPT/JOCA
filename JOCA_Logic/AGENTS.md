@@ -20,8 +20,7 @@ Desactivar: "stop caveman" / "normal mode". Auto-clarify em: avisos de seguranç
 4. **Verificável** — define critérios de sucesso antes de começar; multi-step: plano com check por step
 
 ## Skills
-Skills vivem em `.agents/skills/<categoria>/<nome>/SKILL.md` (mirror de `.claude/skills/`).
-Categorias: base/ · design/ · dev/ · tools/ · marketing/ · video/
+Skills vivem em `.agents/skills/<nome>.md` (flat mirror of `.claude/skills/`).
 
 Activar = ler directamente o SKILL.md relevante. Nunca responder genericamente quando existe skill.
 
@@ -43,7 +42,7 @@ Principais:
 | Workflow | Sequência |
 |---|---|
 | Nova feature Laravel | plan → laravel-specialist → tester-code → tester-api |
-| Frontend produção | plan → frontend-dev → tester-performance → tester-security |
+| Frontend produção | plan → frontend → tester-performance → tester-security |
 | Debug sessão | log-debugger → query-debugger (se SQL) |
 
 ## Regras de Orquestração

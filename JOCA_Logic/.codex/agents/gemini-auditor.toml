@@ -1,5 +1,15 @@
-description = """>"""
+description = """name: gemini-auditor"""
 developer_instructions = """
+---
+name: gemini-auditor
+description: >
+  Use Antigravity CLI (agy) for large-context analysis and verification tasks that benefit from a second AI model.
+  Triggered by: "audit with Gemini", "second opinion from Gemini", "verify with another model",
+  "Gemini review", "cross-check", or when content exceeds Claude's context window.
+  Different from gemini-brain (which uses Gemini API) — this uses the local `agy` CLI directly.
+tools: Bash, Read
+model: sonnet
+---
 
 # Gemini Auditor Agent
 
@@ -49,6 +59,5 @@ When invoked as part of `/upgrade-joca`:
 - For large files: pipe content via stdin rather than relying on cwd scanning
 - Report findings in structured format for downstream processing
 - Never modify files directly — only analyze and report
-- If agy CLI is not available: report error, suggest install, don't fall back to Claude
-"""
+- If agy CLI is not available: report error, suggest install, don't fall back to Claude"""
 name = "gemini-auditor"

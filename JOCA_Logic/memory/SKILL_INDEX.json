@@ -13,7 +13,18 @@
     "category": "general",
     "path": ".claude\\skills\\adr.md",
     "description": "Recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences. MUST be invoked when the user says: ADR, architecture decision, decisao arquitectu",
-    "triggers": []
+    "triggers": [
+      "ADR",
+      "architecture decision",
+      "decisao arquitectural",
+      "porque escolhemos",
+      "why did we choose",
+      "decidimos",
+      "we decided",
+      "regista esta decisao",
+      "record this decision",
+      "decisao tecnica"
+    ]
   },
   {
     "type": "skill",
@@ -37,7 +48,18 @@
     "category": "general",
     "path": ".claude\\skills\\anima.md",
     "description": "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll an",
-    "triggers": []
+    "triggers": [
+      "animacao",
+      "animation",
+      "gsap",
+      "lottie",
+      "scroll animation",
+      "page transition",
+      "hover animation",
+      "animacao de icone",
+      "animacao de ilustracao",
+      "scroll trigger"
+    ]
   },
   {
     "type": "skill",
@@ -45,7 +67,18 @@
     "category": "general",
     "path": ".claude\\skills\\auth.md",
     "description": "Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware. MUST be invoked when the user says: auth, authentication, login, logout, register, sanctum,",
-    "triggers": []
+    "triggers": [
+      "auth",
+      "authentication",
+      "login",
+      "logout",
+      "register",
+      "sanctum",
+      "token",
+      "2fa",
+      "mfa",
+      "totp"
+    ]
   },
   {
     "type": "skill",
@@ -53,7 +86,18 @@
     "category": "general",
     "path": ".claude\\skills\\availability.md",
     "description": "Availability and disaster recovery for Laravel. MUST be invoked when the user says: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA. SHOULD also invoke w",
-    "triggers": []
+    "triggers": [
+      "backup",
+      "backups",
+      "disaster recovery",
+      "failover",
+      "replication",
+      "read replica",
+      "high availability",
+      "HA",
+      "uptime",
+      "downtime"
+    ]
   },
   {
     "type": "skill",
@@ -69,7 +113,18 @@
     "category": "general",
     "path": ".claude\\skills\\brand-guidelines.md",
     "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, bra",
-    "triggers": []
+    "triggers": [
+      "brand guidelines",
+      "brand system",
+      "design system",
+      "DESIGN.md",
+      "marca",
+      "brand audit",
+      "brand identity",
+      "design guide",
+      "brand document",
+      "tom de voz"
+    ]
   },
   {
     "type": "skill",
@@ -85,7 +140,18 @@
     "category": "general",
     "path": ".claude\\skills\\bullmq.md",
     "description": "Implement Redis-based job queues with BullMQ for Node.js. MUST be invoked when the user says: bullmq, bull mq, job queue, task queue, background jobs, worker, redis queue, job processing. SHOULD also ",
-    "triggers": []
+    "triggers": [
+      "bullmq",
+      "bull mq",
+      "job queue",
+      "task queue",
+      "background jobs",
+      "worker",
+      "redis queue",
+      "job processing",
+      "scheduled jobs",
+      "delayed jobs"
+    ]
   },
   {
     "type": "skill",
@@ -93,7 +159,18 @@
     "category": "general",
     "path": ".claude\\skills\\c4-diagram.md",
     "description": "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, sy",
-    "triggers": []
+    "triggers": [
+      "C4",
+      "diagrama de arquitectura",
+      "architecture diagram",
+      "container diagram",
+      "system context",
+      "como o sistema se estrutura",
+      "diagrama do sistema",
+      "system diagram",
+      "arquitectura visual",
+      "visual architecture"
+    ]
   },
   {
     "type": "skill",
@@ -101,7 +178,18 @@
     "category": "general",
     "path": ".claude\\skills\\caching.md",
     "description": "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, c",
-    "triggers": []
+    "triggers": [
+      "cache",
+      "caching",
+      "Redis",
+      "redis",
+      "Cache::remember",
+      "cache invalidation",
+      "CDN",
+      "Cloudflare cache",
+      "HTTP cache",
+      "Cache-Control"
+    ]
   },
   {
     "type": "skill",
@@ -125,7 +213,18 @@
     "category": "general",
     "path": ".claude\\skills\\component-system.md",
     "description": "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component s",
-    "triggers": []
+    "triggers": [
+      "component system",
+      "sistema de componentes",
+      "component inventory",
+      "inventario de componentes",
+      "component spec",
+      "component states",
+      "estados de componentes",
+      "button spec",
+      "input spec",
+      "card spec"
+    ]
   },
   {
     "type": "skill",
@@ -157,7 +256,18 @@
     "category": "general",
     "path": ".claude\\skills\\deploy-cpanel.md",
     "description": "Deploying to cPanel, shared hosting, or traditional FTP/SSH hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, ",
-    "triggers": []
+    "triggers": [
+      "cpanel",
+      "cPanel",
+      "shared hosting",
+      "hosting partilhado",
+      "public_html",
+      "FTP",
+      "phpMyAdmin",
+      ".htaccess",
+      "hosting barato",
+      "alojamento"
+    ]
   },
   {
     "type": "skill",
@@ -165,7 +275,18 @@
     "category": "general",
     "path": ".claude\\skills\\deploy-docker.md",
     "description": "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, ",
-    "triggers": []
+    "triggers": [
+      "docker",
+      "Docker",
+      "container",
+      "docker compose",
+      "docker-compose",
+      "Dockerfile",
+      "VPS",
+      "vps deploy",
+      "containerizar",
+      "containerize"
+    ]
   },
   {
     "type": "skill",
@@ -173,7 +294,18 @@
     "category": "general",
     "path": ".claude\\skills\\deploy-ploi.md",
     "description": "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD a",
-    "triggers": []
+    "triggers": [
+      "ploi",
+      "deploy",
+      "deploy to ploi",
+      "ploi.io",
+      "deployment",
+      "servidor",
+      "server",
+      "provisionar",
+      "site setup",
+      "deploy script"
+    ]
   },
   {
     "type": "skill",
@@ -181,7 +313,18 @@
     "category": "general",
     "path": ".claude\\skills\\design-review.md",
     "description": "Opinionated UI/design critique — judges taste, composition, and AI-slop on real code/live UI, or reviews a design plan BEFORE code. MUST be invoked when the user says: design review, review design, ",
-    "triggers": []
+    "triggers": [
+      "design review",
+      "review design",
+      "is this good",
+      "critique UI",
+      "score this UI",
+      "AI slop",
+      "looks AI-generated",
+      "review my page",
+      "design feedback",
+      "plan design review"
+    ]
   },
   {
     "type": "skill",
@@ -189,7 +332,18 @@
     "category": "general",
     "path": ".claude\\skills\\design-system.md",
     "description": "Building or auditing design systems, managing design tokens, component libraries, or style guides. MUST be invoked when the user says: design system, sistema de design, tokens, design tokens, componen",
-    "triggers": []
+    "triggers": [
+      "design system",
+      "sistema de design",
+      "tokens",
+      "design tokens",
+      "component system",
+      "sistema de componentes",
+      "visual system",
+      "sistema visual",
+      "UI system",
+      "criar design system"
+    ]
   },
   {
     "type": "skill",
@@ -197,7 +351,18 @@
     "category": "general",
     "path": ".claude\\skills\\design-tokens.md",
     "description": "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic to",
-    "triggers": []
+    "triggers": [
+      "design tokens",
+      "tokens",
+      "CSS variables",
+      "custom properties",
+      "global tokens",
+      "semantic tokens",
+      "component tokens",
+      "token architecture",
+      "DTCG",
+      "Style Dictionary"
+    ]
   },
   {
     "type": "skill",
@@ -213,7 +378,18 @@
     "category": "general",
     "path": ".claude\\skills\\error-tracking-dev.md",
     "description": "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow qu",
-    "triggers": []
+    "triggers": [
+      "debugbar",
+      "telescope",
+      "ignition",
+      "ray",
+      "debug",
+      "debug panel",
+      "query inspector",
+      "N+1",
+      "slow query dev",
+      "log viewer"
+    ]
   },
   {
     "type": "skill",
@@ -221,7 +397,18 @@
     "category": "general",
     "path": ".claude\\skills\\error-tracking-prod.md",
     "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlat",
-    "triggers": []
+    "triggers": [
+      "sentry",
+      "flare",
+      "production logging",
+      "structured logging",
+      "JSON logs",
+      "correlation ID",
+      "health check",
+      "laravel health",
+      "horizon monitoring",
+      "uptime monitoring"
+    ]
   },
   {
     "type": "skill",
@@ -242,7 +429,18 @@
     "category": "general",
     "path": ".claude\\skills\\filament.md",
     "description": "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament ",
-    "triggers": []
+    "triggers": [
+      "Filament",
+      "admin panel",
+      "admin",
+      "backoffice",
+      "Resource",
+      "Panel",
+      "filament resource",
+      "filament page",
+      "filament widget",
+      "filament form"
+    ]
   },
   {
     "type": "skill",
@@ -258,7 +456,18 @@
     "category": "general",
     "path": ".claude\\skills\\frontend.md",
     "description": "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, i",
-    "triggers": []
+    "triggers": [
+      "website",
+      "landing page",
+      "site",
+      "webapp",
+      "web app",
+      "frontend",
+      "interface",
+      "react",
+      "next.js",
+      "nextjs"
+    ]
   },
   {
     "type": "skill",
@@ -266,7 +475,18 @@
     "category": "general",
     "path": ".claude\\skills\\github.md",
     "description": "Working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations. MUST be invoked when the user says: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr. SHOULD",
-    "triggers": []
+    "triggers": [
+      "github",
+      "GitHub",
+      "github actions",
+      "CI",
+      "CI/CD",
+      "workflow",
+      "pipeline",
+      "gh pr",
+      "gh release",
+      "pull request"
+    ]
   },
   {
     "type": "skill",
@@ -282,7 +502,18 @@
     "category": "general",
     "path": ".claude\\skills\\graphic-design.md",
     "description": "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, busine",
-    "triggers": []
+    "triggers": [
+      "roll-up",
+      "flyer",
+      "trifold",
+      "bifold",
+      "poster",
+      "brochure",
+      "folheto",
+      "cartaz",
+      "cartão de visita",
+      "business card"
+    ]
   },
   {
     "type": "skill",
@@ -298,7 +529,18 @@
     "category": "general",
     "path": ".claude\\skills\\html-review.md",
     "description": "Converting markdown documentation to visual HTML format for review or presentation. MUST be invoked when the user says: gerar html, review html, html do prd, html review, visualizar documento, preview",
-    "triggers": []
+    "triggers": [
+      "gerar html",
+      "review html",
+      "html do prd",
+      "html review",
+      "visualizar documento",
+      "preview do plano",
+      "exportar html",
+      "documento para revisao",
+      "html bonito",
+      "render markdown"
+    ]
   },
   {
     "type": "skill",
@@ -306,7 +548,18 @@
     "category": "general",
     "path": ".claude\\skills\\hyperframes.md",
     "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframe",
-    "triggers": []
+    "triggers": [
+      "hyperframes",
+      "video html",
+      "html video",
+      "composição de vídeo",
+      "criar vídeo html",
+      "video composition",
+      "title card",
+      "caption sync",
+      "voiceover",
+      "tts"
+    ]
   },
   {
     "type": "skill",
@@ -330,7 +583,18 @@
     "category": "general",
     "path": ".claude\\skills\\landing-page.md",
     "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze pa",
-    "triggers": []
+    "triggers": [
+      "landing page",
+      "create landing page",
+      "build landing page",
+      "lead gen page",
+      "squeeze page",
+      "opt-in page",
+      "webinar registration",
+      "product launch page",
+      "single page offer",
+      "ad landing page"
+    ]
   },
   {
     "type": "skill",
@@ -338,7 +602,18 @@
     "category": "general",
     "path": ".claude\\skills\\laravel-react.md",
     "description": "Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA cookie or token), CORS, API contracts, TypeScript type sharing. MUST be invoked when the user says: lara",
-    "triggers": []
+    "triggers": [
+      "laravel react",
+      "connect admin to frontend",
+      "ligar admin ao frontend",
+      "inertia",
+      "inertiajs",
+      "sanctum spa",
+      "sanctum token",
+      "laravel api frontend",
+      "headless laravel",
+      "laravel cors"
+    ]
   },
   {
     "type": "skill",
@@ -346,7 +621,18 @@
     "category": "general",
     "path": ".claude\\skills\\laravel-specialist.md",
     "description": "Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, c",
-    "triggers": []
+    "triggers": [
+      "Laravel",
+      "Eloquent",
+      "Artisan",
+      "composer.json",
+      "artisan",
+      "migration",
+      "model",
+      "controller",
+      "middleware",
+      "service"
+    ]
   },
   {
     "type": "skill",
@@ -362,7 +648,18 @@
     "category": "general",
     "path": ".claude\\skills\\lead-capture.md",
     "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user says: lead magnet, grow email list, opt-in form, email capt",
-    "triggers": []
+    "triggers": [
+      "lead magnet",
+      "grow email list",
+      "opt-in form",
+      "email capture",
+      "popup strategy",
+      "content upgrade",
+      "build my list",
+      "email signup",
+      "newsletter growth",
+      "lead generation"
+    ]
   },
   {
     "type": "skill",
@@ -378,7 +675,18 @@
     "category": "general",
     "path": ".claude\\skills\\marketing.md",
     "description": "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing h",
-    "triggers": []
+    "triggers": [
+      "marketing",
+      "grow my business",
+      "get more customers",
+      "marketing plan",
+      "marketing strategy",
+      "marketing help",
+      "where do I start with marketing",
+      "what marketing should I do",
+      "marketing funnel",
+      "marketing workflow"
+    ]
   },
   {
     "type": "skill",
@@ -394,7 +702,18 @@
     "category": "general",
     "path": ".claude\\skills\\mobile.md",
     "description": "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also i",
-    "triggers": []
+    "triggers": [
+      "responsivo",
+      "responsive",
+      "mobile",
+      "mobile-first",
+      "touch",
+      "swipe",
+      "bottom sheet",
+      "safe area",
+      "notch",
+      "dynamic island"
+    ]
   },
   {
     "type": "skill",
@@ -402,7 +721,18 @@
     "category": "general",
     "path": ".claude\\skills\\mysql.md",
     "description": "MySQL query writing, performance optimization, schema design, SQL debugging. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also i",
-    "triggers": []
+    "triggers": [
+      "MySQL",
+      "mysql",
+      "query lenta",
+      "slow query",
+      "EXPLAIN",
+      "index",
+      "indice",
+      "migration",
+      "schema",
+      "database"
+    ]
   },
   {
     "type": "skill",
@@ -434,7 +764,18 @@
     "category": "general",
     "path": ".claude\\skills\\planning.md",
     "description": "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planear, planning, planeia o projecto, project planning, como com",
-    "triggers": []
+    "triggers": [
+      "planear",
+      "planning",
+      "planeia o projecto",
+      "project planning",
+      "como comecar",
+      "how to start",
+      "documentacao do projecto",
+      "project documentation",
+      "antes de comecar",
+      "before coding"
+    ]
   },
   {
     "type": "skill",
@@ -442,7 +783,17 @@
     "category": "general",
     "path": ".claude\\skills\\postmark.md",
     "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. MUST be invoked when the user says: postmark, transactional e",
-    "triggers": []
+    "triggers": [
+      "postmark",
+      "transactional email",
+      "email sending",
+      "email webhook",
+      "bounce handling",
+      "email deliverability",
+      "spf dkim dmarc",
+      "message streams",
+      "postmark api"
+    ]
   },
   {
     "type": "skill",
@@ -466,7 +817,18 @@
     "category": "general",
     "path": ".claude\\skills\\queues.md",
     "description": "Router skill for job queues and background processing. MUST be invoked when the user says: queue, bullmq, background jobs, worker, job processing, task queue, inngest, trigger.dev. SHOULD also invoke ",
-    "triggers": []
+    "triggers": [
+      "queue",
+      "bullmq",
+      "background jobs",
+      "worker",
+      "job processing",
+      "task queue",
+      "inngest",
+      "trigger.dev",
+      "celery",
+      "sidekiq"
+    ]
   },
   {
     "type": "skill",
@@ -474,7 +836,18 @@
     "category": "general",
     "path": ".claude\\skills\\react-composition.md",
     "description": "Designing React component APIs that scale — compound components, context, slots/children, React 19 ref-as-prop, killing boolean-prop proliferation. MUST be invoked when the user says: compound compo",
-    "triggers": []
+    "triggers": [
+      "compound component",
+      "component api",
+      "boolean props",
+      "prop proliferation",
+      "slots",
+      "slot pattern",
+      "render props",
+      "forwardRef",
+      "ref as prop",
+      "context provider"
+    ]
   },
   {
     "type": "skill",
@@ -482,7 +855,18 @@
     "category": "general",
     "path": ".claude\\skills\\react-email.md",
     "description": "Authoring responsive, client-safe email templates with React Email components. MUST be invoked when the user says: react email, email template, build email, transactional email template, @react-email,",
-    "triggers": []
+    "triggers": [
+      "react email",
+      "react-email",
+      "email template",
+      "build email",
+      "transactional email template",
+      "@react-email",
+      "email component",
+      "email html",
+      "newsletter template",
+      "outlook email"
+    ]
   },
   {
     "type": "skill",
@@ -490,7 +874,18 @@
     "category": "general",
     "path": ".claude\\skills\\react-patterns.md",
     "description": "Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data fetching, bundle size, Server Components. MUST be invoked when the user says: react performance, r",
-    "triggers": []
+    "triggers": [
+      "react performance",
+      "re-render",
+      "rerender",
+      "useEffect",
+      "useMemo",
+      "useCallback",
+      "useState",
+      "server component",
+      "RSC",
+      "suspense"
+    ]
   },
   {
     "type": "skill",
@@ -498,7 +893,18 @@
     "category": "general",
     "path": ".claude\\skills\\remotion.md",
     "description": "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spr",
-    "triggers": []
+    "triggers": [
+      "remotion",
+      "react video",
+      "programmatic video",
+      "vídeo react",
+      "vídeo programático",
+      "useCurrentFrame",
+      "interpolate",
+      "spring animation",
+      "lyric video",
+      "music visualizer"
+    ]
   },
   {
     "type": "skill",
@@ -506,7 +912,18 @@
     "category": "general",
     "path": ".claude\\skills\\rest-api.md",
     "description": "REST API design specialist. MUST be invoked when the user says: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination. SHOULD also invoke when: API error, rate lim",
-    "triggers": []
+    "triggers": [
+      "API design",
+      "REST API",
+      "endpoint",
+      "OpenAPI",
+      "Swagger",
+      "API spec",
+      "API versioning",
+      "API pagination",
+      "API error",
+      "rate limit"
+    ]
   },
   {
     "type": "skill",
@@ -522,7 +939,18 @@
     "category": "general",
     "path": ".claude\\skills\\rfc.md",
     "description": "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposa",
-    "triggers": []
+    "triggers": [
+      "RFC",
+      "request for comments",
+      "proposta de mudanca",
+      "change proposal",
+      "migrar de X para Y",
+      "migrate from",
+      "breaking change",
+      "mudanca grande",
+      "big change",
+      "afecta multiplos modulos"
+    ]
   },
   {
     "type": "skill",
@@ -538,7 +966,18 @@
     "category": "general",
     "path": ".claude\\skills\\search.md",
     "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. MUST be invoked when the user says: search,",
-    "triggers": []
+    "triggers": [
+      "search",
+      "meilisearch",
+      "typesense",
+      "algolia",
+      "full-text search",
+      "faceted search",
+      "instant search",
+      "search index",
+      "search engine",
+      "typo tolerance"
+    ]
   },
   {
     "type": "skill",
@@ -546,7 +985,18 @@
     "category": "general",
     "path": ".claude\\skills\\security.md",
     "description": "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass ass",
-    "triggers": []
+    "triggers": [
+      "security",
+      "segurança",
+      "vulnerabilidade",
+      "vulnerability",
+      "OWASP",
+      "injection",
+      "XSS",
+      "CSRF",
+      "mass assignment",
+      "IDOR"
+    ]
   },
   {
     "type": "skill",
@@ -570,7 +1020,18 @@
     "category": "general",
     "path": ".claude\\skills\\shadcn.md",
     "description": "Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste Radix+Tailwind components via the official CLI. MUST be invoked when the user says: shadcn, shadcn/ui, ",
-    "triggers": []
+    "triggers": [
+      "shadcn",
+      "shadcn/ui",
+      "shadcn ui",
+      "components.json",
+      "npx shadcn",
+      "shadcn add",
+      "shadcn block",
+      "shadcn theme",
+      "shadcn registry",
+      "radix component"
+    ]
   },
   {
     "type": "skill",
@@ -618,7 +1079,18 @@
     "category": "general",
     "path": ".claude\\skills\\slides.md",
     "description": "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. ",
-    "triggers": []
+    "triggers": [
+      "slides",
+      "apresentação",
+      "presentation",
+      "pitch deck",
+      "deck",
+      "powerpoint",
+      "pptx",
+      "pitch",
+      "slide",
+      "keynote"
+    ]
   },
   {
     "type": "skill",
@@ -634,7 +1106,18 @@
     "category": "general",
     "path": ".claude\\skills\\tailwind.md",
     "description": "Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn variants, dark mode, responsive, avoiding arbitrary-value sprawl. MUST be invoked when the user says: ",
-    "triggers": []
+    "triggers": [
+      "tailwind",
+      "tailwindcss",
+      "tailwind 4",
+      "utility classes",
+      "utility-first",
+      "@theme",
+      "cva",
+      "class-variance-authority",
+      "tailwind config",
+      "tailwind.config"
+    ]
   },
   {
     "type": "skill",
@@ -642,7 +1125,18 @@
     "category": "general",
     "path": ".claude\\skills\\task-breakdown.md",
     "description": "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto ",
-    "triggers": []
+    "triggers": [
+      "tasks",
+      "task breakdown",
+      "breakdown",
+      "epics",
+      "stories",
+      "estimativa",
+      "estimation",
+      "quanto tempo",
+      "how long",
+      "sizing"
+    ]
   },
   {
     "type": "skill",
@@ -650,7 +1144,18 @@
     "category": "general",
     "path": ".claude\\skills\\tech-spec.md",
     "description": "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, mo",
-    "triggers": []
+    "triggers": [
+      "tech spec",
+      "technical specification",
+      "especificacao tecnica",
+      "como implementar",
+      "data model",
+      "modelo de dados",
+      "API design",
+      "component breakdown",
+      "sequence diagram",
+      "diagrama de sequencia"
+    ]
   },
   {
     "type": "skill",
@@ -658,7 +1163,18 @@
     "category": "general",
     "path": ".claude\\skills\\transactional-email.md",
     "description": "Router skill for transactional email. MUST be invoked when the user says: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf. SHOULD also invoke when: dkim, d",
-    "triggers": []
+    "triggers": [
+      "transactional email",
+      "email sending",
+      "postmark",
+      "resend",
+      "email api",
+      "bounce",
+      "deliverability",
+      "spf",
+      "dkim",
+      "dmarc"
+    ]
   },
   {
     "type": "skill",
@@ -666,7 +1182,18 @@
     "category": "general",
     "path": ".claude\\skills\\video.md",
     "description": "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generat",
-    "triggers": []
+    "triggers": [
+      "video",
+      "vídeo",
+      "produção de vídeo",
+      "video production",
+      "AI video",
+      "video generation",
+      "explainer video",
+      "product demo",
+      "ai avatar",
+      "talking head"
+    ]
   },
   {
     "type": "skill",
@@ -674,7 +1201,18 @@
     "category": "general",
     "path": ".claude\\skills\\webhooks.md",
     "description": "Implement webhook receivers with signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the use",
-    "triggers": []
+    "triggers": [
+      "webhook",
+      "webhook receiver",
+      "signature verification",
+      "idempotency",
+      "stripe webhook",
+      "github webhook",
+      "shopify webhook",
+      "svix",
+      "hookdeck",
+      "webhook handler"
+    ]
   },
   {
     "type": "skill",

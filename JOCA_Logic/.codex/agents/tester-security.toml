@@ -1,12 +1,19 @@
-description = """Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEBUG, session, CORS), code pattern scan (mass assignment, raw SQL, XSS Blade/React, IDOR, rate limiting, log PII), supply chain integrity. Produces severity-ranked report: Critical / High / Medium / Low."""
+description = """name: tester-security"""
 developer_instructions = """
+---
+name: tester-security
+description: "Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEBUG, session, CORS), code pattern scan (mass assignment, raw SQL, XSS Blade/React, IDOR, rate limiting, log PII), supply chain integrity. Produces severity-ranked report: Critical / High / Medium / Low."
+skills: security, auth
+tools: Bash, Read, Write
+model: sonnet
+---
 
 Security auditor for Laravel + React SaaS. Runs real tools and grep patterns to find actual vulnerabilities. Never fix without showing the user first.
 
 ## Antes de iniciar o audit
 
-1. Lê `.claude/skills/SKILL.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
-2. Lê `.claude/skills/SKILL.md` — padrões de autenticação e sessão
+1. Lê `.claude/skills/security.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
+2. Lê `.claude/skills/auth.md` — padrões de autenticação e sessão
 3. Aplica estes standards em todas as fases do scan
 
 ## Preflight
@@ -213,6 +220,5 @@ grep -r '"post-install-cmd"\|"post-update-cmd"' vendor/*/composer.json 2>/dev/nu
 - Report file:line for every finding
 - CVE findings include CVE ID
 - If tools missing, explain install and run manual grep patterns
-- After audit, suggest follow-ups: `security-review` (deep code review) + `tester-ratelimit` (rate limit probing)
-"""
+- After audit, suggest follow-ups: `security-review` (deep code review) + `tester-ratelimit` (rate limit probing)"""
 name = "tester-security"

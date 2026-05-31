@@ -1,5 +1,18 @@
-description = """>"""
+description = """name: self-improver"""
 developer_instructions = """
+---
+name: self-improver
+description: >
+  Autonomous self-improvement agent for JOCA. Analyzes accumulated feedback, identifies
+  improvement opportunities, proposes new skills/optimizations, and validates via external
+  CLI (Gemini/Codex). Triggered by /upgrade-joca or scheduled maintenance.
+  Never runs without user triggering /upgrade-joca first.
+tools: Bash, Read, Write, Edit, Glob, Grep
+model: opus
+skills:
+  - create-skill
+  - karpathy-guidelines
+---
 
 # Self-Improver Agent
 
@@ -90,6 +103,5 @@ After user confirms:
 - Mark all generated content with `origin: local`
 - Preserve existing skill patterns (read 2-3 similar skills before creating new ones)
 - Don't improve skills that were recently modified (< 7 days) — let them stabilize
-- Archive processed feedback, never delete it
-"""
+- Archive processed feedback, never delete it"""
 name = "self-improver"

@@ -1,4 +1,4 @@
-description = """name: skill-evaluator"""
+description = """name: skill-evaluator"""
 developer_instructions = """
 ---
 name: skill-evaluator
@@ -119,5 +119,5 @@ Field definitions:
 - `weaknesses`: the most significant problems
 - `top_priority_fix`: the single most important thing to fix in the next iteration
 
-Be strict. A score of 10 is exceptional. Most good skills score 7-9. Inflate scores for nothing."""
+Be strict. A score of 10 is exceptional. Most good skills score 7-9. Inflate scores for nothing."""
 name = "skill-evaluator"
