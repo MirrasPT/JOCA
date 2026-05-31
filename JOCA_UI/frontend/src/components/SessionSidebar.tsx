@@ -23,13 +23,16 @@ interface Props {
   onCreateProject: () => void;
   onInput: (sessionId: string, data: string) => void;
   onRenameProject?: (id: string, name: string) => void;
+  onArchiveProject?: (id: string, archived: boolean) => void;
+  onReorderProjects?: (orderedIds: string[]) => void;
 }
 
 type LucideName =
   | 'layout-dashboard' | 'plus' | 'folder-plus' | 'message-square'
   | 'terminal' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
-  | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info';
+  | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
+  | 'grip' | 'archive' | 'archive-restore';
 
 function LucideIcon({ name }: { name: LucideName }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
@@ -53,6 +56,9 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'refresh') return <svg {...common}><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" /></svg>;
   if (name === 'command') return <svg {...common}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M9 9h6v6H9z" /></svg>;
   if (name === 'info') return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>;
+  if (name === 'grip') return <svg {...common}><circle cx="9" cy="6" r="1" /><circle cx="9" cy="12" r="1" /><circle cx="9" cy="18" r="1" /><circle cx="15" cy="6" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="15" cy="18" r="1" /></svg>;
+  if (name === 'archive') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M10 12h4" /></svg>;
+  if (name === 'archive-restore') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h4" /><path d="M19 8v3" /><path d="m15 18 4-4 4 4" /><path d="M19 22v-8" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
 
@@ -70,7 +76,6 @@ function SessionItem({
   onClose: () => void;
   onRename: (name: string) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [draft, setDraft] = useState(session.name);
@@ -112,13 +117,7 @@ function SessionItem({
         `session-item--${session.status}`,
         indented ? 'session-item--indented' : '',
       ].filter(Boolean).join(' ')}
-      role="button"
-      tabIndex={0}
-      onClick={() => !editing && !confirming && onSelect()}
-      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !editing && !confirming) { e.preventDefault(); onSelect(); } }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setConfirming(false); }}
-      aria-current={isActive ? 'page' : undefined}
+      onMouseLeave={() => setConfirming(false)}
     >
       <span className="session-item-icon"><LucideIcon name={iconName} /></span>
       {editing ? (
@@ -136,17 +135,21 @@ function SessionItem({
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <>
-          <span
-            className="session-item-name"
-            onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            title={`${session.name} — double-click to rename`}
-          >
-            {session.name}
-          </span>
-        </>
+        <button
+          type="button"
+          className="session-item-select"
+          onClick={() => !confirming && onSelect()}
+          onKeyDown={(e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !confirming) { e.preventDefault(); setConfirming(true); }
+          }}
+          onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
+          aria-current={isActive ? 'page' : undefined}
+          title={`${session.name} — double-click to rename`}
+        >
+          <span className="session-item-name">{session.name}</span>
+        </button>
       )}
-      {hovered && !editing && !confirming && (
+      {!editing && !confirming && (
         <button
           className="session-item-close"
           type="button"
@@ -171,6 +174,7 @@ function SessionItem({
 
 function ProjectGroup({
   project, sessions, activeId, unreadIds, onSelect, onClose, onRename, onOpen, onDashboard, onRemove, onRenameProject,
+  onArchive, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
 }: {
   project: Project;
   sessions: SessionInfo[];
@@ -183,10 +187,20 @@ function ProjectGroup({
   onDashboard: () => void;
   onRemove: () => void;
   onRenameProject?: (id: string, name: string) => void;
+  onArchive?: () => void;
+  isDragOver?: boolean;
+  dragEnabled?: boolean;
+  onDragStart?: () => void;
+  onDragEnter?: () => void;
+  onDragEnd?: () => void;
+  onDrop?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [draft, setDraft] = useState(project.name);
   const inputRef = useRef<HTMLInputElement>(null);
   const workingCount = sessions.filter(s => s.status === 'working').length;
@@ -206,8 +220,36 @@ function ProjectGroup({
   };
 
   return (
-    <div className="project-group" style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}>
-      <div className="project-group-header" onClick={() => { if (!confirmRemove && !editing) onDashboard(); }}>
+    <div
+      className={[
+        'project-group',
+        isDragOver ? 'project-group--dragover' : '',
+        dragging ? 'project-group--dragging' : '',
+      ].filter(Boolean).join(' ')}
+      style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+      onDragOver={dragEnabled ? (e) => { e.preventDefault(); onDragEnter?.(); } : undefined}
+      onDrop={dragEnabled ? (e) => { e.preventDefault(); onDrop?.(); } : undefined}
+    >
+      <div className="project-group-header">
+        {dragEnabled && (
+          <span
+            className="project-group-grip"
+            draggable
+            role="button"
+            tabIndex={0}
+            onDragStart={(e) => { e.stopPropagation(); setDragging(true); e.dataTransfer.effectAllowed = 'move'; onDragStart?.(); }}
+            onDragEnd={(e) => { e.stopPropagation(); setDragging(false); onDragEnd?.(); }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); onMoveUp?.(); }
+              else if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); onMoveDown?.(); }
+            }}
+            title="Arrastar ou usar ↑/↓ para reordenar"
+            aria-label={`Reordenar ${project.name} — setas para cima/baixo`}
+          >
+            <LucideIcon name="grip" />
+          </span>
+        )}
         <button
           className="project-group-arrow-btn"
           type="button"
@@ -216,36 +258,45 @@ function ProjectGroup({
         >
           <LucideIcon name={collapsed ? 'chevron-right' : 'chevron-down'} />
         </button>
-        <span className="project-group-icon"><LucideIcon name={collapsed ? 'folder' : 'folder-open'} /></span>
-        <span
-          className="project-group-color"
-          style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
-          aria-hidden
-        />
         {editing ? (
-          <input
-            ref={inputRef}
-            className="session-item-name-input"
-            style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); commit(); }
-              if (e.key === 'Escape') { setDraft(project.name); setEditing(false); }
-              e.stopPropagation();
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          <>
+            <span className="project-group-icon"><LucideIcon name={collapsed ? 'folder' : 'folder-open'} /></span>
+            <span
+              className="project-group-color"
+              style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+              aria-hidden
+            />
+            <input
+              ref={inputRef}
+              className="session-item-name-input"
+              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); commit(); }
+                if (e.key === 'Escape') { setDraft(project.name); setEditing(false); }
+                e.stopPropagation();
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </>
         ) : (
-          <span
-            className="project-group-name"
+          <button
+            type="button"
+            className="project-group-label"
+            onClick={() => { if (!confirmRemove) onDashboard(); }}
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            title={`${project.name} — double-click to rename`}
-            style={{ cursor: 'pointer' }}
+            title={`${project.name} — abrir dashboard (duplo-clique renomeia)`}
           >
-            {project.name}
-          </span>
+            <span className="project-group-icon"><LucideIcon name={collapsed ? 'folder' : 'folder-open'} /></span>
+            <span
+              className="project-group-color"
+              style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+              aria-hidden
+            />
+            <span className="project-group-name">{project.name}</span>
+          </button>
         )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
         {confirmRemove ? (
@@ -257,6 +308,7 @@ function ProjectGroup({
         ) : (
           <div className="project-group-actions">
             <button className="project-group-action" type="button" aria-label={`Nova sessão em ${project.name}`} onClick={(e) => { e.stopPropagation(); onOpen(); }} data-tooltip="Nova sessão no projeto" data-tooltip-position="bottom"><LucideIcon name="plus" /></button>
+            {onArchive && <button className="project-group-action" type="button" aria-label={`Arquivar projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Arquivar projeto" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
             <button className="project-group-action project-group-action--remove" type="button" aria-label={`Remover projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); setConfirmRemove(true); }} data-tooltip="Remover projeto" data-tooltip-position="bottom"><LucideIcon name="x" /></button>
           </div>
         )}
@@ -310,16 +362,47 @@ function ProjectGroup({
 export default function SessionSidebar({
   sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowProject,
   onSelect, onClose, onRename, onNew, onOpenProject, onProjectsChange, onCreateProject, onInput, onRenameProject,
+  onArchiveProject, onReorderProjects,
 }: Props) {
   const [confirmCloseIdle, setConfirmCloseIdle] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
 
   const filteredUngrouped = sessions.filter(s => !s.projectId);
-  const filteredProjects = projects.map(project => ({
+  const activeProjects = projects.filter(p => !p.archived);
+  const archivedProjects = projects.filter(p => p.archived);
+  const filteredProjects = activeProjects.map(project => ({
     project,
     sessions: sessions.filter(s => s.projectId === project.id),
   }));
+
+  const dragEnabled = !!onReorderProjects && activeProjects.length > 1;
+
+  const commitReorder = (targetId: string) => {
+    if (!dragId || dragId === targetId || !onReorderProjects) { setDragId(null); setOverId(null); return; }
+    const ids = activeProjects.map(p => p.id);
+    const from = ids.indexOf(dragId);
+    const to = ids.indexOf(targetId);
+    if (from < 0 || to < 0) { setDragId(null); setOverId(null); return; }
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    onReorderProjects(ids);
+    setDragId(null);
+    setOverId(null);
+  };
+
+  // Keyboard reorder (↑/↓ on the grip): swap with the adjacent project.
+  const moveProject = (id: string, dir: 'up' | 'down') => {
+    if (!onReorderProjects) return;
+    const ids = activeProjects.map(p => p.id);
+    const i = ids.indexOf(id);
+    const j = dir === 'up' ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    onReorderProjects(ids);
+  };
 
   const closeIdleSessions = () => {
     idleSessions.forEach(s => onClose(s.id));
@@ -417,8 +500,62 @@ export default function SessionSidebar({
               onDashboard={() => onShowProject(project.id)}
               onRemove={() => removeProject(project.id)}
               onRenameProject={onRenameProject}
+              onArchive={onArchiveProject ? () => onArchiveProject(project.id, true) : undefined}
+              dragEnabled={dragEnabled}
+              isDragOver={overId === project.id && dragId !== project.id}
+              onDragStart={() => setDragId(project.id)}
+              onDragEnter={() => setOverId(project.id)}
+              onDragEnd={() => { setDragId(null); setOverId(null); }}
+              onDrop={() => commitReorder(project.id)}
+              onMoveUp={() => moveProject(project.id, 'up')}
+              onMoveDown={() => moveProject(project.id, 'down')}
             />
           ))}
+
+          {archivedProjects.length > 0 && (
+            <div className="sidebar-archived">
+              <button
+                className="sidebar-archived-toggle"
+                type="button"
+                onClick={() => setShowArchived(v => !v)}
+                aria-expanded={showArchived}
+              >
+                <span className="sidebar-archived-icon"><LucideIcon name="archive" /></span>
+                <span className="sidebar-archived-label">Arquivados</span>
+                <span className="sidebar-archived-count">{archivedProjects.length}</span>
+                <span className="sidebar-archived-chevron"><LucideIcon name={showArchived ? 'chevron-down' : 'chevron-right'} /></span>
+              </button>
+              {showArchived && (
+                <div className="sidebar-archived-list">
+                  {archivedProjects.map(project => (
+                    <div key={project.id} className="archived-item" style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}>
+                      <span className="archived-item-color" aria-hidden />
+                      <button
+                        className="archived-item-name"
+                        type="button"
+                        onClick={() => onShowProject(project.id)}
+                        title={`Abrir dashboard de ${project.name}`}
+                      >
+                        {project.name}
+                      </button>
+                      {onArchiveProject && (
+                        <button
+                          className="archived-item-restore"
+                          type="button"
+                          onClick={() => onArchiveProject(project.id, false)}
+                          data-tooltip="Restaurar para a barra"
+                          data-tooltip-position="bottom"
+                          aria-label={`Restaurar projeto ${project.name}`}
+                        >
+                          <LucideIcon name="archive-restore" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {sessions.length === 0 && projects.length === 0 && (
             <div className="sidebar-empty">

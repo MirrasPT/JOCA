@@ -14,6 +14,8 @@ export interface Project {
   color?: string;
   initialized?: boolean;
   githubRepo?: string;
+  archived?: boolean;
+  order?: number;
 }
 
 export interface ProjectMemory {

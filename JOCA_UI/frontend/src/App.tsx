@@ -42,7 +42,7 @@ export default function App() {
   const [previewPath, setPreviewPath] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [activityEvents, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
-  const [rightPanel, setRightPanel] = useState<RightPanel>('files');
+  const [rightPanel, setRightPanel] = useState<RightPanel>(null);
   const [mainView, setMainView] = useState<MainView>('dashboard');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
@@ -87,8 +87,11 @@ export default function App() {
   const sessionsRef = useRef<SessionInfo[]>([]);
   const activeIdRef = useRef<string | null>(null);
 
+  const projectMemoryRef = useRef(projectMemory);
+
   useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
   useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+  useEffect(() => { projectMemoryRef.current = projectMemory; }, [projectMemory]);
 
   const processOutput = useCallback((sessionId: string, data: string) => {
     const buf = (outputBuffers.current.get(sessionId) ?? '') + data;
@@ -156,7 +159,7 @@ export default function App() {
           favoriteAgents: [],
           quickCommands: ['save', 'compact', 'clear'],
           openFiles: [],
-          rightPanel: 'files',
+          rightPanel: null,
           updatedAt: new Date().toISOString(),
         }),
         ...patch,
@@ -211,18 +214,25 @@ export default function App() {
     }
   }, []);
 
+  // Mirror the WS message handlers in a ref so the socket is created once on mount and
+  // never torn down/rebuilt if a handler identity changes in a future edit.
+  const wsHandlersRef = useRef({ activateSession, addToast, processOutput });
+  useEffect(() => { wsHandlersRef.current = { activateSession, addToast, processOutput }; }, [activateSession, addToast, processOutput]);
+
   const connect = useCallback(() => {
     if (unmountedRef.current) return;
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data) as ServerMessage;
+      let msg: ServerMessage;
+      try { msg = JSON.parse(event.data) as ServerMessage; }
+      catch { return; }
 
       switch (msg.type) {
         case 'sessions_list':
           setSessions(msg.sessions);
-          msg.sessions.forEach((s) => activateSession(s.id));
+          msg.sessions.forEach((s) => wsHandlersRef.current.activateSession(s.id));
           if (msg.sessions.length > 0) {
             setActiveId((prev) => prev ?? msg.sessions[0].id);
           }
@@ -239,7 +249,7 @@ export default function App() {
           ].slice(0, 80));
           setActiveId(msg.session.id);
           setMainView('session');
-          activateSession(msg.session.id);
+          wsHandlersRef.current.activateSession(msg.session.id);
           break;
 
         case 'session_closed':
@@ -269,7 +279,7 @@ export default function App() {
 
         case 'output':
           termRefs.current.get(msg.sessionId)?.write(msg.data);
-          processOutput(msg.sessionId, msg.data);
+          wsHandlersRef.current.processOutput(msg.sessionId, msg.data);
           if (pinOutputRef.current && msg.sessionId === activeIdRef.current) {
             termRefs.current.get(msg.sessionId)?.scrollToBottom?.();
           }
@@ -282,7 +292,7 @@ export default function App() {
           requestAnimationFrame(() => ref?.fit?.());
           outputBuffers.current.set(msg.sessionId, '');
           workflowRef.current.delete(msg.sessionId);
-          processOutput(msg.sessionId, msg.data);
+          wsHandlersRef.current.processOutput(msg.sessionId, msg.data);
           break;
         }
 
@@ -293,22 +303,26 @@ export default function App() {
           if (msg.isDone) {
             const session = sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== activeIdRef.current) {
-              addToast(session);
+              wsHandlersRef.current.addToast(session);
               setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
             }
           }
+          break;
+        default:
+          if (import.meta.env.DEV) console.warn('Unknown WS message type', (msg as { type?: string }).type);
           break;
       }
     };
 
     ws.onclose = () => {
       if (!unmountedRef.current) {
-        reconnectTimer.current = setTimeout(connect, 2000);
+        reconnectTimer.current = setTimeout(() => { reconnectTimer.current = null; connect(); }, 2000);
       }
     };
 
     ws.onerror = () => ws.close();
-  }, [activateSession, addToast, processOutput]);
+    // Handlers are read via wsHandlersRef; the socket is intentionally created once.
+  }, []);
 
   useEffect(() => {
     unmountedRef.current = false;
@@ -413,6 +427,43 @@ export default function App() {
       console.error(e);
     }
   }, [handleProjectSaved]);
+
+  const handleArchiveProject = useCallback((id: string, archived: boolean) => {
+    let snapshot: Project[] = [];
+    setProjects((current) => {
+      snapshot = current;
+      return current.map((p) => (p.id === id ? { ...p, archived } : p));
+    });
+    fetch(`/projects/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(String(res.status));
+        return res.json();
+      })
+      .then((saved) => handleProjectSaved(saved))
+      .catch(() => setProjects(snapshot)); // rollback on failure
+  }, [handleProjectSaved]);
+
+  const handleReorderProjects = useCallback((orderedIds: string[]) => {
+    let snapshot: Project[] = [];
+    setProjects((current) => {
+      snapshot = current;
+      const byId = new Map(current.map((p) => [p.id, p] as const));
+      const reordered = orderedIds.map((id) => byId.get(id)).filter((p): p is Project => !!p);
+      const rest = current.filter((p) => !orderedIds.includes(p.id));
+      return [...reordered, ...rest];
+    });
+    fetch('/projects/order', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: orderedIds }),
+    })
+      .then((res) => { if (!res.ok) throw new Error(String(res.status)); reloadProjects(); })
+      .catch(() => setProjects(snapshot)); // rollback on failure
+  }, [reloadProjects]);
 
   const handleOpenProject = useCallback((project: Project) => {
     setMainView('session');
@@ -550,7 +601,11 @@ export default function App() {
     () => sessions.find((s) => s.id === activeId) ?? null,
     [sessions, activeId]
   );
-  const contextProjectId = activeSession?.projectId ?? activeProjectId;
+  // In an explicit project dashboard, the clicked project wins. Otherwise (session/global
+  // dashboard) fall back to the active session's project for right-panel memory context.
+  const contextProjectId = mainView === 'project'
+    ? activeProjectId
+    : (activeSession?.projectId ?? activeProjectId);
   
   const rightSlotExpanded = rightPanel !== null;
   const expandedRightSlotSize = Math.round(Math.max(408, Math.min(viewportWidth * 0.32, 424)));
@@ -581,6 +636,8 @@ export default function App() {
         onCreateProject={handleCreateProjectPrompt}
         onInput={handleInput}
         onRenameProject={handleRenameProject}
+        onArchiveProject={handleArchiveProject}
+        onReorderProjects={handleReorderProjects}
       />
 
       <div className="main-area">
@@ -658,8 +715,10 @@ export default function App() {
         onPreview={(path) => {
           setPreviewPath(path);
           setSelectedPath(path);
-          const current = contextProjectId ? projectMemory[contextProjectId] : null;
           if (contextProjectId) {
+            // Read the freshest openFiles from the ref (not the render closure) so rapid
+            // consecutive previews accumulate instead of dropping entries.
+            const current = projectMemoryRef.current[contextProjectId];
             updateProjectMemory(contextProjectId, {
               openFiles: [path, ...(current?.openFiles ?? []).filter((item) => item !== path)].slice(0, 20),
             });

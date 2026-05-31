@@ -90,6 +90,40 @@ function BrainIcon() {
   );
 }
 
+// ── Rate limits ────────────────────────────────────────────────────
+interface RateWindow {
+  used_pct: number | null;
+  resets_at?: number | null; // epoch SECONDS
+}
+
+// Compact countdown to a reset timestamp (epoch seconds): "2h05m", "3d4h", "now".
+function formatReset(epochSec?: number | null): string | null {
+  if (epochSec == null) return null;
+  const diff = epochSec - Math.floor(Date.now() / 1000);
+  if (diff <= 0) return 'now';
+  const d = Math.floor(diff / 86400);
+  const h = Math.floor((diff % 86400) / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  if (d > 0) return `${d}d${h}h`;
+  if (h > 0) return `${h}h${String(m).padStart(2, '0')}m`;
+  return `${m}m`;
+}
+
+function RateBar({ label, win, fillClass }: { label: string; win?: RateWindow; fillClass: string }) {
+  if (!win || win.used_pct == null) return null;
+  const reset = formatReset(win.resets_at);
+  return (
+    <div className="db-rate-bar">
+      <span className="db-rate-bar-label">{label}</span>
+      <div className="db-rate-bar-track">
+        <div className={`db-rate-bar-fill ${fillClass}`} style={{ width: `${Math.min(100, win.used_pct)}%` }} />
+      </div>
+      <span className="db-rate-bar-pct">{win.used_pct < 1 ? '<1' : Math.round(win.used_pct)}%</span>
+      {reset && <span className="db-rate-bar-reset" title="Próximo reset">↺ {reset}</span>}
+    </div>
+  );
+}
+
 export default function DashboardView({
   mainView, projects, sessions, activeProjectId, projectMemory, jocaLogicInfo,
   onUpdateProjectMemory, onCreateProject, onEditProject, onShowProject, onOpenProject,
@@ -104,13 +138,16 @@ export default function DashboardView({
 
   const [rateLimits, setRateLimits] = useState<{
     claude?: {
-      five_hour: { used_pct: number | null };
-      seven_day: { used_pct: number | null };
-      sonnet_seven_day?: { used_pct: number | null };
+      model?: string;
+      five_hour?: RateWindow;
+      seven_day?: RateWindow;
+      sonnet_seven_day?: RateWindow;
     };
     codex?: {
-      five_hour: { used_pct: number | null };
-      seven_day: { used_pct: number | null };
+      plan?: string | null;
+      updated_at?: number | null;
+      five_hour?: RateWindow;
+      seven_day?: RateWindow;
     };
     agy?: {
       model: string;
@@ -156,7 +193,7 @@ export default function DashboardView({
       favoriteAgents: [],
       quickCommands: ['save', 'compact', 'clear'],
       openFiles: [],
-      rightPanel: 'files',
+      rightPanel: null,
       updatedAt: new Date().toISOString()
     };
   }, [activeProjectId, projectMemory]);
@@ -623,6 +660,8 @@ export default function DashboardView({
     );
   }
 
+  const visibleProjects = projects.filter((p) => !p.archived);
+
   return (
     <div className="dashboard-view">
       <div className="vp-header">
@@ -641,7 +680,7 @@ export default function DashboardView({
         <div className="db-stat-card">
           <div className="db-stat-icon db-stat-icon--folder"><FolderIcon /></div>
           <div>
-            <div className="db-stat-value">{projects.length}</div>
+            <div className="db-stat-value">{visibleProjects.length}</div>
             <div className="db-stat-label">Active Projects</div>
           </div>
         </div>
@@ -697,33 +736,9 @@ export default function DashboardView({
                 <span className="db-rate-limits-model">Claude</span>
               </div>
               <div className="db-rate-limits-bars">
-                {rateLimits.claude.five_hour?.used_pct != null && (
-                  <div className="db-rate-bar">
-                    <span className="db-rate-bar-label">5 hours</span>
-                    <div className="db-rate-bar-track">
-                      <div className="db-rate-bar-fill db-rate-bar-fill--5h" style={{ width: `${Math.min(100, rateLimits.claude.five_hour.used_pct)}%` }} />
-                    </div>
-                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.five_hour.used_pct)}%</span>
-                  </div>
-                )}
-                {rateLimits.claude.seven_day?.used_pct != null && (
-                  <div className="db-rate-bar">
-                    <span className="db-rate-bar-label">7 days</span>
-                    <div className="db-rate-bar-track">
-                      <div className="db-rate-bar-fill db-rate-bar-fill--7d" style={{ width: `${Math.min(100, rateLimits.claude.seven_day.used_pct)}%` }} />
-                    </div>
-                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.seven_day.used_pct)}%</span>
-                  </div>
-                )}
-                {rateLimits.claude.sonnet_seven_day?.used_pct != null && (
-                  <div className="db-rate-bar">
-                    <span className="db-rate-bar-label">Sonnet 7d</span>
-                    <div className="db-rate-bar-track">
-                      <div className="db-rate-bar-fill db-rate-bar-fill--sonnet" style={{ width: `${Math.min(100, rateLimits.claude.sonnet_seven_day.used_pct)}%` }} />
-                    </div>
-                    <span className="db-rate-bar-pct">{Math.round(rateLimits.claude.sonnet_seven_day.used_pct)}%</span>
-                  </div>
-                )}
+                <RateBar label="5 hours" win={rateLimits.claude.five_hour} fillClass="db-rate-bar-fill--5h" />
+                <RateBar label="7 days" win={rateLimits.claude.seven_day} fillClass="db-rate-bar-fill--7d" />
+                <RateBar label="Sonnet 7d" win={rateLimits.claude.sonnet_seven_day} fillClass="db-rate-bar-fill--sonnet" />
               </div>
             </div>
           )}
@@ -731,26 +746,11 @@ export default function DashboardView({
             <div className="db-rate-limits-section">
               <div className="db-rate-limits-header">
                 <span className="db-rate-limits-model">Codex</span>
+                {rateLimits.codex.plan && <span className="db-rate-limits-plan">{rateLimits.codex.plan}</span>}
               </div>
               <div className="db-rate-limits-bars">
-                {rateLimits.codex.five_hour?.used_pct != null && (
-                  <div className="db-rate-bar">
-                    <span className="db-rate-bar-label">5 hours</span>
-                    <div className="db-rate-bar-track">
-                      <div className="db-rate-bar-fill db-rate-bar-fill--codex-5h" style={{ width: `${Math.min(100, rateLimits.codex.five_hour.used_pct)}%` }} />
-                    </div>
-                    <span className="db-rate-bar-pct">{Math.round(rateLimits.codex.five_hour.used_pct)}%</span>
-                  </div>
-                )}
-                {rateLimits.codex.seven_day?.used_pct != null && (
-                  <div className="db-rate-bar">
-                    <span className="db-rate-bar-label">7 days</span>
-                    <div className="db-rate-bar-track">
-                      <div className="db-rate-bar-fill db-rate-bar-fill--codex-7d" style={{ width: `${Math.min(100, rateLimits.codex.seven_day.used_pct)}%` }} />
-                    </div>
-                    <span className="db-rate-bar-pct">{Math.round(rateLimits.codex.seven_day.used_pct)}%</span>
-                  </div>
-                )}
+                <RateBar label="5 hours" win={rateLimits.codex.five_hour} fillClass="db-rate-bar-fill--codex-5h" />
+                <RateBar label="7 days" win={rateLimits.codex.seven_day} fillClass="db-rate-bar-fill--codex-7d" />
               </div>
             </div>
           )}
@@ -786,7 +786,7 @@ export default function DashboardView({
           </div>
         )}
 
-        {projects.map((project) => {
+        {visibleProjects.map((project) => {
           const projectSessions = sessions.filter((s) => s.projectId === project.id);
           const colorTheme = project.color || '#ff4500';
           return (

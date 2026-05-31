@@ -1,1 +1,83 @@
-{}
+{
+  "05ce2da3-a2f2-4d65-9254-3ba1bca57bca": {
+    "projectId": "05ce2da3-a2f2-4d65-9254-3ba1bca57bca",
+    "color": "#84cc16",
+    "path": "C:\\Users\\renat\\Desktop\\JOCA_FINAL",
+    "recentSessions": [
+      "ab16bad3-9033-4d7b-b689-0286acbe7f07",
+      "6a179921-de5a-4495-9d4a-7b30bb5442db"
+    ],
+    "favoriteSkills": [],
+    "favoriteAgents": [],
+    "quickCommands": [
+      "save",
+      "compact",
+      "clear"
+    ],
+    "openFiles": [],
+    "rightPanel": "files",
+    "updatedAt": "2026-05-31T15:02:19.223Z"
+  },
+  "0331de0d-222c-4616-98dd-d91e6e1752c5": {
+    "projectId": "0331de0d-222c-4616-98dd-d91e6e1752c5",
+    "color": "#ff4500",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\Bracaris\\2026_Website_Brasil",
+    "recentSessions": [
+      "136a0d97-d3af-4945-9e35-0e7b8b931528",
+      "c2ae0ee9-c573-49a0-be3b-c34d86d622c5",
+      "f596ce0a-e8ce-4bcb-aeb4-ee6c84eeaf5b",
+      "e6dd1c89-52c2-46f7-948e-c156685c37ee",
+      "9e128c01-ed1d-48f2-9fc1-dea458e55be0",
+      "1d62a93e-66d8-4611-8230-63efc9b5f2e7",
+      "d7c6a04b-0d62-4d86-bb45-53582952aa46",
+      "e864febb-11a9-4b38-845d-8274194e043a"
+    ],
+    "favoriteSkills": [],
+    "favoriteAgents": [],
+    "quickCommands": [
+      "save",
+      "compact",
+      "clear"
+    ],
+    "openFiles": [],
+    "rightPanel": "files",
+    "updatedAt": "2026-05-31T15:02:28.436Z"
+  },
+  "5026389d-b5b5-41af-99b6-4c37694b4bb1": {
+    "projectId": "5026389d-b5b5-41af-99b6-4c37694b4bb1",
+    "color": "#84cc16",
+    "path": "D:\\Mega\\Bigorna\\2026_Website_Bigorna",
+    "recentSessions": [
+      "d885dbe8-09cb-46af-88ee-5e0ee81617a0",
+      "885bcf72-435f-4590-8f17-fdf462d4caf1"
+    ],
+    "favoriteSkills": [],
+    "favoriteAgents": [],
+    "quickCommands": [
+      "save",
+      "compact",
+      "clear"
+    ],
+    "openFiles": [],
+    "rightPanel": "files",
+    "updatedAt": "2026-05-31T14:28:06.312Z"
+  },
+  "ed45f60a-07c2-42b0-894a-4306a481056c": {
+    "projectId": "ed45f60a-07c2-42b0-894a-4306a481056c",
+    "color": "#f97316",
+    "path": "D:\\Mega\\UniTV",
+    "recentSessions": [
+      "cbfec822-4191-495a-bbdd-bcd634815e62"
+    ],
+    "favoriteSkills": [],
+    "favoriteAgents": [],
+    "quickCommands": [
+      "save",
+      "compact",
+      "clear"
+    ],
+    "openFiles": [],
+    "rightPanel": "files",
+    "updatedAt": "2026-05-31T14:28:06.807Z"
+  }
+}

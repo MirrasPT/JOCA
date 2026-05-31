@@ -15,15 +15,28 @@ function ensureDir(dir) {
 }
 
 function readKeychainToken() {
+  // Windows/Linux: credentials file written by Claude Code.
   try {
-    const out = execFileSync(
-      'security',
-      ['find-generic-password', '-s', 'Claude Code-credentials', '-w'],
-      { encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
-    );
-    const creds = JSON.parse(out);
-    return creds?.claudeAiOauth?.accessToken || null;
-  } catch { return null; }
+    const f = path.join(os.homedir(), '.claude', '.credentials.json');
+    if (fs.existsSync(f)) {
+      const creds = JSON.parse(fs.readFileSync(f, 'utf8'));
+      const t = creds?.claudeAiOauth?.accessToken;
+      if (t) return t;
+    }
+  } catch {}
+  // macOS: Keychain.
+  if (process.platform === 'darwin') {
+    try {
+      const out = execFileSync(
+        'security',
+        ['find-generic-password', '-s', 'Claude Code-credentials', '-w'],
+        { encoding: 'utf8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
+      );
+      const creds = JSON.parse(out);
+      return creds?.claudeAiOauth?.accessToken || null;
+    } catch {}
+  }
+  return null;
 }
 
 function httpGet(url, headers) {

@@ -879,7 +879,7 @@
 .db-rate-bar-label {
   font-size: 11px;
   color: var(--text-muted);
-  width: 48px;
+  width: 56px;
   text-align: right;
   flex-shrink: 0;
 }
@@ -938,4 +938,14 @@
   text-align: right;
   font-family: var(--font-mono, monospace);
   flex-shrink: 0;
+}
+
+.db-rate-bar-reset {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  width: 56px;
+  text-align: right;
+  flex-shrink: 0;
+  opacity: 0.75;
 }
