@@ -19,6 +19,9 @@ interface Props {
   onPreview: (path: string) => void;
   initialPath?: string;
   selectedPath?: string | null;
+  /** Project-scoped embed: drops terminal-oriented chrome (path/cd insert,
+   *  favorites/drives strips, home) that has no target in the dashboard. */
+  embedded?: boolean;
 }
 
 function quotePath(p: string) {
@@ -114,7 +117,7 @@ function BrowserIcon({ name }: { name: BrowserIconName }) {
   return <svg {...common}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>;
 }
 
-export default function FileBrowser({ onPastePath, onPreview, initialPath, selectedPath }: Props) {
+export default function FileBrowser({ onPastePath, onPreview, initialPath, selectedPath, embedded }: Props) {
   const [listing, setListing] = useState<DirListing | null>(null);
   const [homeDir, setHomeDir] = useState<string>('');
   const [showHidden, setShowHidden] = useState(false);
@@ -262,13 +265,15 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     await runFileOp('move', { path: entry.path, targetPath: targetFolder.trim() });
   };
 
-  const openExternal = async (entry: FileEntry) => {
+  const openExternalPath = async (p: string) => {
     await fetch('/open', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: entry.path }),
+      body: JSON.stringify({ path: p }),
     }).catch(() => {});
   };
+
+  const openExternal = (entry: FileEntry) => openExternalPath(entry.path);
 
   const copyRelativePath = async (entry: FileEntry) => {
     const relative = currentPath && entry.path.toLowerCase().startsWith(currentPath.toLowerCase())
@@ -279,19 +284,21 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   };
 
   return (
-    <div className="file-browser">
+    <div className={`file-browser${embedded ? ' file-browser--embedded' : ''}`}>
       <div className="fb-toolbar">
-        <button
-          className="fb-tool-btn"
-          type="button"
-          onClick={() => effectiveHome && navigate(effectiveHome)}
-          disabled={!effectiveHome}
-          data-tooltip="Pasta inicial"
-          data-tooltip-position="bottom"
-          aria-label="Home"
-        >
-          <BrowserIcon name="home" />
-        </button>
+        {!embedded && (
+          <button
+            className="fb-tool-btn"
+            type="button"
+            onClick={() => effectiveHome && navigate(effectiveHome)}
+            disabled={!effectiveHome}
+            data-tooltip="Pasta inicial"
+            data-tooltip-position="bottom"
+            aria-label="Home"
+          >
+            <BrowserIcon name="home" />
+          </button>
+        )}
         <button
           className="fb-tool-btn"
           type="button"
@@ -344,19 +351,21 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
           placeholder="Search current folder"
           aria-label="Search current folder"
         />
-        <button
-          className={`fb-favorite-btn ${currentIsFavorite ? 'active' : ''}`}
-          type="button"
-          onClick={toggleFavorite}
-          disabled={!currentPath}
-          data-tooltip={currentIsFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-          data-tooltip-position="bottom"
-        >
-          {currentIsFavorite ? 'saved' : 'save'}
-        </button>
+        {!embedded && (
+          <button
+            className={`fb-favorite-btn ${currentIsFavorite ? 'active' : ''}`}
+            type="button"
+            onClick={toggleFavorite}
+            disabled={!currentPath}
+            data-tooltip={currentIsFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            data-tooltip-position="bottom"
+          >
+            {currentIsFavorite ? 'saved' : 'save'}
+          </button>
+        )}
       </div>
 
-      {favorites.length > 0 && (
+      {!embedded && favorites.length > 0 && (
         <div className="fb-memory-strip" aria-label="File browser memory">
           {favorites.slice(0, 4).map((item) => (
             <button key={`fav-${item}`} type="button" onClick={() => navigate(item)} title={item}>fav · {shortName(splitPath(item).pop() || item)}</button>
@@ -365,7 +374,7 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
       )}
 
       {/* Breadcrumb */}
-      {roots.filter((r) => !r.isHome).length > 0 && (
+      {!embedded && roots.filter((r) => !r.isHome).length > 0 && (
         <div className="fb-memory-strip" aria-label="Drives">
           {roots.filter((r) => !r.isHome).map((r) => (
             <button key={`root-${r.path}`} type="button" onClick={() => navigate(r.path)} title={r.path}>{r.label}</button>
@@ -461,18 +470,20 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
                     <BrowserIcon name="eye" />
                   </button>
                 )}
-                <button
-                  className="fb-action"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    onPastePath(quotePath(e.path));
-                  }}
-                  title="Insert path in terminal"
-                  aria-label={`Insert ${e.name} path in terminal`}
-                >
-                  <BrowserIcon name="corner-down-left" />
-                </button>
+                {!embedded && (
+                  <button
+                    className="fb-action"
+                    type="button"
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      onPastePath(quotePath(e.path));
+                    }}
+                    title="Insert path in terminal"
+                    aria-label={`Insert ${e.name} path in terminal`}
+                  >
+                    <BrowserIcon name="corner-down-left" />
+                  </button>
+                )}
                 <button
                   className="fb-action"
                   type="button"
@@ -554,24 +565,28 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
       {/* Footer */}
       <div className="fb-footer">
         <span className="fb-count">{count > 0 ? `${visibleEntries.length}/${count} item${count !== 1 ? 's' : ''}` : ''}</span>
-        <button
-          className="fb-path-btn"
-          type="button"
-          onClick={() => currentPath && onPastePath(quotePath(currentPath))}
-          disabled={!currentPath}
-          title="Insert current folder path in terminal"
-        >
-          path
-        </button>
-        <button
-          className="fb-path-btn"
-          type="button"
-          onClick={() => currentPath && onPastePath(`cd ${quotePath(currentPath)}\r`)}
-          disabled={!currentPath}
-          title="Run cd to current folder"
-        >
-          cd
-        </button>
+        {!embedded && (
+          <>
+            <button
+              className="fb-path-btn"
+              type="button"
+              onClick={() => currentPath && onPastePath(quotePath(currentPath))}
+              disabled={!currentPath}
+              title="Insert current folder path in terminal"
+            >
+              path
+            </button>
+            <button
+              className="fb-path-btn"
+              type="button"
+              onClick={() => currentPath && onPastePath(`cd ${quotePath(currentPath)}\r`)}
+              disabled={!currentPath}
+              title="Run cd to current folder"
+            >
+              cd
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

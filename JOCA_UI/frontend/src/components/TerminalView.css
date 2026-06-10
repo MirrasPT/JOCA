@@ -163,6 +163,9 @@
   padding: var(--sp-2) var(--sp-2) var(--sp-1);
 }
 
+.titlebar-btn--scroll-bottom { color: var(--text-ghost); }
+.titlebar-btn--scroll-bottom:hover { color: var(--accent); }
+
 .terminal-container {
   flex: 1;
   overflow: hidden;

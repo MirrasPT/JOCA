@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import type { JocaLogicInfo, Project, SessionInfo, ProjectMemory } from '../types';
-import { shortPath, basename } from '../lib/paths';
+import { shortPath } from '../lib/paths';
+import FileBrowser from './FileBrowser';
 import './DashboardView.css';
 
 interface Props {
@@ -183,21 +184,6 @@ export default function DashboardView({
   const workingSessions = sessions.filter((s) => s.status === 'working');
   const ungroupedSessions = sessions.filter((s) => !s.projectId);
 
-  // States for memory editors inside project dashboard
-  const currentMemory = useMemo<ProjectMemory | null>(() => {
-    if (!activeProjectId) return null;
-    return projectMemory[activeProjectId] ?? {
-      projectId: activeProjectId,
-      recentSessions: [],
-      favoriteSkills: [],
-      favoriteAgents: [],
-      quickCommands: ['save', 'compact', 'clear'],
-      openFiles: [],
-      rightPanel: null,
-      updatedAt: new Date().toISOString()
-    };
-  }, [activeProjectId, projectMemory]);
-
   const [gitInfo, setGitInfo] = useState<{
     isRepository: boolean;
     remoteUrl?: string;
@@ -237,16 +223,6 @@ export default function DashboardView({
       setCreationError('');
     }
   }, [activeProject, mainView, loadProjectGitAndToolkit]);
-
-  const handleColorChange = useCallback((color: string) => {
-    if (!activeProjectId) return;
-    onUpdateProjectMemory(activeProjectId, { color });
-    fetch(`/projects/${activeProjectId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ color })
-    }).catch(() => {});
-  }, [activeProjectId, onUpdateProjectMemory]);
 
   const parseGithubRepo = (url?: string): string => {
     if (!url) return '';
@@ -611,48 +587,22 @@ export default function DashboardView({
               </div>
             </div>
 
-            {/* Project Customization */}
+            {/* Project Folder */}
             <div className="project-dashboard-block">
-              <div className="section-title">Project Customization</div>
-              <div className="project-color-section">
-                <label className="project-field-label">Workspace theme color:</label>
-                <div className="project-color-picker" role="radiogroup" aria-label="Project dot color theme">
-                  {['#ff4500', '#fbbf24', '#4ade80', '#60a5fa', '#a78bfa', '#ec4899', '#ffffff'].map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      role="radio"
-                      aria-checked={currentMemory?.color === color || (!currentMemory?.color && color === '#ff4500')}
-                      className={`project-color-dot-btn ${currentMemory?.color === color || (!currentMemory?.color && color === '#ff4500') ? 'active' : ''}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleColorChange(color)}
-                      aria-label={color}
-                    />
-                  ))}
+              <div className="section-title">Project Folder</div>
+              {activeProject ? (
+                <div className="project-folder-browser">
+                  <FileBrowser
+                    embedded
+                    initialPath={activeProject.path}
+                    onPreview={onPreviewFile}
+                    onPastePath={() => {}}
+                    selectedPath={null}
+                  />
                 </div>
-              </div>
-            </div>
-
-            {/* Recently Open Files */}
-            <div className="project-dashboard-block">
-              <div className="section-title">Recently Open Files</div>
-              <div className="memory-recent-files">
-                {(currentMemory?.openFiles ?? []).length === 0 ? (
-                  <p className="memory-empty-text">Nenhum ficheiro aberto recentemente neste workspace.</p>
-                ) : (
-                  <ul className="recent-files-list">
-                    {(currentMemory?.openFiles ?? []).map((file) => (
-                      <li key={file}>
-                        <button type="button" className="recent-file-link" onClick={() => onPreviewFile(file)} title={file}>
-                          {basename(file)}
-                          <span className="recent-file-path">{shortPath(file)}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <button className="db-project-card-btn" type="button" onClick={() => setRightPanel('files')}>Open Files Browser</button>
+              ) : (
+                <p className="memory-empty-text">Sem pasta associada.</p>
+              )}
             </div>
           </div>
         </div>

@@ -138,7 +138,12 @@ function SessionItem({
         <button
           type="button"
           className="session-item-select"
-          onClick={() => !confirming && onSelect()}
+          // Select on press: the active xterm swallows the first click via its
+          // document-level focus/selection handlers, so onClick was intermittently
+          // lost (needed 2+ clicks). pointerdown fires before that. detail===0
+          // keeps keyboard (Enter/Space) working without double-firing.
+          onPointerDown={(e) => { if (e.button === 0 && !confirming) onSelect(); }}
+          onClick={(e) => { if (e.detail === 0 && !confirming) onSelect(); }}
           onKeyDown={(e) => {
             if ((e.key === 'Delete' || e.key === 'Backspace') && !confirming) { e.preventDefault(); setConfirming(true); }
           }}
@@ -421,7 +426,7 @@ export default function SessionSidebar({
         <div className="sb-header">
           <div className="sb-brand">
             <div className="sb-logo-rings" aria-hidden />
-            <span className="sb-logo-text">JOCA <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>DEV 0.3.1</span></span>
+            <span className="sb-logo-text">JOCA <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>DEV 0.3.4</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"

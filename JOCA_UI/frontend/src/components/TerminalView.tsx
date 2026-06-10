@@ -255,10 +255,22 @@ export default function TerminalView({
         e.preventDefault();
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-          Array.from(files).forEach((f) => {
-            if ((f as any).path) addAttachment((f as any).path);
-            else addAttachment(f.name);
-          });
+          // macOS Finder drag gives full file:// URIs in text/uri-list
+          const uriList = e.dataTransfer.getData('text/uri-list');
+          if (uriList) {
+            const paths = uriList
+              .split(/\r?\n/)
+              .map(u => u.trim())
+              .filter(u => u.startsWith('file://') && !u.startsWith('#'))
+              .map(u => decodeURIComponent(new URL(u).pathname));
+            if (paths.length > 0) {
+              paths.forEach(p => addAttachment(p));
+              inputAreaRef.current?.focus();
+              return;
+            }
+          }
+          // Electron exposes f.path; browser-only falls back to f.name
+          Array.from(files).forEach((f) => addAttachment((f as any).path || f.name));
           inputAreaRef.current?.focus();
           return;
         }
@@ -295,6 +307,9 @@ export default function TerminalView({
               </button>
               <button className="titlebar-btn titlebar-btn--interrupt" type="button" onClick={onInterruptSession} data-tooltip="Parar processo (Ctrl-C)" data-tooltip-position="bottom">
                 <StopIcon /> Stop
+              </button>
+              <button className="titlebar-btn titlebar-btn--scroll-bottom" type="button" onClick={() => activeId && termRefs.current.get(activeId)?.scrollToBottom?.()} data-tooltip="Ir para o fim do terminal" data-tooltip-position="bottom">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12l7 7 7-7"/></svg>
               </button>
             </div>
           )}

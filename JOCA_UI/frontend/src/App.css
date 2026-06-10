@@ -1171,7 +1171,7 @@ html, body, #root {
 /* ─── Session Sidebar ────────────────────────────────────────────── */
 
 .session-sidebar {
-  width:320px;
+  width:380px;
   flex-shrink:0;
   background:var(--bg-nav);
   border-left:1px solid var(--border-faint);
@@ -1406,10 +1406,10 @@ html, body, #root {
   font-weight:600;
 }
 
-.project-group-actions { display:flex; gap:3px; flex-shrink:0; opacity:0; transition:opacity var(--t-fast); }
+.project-group-actions { display:flex; gap:3px; flex-shrink:0; opacity:0; max-width:0; overflow:hidden; transition:opacity var(--t-fast), max-width var(--t-fast); }
 .project-group-header:hover .project-group-actions,
-.project-group-header:focus-within .project-group-actions { opacity:1; }
-@media (hover:none) { .project-group-actions { opacity:1; } }
+.project-group-header:focus-within .project-group-actions { opacity:1; max-width:80px; }
+@media (hover:none) { .project-group-actions { opacity:1; max-width:80px; } }
 
 .project-group-action {
   background:none;
@@ -1947,8 +1947,8 @@ html, body, #root {
 
 .session-sidebar {
   order:0;
-  width:320px;
-  min-width:320px;
+  width:380px;
+  min-width:380px;
   border-left:1px solid var(--border-faint);
   background:linear-gradient(180deg, rgba(255,69,0,0.015) 0%, var(--bg-nav) 100%);
   padding:24px 20px;
@@ -3046,7 +3046,7 @@ html, body, #root {
 
 .session-sidebar {
   --panel-ease: cubic-bezier(0.16,1,0.3,1);
-  flex:0 0 260px;
+  flex:0 0 380px;
   will-change:flex-basis, width;
   transition:
     width 320ms var(--panel-ease),

@@ -353,12 +353,14 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .project-dashboard-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .project-dashboard-block {
@@ -366,6 +368,50 @@
   border: 1px solid var(--border-faint);
   border-radius: var(--r-lg);
   padding: 20px;
+}
+
+/* Project Folder browser embedded in the project dashboard sidebar.
+   Framed as an inset "well" so it reads as a dashboard module, not a
+   transplanted panel. Chrome is quieter/denser than the full file view. */
+.project-folder-browser {
+  display: flex;
+  height: 440px;
+  margin-top: 14px;
+  border: 1px solid var(--border-faint);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+.project-folder-browser .file-browser {
+  flex: 1;
+  min-width: 0;
+}
+
+/* embedded variant: inset, aligned, lower-contrast chrome */
+.file-browser--embedded .fb-toolbar {
+  padding: 10px var(--sp-3) 0;
+  margin-bottom: 8px;
+}
+.file-browser--embedded .fb-search-row {
+  padding: 0 var(--sp-3);
+  margin-bottom: 8px;
+}
+.file-browser--embedded .fb-tool-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+.file-browser--embedded .fb-search-input {
+  height: 30px;
+}
+.file-browser--embedded .fb-breadcrumb {
+  background: rgba(0, 0, 0, 0.24);
+}
+.file-browser--embedded .fb-footer {
+  padding: 6px var(--sp-3);
+  background: rgba(0, 0, 0, 0.16);
+  border-top: 1px solid var(--border-faint);
 }
 
 /* Memory Editor CSS */
@@ -597,7 +643,8 @@
 
 .project-toolkit-col {
   flex: 1;
-  min-width: 240px;
+  min-width: 180px;
+  overflow: hidden;
 }
 
 .project-toolkit-col-header {
@@ -631,6 +678,7 @@
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.02);
   min-height: 80px;
+  overflow: hidden;
 }
 
 .project-toolkit-item {
