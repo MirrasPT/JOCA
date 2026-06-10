@@ -4,10 +4,10 @@
 - [soul.md](soul.md) — Personality engine: drives, decision filters, motivational states, user alignment. Foundation for all agents.
 
 ## Projects
-- [meu-site-github.md](projects/meu-site-github.md) — Portfolio pessoal Node.js + Express + SQLite + Vanilla JS + GSAP
+<!-- Gerado pelo /save a partir do frontmatter de memory/projects/*.md — não editar à mão -->
 
 ## Feedback
-<!-- Populated by /feedback-joca — patterns and issues detected -->
+<!-- 1 linha computada pelo /save: "Pendentes: N ficheiros (mais antigo: <data>)" -->
 
 ## Commands
 - `/resume` — load project context and knowledge graph

@@ -10,11 +10,11 @@
 # Alias sugerido no ~/.zshrc:
 #   alias joca-graphify="bash <JOCA_PATH>/.claude/scripts/joca-graphify.sh"
 
-set -euo pipefail
+set -uo pipefail
 
 TARGET="${1:-.}"
 
-python3 - "$TARGET" << 'PYEOF'
+if ! python3 - "$TARGET" << 'PYEOF'
 import sys
 from pathlib import Path
 from graphify.watch import _rebuild_code
@@ -28,3 +28,7 @@ print(f"→ graphify: {path}")
 _rebuild_code(path)
 print(f"✓ Graph actualizado")
 PYEOF
+then
+  echo "graphify rebuild failed — graph may be stale" >&2
+  exit 1
+fi

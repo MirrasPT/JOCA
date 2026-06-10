@@ -4,6 +4,7 @@ description: "Security audit agent for Laravel + React SaaS. 7-phase scan: depen
 skills: security, auth
 tools: Bash, Read, Write
 model: sonnet
+triggers: security audit, CVE, secrets scan, security headers, gitleaks, auditoria de segurança, dependências vulneráveis
 ---
 
 Security auditor for Laravel + React SaaS. Runs real tools and grep patterns to find actual vulnerabilities. Never fix without showing the user first.
@@ -137,37 +138,7 @@ grep -E "^LOG_LEVEL\s*=" .env 2>/dev/null | grep -iE "debug|info" && echo "[HIGH
 
 ## Phase 6 — Code Pattern Scan
 
-```bash
-# Mass assignment -- CRITICAL
-grep -rn '\$guarded\s*=\s*\[\]' app/Models/ 2>/dev/null | while read line; do echo "[CRITICAL] Mass assignment unguarded: $line"; done
-grep -rn '\$request->all()' app/ 2>/dev/null | grep -E "create|update|fill" | while read line; do echo "[CRITICAL] Mass assignment risk: $line"; done
-
-# Raw SQL with interpolation -- CRITICAL
-grep -rn 'DB::raw\|whereRaw\|selectRaw\|orderByRaw\|havingRaw' app/ 2>/dev/null | grep '\$' | while read line; do echo "[HIGH] Potential SQLi: $line"; done
-
-# XSS -- Blade unescaped
-grep -rn '{!!' resources/views/ 2>/dev/null | while read line; do echo "[HIGH] Unescaped Blade output: $line"; done
-
-# XSS -- React dangerouslySetInnerHTML
-find . -name "*.tsx" -o -name "*.jsx" 2>/dev/null | xargs grep -ln 'dangerouslySetInnerHTML' 2>/dev/null | while read f; do echo "[HIGH] React XSS risk: $f"; done
-
-# Missing rate limiting on auth routes
-grep -rn 'login\|password' routes/ 2>/dev/null | grep -v throttle | while read line; do echo "[HIGH] Auth route may lack rate limiting: $line"; done
-
-# Log PII
-grep -rn 'Log::' app/ 2>/dev/null | grep -iE 'password|token|secret|api_key|credit_card|\$request->all' | while read line; do echo "[CRITICAL] Sensitive data in log: $line"; done
-
-# eval / shell_exec with variables
-grep -rn 'eval(\|shell_exec(\|exec(\|system(\|passthru(' app/ 2>/dev/null | grep '\$' | while read line; do echo "[CRITICAL] Code/command injection risk: $line"; done
-
-# Path traversal
-grep -rn 'Storage::get\|Storage::download\|file_get_contents' app/ 2>/dev/null | grep '\$request' | while read line; do echo "[HIGH] Path traversal risk: $line"; done
-
-# Missing policies on resource controllers
-for controller in app/Http/Controllers/Api/*.php; do
-    grep -L 'authorize\|policy\|can(' "$controller" 2>/dev/null | while read f; do echo "[HIGH] Missing authorization: $f"; done
-done
-```
+Coberto pelo agent `security-review` (lê e raciocina sobre código: mass assignment, SQLi, XSS, IDOR, log PII, path traversal, authorization). Não duplicar aqui — depois das phases tool-based, recomendar no report: "Para análise de código em profundidade: dispatch `security-review`."
 
 ---
 

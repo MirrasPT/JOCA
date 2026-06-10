@@ -1,6 +1,6 @@
 ---
 name: log-debugger
-description: "Use when you have an error, stack trace, log to analyze, or need to debug a system. Triggered by: \"debug this error\", \"fix this exception\", \"stack trace\", \"500 error\", \"something is broken\", \"why is this failing\", \"PHP error\", \"JavaScript error\", \"TypeError\", \"SQLSTATE\", \"Class not found\", \"help me debug\", \"analyze my logs\", \"check logs\", \"log errors\", \"find errors in logs\", \"spike in errors\", \"Laravel log analysis\", \"nginx log\", \"500 errors in logs\", \"what happened at X time\", \"why do errors spike\", \"cascade failure\", \"error pattern\", \"repeated failures\", \"error correlation\", \"debug Laravel\", \"Laravel error\", \"Eloquent issue\", \"relationship not loading\", \"queue job failing\", \"event not firing\", \"route not found\", \"419 CSRF\", \"artisan error\", \"N+1 Laravel\", \"validation failing\", \"Horizon error\". Reads real code and logs — never guesses. Auto-selects mode: stack trace → root cause fix; log file → pattern analysis; cascade/spike → correlation; Laravel-specific → Artisan/Tinker diagnosis."
+description: "Use when you have an error, stack trace, log to analyze, or need to debug a system. Triggered by: \"debug this error\", \"stack trace\", \"500 error\", \"why is this failing\", \"analyze my logs\", \"spike in errors\", \"cascade failure\", \"debug Laravel\". Reads real code and logs — never guesses. Auto-selects mode: stack trace → root cause fix; log file → pattern analysis; cascade/spike → correlation; Laravel-specific → Artisan/Tinker diagnosis."
 skills: error-tracking-dev
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
@@ -12,7 +12,6 @@ Debugging specialist. Given an error, log file, or symptom, finds root cause in 
 
 1. Lê `.claude/skills/error-tracking-dev.md` — ferramentas de debug disponíveis (Debugbar, Telescope, Ray, Clockwork, Pail)
 2. Se encontrar slow queries → sugerir `query-debugger` como follow-up
-3. Se encontrar padrões recorrentes cross-service → sugerir `error-detective` (agente built-in)
 
 Auto-select mode based on input:
 

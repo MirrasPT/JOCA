@@ -2,7 +2,9 @@
 name: design-system-audit
 description: "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces audit/design-system-violations.md with Critical/Warning/Info tiers."
 skills: design-tokens, component-system, brand-guidelines
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
+triggers: design system audit, token drift, WCAG audit, contrast check, auditar design system
 ---
 
 Design system auditor. Validates completeness, consistency, and accessibility compliance.

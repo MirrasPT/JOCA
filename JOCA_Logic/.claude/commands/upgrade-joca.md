@@ -19,9 +19,9 @@ Never touches project files, external repos, or user data.
 
 ```bash
 # Windows
-$JOCA_DIR = (Get-ChildItem -Path "$env:USERPROFILE" -Recurse -Depth 6 -Filter "CLAUDE.md" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'JOCA[/\\]CLAUDE\.md' } | Select-Object -First 1).DirectoryName
+$JOCA_DIR = (Get-ChildItem -Path "$env:USERPROFILE" -Recurse -Depth 6 -Filter "CLAUDE.md" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match 'JOCA_Logic[/\\]CLAUDE\.md' } | Select-Object -First 1).DirectoryName
 # macOS/Linux
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
+JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA_Logic/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 ```
 
 All paths below are relative to `$JOCA_DIR`.

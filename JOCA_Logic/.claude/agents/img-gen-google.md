@@ -6,7 +6,8 @@ description: >
   unusual aspect ratios, backgrounds, textures, simple concepts, high-volume generation.
   Spawned by img-gen skill or directly for Gemini-specific tasks.
 tools: Bash, Read
-model: sonnet
+model: haiku
+triggers: generate image gemini, imagem gemini, draft image, background, texture
 ---
 
 Image generation agent using Google's Gemini via the **Antigravity CLI (agy)**.

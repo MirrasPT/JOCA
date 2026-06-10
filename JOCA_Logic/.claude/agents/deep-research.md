@@ -19,7 +19,7 @@ You are a deep research specialist. Your output is a fully cited, multi-source r
 
 First, resolve the JOCA install path:
 ```bash
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
+JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA_Logic/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 ```
 
 Then read (path = `${JOCA_DIR}/.claude/agents/deep-research/reference/methodology.md`):

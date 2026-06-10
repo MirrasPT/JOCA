@@ -1,43 +1,32 @@
-# JOCA Hooks — Autonomous Test Pipeline
+# Hooks — pipeline de testes autónomos + skill routing
 
-Three-layer architecture for automatic test triggering after code changes.
+Wiring real (configurado em `.claude/settings.json`). Todos os hooks recebem o
+payload como **JSON no stdin** — não há variáveis `$TOOL_INPUT_*`.
 
-## Layer 1: PostToolUse → Track Changes
-`track-changes.sh` appends modified files to `.joca/test-queue.jsonl` with domain classification.
+| Evento | Script | Função |
+|---|---|---|
+| UserPromptSubmit | `skill-router.js` | Grep do prompt contra os triggers do `memory/SKILL_INDEX.json`; injecta `additionalContext` a apontar a skill relevante |
+| PostToolUse (Write\|Edit) | `track-changes.js` | Lê `tool_input.file_path` do stdin, classifica domínio, appenda a `.joca/test-queue.jsonl` |
+| PostToolUse (Write\|Edit) | `../scripts/check-skill-paths.sh --stdin` | Guard contra paths de skill legacy; violação → exit 2 + explicação no **stderr** |
+| Stop | `auto-test-dispatch.js` | Lê a queue, escreve `.joca/last-session.json`, e emite `{"decision":"block","reason":"AUTO-TEST: …"}` para o modelo despachar os testers |
 
-## Layer 2: Stop → Dispatch Tests  
-`auto-test-dispatch.sh` reads the queue and outputs test recommendations before Claude stops.
+## Regras de exit codes
 
-## Layer 3: Git Pre-commit (optional)
-Fast lint/type-check only. Feeds errors back to Claude's feedback loop for auto-fix.
+- `exit 0` + stdout → transcript apenas (o modelo NÃO vê), excepto JSON estruturado
+- `exit 2` + stderr → o modelo vê o stderr (bloqueia a acção em PreToolUse/PostToolUse)
+- Stop hook → só influencia o modelo via `{"decision":"block","reason":…}` no stdout
 
-## Installation
+## Salvaguardas do Stop hook
 
-Add to your project's `.claude/settings.json`:
+- `stop_hook_active: true` no payload → exit 0 imediato (evita loop infinito)
+- Sentinel `.joca/dispatched-<session_id>` → bloqueia no máximo 1× por sessão
+- Queue só é limpa quando a recomendação é efectivamente emitida
 
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": { "tool_name": "Write|Edit" },
-        "hooks": [{ "type": "command", "command": "bash .claude/hooks/track-changes.sh \"$TOOL_INPUT_FILE_PATH\"" }]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [{ "type": "command", "command": "bash .claude/hooks/auto-test-dispatch.sh" }]
-      }
-    ]
-  }
-}
+## Testar manualmente
+
+```bash
+echo '{"tool_input":{"file_path":"app/Models/User.php"}}' | node .claude/hooks/track-changes.js
+cat .joca/test-queue.jsonl   # deve ter 1 linha nova
+echo '{"session_id":"test"}' | node .claude/hooks/auto-test-dispatch.js   # deve emitir decision:block
+echo '{"prompt":"cria um recurso Filament para User"}' | node .claude/hooks/skill-router.js
 ```
-
-## How It Works
-
-1. Every Write/Edit → file path logged to `.joca/test-queue.jsonl`
-2. When Claude is about to stop → queue is read, tests recommended
-3. Claude reads the recommendation and dispatches tester agents autonomously
-4. Queue is cleared after each Stop event
-
-No user input required. Zero confirmations.

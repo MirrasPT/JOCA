@@ -7,9 +7,15 @@ This file provides guidance to Claude Code when working in this repository.
 # JOCA
 
 ## Source of Truth
-JOCA is Claude-first. `CLAUDE.md`, `.claude/`, `skills/`, `memory/soul.md` and `memory/INDEX.md` are canonical.
+JOCA is Claude-first. `CLAUDE.md`, `.claude/` (skills/agents/commands live in `.claude/skills/` etc.), `memory/soul.md` and `memory/INDEX.md` are canonical.
 `AGENTS.md` exists as compatibility bridge for tools that read that filename.
 `memory/soul.md` is the personality foundation — defines drives, filters, states, and alignment. Loaded every session.
+
+## Memory Precedence
+`memory/` is canonical for projects and toolkit facts. Auto-memory (`~/.claude`) holds only user preferences.
+Conflict → `memory/` wins; hard rules in CLAUDE.md win over both.
+Operational facts (branch, ports, server state) are verified with real commands, never reported from memory.
+On context compaction, always preserve: list of modified files, test commands, next step.
 
 ## Communication
 Terse. No articles, filler, hedging. Fragments OK. Technical terms exact. Code intact.
@@ -44,7 +50,8 @@ JOCA/
 │   └── feedback/          ← /feedback-joca sessions
 └── .claude/
     ├── skills/            ← ALL skills flat (one .md per skill, depth 1)
-    ├── rules/             ← global behavior directives (testing, api-design)
+    ├── rules/             ← global behavior directives (testing) <!-- budget: 10KB residente -->
+
     ├── commands/          ← slash commands (/install, /save, /plan, etc.)
     ├── agents/            ← sub-agents (tester-*, orchestrator, etc.)
     ├── hooks/             ← PostToolUse + Stop hooks (auto-test pipeline)
@@ -76,10 +83,11 @@ Read(".claude/skills/<name>.md")
 
 ### Activation Rule
 Relevance ≥ 60% → **Read() the skill BEFORE writing code**. Mandatory, not optional.
-Notify: `[skill: <name>]`. No match → respond directly.
+Notify: `[skill: <name>]`. No match in the trigger map → run `python3 .claude/scripts/find-skill.py <termos>` before responding generically.
 **CRITICAL:** If you're about to write Laravel code → read `laravel-specialist`. Filament resource → read `filament`. React/frontend → read `frontend`. This is the #1 source of avoidable errors when skipped.
 
 **Hierarchy:** specialized skill > agent > generic response.
+**Policy:** reviewers/auditors (tester-*, *-review, *-audit) never get Edit/Write on project code — report only.
 
 ### Trigger Map
 

@@ -21,6 +21,20 @@ Actualizar `memory/projects/<nome>.md`:
 | **Decisoes tomadas** | Append com data `YYYY-MM-DD` |
 | **Pendente** | Substituir com lista actual |
 | **Ultima sessao** | Data + resumo de 1 linha |
+| **Retoma** | Bloco fixo de 4 campos (ver abaixo) |
+
+**Bloco de retoma (obrigatorio, substitui o anterior):**
+```
+Next step: <accao concreta seguinte>
+Files touched: <lista desta sessao>
+Open decisions: <decisoes em aberto ou "nenhuma">
+Verify with: <comandos de teste/verificacao>
+```
+
+**Regras de escrita (obrigatorias):**
+- **NUNCA escrever credenciais em memory/** (passwords, tokens, API keys). Escrever onde encontra-las: "ver backend/.env", "ver seeder X".
+- **Anti-contradicao:** antes de escrever um facto, grep ao ficheiro + `~/CLAUDE.md` por factos sobre o mesmo assunto. Conflito → UPDATE in place (git preserva o antigo). Hard rule do CLAUDE.md ganha sempre.
+- **Cap de sessoes:** maximo 3 blocos de sessao por ficheiro. Ao escrever o 4º, comprimir o mais antigo para 1 linha numa seccao **Historico**. Alvo: ficheiro ≤120 linhas.
 
 ---
 
@@ -78,6 +92,8 @@ project: <nome>
 
 Cada entry com: `**Categoria:** ... | **Severidade:** critical/high/medium/low | **Descricao:** ... | **Componente afectado:** ... | **Fix sugerido:** ...`
 
+**Dedup:** antes de escrever, grep a `memory/feedback/` pelo mesmo issue. Se ja existe → adicionar `recorrencia: N` ao entry existente em vez de duplicar; com `recorrencia >= 2` marcar `promover: true` (o /upgrade-joca ordena estes primeiro).
+
 Se nao ha nada relevante, nao criar ficheiro. Nunca perguntar ao utilizador.
 
 ---
@@ -110,6 +126,16 @@ Se a sessao trouxe informacao nova sobre o projecto (novo directorio, mudanca de
 
 ---
 
+## PASSO 7b — Commit da memoria (durabilidade)
+
+```bash
+cd <JOCA_Logic> && git add memory/projects/ memory/feedback/ memory/INDEX.md memory/SKILL_INDEX.json 2>/dev/null && git commit -m "memory: save <nome-projecto>" 2>/dev/null || true
+```
+
+Sem commits, a estrategia "supersede in place, git preserva historia" nao funciona. Nunca fazer push automatico.
+
+---
+
 ## PASSO 8 — Relatorio
 
 ```
@@ -127,7 +153,8 @@ Feedback projecto:
 
 Feedback JOCA:
   ✓ memory/feedback/session-<data>.md — N items (X critical, Y high)
-    → Considerar /upgrade-joca
+  Pendentes no total: N ficheiros (mais antigo: <data>)
+    → Se N >= 8 ou ha item critical: recomendar explicitamente /upgrade-joca
   — Sem gaps detectados
 
 Extras:

@@ -7,7 +7,8 @@ description: >
   Spawned by img-gen skill or directly for OpenAI-specific generation tasks.
 skills: img-gen
 tools: Bash, Read
-model: sonnet
+model: haiku
+triggers: generate image openai, gpt-image, text in image, product shot, inpainting
 ---
 
 Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.

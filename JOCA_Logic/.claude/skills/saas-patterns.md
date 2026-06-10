@@ -1,14 +1,14 @@
 ---
 name: saas-patterns
-description: "SaaS architecture patterns for Laravel 11 multi-tenant platforms. MUST be invoked when the user says: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context."
+description: "SaaS architecture patterns for Laravel 11+ multi-tenant platforms. MUST be invoked when the user says: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context."
 when_to_use: Activate for any multi-tenant SaaS on Laravel. Covers stancl/tenancy v3/v4, single-DB vs multi-DB vs hybrid, BelongsToTenant global scope, Laravel Pennant feature flags, Cashier subscription tiers, PlanGate helper, tenant-aware Horizon queues, per-tenant audit logs, GDPR export/delete, Pest isolation tests. Complementary to laravel-specialist.
 disable-model-invocation: false
 allowed-tools: Read WebSearch WebFetch
 ---
 
-# SaaS Patterns -- Laravel 11 Multi-Tenant
+# SaaS Patterns -- Laravel 11+ Multi-Tenant
 
-Target: stancl/tenancy v3 (v4 differences noted). Laravel 11-first; patterns are framework-adaptable.
+Target: stancl/tenancy v3 (v4 differences noted). Laravel 11+-first; patterns are framework-adaptable.
 
 ---
 

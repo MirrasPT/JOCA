@@ -4,7 +4,7 @@ description: |
   Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD.
   
   Triggers: "revê o PRD", "valida o PRD", "o PRD está completo?", "review do PRD", after generating PRD.md
-skills: planning-prd
+skills: prd
 model: sonnet
 tools:
   - Read

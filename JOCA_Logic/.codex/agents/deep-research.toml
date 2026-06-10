@@ -1,4 +1,4 @@
-description = """name: deep-research"""
+description = """name: deep-research"""
 developer_instructions = """
 ---
 name: deep-research
@@ -21,7 +21,7 @@ You are a deep research specialist. Your output is a fully cited, multi-source r
 
 First, resolve the JOCA install path:
 ```bash
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
+JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA_Logic/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 ```
 
 Then read (path = `${JOCA_DIR}/.claude/agents/deep-research/reference/methodology.md`):
@@ -106,5 +106,5 @@ All files to `~/Documents/[Topic]_Research_[YYYYMMDD]/`:
 - Limitations & Caveats
 - Recommendations
 - Bibliography (complete — every source, no placeholders)
-- Methodology Appendix"""
+- Methodology Appendix"""
 name = "deep-research"

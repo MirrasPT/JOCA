@@ -81,7 +81,7 @@ $user->can('articles.publish');
 $user->hasAnyRole(['editor', 'admin']);
 ```
 
-### Middleware (Laravel 11 -- bootstrap/app.php)
+### Middleware (Laravel 11+ -- bootstrap/app.php)
 ```php
 $middleware->alias([
     'role'               => \Spatie\Permission\Middleware\RoleMiddleware::class,

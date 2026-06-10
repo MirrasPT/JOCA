@@ -1,4 +1,4 @@
-description = """name: dependency-auditor"""
+description = """name: dependency-auditor"""
 developer_instructions = """
 ---
 name: dependency-auditor
@@ -201,5 +201,5 @@ Command: `composer remove package/name` or `npm uninstall package-name`
 - Never auto-run `composer update` or `npm install` without confirmation — it may break things
 - For major version bumps, always check the package's CHANGELOG or migration guide
 - Distinguish direct dependencies from transitive (indirect) ones — different risk profiles
-- If no audit tools installed, explain what to install and provide the manual checklist"""
+- If no audit tools installed, explain what to install and provide the manual checklist"""
 name = "dependency-auditor"

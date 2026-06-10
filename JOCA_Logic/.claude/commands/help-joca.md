@@ -4,7 +4,7 @@ Apresenta todos os comandos, agentes e skills do JOCA com descrição curta.
 
 ## Passos
 
-1. Ler `JOCA/memory/INDEX.md` para obter a lista actualizada de agentes e skills.
+1. Ler `memory/INDEX.md` para obter a lista actualizada de agentes e skills.
 2. Apresentar o output abaixo — substituindo as secções de Agentes e Skills com o conteúdo real do INDEX.md, resumido a ~10 palavras por item.
 
 ---
@@ -18,7 +18,7 @@ JOCA — Referência rápida
 SESSÃO
 /resume              Carrega contexto e knowledge graph do projecto
 /save                Guarda estado da sessão e actualiza memory
-/init-project        Inicializa entrada de projecto novo em JOCA/memory
+/init-project        Inicializa entrada de projecto novo em memory/ (JOCA_Logic)
 /install             Setup ou reconfiguração do JOCA
 
 WORKFLOW

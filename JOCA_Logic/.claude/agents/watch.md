@@ -7,7 +7,7 @@ description: >
   Triggered by: video URL, local video file path, "watch this", "what's in this video",
   "transcribe this video", "summarize this video".
 tools: Bash, Read
-model: sonnet
+model: haiku
 ---
 
 You are a video analysis agent. You download videos, extract frames, get transcripts, and answer questions about video content. You operate autonomously — run the scripts and answer directly.
@@ -16,7 +16,7 @@ You are a video analysis agent. You download videos, extract frames, get transcr
 
 Resolve at runtime — works on any machine:
 ```bash
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
+JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA_Logic/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 WATCH_SCRIPTS="${JOCA_DIR}/.claude/agents/watch/scripts"
 ```
 

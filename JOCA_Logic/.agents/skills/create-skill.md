@@ -21,11 +21,12 @@ Read `templates/skill-template.md` for canonical format before starting.
 ## Step 1: Context Gathering
 
 ### Mode: new
-1. **Scan existing skills** — detect overlap:
+1. **Scan existing skills** — detect overlap (layout flat, depth 1):
    ```bash
-   find .claude/skills/ -name "SKILL.md" | sort
+   ls .claude/skills/*.md
+   python3 .claude/scripts/find-skill.py "[REQUEST keywords]"
    ```
-   Read `memory/INDEX.md` for descriptions of all 80+ skills.
+   Read `memory/INDEX.md` for descriptions of all skills.
 2. **Web research** — 2-3 targeted searches:
    - `"[REQUEST] best practices site:github.com"`
    - `"Claude Code skill [REQUEST]"`
@@ -33,19 +34,19 @@ Read `templates/skill-template.md` for canonical format before starting.
 3. Summarise findings in 3-5 actionable bullets.
 
 ### Mode: upgrade
-1. **Find skill path**:
+1. **Find skill path** (layout flat):
    ```bash
-   find .claude/skills/ -name "SKILL.md" | xargs grep -l "^name: [SKILL_NAME]$" 2>/dev/null
-   # OR by directory name:
-   find .claude/skills/ -type d -name "[SKILL_NAME]"
+   ls .claude/skills/[SKILL_NAME].md 2>/dev/null || grep -rl "^name: [SKILL_NAME]$" .claude/skills/*.md
    ```
-2. Read found `SKILL.md` — this is `current_version`
-3. Read `skill-creation-log.md` in same directory if it exists
+2. Read the found file — this is `current_version`
+3. Read `memory/skill-creation-logs/[SKILL_NAME].md` if it exists
 4. Note weaknesses to address
 
 ## Step 2: Create Initial Draft (v1)
 
-Write complete `SKILL.md` following `templates/skill-template.md`.
+Write complete skill following `.claude/templates/skill-template.md`.
+
+**RED baseline (obrigatório para skills novas):** antes de escrever, correr a tarefa-alvo num subagent fresco SEM a skill. Se o output já é bom, a skill não é necessária — abortar e reportar. Guardar o output como baseline de comparação.
 
 **Quality gates:**
 - `description`: front-load primary use case. 3-5 trigger phrases. Max 1,536 chars for description + when_to_use combined.
@@ -113,14 +114,14 @@ If `score` > `best_score`: update `best_version`, `best_score`, `best_iteration`
 Parse `best_version` frontmatter for `name`. If missing, derive from REQUEST: lowercase, hyphens, max 32 chars.
 
 ### 4b — Save skill
-All pipeline-created skills go to `created-skills/`:
+Layout flat — uma skill = um ficheiro, depth 1:
 ```bash
-mkdir -p .claude/skills/created-skills/[name]/
+# output: .claude/skills/[name].md
 ```
-Write `best_version` to `.claude/skills/created-skills/[name]/SKILL.md`.
+Write `best_version` to `.claude/skills/[name].md`.
 
 ### 4c — Write creation log
-Write `.claude/skills/created-skills/[name]/skill-creation-log.md`:
+Write `memory/skill-creation-logs/[name].md`:
 ```markdown
 # Skill Creation Log — [name]
 
@@ -139,13 +140,17 @@ Write `.claude/skills/created-skills/[name]/skill-creation-log.md`:
 ```
 
 ### 4d — Register in JOCA
-1. Add entry to `memory/INDEX.md` under `### Created Skills` (create if missing)
-2. Do NOT add to `CLAUDE.md` — `created-skills/` is auto-discovered
+1. Regenerate the lazy-loading index:
+   ```bash
+   python3 .claude/scripts/build-skill-index.py
+   ```
+2. Add entry to `memory/INDEX.md` under `## Skills` if curated listing applies
+3. Recompile bridges: `bash .claude/scripts/compile-bridges.sh`
 
 ### 4e — Report to user
 ```
-✓ Skill ready: /[name]
-  Path:   .claude/skills/created-skills/[name]/SKILL.md
+✓ Skill ready: [name]
+  Path:   .claude/skills/[name].md
   Score:  [best_score]/10
   Iterations: [N] (stopped: [PASS threshold reached / max iterations])
 
@@ -161,6 +166,6 @@ How to use:
 
 - If both agents fail or return unparseable output, skip that iteration
 - If web search returns nothing useful, proceed with general knowledge
-- For upgrades, preserve existing skill's name and directory
-- All new skills go to `created-skills/` — never to category directories
+- For upgrades, preserve existing skill's name and file path
+- All skills live flat in `.claude/skills/<name>.md` — never nested directories
 - Pipeline is fully autonomous — report only at the end

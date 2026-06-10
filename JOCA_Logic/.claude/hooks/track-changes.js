@@ -1,11 +1,19 @@
 #!/usr/bin/env node
+// PostToolUse(Write|Edit) hook — regista ficheiros alterados em .joca/test-queue.jsonl
+// Input: JSON no stdin (payload oficial do Claude Code), não argv.
 const fs = require('fs');
 const path = require('path');
 
-const filePath = process.argv[2];
+let filePath = process.argv[2] || '';
+if (!filePath) {
+  try {
+    const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+    filePath = (input.tool_input && input.tool_input.file_path) || '';
+  } catch {}
+}
 if (!filePath) process.exit(0);
 
-const repoRoot = path.resolve(__dirname, '../..');
+const repoRoot = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, '../..');
 const queueDir = path.join(repoRoot, '.joca');
 const queueFile = path.join(queueDir, 'test-queue.jsonl');
 

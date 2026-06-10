@@ -153,7 +153,7 @@ C4Container
 
     System_Boundary(platform, "SaaS Platform") {
         Container(spa, "Frontend SPA", "React, Vite", "Interface do utilizador")
-        Container(api, "API", "Laravel 11, PHP 8.3", "Business logic, REST endpoints")
+        Container(api, "API", "Laravel 11+, PHP 8.3", "Business logic, REST endpoints")
         Container(worker, "Queue Worker", "Laravel Horizon", "Processa jobs assincronos")
         ContainerDb(db, "Database", "MySQL 8", "Dados multi-tenant")
         ContainerDb(cache, "Cache", "Redis 7", "Cache, sessions, queues")
@@ -225,7 +225,7 @@ C4Container
 | Misturar niveis | Container ao lado de Component no mesmo diagrama | Um nivel por diagrama |
 | Esquecer sistemas externos | Sistema parece isolado | Context level mostra TUDO que interage |
 | Labels vagas ("Uses", "Calls") | Nao comunica nada | Intent concreto + protocolo |
-| Sem tecnologia em containers | Nao se sabe o que e | Sempre: "Laravel 11, PHP 8.3" |
+| Sem tecnologia em containers | Nao se sabe o que e | Sempre: "Laravel 11+, PHP 8.3" |
 | Diagrama sem documento | Diagrama e ambiguo sozinho | Sempre acompanhar com Markdown |
 | Entregar sem validar | Assumptions nao confirmadas | Nunca escrever ficheiros sem "ok" do utilizador |
 

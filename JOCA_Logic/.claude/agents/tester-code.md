@@ -2,7 +2,8 @@
 name: tester-code
 description: "Code review agent. Reviews completed work against plan, coding standards, and stack-specific patterns. Triggered after major steps: feature complete, endpoint batch, refactor. Checks plan alignment, code quality, architecture, security flags. Categorizes: Critical / Important / Suggestion."
 skills: karpathy-guidelines, laravel-specialist, frontend, security
-model: inherit
+tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 Senior Code Reviewer. Reviews implementations against plan + coding standards.

@@ -1,6 +1,6 @@
 ---
 name: karpathy-guidelines
-description: "Behavioral guidelines to reduce common LLM coding mistakes. MUST be invoked when the user mentions: Behavioral, LLM."
+description: "Behavioral guidelines to reduce common LLM coding mistakes — think before coding, minimal surgical changes, no speculative abstractions. MUST be invoked when: writing or reviewing any non-trivial code, code review, refactor, simplificar código, código demasiado complexo, over-engineering, mudanças cirúrgicas, coding standards."
 license: MIT
 ---
 

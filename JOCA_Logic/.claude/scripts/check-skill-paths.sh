@@ -11,15 +11,25 @@
 #   - linhas com placeholders em <...>        — documentação, não paths reais
 #
 # Uso:
-#   bash .claude/scripts/check-skill-paths.sh <ficheiro>  # 1 ficheiro (hook PostToolUse)
-#   bash .claude/scripts/check-skill-paths.sh --all        # varre o repo inteiro (manual)
+#   bash .claude/scripts/check-skill-paths.sh <ficheiro>  # 1 ficheiro (manual)
+#   bash .claude/scripts/check-skill-paths.sh --stdin     # hook PostToolUse (JSON no stdin)
+#   bash .claude/scripts/check-skill-paths.sh --all       # varre o repo inteiro (manual)
 #
-# Sai com 0 se limpo, 2 se encontrar paths partidos.
-# Sem argumento (ex.: $TOOL_INPUT_FILE_PATH vazio) → no-op, exit 0.
+# Sai com 0 se limpo, 2 se encontrar paths partidos (explicação no stderr).
 
 set -uo pipefail
 
 TARGET="${1:-}"
+
+# Modo hook: o Claude Code entrega o payload como JSON no stdin.
+if [[ "$TARGET" == "--stdin" ]]; then
+  PAYLOAD="$(cat 2>/dev/null || true)"
+  TARGET="$(printf '%s' "$PAYLOAD" \
+    | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    | head -1 \
+    | sed 's/.*"file_path"[[:space:]]*:[[:space:]]*"\(.*\)"/\1/')"
+  [[ -z "$TARGET" ]] && exit 0
+fi
 
 PAT_PLACEHOLDER='skills/SKILL\.md'
 PAT_NESTED='skills/[^/]+/[^/]+/SKILL\.md'
@@ -67,12 +77,15 @@ else
 fi
 
 if [[ -n "$HITS" ]]; then
-  echo "✗ Path de skill partido detectado (legacy)."
-  echo "  Estrutura correcta (flat): .claude/skills/<name>.md"
-  echo "  Proibido: 'skills/SKILL.md' e nested 'skills/<cat>/<name>/SKILL.md'"
-  echo "  (Excepção válida: skills/created-skills/<name>/SKILL.md)"
-  echo "  Ocorrências:"
-  echo "$HITS" | sed 's/^/    /'
+  # Com exit 2, o Claude só lê stderr — a explicação tem de ir para lá.
+  {
+    echo "✗ Path de skill partido detectado (legacy)."
+    echo "  Estrutura correcta (flat): .claude/skills/<name>.md"
+    echo "  Proibido: 'skills/SKILL.md' e nested 'skills/<cat>/<name>/SKILL.md'"
+    echo "  (Excepção válida: skills/created-skills/<name>/SKILL.md)"
+    echo "  Ocorrências:"
+    echo "$HITS" | sed 's/^/    /'
+  } >&2
   exit 2
 fi
 

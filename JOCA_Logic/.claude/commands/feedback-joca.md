@@ -34,6 +34,7 @@ Pode ser corrido manualmente ou e triggered implicitamente por `/save` (versao a
 - Decisoes do projecto, assets criados, estado → `/save`
 - Glossarios, templates, regras do projecto → `/save` (feedback projecto inline)
 - Bugs no codigo do projecto
+- **Credenciais (NUNCA):** passwords, tokens, API keys. Se relevante, escrever onde encontra-las ("ver backend/.env"), nunca o valor
 
 ---
 
@@ -124,14 +125,7 @@ Severidade:
 
 Se ha items critical ou high: sugerir explicitamente `/upgrade-joca`.
 
-### 5. Actualizar INDEX.md
-
-Adicionar entrada em `memory/INDEX.md` na seccao `## Feedback`:
-```
-- [session-<data>-<hora>.md](feedback/session-<data>-<hora>.md) — <hook de uma linha>
-```
-
-### 6. Oferecer fixes imediatos
+### 5. Oferecer fixes imediatos
 
 Se algum fix e simples e o ficheiro esta no JOCA, perguntar:
 > "Queres que resolva ja os fixes simples?"

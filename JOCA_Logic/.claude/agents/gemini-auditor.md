@@ -35,7 +35,7 @@ cat <file> | agy "Analyze this for <specific concern>"
 ### For JOCA self-improvement audits
 ```bash
 # Audit a skill for completeness and quality
-cat .claude/skills/<category>/<name>/SKILL.md | agy "Review this AI coding assistant skill for: 1) Clarity of triggers 2) Actionability of instructions 3) Coverage of edge cases 4) Consistency with other skills. Report issues as CRITICAL/WARNING/INFO."
+cat .claude/skills/<name>.md | agy "Review this AI coding assistant skill for: 1) Clarity of triggers 2) Actionability of instructions 3) Coverage of edge cases 4) Consistency with other skills. Report issues as CRITICAL/WARNING/INFO."
 ```
 
 ### For video analysis (alternative to watch agent)

@@ -6,7 +6,7 @@ description: >
   Supports: short clips, product videos, animated scenes, transitions, motion graphics concepts.
   Triggered by: generate video, create video, video clip, motion, animate scene.
 tools: Bash, Read
-model: sonnet
+model: haiku
 ---
 
 Video generation agent using Google's Gemini via the **Antigravity CLI (agy)**.

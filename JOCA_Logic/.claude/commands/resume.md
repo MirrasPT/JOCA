@@ -5,12 +5,21 @@ Corre no início de cada sessão de trabalho num projecto.
 ## Passos
 
 ### 1. Identificar projecto actual
-Verificar em que pasta estamos. Procurar entrada correspondente em `JOCA/memory/projects/`.
+Verificar em que pasta estamos. Procurar entrada correspondente em `memory/projects/` (no JOCA_Logic).
 
 Se não existir entrada: sugerir correr `/init-project` primeiro.
 
+**Sessão sem /save?** Se `.joca/last-session.json` for mais recente que a memória do projecto, avisar: "Última sessão terminou sem /save. Ficheiros tocados: [...]".
+
 ### 2. Ler contexto do projecto
-Ler `JOCA/memory/projects/<nome>.md` — estado actual, decisões tomadas, pendentes.
+Ler `memory/projects/<nome>.md` — começar pelo bloco **Retoma** (Next step / Files touched / Open decisions / Verify with), depois estado actual, decisões, pendentes.
+
+**Factos operacionais verificam-se, não se reportam da memória.** Branch, dirty state, portas, servidores → confirmar com comandos reais antes de apresentar:
+```bash
+git status -sb
+lsof -i :7371 -i :7372 2>/dev/null | head -5   # se relevante
+```
+Conflito entre memória e realidade → a realidade ganha; corrigir a memória no próximo /save.
 
 Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
 
@@ -32,13 +41,22 @@ python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; 
 - Se existir `<caminho JOCA>/graphify-out/GRAPH_REPORT.md`: ler para contexto de agentes e skills disponíveis
 - Se não existir: correr Python API com path do JOCA
 
-### 4. Apresentar resumo ao utilizador
+### 4. Verificar feedback pendente
+
+```bash
+ls memory/feedback/*.md 2>/dev/null | wc -l
+```
+
+Se N > 0: incluir no resumo "Feedback pendente: N items (mais antigo: <data>) → considerar /upgrade-joca".
+
+### 5. Apresentar resumo ao utilizador
 
 ```
 Projecto: <nome>
 Stack: <stack>
 
 Estado: <estado actual>
+Next step: <do bloco Retoma>
 
 Última sessão:
 - <o que foi feito>
@@ -47,6 +65,8 @@ Pendente:
 - <item 1>
 - <item 2>
 
+Branch: <verificado com git status -sb>
+Feedback pendente: N items [→ /upgrade-joca]
 Graph projecto: ✓ actualizado em <data>
 Graph JOCA:     ✓ disponível
 ```
