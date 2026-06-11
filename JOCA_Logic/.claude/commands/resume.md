@@ -12,7 +12,14 @@ Se não existir entrada: sugerir correr `/init-project` primeiro.
 **Sessão sem /save?** Se `.joca/last-session.json` for mais recente que a memória do projecto, avisar: "Última sessão terminou sem /save. Ficheiros tocados: [...]".
 
 ### 2. Ler contexto do projecto
-Ler `memory/projects/<nome>.md` — começar pelo bloco **Retoma** (Next step / Files touched / Open decisions / Verify with), depois estado actual, decisões, pendentes.
+A **memória curta** (`memory/curta.md`) já foi injectada pelo hook SessionStart — não reler. Ler `memory/projects/<nome>.md` — começar pelo bloco **Retoma** (Next step / Files touched / Open decisions / Verify with), depois estado actual, decisões, pendentes.
+
+**Perguntas sobre o passado** (semana passada, "o que decidimos sobre X"):
+```bash
+python3 .claude/scripts/memory-search.py <termos>       # resumos (longa) + diário
+python3 .claude/scripts/memory-search.py --deep <termos> # com contexto do diário
+```
+Fluxo: curta (no contexto?) → longa (acha o log) → `Read()` ao diário para detalhe exacto.
 
 **Factos operacionais verificam-se, não se reportam da memória.** Branch, dirty state, portas, servidores → confirmar com comandos reais antes de apresentar:
 ```bash

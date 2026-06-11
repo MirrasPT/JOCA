@@ -91,7 +91,7 @@ Categorize every changed file:
 |----------|-------|--------|
 | **Core (safe)** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/rules/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `AGENTS.md`, `GEMINI.md`, `install.md`, `CREDITOS.md` | Update |
 | **UI** | `JOCA_UI/backend/`, `JOCA_UI/frontend/`, `JOCA_UI/start.sh`, `JOCA_UI/start.bat` | Update + trigger post-update rebuild |
-| **Protected (NEVER touch)** | `memory/projects/`, `memory/feedback/` | Skip entirely |
+| **Protected (NEVER touch)** | `memory/projects/`, `memory/feedback/`, `memory/curta.md`, `memory/longa/`, `memory/diario/` | Skip entirely |
 | **Protected (NEVER touch)** | `memory/soul.md` | Skip -- user calibration |
 | **Protected (NEVER touch)** | `JOCA_UI/data/projects.json`, `JOCA_UI/data/project-memory.json`, `JOCA_UI/data/session-snapshots.json`, `JOCA_UI/data/ui-settings.json` | Skip -- user data |
 | **Merge-only** | `.claude/settings.json` | Merge new keys, preserve user hooks/permissions |
@@ -158,6 +158,7 @@ UI files to update (will trigger rebuild):
 Protected files (will NOT be touched):
   memory/projects/*.md
   memory/feedback/*.md
+  memory/curta.md memory/longa/ memory/diario/
   memory/soul.md
   JOCA_UI/data/projects.json
   JOCA_UI/data/project-memory.json
@@ -193,6 +194,7 @@ These files and directories are NEVER overwritten, deleted, or reset:
 |------|--------|
 | `memory/projects/` | User project data |
 | `memory/feedback/` | User feedback sessions |
+| `memory/curta.md` + `memory/longa/` + `memory/diario/` | Three-layer session memory |
 | `memory/soul.md` | User personality calibration |
 | `JOCA_UI/data/projects.json` | UI project registry |
 | `JOCA_UI/data/project-memory.json` | UI project memory |

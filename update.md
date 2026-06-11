@@ -60,7 +60,7 @@ Categorizar ficheiros:
 | Categoria | Paths | Acção |
 |-----------|-------|-------|
 | **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `install.md`, `update.md` | Actualizar (safe) |
-| **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md`, `memory/soul.md` | **Proteger** — não sobrescrever |
+| **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/curta.md`, `memory/longa/`, `memory/diario/`, `memory/INDEX.md`, `memory/soul.md` | **Proteger** — não sobrescrever |
 | **UI Data** | `JOCA_UI/data/` (`projects.json`, `project-memory.json`, `session-snapshots.json`, `ui-settings.json`) | **Proteger** — dados do utilizador |
 | **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
 | **Local** | Ficheiros com `origin: local` no frontmatter | **NUNCA tocar** |

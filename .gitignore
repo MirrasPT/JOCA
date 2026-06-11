@@ -10,3 +10,8 @@ JOCA_UI/data/projects.json
 JOCA_UI/data/project-memory.json
 JOCA_UI/data/session-snapshots.json
 JOCA_UI/data/ui-settings.json
+
+# Diario (chat completo) — nunca vai para o repo publico; curta/longa sao tracked como memory/projects
+JOCA_Logic/memory/diario/
+# Logs de terminal do JOCA_UI (user data)
+JOCA_UI/data/terminal-logs/

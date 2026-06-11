@@ -5,6 +5,8 @@ payload como **JSON no stdin** — não há variáveis `$TOOL_INPUT_*`.
 
 | Evento | Script | Função |
 |---|---|---|
+| SessionStart | `memory-inject.js` | Injecta `memory/curta.md` (snapshot de continuação) + avisos (sessão sem /save, feedback pendente); em `compact` re-injecta só a retoma |
+| SessionEnd | `session-memory.js` | Arquiva o transcript completo (`transcript_path`) em `memory/diario/<ts>_<sess>.jsonl` + extracto legível `.md` para pesquisa |
 | UserPromptSubmit | `skill-router.js` | Grep do prompt contra os triggers do `memory/SKILL_INDEX.json`; injecta `additionalContext` a apontar a skill relevante |
 | PostToolUse (Write\|Edit) | `track-changes.js` | Lê `tool_input.file_path` do stdin, classifica domínio, appenda a `.joca/test-queue.jsonl` |
 | PostToolUse (Write\|Edit) | `../scripts/check-skill-paths.sh --stdin` | Guard contra paths de skill legacy; violação → exit 2 + explicação no **stderr** |

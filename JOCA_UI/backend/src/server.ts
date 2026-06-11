@@ -21,6 +21,8 @@ interface Session {
   idleTimer: ReturnType<typeof setTimeout> | null;
   workingSince: number | null;
   notifyOnIdle: boolean;
+  logStream: fs.WriteStream | null;
+  logBytes: number;
 }
 
 
@@ -88,12 +90,15 @@ const DATA_DIR = path.join(__dirname, '../../data');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 const PROJECT_MEMORY_FILE = path.join(DATA_DIR, 'project-memory.json');
 const UI_SETTINGS_FILE = path.join(DATA_DIR, 'ui-settings.json');
+const TERMINAL_LOGS_DIR = path.join(DATA_DIR, 'terminal-logs');
+const TERMINAL_LOG_MAX_BYTES = 50 * 1024 * 1024; // 50MB por sessão
 
 interface UiSettings {
   skipPermissions: boolean;
+  recordTerminal: boolean;
 }
 
-const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false };
+const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false, recordTerminal: true };
 
 function loadUiSettings(): UiSettings {
   return { ...DEFAULT_UI_SETTINGS, ...readJsonFile<Partial<UiSettings>>(UI_SETTINGS_FILE, {}) };
@@ -566,6 +571,51 @@ function sessionInfo(s: Session) {
   return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, status: s.status };
 }
 
+// Remove sequências ANSI/OSC e controlo (excepto \n e \t) para o log ficar legível.
+// O TUI do Claude Code redesenha o ecrã, por isso o log tem repetições — é o registo
+// bruto do terminal; o chat limpo vive no transcript JSONL do próprio Claude Code.
+const ANSI_RE = /\x1b\[[0-9;?]*[ -\/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-_]/g;
+function stripAnsi(data: string): string {
+  return data.replace(ANSI_RE, '').replace(/[\x00-\x08\x0b-\x1f\x7f]/g, '');
+}
+
+function openTerminalLog(session: Session) {
+  if (!loadUiSettings().recordTerminal) return;
+  try {
+    fs.mkdirSync(TERMINAL_LOGS_DIR, { recursive: true });
+    const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', 'h');
+    const safeName = session.name.replace(/[^\p{L}\p{N}_-]+/gu, '-').slice(0, 40);
+    const file = path.join(TERMINAL_LOGS_DIR, `${stamp}_${safeName}_${session.id.slice(0, 8)}.log`);
+    session.logStream = fs.createWriteStream(file, { flags: 'a' });
+    session.logStream.write(`=== JOCA terminal log — session "${session.name}" (${session.id})\n=== cwd: ${session.cwd} | started: ${new Date().toISOString()}\n\n`);
+  } catch (e) {
+    console.warn('Terminal log unavailable:', e);
+    session.logStream = null;
+  }
+}
+
+function writeTerminalLog(session: Session, data: string) {
+  if (!session.logStream) return;
+  if (session.logBytes >= TERMINAL_LOG_MAX_BYTES) return;
+  const clean = stripAnsi(data);
+  if (!clean) return;
+  session.logBytes += clean.length;
+  session.logStream.write(
+    session.logBytes >= TERMINAL_LOG_MAX_BYTES
+      ? clean + '\n\n=== log truncado: limite de 50MB atingido ===\n'
+      : clean
+  );
+}
+
+function closeTerminalLog(session: Session) {
+  if (!session.logStream) return;
+  try {
+    session.logStream.write(`\n=== session closed: ${new Date().toISOString()} ===\n`);
+    session.logStream.end();
+  } catch {}
+  session.logStream = null;
+}
+
 function createSession(
   cwd: string = JOCA_LOGIC_ROOT,
   resumePath?: string,
@@ -595,8 +645,11 @@ function createSession(
     idleTimer: null,
     workingSince: null,
     notifyOnIdle: false,
+    logStream: null,
+    logBytes: 0,
   };
   sessions.set(id, session);
+  openTerminalLog(session);
 
   if (projectId) {
     const memory = loadProjectMemory();
@@ -642,6 +695,7 @@ function createSession(
   }
 
   ptyProcess.onData((data: string) => {
+    writeTerminalLog(session, data);
     session.buffer += data;
     if (session.buffer.length > BUFFER_MAX) {
       let cutAt = session.buffer.length - BUFFER_MAX;
@@ -679,6 +733,7 @@ function createSession(
 
   ptyProcess.onExit(() => {
     if (session.idleTimer) clearTimeout(session.idleTimer);
+    closeTerminalLog(session);
     sessions.delete(id);
     broadcast({ type: 'session_closed', sessionId: id });
   });
@@ -1102,6 +1157,7 @@ app.patch('/ui-settings', express.json(), (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const updated = { ...current };
   if ('skipPermissions' in body) updated.skipPermissions = body.skipPermissions === true;
+  if ('recordTerminal' in body) updated.recordTerminal = body.recordTerminal !== false;
   saveUiSettings(updated);
   res.json(updated);
 });

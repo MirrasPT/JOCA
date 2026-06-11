@@ -17,6 +17,15 @@ Conflict → `memory/` wins; hard rules in CLAUDE.md win over both.
 Operational facts (branch, ports, server state) are verified with real commands, never reported from memory.
 On context compaction, always preserve: list of modified files, test commands, next step.
 
+## Three-Layer Memory
+| Layer | File | Written by | Read |
+|---|---|---|---|
+| Curta (snapshot) | `memory/curta.md` | /save (replace, never accumulate, ≤1300 tokens) | Injected by SessionStart hook |
+| Longa (summaries) | `memory/longa/<ts>.md` | /save (one per session) | `memory-search.py` |
+| Diário (full chat) | `memory/diario/<ts>.{jsonl,md}` | SessionEnd hook (automatic) | `memory-search.py` → Read() |
+
+Questions about the past: curta (already in context) → `python3 .claude/scripts/memory-search.py <terms>` finds the right log in longa → Read() the diário file for exact detail. Diário is gitignored (privacy); curta/longa are committed by /save.
+
 ## Communication
 Terse. No articles, filler, hedging. Fragments OK. Technical terms exact. Code intact.
 Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irreversible actions, order-dependent sequences.

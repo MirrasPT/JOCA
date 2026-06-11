@@ -31,6 +31,41 @@ Open decisions: <decisoes em aberto ou "nenhuma">
 Verify with: <comandos de teste/verificacao>
 ```
 
+---
+
+## PASSO 2b — Memoria de 3 camadas (curta + longa)
+
+O diario (camada 3, chat completo) e capturado automaticamente pelo hook SessionEnd → `memory/diario/`. Aqui geram-se as outras duas:
+
+**Memoria curta — `memory/curta.md` (SUBSTITUIR, nunca acumular):**
+Snapshot de continuacao APENAS desta sessao. Alvo ≤1300 tokens. Estrutura:
+```
+# Memoria Curta — <YYYY-MM-DD HH:MM>
+Projecto: <nome> | cwd: <path>
+
+Next step: <accao concreta>
+Files touched: <lista>
+Open decisions: <ou "nenhuma">
+Verify with: <comandos>
+
+## Contexto de continuacao
+<resumo do estado da conversa/trabalho — o que alguem precisa para retomar sem ler mais nada>
+```
+O hook SessionStart injecta este ficheiro na proxima sessao. O resumo anterior e descartado — nao herdar conteudo.
+
+**Memoria longa — `memory/longa/<YYYY-MM-DD_HHhMM>.md` (NOVO ficheiro por sessao):**
+Resumo detalhado desta janela de trabalho, para o memory-search encontrar o log certo:
+```
+---
+project: <nome>
+date: <YYYY-MM-DD>
+topics: <3-6 keywords PT/EN>
+diario: <nome do ficheiro em memory/diario/ se conhecido>
+---
+# Sessao <data> — <titulo de 1 linha>
+<resumo detalhado: o que foi feito, decisoes, problemas, resultados>
+```
+
 **Regras de escrita (obrigatorias):**
 - **NUNCA escrever credenciais em memory/** (passwords, tokens, API keys). Escrever onde encontra-las: "ver backend/.env", "ver seeder X".
 - **Anti-contradicao:** antes de escrever um facto, grep ao ficheiro + `~/CLAUDE.md` por factos sobre o mesmo assunto. Conflito → UPDATE in place (git preserva o antigo). Hard rule do CLAUDE.md ganha sempre.
@@ -129,8 +164,10 @@ Se a sessao trouxe informacao nova sobre o projecto (novo directorio, mudanca de
 ## PASSO 7b — Commit da memoria (durabilidade)
 
 ```bash
-cd <JOCA_Logic> && git add memory/projects/ memory/feedback/ memory/INDEX.md memory/SKILL_INDEX.json 2>/dev/null && git commit -m "memory: save <nome-projecto>" 2>/dev/null || true
+cd <JOCA_Logic> && git add memory/projects/ memory/feedback/ memory/curta.md memory/longa/ memory/INDEX.md memory/SKILL_INDEX.json 2>/dev/null && git commit -m "memory: save <nome-projecto>" 2>/dev/null || true
 ```
+
+Nota: `memory/diario/` esta no .gitignore de proposito (chat completo nunca vai para o repo).
 
 Sem commits, a estrategia "supersede in place, git preserva historia" nao funciona. Nunca fazer push automatico.
 
@@ -144,6 +181,7 @@ SAVE — <nome-projecto>
 
 Estado:
   ✓ memory/projects/<nome>.md actualizado
+  ✓ memory/curta.md substituido | memory/longa/<ts>.md criado
   ✓ Decisoes: N registadas | Pendentes: N items
 
 Feedback projecto:
