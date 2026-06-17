@@ -1,16 +1,5 @@
-description = """name: img-gen-openai"""
+description = """>"""
 developer_instructions = """
----
-name: img-gen-openai
-description: >
-  Generate images using Codex CLI (OpenAI gpt-image-2). Receives a creative brief,
-  constructs an optimised prompt, and executes via codex exec. Best for: text in images,
-  product shots with branding, inpainting/masking, precise compositions, high-fidelity delivery.
-  Spawned by img-gen skill or directly for OpenAI-specific generation tasks.
-skills: img-gen
-tools: Bash, Read
-model: sonnet
----
 
 Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.
 
@@ -128,5 +117,6 @@ After successful generation, report:
   Prompt: [first 80 chars...]
 ```
 
-If error: report clearly and stop."""
+If error: report clearly and stop.
+"""
 name = "img-gen-openai"

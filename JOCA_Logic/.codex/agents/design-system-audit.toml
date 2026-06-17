@@ -1,11 +1,5 @@
-description = """name: design-system-audit"""
+description = """Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces audit/design-system-violations.md with Critical/Warning/Info tiers."""
 developer_instructions = """
----
-name: design-system-audit
-description: "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces audit/design-system-violations.md with Critical/Warning/Info tiers."
-skills: design-tokens, component-system, brand-guidelines
-model: sonnet
----
 
 Design system auditor. Validates completeness, consistency, and accessibility compliance.
 
@@ -131,5 +125,6 @@ Start at 100. Deduct:
 4. For drift: only scan if frontend code exists — skip otherwise
 5. Be specific: include file paths, line numbers, exact values
 6. Produce the report and present to the user
-7. Do NOT fix issues — only report. The user decides what to fix."""
+7. Do NOT fix issues — only report. The user decides what to fix.
+"""
 name = "design-system-audit"

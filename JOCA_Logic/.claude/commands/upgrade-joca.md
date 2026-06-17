@@ -302,6 +302,10 @@ If the script fails or does not exist: skip and note in report.
 
 For each new skill or agent created, add an entry to `memory/INDEX.md` in the appropriate section.
 
+### 5.6 Sync questionnaires (if skills/agents added or removed)
+
+If this upgrade created, renamed, or removed any skill or agent, run `/sync-questionnaires` (or apply its Phase 4 logic) so the questionnaires and counters stay aligned with the real inventory: `.claude/commands/install.md` (FASE 2 map, counts), `.claude/commands/init-project.md`, root `install.md`, `README.md`, `CLAUDE.md` (Trigger Map / Pipelines), `memory/INDEX.md`. A new skill that no questionnaire surfaces is effectively invisible.
+
 ---
 
 ## Phase 6 -- Report
@@ -366,9 +370,12 @@ For `joca-patterns.md`: do NOT move -- only mark individual entries as processed
 ```
 Next steps:
   - Run /update-joca if upstream changes are available
+  - Run /sync-questionnaires if skills/agents changed (realign questionnaires + counters)
   - Run /feedback-joca in your next session to capture new patterns
   - Review failed items manually: <list of failed items>
 ```
+
+> **Windows:** if this upgrade ran on Windows and any change touches the JOCA_UI layer, defer UI verification to the `joca-ui-windows` skill — the JOCA_UI is developed/validated on macOS and that skill re-tests and fixes the Windows-sensitive parts in one pass.
 
 ---
 

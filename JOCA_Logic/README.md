@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-MirrasPT%2FJOCA-blue?logo=github)](https://github.com/MirrasPT/JOCA)
 
-Toolkit centralizado de skills, agentes, memoria e MCPs para Claude Code — com interface visual browser integrada. Instala uma vez, usa em qualquer projecto. macOS e Windows.
+Toolkit centralizado de skills, agentes, memoria e workflows para Claude Code — com interface visual browser integrada. Instala uma vez, usa em qualquer projecto. macOS e Windows.
 
 **Problema que resolve:** cada projecto novo recomeca do zero — sem contexto, sem ferramentas, sem comportamento consistente. O JOCA e a camada persistente que vive acima dos projectos.
 
@@ -15,18 +15,18 @@ O JOCA e composto por dois modulos que funcionam em conjunto:
 ```
 JOCA/
 ├── install.md               <- bootstrap de instalacao (maquina nova)
-├── JOCA_Logic/              <- Motor Agenctico (skills, agents, commands, memory)
+├── JOCA_Logic/              <- Motor Agentico (skills, agents, commands, memory)
 │   ├── CLAUDE.md            <- comportamento base
 │   ├── memory/
 │   │   ├── INDEX.md         <- catalogo de componentes
 │   │   ├── soul.md          <- personalidade e decision filters
 │   │   ├── SKILL_INDEX.json <- indice lazy-loading
 │   │   ├── projects/        <- estado por projecto (/save)
-│   │   └── tools/           <- graphify, MCP routing
+│   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 16 comandos (/install, /resume, /save, /plan, ...)
-│       ├── agents/          <- 25 agentes (tester-*, debug, research, media, ...)
-│       ├── skills/          <- 92 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 19 comandos (/install, /resume, /save, /plan, ...)
+│       ├── agents/          <- 28 agentes (tester-*, debug, research, media, ...)
+│       ├── skills/          <- 103 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing pipeline
 │       ├── rules/           <- api-design, testing
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**134 componentes:** 92 skills + 25 agents + 17 commands.
+**150 componentes:** 103 skills + 28 agents + 19 commands.
 
 ---
 
@@ -50,12 +50,15 @@ Dashboard browser com terminal multi-sessao, file browser, toolkit panel e notif
 
 - **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty
 - **Dashboard:** projectos, sessoes activas, JOCA_Logic status em tempo real
-- **Toolkit panel:** browse/search/edit dos 133 componentes do JOCA_Logic
+- **Toolkit panel:** browse/search/edit dos componentes do JOCA_Logic
 - **File browser:** filesystem real com auto-refresh, preview, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), JOCA_Logic engine status
+- **Slash autocomplete:** ao digitar `/` no terminal emulado aparece um dropdown com commands, skills e agents
 - **Cross-platform:** macOS (zsh) e Windows (PowerShell) via deteccao automatica de OS
 
 O JOCA_UI detecta automaticamente o `JOCA_Logic` como directorio irmao — zero configuracao.
+
+> **Plataforma de desenvolvimento:** o JOCA_UI foi desenvolvido e validado em **macOS**. O codigo suporta Windows (deteccao automatica de OS, PowerShell, `%TEMP%`), mas o Windows nao e continuamente testado. Ao **instalar ou actualizar no Windows**, o JOCA activa a skill `joca-ui-windows`, que testa, verifica e corrige numa so passagem os pontos sensiveis (build do node-pty, PTY PowerShell, paths, statusline/Keychain, launchers).
 
 ---
 
@@ -69,7 +72,7 @@ Cola no Claude Code:
 Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md e segue as instrucoes.
 ```
 
-O assistente clona o repo, configura identidade, personalidade (soul), skills, MCPs e instala o JOCA_UI.
+O assistente clona o repo, configura identidade, personalidade (soul), skills, CLIs externos e instala o JOCA_UI.
 
 ### Iniciar a interface
 
@@ -81,7 +84,7 @@ bash JOCA_UI/start.sh
 JOCA_UI\start.bat
 ```
 
-Abre automaticamente `http://localhost:7362`.
+Backend em `http://localhost:7371`, interface em `http://localhost:7372`.
 
 ### Actualizar o JOCA
 
@@ -107,37 +110,52 @@ Para ligar um projecto existente:
 
 ---
 
-## Skills (92)
+## Skills (103)
 
-Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`.
+Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
-### Base
-`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `prd` · `create-skill` · `feedback-joca` · `pt-pt-translator`
+### Base & JOCA
+`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows`
 
-### Design
-`frontend` · `mobile` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `canvas-design` · `img-gen` · `blender` · `design-system` · `design-tokens` · `component-system` · `comfyui-core` · `comfyui-io` · `comfyui-deploy`
+### Planeamento & Specs
+`plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
 
-### Dev
-`laravel-specialist` · `filament` · `mysql` · `rest-api` · `nodejs` · `flutter` · `saas-patterns` · `file-storage` · `reverb-realtime` · `auth` · `transactional-email` · `error-tracking-dev` · `error-tracking-prod` · `search` · `realtime` · `queues` · `webhooks` · `caching` · `availability`
+### Design & Frontend
+`frontend` · `mobile` · `design-system` · `design-tokens` · `component-system` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-review` · `tailwind` · `shadcn` · `react-composition` · `react-patterns` · `landing-page`
 
-### Tools
-`test-master` · `webapp-testing` · `browser-use` · `google-analytics` · `microsoft-clarity` · `adr` · `blueprint`
+### Dev (Laravel / backend)
+`laravel-specialist` · `filament` · `laravel-react` · `saas-patterns` · `rest-api` · `mysql` · `auth` · `security` · `file-storage` · `caching` · `queues` · `bullmq` · `horizon-queues` · `reverb-realtime` · `search-engine` · `webhooks` · `availability` · `error-tracking-dev` · `error-tracking-prod` · `github`
+
+### Email
+`react-email` · `transactional-email` · `postmark`
+
+### Deploy
+`deploy-cpanel` · `deploy-docker` · `deploy-ploi`
+
+### Portugal
+`portugal-payments` (ifthenpay/MB WAY/Multibanco) · `portugal-invoicing` (Moloni/faturacao certificada)
 
 ### Marketing
-`paid-ads` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `social-content` · `copywriting` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling`
+`marketing-router` · `paid-ads` · `seo` · `seo-local` · `copywriting` · `content-strategy` · `social-content` · `email-sequence` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling` · `lead-capture`
+
+### Analytics
+`google-analytics` · `microsoft-clarity`
 
 ### Video
 `video` · `hyperframes` · `remotion`
 
 ### WordPress
-`wordpress-router` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-rest-api` · `wp-performance` · `wp-phpstan` · `wp-playground`
+`wordpress-router` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-abilities-api` · `wp-interactivity-api` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `wp-wpcli-and-ops` · `wpds`
 
 ### Shopify
 `shopify-router` · `shopify-app` · `shopify-theme` · `shopify-store-audit` · `shopify-store-fixer`
 
+### Wix
+`wix-cli`
+
 ---
 
-## Agents (25)
+## Agents (28)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -150,18 +168,18 @@ Agentes correm em sub-processos isolados, em paralelo.
 ### Search & Analysis
 `deep-research` · `seo-analyst` · `dependency-auditor`
 
-### Orchestration
-`master-orchestrator` · `self-improver` · `gemini-auditor`
+### Orchestration & Self-improvement
+`master-orchestrator` · `self-improver` · `gemini-auditor` · `skill-evaluator` · `skill-improver`
 
 ### Generation & Media
-`img-gen-openai` · `img-gen-google` · `watch` · `gemini-brain`
+`img-gen-openai` · `img-gen-google` · `video-gen` · `watch` · `gemini-brain`
 
 ### Specialists
-`payment-integration` · `skill-evaluator` · `skill-improver` · `security-review`
+`payment-integration` · `security-review` · `laravel-refactor` · `filament-builder`
 
 ---
 
-## Commands (17)
+## Commands (19)
 
 | Command | Funcao |
 |---------|--------|
@@ -175,10 +193,12 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/review-design` | UI/UX + acessibilidade em paralelo |
 | `/one-shot` | Dev autonomo end-to-end: PRD -> orchestrator -> parallel -> tests |
 | `/create-skill` | Pipeline self-improving para criar skills |
+| `/sync-questionnaires` | Audita e actualiza os questionarios/listas contra o inventario real |
 | `/feedback-joca` | Captura gaps no workflow JOCA |
 | `/feedback-projeto` | Actualiza docs do projecto |
 | `/upgrade-joca` | Le feedback e implementa melhorias |
 | `/update-joca` | Sync com repositorio GitHub |
+| `/status` | Mostra rate limits, modelo e contexto |
 | `/wp-perf-review` | Code review WP completo |
 | `/wp-perf` | Quick triage WP |
 | `/help-joca` | Referencia rapida de comandos |
@@ -193,11 +213,13 @@ Sequencias pre-definidas activadas automaticamente:
 |----------|-----------|
 | Nova feature Laravel | `plan` -> `laravel-specialist` -> `tester-code` -> `tester-api` |
 | SaaS / multi-tenant | `plan` -> `saas-patterns` -> `laravel-specialist` -> `tester-security` |
-| Frontend | `frontend` -> `tester-ui-ux` -> `tester-performance` |
+| E-commerce full-stack | `plan` -> `saas-patterns` -> `laravel-specialist` -> `filament-builder` -> `laravel-react` -> `frontend`+`shadcn` -> `payment-integration` |
+| Frontend producao | `design-system` -> `frontend` -> `react-composition`+`tailwind`+`react-patterns` -> `anima` -> `design-review`+`tester-ui-ux` |
 | One-shot | `master-orchestrator` -> parallel agents -> `tester-*` (auto) |
 | Debug | `log-debugger` -> `query-debugger` (se SQL) |
-| Deploy | deploy agent -> `tester-security` |
+| Deploy | `deploy-docker`/`deploy-ploi`/`deploy-cpanel` -> `tester-security` |
 | Nova skill | `deep-research` -> `create-skill` |
+| Manutencao questionarios | `/sync-questionnaires` (drift inventario↔questionarios) |
 | Self-improvement | `self-improver` -> `gemini-auditor` -> apply |
 
 ---
@@ -208,9 +230,9 @@ O JOCA funciona com 3 CLIs. Source of truth: `.claude/` — compilado para forma
 
 | CLI | Model | Bridge |
 |-----|-------|--------|
-| Claude Code | claude-opus-4-7 | `.claude/` (nativo) |
-| Codex CLI | gpt-5.5 | `.agents/skills/` + `.codex/agents/` |
-| Antigravity (agy) | Gemini 3.5 Flash | `GEMINI.md` + `AGENTS.md` |
+| Claude Code | Claude (Opus) | `.claude/` (nativo) |
+| Codex CLI | OpenAI GPT | `.agents/skills/` + `.codex/agents/` |
+| Antigravity (agy) | Google Gemini | `GEMINI.md` + `AGENTS.md` |
 
 ```bash
 bash .claude/scripts/compile-bridges.sh
@@ -223,6 +245,7 @@ bash .claude/scripts/compile-bridges.sh
 - **Claude Code** instalado e autenticado
 - **Node.js 18+** (para JOCA_UI)
 - **macOS** ou **Windows** (Linux experimental)
+- No Windows: Visual Studio Build Tools + Python 3.x (build do node-pty)
 - Opcional: Python 3.10+ (graphify), Docker (Firecrawl)
 
 ---

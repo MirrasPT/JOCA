@@ -306,9 +306,13 @@ Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 
 | Tipo                    | Áreas sugeridas                                                              |
 |-------------------------|------------------------------------------------------------------------------|
-| Website/App             | Desenvolvimento web, DevOps, Analytics                                       |
-| WordPress               | WordPress, DevOps, Analytics                                                 |
-| Shopify                 | Shopify, Analytics                                                           |
+| Website/App (genérico)  | `frontend`, `tailwind`, `shadcn`, `react-patterns`, `react-composition`, `rest-api`, `auth`, Analytics |
+| Laravel / SaaS          | `laravel-specialist`, `filament`, `laravel-react`, `saas-patterns`, `auth`, `security`, `mysql`, `queues`/`horizon-queues`, `file-storage`, `caching`, `webhooks`, `error-tracking-dev`/`error-tracking-prod` |
+| E-commerce (PT)         | + `portugal-payments` (ifthenpay/MB WAY), `portugal-invoicing` (Moloni), `payment-integration` (agent) |
+| Email transacional      | `react-email`, `transactional-email`, `postmark`                            |
+| Deploy / DevOps         | `deploy-docker`, `deploy-ploi`, `deploy-cpanel`, `github`                   |
+| WordPress               | `wordpress-router`, `wp-project-triage` (+ wp-* conforme trabalho), Analytics |
+| Shopify                 | `shopify-router` (+ shopify-* conforme trabalho), Analytics                 |
 | Wix — dev (CLI/Velo)    | `wix-cli`, Analytics                                                         |
 | Wix — Editor (conteúdo) | `wix-cli` (REST/Stores), `seo`, `seo-local`, `copywriting`, `content-strategy` |
 | Conteúdo / Marketing    | `seo`, `copywriting`, `content-strategy` (+ `page-cro`/`social`/`email` cf. canal) |

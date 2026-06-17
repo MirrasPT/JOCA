@@ -23,6 +23,7 @@
 - `/upgrade-joca` — apply feedback + self-improvement loop
 - `/update-joca` — sync with official GitHub repo (protects local components)
 - `/create-skill [desc]` — create new skill via research pipeline
+- `/sync-questionnaires` — audit + realign questionnaires/counters with the real skill/agent inventory
 - `/status` — mostra rate limits, modelo e uso de contexto atual
 
 

@@ -181,6 +181,14 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 
 **Rule:** if removing an element loses no info, don't add it.
 
+### Naming (adblock-safe) — NUNCA usar tokens de adblock em nomes
+
+Ficheiros, componentes, ids, classes e `data-*` do frontend **não podem conter** `banner, cookie, consent, ad, ads, advert, sponsor, promo, popup, newsletter, analytics, track, doubleclick`. O uBlock Origin (e outros adblockers) esconde-os (cosmético) ou **bloqueia o pedido** (`ERR_BLOCKED_BY_CLIENT`):
+- token na **raiz** (ex. `<html data-cookie-banner>`) → filtros cosméticos escondem o `<html>` → **página toda branca**;
+- token num **módulo carregado em todas as páginas** (ex. `CookieBanner.tsx` importado no layout) → no Vite dev os módulos servem-se no path de origem, e em produção em chunks/assets → o pedido é bloqueado → **ecrã branco em todo o lado**.
+
+Usar nomes **neutros**: `BottomNotice` (não `CookieBanner`), `PresenteDestaque` (não `BannerPresente`), `presente.png` (não `banner.png`), `data-bottom-bar` (não `data-cookie-banner`). Um banner de cookies pode existir — mas o ficheiro/id/atributo tem de ser neutro. **Build verde e `tsc` NÃO apanham isto** — só se vê no browser com a extensão; testar com uBlock ligado ou simular bloqueio de `**/*banner*` e `[data-cookie*]`. (Aprendido em Bigorna 2026-06-16 — branqueou o site 2×.)
+
 ### Anti-convergence (output diversity)
 
 Before committing fonts / accent / aesthetic: check `memory/projects/` for the last JOCA-generated project's choices and **deliberately diverge.** Never converge on the same display font (e.g. Space Grotesk) or palette across projects. If every JOCA page would look alike, the direction failed.
@@ -344,6 +352,7 @@ For a full, structured review pass (3-pillar rubric, AI-slop reject, file:line l
 - [ ] CSS variables from DESIGN.md applied
 - [ ] No `any` in TypeScript
 - [ ] Focus visible on all interactives
+- [ ] No adblock tokens in file/component/id/class/`data-*` names (`banner`/`cookie`/`ad`/`sponsor`/`popup`/`analytics`…) — test once with uBlock ON (white page = blocked name)
 - [ ] Code-craft specialists' checklists passed (`react-patterns`, `react-composition`, `tailwind`)
 
 ---

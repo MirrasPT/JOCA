@@ -94,6 +94,7 @@ Scan code for, emit `path:line — issue`:
 - **Forms:** never block paste; submit stays enabled until request; inline errors + focus first error.
 - **Dark mode:** `color-scheme: dark` on `<html>`; `<meta theme-color>` matches bg; native `<select>` explicit bg+color.
 - **Copy lint:** active voice; Title Case headings/buttons; numerals for counts; specific button labels ("Save API Key" not "Continue"); errors include the fix.
+- **Adblock-safe naming:** flag any file/component/id/class/`data-*` containing `banner`/`cookie`/`consent`/`ad`/`ads`/`sponsor`/`popup`/`analytics`/`track` — uBlock blocks the request (`ERR_BLOCKED_BY_CLIENT`) or hides the node; on the root or a layout-wide module → **white page**. Worse when on `<html>` or a component imported by the layout. Build/`tsc` miss it; verify with uBlock ON. Rename neutral (`BottomNotice`, `data-bottom-bar`).
 
 (Deep WCAG/screen-reader/keyboard testing → hand to `tester-ui-ux` agent. Token drift → `design-system-audit` agent.)
 

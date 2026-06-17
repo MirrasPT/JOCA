@@ -1,4 +1,4 @@
-description = """name: skill-improver"""
+description = """name: skill-improver"""
 developer_instructions = """
 ---
 name: skill-improver
@@ -80,5 +80,5 @@ Before returning your improved version, verify:
 - [ ] Skill is under 500 lines (or uses supporting files)
 - [ ] No vague language ("appropriately", "as needed", "handle correctly")
 - [ ] Failure cases are covered
-- [ ] Single clear purpose (not a Swiss army knife)"""
+- [ ] Single clear purpose (not a Swiss army knife)"""
 name = "skill-improver"

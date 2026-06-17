@@ -272,6 +272,8 @@ npm install
 
 Report rebuild results. If `npm install` or `npm run build` fails: report the error but do not block the rest of the update.
 
+**Windows only:** the JOCA_UI is developed and validated on macOS. If the platform detected in Phase 1 is Windows AND any `JOCA_UI/` files changed, read and activate `.claude/skills/joca-ui-windows.md` after the rebuild — it re-verifies and fixes the Windows-sensitive layers (node-pty native build, PowerShell PTY, paths, statusline/Keychain, start.bat/stop.bat) in one pass. Notify: `[skill: joca-ui-windows]`.
+
 ### 5b. Statusline script (if changed)
 
 If `.claude/scripts/statusline-command.js` was in the diff:

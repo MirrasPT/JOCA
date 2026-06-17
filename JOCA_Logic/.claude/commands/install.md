@@ -194,7 +194,7 @@ OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
 
 ## FASE 2 — Areas de Trabalho
 
-Areas globais que determinam quais skills ficam activas. O JOCA tem **92 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
+Areas globais que determinam quais skills ficam activas. O JOCA tem **103 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
 
 `AskUserQuestion`:
 ```
@@ -214,20 +214,24 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 
 | Area               | Skills activadas                                                               |
 |--------------------|--------------------------------------------------------------------------------|
-| UI/UX              | frontend-design, frontend-dev, brand-guidelines                                |
-| Branding           | brand-guidelines, canvas-design                                                |
+| UI/UX              | frontend, mobile, design-system, design-tokens, component-system, tailwind, shadcn, react-composition, react-patterns, design-review, landing-page |
+| Branding           | brand-guidelines, brand-positioning                                            |
 | Print              | graphic-design, brand-guidelines                                               |
-| Animacao           | anima (GSAP+Lottie router), gsap/gsap-core, gsap/gsap-timeline, gsap/gsap-scrolltrigger, gsap/gsap-plugins, gsap/gsap-performance + React/Vue/Svelte se aplicavel |
-| Video              | video, hyperframes, remotion, watch                                             |
-| 3D                 | blender                                                                        |
-| Marketing/SEO      | paid-ads, seo, seo-local, email-sequence, content-strategy, social-content, copywriting |
-| Dev web            | webapp-testing, api-designer, laravel-specialist, test-master                  |
-| WordPress          | wordpress-router, wp-block-development, wp-block-themes, wp-plugin-development, wp-rest-api, wp-performance, wp-phpstan, wp-playground |
+| Animacao           | anima (GSAP router), lottie-animator                                           |
+| Video              | video, hyperframes, remotion (+ agent `watch`)                                  |
+| Marketing/SEO      | marketing-router, paid-ads, seo, seo-local, email-sequence, content-strategy, social-content, copywriting, page-cro, lead-capture, launch-strategy, ab-test-setup, competitor-profiling, analytics-tracking |
+| Dev web (Laravel)  | laravel-specialist, filament, laravel-react, rest-api, mysql, auth, security, saas-patterns, file-storage, caching, queues, bullmq, horizon-queues, reverb-realtime, search-engine, webhooks, availability, error-tracking-dev, error-tracking-prod, github |
+| Email              | react-email, transactional-email, postmark                                     |
+| Deploy / DevOps    | deploy-docker, deploy-ploi, deploy-cpanel                                       |
+| Portugal           | portugal-payments (ifthenpay/MB WAY), portugal-invoicing (Moloni)              |
+| WordPress          | wordpress-router, wp-project-triage, wp-block-development, wp-block-themes, wp-plugin-development, wp-plugin-directory-guidelines, wp-rest-api, wp-abilities-api, wp-interactivity-api, wp-performance, wp-performance-review, wp-phpstan, wp-playground, wp-wpcli-and-ops, wpds |
 | Shopify            | shopify-router, shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer |
-| DevOps             | devops-engineer                                                                |
+| Wix                | wix-cli                                                                        |
 | Analytics          | google-analytics, microsoft-clarity                                            |
-| Research           | deep-research                                                                  |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca       |
+| Research           | deep-research (agent)                                                          |
+| Specs / Planning   | plan, planning, prd, tech-spec, task-breakdown, adr, rfc, c4-diagram, blueprint, html-review |
+| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca, pt-pt-translator |
+| Windows (auto)     | `joca-ui-windows` — activa automaticamente quando o OS (Q4) e Windows (ver FASE EXECUCAO 8) |
 
 ### Deteccao de gaps
 
@@ -448,7 +452,7 @@ SOUL
   Autonomia: [nivel] · Comunicacao: [modo] · Erros: [comportamento] · Auto-test: [sim/nao]
   Fortes: [lista] · A aprender: [lista]
 
-SKILLS (92 — trigger system RFC 2119)
+SKILLS (103 — trigger system RFC 2119)
   Base:  caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
   [categoria]: [lista]
 
@@ -501,8 +505,8 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 
 ## JOCA
 Toolkit instalado em: [caminho_joca]
-Skills activas: 92 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /init-project, /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /feedback-joca, /feedback-projeto, /help-joca, /one-shot, /upgrade-joca, /update-joca, /wp-perf, /wp-perf-review, /migrate
+Skills activas: 103 (trigger system RFC 2119 — activacao automatica por relevancia)
+Comandos: /install, /init-project, /resume, /save, /create-skill, /sync-questionnaires, /plan, /debug, /review-code, /review-design, /feedback-joca, /feedback-projeto, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_UI
@@ -828,6 +832,8 @@ Confirmar que todos os hooks usam `node` como runtime — nunca `bash` ou `sh`.
 
 O JOCA_UI corre em **porta 7371** (backend) e **porta 7372** (frontend). A interface detecta automaticamente o JOCA_Logic como directorio irmao — zero configuracao.
 
+> **macOS e a plataforma de referencia** — o JOCA_UI foi desenvolvido e validado em macOS. Se o OS confirmado (Q4) for **Windows**, ler e activar a skill `.claude/skills/joca-ui-windows.md` ANTES de correr `npm install`/`npm run build`: ela conduz build do node-pty (requer VS Build Tools + Python), PTY PowerShell, paths, statusline/Keychain e launchers, testando e corrigindo numa so passagem. Notificar: `[skill: joca-ui-windows]`.
+
 **Windows (PowerShell):**
 
 Usa a abordagem de temp batch launcher para evitar problemas de quoting em nested processes:
@@ -898,9 +904,9 @@ Executar `/create-skill [nome]` para cada skill nova aprovada na FASE 2.
 OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
-OK Skills: 92 configuradas (RFC 2119 trigger system)
+OK Skills: 103 configuradas (RFC 2119 trigger system)
 OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
-OK JOCA_UI: instalado (backend :7371, frontend :7372)
+OK JOCA_UI: instalado (backend :7371, frontend :7372)[ · Windows: skill joca-ui-windows aplicada]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
 

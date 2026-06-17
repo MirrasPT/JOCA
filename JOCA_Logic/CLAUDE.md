@@ -123,6 +123,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | SaaS · multi-tenant · tenancy | `saas-patterns` |
 | PRD · requirements | `prd` |
 | plan · architecture · migrate | `plan` (auto) |
+| JOCA_UI no Windows · node-pty · PowerShell PTY · install/upgrade Windows | `joca-ui-windows` |
 
 ### Pipelines
 
@@ -179,6 +180,7 @@ Regenerate: `python3 .claude/scripts/build-skill-index.py`
 | `/review-code` | tester-code + codex adversarial |
 | `/review-design` | UI/UX + accessibility |
 | `/create-skill [desc]` | new skill via research pipeline |
+| `/sync-questionnaires` | audit + realign questionnaires/counters with real skill/agent inventory |
 | `/feedback-joca` | capture workflow issues from this session |
 | `/feedback-projeto` | update project docs |
 | `/help-joca` | quick reference |

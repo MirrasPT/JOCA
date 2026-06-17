@@ -32,6 +32,13 @@ python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; 
 - Se existir `<caminho JOCA>/graphify-out/GRAPH_REPORT.md`: ler para contexto de agentes e skills disponíveis
 - Se não existir: correr Python API com path do JOCA
 
+### 3b. Se o projecto actual É o toolkit JOCA
+
+Quando a pasta de trabalho é o próprio repo JOCA (contém `JOCA_Logic/CLAUDE.md`), surgir no resumo as workflows de manutenção disponíveis:
+- `/sync-questionnaires` — realinha questionários/contadores (`/install`, `/init-project`, `README`, `INDEX`) com o inventário real de skills/agents
+- `/upgrade-joca` — processa feedback acumulado em `memory/feedback/`
+- Nota Windows: o JOCA_UI é desenvolvido em macOS; em Windows a skill `joca-ui-windows` adapta/testa/corrige o UI.
+
 ### 4. Apresentar resumo ao utilizador
 
 ```

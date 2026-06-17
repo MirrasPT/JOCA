@@ -102,6 +102,8 @@ Se ficheiros em `.claude/skills/`, `.claude/agents/`, ou `.claude/commands/` for
 bash .claude/scripts/compile-bridges.sh 2>/dev/null || true
 ```
 
+Se foram **adicionadas, renomeadas ou removidas** skills/agents nesta sessao, sugerir (nao executar) `/sync-questionnaires` para realinhar os questionarios e contadores (`/install`, `/init-project`, `README.md`, `INDEX.md`) com o inventario real.
+
 ---
 
 ## PASSO 7 — Actualizar ~/CLAUDE.md (se aplicavel)
