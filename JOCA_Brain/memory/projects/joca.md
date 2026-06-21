@@ -8,7 +8,7 @@ repo: MirrasPT/JOCA-OS (PRIVADO; root = JOCA_FINAL, single git repo). Backup: Mi
 # JOCA — Toolkit Self-Development
 
 ## Estado actual
-Repo em `master`, HEAD `5cbe7fc`, em sync com `origin/master`. **Rebrand para `JOCA-OS` feito (2026-06-21):** `origin` repontado de `MirrasPT/JOCA` → `MirrasPT/JOCA-OS` (repo novo, **privado**); push de tudo (380 ficheiros). Repo antigo `JOCA` fica como backup (reverter: `git remote set-url origin …/JOCA.git`). Commit inclui memória pessoal (profile/soul/projects/feedback) — ok porque privado. Excluídos via gitignore: `JOCA_OS/` (cópia 226M), `temp_audio/` (scratch whisper), `rename-to-brain.bat`.
+Repo em `master`, HEAD `597fb6f`, em sync com `origin/master` (`MirrasPT/JOCA-OS` privado). **Rebrand para `JOCA-OS` feito (2026-06-21):** `origin` repontado de `MirrasPT/JOCA` → `MirrasPT/JOCA-OS` (repo novo, **privado**); push de tudo (380 ficheiros). Repo antigo `JOCA` fica como backup (reverter: `git remote set-url origin …/JOCA.git`). Commit inclui memória pessoal (profile/soul/projects/feedback) — ok porque privado. Excluídos via gitignore: `JOCA_OS/` (cópia 226M), `temp_audio/` (scratch whisper), `rename-to-brain.bat`.
 
 `/upgrade-joca`+`/sync-questionnaires` **commitados**: 3 skills (`content-calendar`, `lyric-align`, `browser-automate`), `/build-plan`, rule `workflows-and-tooling.md`, soul/api-design/frontend/deploy-cpanel reforçados, python3→python, graph excludes, stop.bat `/T`. Contadores: **106 skills · 28 agents · 20 commands**.
 
@@ -55,4 +55,4 @@ git checkout archive/analyze-project            # inspecciona fork JOCA_Optimize
 ```
 
 ## Última sessão
-2026-06-21 (noite) — **Sync para `JOCA-OS` (privado) + upgrade global de autonomia.** origin repontado JOCA→JOCA-OS. Dois workflows (análise de 8 repos + Brain → plano `_improvement/`; aplicação paralela). Implementado o mecanismo de auto-orquestração de 4 vias (rule task-intake + hooks SessionStart/UserPromptSubmit + /goal + master-orchestrator goal-loop), +8 agentes, +4 skills, rule orchestration-patterns, validate-skill.py. Inventário 110 skills · 36 agents · 22 commands. Hooks já a disparar nesta sessão (verificado). Próximo: `pip install markitdown` p/ /know; `/sync-questionnaires`; repurposar JOCA_OS → desenhar v2.
+2026-06-21 (noite) — **Sync para `JOCA-OS` (privado) + upgrade global de autonomia.** origin repontado JOCA→JOCA-OS. Dois workflows (análise de 8 repos + Brain → plano `_improvement/`; aplicação paralela). Implementado o mecanismo de auto-orquestração de 4 vias (rule task-intake + hooks SessionStart/UserPromptSubmit + /goal + master-orchestrator goal-loop), +8 agentes, +4 skills, rule orchestration-patterns, validate-skill.py. Inventário 110 skills · 36 agents · 22 commands. Hooks já a disparar nesta sessão (verificado). Finalizado: markitdown MCP (connected), skill-linter ligado, /sync-questionnaires corrido, MCPs documentados. **Próximo: repurposar JOCA_OS → desenhar v2 (Jarvis).**
