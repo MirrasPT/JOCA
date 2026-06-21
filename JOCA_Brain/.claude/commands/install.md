@@ -231,7 +231,9 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 | Analytics          | google-analytics, microsoft-clarity                                            |
 | Research           | deep-research (agent)                                                          |
 | Specs / Planning   | plan, planning, prd, tech-spec, task-breakdown, adr, rfc, c4-diagram, blueprint, html-review |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca, pt-pt-translator |
+| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca, pt-pt-translator, yagni |
+| Autonomia (sempre) | auto-orquestracao via `rules/task-intake.md` (4 vias) + agentes `task-router`, `master-orchestrator` (loop) + comando `/goal`; padroes em `rules/orchestration-patterns.md` |
+| Knowledge & Pessoal | knowledge-ingest (`/know`, requer markitdown), automations, personal-comms (+ agentes `knowledge-ingest`, `automation-builder`, `personal-comms`) — FUTUROS Fases 2/3/5 |
 | Windows (auto)     | `joca-ui-windows` — activa automaticamente quando o OS (Q4) e Windows (ver FASE EXECUCAO 8) |
 
 ### Deteccao de gaps
@@ -293,6 +295,7 @@ Media & content
 [ ] ffmpeg         — video/audio processing, encoding, thumbnails
 [ ] yt-dlp         — download de video (usado pelo agent `watch`)
 [ ] whisperx       — transcricao local STT (usado pelo agent `watch`)
+[ ] markitdown     — converte ficheiros/URL (PDF/Office/img/audio/YouTube) -> Markdown; motor do /know (skill knowledge-ingest). pip install markitdown-mcp + registar MCP markitdown
 [ ] zmail-cli      — Zoho Mail terminal (envio/leitura) — requer Java 11+
 
 Dev & observability
@@ -577,6 +580,16 @@ npm install -g @playwright/cli
 ```
 
 Verificar: `playwright-cli --help`
+
+**markitdown (Knowledge Base / `/know`):**
+
+```bash
+python -m pip install markitdown-mcp        # MCP + core (Windows: python, nao python3)
+python -m pip install 'markitdown[all]'     # opcional: todos os parsers (OCR, audio)
+claude mcp add markitdown --scope user -- python -m markitdown_mcp
+```
+
+Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
 
 Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
 

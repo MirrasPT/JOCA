@@ -308,26 +308,28 @@ Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 
 | Tipo                    | Áreas sugeridas                                                              |
 |-------------------------|------------------------------------------------------------------------------|
-| Website/App (genérico)  | `frontend`, `tailwind`, `shadcn`, `react-patterns`, `react-composition`, `rest-api`, `auth`, Analytics |
-| Laravel / SaaS          | `laravel-specialist`, `filament`, `laravel-react`, `saas-patterns`, `auth`, `security`, `mysql`, `queues`/`horizon-queues`, `file-storage`, `caching`, `webhooks`, `error-tracking-dev`/`error-tracking-prod` |
+| Website/App (genérico)  | `frontend`, `tailwind`, `shadcn`, `react-patterns`, `react-composition`, `rest-api`, `auth`, `yagni`, Analytics (+ agent `a11y-fixer`) |
+| Laravel / SaaS          | `laravel-specialist`, `filament`, `laravel-react`, `saas-patterns`, `auth`, `security`, `mysql`, `queues`/`horizon-queues`, `file-storage`, `caching`, `webhooks`, `error-tracking-dev`/`error-tracking-prod`, `yagni` (+ agents `tech-debt-auditor`, `pr-repair`) |
 | E-commerce (PT)         | + `portugal-payments` (ifthenpay/MB WAY), `portugal-invoicing` (Moloni), `payment-integration` (agent) |
 | Email transacional      | `react-email`, `transactional-email`, `postmark`                            |
-| Deploy / DevOps         | `deploy-docker`, `deploy-ploi`, `deploy-cpanel`, `github`                   |
+| Deploy / DevOps         | `deploy-docker`, `deploy-ploi`, `deploy-cpanel`, `github` (+ agents `deploy-executor`, `pr-repair`) |
 | WordPress               | `wordpress-router`, `wp-project-triage` (+ wp-* conforme trabalho), Analytics |
 | Shopify                 | `shopify-router` (+ shopify-* conforme trabalho), Analytics                 |
 | Wix — dev (CLI/Velo)    | `wix-cli`, Analytics                                                         |
 | Wix — Editor (conteúdo) | `wix-cli` (REST/Stores), `seo`, `seo-local`, `copywriting`, `content-strategy` |
 | Conteúdo / Marketing    | `seo`, `copywriting`, `content-strategy`, `content-calendar` (+ `page-cro`/`social`/`email` cf. canal) |
-| Design UI/UX greenfield | `frontend`, `brand-guidelines`, `mobile`                                     |
+| Design UI/UX greenfield | `frontend`, `brand-guidelines`, `mobile` (+ agent `a11y-fixer`)              |
 | Design UI/UX iteração   | `frontend`, `brand-guidelines`                                               |
 | Design Motion/Animação  | `anima` (GSAP + Lottie), `frontend`                                          |
 | Design Print            | `graphic-design`, `brand-guidelines`                                         |
 | Vídeo                   | `video`, `hyperframes`, `remotion`, `lyric-align` (sync de letra)            |
-| Research                | `deep-research`, Analytics                                                   |
+| Research                | `deep-research`, `knowledge-ingest` (`/know`), Analytics                     |
 | Marketing               | Marketing/SEO, Analytics                                                     |
 | Automação / Scraping    | `browser-use`, `browser-automate` (apps web locais/litegraph), Desenvolvimento web |
 
 **Nota disambiguation design:** se o projecto já tem `DESIGN.md` ou `PRODUCT.md` → activar também `brand-guidelines`. Se greenfield → `frontend`.
+
+**Nota autonomia (global, todos os tipos):** a auto-orquestração (`rules/task-intake.md`, 4 vias) e o `/goal` aplicam-se a qualquer projecto sem configuração; `/know` (Knowledge Base via markitdown) está sempre disponível. `yagni` é skill base.
 
 Apresentar sugestões e perguntar se há algo a acrescentar ou remover.
 
@@ -369,7 +371,7 @@ Pré-selecção automática baseada no tipo de projecto:
 | Laravel             | `composer`, `stripe-cli` (se usar pagamentos)    |
 | Web app genérico    | `stripe-cli` (se pagamentos), `aws-cli` (se S3)  |
 | Vídeo / Media       | `ffmpeg`, `yt-dlp` — já globais via /install     |
-| Research / Design   | nenhum CLI extra obrigatório                     |
+| Research / Design   | `markitdown` (ingestão /know, se aplicável) — já global via /install |
 
 Apresentar lista contextual:
 ```

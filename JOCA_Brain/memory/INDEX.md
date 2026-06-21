@@ -11,6 +11,7 @@
 - [unimedia.md](projects/unimedia.md) — Netflix self-hosted multi-fonte (Next.js 15 + SQLite + WebTorrent/FFmpeg), uso pessoal
 - [simao-sina.md](projects/simao-sina.md) — Engine de lyric videos programáticos (Remotion + React) para o músico Simão/Sina
 - [comfyui.md](projects/comfyui.md) — ComfyUI portable — experimentação pessoal de geração de media (imagem/vídeo/upscale/inpaint/3D) via MCP
+- [mediaval-chess.md](projects/mediaval-chess.md) — Jogo táctica em grelha + deckbuilder (tema medieval), React + Vite + TS, motor de regras custom
 ## Feedback
 <!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_
@@ -34,6 +35,9 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `/review-code` — code review via tester-code + Codex adversarial
 - `/review-design` — UI/UX + accessibility review in parallel
 - `/one-shot` — autonomous end-to-end development from PRD
+- `/goal` — auto-orchestration from NL task (no PRD) → master-orchestrator loop
+- `/know` — ingest content into the Knowledge Base (markitdown → summary → tags)
+- `/migrate` — v1-legacy → v2.0 migration guide
 - `/build-plan` — supervised phased build: plan doc → per-phase tasks → loop with test gate
 - `/feedback-joca` — capture workflow issues from this session
 - `/init-project` — initialize new project entry in memory
@@ -52,7 +56,7 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `codex-review` (Master Review: Security/Perf/Clean/Arch) · `prd-reviewer`
 
 ### Orchestration
-- `master-orchestrator` · `self-improver` · `gemini-auditor`
+- `master-orchestrator` (goal-seeking loop) · `task-router` (classifica 4 vias) · `self-improver` · `gemini-auditor`
 
 ### Search & Analysis
 - `deep-research` · `seo-analyst` · `log-debugger` · `query-debugger`
@@ -66,6 +70,10 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 
 ### Backend (Laravel)
 - `laravel-refactor` (dead code/complexity/Larastan/scale) · `filament-builder` (scaffold resource) · `security-review`
+- `tech-debt-auditor` (mede ganho) · `pr-repair` (repara PR até verde) · `deploy-executor` (corre+verifica deploy)
+
+### Autonomia & Pessoal (FUTUROS)
+- `knowledge-ingest` (/know) · `automation-builder` (Fase 3) · `personal-comms` (email/calendário, Fase 2/3) · `a11y-fixer` (aplica fixes WCAG)
 
 ## Tools
-<!-- Populated as tool references are created in memory/tools/ -->
+- [mcps.md](tools/mcps.md) — MCP servers ligados (markitdown, playwright, comfy) + setup markitdown para /know

@@ -72,8 +72,9 @@ cd "<destino>/JOCA/JOCA_Brain"
 
 Executar `/install` — o assistente configura:
 - Identidade e personalidade (soul calibration)
-- Skills (103 disponíveis, RFC 2119 trigger system)
+- Skills (110 disponíveis, RFC 2119 trigger system) + auto-orquestração (task-intake 4 vias)
 - Browser automation (browser-use CLI, Playwright Agent CLI)
+- MCPs (playwright, markitdown — motor do /know)
 - CLIs externos (gh, gws, sentry-cli, ffmpeg, codex, agy, cli-printing-press, zmail-cli)
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_UI (browser interface)
