@@ -2,17 +2,19 @@
 project: JOCA
 type: toolkit-self-development
 stack: Claude Code skills/agents/commands (Markdown) + JOCA_UI (Node/Express/WS + React/Vite)
-repo: MirrasPT/JOCA (root = JOCA_FINAL, single git repo)
+repo: MirrasPT/JOCA-OS (PRIVADO; root = JOCA_FINAL, single git repo). Backup: MirrasPT/JOCA (origin antigo, intacto)
 ---
 
 # JOCA — Toolkit Self-Development
 
 ## Estado actual
-Repo em `master`, HEAD `4fa0bcc`. **Alterações de `/upgrade-joca`+`/sync-questionnaires` NÃO commitadas:** 3 skills novas (`content-calendar`, `lyric-align`, `browser-automate`), 1 comando novo (`/build-plan`), nova rule `workflows-and-tooling.md`, soul/api-design/frontend/deploy-cpanel reforçados, python3→python (stub Store), graph excludes, stop.bat `/T`, init-project real-vs-PLANEADO. Contadores realinhados: **106 skills · 28 agents · 20 commands (154 componentes)**.
+Repo em `master`, HEAD `5cbe7fc`, em sync com `origin/master`. **Rebrand para `JOCA-OS` feito (2026-06-21):** `origin` repontado de `MirrasPT/JOCA` → `MirrasPT/JOCA-OS` (repo novo, **privado**); push de tudo (380 ficheiros). Repo antigo `JOCA` fica como backup (reverter: `git remote set-url origin …/JOCA.git`). Commit inclui memória pessoal (profile/soul/projects/feedback) — ok porque privado. Excluídos via gitignore: `JOCA_OS/` (cópia 226M), `temp_audio/` (scratch whisper), `rename-to-brain.bat`.
 
-**JOCA_OS apagado e recriado (2026-06-21)** — v1 (orquestrador Agent SDK) apagado; Renato recomeça de raiz. **Novo `JOCA_OS/` = cópia literal do `JOCA_UI/`** (robocopy, 226M, untracked) como base a repurposar. Memória da arquitectura v1 limpa intencionalmente. `FUTUROS.md` na raiz mantém a visão.
+`/upgrade-joca`+`/sync-questionnaires` **commitados**: 3 skills (`content-calendar`, `lyric-align`, `browser-automate`), `/build-plan`, rule `workflows-and-tooling.md`, soul/api-design/frontend/deploy-cpanel reforçados, python3→python, graph excludes, stop.bat `/T`. Contadores: **106 skills · 28 agents · 20 commands**.
 
-**Rename `JOCA_Logic` → `JOCA_Brain` em curso** — o Brain. Refs já actualizados em **28 ficheiros** (detecção sibling do JOCA_UI em `server.ts`/start scripts, cópia JOCA_OS, README, root+global CLAUDE.md, memória). **Rename físico da pasta PENDENTE** — bloqueado pelo cwd do Claude; corre `JOCA_FINAL\rename-to-brain.bat` com o Claude fechado, reabre em `JOCA_Brain`, reinicia JOCA_UI. Docs históricos (`AUDITORIA_LOGIC_*`, `migrate.md`) mantêm nome antigo de propósito.
+**JOCA_OS** (2026-06-21) — v1 (orquestrador Agent SDK) apagado; Renato recomeça de raiz. `JOCA_OS/` = cópia literal do `JOCA_UI/` (robocopy, 226M, **gitignored**) como base a repurposar. `FUTUROS.md` mantém a visão.
+
+**Rename `JOCA_Logic` → `JOCA_Brain` CONCLUÍDO** — o Brain. Refs em 28 ficheiros + rename físico da pasta feitos (`rename-to-brain.bat` já corrido e gitignored). Docs históricos (`AUDITORIA_LOGIC_*`, `migrate.md`) mantêm nome antigo de propósito.
 
 **Perfil base do Renato criado** — `JOCA_Brain/memory/profile.md` (canónico, dados pessoais, fora de commits públicos) + auto-memória [[renato-profile]] + [[renato-design-prototype-fidelity]]. Via entrevista de 15 perguntas (interview mode). Captura: papel SetupTech (quer ser parceiro), produtos (livro de elogios, Bigorna 3D), filosofia AI-driven (design co-criado, resto 100% AI), meta €1500/mês, visão Jarvis, comms terso, pain points (drift protótipo→React, tarefas dispersas, marketing fraco).
 
@@ -39,13 +41,12 @@ Repo em `master`, HEAD `4fa0bcc`. **Alterações de `/upgrade-joca`+`/sync-quest
 - 2026-06-21 — **Perfil base do Renato via interview mode** (15 perguntas). Output: `memory/profile.md` (contexto estático canónico, tipo `user.md` do conceito Agentic OS) + 2 auto-memórias. Inspirado no vídeo Simon Scrapes "Creating Your Own Agentic OS" (memória 6-níveis, herança `claude.md`, acesso remoto — valida o roadmap FUTUROS). Pain point nº1 capturado como regra accionável: **fidelidade protótipo→React** (a AI diverge após a 1ª secção).
 - 2026-06-21 — **`JOCA_Logic` renomeado para `JOCA_Brain`** (é o Brain). Refs em 28 ficheiros via `sed` scoped (excluídos docs históricos). **Lição (Windows):** não se renomeia a pasta-raiz do projecto de dentro do Claude — o cwd do próprio processo Claude segura-a (`Permission denied`). Padrão: actualizar refs in-session (ficheiros são graváveis; só o *rename do dir* bloqueia) → script `.bat` que o user corre com o Claude fechado → reabrir na nova pasta. JOCA_UI tem de ser parado antes (handles).
 - 2026-06-21 — **Novo `JOCA_OS` = cópia do `JOCA_UI`** (robocopy `/E /MT:16`, 226M idêntico) como ponto de partida em vez de raiz. Por repurposar (renomear refs internas, mudar portas para não colidir com 7371/7372).
+- 2026-06-21 — **Upgrade global de autonomia** (sync repo → `JOCA-OS` privado). 2 workflows: (1) análise de 8 repos externos (ponytail, addyosmani/agent-skills, swc, Understand-Anything, markitdown, taste-skill, system_prompts_leaks, Anthropic-Cybersecurity) + auditoria do Brain → plano em `_improvement/`; (2) aplicação paralela. **Mecanismo de autonomia = 3 camadas:** (a) `rules/task-intake.md` — decision tree de 4 vias (directa/skill/agente/workflow) por thresholds, ancorado no Decision Filter (CLAUDE.md passo 0+2) e soul.md; (b) hooks `SessionStart`+`UserPromptSubmit` (Node, Windows-safe, fail-silent) que injectam o tree a cada turn — **tira a decisão da memória do modelo** (padrão ponytail/addyosmani); (c) `/goal` (workflow NL sem PRD) + `master-orchestrator` tornado goal-seeking-em-loop (Phase 4.5) e domain-agnostic (lê SKILL_INDEX). **+8 agentes** (task-router, knowledge-ingest, automation-builder, personal-comms, pr-repair, deploy-executor, a11y-fixer, tech-debt-auditor), **+4 skills** (knowledge-ingest, automations, personal-comms, yagni), rule `orchestration-patterns`, `validate-skill.py`. **Inventário: 110 skills · 36 agents · 22 commands.** Lições-chave verificadas na fonte: subagentes NÃO spawnam subagentes (auto-orquestração vive no main loop/command, não num agente-que-chama-agentes); o campo `skills:` no frontmatter NÃO carrega skill — garantia real = Step 0 `Read()` no corpo do agente. Falta (manual): `pip install markitdown[all]` + registar markitdown-mcp p/ `/know`; `/sync-questionnaires` p/ realinhar contadores; ligar `validate-skill.py` a PostToolUse.
 
 ## Pendente
-- **AGORA (ordem):** (1) fechar Claude → correr `JOCA_FINAL\rename-to-brain.bat` → reabrir em `JOCA_Brain` → reiniciar JOCA_UI → apagar o `.bat`. (2) Repurposar `JOCA_OS` (cópia do UI): renomear refs internas JOCA_UI→JOCA_OS, mudar portas (7371/7372 → ex. 7381/7382). (3) Desenhar arquitectura do JOCA_OS v2 (Jarvis) — usar `profile.md` + ideias do vídeo Simon Scrapes.
-- **Commit por fazer:** `/upgrade-joca`+`/sync-questionnaires` + rename refs (28 ficheiros) uncommitted. Memória pessoal fica sempre fora: `memory/INDEX.md`, `memory/projects/*.md`, `memory/soul.md`, `memory/profile.md`, `memory/feedback/archive/`.
-- JOCA_UI **parado** (7371/7372 mortos para libertar handles do rename).
-- `~/CLAUDE.md` linha 22 descreve o JOCA_OS v1 (apagado) — desactualizada; corrigir quando o v2 estabilizar.
-- Graph build de `4fa0bcc` — stale; rebuild após o rename (paths mudam) via Python API.
+- **AGORA:** (1) Repurposar `JOCA_OS` (cópia do UI): renomear refs internas JOCA_UI→JOCA_OS, mudar portas (7371/7372 → ex. 7381/7382). O global `~/CLAUDE.md` já o descreve a 7382 — confirmar estado real. (2) Desenhar arquitectura do JOCA_OS v2 (Jarvis) — usar `profile.md` + ideias do vídeo Simon Scrapes.
+- Graph build de `4fa0bcc` — stale; rebuild (paths mudaram com o rename) via Python API.
+- Nota: o INDEX.md tracked mistura entradas pessoais — agora ok no repo privado, mas se algum dia o repo voltar a público, `git rm --cached` a memória pessoal primeiro.
 
 ## Recuperar branches arquivados (se preciso)
 ```bash
@@ -54,4 +55,4 @@ git checkout archive/analyze-project            # inspecciona fork JOCA_Optimize
 ```
 
 ## Última sessão
-2026-06-21 (tarde) — (1) **JOCA_OS v1 apagado**, novo `JOCA_OS` criado como cópia do `JOCA_UI`. (2) **Perfil base do Renato** via interview mode → `memory/profile.md` + auto-memórias. (3) **`JOCA_Logic` → `JOCA_Brain`** (o Brain): refs em 28 ficheiros feitos, rename físico da pasta PENDENTE (`rename-to-brain.bat`, Claude fechado). Próximo: rename → repurposar JOCA_OS → desenhar v2.
+2026-06-21 (noite) — **Sync para `JOCA-OS` (privado) + upgrade global de autonomia.** origin repontado JOCA→JOCA-OS. Dois workflows (análise de 8 repos + Brain → plano `_improvement/`; aplicação paralela). Implementado o mecanismo de auto-orquestração de 4 vias (rule task-intake + hooks SessionStart/UserPromptSubmit + /goal + master-orchestrator goal-loop), +8 agentes, +4 skills, rule orchestration-patterns, validate-skill.py. Inventário 110 skills · 36 agents · 22 commands. Hooks já a disparar nesta sessão (verificado). Próximo: `pip install markitdown` p/ /know; `/sync-questionnaires`; repurposar JOCA_OS → desenhar v2.

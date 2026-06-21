@@ -51,7 +51,7 @@ lighthouse <URL> \
 
 Parse results:
 ```bash
-cat /tmp/lighthouse-report.json | python3 -c "
+cat /tmp/lighthouse-report.json | python -c "
 import json, sys
 d = json.load(sys.stdin)
 cats = d['categories']

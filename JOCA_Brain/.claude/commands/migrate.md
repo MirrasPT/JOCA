@@ -1,4 +1,4 @@
-# /goal — Migração v1-legacy → v2.0
+# /migrate — Migração v1-legacy → v2.0
 
 Guia completo para migrar uma instalação JOCA da branch `v1-legacy` para a versão actual (`master`).
 

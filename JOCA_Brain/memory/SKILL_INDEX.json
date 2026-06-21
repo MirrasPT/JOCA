@@ -82,6 +82,14 @@
   },
   {
     "type": "skill",
+    "name": "automations",
+    "category": "general",
+    "path": ".claude\\skills\\automations.md",
+    "description": "Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e gerir automacoes.json. Invocar quando o utilizador disser: automacao, automatizar, cron, agendar tare",
+    "triggers": []
+  },
+  {
+    "type": "skill",
     "name": "availability",
     "category": "general",
     "path": ".claude\\skills\\availability.md",
@@ -614,6 +622,14 @@
   },
   {
     "type": "skill",
+    "name": "knowledge-ingest",
+    "category": "general",
+    "path": ".claude\\skills\\knowledge-ingest.md",
+    "description": "Ingest URL/file into the personal Knowledge Base — convert to Markdown via markitdown, summarize, assign hierarchical tags, save raw+wiki+index. Backs the /know flow (FUTUROS Fase 5). MUST be invoke",
+    "triggers": []
+  },
+  {
+    "type": "skill",
     "name": "landing-page",
     "category": "general",
     "path": ".claude\\skills\\landing-page.md",
@@ -791,6 +807,14 @@
     "category": "general",
     "path": ".claude\\skills\\paid-ads.md",
     "description": "Paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy, headline iterations, creative testing. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Go",
+    "triggers": []
+  },
+  {
+    "type": "skill",
+    "name": "personal-comms",
+    "category": "general",
+    "path": ".claude\\skills\\personal-comms.md",
+    "description": "Ler, resumir e enviar email + gerir calendario via MCP/CLI JA LIGADOS (sem API custom). MUST be invoked when the user says: ler email, resumir inbox, enviar email, responder email, marcar reuniao, cri",
     "triggers": []
   },
   {
@@ -1424,6 +1448,41 @@
     "triggers": []
   },
   {
+    "type": "skill",
+    "name": "yagni",
+    "category": "general",
+    "path": ".claude\\skills\\yagni.md",
+    "description": "Decision ladder de 6 degraus para minimizar codigo e dependencias antes de escrever qualquer coisa. Formaliza os principios de simplicidade do soul.md/CLAUDE.md numa skill activavel. MUST be invoked w",
+    "triggers": [
+      "yagni",
+      "you arent gonna need it",
+      "mais simples",
+      "simplificar",
+      "minimo codigo",
+      "menos codigo",
+      "evitar dependencia",
+      "nova dependencia",
+      "npm install",
+      "composer require"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "a11y-fixer",
+    "category": "agents",
+    "path": ".claude\\agents\\a11y-fixer.md",
+    "description": "Accessibility fixer agent. Consumes the WCAG audit output from tester-ui-ux and APPLIES the fixes (vs only auditing) — closes the accessibility loop. Reads the categorized violation report, applies ",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "automation-builder",
+    "category": "agents",
+    "path": ".claude\\agents\\automation-builder.md",
+    "description": "Traduz um pedido em linguagem natural numa automação estruturada (quando + o-que + reportar) e persiste-a em automacoes.json. Gere agendamento (cron), condicionais e retries. A acção é uma tarefa",
+    "triggers": []
+  },
+  {
     "type": "agent",
     "name": "codex-review",
     "category": "agents",
@@ -1457,6 +1516,14 @@
       "\\\"cleanup dependencies\\",
       "\\\"unused packages\\"
     ]
+  },
+  {
+    "type": "agent",
+    "name": "deploy-executor",
+    "category": "agents",
+    "path": ".claude\\agents\\deploy-executor.md",
+    "description": "Runs AND verifies a deploy pipeline (cPanel / Docker / Ploi) — does not just know the steps, it executes them and health-checks the result. Triggers: deploy, publicar site, correr pipeline de deploy",
+    "triggers": []
   },
   {
     "type": "agent",
@@ -1512,6 +1579,14 @@
     "category": "agents",
     "path": ".claude\\agents\\img-gen-openai.md",
     "description": ">",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "knowledge-ingest",
+    "category": "agents",
+    "path": ".claude\\agents\\knowledge-ingest.md",
+    "description": "Ingests a URL or file (PDF, YouTube, Instagram, article, image) into the personal knowledge base. Converts source to Markdown via markitdown, generates a summary, assigns hierarchical tags, and saves ",
     "triggers": []
   },
   {
@@ -1578,6 +1653,22 @@
       "\\\"payment failed\\",
       "\\\"3D Secure\\"
     ]
+  },
+  {
+    "type": "agent",
+    "name": "personal-comms",
+    "category": "agents",
+    "path": ".claude\\agents\\personal-comms.md",
+    "description": "Assistente de comunicacoes PESSOAIS — le, resume e (so se autorizado) envia email da caixa de entrada pessoal, e consulta/cria eventos de calendario via CLI/MCP. Capacidades: listar emails nao lidos",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "pr-repair",
+    "category": "agents",
+    "path": ".claude\\agents\\pr-repair.md",
+    "description": "Autonomous PR repair agent. Takes a pull request that is failing and brings it back to green: reads the repo's own rules first, resolves merge conflicts, applies unresolved bot review comments, fixes ",
+    "triggers": []
   },
   {
     "type": "agent",
@@ -1657,6 +1748,22 @@
     "category": "agents",
     "path": ".claude\\agents\\skill-improver.md",
     "description": ">",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "task-router",
+    "category": "agents",
+    "path": ".claude\\agents\\task-router.md",
+    "description": "Lightweight task classifier. Takes any natural-language task and routes it to one of 4 lanes — A (direct), B (skill), C (agent), D (workflow) — by threshold rules (file count, domain count, revers",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "tech-debt-auditor",
+    "category": "agents",
+    "path": ".claude\\agents\\tech-debt-auditor.md",
+    "description": "Tech-debt audit agent. Scans a codebase, enumerates technical debt with an upstream upgrade-path, and QUANTIFIES the gain (LOC removed, complexity dropped, cost/time saved). Deterministic-helper-enume",
     "triggers": []
   },
   {

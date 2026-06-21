@@ -195,6 +195,44 @@ Before committing fonts / accent / aesthetic: check `memory/projects/` for the l
 
 ---
 
+## #4b Anti-slop guard-rails (geração) — adoptado de taste-skill (MIT)
+
+Aplicar na ESCRITA, não só no review. Cada regra é hard-stop durante a geração. (Origem: Leonxlnx/taste-skill, MIT — atribuir.)
+
+- **Em-dash ban** — nunca escrever `—`/`–` em copy de UI. Vírgula, parêntesis ou dois pontos. É o tell #1 de LLM.
+- **Serif / Inter discipline** — `Inter`/`system-ui`/`Roboto`/`Arial`/`Space Grotesk` NUNCA como display/heading; só body fallback. Display = serif editorial / grotesque distintivo / face com carácter.
+- **Anti AI-purple/lila** — zero roxo/índigo/violeta como accent ou gradiente. Banir hue ~`250–290` e os hex `#6366f1 #7c3aed #8b5cf6 #a855f7 #818cf8`. Roxo→rosa em fundo branco = proibido.
+- **Paleta premium beige+brass banida** — não usar bege quente + dourado/latão como par dominante (`#f5f0e8 #ede4d3 #e8dcc4` + `#b8860b #c9a227 #bfa46f #d4af37`). É tão slop como o roxo. Divergir.
+- **Color/shape consistency lock** — 1 decisão de cor + 1 linguagem de forma em toda a peça. Border-radius, sombra e borda coerentes entre componentes do mesmo nível. Parecer sistema, não sampler.
+- **Anti-center-hero** — não centrar tudo no hero. Assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything = default de LLM.
+- **Italic descender clearance** — itálico precisa de `line-height`/`padding-right` para não cortar descenders (`g j p q y`) nem a inclinação contra a borda. Nunca itálico com `overflow:hidden` apertado.
+
+### Mecanismo dos 3 dials calibráveis
+
+Antes de gerar, fixar 3 dials (cada 0–10). Declarar os valores no Design Read (abaixo). Determinam quão longe a peça se afasta do default seguro:
+
+| Dial | 0 | 10 | Efeito |
+|------|---|----|--------|
+| **Density** | arejado, muito whitespace, poucos elementos | denso, editorial, informação justaposta | espaçamento, tamanho de blocos, nº de elementos por viewport |
+| **Boldness** | contido, neutro, corporativo seguro | extremo, contraste alto, escala dramática, cor commited/drenched | escala tipográfica, saturação do accent, tamanho do hero |
+| **Warmth** | frio, técnico, geométrico, neutro azulado | quente, orgânico, humano, tom terroso/textura | temperatura da paleta, curvatura das formas, textura, tom de copy |
+
+Regra: os dials NÃO podem cair todos no meio (5/5/5) — isso É o slop. Pelo menos um dial a ≥8 ou ≤2 (commitment). Cada projecto diverge nos dials do anterior (ver Anti-convergence #4).
+
+### Padrão "Design Read de 1 linha" (antes de gerar)
+
+Antes de escrever qualquer código de geração, emitir UMA linha que trava as decisões e os dials:
+
+```
+Design Read: <tone> · display=<face> body=<face> · accent=<cor/hex não-banido> · density=<n> boldness=<n> warmth=<n> · âncora=<elemento memorável>
+```
+
+Exemplo: `Design Read: editorial brutalista · display=Söhne body=Georgia · accent=#1f6f43 · density=8 boldness=9 warmth=3 · âncora=número gigante a sangrar fora da grelha`
+
+Se algum campo cair num default banido (Inter, roxo, beige+brass, center-hero, dials 5/5/5) → corrigir a linha ANTES de gerar, não depois. A linha é o contrato; o código segue-a.
+
+---
+
 ## #5 Design Advisor (direction undefined)
 
 Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
