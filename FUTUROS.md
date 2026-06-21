@@ -32,7 +32,7 @@ O JOCA evolui de **wrapper de terminais** (estado actual) para **assistente pess
 
 **Estado actual (v1):**
 - JOCA_UI: interface browser para gerir múltiplos terminais Claude Code
-- JOCA_Logic: skills, agents, commands, memória persistente
+- JOCA_Brain: skills, agents, commands, memória persistente
 - Suporte cross-CLI (Claude Code, Codex, Gemini)
 
 **Para onde vai:**
@@ -874,7 +874,7 @@ Detalhe exacto → Diário recupera a conversa completa
 | Termo | Definição |
 |-------|-----------|
 | **JOCA** | Joint Orchestrator of Cognitive Agents. O assistente pessoal completo. Nome personalizável por utilizador. |
-| **JOCA_Logic** | Motor do JOCA: skills, agents, commands, memória |
+| **JOCA_Brain** | Motor do JOCA: skills, agents, commands, memória |
 | **JOCA_UI** | Interface browser do JOCA: multi-terminal, file browser, toolkit |
 | **Master** | Chat orquestrador (Fase 1). Comanda os terminais. |
 | **Worker** | Terminal Claude Code controlado pelo Master |

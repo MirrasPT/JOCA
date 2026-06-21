@@ -15,8 +15,8 @@ if lsof -ti:$BACKEND_PORT > /dev/null 2>&1 && lsof -ti:$FRONTEND_PORT > /dev/nul
   exit 0
 fi
 
-# Detect sibling JOCA_Logic
-LOGIC_DIR="$DIR/../JOCA_Logic"
+# Detect sibling JOCA_Brain
+LOGIC_DIR="$DIR/../JOCA_Brain"
 if [ -d "$LOGIC_DIR/.claude" ]; then
   export JOCA_LOGIC_PATH="$(cd "$LOGIC_DIR" && pwd)"
 fi

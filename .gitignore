@@ -10,3 +10,6 @@ JOCA_UI/data/projects.json
 JOCA_UI/data/project-memory.json
 JOCA_UI/data/session-snapshots.json
 JOCA_UI/data/ui-settings.json
+JOCA_OS/
+JOCA_Brain/temp_audio/
+rename-to-brain.bat

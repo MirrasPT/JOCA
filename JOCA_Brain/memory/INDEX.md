@@ -1,0 +1,71 @@
+# JOCA Memory Index
+
+## Core
+- [soul.md](soul.md) — Personality engine: drives, decision filters, motivational states, user alignment. Foundation for all agents.
+
+## Projects
+- [joca.md](projects/joca.md) — JOCA toolkit self-development (skills/agents/commands)
+- [meu-site-github.md](projects/meu-site-github.md) — Portfolio pessoal Node.js + Express + SQLite + Vanilla JS + GSAP
+- [bracaris-brasil-2026.md](projects/bracaris-brasil-2026.md) — Site Wix da marca de vinho Bracaris — conteúdo/copy/SEO para mercado Brasil (pt-BR)
+- [bigorna-2026.md](projects/bigorna-2026.md) — Primeira loja online do Bigorna — e-commerce Laravel + Filament + React/Tailwind
+- [unimedia.md](projects/unimedia.md) — Netflix self-hosted multi-fonte (Next.js 15 + SQLite + WebTorrent/FFmpeg), uso pessoal
+- [simao-sina.md](projects/simao-sina.md) — Engine de lyric videos programáticos (Remotion + React) para o músico Simão/Sina
+- [comfyui.md](projects/comfyui.md) — ComfyUI portable — experimentação pessoal de geração de media (imagem/vídeo/upscale/inpaint/3D) via MCP
+## Feedback
+<!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
+_(none pending — all processed)_
+
+Processed 2026-06-20 (/upgrade-joca + /sync-questionnaires batch — 8 sessions, 13 improvements) — archived:
+- 3 new skills: `content-calendar`, `lyric-align`, `browser-automate`; 1 new command: `/build-plan`
+- soul.md (sub-agent anti-fabrication) · api-design.md (parser verification) · frontend.md (shared-components-before-fanout) · deploy-cpanel.md (Node/Passenger)
+- python3→python (Windows Store stub) across resume/save/init-project/CLAUDE.md · graph exclusions · stop.bat `/T` · init-project real-vs-PLANNED
+- new rule `workflows-and-tooling.md` (LOW gotchas bundle)
+
+Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memory, sessions archived:
+- laravel-sail-windows → memory `laravel-sail-windows` + `laravel-specialist` (Windows+Sail) | [archived](feedback/archive/laravel-sail-windows.md)
+- filament-v5-gotchas → folded into `filament` skill (v5 type gotchas + HasIcon) | [archived](feedback/archive/filament-v5-gotchas.md)
+- filament-shield-testing → folded into `filament` skill (RBAC/Shield) | [archived](feedback/archive/filament-shield-testing.md)
+
+## Commands
+- `/resume` — load project context and knowledge graph
+- `/save` — save session state, update memory and graph
+- `/plan` — Plan Mode for architecture decisions
+- `/debug` — error triage with auto-detected stack skill
+- `/review-code` — code review via tester-code + Codex adversarial
+- `/review-design` — UI/UX + accessibility review in parallel
+- `/one-shot` — autonomous end-to-end development from PRD
+- `/build-plan` — supervised phased build: plan doc → per-phase tasks → loop with test gate
+- `/feedback-joca` — capture workflow issues from this session
+- `/init-project` — initialize new project entry in memory
+- `/install` — JOCA setup on a new machine
+- `/upgrade-joca` — apply feedback + self-improvement loop
+- `/update-joca` — sync with official GitHub repo (protects local components)
+- `/create-skill [desc]` — create new skill via research pipeline
+- `/sync-questionnaires` — audit + realign questionnaires/counters with the real skill/agent inventory
+- `/status` — mostra rate limits, modelo e uso de contexto atual
+
+
+## Agents
+
+### Review & Testing
+- `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api`
+- `codex-review` (Master Review: Security/Perf/Clean/Arch) · `prd-reviewer`
+
+### Orchestration
+- `master-orchestrator` · `self-improver` · `gemini-auditor`
+
+### Search & Analysis
+- `deep-research` · `seo-analyst` · `log-debugger` · `query-debugger`
+
+### Generation & Media
+- `img-gen-google` · `img-gen-openai` · `gemini-brain` · `watch`
+
+### Specialists
+- `payment-integration` · `dependency-auditor` · `design-system-audit`
+- `skill-evaluator` · `skill-improver`
+
+### Backend (Laravel)
+- `laravel-refactor` (dead code/complexity/Larastan/scale) · `filament-builder` (scaffold resource) · `security-review`
+
+## Tools
+<!-- Populated as tool references are created in memory/tools/ -->

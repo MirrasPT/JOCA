@@ -14,7 +14,7 @@ Toolkit centralizado de skills, agentes, memoria e comandos para Claude Code —
 JOCA/
 ├── install.md               <- bootstrap (maquina nova)
 ├── update.md                <- guia de actualizacao
-├── JOCA_Logic/              <- Motor Agenctico
+├── JOCA_Brain/              <- Motor Agenctico
 │   ├── CLAUDE.md            <- comportamento base
 │   ├── memory/
 │   │   ├── INDEX.md         <- catalogo de componentes
@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (/feedback-joca)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 17 comandos (/install, /save, /upgrade-joca, ...)
-│       ├── agents/          <- 25 agentes (tester-*, debug, research, media, ...)
-│       ├── skills/          <- 92 skills flat — RFC 2119 triggers, on-demand loading
+│       ├── commands/        <- 20 comandos (/install, /save, /upgrade-joca, ...)
+│       ├── agents/          <- 28 agentes (tester-*, debug, research, media, ...)
+│       ├── skills/          <- 106 skills flat — RFC 2119 triggers, on-demand loading
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test)
 │       ├── rules/           <- api-design, testing
 │       └── scripts/         <- statusline, compile-bridges, build-skill-index
@@ -39,7 +39,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**136 componentes:** 92 skills + 26 agents + 18 commands.
+**154 componentes:** 106 skills + 28 agents + 20 commands.
 
 ---
 
@@ -51,14 +51,14 @@ Dashboard browser com terminal multi-sessao, file browser, toolkit panel e rate 
 - **File preview:** janela redimensionavel com drag, suporta codigo (highlight.js), markdown, HTML (iframe sandbox), PDF, imagens, audio, video — focus trap + ARIA dialog
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
-- **Dashboard:** projectos, sessoes activas, JOCA_Logic engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 135+ componentes do JOCA_Logic
+- **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
+- **Toolkit panel:** browse/search/edit dos 135+ componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Sidebars colapsaveis:** left rail (62px) e right rail (54px) com animacoes suaves (280ms ease-out-quart)
 - **Cross-platform:** macOS (zsh) e Windows (PowerShell) — deteccao automatica de OS
 
-O JOCA_UI detecta automaticamente o `JOCA_Logic` como directorio irmao — zero configuracao.
+O JOCA_UI detecta automaticamente o `JOCA_Brain` como directorio irmao — zero configuracao.
 
 ### Seguranca (local-only, single-user)
 
@@ -138,7 +138,7 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%.
 
 ### Base
-`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `feedback-joca` · `pt-pt-translator`
+`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `browser-automate`
 
 ### Design
 `frontend` · `mobile` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-system` · `design-tokens` · `component-system` · `html-review`
@@ -150,13 +150,13 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 `deploy-cpanel` · `deploy-docker` · `deploy-ploi` · `github`
 
 ### Marketing
-`paid-ads` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `social-content` · `copywriting` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `lead-capture` · `competitor-profiling` · `landing-page` · `marketing`
+`paid-ads` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `content-calendar` · `social-content` · `copywriting` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `lead-capture` · `competitor-profiling` · `landing-page` · `marketing`
 
 ### Analytics
 `google-analytics` · `microsoft-clarity`
 
 ### Video & Media
-`video` · `hyperframes` · `remotion`
+`video` · `hyperframes` · `remotion` · `lyric-align`
 
 ### WordPress
 `wordpress-router` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `wp-interactivity-api` · `wp-abilities-api` · `wpds` · `blueprint`
@@ -206,6 +206,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/review-code` | Code review + adversarial via Codex |
 | `/review-design` | UI/UX + acessibilidade em paralelo |
 | `/one-shot` | Dev autonomo: PRD -> orchestrator -> parallel -> tests |
+| `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
 | `/create-skill` | Pipeline: research -> draft -> evaluate -> iterate |
 | `/feedback-joca` | Captura gaps no toolkit (7 categorias + severidade) |
 | `/upgrade-joca` | Self-improvement: research -> plan -> execute -> validate |
@@ -262,7 +263,7 @@ bash .claude/scripts/compile-bridges.sh
 
 ## Creditos
 
-Skills e agentes construidos sobre trabalho de: Anthropic, Corey Haines, Jeffallan, VoltAgent, iSerter, rshah515, WordPress Foundation, HeyGen, alchaincyf, e outros. Lista completa em [`CREDITOS.md`](JOCA_Logic/CREDITOS.md).
+Skills e agentes construidos sobre trabalho de: Anthropic, Corey Haines, Jeffallan, VoltAgent, iSerter, rshah515, WordPress Foundation, HeyGen, alchaincyf, e outros. Lista completa em [`CREDITOS.md`](JOCA_Brain/CREDITOS.md).
 
 ---
 

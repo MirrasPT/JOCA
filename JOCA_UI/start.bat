@@ -9,14 +9,14 @@ set "LOG_DIR=%TEMP%\joca-ui"
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
-:: Detect sibling JOCA_Logic
-if exist "%DIR%..\JOCA_Logic\.claude" (
-    pushd "%DIR%..\JOCA_Logic"
+:: Detect sibling JOCA_Brain
+if exist "%DIR%..\JOCA_Brain\.claude" (
+    pushd "%DIR%..\JOCA_Brain"
     set "JOCA_LOGIC_PATH=!CD!"
     popd
-    echo JOCA_Logic detected: !JOCA_LOGIC_PATH!
+    echo JOCA_Brain detected: !JOCA_LOGIC_PATH!
 ) else (
-    echo WARNING: JOCA_Logic not found — running in standalone mode
+    echo WARNING: JOCA_Brain not found — running in standalone mode
 )
 
 :: Check if already running

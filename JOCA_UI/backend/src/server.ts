@@ -155,7 +155,7 @@ function findJocaLogicRoot(): string {
 
   const uiRoot = path.resolve(__dirname, '../..');
   const parentDir = path.dirname(uiRoot);
-  const siblingLogic = path.join(parentDir, 'JOCA_Logic');
+  const siblingLogic = path.join(parentDir, 'JOCA_Brain');
   if (fs.existsSync(path.join(siblingLogic, '.claude'))) return siblingLogic;
 
   let dir = __dirname;
@@ -1695,7 +1695,7 @@ const PORT = Number(process.env.PORT || 3001);
 server.listen(PORT, '127.0.0.1', () => {
   const logicConnected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
   console.log(`JOCA_UI → http://localhost:${PORT}`);
-  console.log(`JOCA_Logic → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);
+  console.log(`JOCA_Brain → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);
   if (logicConnected) {
     const items = collectToolkitItems();
     console.log(`  Skills: ${items.skills.length} · Agents: ${items.agents.length} · Commands: ${items.commands.length}`);

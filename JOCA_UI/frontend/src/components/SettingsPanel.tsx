@@ -99,7 +99,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'connected' : 'offline'}`}>
                 {jocaLogicInfo.connected ? 'connected' : 'offline'}
               </span>
-              <span>JOCA_Logic Engine</span>
+              <span>JOCA_Brain Engine</span>
             </div>
             <dl className="settings-runtime-grid">
               <dt>Path</dt><dd>{shortPath(jocaLogicInfo.path)}</dd>

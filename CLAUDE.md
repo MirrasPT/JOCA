@@ -7,7 +7,7 @@ Joint Orchestrator of Cognitive Agents — toolkit centralizado para Claude Code
 ```
 JOCA/
 ├── install.md           <- bootstrap de instalacao (maquina nova)
-├── JOCA_Logic/          <- Motor: skills, agents, commands, memory
+├── JOCA_Brain/          <- Motor: skills, agents, commands, memory
 │   ├── .claude/         <- agents, commands, hooks, scripts, settings
 │   ├── memory/          <- INDEX, SKILL_INDEX, soul, tools, projects
 │   └── CLAUDE.md        <- configuracao base
@@ -22,7 +22,8 @@ JOCA/
 1. Consultar `graphify-out/GRAPH_REPORT.md` — god nodes, comunidades, perguntas sugeridas
 2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
 3. Ler ficheiros raw só quando necessário para editar ou o graph não tiver a resposta
-4. Actualizar: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
+4. Actualizar: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
+   (Windows: usar `python` — o `python3` é o stub vazio da Microsoft Store, sem graphify. macOS/Linux: `python3`.)
 
 ## Quick Start
 

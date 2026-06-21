@@ -6,12 +6,12 @@ FRONTEND_PORT=7372
 URL="http://localhost:$FRONTEND_PORT"
 FRONTEND_VITE="$DIR/frontend/node_modules/.bin/vite"
 
-# Detect sibling JOCA_Logic
-LOGIC_DIR="$DIR/../JOCA_Logic"
+# Detect sibling JOCA_Brain
+LOGIC_DIR="$DIR/../JOCA_Brain"
 if [ -d "$LOGIC_DIR/.claude" ]; then
   export JOCA_LOGIC_PATH="$(cd "$LOGIC_DIR" && pwd)"
 else
-  echo "⚠ JOCA_Logic not found at $LOGIC_DIR — running in standalone mode"
+  echo "⚠ JOCA_Brain not found at $LOGIC_DIR — running in standalone mode"
 fi
 
 # Se já estiver a correr, só abre o browser
@@ -34,7 +34,7 @@ for PORT in $BACKEND_PORT $FRONTEND_PORT; do
 done
 
 echo "▶ JOCA UI a arrancar..."
-[ -n "$JOCA_LOGIC_PATH" ] && echo "  JOCA_Logic → $JOCA_LOGIC_PATH"
+[ -n "$JOCA_LOGIC_PATH" ] && echo "  JOCA_Brain → $JOCA_LOGIC_PATH"
 
 # Backend
 cd "$DIR/backend" || exit 1

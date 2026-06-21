@@ -11,12 +11,12 @@ Detectar SO e procurar instalação:
 
 **macOS/Linux:**
 ```bash
-find ~ -maxdepth 5 -name "JOCA_Logic" -type d 2>/dev/null | head -5
+find ~ -maxdepth 5 -name "JOCA_Brain" -type d 2>/dev/null | head -5
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Get-ChildItem -Path $env:USERPROFILE -Recurse -Directory -Filter "JOCA_Logic" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
+Get-ChildItem -Path $env:USERPROFILE -Recurse -Directory -Filter "JOCA_Brain" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
 ```
 
 **Se encontrou:** informar o caminho e perguntar:
@@ -27,7 +27,7 @@ Encontrei JOCA em [caminho]. O que queres fazer?
 [3] Cancelar
 ```
 
-- Se [1]: navegar para `[caminho]/JOCA_Logic` e executar `/install`. Fim deste bootstrap.
+- Se [1]: navegar para `[caminho]/JOCA_Brain` e executar `/install`. Fim deste bootstrap.
 - Se [2]: continuar para Passo 2.
 - Se [3]: parar.
 
@@ -57,17 +57,17 @@ Se `git` não disponível:
 Verificar que a estrutura ficou correcta:
 
 ```bash
-ls "<destino>/JOCA/JOCA_Logic/.claude/commands/" | head -5
+ls "<destino>/JOCA/JOCA_Brain/.claude/commands/" | head -5
 ```
 
 ---
 
 ## Passo 4 — Executar /install
 
-Navegar para `JOCA_Logic/` e executar o comando de instalação:
+Navegar para `JOCA_Brain/` e executar o comando de instalação:
 
 ```
-cd "<destino>/JOCA/JOCA_Logic"
+cd "<destino>/JOCA/JOCA_Brain"
 ```
 
 Executar `/install` — o assistente configura:

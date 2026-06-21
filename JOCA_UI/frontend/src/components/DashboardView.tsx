@@ -661,7 +661,7 @@ export default function DashboardView({
         <div className="db-logic-status">
           <div className="db-logic-status-header">
             <BrainIcon />
-            <span className="db-logic-status-title">JOCA_Logic Engine</span>
+            <span className="db-logic-status-title">JOCA_Brain Engine</span>
             <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'connected' : 'offline'}`}>
               {jocaLogicInfo.connected ? 'connected' : 'offline'}
             </span>

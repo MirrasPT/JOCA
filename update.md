@@ -18,7 +18,7 @@ echo "JOCA: $JOCA_DIR"
 
 **Windows (PowerShell):**
 ```powershell
-$jocaLogic = Get-ChildItem -Path $env:USERPROFILE -Recurse -Directory -Filter "JOCA_Logic" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+$jocaLogic = Get-ChildItem -Path $env:USERPROFILE -Recurse -Directory -Filter "JOCA_Brain" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
 $jocaDir = Split-Path $jocaLogic
 Write-Output "JOCA: $jocaDir"
 ```
@@ -124,16 +124,16 @@ cd JOCA_UI/frontend && npm install && cd ..
 
 ### Actualizar StatusLine (se script alterado):
 ```bash
-cp JOCA_Logic/.claude/scripts/statusline-command.js ~/.claude/statusline-command.js
+cp JOCA_Brain/.claude/scripts/statusline-command.js ~/.claude/statusline-command.js
 ```
 
 ### Regenerar SKILL_INDEX:
 ```bash
-python3 JOCA_Logic/.claude/scripts/build-skill-index.py
+python3 JOCA_Brain/.claude/scripts/build-skill-index.py
 ```
 
 ### Verificar hooks cross-platform (Node.js):
-Confirmar que `JOCA_Logic/.claude/settings.json` usa `node` nos hooks:
+Confirmar que `JOCA_Brain/.claude/settings.json` usa `node` nos hooks:
 ```json
 "command": "node .claude/hooks/track-changes.js \"$TOOL_INPUT_FILE_PATH\""
 "command": "node .claude/hooks/auto-test-dispatch.js"
