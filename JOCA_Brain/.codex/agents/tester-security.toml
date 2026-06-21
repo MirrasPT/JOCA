@@ -31,7 +31,7 @@ which gitleaks 2>/dev/null && echo "gitleaks: OK" || echo "gitleaks: not install
 
 ### Composer
 ```bash
-composer audit --format=json 2>/dev/null | python3 -c "
+composer audit --format=json 2>/dev/null | python -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -46,7 +46,7 @@ except: print(sys.stdin.read())
 
 ### npm
 ```bash
-npm audit --json 2>/dev/null | python3 -c "
+npm audit --json 2>/dev/null | python -c "
 import json, sys
 d = json.load(sys.stdin)
 vulns = d.get('vulnerabilities', {})
@@ -64,7 +64,7 @@ for name, v in vulns.items():
 ```bash
 if command -v gitleaks &>/dev/null; then
     gitleaks detect --source . --report-format json --report-path /tmp/gitleaks-report.json --no-git 2>/dev/null
-    cat /tmp/gitleaks-report.json 2>/dev/null | python3 -c "
+    cat /tmp/gitleaks-report.json 2>/dev/null | python -c "
 import json, sys
 findings = json.load(sys.stdin) or []
 if not findings: print('No secrets detected.')

@@ -32,7 +32,7 @@ grep -r "Route::" routes/api.php routes/web.php 2>/dev/null | head -30
 grep -rn "\.(get|post|put|patch|delete)\(" --include="*.ts" --include="*.js" src/ 2>/dev/null | head -30
 # OpenAPI spec
 [ -f openapi.yaml ] && cat openapi.yaml | grep -E "^  /()" | head -20
-[ -f swagger.json ] && cat swagger.json | python3 -c "import json,sys; d=json.load(sys.stdin); [print(p) for p in d.get('paths',{}).keys()]"
+[ -f swagger.json ] && cat swagger.json | python -c "import json,sys; d=json.load(sys.stdin); [print(p) for p in d.get('paths',{}).keys()]"
 ```
 
 ---
@@ -49,7 +49,7 @@ curl -s -o /tmp/resp.json -w "%{http_code} %{time_total}s" \
   -H "Accept: application/json" \
   <METHOD> <URL>
 
-echo "Response:" && cat /tmp/resp.json | python3 -m json.tool 2>/dev/null || cat /tmp/resp.json
+echo "Response:" && cat /tmp/resp.json | python -m json.tool 2>/dev/null || cat /tmp/resp.json
 ```
 
 ### 2. Auth tests
@@ -120,7 +120,7 @@ done | awk '{sum+=$1} END {printf "Avg: %.3fs\n", sum/NR}'
 ## Schema Validation
 
 ```bash
-cat /tmp/resp.json | python3 -c "
+cat /tmp/resp.json | python -c "
 import json, sys
 data = json.load(sys.stdin)
 

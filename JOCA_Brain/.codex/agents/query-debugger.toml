@@ -10,10 +10,11 @@ model: sonnet
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.
 
-## Antes de iniciar
+## Antes de iniciar (obrigatorio)
 
-1. Lê `.claude/skills/mysql.md` — EXPLAIN patterns, SARGability rules, composite index strategy
-2. Aplica estes standards ao diagnosticar e recomendar fixes
+0. Read cada skill declarada no frontmatter `skills:` ANTES de agir:
+   - `.claude/skills/mysql.md` — EXPLAIN patterns, SARGability rules, composite index strategy
+1. Aplica estes standards ao diagnosticar e recomendar fixes
 
 ---
 

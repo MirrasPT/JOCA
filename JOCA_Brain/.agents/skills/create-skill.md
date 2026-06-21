@@ -138,6 +138,13 @@ Write `.claude/skills/created-skills/[name]/skill-creation-log.md`:
 [paste best version's eval JSON]
 ```
 
+### 4c.5 — Validate frontmatter (gate)
+Antes de registar, correr o linter no ficheiro escrito:
+```bash
+python .claude/scripts/validate-skill.py .claude/skills/created-skills/[name]/SKILL.md
+```
+(Windows: `python`, não `python3` — stub da Store.) Se devolver `[FAIL]` (frontmatter em falta, `name` não-kebab-case, `description` vazia) → corrigir e re-correr até `OK`/`WARN`. Não registar uma skill que falha o linter — a auto-selecção por triggers depende de frontmatter válido.
+
 ### 4d — Register in JOCA
 1. Add entry to `memory/INDEX.md` under `### Created Skills` (create if missing)
 2. Do NOT add to `CLAUDE.md` — `created-skills/` is auto-discovered

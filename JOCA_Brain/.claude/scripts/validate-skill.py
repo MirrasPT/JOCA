@@ -117,10 +117,12 @@ def validate(path):
         if not any(h in low for h in TRIGGER_HINTS):
             warns.append("`description` sem triggers aparentes (use when/invoke/quando...)")
 
-    # (d) name bate com nome do ficheiro
+    # (d) name vs nome do ficheiro -- WARN, nao FAIL.
+    # Convencao JOCA: o `name:` descritivo manda (ex.: horizon.md -> horizon-queues);
+    # o sistema refere as skills pelo `name:`, nao pelo ficheiro (ver sync-questionnaires.md).
     stem = p.stem
     if name and name != stem:
-        fails.append("`name` (%r) != nome do ficheiro (%r)" % (name, stem))
+        warns.append("`name` (%r) != nome do ficheiro (%r) -- ok se intencional (convencao JOCA)" % (name, stem))
 
     if fails:
         return "FAIL", fails + warns

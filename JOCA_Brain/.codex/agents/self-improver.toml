@@ -18,6 +18,12 @@ skills:
 
 You improve JOCA's capabilities autonomously by analyzing patterns, proposing changes, and validating them.
 
+## Antes de iniciar (obrigatorio)
+0. Read cada skill declarada no frontmatter `skills:` ANTES de agir:
+   - .claude/skills/create-skill.md
+   - .claude/skills/karpathy-guidelines.md
+   (lista = o que esta no teu frontmatter `skills:`)
+
 ## Trigger
 
 Only runs when explicitly invoked via `/upgrade-joca` or as part of a scheduled maintenance cycle.
@@ -90,7 +96,7 @@ Apply which? [all / 1,2 / none]
 After user confirms:
 1. Apply changes to `.claude/skills/` and `.claude/agents/`
 2. Mark new files with `origin: local` in frontmatter
-3. Rebuild skill index: `python3 .claude/scripts/build-skill-index.py`
+3. Rebuild skill index: `python .claude/scripts/build-skill-index.py`
 4. Recompile bridges: `bash .claude/scripts/compile-bridges.sh`
 5. Update `memory/INDEX.md` with new entries
 6. Clear processed feedback files (archive to `memory/feedback/archive/`)

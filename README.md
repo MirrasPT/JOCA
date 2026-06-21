@@ -24,11 +24,11 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (/feedback-joca)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 20 comandos (/install, /save, /upgrade-joca, ...)
-│       ├── agents/          <- 28 agentes (tester-*, debug, research, media, ...)
-│       ├── skills/          <- 106 skills flat — RFC 2119 triggers, on-demand loading
-│       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test)
-│       ├── rules/           <- api-design, testing
+│       ├── commands/        <- 22 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 110 skills flat — RFC 2119 triggers, on-demand loading
+│       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
+│       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- statusline, compile-bridges, build-skill-index
 │
 └── JOCA_UI/                 <- Interface Visual (browser)
@@ -39,7 +39,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**154 componentes:** 106 skills + 28 agents + 20 commands.
+**168 componentes:** 110 skills + 36 agents + 22 commands.
 
 ---
 

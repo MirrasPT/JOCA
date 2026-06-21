@@ -14,8 +14,8 @@ You are a dependency auditor. You find security vulnerabilities, outdated packag
 ## Step 1 â€” Detect Package Managers
 
 ```bash
-[ -f composer.json ] && echo "PHP/Composer" && cat composer.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Dependencies: {len(d.get(\"require\",{}))} require + {len(d.get(\"require-dev\",{}))} require-dev')"
-[ -f package.json ] && echo "Node.js/npm" && cat package.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Dependencies: {len(d.get(\"dependencies\",{}))} + {len(d.get(\"devDependencies\",{}))} dev')"
+[ -f composer.json ] && echo "PHP/Composer" && cat composer.json | python -c "import json,sys; d=json.load(sys.stdin); print(f'Dependencies: {len(d.get(\"require\",{}))} require + {len(d.get(\"require-dev\",{}))} require-dev')"
+[ -f package.json ] && echo "Node.js/npm" && cat package.json | python -c "import json,sys; d=json.load(sys.stdin); print(f'Dependencies: {len(d.get(\"dependencies\",{}))} + {len(d.get(\"devDependencies\",{}))} dev')"
 [ -f requirements.txt ] && echo "Python/pip" && wc -l requirements.txt
 [ -f pyproject.toml ] && echo "Python/pyproject"
 [ -f Gemfile ] && echo "Ruby/Bundler"
@@ -27,7 +27,7 @@ You are a dependency auditor. You find security vulnerabilities, outdated packag
 
 ### PHP (Composer)
 ```bash
-composer audit --format=json 2>/dev/null | python3 -c "
+composer audit --format=json 2>/dev/null | python -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -47,7 +47,7 @@ except Exception as e:
 
 ### Node.js (npm)
 ```bash
-npm audit --json 2>/dev/null | python3 -c "
+npm audit --json 2>/dev/null | python -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -73,7 +73,7 @@ pip-audit 2>/dev/null || safety check 2>/dev/null || echo "pip-audit/safety not 
 
 ### PHP
 ```bash
-composer outdated --format=json 2>/dev/null | python3 -c "
+composer outdated --format=json 2>/dev/null | python -c "
 import json, sys
 try:
     pkgs = json.load(sys.stdin)
@@ -93,7 +93,7 @@ except Exception as e:
 
 ### Node.js
 ```bash
-npm outdated --json 2>/dev/null | python3 -c "
+npm outdated --json 2>/dev/null | python -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -121,7 +121,7 @@ composer-unused 2>/dev/null | head -30 || echo "composer-unused not installed â€
 ### Node.js
 ```bash
 # depcheck (install with: npm i -g depcheck)
-depcheck --json 2>/dev/null | python3 -c "
+depcheck --json 2>/dev/null | python -c "
 import json, sys
 try:
     d = json.load(sys.stdin)

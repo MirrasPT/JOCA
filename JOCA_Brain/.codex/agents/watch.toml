@@ -25,7 +25,7 @@ WATCH_SCRIPTS="${JOCA_DIR}/.claude/agents/watch/scripts"
 ## Step 0 — Preflight (silent on success)
 
 ```bash
-python3 "${WATCH_SCRIPTS}/setup.py" --check
+python "${WATCH_SCRIPTS}/setup.py" --check
 ```
 
 Exit codes:
@@ -40,13 +40,13 @@ Exit codes:
 Run installer if needed:
 
 ```bash
-python3 "${WATCH_SCRIPTS}/setup.py"
+python "${WATCH_SCRIPTS}/setup.py"
 ```
 
 ## Step 1 — Run the watch script
 
 ```bash
-python3 "${WATCH_SCRIPTS}/watch.py" "<source>"
+python "${WATCH_SCRIPTS}/watch.py" "<source>"
 ```
 
 Flags:

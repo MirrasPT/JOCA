@@ -24,11 +24,11 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 20 comandos (/install, /resume, /save, /plan, ...)
-│       ├── agents/          <- 28 agentes (tester-*, debug, research, media, ...)
-│       ├── skills/          <- 106 skills flat (.md) — on-demand loading
-│       ├── hooks/           <- autonomous testing pipeline
-│       ├── rules/           <- api-design, testing
+│       ├── commands/        <- 22 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 110 skills flat (.md) — on-demand loading
+│       ├── hooks/           <- autonomous testing + task-intake pipeline
+│       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
 └── JOCA_UI/                 <- Interface Visual (browser)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**154 componentes:** 106 skills + 28 agents + 20 commands.
+**168 componentes:** 110 skills + 36 agents + 22 commands.
 
 ---
 
@@ -110,12 +110,12 @@ Para ligar um projecto existente:
 
 ---
 
-## Skills (103)
+## Skills (110)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
 ### Base & JOCA
-`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate`
+`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate` · `yagni`
 
 ### Planeamento & Specs
 `plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
@@ -153,9 +153,12 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 ### Wix
 `wix-cli`
 
+### Autonomia & Pessoal (FUTUROS)
+`knowledge-ingest` (/know) · `automations` · `personal-comms`
+
 ---
 
-## Agents (28)
+## Agents (36)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -169,17 +172,20 @@ Agentes correm em sub-processos isolados, em paralelo.
 `deep-research` · `seo-analyst` · `dependency-auditor`
 
 ### Orchestration & Self-improvement
-`master-orchestrator` · `self-improver` · `gemini-auditor` · `skill-evaluator` · `skill-improver`
+`master-orchestrator` · `task-router` · `self-improver` · `gemini-auditor` · `skill-evaluator` · `skill-improver`
 
 ### Generation & Media
 `img-gen-openai` · `img-gen-google` · `video-gen` · `watch` · `gemini-brain`
 
 ### Specialists
-`payment-integration` · `security-review` · `laravel-refactor` · `filament-builder`
+`payment-integration` · `security-review` · `laravel-refactor` · `filament-builder` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
+
+### Autonomia & Pessoal (FUTUROS)
+`knowledge-ingest` · `automation-builder` · `personal-comms`
 
 ---
 
-## Commands (19)
+## Commands (22)
 
 | Command | Funcao |
 |---------|--------|
@@ -192,6 +198,8 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/review-code` | Code review + adversarial via Codex |
 | `/review-design` | UI/UX + acessibilidade em paralelo |
 | `/one-shot` | Dev autonomo end-to-end: PRD -> orchestrator -> parallel -> tests |
+| `/goal` | Auto-orquestracao a partir de tarefa NL (sem PRD) -> orchestrator em loop |
+| `/know` | Ingerir conteudo na Knowledge Base (markitdown -> resumo -> tags) |
 | `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
 | `/create-skill` | Pipeline self-improving para criar skills |
 | `/sync-questionnaires` | Audita e actualiza os questionarios/listas contra o inventario real |
@@ -199,6 +207,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/feedback-projeto` | Actualiza docs do projecto |
 | `/upgrade-joca` | Le feedback e implementa melhorias |
 | `/update-joca` | Sync com repositorio GitHub |
+| `/migrate` | Guia de migracao v1-legacy -> v2.0 |
 | `/status` | Mostra rate limits, modelo e contexto |
 | `/wp-perf-review` | Code review WP completo |
 | `/wp-perf` | Quick triage WP |

@@ -58,6 +58,18 @@ Reuse `frontend` #4 ban table + these named tells (Garry Tan / OpenAI GPT-5.4 li
 ⬛ system-ui / Inter / Roboto / Arial / Space Grotesk as PRIMARY display font
 ```
 
+### Anti-slop hard-rules (auditoria) — adoptado de taste-skill (MIT)
+
+Checklist binário. Cada item = ⬛ blocking se violado. Scan code/live UI, emite `path:line — regra`. (Origem: Leonxlnx/taste-skill, MIT — atribuir.)
+
+- **Em-dash ban** — zero `—` (em-dash) e zero `–` (en-dash) em copy visível. É o tell #1 de texto gerado por LLM. Usar vírgula, parêntesis, ou dois pontos. Detectar literal `—`/`–` em strings/JSX/markdown de UI.
+- **Serif / Inter discipline** — `Inter` (e `system-ui`/`Roboto`/`Arial`/`Space Grotesk`) PROIBIDO como display/heading. Permitido só como body fallback. Display precisa de carácter — serif editorial, grotesque distintivo, ou face com personalidade. `font-family` de heading com Inter como primeiro nome → ⬛.
+- **Anti AI-purple/lila** — qualquer roxo/índigo/violeta como accent ou em gradiente é reject. Banir hue range ~`250–290` em HSL/OKLCH para accent/CTA/gradiente. Inclui `#6366f1` (indigo-500), `#7c3aed` (violet-600), `#8b5cf6` (violet-500), `#a855f7` (purple-500), `#818cf8`. Gradiente roxo→rosa em fundo branco = tell clássico.
+- **Paleta premium beige+brass banida** — a "luxury default" gerada por LLM (bege quente + dourado/latão) é tão slop como o roxo. Banir como par dominante: bege `#f5f0e8` / `#ede4d3` / `#e8dcc4` + brass/gold `#b8860b` / `#c9a227` / `#bfa46f` / `#d4af37`. Um pode existir como neutro; o PAR como identidade = ⬛. Forçar divergência de paleta deliberada.
+- **Color/shape consistency lock** — uma única decisão de cor e uma única linguagem de forma em toda a peça. Flag se: >1 accent compete; border-radius inconsistente entre componentes do mesmo nível (cards a `4px` e botões a `16px` sem razão); mistura de estilos de sombra/borda ad-hoc. A peça tem de parecer um sistema, não um sampler.
+- **Anti-center-hero** — hero com tudo centrado (texto + CTA + imagem no eixo vertical) é layout default de LLM. Exigir tensão: assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything no primeiro viewport → ⬛ (excepto se a marca pedir explicitamente simetria formal).
+- **Italic descender clearance** — texto em itálico precisa de folga para os descenders (`g`, `j`, `p`, `q`, `y`) e para a inclinação do glifo final. Flag itálico com `overflow: hidden`, `line-height` apertado que corta descenders, ou itálico colado à margem direita/borda do container (a inclinação corta). Dar `padding-right`/`line-height` suficiente.
+
 ### 7 hard-rejection patterns (instant fail)
 
 1. Generic SaaS card-grid as first impression
