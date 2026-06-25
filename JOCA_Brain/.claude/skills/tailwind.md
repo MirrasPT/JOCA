@@ -137,8 +137,22 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 | `!important` / `!` overrides | Fix specificity / order via `cn()`+`twMerge` |
 | `space-x/y` on flex-wrap or RTL | `gap-*` |
 | Disabling content-detection / safelisting huge lists | Keep class names static & complete strings (purge needs literals) |
+| Arbitrary feature media query `[@media(hover:hover)and(pointer:fine)]:block` | **CSS inválido** → ecrã branco. Definir `@custom-variant` no globals.css |
 
 **Purge rule:** class names must be complete static strings. `bg-${color}-500` won't be detected — map to full class names in an object instead.
+
+### ⚠ v4: media-queries de feature + scan de `.md`/comentários (branqueiam a página)
+
+Dois tells de Tailwind v4 que **passam `tsc` E `next build`** e só rebentam no dev/runtime (500 / ecrã branco):
+
+1. **Arbitrary media query com `and` sem espaços = CSS inválido.** `[@media(hover:hover)and(pointer:fine)]:block` gera `@media (hover:hover)and(pointer:fine)` → "Unexpected token Function(and)" → derruba a página INTEIRA. `_and_` é frágil. **Fix:** declarar uma variant nomeada no globals.css e usá-la como classe:
+   ```css
+   @custom-variant fine-hover (@media (hover: hover) and (pointer: fine));
+   ```
+   ```html
+   <div class="fine-hover:block">…</div>
+   ```
+2. **v4 faz content-scan de `.md` e de COMENTÁRIOS** à procura de candidatos a classes. Uma classe partida citada num comentário, num `.md` de docs, ou num resumo `.joca/intermediate/*.md` **regenera** a classe inválida e mantém o site branco MESMO depois de corrigir o `.tsx`. Sintoma traiçoeiro: corriges o componente e continua branco. **Fix:** sanitizar a string em qualquer ficheiro escaneado; excluir resumos/docs do content-scan (`@source not "..."`) ou escrevê-los fora da árvore do projecto. (Irmão do tell "adblock token branqueia site" do `frontend.md`. Fonte: unimedia 2026-06-23.)
 
 ---
 

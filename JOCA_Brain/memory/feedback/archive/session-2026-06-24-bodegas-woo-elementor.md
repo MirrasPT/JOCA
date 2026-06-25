@@ -3,6 +3,8 @@ type: feedback-joca
 source: auto-extracted-by-save
 session_date: 2026-06-24
 project: bodegas-do-campo
+processed: true
+processed_date: 2026-06-25
 ---
 
 **Categoria:** missing-skill | **Severidade:** medium | **Descrição:** Sessão extensa de construção programática WooCommerce + Elementor (override de `content-product.php`, edição cirúrgica de `_elementor_data` via PHP/JSON, criação de forms WPForms via PHP, thumbnails uncropped, galeria single estática) feita do zero sem skill de apoio. As skills `wp-*` existentes cobrem core/blocks/REST/perf, mas não há guia para **WooCommerce storefront + Elementor Free programático** (o stack real deste cliente e provavelmente recorrente). | **Componente afectado:** `.claude/skills/` (família wp-*) | **Fix sugerido:** criar skill `woocommerce-elementor-build` com os gotchas validados: card de produto = override `content-product.php` com markup própria; `woocommerce_thumbnail_cropping=uncropped`+regenerate; galeria single `opacity:1`+anchor block (sem flexslider); WPForms via PHP precisa de estrutura completa + `ajax_submit`; conteúdo dinâmico via shortcodes editáveis em vez de N widgets Elementor.

@@ -1161,6 +1161,25 @@
   },
   {
     "type": "skill",
+    "name": "selfhosted-arr",
+    "category": "general",
+    "path": ".claude\\skills\\selfhosted-arr.md",
+    "description": "Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr + qBittorrent) on a Docker VPS, including inter-app wiring via REST APIs. MUST be invoked when the us",
+    "triggers": [
+      "media stack",
+      "arr stack",
+      "*arr",
+      "selfhosted",
+      "self-hosted media",
+      "jellyfin",
+      "jellyseerr",
+      "sonarr",
+      "radarr",
+      "prowlarr"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "seo-local",
     "category": "general",
     "path": ".claude\\skills\\seo-local.md",
@@ -1382,6 +1401,25 @@
     "path": ".claude\\skills\\wix-cli.md",
     "description": "Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI commands, official Wix skills; (2) edit an EXISTING classic Wix Editor site's catalog/content via the W",
     "triggers": []
+  },
+  {
+    "type": "skill",
+    "name": "woocommerce-elementor",
+    "category": "general",
+    "path": ".claude\\skills\\woocommerce-elementor.md",
+    "description": "Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello Elementor child theme, where pages are editable Elementor `_elementor_data` JSON and the child theme C",
+    "triggers": [
+      "elementor",
+      "_elementor_data",
+      "hello elementor",
+      "elementor free",
+      "woocommerce",
+      "woocommerce storefront",
+      "woocommerce elementor",
+      "HFE",
+      "header footer elementor",
+      "wpforms"
+    ]
   },
   {
     "type": "skill",

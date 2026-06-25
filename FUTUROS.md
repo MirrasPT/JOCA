@@ -3,7 +3,7 @@
 Documento vivo com a direcção estratégica do JOCA.
 Ferramenta interna da Setup Tech, desenvolvida por Renato Ferreira.
 
-> **Última actualização:** 2026-05-28
+> **Última actualização:** 2026-06-25
 
 ---
 
@@ -21,6 +21,7 @@ Ferramenta interna da Setup Tech, desenvolvida por Renato Ferreira.
 - [Fase 5 — Knowledge Base](#fase-5--knowledge-base)
 - [Fase 6 — Self-Learning](#fase-6--self-learning)
 - [Fase 7 — Sistema de Memória](#fase-7--sistema-de-memória-do-master)
+- [Fase 8 — Tasks (quadro de tarefas)](#fase-8--tasks-quadro-de-tarefas)
 - [Como as Fases se Cruzam](#como-as-fases-se-cruzam)
 - [Glossário](#glossário)
 
@@ -419,6 +420,8 @@ Interface para criar, editar, activar/desactivar e ver histórico. Campos estrut
 
 ## Fase 4 — Acções
 
+> **Estado (2026-06-25): IMPLEMENTADO via Automações — sem subsistema próprio.** Decidiu-se que uma Acção = uma **Automação de trigger manual + input em runtime**. Reusa o motor das Automações (Fase 3): mesmo store (`automacoes.json`), mesmo painel, mesmo `create_automation`/`run_automation` do Master. Acrescentou-se às automações: (1) **input em runtime** (`{{input}}` preenchido ao correr), (2) **skills/agentes do JOCA a usar** (campo `skills`), (3) **confirmar antes de irreversível** (`requireConfirm` → o agente pára e pede OK antes de enviar/apagar/deploy). Os exemplos abaixo (gerador de imagem de produto, email formal) são acções manuais com `{{input}}`. A skill continua a ser o *saber*; a acção é o *wrapper executável guardado* que pode usar skills.
+
 ### Visão
 
 Acções são processos formalizados com trigger manual. A diferença para automações:
@@ -792,6 +795,95 @@ Isto evita que a memória curta cresça infinitamente e polua o contexto com inf
 
 ---
 
+## Fase 8 — Tasks (quadro de tarefas)
+
+### Visão
+
+Um quadro de tarefas (estilo Kanban, mas não obrigatoriamente) onde o Renato escreve uma lista de tarefas com campos estruturados, e o **Master pega nelas e entrega-as aos workers** conforme estão prontas. É a ponte entre "ter ideias de trabalho dispersas" e "o trabalho feito e verificado" — sem o Renato ter de orquestrar nada à mão.
+
+### Problema que resolve
+
+Hoje, para mandar o Master fazer algo, o Renato tem de o pedir na conversa, uma coisa de cada vez. As Tasks deixam-no **preparar muitas tarefas de uma vez** (em diferentes projectos), revê-las, e só depois "soltá-las" para execução. O Master trata do resto — distribui pelos workers, acompanha, manda verificar, e avisa quando está feito. Ataca directamente um pain point do Renato: tarefas dispersas e perda de contexto.
+
+### Conceito
+
+Uma Task tem campos:
+
+| Campo | Descrição |
+|-------|-----------|
+| **Projecto** | Projecto JOCA a que pertence (selecção). Se vazio → o worker corre **sem projecto** (no JOCA_Brain, com acesso a memória/skills). |
+| **Descrição** | A tarefa em linguagem natural. Ex.: *"no projecto Livro de Elogios, corrige a homepage — este botão está a vermelho em vez de laranja"*. |
+| **Estado** | Coluna do quadro (ver abaixo). |
+| *(opcionais futuros)* | agente/provider, prioridade, anexos, critério de conclusão. |
+
+### Estados (colunas)
+
+```
+┌──────────┐   ┌────────────┐   ┌──────────────┐   ┌─────────────┐   ┌───────────┐
+│ A DEFINIR│──▶│ A EXECUTAR │──▶│ EM EXECUÇÃO  │──▶│ CONCLUÍDA   │──▶│ ARQUIVADA │
+│ (rascunho│   │ (pronta —  │   │ (Master +    │   │ (feito —    │   │ (aceite)  │
+│  ainda a │   │  o Master  │   │  workers a   │   │  aguarda a  │   │           │
+│  definir)│   │  pode pegar)│  │  trabalhar)  │   │  revisão do │   │           │
+│          │   │            │   │              │   │  Renato)    │   │           │
+└──────────┘   └────────────┘   └──────────────┘   └─────┬───────┘   └───────────┘
+                     ▲                                    │
+                     └──────────── "puxar de volta" ──────┘
+                          (Renato: "ainda não está concluída")
+```
+
+- **A Definir** — o Renato ainda está a escrever/afinar a tarefa. O Master **não lhe toca**.
+- **A Executar** — o Renato move a tarefa para aqui quando está pronta. É o sinal para o Master agir.
+- **Em Execução** — o Master pegou na tarefa e está a trabalhá-la (ver fluxo).
+- **Concluída** — o Master terminou e verificou; aguarda a revisão do Renato.
+- **Arquivada** — o Renato aceitou; sai do quadro activo.
+
+### Fluxo (quando uma task entra em "A Executar")
+
+```
+Renato move task → "A Executar"
+        │
+        ▼
+Master pega na task → move para "Em Execução"
+        │
+        ├─ verifica o que já está feito / o que falta
+        ├─ abre/reutiliza worker(s) (no projecto da task, ou sem projecto)
+        ├─ manda os workers fazer o trabalho
+        │       │
+        │       ▼ workers executam e dão feedback ao Master
+        │
+        ├─ Master verifica o feedback
+        ├─ (opcional) despacha um agente TESTER para verificar tudo
+        │       │
+        │       ▼ tester confirma / aponta falhas
+        │
+        ▼
+Master move task → "Concluída"  +  notificação ao Renato
+        │                          ("a task X está concluída")
+        ▼
+Renato revê:
+  • aceita        → "Arquivada"
+  • "ainda não"   → puxa de volta para "A Executar"/"Em Execução"
+                    (com um comentário do que falta)
+```
+
+### Como se liga ao resto do JOCA
+
+- **Master (Fase 1)** é o motor — pega nas tasks "A Executar", abre workers, acompanha (incl. destravar menus de selecção), e move as tasks pelas colunas.
+- **Tester** — o Master pode despachar um agente de verificação (tester) antes de marcar "Concluída".
+- **Notificações (Fase 2)** — o aviso de "task concluída" vai pelo canal preferido (Master chat agora; WhatsApp/email depois).
+- **Automações (Fase 3)** vs **Tasks (Fase 8):** automações são recorrentes e disparam por horário; tasks são trabalho pontual que o Renato enfileira e o Master executa quando movidas. Partilham o motor (Master + workers) mas são quadros diferentes.
+
+### Decisões pendentes
+
+- [ ] O Master pega nas tasks "A Executar" automaticamente (poll/loop) ou só quando o Renato o aciona?
+- [ ] Quantas tasks em paralelo (cap de workers concorrentes — cruza com a quota Claude)?
+- [ ] Critério de "Concluída": sempre passa por tester, ou só quando a task o pede?
+- [ ] Persistência: um `tasks.json` por máquina (como `automacoes.json`), com histórico de movimentos?
+- [ ] UI: Kanban com drag-and-drop, ou lista simples com selector de estado?
+- [ ] O comentário do "puxar de volta" volta ao mesmo worker (contexto) ou abre novo?
+
+---
+
 ## Como as Fases se Cruzam
 
 O JOCA não é uma lista de funcionalidades isoladas — é um sistema integrado. Exemplos de como as fases interagem:
@@ -880,6 +972,7 @@ Detalhe exacto → Diário recupera a conversa completa
 | **Worker** | Terminal Claude Code controlado pelo Master |
 | **Automação** | Tarefa recorrente com trigger automático (cron) |
 | **Acção** | Tarefa formalizada com trigger manual (template) |
+| **Task** | Trabalho pontual num quadro (estilo Kanban). O Renato enfileira; o Master executa via workers ao mover para "A Executar" (Fase 8) |
 | **Knowledge Base** | Segundo cérebro pessoal. Comando `/know` |
 | **Self-Learning** | Auto-melhoria oportunista do JOCA |
 | **Memória Curta** | Resumo de continuação (última janela) |

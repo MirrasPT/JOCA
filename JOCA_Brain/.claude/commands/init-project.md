@@ -197,6 +197,13 @@ Lista numerada:
 [ ] WooCommerce   [ ] Multisite   [ ] WP-CLI disponível   [ ] Nenhum
 ```
 
+> **⚠ WooCommerce — desligar "coming soon" à cabeça.** O onboarding recente do WooCommerce activa `woocommerce_coming_soon=yes` por defeito → a loja inteira serve o placeholder "Great things are on the horizon" e o loop de produtos vem vazio no front-end (mesmo com produtos publicados/instock e query OK). Se WooCommerce for seleccionado, correr logo:
+> ```bash
+> wp option update woocommerce_coming_soon no
+> wp option update woocommerce_store_pages_only no
+> ```
+> (Fonte: bodegas-do-campo 2026-06-23 — custou diagnóstico longo.)
+
 **Q6 — Ambiente local**
 Lista numerada:
 ```

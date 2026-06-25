@@ -44,6 +44,7 @@ Cada worker grava o output em ficheiro (ex.: `.joca/intermediate/<stream>.md`) e
 - Porquê: o cap de 3-5 workers existe porque cada resultado completo inunda o contexto do supervisor. Resultados em disco **escapam** ao cap — o supervisor lê só o que precisa, quando precisa.
 - O supervisor agrega lendo os ficheiros (`Read`), não acumulando dumps inline.
 - Padrão complementar à fila de testes já existente (`.joca/test-queue.jsonl`).
+- **⚠ `.joca/intermediate/` é apanhado por content-scanners do projecto-alvo.** Quando os resumos ficam DENTRO da árvore do projecto, o content-scan do Tailwind v4 (e afins) trata-os como código e regenera classes citadas neles — uma classe partida num resumo `.md` parte o build do projecto-alvo (e o gate `tsc`/`build` NÃO apanha; só o dev runtime). Mitigar: `.joca/` no `.gitignore` E excluído do content-scan (`@source not`), OU escrever os resumos no scratchpad da sessão (fora da árvore do projecto). Ver `tailwind.md` + `workflows-and-tooling.md`. (Fonte: unimedia 2026-06-23.)
 
 ### 5. Doutrina Agent / Skill / Workflow
 Quando usar cada um:

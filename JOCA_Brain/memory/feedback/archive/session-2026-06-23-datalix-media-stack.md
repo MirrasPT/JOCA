@@ -3,6 +3,8 @@ type: feedback-joca
 source: auto-extracted-by-save
 session_date: 2026-06-23
 project: datalix-vps
+processed: true
+processed_date: 2026-06-25
 ---
 
 **Categoria:** missing-skill | **Severidade:** medium | **Descrição:** Instalação+wiring de uma media stack self-hosted (*arr: Jellyfin/Jellyseerr/Sonarr/Radarr/Prowlarr/qBittorrent) em VPS Docker correu toda à mão via ssh+curl. Existe `deploy-vps` (bootstrap Caddy/SSH/Cloudflare DNS) mas nada para deploy de **stack Docker self-hosted + wiring inter-app por API**. Muito conhecimento não-óbvio descoberto em runtime (ver fixes abaixo) que se perde sem skill. | **Componente afectado:** `.claude/skills/` (falta `selfhosted-arr` ou `docker-media-stack`); complementa `deploy-vps` + `deploy-docker`. | **Fix sugerido:** criar skill `selfhosted-arr` com: layout `/data` único p/ hardlinks (TRaSH), compose canónico dos 6 serviços, PUID/PGID, exposição Caddy só p/ Jellyfin+Jellyseerr, e o playbook de wiring por API (abaixo).

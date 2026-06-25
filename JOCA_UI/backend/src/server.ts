@@ -93,7 +93,7 @@ interface UiSettings {
   skipPermissions: boolean;
 }
 
-const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false };
+const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: true };
 
 function loadUiSettings(): UiSettings {
   return { ...DEFAULT_UI_SETTINGS, ...readJsonFile<Partial<UiSettings>>(UI_SETTINGS_FILE, {}) };
@@ -107,9 +107,19 @@ function loadProjects(): Project[] {
   try { return JSON.parse(fs.readFileSync(PROJECTS_FILE, 'utf8')); } catch { return []; }
 }
 
+// Atomic JSON write: write to a temp file then rename over the target. renameSync is
+// atomic within the same volume on Windows/POSIX, so a crash or a concurrent reader can
+// never observe a half-written file — the #1 cause of "projects silently disappeared"
+// (a truncated projects.json fails JSON.parse and loadProjects() falls back to []).
+function writeJsonFileAtomic<T>(filePath: string, data: T) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const tmp = `${filePath}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+  fs.renameSync(tmp, filePath);
+}
+
 function saveProjects(projects: Project[]) {
-  fs.mkdirSync(path.dirname(PROJECTS_FILE), { recursive: true });
-  fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2));
+  writeJsonFileAtomic(PROJECTS_FILE, projects);
 }
 
 function readJsonFile<T>(filePath: string, fallback: T): T {
@@ -117,8 +127,7 @@ function readJsonFile<T>(filePath: string, fallback: T): T {
 }
 
 function writeJsonFile<T>(filePath: string, data: T) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  writeJsonFileAtomic(filePath, data);
 }
 
 function loadProjectMemory(): Record<string, ProjectMemory> {
@@ -1543,10 +1552,47 @@ app.delete('/toolkit-item', express.json(), (req, res) => {
   }
 });
 
-// Note: 'svg' intentionally excluded — SVG can contain executable scripts (XSS risk via /file-content).
-const UPLOAD_ALLOWED_EXTS = new Set(['png','jpg','jpeg','gif','webp','bmp','ico','pdf','txt','md','json','csv']);
+// Allowlist for uploads. 'svg'/'html'/executables intentionally excluded — SVG/HTML can carry
+// scripts (XSS risk via /file-content); executables are never a legitimate chat attachment.
+const UPLOAD_ALLOWED_EXTS = new Set([
+  // images
+  'png','jpg','jpeg','gif','webp','bmp','ico','heic','heif','tiff','tif','avif',
+  // documents
+  'pdf','txt','md','rtf','doc','docx','xls','xlsx','ppt','pptx','odt','ods','odp',
+  // data / text
+  'json','csv','tsv','xml','yaml','yml','log','ini','toml',
+  // archives
+  'zip','rar','7z','tar','gz',
+  // audio
+  'mp3','wav','ogg','flac','m4a','aac',
+  // video
+  'mp4','mov','webm','mkv','avi','m4v',
+  // design / raster
+  'psd','ai','eps','sketch','fig',
+  // common code/text attachments
+  'ts','tsx','js','jsx','py','rb','go','rs','java','c','h','cpp','cs','php','sql','sh','css','scss',
+]);
 
-app.post('/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
+// All drops/pastes land in a dedicated folder (not the Desktop) so the worker gets a real, stable
+// path without cluttering common dirs. Folders preserve their relative structure under here.
+const DROP_DIR = path.join(os.homedir(), 'JOCA_Drops');
+
+// Validate a client-supplied relative path (folder drop). Rejects traversal/absolute/control chars;
+// sanitizes each segment the same way single filenames are sanitized. Returns the segment list.
+function safeRelSegments(rel: string): string[] | null {
+  if (/[\x00\r\n]/.test(rel)) return null;
+  const segs = rel.split(/[\\/]+/).filter(Boolean);
+  const out: string[] = [];
+  for (const s of segs) {
+    if (s === '.' || s === '..') return null;
+    const clean = path.basename(s).replace(/[^\w .@()-]/g, '-').trim();
+    if (!clean) return null;
+    out.push(clean);
+  }
+  return out.length ? out : null;
+}
+
+app.post('/upload', express.raw({ type: '*/*', limit: '200mb' }), (req, res) => {
   // Strip CR/LF from headers — Express may receive multiple values when a client splits with \r\n.
   // We take only the first valid token and reject any non-alphanumeric/dash content.
   const rawExt = (req.headers['x-file-ext'] as string) || 'png';
@@ -1556,12 +1602,25 @@ app.post('/upload', express.raw({ type: '*/*', limit: '50mb' }), (req, res) => {
   const originalName = (req.headers['x-file-name'] as string) || '';
   // Reject null bytes, CR, LF in filename — Node path.join truncates at \x00, bypassing ext check.
   if (/[\x00\r\n]/.test(originalName)) return res.status(400).json({ error: 'Invalid filename' });
-  const destDir = path.join(os.homedir(), 'Desktop');
-  const filename = safeDesktopFilename(originalName, ext || 'bin');
-  const filepath = path.join(destDir, filename);
-  fs.mkdirSync(destDir, { recursive: true });
+
+  // Folder drop: x-rel-path carries the file's path relative to the dropped folder
+  // (e.g. "Assets/sub/a.png"). We rebuild that tree under DROP_DIR and report the folder root.
+  const rawRel = (req.headers['x-rel-path'] as string) || '';
+  let filepath: string;
+  let root: string | undefined;
+  if (rawRel) {
+    const segs = safeRelSegments(rawRel);
+    if (!segs) return res.status(400).json({ error: 'Invalid relative path' });
+    filepath = path.join(DROP_DIR, ...segs);
+    root = path.join(DROP_DIR, segs[0]);
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+  } else {
+    const filename = safeDesktopFilename(originalName, ext || 'bin');
+    filepath = path.join(DROP_DIR, filename);
+    fs.mkdirSync(DROP_DIR, { recursive: true });
+  }
   fs.writeFileSync(filepath, req.body as Buffer);
-  res.json({ path: filepath });
+  res.json({ path: filepath, ...(root ? { root } : {}) });
 });
 
 // JSON error handler — must precede static + catch-all to intercept errors from API routes

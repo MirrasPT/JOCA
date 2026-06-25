@@ -110,6 +110,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | generate image · illustration | `img-gen` |
 | generate video · video clip · motion | `video-gen` (agent) |
 | WordPress · Gutenberg | `wordpress-router` |
+| WooCommerce + Elementor · `_elementor_data` · HFE · storefront editável · content-product.php | `woocommerce-elementor` |
 | Shopify · Liquid | `shopify-router` |
 | Wix · Wix CLI · dashboard extension | `wix-cli` |
 | auth · JWT · OAuth · 2FA | `auth` |
@@ -141,6 +142,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
 | deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
+| media stack · *arr · Jellyfin · Jellyseerr · Sonarr/Radarr/Prowlarr · qBittorrent · self-hosted media | `selfhosted-arr` |
 | deploy · publicar site · correr pipeline de deploy | `deploy-executor` (agent) |
 | corrigir a11y · WCAG fix · acessibilidade | `a11y-fixer` (agent) |
 | dívida técnica · tech debt · medir ganho · LOC poupado | `tech-debt-auditor` (agent) |

@@ -22,6 +22,8 @@ Actualizar `memory/projects/<nome>.md`:
 | **Pendente** | Substituir com lista actual |
 | **Ultima sessao** | Data + resumo de 1 linha |
 
+**Sub-repos git (repo aninhado num sub-directório):** alguns projectos têm um repo git PRÓPRIO num subdir (ex.: `JOCA_FINAL` = repo `JOCA-OS`, mas `JOCA_OS/` é repo local-only separado). Detectar sub-repos (`git -C <subdir> rev-parse --is-inside-work-tree`) e reportar pendências de commit POR repo no PASSO 8 — senão trabalho num repo aninhado fica por commitar e invisível no `git status` do repo-pai. (Fonte: JOCA 2026-06-25.)
+
 ---
 
 ## PASSO 2b — Check de Conceito (projectos com regras mutáveis)

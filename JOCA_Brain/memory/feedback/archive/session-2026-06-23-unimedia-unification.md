@@ -3,6 +3,8 @@ type: feedback-joca
 source: auto-extracted-by-save
 session_date: 2026-06-23
 project: unimedia
+processed: true
+processed_date: 2026-06-25
 ---
 
 # Feedback JOCA — sessão unificação UniMedia (Netflix redesign, 4 workflows multi-agente)

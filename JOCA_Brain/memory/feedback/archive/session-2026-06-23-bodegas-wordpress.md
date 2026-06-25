@@ -3,6 +3,8 @@ type: feedback-joca
 source: auto-extracted-by-save
 session_date: 2026-06-23
 project: bodegas-do-campo
+processed: true
+processed_date: 2026-06-25
 ---
 
 **Categoria:** missing-skill | **Severidade:** high | **Descrição:** Build completo de um site WordPress + Elementor (Free) + WooCommerce + HFE feito sem nenhuma skill dedicada de Elementor. Todo o pipeline (gerar `_elementor_data` JSON → `wp post meta update` → flush; classes editáveis sem "blocos de código") + gotchas críticos foram descobertos por tentativa/erro e gravados em memória (`elementor-json-pipeline`, `projects/bodegas-do-campo`). Sem skill, qualquer build Elementor futuro repete a descoberta. | **Componente afectado:** `.claude/skills/` (falta `elementor-builder` ou secção no `wordpress-router`) | **Fix sugerido:** criar skill `elementor-builder` com: pipeline JSON via post meta; **`css_classes` (containers) vs `_css_classes` (widgets)**; widget types (core + HFE `navigation-menu`/`site-logo`/`hfe-cart`; `wpforms`; `video` youtube; `image-gallery` control = `wp_gallery`); HFE CPT `elementor-hf` + `ehf_template_type`/`ehf_target_include_locations`; estratégia "child-theme CSS faz o look, Elementor segura conteúdo editável"; `body:has(.bd-hero)` para hero full-bleed; bump de versão de assets para cache-bust.

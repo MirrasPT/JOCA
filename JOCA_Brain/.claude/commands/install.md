@@ -592,6 +592,15 @@ claude mcp add markitdown --scope user -- python -m markitdown_mcp
 
 Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
 
+**Playwright MCP (browser automation — main loop + sub-agentes):**
+
+```bash
+claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest
+```
+
+⚠ Usar SEMPRE `@playwright/mcp` (oficial Microsoft). **NUNCA `@anthropic-ai/mcp-server-playwright`** — esse pacote NÃO existe no npm (404) e deixa o MCP em "Failed to connect" silencioso (browser automation morto).
+Verificar: `claude mcp list | grep playwright` (Connected). Nota: "Connected" ≠ tools acessíveis via ToolSearch no main loop — manter sempre o fallback canónico (build/`tsc` como proxy + pedir confirmação visual ao user). Ver `rules/workflows-and-tooling.md`.
+
 Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
 
 ### 5. API Keys

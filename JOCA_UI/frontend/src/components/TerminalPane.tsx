@@ -3,6 +3,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import type { TerminalRef } from '../types';
+import { captureDrop, resolveDrop, uploadPastedImages, quotePath } from '../lib/fileDrop';
 
 interface Props {
   sessionId: string;
@@ -10,43 +11,6 @@ interface Props {
   onInput: (sessionId: string, data: string) => void;
   onResize: (sessionId: string, cols: number, rows: number) => void;
   onReady: (sessionId: string, ref: TerminalRef) => void;
-}
-
-function quotePath(p: string) {
-  return p.includes(' ') ? `"${p}"` : p;
-}
-
-function extractPaths(e: DragEvent): string[] {
-  const paths: string[] = [];
-
-  // macOS Finder drag exposes file:// URIs in text/uri-list
-  const uriList = e.dataTransfer?.getData('text/uri-list') ?? '';
-  for (const line of uriList.split(/\r?\n/)) {
-    const uri = line.trim();
-    if (!uri || uri.startsWith('#')) continue;
-    if (uri.startsWith('file://')) {
-      try {
-        let p = decodeURIComponent(new URL(uri).pathname);
-        if (/^\/[a-zA-Z]:/.test(p)) p = p.slice(1);
-        paths.push(p);
-      } catch {}
-    }
-  }
-
-  // Fallback: plain text (e.g. path copied as text)
-  if (paths.length === 0) {
-    const text = e.dataTransfer?.getData('text/plain') ?? '';
-    if (text.trim()) paths.push(text.trim());
-  }
-
-  // Last resort: file names only (no full path available in browser sandbox)
-  if (paths.length === 0 && e.dataTransfer?.files.length) {
-    for (const f of Array.from(e.dataTransfer.files)) {
-      paths.push(f.name);
-    }
-  }
-
-  return paths;
 }
 
 export default function TerminalPane({ sessionId, isActive, onInput, onResize, onReady }: Props) {
@@ -165,51 +129,42 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       e.stopPropagation();
       setDragOver(false);
 
-      // Priority 1: image data (screenshot thumbnail, web image, etc.)
-      const imageItem = Array.from(e.dataTransfer?.items ?? []).find(
-        (i) => i.kind === 'file' && i.type.startsWith('image/')
-      );
-      if (imageItem) {
-        const file = imageItem.getAsFile();
-        if (file) {
-          const ext = file.type.split('/')[1]?.split('+')[0] || 'png';
-          const buf = await file.arrayBuffer();
-          try {
-            const res = await fetch('/upload', {
-              method: 'POST',
-              headers: {
-                'Content-Type': file.type,
-                'x-file-ext': ext,
-                'x-file-name': file.name || '',
-              },
-              body: buf,
-            });
-            const { path: filePath } = await res.json() as { path: string };
-            onInput(sessionId, quotePath(filePath));
-            termRef.current?.focus();
-          } catch {
-            // fallback to filename if upload fails
-            onInput(sessionId, quotePath(file.name));
-          }
-          return;
-        }
-      }
-
-      // Priority 2: file:// URI from Finder drag
-      const paths = extractPaths(e);
+      // Capture synchronously (dataTransfer expires after await), then resolve to absolute paths:
+      // real path if the source gave one, otherwise upload the file/folder content and use the
+      // saved-copy path under ~/JOCA_Drops. Never falls back to a bare filename. See lib/fileDrop.ts.
+      const cap = captureDrop(e);
+      const { paths } = await resolveDrop(cap);
       if (paths.length === 0) return;
-      const text = paths.map(quotePath).join(' ');
-      onInput(sessionId, text);
+      onInput(sessionId, paths.map(quotePath).join(' '));
+      termRef.current?.focus();
+    };
+
+    // Ctrl+V of an image into the terminal: upload to ~/JOCA_Drops and paste its path into the PTY.
+    // Capture phase so we intercept before xterm's own paste handling; text pastes (no image
+    // items) fall through untouched to xterm.
+    const onPaste = async (e: ClipboardEvent) => {
+      const imgs = Array.from(e.clipboardData?.items ?? [])
+        .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+        .map((it) => it.getAsFile())
+        .filter((f): f is File => f !== null);
+      if (imgs.length === 0) return; // let xterm handle the text paste
+      e.preventDefault();
+      e.stopPropagation();
+      const paths = await uploadPastedImages(imgs, Date.now());
+      if (paths.length === 0) return;
+      onInput(sessionId, paths.map(quotePath).join(' '));
       termRef.current?.focus();
     };
 
     el.addEventListener('dragover', onDragOver);
     el.addEventListener('dragleave', onDragLeave);
     el.addEventListener('drop', onDrop);
+    el.addEventListener('paste', onPaste, true);
     return () => {
       el.removeEventListener('dragover', onDragOver);
       el.removeEventListener('dragleave', onDragLeave);
       el.removeEventListener('drop', onDrop);
+      el.removeEventListener('paste', onPaste, true);
     };
   }, [sessionId, onInput]);
 
