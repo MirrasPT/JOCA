@@ -24,6 +24,16 @@ Actualizar `memory/projects/<nome>.md`:
 
 ---
 
+## PASSO 2b — Check de Conceito (projectos com regras mutáveis)
+
+Se o projecto tiver um `CLAUDE.md` com secção `### Conceito` (comum em jogos, motores de regras, apps com domínio mutável):
+1. Ler a secção `### Conceito` do `CLAUDE.md` do projecto
+2. Comparar com o `memory/projects/<nome>.md` actual
+3. Se houver divergência (ex.: campo mudou de 9×10 para 7×9, cartas novas adicionadas, regras alteradas) → propor actualização cirúrgica (1 linha de diff, não reescrever a secção inteira)
+4. Se não houver divergência ou não existir `### Conceito`: saltar silenciosamente
+
+---
+
 ## PASSO 3 — Feedback do projecto (inline, substitui /feedback-projeto)
 
 Analisar a conversa e extrair aprendizagens com impacto em sessoes futuras:

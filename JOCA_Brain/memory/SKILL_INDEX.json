@@ -36,6 +36,24 @@
   },
   {
     "type": "skill",
+    "name": "agent-sdk",
+    "category": "general",
+    "path": ".claude\\skills\\agent-sdk.md",
+    "description": "Build apps on @anthropic-ai/claude-agent-sdk (the SDK that powers Claude Code CLI). Use when: building Claude Code orchestrators, programmatic Claude sessions, subscription-billed (zero-cost) Claude i",
+    "triggers": [
+      "claude-agent-sdk",
+      "agent sdk",
+      "programmatic claude",
+      "subscription claude",
+      "zero-cost claude",
+      "JOCA_OS backend",
+      "claude code orchestrator",
+      "query sdk",
+      "createSdkMcpServer"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "analytics-tracking",
     "category": "general",
     "path": ".claude\\skills\\analytics-tracking.md",
@@ -217,6 +235,25 @@
   },
   {
     "type": "skill",
+    "name": "comfy-mcp-workarounds",
+    "category": "general",
+    "path": ".claude\\skills\\comfy-mcp-workarounds.md",
+    "description": "Verified workarounds for production bugs in the comfyui-mcp plugin (comfy@comfyui-mcp). MUST be invoked when the user says: enqueue_workflow not running, comfyui mcp bug, workflow crashes via MCP, sta",
+    "triggers": [
+      "enqueue_workflow not running",
+      "comfyui mcp bug",
+      "workflow crashes via MCP",
+      "start_comfyui fails",
+      "comfy plugin workaround",
+      "submit workflow programmatically",
+      "workflow runs manually fails mcp",
+      "cold-start comfyui windows",
+      "comfy-mcp",
+      "get_workflow bug"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "competitor-profiling",
     "category": "general",
     "path": ".claude\\skills\\competitor-profiling.md",
@@ -329,6 +366,25 @@
       "provisionar",
       "site setup",
       "deploy script"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "deploy-vps",
+    "category": "general",
+    "path": ".claude\\skills\\deploy-vps.md",
+    "description": "Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, SSH key setup VPS, Cloudflare DNS AP",
+    "triggers": [
+      "deploy VPS",
+      "VPS setup",
+      "Caddy",
+      "Caddy server",
+      "SSH key VPS",
+      "Cloudflare DNS API",
+      "scp site",
+      "static site VPS",
+      "fresh Ubuntu server",
+      "bootstrap SSH"
     ]
   },
   {

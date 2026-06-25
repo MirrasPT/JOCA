@@ -45,7 +45,59 @@ Plugins de marketplace são sempre **user-scope** → custo always-on em todas a
 
 ## Browser (Playwright) no main loop
 
-O MCP playwright pode não estar exposto ao loop principal (só aos sub-agentes). Browser checks (screenshots, console, DOM) no main loop → delegar a um agente; não assumir disponível inline.
+O MCP playwright pode estar **totalmente ausente** — não só "só sub-agentes". Pode falhar silenciosamente no boot do MCP se `npx playwright install` não tiver sido corrido na sessão. Não assumir disponível em lado nenhum.
+Fallback canónico quando playwright não está disponível:
+1. **Windows:** `Start-Process "<url>"` para abrir no browser do SO.
+2. Verificação programática: `tsc --noEmit` + output do bundler (vite/next build) como proxy.
+3. Confirmação visual: pedir ao user "podes confirmar que X aparece no browser?".
+Nunca reportar "não consigo verificar" sem primeiro tentar o fallback. Não redirigir para sub-agente se o sub-agente também não tem playwright.
+
+## Vite no HOST, não no container Sail (Windows)
+
+Em projectos Laravel Sail + Vite no Windows: **Vite corre sempre no HOST** (PowerShell/terminal local), nunca dentro do container Sail. Razões:
+- `node_modules/` tem binários nativos da plataforma do `npm install` — se instalado no host Windows, os binários não correm no container Linux Alpine.
+- `docker-proxy` segura a porta mapeada (ex.: `:5173`) mesmo sem processo dentro do container → o Vite do host usa `:5174` (auto-increment).
+Regra: `npm run dev` no PowerShell do host; nunca `sail npm run dev` a não ser que `node_modules/` tenha sido instalado dentro do container.
+
+## robocopy /XD — sempre caminho absoluto
+
+`robocopy /XD <nome>` exclui pastas por nome em **QUALQUER nível** da árvore, não só no nível raiz. Excluir `models` remove também `pip/_internal/models/` → pip partido (`No module named 'pip._internal.models'`).
+Regra: usar **sempre caminho absoluto** com `/XD`:
+```
+robocopy src dst /E /XD "C:\abs\path\to\models" "C:\abs\path\to\output"
+```
+Nunca usar o nome nu (`/XD models`) em trees que contenham pacotes Python ou node_modules.
+
+## ComfyUI portable — python embeddable sem .lib/Include
+
+ComfyUI portable (python embeddable) NÃO traz `libs/python3XX.lib` nem `Include/`. JITs que compilam C (triton-tcc, alguns CUDA custom nodes) falham com `returned non-zero exit status 1`.
+Fix — descarregar os headers/lib via nuget:
+```powershell
+$ver = "3.13.2"  # versão exacta do python_embeded
+$url = "https://api.nuget.org/v3-flatcontainer/python/$ver/python.$ver.nupkg"
+Invoke-WebRequest $url -OutFile python_pkg.zip
+Expand-Archive python_pkg.zip python_pkg
+Copy-Item python_pkg/tools/libs/python313.lib python_embeded/libs/
+Copy-Item -Recurse python_pkg/tools/include/* python_embeded/Include/
+```
+⚠ Windows: `flash_attn` não tem wheel prático → usar backend `sdpa` (torch nativo). `xformers` só se existir wheel para o torch exacto instalado.
+
+## SDK externo — verificar types do .d.ts, não da doc
+
+Ao escrever código contra um SDK externo (ex.: `@anthropic-ai/claude-agent-sdk`, `@anthropic-ai/sdk`), **ler os `.d.ts` instalados** como fonte de verdade antes de escrever código:
+```bash
+cat node_modules/@anthropic-ai/claude-agent-sdk/dist/*.d.ts | head -100
+```
+Doc online pode estar desactualizada; `.d.ts` reflecte o pacote instalado. `tsc`/`build` passam com uma opção de API errada que só rebenta em runtime.
+
+## Plugin marketplace — SSH → HTTPS rewrite
+
+`claude plugin marketplace add` usa SSH para clonar do GitHub por defeito. Em Windows sem chave SSH configurada para GitHub, falha com `Permission denied (publickey)`.
+Fix (idempotente, não destrutivo):
+```bash
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+```
+⚠ Este config global afecta todos os `git clone` por SSH do GitHub → remover depois se indesejável: `git config --global --unset url."https://github.com/".insteadOf`.
 
 ## Asset readiness
 

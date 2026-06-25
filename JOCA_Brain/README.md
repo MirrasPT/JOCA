@@ -26,7 +26,7 @@ JOCA/
 │   └── .claude/
 │       ├── commands/        <- 22 comandos (/install, /resume, /save, /plan, /goal, ...)
 │       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 110 skills flat (.md) — on-demand loading
+│       ├── skills/          <- 113 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**168 componentes:** 110 skills + 36 agents + 22 commands.
+**171 componentes:** 113 skills + 36 agents + 22 commands.
 
 ---
 
@@ -110,12 +110,12 @@ Para ligar um projecto existente:
 
 ---
 
-## Skills (110)
+## Skills (113)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
 ### Base & JOCA
-`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate` · `yagni`
+`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate` · `yagni` · `agent-sdk` · `comfy-mcp-workarounds`
 
 ### Planeamento & Specs
 `plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
@@ -130,7 +130,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `react-email` · `transactional-email` · `postmark`
 
 ### Deploy
-`deploy-cpanel` · `deploy-docker` · `deploy-ploi`
+`deploy-cpanel` · `deploy-docker` · `deploy-ploi` · `deploy-vps`
 
 ### Portugal
 `portugal-payments` (ifthenpay/MB WAY/Multibanco) · `portugal-invoicing` (Moloni/faturacao certificada)

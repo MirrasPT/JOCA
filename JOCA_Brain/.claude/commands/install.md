@@ -194,7 +194,7 @@ OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
 
 ## FASE 2 — Areas de Trabalho
 
-Areas globais que determinam quais skills ficam activas. O JOCA tem **110 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
+Areas globais que determinam quais skills ficam activas. O JOCA tem **113 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
 
 `AskUserQuestion`:
 ```
@@ -222,12 +222,13 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 | Marketing/SEO      | marketing-router, paid-ads, seo, seo-local, email-sequence, content-strategy, content-calendar, social-content, copywriting, page-cro, lead-capture, launch-strategy, ab-test-setup, competitor-profiling, analytics-tracking |
 | Dev web (Laravel)  | laravel-specialist, filament, laravel-react, rest-api, mysql, auth, security, saas-patterns, file-storage, caching, queues, bullmq, horizon-queues, reverb-realtime, search-engine, webhooks, availability, error-tracking-dev, error-tracking-prod, github |
 | Email              | react-email, transactional-email, postmark                                     |
-| Deploy / DevOps    | deploy-docker, deploy-ploi, deploy-cpanel                                       |
+| Deploy / DevOps    | deploy-docker, deploy-ploi, deploy-cpanel, deploy-vps                          |
 | Portugal           | portugal-payments (ifthenpay/MB WAY), portugal-invoicing (Moloni)              |
 | WordPress          | wordpress-router, wp-project-triage, wp-block-development, wp-block-themes, wp-plugin-development, wp-plugin-directory-guidelines, wp-rest-api, wp-abilities-api, wp-interactivity-api, wp-performance, wp-performance-review, wp-phpstan, wp-playground, wp-wpcli-and-ops, wpds |
 | Shopify            | shopify-router, shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer |
 | Wix                | wix-cli                                                                        |
 | Automacao          | browser-automate (conduzir apps web locais / litegraph via Playwright)          |
+| JOCA / SDK         | agent-sdk (Agent SDK orquestrador), comfy-mcp-workarounds (ComfyUI MCP)        |
 | Analytics          | google-analytics, microsoft-clarity                                            |
 | Research           | deep-research (agent)                                                          |
 | Specs / Planning   | plan, planning, prd, tech-spec, task-breakdown, adr, rfc, c4-diagram, blueprint, html-review |

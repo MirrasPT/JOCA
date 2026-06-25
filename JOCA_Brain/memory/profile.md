@@ -52,6 +52,10 @@ Contexto estático sobre o utilizador. Base do sistema (Jarvis). Carregado como 
 2. **Tarefas/notas dispersas** — papel, cabeça, Apple Notes (Mac+iPhone), Vikunja. Quer **centralizar tudo num só sítio** (local ainda por decidir). Jarvis deve ler/escrever aí.
 3. **Marketing/angariação** — área fraca; quer a AI a puxar este lado.
 
+## Preferências
+- **Projecto preferido:** **Bigorna** (loja online de objectos personalizados em 3D — parceria SetupTech).
+- **Cor preferida:** **verde-musgo** (moss green).
+
 ## Ferramentas
 - Google Workspace, Vikunja, Apple Notes (Mac + iPhone), papel.
 - Ambiente: **Windows primário** (ver `workflows-and-tooling.md`), também Mac.

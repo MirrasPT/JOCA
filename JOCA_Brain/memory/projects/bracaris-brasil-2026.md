@@ -73,6 +73,7 @@ directorio: G:\O meu disco\Clientes\Luis Goncalo (Elite Cozinhas e Bracaris)\Bra
 Projecto ligado ao JOCA. Site é Wix Editor clássico (edição no browser). Catálogo Wix Stores reescrito via API (6 produtos, pt-BR, ângulo Portugal). **Promo de quantidade (3+ =5%, 6+ =10%) em destaque no topo da descrição dos 6 produtos (LIVE).** **Homepage já LIVE com a copy pt-BR colada** (hero "O Vinho Verde português. Agora na sua mesa." + ângulo Portugal + age-gate activo) — confirmado por render ao vivo 2026-06-01. Assets de produto em WebP.
 Conjunto de imagens em `Gerados/produtos/`: 6 product shots 3:4 em vinha + cenas 1:1 estilo loja + 16:9. 19 JPGs de `_jpg/` (CMYK) convertidos a WebP lossless sRGB. Hero das 3 garrafas finalizada (`Gerados/Bracaris_Hero_Final_OpenAI_2K.{png,webp}`).
 **Plano de campanhas pagas SP+RJ entregue (2026-06-01)** — relatório HTML + 4 criativos novos. Ver secção "Campanhas de Ads".
+**Relatório publicado online (2026-06-23):** https://planobracaris.rfdev.pt (VPS Datalix, Caddy, proxy Cloudflare).
 
 ## Decisões tomadas
 - 2026-05-30: Idioma do conteúdo = Português do Brasil (pt-BR), não pt-PT.
@@ -118,6 +119,7 @@ Conjunto de imagens em `Gerados/produtos/`: 6 product shots 3:4 em vinha + cenas
 - ⚠ **Os JPGs de `Produtos_Site/_jpg/` são CMYK com perfil ICC de impressão (~557 KB).** ffmpeg interpreta CMYK mal → **desvio de cor** (o "yuva444p"/alfa que reporta é o 4º canal CMYK, não transparência). **Converter com Pillow (CMYK→sRGB via ICC), não ffmpeg:** `Image.open().convert` + `ImageCms.profileToProfile(rgb_src, src_icc, sRGB, outputMode='RGB')` → save WEBP `lossless=True, exact=True, icc_profile=sRGB`. Script: `JOCA_Logic/.joca/convert_webp_icc.py`. 2026-05-31: 19 JPGs convertidos p/ webp lossless sRGB (cores fiéis, 1200×1200, ICC sRGB embebido) na própria pasta `_jpg/`.
 
 ## Última sessão
+2026-06-23 — Relatório `Relatorio_Campanhas_Ads_SP-RJ_2026.html` publicado em **https://planobracaris.rfdev.pt** (VPS Datalix + Caddy + DNS Cloudflare). Imagens em `Gerados/` incluídas (5 ficheiros, ~11 MB).
 2026-06-01 — Análise da homepage ao vivo (render Playwright; achados: testemunho "Alvarinho" falso, aviso CONAR em falta, © 2025, SEO titles vazias) + **workflow completo de campanhas de ads SP/RJ**: deep-research (mercado/concorrência/regulação/sazonalidade) → plano de media R$1k/mês full-funnel B2C+B2B 60/40 → 4 criativos gpt-image-2 (RJ verão, SP urbano, churrasco, B2B) → relatório HTML design Bracaris (`Relatorio_Campanhas_Ads_SP-RJ_2026.html`). Gotcha: Playwright `networkidle` não dispara em Wix → `domcontentloaded`.
 2026-05-30 — Definido ponto de partida (homepage) + via de edição (Velo/Wix CLI). Convertidas 13 imagens de `Produtos_Site/` para WebP lossless (14.2 MB → 5.3 MB). Skills lidas: copywriting, brand-positioning, wix-cli. Copy ainda por escrever.
 2026-05-30 (img) — Geração da hero das 3 garrafas: v1 fila (rejeitada) → v2 estilo site OpenAI (aprovada, mas garrafas finas) → v3 3 tentativas com pack como ref de proporção (a gerar). Corrigidos agentes `img-gen-google` (agy lê prompt via **stdin**) e `img-gen-openai` (codex precisa `--dangerously-bypass-approvals-and-sandbox` + `-i` p/ referências).

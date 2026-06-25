@@ -132,12 +132,15 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | SaaS · multi-tenant · tenancy | `saas-patterns` |
 | PRD · requirements | `prd` |
 | plan · architecture · migrate | `plan` (auto) |
+| claude-agent-sdk · agent sdk · programmatic claude · subscription claude · zero-cost claude · JOCA_OS backend · createSdkMcpServer | `agent-sdk` |
+| enqueue_workflow not running · comfyui mcp bug · workflow crashes via MCP · start_comfyui fails · comfy plugin | `comfy-mcp-workarounds` |
 | JOCA_UI no Windows · node-pty · PowerShell PTY · install/upgrade Windows | `joca-ui-windows` |
 | classificar tarefa · que via · skill ou agente ou workflow · preciso de workflow? | `task-router` (agent) |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | automação · cron · todos os dias às · recorrente · agendar tarefa | `automation-builder` (agent + skill `automations`) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
+| deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
 | deploy · publicar site · correr pipeline de deploy | `deploy-executor` (agent) |
 | corrigir a11y · WCAG fix · acessibilidade | `a11y-fixer` (agent) |
 | dívida técnica · tech debt · medir ganho · LOC poupado | `tech-debt-auditor` (agent) |

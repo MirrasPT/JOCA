@@ -12,9 +12,16 @@
 - [simao-sina.md](projects/simao-sina.md) — Engine de lyric videos programáticos (Remotion + React) para o músico Simão/Sina
 - [comfyui.md](projects/comfyui.md) — ComfyUI portable — experimentação pessoal de geração de media (imagem/vídeo/upscale/inpaint/3D) via MCP
 - [mediaval-chess.md](projects/mediaval-chess.md) — Jogo táctica em grelha + deckbuilder (tema medieval), React + Vite + TS, motor de regras custom
+- [bodegas-do-campo.md](projects/bodegas-do-campo.md) — Loja de vinho DO Ribeiro (ES) em WordPress+WooCommerce+Elementor Free, build do design homepage-v2 (Docker, pipeline JSON Elementor editável)
+- [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
 ## Feedback
 <!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_
+
+Processed 2026-06-23 (/upgrade-joca + /sync-questionnaires — 10 sessions, 7 improvements) — archived:
+- 3 new skills: `agent-sdk`, `deploy-vps`, `comfy-mcp-workarounds`; frontend.md (Game UI section + triggers)
+- rules/workflows-and-tooling.md (6 gotchas: Playwright fallback, Vite/Sail Windows, robocopy /XD, ComfyUI portable, SDK types, plugin SSH→HTTPS)
+- commands/resume.md (git-remote arg, drift detection, iteration flow) · commands/save.md (Conceito check PASSO 2b)
 
 Processed 2026-06-20 (/upgrade-joca + /sync-questionnaires batch — 8 sessions, 13 improvements) — archived:
 - 3 new skills: `content-calendar`, `lyric-align`, `browser-automate`; 1 new command: `/build-plan`

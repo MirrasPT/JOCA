@@ -9,8 +9,28 @@ Verificar em que pasta estamos. Procurar entrada correspondente em `JOCA/memory/
 
 Se não existir entrada: sugerir correr `/init-project` primeiro.
 
+### 1b. Arg opcional: `<git-remote-url>`
+
+Se o comando for invocado com um 2º argumento (URL de remote GitHub/GitLab):
+1. Verificar se o repo local tem esse remote: `git remote -v`
+2. Se não tiver: `git remote add origin <url>` → `git fetch origin` → comparar working tree vs `origin/<branch-default>`
+3. Reportar divergência de forma **não-destrutiva** (nunca `reset --hard` sem confirmação explícita)
+4. Se tiver mas apontar para URL diferente: reportar conflito, não alterar automaticamente
+
 ### 2. Ler contexto do projecto
 Ler `JOCA/memory/projects/<nome>.md` — estado actual, decisões tomadas, pendentes.
+
+#### 2b. Detectar drift memória vs git
+
+Após ler a memória do projecto, comparar com o estado real do git:
+```bash
+git log --oneline -5  # últimos 5 commits reais
+```
+- Extrair a data da secção **"Última sessão"** da memória
+- Se o commit mais recente for **>14 dias depois** da data de memória: alertar com `⚠ MEMÓRIA DESACTUALIZADA — último commit é X dias mais recente que a memória`
+- Se houver commits com mensagens que contradizem o "Estado actual" (ex.: memória diz "backend pendente" mas há commits "feat: complete backend"): alertar e re-inferir estado a partir do git
+
+Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
 
 Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
 
@@ -45,6 +65,21 @@ Quando a pasta de trabalho é o próprio repo JOCA (contém `JOCA_Brain/CLAUDE.m
 - `/sync-questionnaires` — realinha questionários/contadores (`/install`, `/init-project`, `README`, `INDEX`) com o inventário real de skills/agents
 - `/upgrade-joca` — processa feedback acumulado em `memory/feedback/`
 - Nota Windows: o JOCA_UI é desenvolvido em macOS; em Windows a skill `joca-ui-windows` adapta/testa/corrige o UI.
+
+### 3c. Para projectos com código existente — propor iteration flow
+
+Se o projecto já tem código (detectável por existência de `package.json`, `composer.json`, `src/`, `app/`):
+- **Não** apresentar apenas o contexto passivamente
+- Propor o flow de iteração adequado ao estado:
+
+| Estado detectado | Flow sugerido |
+|-----------------|---------------|
+| Tem pendentes de bug/fix | → `[/debug]` ou fix directo |
+| Tem pendentes de feature | → `[/plan]` → implement |
+| Estado: "completo" mas sem deploy | → `[/deploy-executor]` ou checklist de deploy |
+| Sem pendentes claros | → "O que queres fazer? (review, feature, fix, deploy)" |
+
+Indicar o flow em 1 linha no resumo, não como pergunta — o utilizador redirige se quiser outra coisa.
 
 ### 4. Apresentar resumo ao utilizador
 
