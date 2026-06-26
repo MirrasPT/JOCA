@@ -4,6 +4,7 @@
 // Fail-silent: nunca bloqueia o arranque (exit 0 sempre).
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 try {
   const repoRoot = path.resolve(__dirname, '../..');
@@ -29,8 +30,20 @@ try {
     (skillCount || agentCount) ? `Inventário: ~${skillCount} skills · ~${agentCount} agentes (mapa em memory/SKILL_INDEX.json).` : 'Inventário em memory/SKILL_INDEX.json.',
   ].join('\n');
 
+  // Brain recall — decisões activas + aprendizagens recentes do projecto actual (slug = git do cwd).
+  // Spawn do joca-brain (resolve o slug a partir do cwd); fail-silent, nunca bloqueia.
+  let recall = '';
+  try {
+    const script = path.join(repoRoot, '.claude', 'scripts', 'joca-brain.mjs');
+    if (fs.existsSync(script)) {
+      recall = execSync(`node "${script}" recall --limit 4`, { stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 }).toString().trim();
+    }
+  } catch (_) { /* sem brain/recall — segue */ }
+
+  const finalCtx = recall ? `${ctx}\n\n${recall}` : ctx;
+
   process.stdout.write(JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: ctx },
+    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: finalCtx },
   }));
 } catch (_) { /* nunca bloquear */ }
 process.exit(0);

@@ -20,6 +20,17 @@ Se o comando for invocado com um 2º argumento (URL de remote GitHub/GitLab):
 ### 2. Ler contexto do projecto
 Ler `JOCA/memory/projects/<nome>.md` — estado actual, decisões tomadas, pendentes.
 
+#### 2a. Restaurar checkpoint + Brain (machine-readable)
+
+Antes da prosa, carregar o estado estruturado (adaptado de gstack context-restore):
+```bash
+node .claude/scripts/joca-checkpoint.mjs latest   # último snapshot: decisões/restante/próxima acção
+node .claude/scripts/joca-brain.mjs active        # decisões activas do projecto (event-sourced)
+```
+- O checkpoint dá a **próxima acção** exacta da sessão anterior (restauro cross-branch).
+- As decisões activas do Brain são a fonte de verdade atómica (sobre a prosa, em caso de conflito).
+- Nota: o hook `session-intake` já injecta o recall (decisões+aprendizagens) no arranque; este passo é o restauro explícito + próxima-acção dentro do `/resume`.
+
 #### 2b. Detectar drift memória vs git
 
 Após ler a memória do projecto, comparar com o estado real do git:

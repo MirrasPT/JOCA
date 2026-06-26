@@ -2,6 +2,7 @@
 name: design-review
 description: "Opinionated UI/design critique — judges taste, composition, and AI-slop on real code/live UI, or reviews a design plan BEFORE code. MUST be invoked when the user says: design review, review design, is this good, critique UI, score this UI, AI slop, does this look AI-generated, review my page, design feedback. SHOULD also invoke when: plan design review, review the plan UX, frontend review, before merge UI, design QA."
 triggers: design review, review design, is this good, critique UI, score this UI, AI slop, looks AI-generated, review my page, design feedback, plan design review, review the plan UX, frontend review, before merge UI, design QA, evaluate UI, rate this design, design critique, redesign feedback
+chain: a11y-fixer, tester-ui-ux
 ---
 # Design Review — Opinionated UI Critique
 
@@ -114,6 +115,17 @@ Scan code for, emit `path:line — issue`:
 
 Per dimension, **0–10 → state why not a 10 → "a 10 would have X" → fix → re-rate.** Repeat until 10 or user says "good enough." Log initial→final delta.
 
+### Atomic-fix loop (com prova visual — adoptado do `design-review` do gstack)
+
+Quando o brief pede para **corrigir** (não só pontuar) numa UI viva/renderizável:
+1. **Issue** — identificar 1 problema visual concreto (file:line).
+2. **Screenshot ANTES** — capturar o estado actual (Playwright MCP, ou `Start-Process <url>` + pedir captura ao user se MCP ausente — ver `rules/workflows-and-tooling.md`).
+3. **Fix** — editar o CSS/markup (cirúrgico, via tokens do design system — nunca hardcode inventado).
+4. **Screenshot DEPOIS** — re-capturar.
+5. **Comparar** — confirmar que o issue desapareceu e não partiu o layout à volta. Se piorou → reverter.
+6. **Repetir** por severidade. 1 issue = 1 fix coeso (commit atómico se em repo).
+Sem capacidade de render (sem Playwright/sem URL) → NÃO inventar que "está corrigido": aplicar o fix, dizer que a prova visual ficou por confirmar, e pedir confirmação ao user.
+
 ### Verdict
 
 - **Pass** — all 🟢 or minor 🟡 only.
@@ -204,3 +216,9 @@ Builder to builder, not consultant. Lead with the point. Cite `file:line`/number
 - `tester-performance` (agent) — Lighthouse/load
 - `anima` — motion principles referenced by the lint
 - Command `/review-design` — dispatches this + the agents by target type
+
+## Próximo passo (chain)
+Após a crítica (reversível → encadear sem perguntar, `[chain → x]`):
+- Se há violações de acessibilidade → `a11y-fixer` (aplica os fixes WCAG).
+- Para QA de flows/WCAG completo → `tester-ui-ux` (agente).
+Ver `rules/chaining.md`.

@@ -2,6 +2,7 @@
 name: security
 description: "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assignment, IDOR, SQL injection, security review, audit, hardening."
 triggers: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF, mass assignment, IDOR, SQL injection, security review, audit, hardening, headers, CSP, HSTS, secrets, encryption, encriptação, rate limit, brute force, supply chain, CVE, pentest, security check, esta seguro, is it secure, code review security
+chain: security-review, tester-security
 ---
 
 # Security

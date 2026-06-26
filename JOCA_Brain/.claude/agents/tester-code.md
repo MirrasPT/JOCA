@@ -58,3 +58,17 @@ Formato por issue:
 ```
 
 Começar sempre com o que está bem antes de listar issues.
+
+## Loop test→fix→verify (adaptado do `qa` do gstack)
+
+Quando o brief pedir não só review mas **fechar** (corrigir + verificar), correr o loop:
+1. **Detectar** — encontrar o bug/issue (correr a suite se existir; senão raciocinar sobre o código).
+2. **Corrigir** — fix cirúrgico (só o necessário, zero refactor adjacente).
+3. **Commit atómico** — 1 fix = 1 commit coeso (facilita reverter; mantém working tree limpo entre fixes).
+4. **Re-verificar** — re-correr o teste / re-ler o código alterado; confirmar que o issue desapareceu E que não introduziste um novo.
+5. **Repetir** até verde, por ordem de severidade (Critical → Important). Travão: 3x sem progresso num mesmo issue → parar e reportar (não martelar).
+
+Pré-condição: working tree limpo antes de começar (senão os commits atómicos misturam-se com trabalho não relacionado). Aprendizagem reutilizável de um bug que voltaria a morder → `node .claude/scripts/joca-brain.mjs learn --text "..." --tags bug`.
+
+## Próximo passo (chain)
+- Endpoints alterados → `tester-api`. UI alterada → `tester-ui-ux`. Causa-raiz obscura → `log-debugger`. Ver `rules/chaining.md`.

@@ -36,6 +36,25 @@ Se o projecto tiver um `CLAUDE.md` com secção `### Conceito` (comum em jogos, 
 
 ---
 
+## PASSO 2c — Checkpoint estruturado (restaurável)
+
+Escrever um snapshot machine-readable da sessão (adaptado de gstack context-save) — restaurado pelo `/resume`. Complementa a prosa do PASSO 2, não a substitui.
+
+```bash
+printf '## Decisões desta sessão\n- <...>\n## Trabalho restante\n- <...>\n## Próxima acção\n- <...>' | node .claude/scripts/joca-checkpoint.mjs save --title "<slug-curto>" --status wip
+```
+- Body = decisões desta sessão + trabalho restante + próxima acção (1 linha cada).
+- `--status done` se a tarefa ficou concluída; senão `wip`.
+- O helper escreve `memory/checkpoints/<slug>/<ts>.md` (frontmatter branch/ts/status), poda aos últimos 12, rename atómico.
+
+**Decisões/aprendizagens atómicas** desta sessão (não-óbvias, reutilizáveis) → registar no Brain log (reversível, sem perguntar):
+```bash
+node .claude/scripts/joca-brain.mjs decide --text "<decisão>" --rationale "<porquê>" --source user
+node .claude/scripts/joca-brain.mjs learn  --text "<lição>" --tags <a,b>
+```
+
+---
+
 ## PASSO 3 — Feedback do projecto (inline, substitui /feedback-projeto)
 
 Analisar a conversa e extrair aprendizagens com impacto em sessoes futuras:

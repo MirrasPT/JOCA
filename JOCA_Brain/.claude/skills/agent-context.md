@@ -9,6 +9,15 @@ Always-active. These rules govern how JOCA orchestrates agents and manages conte
 
 ---
 
+## 0. Subagentes são skill-aware + encadeiam (obrigatório)
+
+Um agente despachado via `Agent()` NÃO herda `soul.md` nem carrega skills pelo campo `skills:` do frontmatter — só recebe o brief. Portanto, quem despacha:
+- **Step 0 no brief:** `Read()` das skills relevantes (trigger map) ANTES de o agente escrever código. A garantia é o Read no brief/corpo, não o frontmatter.
+- **Chain no brief:** indicar ao agente o `chain:` dele — ao terminar, o agente DEVOLVE no relatório o próximo passo sugerido (ex.: "re-correr `tester-ui-ux`"); o **caller** decide e dispara (agentes não fazem spawn de agentes).
+- Ver `rules/chaining.md` (encadeamento) + `rules/task-intake.md` (vias).
+
+---
+
 ## 1. Multi-Agent Coordination
 
 **Sub-agents isolate context, not divide roles.** Use when a single window cannot hold all task-relevant info without degrading.

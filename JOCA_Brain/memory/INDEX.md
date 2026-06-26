@@ -43,6 +43,9 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `/review-design` — UI/UX + accessibility review in parallel
 - `/one-shot` — autonomous end-to-end development from PRD
 - `/goal` — auto-orchestration from NL task (no PRD) → master-orchestrator loop
+- `/autoplan` — full auto-reviewed plan (product → design → eng), runs pipeline at depth, final gate
+- `/learn` — Brain institutional memory (event-sourced decisions/learnings + auto-recall)
+- `/retro` — retrospective: window learnings → actions (manual or cron automation)
 - `/know` — ingest content into the Knowledge Base (markitdown → summary → tags)
 - `/migrate` — v1-legacy → v2.0 migration guide
 - `/build-plan` — supervised phased build: plan doc → per-phase tasks → loop with test gate

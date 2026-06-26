@@ -227,6 +227,23 @@
   },
   {
     "type": "skill",
+    "name": "careful",
+    "category": "general",
+    "path": ".claude\\skills\\careful.md",
+    "description": "Liga avisos antes de comandos Bash destrutivos (rm -rf, DROP/TRUNCATE, git push --force, git reset --hard, taskkill /F, format, dd) — o hook check-careful pede confirmação antes de executar (não ",
+    "triggers": [
+      "careful",
+      "modo cauteloso",
+      "avisa antes de apagar",
+      "cuidado destrutivo",
+      "proteger enganos",
+      "warn destructive",
+      "modo cuidado",
+      "safety warnings"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "caveman",
     "category": "general",
     "path": ".claude\\skills\\caveman.md",
@@ -532,6 +549,25 @@
   },
   {
     "type": "skill",
+    "name": "freeze",
+    "category": "general",
+    "path": ".claude\\skills\\freeze.md",
+    "description": "Tranca as edições (Edit/Write) a UM directório durante a sessão — qualquer edição fora dele é BLOQUEADA pelo hook check-freeze. Usar quando o user disser: freeze, trancar edições, lock scop",
+    "triggers": [
+      "freeze",
+      "trancar edicoes",
+      "trancar edições",
+      "lock scope",
+      "scope lock",
+      "so editar esta pasta",
+      "só editar esta pasta",
+      "restringir alteracoes",
+      "restringir alterações",
+      "nao mexer fora"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "frontend",
     "category": "general",
     "path": ".claude\\skills\\frontend.md",
@@ -593,6 +629,25 @@
       "cartaz",
       "cartão de visita",
       "business card"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "guard",
+    "category": "general",
+    "path": ".claude\\skills\\guard.md",
+    "description": "Modo de segurança máxima: liga /careful (avisos de comandos destrutivos) E /freeze (tranca edições a um directório) de uma vez. Usar quando o user disser: guard, modo seguro, segurança máxima, ",
+    "triggers": [
+      "guard",
+      "modo seguro",
+      "seguranca maxima",
+      "segurança máxima",
+      "lock it down",
+      "proteger tudo",
+      "full safety",
+      "trancar tudo",
+      "maximum safety",
+      "guard mode"
     ]
   },
   {
@@ -1354,6 +1409,23 @@
       "spf",
       "dkim",
       "dmarc"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "unfreeze",
+    "category": "general",
+    "path": ".claude\\skills\\unfreeze.md",
+    "description": "Remove os guard-rails activos — apaga o lock de edição (/freeze) e o flag de avisos (/careful), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar, remover lock, desligar gu",
+    "triggers": [
+      "unfreeze",
+      "destrancar",
+      "remover lock",
+      "desligar guard",
+      "desligar careful",
+      "unlock edits",
+      "voltar ao normal",
+      "remove guard"
     ]
   },
   {

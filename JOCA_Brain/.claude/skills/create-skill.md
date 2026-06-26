@@ -171,3 +171,4 @@ How to use:
 - For upgrades, preserve existing skill's name and directory
 - All new skills go to `created-skills/` — never to category directories
 - Pipeline is fully autonomous — report only at the end
+- **Chaining (obrigatório):** toda a skill/agente novo nasce com (a) frontmatter `chain:` (próximos skills/agentes prováveis, se houver) e (b) secção `## Próximo passo (chain)` no corpo a dizer quando disparar cada um + o gate (irreversível → confirmar). Agentes novos incluem **Step 0: Read das skills relevantes** no corpo. Ver `rules/chaining.md`.

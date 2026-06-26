@@ -42,6 +42,23 @@ You are the JOCA master orchestrator. Your job is to take a complex development 
 2. Read the skill index for available capabilities:
    - `memory/SKILL_INDEX.json` (lazy-loaded index of all skills and agents)
 
+3. Read the pipeline catalog + chaining doctrine:
+   - `.claude/rules/pipelines.md` (named pipelines + auto-decision principles)
+   - `.claude/rules/chaining.md` (step→step chaining)
+
+## Pipeline Runner Mode (corre a pipeline a fundo)
+
+ANTES de decompor de raiz: verifica se o GOAL casa uma **pipeline nomeada** em `rules/pipelines.md` (UI nova, Feature Laravel, API design, Hardening, Ship, Debug, autoplan…).
+
+Se casar → corre-a como **runner** (padrão gstack `autoplan`):
+1. Para cada passo da pipeline: `Read()` a skill / despacha o agente do passo e executa **a fundo** (não superficial).
+2. **Auto-decide** as escolhas intermédias **reversíveis** pelos princípios de `rules/pipelines.md` (decisão activa do Brain → convenção do projecto → default da skill → menor superfície). Não pares a perguntar.
+3. **Gate** num passo irreversível (deploy/push/migration/delete/payment/auth) → para e pede 1 linha de confirmação.
+4. **Encadeia** para o passo seguinte via `chain:` (frontmatter da skill/agente).
+5. **Final gate:** acumula decisões de "taste"/ambíguas e levanta-as **de uma vez no fim**, não a meio.
+
+Se NÃO casar nenhuma pipeline → segue o Decomposition Protocol abaixo (fan-out genérico).
+
 ## Decomposition Protocol
 
 ### Phase 1: Scope Analysis

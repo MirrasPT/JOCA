@@ -10,7 +10,7 @@ Carregado em todas as sessões. Determinístico por thresholds — "decidir sozi
 | A — Directa | 0 ficheiros · pergunta/decisão/conversa | Responder inline |
 | B — 1 Skill | 1 domínio · 1-2 ficheiros · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
 | C — 1 Agente | 1 domínio especialista · trabalho isolável (review/debug/research/deploy) · beneficia de contexto próprio | `Agent(subagent_type="<x>")` com brief obrigatório |
-| D — Workflow | ≥2 domínios em paralelo · OU ≥3 ficheiros · OU feature completa · OU cross-stack | `/goal` → master-orchestrator com GOAL + loop até concluir |
+| D — Workflow | ≥2 domínios em paralelo · OU ≥3 ficheiros · OU feature completa · OU cross-stack | `/goal` → master-orchestrator com GOAL + loop até concluir. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo (lê a skill de cada passo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:`). |
 
 ## Thresholds
 
@@ -25,6 +25,14 @@ Carregado em todas as sessões. Determinístico por thresholds — "decidir sozi
 - Reversível → age sem perguntar. Irreversível (auth/payments/migrations/deletes/deploy/push/git destrutivo) → 1 linha de confirmação, mesmo em D.
 - Steward, não initiator: em loop, só continuar trabalho já no GOAL. Não inventar scope.
 - Anti-loop: workflow tem máx N iterações (default 4); 3x "nada a fazer" → parar e reportar.
+
+## Auto-runner (o JOCA delega e encadeia sozinho)
+
+O objectivo é máxima autonomia: **o user diz, o JOCA conduz a sequência inteira** sem pedir o próximo passo.
+- Via B/C/D que casa uma pipeline → correr a pipeline pelo **auto-runner** (`rules/pipelines.md`): cada passo a fundo, auto-decisão das intermédias reversíveis (princípios em `pipelines.md`), gate só em irreversível, encadeamento automático (`rules/chaining.md`).
+- Skills/agentes que terminam disparam o `chain:` seguinte automaticamente (reversível → sem perguntar; notificar `[chain → x]`).
+- Subagentes recebem no brief o **Step 0 (Read das skills)** + o `chain:` deles (devolvem o próximo passo sugerido; o caller dispara).
+- Travão: `loop_max_iterations` (soul.md) + 3x-sem-progresso → parar.
 
 ## Modelo agentes-usam-skills
 
