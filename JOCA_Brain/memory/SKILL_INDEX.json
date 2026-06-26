@@ -330,6 +330,25 @@
   },
   {
     "type": "skill",
+    "name": "cso",
+    "category": "general",
+    "path": ".claude\\skills\\cso.md",
+    "description": "Modo Chief Security Officer — auditoria de segurança infra-first com threat modeling estruturado (STRIDE + OWASP Top 10) e dois modos com gate de confiança: daily (zero-ruído, gate 8/10) e compre",
+    "triggers": [
+      "cso",
+      "auditoria de seguranca",
+      "auditoria de segurança",
+      "threat model",
+      "modelo de ameacas",
+      "modelo de ameaças",
+      "OWASP",
+      "STRIDE",
+      "security audit",
+      "pentest review"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "deploy-cpanel",
     "category": "general",
     "path": ".claude\\skills\\deploy-cpanel.md",
@@ -406,6 +425,25 @@
   },
   {
     "type": "skill",
+    "name": "design-html",
+    "category": "general",
+    "path": ".claude\\skills\\design-html.md",
+    "description": "Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto reflui, alturas computadas, layout dinâmico, zero deps. Adaptado do design-html do gstack. MUST be ",
+    "triggers": [
+      "codificar design",
+      "transformar em HTML",
+      "construir página",
+      "implementar design",
+      "fazer mockup real",
+      "finalizar design",
+      "mockup para HTML",
+      "design para código",
+      "build the design",
+      "code the mockup"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "design-review",
     "category": "general",
     "path": ".claude\\skills\\design-review.md",
@@ -421,6 +459,25 @@
       "review my page",
       "design feedback",
       "plan design review"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "design-shotgun",
+    "category": "general",
+    "path": ".claude\\skills\\design-shotgun.md",
+    "description": "Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos, compara lado-a-lado, recolhe feedback estruturado e itera. Adaptado do design-shotgun do gstack. MUST ",
+    "triggers": [
+      "explorar variantes",
+      "variantes de design",
+      "opções de design",
+      "design shotgun",
+      "mostra hipóteses",
+      "mostra opções",
+      "brainstorm visual",
+      "várias versões",
+      "não gosto do look",
+      "design alternativo"
     ]
   },
   {

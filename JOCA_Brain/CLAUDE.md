@@ -145,6 +145,10 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | registar decisão · guardar aprendizagem · o que decidimos · didn't we fix this | `/learn` (Brain log) |
 | plano completo revisto · autoplan · planear a sério | `/autoplan` |
 | retro · retrospectiva · o que correu bem/mal · revisão semanal | `/retro` |
+| explorar variantes de design · opções de design · brainstorm visual · não gosto do look | `design-shotgun` |
+| codificar o design · mockup → HTML · implementar este design · fazer o mockup real | `design-html` |
+| ship · push para main · abrir PR · está pronto envia | `/ship` |
+| cso · auditoria de segurança · threat model · STRIDE · OWASP review | `cso` |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | automação · cron · todos os dias às · recorrente · agendar tarefa | `automation-builder` (agent + skill `automations`) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
@@ -218,6 +222,7 @@ Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, n�
 | `/autoplan` | plano completo auto-revisto (produto → design → eng) — corre a pipeline a fundo, gate final |
 | `/learn` | memória institucional do Brain (decisões/aprendizagens event-sourced + recall) |
 | `/retro` | retrospectiva: aprendizagens da janela → acções (manual ou automação cron) |
+| `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
 | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
 | `/build-plan` | supervised phased build: plano em docs → tasks por fase → loop com gate de testes |
 | `/review-code` | tester-code + codex adversarial |

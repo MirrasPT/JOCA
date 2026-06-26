@@ -46,6 +46,7 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 ### Frontend
 | Pipeline | Sequência |
 |---|---|
+| **Design (variantes → produção)** | `design-shotgun` (N variantes paralelas) → `design-review` (escolher) → `design-html` (mockup → HTML) → `frontend` (React, se interactivo) |
 | **UI nova** | `frontend` → `design-review` → (`a11y-fixer` se WCAG) → `tester-ui-ux` |
 | **Frontend produção** | `design-system` → `frontend` → `react-composition`+`tailwind`+`react-patterns` → `anima` → `design-review`+`tester-ui-ux`+`tester-performance` |
 
@@ -63,7 +64,8 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 |---|---|
 | **Debug** | `log-debugger` (Iron Law: causa-raiz primeiro) → `query-debugger` (se SQL) |
 | **QA loop** | `tester-*` test→fix→verify+commit atómico, repetir até verde |
-| **Ship** | sync → `tester-code` → audit cobertura → ⛔ push → PR (`github`) |
+| **Ship** (`/ship`) | sync base → testes → review diff (`tester-code`) → version/CHANGELOG → ⛔ push → PR (`github`) |
+| **Segurança CSO** (`cso`) | secrets → deps (`dependency-auditor`) → OWASP/STRIDE (`security-review`+`tester-security`) → gate de confiança |
 | **Deploy** | `deploy-executor` (detecta alvo, corre `deploy-*`, health-check) ⛔ |
 | **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
 | **Retro** | `/retro` → lê aprendizagens da janela → propõe acções |
