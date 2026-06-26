@@ -22,13 +22,15 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { execSync } from 'child_process';
 
 const BUILD_PROJECTS = process.argv.includes('--build-projects');
+const MERGE = process.argv.includes('--merge'); // funde o graph.json de cada projecto (graph gigante com tudo)
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BRAIN = join(__dirname, '..', '..');
 const CLAUDE = join(BRAIN, '.claude');
 
 const argOut = (() => { const i = process.argv.indexOf('--out'); return i >= 0 ? process.argv[i + 1] : null; })();
-const OUT_DIR = argOut || join(BRAIN, 'graphify-out', 'joca-knowledge');
+// --merge escreve para um dir SEPARADO (graph gigante) p/ não sobrepor o mapa limpo navegável.
+const OUT_DIR = argOut || join(BRAIN, 'graphify-out', MERGE ? 'joca-knowledge-merged' : 'joca-knowledge');
 
 // ---------- frontmatter parse (YAML-lite: só o que precisamos) ----------
 function parseFrontmatter(text) {
@@ -125,7 +127,7 @@ for (const e of [...skills, ...agents, ...commands]) {
 // ---------- projectos → ligar ao grafo próprio de cada projecto (drill-down) ----------
 // Cada projecto com caminho real no disco: detecta/gera o seu graphify-out/graph.json
 // e adiciona um nó `graph:<projecto>` (clicável via source_file = graph.html) ligado ao projecto.
-let projLinked = 0, projBuilt = 0, projMissing = 0;
+let projLinked = 0, projBuilt = 0, projMissing = 0, mergedNodes = 0;
 const projTable = [];
 for (const p of projects) {
   if (!p.path) { projMissing++; continue; }
@@ -157,6 +159,41 @@ for (const p of projects) {
     });
     addEdge(pid, gid, 'has-graph', 'has-graph');
     projLinked++;
+
+    // --merge: FUNDIR o subgrafo do projecto neste graph (namespaced + bridge)
+    if (MERGE) {
+      try {
+        const sub = JSON.parse(readFileSync(graphJson, 'utf8'));
+        const ps = slug(p.name);
+        // filtrar ruído de bibliotecas (node_modules/vendor/dist/.venv…) — só o código REAL do projecto
+        const NOISE = /(^|[\\/])(node_modules|vendor|dist|build|out|\.venv|venv|site-packages|\.git|bootstrap[\\/]cache|storage[\\/]framework|public[\\/]build)([\\/]|$)/i;
+        const keep = (n) => !NOISE.test(String(n.source_file || n.label || ''));
+        const allSub = sub.nodes || [];
+        const subNodes = allSub.filter(keep);
+        const kept = new Set(subNodes.map((n) => n.id ?? n.label));
+        const subLinks = (sub.links || sub.edges || []).filter((e) => kept.has(e.source) && kept.has(e.target));
+        const droppedNoise = allSub.length - subNodes.length;
+        const ns = (x) => `${ps}::${x}`;
+        // grau p/ achar o "god node" do projecto (bridge target)
+        const degree = new Map();
+        for (const e of subLinks) { const s = e.source, t = e.target; degree.set(s, (degree.get(s) || 0) + 1); degree.set(t, (degree.get(t) || 0) + 1); }
+        let godId = null, godDeg = -1;
+        for (const n of subNodes) { const d = degree.get(n.id ?? n.label) || 0; if (d > godDeg) { godDeg = d; godId = n.id ?? n.label; } }
+        for (const n of subNodes) {
+          const oid = n.id ?? n.label;
+          addNode(ns(oid), n.label || String(oid), n.file_type || 'code', { project: ps, source_file: n.source_file || '', source_location: n.source_location || 'L1' });
+        }
+        for (const e of subLinks) {
+          if (e.source == null || e.target == null) continue;
+          addEdge(ns(e.source), ns(e.target), e.context || e.relation || 'ref', e.edge_type || e.relation || 'ref');
+        }
+        // bridge: nó-projecto do JOCA → god node do código do projecto
+        if (godId != null) addEdge(pid, ns(godId), 'project-code', 'project-code');
+        mergedNodes += subNodes.length;
+        projTable[projTable.length] = [p.name, p.path, `FUNDIDO ✓ (${subNodes.length} nós de código${droppedNoise ? `, ${droppedNoise} de libs filtrados` : ''})`];
+        continue;
+      } catch (err) { projTable.push([p.name, p.path, `merge falhou: ${String(err.message).slice(0, 40)}`]); continue; }
+    }
     projTable.push([p.name, p.path, existsSync(graphHtml) ? 'grafo ✓ (graph.html)' : 'grafo ✓ (graph.json)']);
   } else {
     projTable.push([p.name, p.path, BUILD_PROJECTS ? 'sem código / build falhou' : 'sem grafo (corre --build-projects)']);
@@ -165,7 +202,7 @@ for (const p of projects) {
 
 // ---------- write graphify-compatible graph.json ----------
 const graph = {
-  directed: true, multigraph: false, graph: { name: 'joca-knowledge' },
+  directed: false, multigraph: false, graph: { name: 'joca-knowledge' },
   nodes: [...nodes.values()],
   links,
   hyperedges: [],
@@ -177,6 +214,7 @@ writeFileSync(join(outGraphDir, 'graph.json'), JSON.stringify(graph), 'utf8');
 console.log(`[joca-graph] ${nodes.size} nós · ${links.length} edges (${chainEdges} chains resolvidas, ${unresolved} stubs)`);
 console.log(`  skills:${skills.length} agentes:${agents.length} comandos:${commands.length} rules:${rules.length} projectos:${projects.length}`);
 console.log(`  projectos ligados a grafo próprio: ${projLinked}${BUILD_PROJECTS ? ` (gerados agora: ${projBuilt})` : ''} · sem path/ausentes: ${projMissing}`);
+if (MERGE) console.log(`  MERGE: +${mergedNodes} nós de código de projectos fundidos → graph gigante`);
 if (projTable.length) {
   console.log('\n  Projecto → grafo próprio:');
   for (const [n, path, status] of projTable) console.log(`    - ${n}: ${status}  [${path}]`);

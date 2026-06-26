@@ -32,6 +32,23 @@ node .claude/scripts/joca-graph.mjs --build-projects
 
 Abrir o grafo de um projecto específico: `Start-Process "<path-do-projecto>/graphify-out/graph.html"`.
 
+## Graph GIGANTE (tudo fundido num só) — `--merge`
+Para **um único graph com tudo** (JOCA + o código real de cada projecto, ligado):
+```bash
+node .claude/scripts/joca-graph.mjs --merge          # funde o graph.json de cada projecto
+python -m graphify cluster-only graphify-out/joca-knowledge-merged --no-viz
+```
+- Funde os subgrafos dos projectos, **namespaced** (`<projecto>::<nó>`, sem colisões) + **bridge** `project:X --project-code--> <god-node do projecto>` (liga o nó do projecto ao seu código). Tudo num só componente conectado.
+- **Filtra ruído de bibliotecas** (node_modules/vendor/dist/.venv/site-packages…) — só o código REAL.
+- Escreve para `graphify-out/joca-knowledge-merged/` (SEPARADO do mapa limpo, que fica intacto).
+- ⚠ **É enorme** (dezenas de milhar de nós) → **sem `graph.html` estático** (limite viz 5000). Explorar por:
+  - `python -m graphify serve` (servidor interactivo para grafos grandes), OU
+  - `python -m graphify query "<pergunta>" --graph graphify-out/joca-knowledge-merged/graphify-out/graph.json` (atravessa JOCA + todos os projectos).
+- Combinar com `--build-projects` para incluir projectos sem grafo (⚠ saltar ComfyUI).
+- **Nota:** um projecto com grafo inchado (ex.: livro-de-elogios trazia 61k mesmo após filtro) → rebuild limpo do grafo PRÓPRIO desse projecto (graphify na pasta dele com exclusões) antes de fundir.
+
+**Dois mapas, dois usos:** mapa limpo (`joca-knowledge`, 217 nós, **visual/navegável**, drill-down) · graph gigante (`joca-knowledge-merged`, dezenas de milhar, **query cross-projecto**).
+
 ## Mapa de CÓDIGO (complementar)
 Para o grafo do código (a app JOCA_OS, scripts) — o graphify normal:
 ```bash
