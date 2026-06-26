@@ -7,3 +7,5 @@ __pycache__/
 memory/decisions/
 memory/learnings/
 memory/checkpoints/
+.playwright-mcp/
+/*.png
