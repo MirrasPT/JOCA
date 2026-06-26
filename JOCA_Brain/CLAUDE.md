@@ -119,6 +119,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | Moloni · faturação · fatura · nota de crédito · IVA PT | `portugal-invoicing` |
 | SEO · meta tags · Core Web Vitals | `seo` |
 | copywriting · landing page · CTA | `copywriting` |
+| AI slop · soa a AI · escrito por AI · limpar a escrita · polir copy · de-slop | `stop-slop` |
 | email sequence · drip · nurture | `email-sequence` |
 | plano de publicação · calendário social · rollout · lançamento · captions · agendamento | `content-calendar` |
 | lyric sync · forced alignment · letra sincronizada · LRC/ASS · timestamps de voz | `lyric-align` |

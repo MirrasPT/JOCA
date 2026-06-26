@@ -1394,6 +1394,25 @@
   },
   {
     "type": "skill",
+    "name": "stop-slop",
+    "category": "general",
+    "path": ".claude\\skills\\stop-slop.md",
+    "description": "Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing, advérbios, voz passiva, contrastes binários, falsa agência, fragmentação dramática, jargão. P",
+    "triggers": [
+      "stop slop",
+      "AI slop",
+      "soa a AI",
+      "parece AI",
+      "escrito por AI",
+      "tells de AI",
+      "limpar escrita",
+      "soa a robo",
+      "soa a robô",
+      "polir copy"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "tailwind",
     "category": "general",
     "path": ".claude\\skills\\tailwind.md",

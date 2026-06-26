@@ -1,6 +1,7 @@
 ---
 name: copywriting
 description: "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy for,, improve this copy,, rewrite this page,, marketing copy,, headline help,, CTA copy,."
+chain: stop-slop, pt-pt-translator
 metadata:
   version: 1.1.0
 ---
