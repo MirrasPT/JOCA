@@ -19,25 +19,29 @@ directorio: D:\Mega\Livro_De_Elogios\2026_Nova_Plataforma
 - Tokens completos em `CLAUDE.md` (cores, radius, shadows). Moeda backoffice: `€{n.toFixed(2).replace('.',',')}`.
 
 ## ⚠ Fontes de estado divergentes (ler na ordem certa)
-- `docs/estado.md` está **DESACTUALIZADO** (sessão 12, 2026-05-25 — diz "Fase 0 Design, Laravel 11/Filament 3.2"). **Não confiar.**
-- `README.md` + `CLAUDE.md` (2026-05-28) = estado real da stack/fases.
-- Docs de trabalho mais recentes (2026-05-29): `docs/backoffice-cliente-ESTADO.md`+`-CONTRATO.md`, `docs/goal-auth-checkout.md`. Outros specs: `email-automations-strategy.md`, `marketplace-integration-spec.md`, `widget-api-spec.md`.
+- `docs/estado.md` — **DESACTUALIZADO** (sessão 12, 2026-05-25). Não confiar.
+- `README.md` + `CLAUDE.md` = stack/fases reais.
+- Specs: `spec-encomendas-institucionais.md` (raiz, novo, módulo institucional Pedro), `docs/email-automations-strategy.md`, `docs/marketplace-integration-spec.md`, `docs/widget-api-spec.md`, `docs/diretivas-revendedores.md`.
+- **ATENÇÃO:** `docs/backoffice-cliente-ESTADO.md`, `docs/backoffice-cliente-CONTRATO.md`, `docs/goal-auth-checkout.md` — referenciados na memória anterior mas **NÃO EXISTEM** no repo local (eram ficheiros do Mac não committados).
 
-## ⚠ Estado do git (local difere do trabalho descrito)
-- Branch local `master`, só **"Initial commit"** (protótipos + assets). Branches `pedro-dev` (backend) e `renato-dev` (frontend backoffice) referidas nos docs **NÃO existem localmente** — só `remotes/origin/{master, claude/analyze-project-fZ0Mo}`.
-- Working tree tem backend/ + frontend/ com código real mas **não committed** (23 untracked + mods/deletes de reorganização da pasta). O trabalho descrito nas sessões não está no histórico local.
-- Backend desenvolvido por **Pedro**; backoffice/frontend por **Renato**. Sessões anteriores correram em Mac (path `-Users-renatoferreira-JOCA-JOCA-Logic`).
+## Estado git (2026-06-26)
+- Branch `master`. Último commit: `fa34b64` (2026-06-18, PR #15 pedro-dev).
+- Working tree: 6 ficheiros modificados (backend Filament widgets/provider/CSS/login blade + frontend package-lock + public/images/ untracked). Nada committado do lado Renato.
+- Backend desenvolvido por **Pedro** (branch `pedro-dev` → PRs → master); backoffice/frontend por **Renato** (trabalho Mac nunca committado).
+- Mobile: Flutter app em `mobile/` + `APP-MOVEL.md` na raiz.
 
 ## Roadmap / fases
 - Fase 0 Design (protótipos HTML + design system) ✅
 - Fase 1 Setup backend (Laravel, auth, migrações, 12 domínios) ✅
-- Fase 2 Website público (API REST ~60 endpoints, checkout, blog CMS, loja) ✅
-- Fase 3 Backoffice utilizador — **por iniciar / em curso (backoffice mock)**
+- Fase 2 Website público (React 19/Vite 8, 20 páginas committadas) ✅
+- Fase 3 Backoffice utilizador — **por iniciar** (trabalho Mac perdido/não committado)
 - Fase 4 Admin + badges + rankings + afiliados + revendedores + multi-país — por iniciar
+- Pedro (paralelo): módulo encomendas institucionais em curso (spec-encomendas-institucionais.md)
 
-## Work streams pausados (2026-05-29)
-1. **Backoffice de cliente** (`docs/backoffice-cliente-ESTADO.md`; contrato vinculativo em `docs/backoffice-cliente-CONTRATO.md` — ler primeiro). Frontend React 19, dados **mock/fixtures swappable** (`src/api/backoffice/*` por domínio → trocar p/ API real = 1 ficheiro/domínio), **não ligado ao admin Filament**, montado em `/app/*` sem auth gate. Fundação + **15 páginas** feitas e a compilar (`tsc -b` + build verde). **Parado a meio do Ciclo 1** de testes. Retomar: confirmar build verde → Ciclo 1 (review→fix por página) → Ciclo 2 (brand/a11y WCAG AA/responsivo 375/768/1280) → Ciclo 3 (adversarial + smoke browser :5173 `/app`). Branch `renato-dev`, **nada committed** (commit só após validação dos 3 ciclos).
-2. **Auth + checkout** (`docs/goal-auth-checkout.md`). Infra existe mas **não ligada**: `Nav.tsx` não usa `useAuth` (link `/login` hardcoded); cart só localStorage (não sincroniza com backend; bridge slug↔product_id por resolver); `Carrinho.tsx` sem lógica real de submissão; só `/dashboard` protegido. 5 tarefas: Nav→useAuth+dropdown, cart sync, checkout 3-step funcional (resumo→morada→pagamento MB/MBWay via `api/orders.ts`), proteger rotas checkout, listar encomendas. Constraint: Sanctum **stateful** (cookies, `withCredentials:true`), não bearer.
+## Pendentes Renato (2026-06-26)
+1. **Backoffice de cliente** — trabalho Mac de "15 páginas + 3 ciclos" nunca chegou ao repo. Recomeçar do zero a partir de protótipos `design/app/`. Dados mock swappable (`src/api/backoffice/*`), montado em `/app/*`, sem auth gate. Commitar só após Ciclo 3.
+2. **Auth + checkout** — infra existe mas não ligada: `Nav.tsx` tem link `/login` hardcoded (não usa `useAuth`); cart só localStorage (sem sync backend; bridge slug↔product_id por resolver); `Carrinho.tsx` sem submissão real; só `/dashboard` protegido. 5 tarefas: Nav→useAuth+dropdown · cart sync · checkout 3-step (resumo→morada→pagamento MB/MBWay via `api/orders.ts`) · proteger rotas checkout · listar encomendas. Constraint: Sanctum **stateful** (cookies, `withCredentials:true`).
+3. **Decisões de produto bloqueadas** — ver secção abaixo.
 
 ## Filament v5 — gotchas validados (ver CLAUDE.md secção completa)
 - Namespaces: `Section`/`Fieldset`/`Schema` → `Filament\Schemas\*` (NÃO `Filament\Forms\*`). `EditAction`/`DeleteAction` → `Filament\Actions\*` (NÃO `Filament\Tables\Actions\*`). Form/Table components mantêm namespaces antigos.

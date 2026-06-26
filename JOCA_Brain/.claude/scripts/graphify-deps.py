@@ -221,7 +221,7 @@ def merge_and_save():
 if __name__ == "__main__":
     print(f"Root: {ROOT}")
     added_n, added_e = merge_and_save()
-    data = json.loads(GRAPH_OUT.read_text())
+    data = json.loads(GRAPH_OUT.read_text(encoding="utf-8"))
     print(f"Added: {added_n} nodes, {added_e} edges")
     print(f"Total: {len(data['nodes'])} nodes, {len(data.get('links', []))} edges")
     print(f"\nNow run: graphify cluster-only {ROOT}")

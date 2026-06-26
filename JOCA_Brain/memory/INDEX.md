@@ -47,6 +47,7 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `/learn` — Brain institutional memory (event-sourced decisions/learnings + auto-recall)
 - `/retro` — retrospective: window learnings → actions (manual or cron automation)
 - `/ship` — code to PR: sync base → tests → diff review → version/CHANGELOG → gate → push → PR
+- `/map-joca` — knowledge map (skills/agents/commands/projects + chain connections) → interactive graph.html via graphify
 - `/know` — ingest content into the Knowledge Base (markitdown → summary → tags)
 - `/migrate` — v1-legacy → v2.0 migration guide
 - `/build-plan` — supervised phased build: plan doc → per-phase tasks → loop with test gate

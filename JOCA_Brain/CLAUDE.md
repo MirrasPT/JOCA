@@ -150,6 +150,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | codificar o design · mockup → HTML · implementar este design · fazer o mockup real | `design-html` |
 | ship · push para main · abrir PR · está pronto envia | `/ship` |
 | cso · auditoria de segurança · threat model · STRIDE · OWASP review | `cso` |
+| mapear conhecimento · como tudo se liga · grafo de skills/agentes/projectos · mapa do JOCA | `/map-joca` |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | automação · cron · todos os dias às · recorrente · agendar tarefa | `automation-builder` (agent + skill `automations`) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
@@ -224,6 +225,7 @@ Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, n�
 | `/learn` | memória institucional do Brain (decisões/aprendizagens event-sourced + recall) |
 | `/retro` | retrospectiva: aprendizagens da janela → acções (manual ou automação cron) |
 | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
+| `/map-joca` | mapa de conhecimento (skills/agentes/comandos/projectos + chains) → graph.html interactivo via graphify |
 | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
 | `/build-plan` | supervised phased build: plano em docs → tasks por fase → loop com gate de testes |
 | `/review-code` | tester-code + codex adversarial |

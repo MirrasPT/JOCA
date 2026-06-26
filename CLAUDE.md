@@ -17,13 +17,20 @@ JOCA/
 └── README.md
 ```
 
-## Navegação de Código
+## Navegação de Código + Conhecimento
 
+**Mapa de CONHECIMENTO** (skills · agentes · comandos · projectos + como se ligam) → `/map-joca`:
+- `node JOCA_Brain/.claude/scripts/joca-graph.mjs` → `python -m graphify cluster-only JOCA_Brain/graphify-out/joca-knowledge`
+- Output interactivo: `JOCA_Brain/graphify-out/joca-knowledge/graphify-out/graph.html` (click/filtra/pesquisa).
+- Extractor JOCA-aware: lê `chain:`/`triggers:`/frontmatter — o que o graphify não vê sozinho.
+
+**Mapa de CÓDIGO** (app/scripts):
 1. Consultar `graphify-out/GRAPH_REPORT.md` — god nodes, comunidades, perguntas sugeridas
 2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
 3. Ler ficheiros raw só quando necessário para editar ou o graph não tiver a resposta
-4. Actualizar: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
+4. Actualizar: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"` + `python JOCA_Brain/.claude/scripts/graphify-deps.py .` (pastas + links markdown)
    (Windows: usar `python` — o `python3` é o stub vazio da Microsoft Store, sem graphify. macOS/Linux: `python3`.)
+   graphify v0.8.5+ mapeia código **+ docs/PDF/imagens/vídeo**; `graphify query/explain/path` para interrogar o grafo.
 
 ## Quick Start
 
