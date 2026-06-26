@@ -166,7 +166,7 @@ for (const p of projects) {
         const sub = JSON.parse(readFileSync(graphJson, 'utf8'));
         const ps = slug(p.name);
         // filtrar ruído de bibliotecas (node_modules/vendor/dist/.venv…) — só o código REAL do projecto
-        const NOISE = /(^|[\\/])(node_modules|vendor|dist|build|out|\.venv|venv|site-packages|\.git|bootstrap[\\/]cache|storage[\\/]framework|public[\\/]build)([\\/]|$)/i;
+        const NOISE = /(^|[\\/])(node_modules|vendor|dist|build|out|\.venv|venv|site-packages|\.git|__pycache__|\.cache|coverage|bootstrap[\\/]cache|storage|public[\\/]build|public[\\/]storage)([\\/]|$)/i;
         const keep = (n) => !NOISE.test(String(n.source_file || n.label || ''));
         const allSub = sub.nodes || [];
         const subNodes = allSub.filter(keep);
