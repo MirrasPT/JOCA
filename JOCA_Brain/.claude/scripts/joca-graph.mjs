@@ -19,6 +19,9 @@
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+
+const BUILD_PROJECTS = process.argv.includes('--build-projects');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BRAIN = join(__dirname, '..', '..');
@@ -60,6 +63,8 @@ function scanDir(dir, kind) {
       description: (fm.description || '').slice(0, 140),
       chain: splitList(fm.chain),
       triggers: splitList(fm.triggers).slice(0, 6),
+      // projectos: caminho real do disco (frontmatter directorio/path/repo)
+      path: (fm.directorio || fm.path || fm.repo || '').replace(/^["']|["']$/g, ''),
     });
   }
   return out;
@@ -117,6 +122,47 @@ for (const e of [...skills, ...agents, ...commands]) {
   }
 }
 
+// ---------- projectos → ligar ao grafo próprio de cada projecto (drill-down) ----------
+// Cada projecto com caminho real no disco: detecta/gera o seu graphify-out/graph.json
+// e adiciona um nó `graph:<projecto>` (clicável via source_file = graph.html) ligado ao projecto.
+let projLinked = 0, projBuilt = 0, projMissing = 0;
+const projTable = [];
+for (const p of projects) {
+  if (!p.path) { projMissing++; continue; }
+  const dir = p.path.replace(/\//g, '\\'); // normaliza p/ Windows (existsSync aceita ambos)
+  const pid = `project:${slug(p.name)}`;
+  const node = nodes.get(pid);
+  if (node) node.project_path = p.path;
+  if (!existsSync(dir)) { projTable.push([p.name, p.path, 'pasta ausente nesta máquina']); projMissing++; continue; }
+
+  const graphJson = join(dir, 'graphify-out', 'graph.json');
+  const graphHtml = join(dir, 'graphify-out', 'graph.html');
+
+  if (BUILD_PROJECTS && !existsSync(graphJson)) {
+    // gerar o grafo do projecto (best-effort, sem LLM — só código)
+    try {
+      execSync(`python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path(r'''${dir}'''))"`,
+        { stdio: ['ignore', 'ignore', 'ignore'], timeout: 180000 });
+      projBuilt++;
+    } catch (_) { /* projecto sem código / graphify falhou — segue */ }
+  }
+
+  if (existsSync(graphJson)) {
+    const gid = `graph:${slug(p.name)}`;
+    addNode(gid, `grafo: ${p.name}`, 'graph', {
+      file: existsSync(graphHtml) ? graphHtml : graphJson,
+      source_file: existsSync(graphHtml) ? graphHtml : graphJson,
+      graph_html: existsSync(graphHtml) ? graphHtml : null,
+      graph_json: graphJson,
+    });
+    addEdge(pid, gid, 'has-graph', 'has-graph');
+    projLinked++;
+    projTable.push([p.name, p.path, existsSync(graphHtml) ? 'grafo ✓ (graph.html)' : 'grafo ✓ (graph.json)']);
+  } else {
+    projTable.push([p.name, p.path, BUILD_PROJECTS ? 'sem código / build falhou' : 'sem grafo (corre --build-projects)']);
+  }
+}
+
 // ---------- write graphify-compatible graph.json ----------
 const graph = {
   directed: true, multigraph: false, graph: { name: 'joca-knowledge' },
@@ -130,5 +176,11 @@ writeFileSync(join(outGraphDir, 'graph.json'), JSON.stringify(graph), 'utf8');
 
 console.log(`[joca-graph] ${nodes.size} nós · ${links.length} edges (${chainEdges} chains resolvidas, ${unresolved} stubs)`);
 console.log(`  skills:${skills.length} agentes:${agents.length} comandos:${commands.length} rules:${rules.length} projectos:${projects.length}`);
-console.log(`  graph.json → ${join(outGraphDir, 'graph.json')}`);
+console.log(`  projectos ligados a grafo próprio: ${projLinked}${BUILD_PROJECTS ? ` (gerados agora: ${projBuilt})` : ''} · sem path/ausentes: ${projMissing}`);
+if (projTable.length) {
+  console.log('\n  Projecto → grafo próprio:');
+  for (const [n, path, status] of projTable) console.log(`    - ${n}: ${status}  [${path}]`);
+  if (!BUILD_PROJECTS && projLinked < projects.length) console.log('  (correr `node .claude/scripts/joca-graph.mjs --build-projects` para gerar os grafos em falta)');
+}
+console.log(`\n  graph.json → ${join(outGraphDir, 'graph.json')}`);
 console.log(`  render: graphify cluster-only "${OUT_DIR}"`);

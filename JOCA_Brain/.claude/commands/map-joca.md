@@ -19,6 +19,19 @@ Outputs em `graphify-out/joca-knowledge/graphify-out/`:
 - **Edges:** `contains` (hub→item, agrupamento por tipo) + `chains-to` (a conexão REAL: skill/agente → próximo passo declarado em `chain:`).
 - Quanto mais skills tiverem `chain:` no frontmatter, mais rica fica a teia de conexões (ver `rules/chaining.md`).
 
+## Grafo-de-grafos: projectos ligam ao grafo PRÓPRIO de cada projecto
+Cada projecto (`memory/projects/*.md`) tem o caminho real no frontmatter (`directorio:`/`path:`/`repo:`). O extractor:
+- Resolve o caminho, e se o projecto já tem `<path>/graphify-out/graph.json` → adiciona um nó `grafo: <projecto>` (drill-down) ligado ao projecto por edge `has-graph`. O `source_file` do nó aponta para o `graph.html` do projecto → abrir esse para ver o grafo do projecto.
+- Imprime a tabela "Projecto → grafo próprio" (quais já têm grafo, quais faltam, pastas ausentes).
+
+**Gerar os grafos em falta** (best-effort, só código, sem LLM):
+```bash
+node .claude/scripts/joca-graph.mjs --build-projects
+```
+⚠ Corre `graphify` em cada pasta de projecto que exista no disco. **Cuidado com projectos enormes** (ex.: ComfyUI = gigabytes de modelos) — preferir gerar o grafo desses manualmente na própria pasta. Projectos remotos (VPS) ou ausentes nesta máquina são saltados.
+
+Abrir o grafo de um projecto específico: `Start-Process "<path-do-projecto>/graphify-out/graph.html"`.
+
 ## Mapa de CÓDIGO (complementar)
 Para o grafo do código (a app JOCA_OS, scripts) — o graphify normal:
 ```bash
