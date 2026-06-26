@@ -13,6 +13,7 @@
 - [comfyui.md](projects/comfyui.md) — ComfyUI portable — experimentação pessoal de geração de media (imagem/vídeo/upscale/inpaint/3D) via MCP
 - [mediaval-chess.md](projects/mediaval-chess.md) — Jogo táctica em grelha + deckbuilder (tema medieval), React + Vite + TS, motor de regras custom
 - [bodegas-do-campo.md](projects/bodegas-do-campo.md) — Loja de vinho DO Ribeiro (ES) em WordPress+WooCommerce+Elementor Free, build do design homepage-v2 (Docker, pipeline JSON Elementor editável)
+- [eurico-fertuzinhos.md](projects/eurico-fertuzinhos.md) — WEOPTIMIZE social media — img-gen com brand azul corporativo para Instagram/Facebook/LinkedIn
 - [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
 ## Feedback
 <!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
