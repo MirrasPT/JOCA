@@ -363,3 +363,6 @@ Visual or structured representation of how content interconnects.
 - **site-architecture**: For page hierarchy, navigation design, and URL structure
 - **email-sequence**: For email-based content
 - **social-content**: For social media content
+
+## O que está a bombar agora — `/last30days`
+Para descobrir o que a audiência **realmente** discute/quer (não o que parece bem em teoria), correr **`/last30days <tema/nicho>`** (plugin externo instalado) antes de planear conteúdo. Dá sinal pontuado por engagement de Reddit/X/YouTube/TikTok/HN — ângulos, dores e perguntas reais da comunidade nos últimos 30 dias. Alimenta o calendário/temas com o que tem tracção comprovada, não suposições. (Reddit/HN/GitHub keyless; resto via keys opcionais.)

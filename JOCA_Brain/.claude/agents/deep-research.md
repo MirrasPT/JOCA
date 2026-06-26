@@ -112,3 +112,6 @@ All files to `~/Documents/[Topic]_Research_[YYYYMMDD]/`:
 - Recommendations
 - Bibliography (complete — every source, no placeholders)
 - Methodology Appendix
+
+## Complemento: sinal social/recência — `/last30days`
+Este agente faz research **web/editorial** (WebSearch + firecrawl + citações). Para o **sinal das pessoas nos últimos 30 dias** — Reddit/X/YouTube/TikTok/HN/Polymarket/GitHub, pontuado por engagement (upvotes/likes/dinheiro) e não por editores — usar o plugin externo **`/last30days <tópico>`** (instalado, motor próprio). São complementares: `/last30days` apanha o que o Google/web editorial não toca (comentários, threads, transcrições, odds). Num research de mercado/pessoa/produto, correr ambos e fundir: deep-research (profundidade+citações) + last30days (recência+voz da comunidade). Reddit/HN/GitHub/Polymarket são keyless.

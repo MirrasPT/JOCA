@@ -312,3 +312,6 @@ Ask only if not answered by context or input:
 - **seo**: Audit your site relative to competitors
 - **paid-ads**: Analyze competitor ad strategies
 - **brand-positioning**: Turn competitive intel into positioning decisions
+
+## Sinal de mercado em tempo real — `/last30days`
+Antes (ou durante) o perfil do concorrente, correr **`/last30days <concorrente>`** (plugin instalado, motor externo) para o que as **pessoas** dizem nos últimos 30 dias — Reddit/X/YouTube/TikTok/HN/GitHub, pontuado por engagement real (upvotes/likes/dinheiro), não por editores. Apanha o que o Google não toca: comentários de Reddit, threads de X, transcrições de YouTube, velocidade de PRs no GitHub. Reddit/HN/GitHub/Polymarket funcionam **sem keys**; X/YouTube/TikTok via API keys opcionais (setup wizard). Usar para: reconnaissance pré-reunião/venda, gaps de produto ("que problemas as pessoas têm"), reacção a lançamentos do concorrente.

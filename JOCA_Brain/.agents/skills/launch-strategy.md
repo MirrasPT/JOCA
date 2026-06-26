@@ -200,3 +200,6 @@ Tap into someone else's audience for shortcut discovery.
 - **brand-positioning**: Messaging clarity pre-launch
 - **copywriting**: Announcement copy and landing page
 - **social-content**: Social posts around launch
+
+## Leitura de mercado pré-lançamento — `/last30days`
+Antes de fechar a estratégia de lançamento, correr **`/last30days <categoria/problema>`** (plugin externo) para ler o estado real do mercado nos últimos 30 dias: o que a comunidade pede, reacções a lançamentos parecidos, odds de mercado (Polymarket), velocidade de concorrentes (GitHub). Valida timing/posicionamento contra sinal de engagement real, não só desk research.

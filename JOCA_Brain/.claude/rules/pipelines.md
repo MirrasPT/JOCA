@@ -74,6 +74,7 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | Pipeline | Sequência |
 |---|---|
 | **Knowledge ingest** (`/know`) | `knowledge-ingest` (markitdown → resumo → tags → `memory/knowledge/`) |
+| **Research de mercado/recência** | `/last30days <tópico>` (sinal social pontuado por engagement, plugin externo) + `deep-research` (profundidade+citações) → fundir → `competitor-profiling`/`content-strategy`/`launch-strategy` |
 | **Automação** | `automation-builder` (NL → `automacoes.json` → cron) |
 | **Self-improvement** (`/upgrade-joca`) | `self-improver` → `gemini-auditor` → aplicar |
 
