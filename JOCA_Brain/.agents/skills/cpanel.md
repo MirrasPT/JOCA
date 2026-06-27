@@ -74,6 +74,17 @@ Conta `renatoferreira` (stableserver): chave ED25519 em `~/.ssh/cpanel_renatofer
 ## Limites
 - Token = nível **utilizador cPanel** (1 conta). Gerir *múltiplas* contas / config de servidor precisa de **WHM API** (root/reseller) — não é o caso desta conta.
 - Sem shell: nada corre *no* servidor (só transferência via SFTP + gestão via UAPI). Pedir shell ao host se for preciso `git pull`/migrations no servidor.
+- **Criar/apagar addon domain: UAPI falha → usar API2.** Neste host (stableserver, cPanel 130/134) os módulos UAPI `AddonDomain`/`Domains`/`Park` **não carregam** (`Can't locate Cpanel/API/*.pm`). Fallback que funciona = **API2** via curl directo (o driver `cpanel.mjs` só faz UAPI `/execute/`):
+  ```bash
+  read HOST USER TOKEN <<<"$(node -e "const c=require(require('os').homedir()+'/.cpanel/<acc>.json');process.stdout.write(c.host+' '+c.user+' '+c.token)")"
+  # criar:  newdomain=<dom> subdomain=<label-curto> dir=<docroot-rel-home>
+  curl -s "https://$HOST:2083/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=addaddondomain&newdomain=ex.pt&subdomain=expt&dir=ex.pt" -H "Authorization: cpanel $USER:$TOKEN"
+  # apagar (mantém ficheiros): domain=<dom> subdomain=<label>_<maindomain>
+  curl -s "https://$HOST:2083/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=deladdondomain&domain=ex.pt&subdomain=expt_renatoferreira.org" -H "Authorization: cpanel $USER:$TOKEN"
+  ```
+  Envelope API2 = `cpanelresult.data[].result:1`. `deladdondomain` remove vhost/subdomínio/zona-local mas **não apaga o docroot**. Subdomínio standalone: API2 `SubDomain/delsubdomain&domain=<sub>_<rootdomain>` (a `domainkey`, ex.: `app_rateitplus.pt` — obter de `SubDomain/listsubdomains`). AutoSSL user-level: UAPI `SSL/start_autossl_check --post` (status:1 = queued; emite cert assim que o domínio resolve + serve HTTP). DNS desta conta de domínios `.pt`/etc. vive no **Cloudflare** (não na zona cPanel) → criar A record `194.42.98.200` (+ www) via Cloudflare API.
+- **Apagar ficheiros: UAPI `Fileman/trash` não existe; `fileop unlink` só apaga FICHEIROS (no-op silencioso em dir não-vazia, devolve `result:1` na mesma).** Apagar docroot recursivamente = **SFTP** (`-rm`/`-rmdir`, prefixo `-` = continua em erro; **rmdir é bottom-up**, deepest-first). ⚠ Ficheiros com **espaços** no nome → comandos SFTP têm de ser **quoted** (`-rm "…/a b.svg"`); gerar a batch a partir do `ls` remoto, não do `find` local (o backup local pode falhar nomes com espaços). Verificar com `ls` no fim — uma rmdir falhada deixa a pasta com sobras.
+- **Dump de BD sem shell:** `getsqlbackup/<db>.sql.gz` dá **Forbidden** com token (precisa de sessão). Em vez disso: (1) UAPI `Mysql/add_host host=<meu-ip-público> --post` (Remote MySQL whitelist), (2) ligar de fora com `mysql2` (node) lendo creds do `.env`/`config` do app, dump por `SHOW CREATE TABLE` + `SELECT *`, (3) **remover a whitelist** `Mysql/delete_host host=<ip> --post` no fim. Apagar BD = `Mysql/delete_database name=<db>` + `Mysql/delete_user name=<user>` (`--post`).
 
 ## Chain
 `deploy-cpanel` — deploy de site para esta conta (FTP/git). Esta skill gere a infra (DNS/email/subdomínios); `deploy-cpanel` publica o código.

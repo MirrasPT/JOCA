@@ -129,7 +129,10 @@ async function main() {
     case 'read': {
       const p = positional[0];
       if (!p) { console.error('Usage: read <path>'); process.exit(2); }
-      return uapi(creds, 'Fileman', 'get_file_content', { path: p }, false);
+      // Fileman/get_file_content takes dir + file (NOT a single path).
+      const file = p.split('/').pop();
+      const dir = p.slice(0, Math.max(0, p.length - file.length - 1)) || '';
+      return uapi(creds, 'Fileman', 'get_file_content', { dir, file }, false);
     }
     default:
       console.error(`Unknown command: ${cmd}. Try: accounts | domains | email | dns | ls | read | uapi`);
