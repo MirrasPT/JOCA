@@ -15,6 +15,7 @@
 - [bodegas-do-campo.md](projects/bodegas-do-campo.md) — Loja de vinho DO Ribeiro (ES) em WordPress+WooCommerce+Elementor Free, build do design homepage-v2 (Docker, pipeline JSON Elementor editável)
 - [eurico-fertuzinhos.md](projects/eurico-fertuzinhos.md) — WEOPTIMIZE social media — img-gen com brand azul corporativo para Instagram/Facebook/LinkedIn
 - [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
+- [royal-douro.md](projects/royal-douro.md) — Marca de vinho DOC Douro ultra-premium (cliente Luís Gonçalo) — híbrido marketing + website static (Vanilla HTML/CSS/JS + Tailwind CDN). royaldouro.com / @royaldouro.wine.
 ## Feedback
 <!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_

@@ -98,9 +98,21 @@ npm run lint                 # eslint src && tsc
 npx remotion render src/index.ts <CompositionId> out/<nome>.mp4
 ```
 
+## Distribuição agendada via TryPost (2026-06-27)
+Campanha "O Ciclo" **agendada e2e no TryPost** (`trypost.rfdev.pt`, MCP `mcp__trypost__*`, workspace "Admin's Workspace"). Contas ligadas: **Instagram** `simao_sina` + **TikTok** `simaosinapt`. **34 posts `scheduled`** (27 Jun 18:00 → 18 Jul 11:30, Lisboa):
+- **26 Reels/clips** (vídeo): IG diário + TikTok dia-sim-dia-não, **cruzam a 5 Jul** (clip idx 11 "SóMaisUm-C") e daí publicam juntos. 18 têm TikTok activo.
+- **8 carrosséis** (IG feed, `instagram_feed`, 4:5): ordem de álbum 1→8, midday, ~1 cada 3 dias. Caps. 1-4 = capa `0N-post.png` + extras `_Imagens/NN.png` (mapa NN = capítulo_slide); **caps. 5-8 = só capa** (slides de letra/CTA nunca gerados como ficheiros).
+- Captions do `Plano-Social-O-Ciclo.html` (preset IG nos IG-só, preset TikTok nos TikTok-só/conjuntos).
+- **Verdade do estado pré-sessão (confirmado pelo user):** publicaram-se em ordem do plano até TikTok=Dia 6 (Contra Todos-A) e IG=Dia 2 (A Mesma Canção-A); TryPost estava vazio (posts feitos manualmente nas apps).
+- **Mecânica TryPost:** `create-post` (draft) → `request-media-upload` (token, cap 50 MB) → `curl -F media=@file` (HTTP 201) → `attach-media-from-upload` (anexa por ordem; para carrossel, capa primeiro depois extras em passos separados p/ não competir). Agendar = `update-post` (TikTok exige `meta.privacy_level`, usei `PUBLIC_TO_EVERYONE`; em joint passar AMBAS as plataformas senão IG é desactivado) → `publish-post` com `scheduled_at` futuro (status draft→scheduled).
+- ⚠ **TikTok em sandbox** — agendamento aceite, mas publicação real pode falhar/sair privada até auditar a app. IG não afectado.
+- **Fora do TryPost:** YouTube Shorts (sem conta ligada) = manual.
+
 ## Pendente / decisões em aberto
 - **Re-render** (se houver mudanças desde 2026-06-19): os MP4 em `Albuns/O Ciclo/Videos/` reflectem o último estado renderizado — confirmar que correspondem ao código actual antes de publicar.
-- **YouTube:** publicar 6 descrições em falta (01,02,03,06,07,08) + criar playlist "O Ciclo" (01→08). Confirmar que os 24 MP4 verticais estão limpos (sem watermark) com hook de texto no seg. 0.
+- **YouTube:** publicar 6 descrições em falta (01,02,03,06,07,08) + criar playlist "O Ciclo" (01→08). Confirmar que os 24 MP4 verticais estão limpos (sem watermark) com hook de texto no seg. 0. **Shorts não dão pelo TryPost (sem conta YT ligada) → manual.**
+- **TikTok sandbox:** monitorizar o 1º TikTok agendado (27 Jun 18:30) para validar publicação real antes de confiar nos 17 seguintes; se falhar, auditar/sair do sandbox da app TikTok.
+- **Carrosséis caps. 5-8:** só têm a capa (1 slide). Opcional: gerar slides de letra+CTA em falta (img-gen, no sistema visual da capa) para carrosséis completos.
 - **Verificar bug "primeira frase em falta"** em `AMesmaCancaoVertical`.
 - **Banco de Jardim:** decidir se o estilo "Manifesto" se aplica a outras músicas; `OVelhoNoBanco.tsx` órfão — apagar quando o autor validar o novo.
 - **08 O Eco:** opcional renomear ficheiros/componente `OFimDaEscala*` → `OEco*` (só a `id` mudou). Re-sync large-v3 de outras músicas se reportarem dessync.
@@ -110,6 +122,7 @@ npx remotion render src/index.ts <CompositionId> out/<nome>.mp4
 - Replicar (se pedido) pattern location-based e/ou estilo "Manifesto" + fades a outras músicas.
 
 ## Última sessão
+2026-06-27 — **Agendamento social via TryPost** (sem código): 34 posts `scheduled` (26 Reels/clips IG+TikTok + 8 carrosséis IG), 27 Jun→18 Jul, a partir do `Plano-Social-O-Ciclo.html`. Reels re-sincronizam IG↔TikTok (cruzam 5 Jul); carrosséis ordem de álbum 1→8. TikTok em sandbox (risco de publicação real). Ver secção "Distribuição agendada via TryPost".
 2026-06-20 — **Distribuição/marketing** (sem código): plano de distribuição completo de "O Ciclo" entregue (`Planos/Plano-Social-O-Ciclo.html` + `Planos/YouTube-Descricoes.md`). 04+05 já no YouTube; restantes 6 por publicar.
 2026-06-19 — afinação de clips verticais 9:16; redesign de Banco de Jardim ("Manifesto"); re-sync large-v3 da lyrics8 (O Eco) e verificação 4-fontes da lyrics7; correcção do bug "primeira frase em falta" em Recreio/Herança/ContraTodos; Clip C de O Eco substituído por "O Miúdo". Última build do graph nesta data.
 <!-- preenchido por /resume + análise directa do código -->

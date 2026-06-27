@@ -16,8 +16,23 @@ directorio: N/A (servidor remoto)
 | Domínio | Dir | Descrição |
 |---------|-----|-----------|
 | `planobracaris.rfdev.pt` | `/var/www/planobracaris/` | Relatório campanhas ads Bracaris SP/RJ 2026 (HTML + 5 imagens) |
-| `jellyfin.rfdev.pt` | Docker (8096) | Jellyfin — media server (público via Caddy) |
-| `requests.rfdev.pt` | Docker (5055) | Jellyseerr — gestão de pedidos (público via Caddy) |
+| `trypost.rfdev.pt` | Docker `/opt/trypost` (127.0.0.1:8000) | **TryPost** — agendador/publicador social self-hosted (Laravel, AGPL-3.0). Caddy → 127.0.0.1:8000 |
+
+> **Media stack (*arr/Jellyfin) REMOVIDA pelo user em 2026-06-27** — decisão intencional, completamente apagada (0 containers, sem `/opt/media`). A secção histórica abaixo fica só como referência do que existiu.
+
+## TryPost — `/opt/trypost` (Docker Compose) — instalado 2026-06-27
+
+Stack `compose.prod.yaml` (imagem publicada `ghcr.io/trypostit/trypost:latest` — nginx+php-fpm+Horizon+Reverb+scheduler via supervisord) + `postgres:16-alpine` + `redis:7-alpine`. **Caddy embutido NÃO usado** (profile `proxy` desligado — colidiria na 80/443 com o Caddy do sistema). App bound a `127.0.0.1:8000` (web) + `127.0.0.1:8080` (Reverb WS) — privado, só o Caddy do sistema alcança (`reverse_proxy 127.0.0.1:8000`).
+- **Login admin:** `admin@rfdev.pt` / `password` → **MUDAR password no 1º login** (email já alterado de `admin@trypost.it` via tinker 2026-06-27; registo público desligado em self-hosted; novos users só por convite Settings→Members). Criado via `db:seed --class=UserSeeder`.
+- **Segredos (root-only):** `/root/.trypost-creds.json` na VPS (APP_KEY, DB password, Reverb secret). Passwords geradas com `openssl rand`; APP_KEY=`base64:…`. compose editado in-place (config inline `environment:`, não `.env`); backup em `compose.prod.yaml.orig`.
+- **Entrypoint idempotente:** migrations/storage:link/Passport keys/config:cache/permissões automáticos no boot. Comandos: `cd /opt/trypost && docker compose -f compose.prod.yaml {ps,logs trypost,restart,up -d,down}`.
+- **⚠ Reverb (websockets live-UI) NÃO funciona no domínio custom** com a imagem publicada — o cliente JS vem com `localhost:8080` baked. Para live-updates no browser remoto: rebuild da imagem com `--build-arg VITE_REVERB_HOST=trypost.rfdev.pt VITE_REVERB_PORT=443 VITE_REVERB_SCHEME=https` + proxy `/app`→8080 no Caddy. Publicação/agendamento/MCP (HTTP) funcionam sem isto.
+- **⚠ Upload de média grande:** Cloudflare proxy orange limita uploads a 100MB (plano free) → vídeos grandes falham. Saída: grey-cloud o registo, ou usar storage R2/S3 (`FILESYSTEM_DISK=r2` no compose — R2 keys já existem em `~/.cloudflare/datalix.json`).
+- **Páginas legais** (p/ review das apps sociais — TikTok/Meta exigem): `https://trypost.rfdev.pt/{privacy,terms,data-deletion}` servidas estáticas pelo Caddy (`/var/www/trypost-legal/*.html`, blocos `handle /privacy*`+`/terms*`+`/data-deletion*`; resto `handle`→reverse_proxy app). `/data-deletion` = exigido pela Meta (User data deletion URL). App "Post", operador Renato Ferreira, contacto `admin@rfdev.pt`. Ícone gerado em `C:\Users\renat\JOCA_Drops\trypost-icon\`.
+- **Connectors OAuth** (creds no `compose.prod.yaml`/`environment:` da VPS, restart `up -d` aplica via config:cache): **TikTok cablado** 2026-06-27 — usa creds **SANDBOX** (Client Key `sbawj40cus80zlx7cx`, prefixo `sb`; secret na VPS). App name no TikTok = "Trypost Joca". ⚠ Ao auditar/passar a produção, trocar p/ creds de produção (`awi3dwc1wa3cvouk`). Redirect registado na app TikTok: `https://trypost.rfdev.pt/accounts/tiktok/callback`. ⚠ **GOTCHA:** o TryPost precisa da env **`<PLAT>_CLIENT_REDIRECT`** explícita (não só ID+SECRET) — `config('services.tiktok.redirect')` vem `null` sem ela → TikTok recusa com erro `redirect_uri`. Set `TIKTOK_CLIENT_REDIRECT="https://trypost.rfdev.pt/accounts/tiktok/callback"` no compose. **Aplica-se a TODOS os connectors** (Facebook precisará de `FACEBOOK_CLIENT_REDIRECT`, etc.). Verificação domínio TikTok = TXT `tiktok-developers-site-verification=…` em `trypost.rfdev.pt` (Cloudflare). ⚠ TikTok: app precisa de auditoria p/ publicar público (sandbox só posta a contas de teste / força SELF_ONLY) + pode exigir verificação de domínio. **Instagram LIGADO** 2026-06-27 — conta `simao_sina` (IG id 17841432191131017) conectada e2e via flow standalone `connect/instagram`. Creds = Instagram App ID `1688527865747503` (produto "Instagram API with Instagram login" da app Meta "JOCA Trypost"; standalone, sem Página FB). `INSTAGRAM_CLIENT_ID/SECRET/REDIRECT` no compose, redirect `accounts/instagram/callback`. Setup Meta: app criada "without a use case" → caso "Manage messaging & content on Instagram" → Instagram business login (redirect) + conta como **Instagram Tester** (tem de **aceitar o convite** no IG: Settings→Apps and websites→Tester invites, senão erro "cargo de programador insuficiente"). Para PUBLICAR (não só ligar) falta a permissão `instagram_business_content_publish` (defaults são só messaging). **Facebook**: app Meta existe (App ID `2447191762442849` e/ou `1342702778017532`), secret nas mãos do Renato — **não cablado** ainda (TryPost precisaria `FACEBOOK_CLIENT_ID/SECRET/REDIRECT`).
+- **MCP no Claude Code REGISTADO** 2026-06-27: `claude mcp add --transport http trypost https://trypost.rfdev.pt/mcp/trypost -s user` (user scope, em `~/.claude.json`). Endpoint = **`/mcp/trypost`** (não `/mcp`). Self-hosted **suporta OAuth** (`.well-known/oauth-authorization-server`+`oauth-protected-resource`+`oauth/register` DCR) → sem API key, autentica por browser. Auth: `/mcp` no Claude Code → trypost → Authenticate → login `admin@rfdev.pt`. (Fallback API key: Settings→API Keys + `--header "Authorization: Bearer <key>"`.) 14 tools MCP (create-post, attach-media-from-url, publish-post, get-post-metrics, list-social-accounts, etc.) → JOCA pode publicar sozinho.
+- **Próximo:** OpenWA (WhatsApp, Fase 2 automações JOCA) — gateway `rmyndharis/OpenWA` Docker porta 2785 + MCP. Ver doc `gestao-autonoma-redes-sociais.docx`.
+- **Media stack:** removida intencionalmente pelo user (2026-06-27) — TryPost é agora o único serviço Docker na VPS.
 
 ## Media stack (*arr) — `/opt/media` (Docker Compose)
 
@@ -42,11 +57,13 @@ Instalada 2026-06-23. Docker 29.6 + Compose v5.1 (repo oficial, codename `resolu
 - Comandos: `cd /opt/media && docker compose {ps,logs <svc>,restart <svc>,pull,up -d}`.
 
 ## DNS (Cloudflare)
-- Domínios geridos: `rfdev.pt` (zone `5249326e14740641fc7bca37bbe0c0c8`), e outros
+- Conta `Renatorff93@gmail.com` · Account ID: `d75abae5fd10148a3690efdf61f34445`
 - Plugin Cloudflare instalado: `cloudflare@cloudflare` (user scope)
-- Account ID: `d75abae5fd10148a3690efdf61f34445`
-- ⚠ API token e credenciais R2/S3 NÃO guardados aqui (sensíveis). **Pointer:** `C:\Users\renat\.cloudflare\datalix.json` (local, fora do git) — token `red-frost-a681` (`cfat_…`), tem Zone:DNS read+write em `rfdev.pt` (verify genérico falha mas DNS CRUD funciona), + R2 S3 keys. Reutilizar este ficheiro, NÃO criar tokens novos.
-- Registos A geridos via API (proxied, → `194.62.248.50`): `planobracaris`, `jellyfin`, `requests`.
+- **Nameservers da conta (par fixo p/ TODAS as zonas):** `bill.ns.cloudflare.com` + `rosalyn.ns.cloudflare.com`. A Cloudflare atribui sempre **este mesmo par** a qualquer domínio novo adicionado a esta conta → ao migrar um domínio para CF, são estes os 2 NS a meter no registrador (apagar os outros campos). Confirmável no momento da criação.
+- **Zonas na conta:** `rfdev.pt` (`5249326e14740641fc7bca37bbe0c0c8`), `bracaris.com.br`, `divinealvarinho.com`, `renatoferreira.org`, `royaldouro.com`, `vinartis.pt`, `alkimiawine.pt` (`396f62f329714d98b96a3e3bd80a255c`, **active** 2026-06-27, **vazia** — 0 records).
+- ⚠ API token e credenciais R2/S3 NÃO guardados aqui (sensíveis). **Pointer:** `C:\Users\renat\.cloudflare\datalix.json` (local, fora do git) — token `red-frost-a681` (`cfat_…`), + R2 S3 keys. Reutilizar este ficheiro, NÃO criar tokens novos.
+- **⚠ Escopo do token:** **lê TODAS as zonas da conta** + DNS CRUD, MAS **NÃO tem `zone.create`** (erro `com.cloudflare.api.account.zone.create`) nem `/user/tokens/verify`. → **Adicionar uma zona nova faz-se pelo dashboard** (ou bump da permissão Account→Zone→Create no token); depois a gestão de DNS records dessa zona já é por API.
+- Registos A geridos via API (proxied, → `194.62.248.50`): `planobracaris`, `trypost`, `jellyfin`, `requests`.
 
 ## Setup SSH (padrão estabelecido 2026-06-23)
 1. Gerar chave: `ssh-keygen -t ed25519 -f ~/.ssh/datalix_id -N "" -C "joca@datalix"`
@@ -67,8 +84,7 @@ exemplo.rfdev.pt {
 ```
 
 ## Estado actual
-VPS operacional. Caddy v2.11.4 activo. `planobracaris.rfdev.pt` live com relatório Bracaris. **Media stack (*arr) completa e cablada** em `/opt/media` (Docker): Jellyfin + Jellyseerr públicos (`jellyfin.rfdev.pt`/`requests.rfdev.pt`), Sonarr/Radarr/Prowlarr/qBittorrent privados (túnel SSH). Pipeline end-to-end funcional excepto indexers (a adicionar pelo user no Prowlarr).
-PuTTY instalado localmente (plink em `C:\Program Files\PuTTY\`).
+VPS operacional. Caddy v2.11.4 activo. Sites: `planobracaris.rfdev.pt` (relatório Bracaris) + **`trypost.rfdev.pt` (TryPost LIVE)**. **TryPost** = único serviço Docker (`/opt/trypost`, stack `compose.prod.yaml`: app+Postgres16+Redis, atrás do Caddy do sistema em `127.0.0.1:8000`). **Media stack (*arr) REMOVIDA pelo user (2026-06-27)** — 0 containers, sem `/opt/media`. **Connectors TryPost ligados e2e:** Instagram (`simao_sina`) ✓ + TikTok (sandbox) ✓. MCP do TryPost registado no Claude Code (user scope, OAuth, pending auth pelo user). PuTTY local (plink em `C:\Program Files\PuTTY\`).
 
 ## Decisões tomadas
 - 2026-06-23: Caddy em vez de nginx (HTTPS automático, config simples).
@@ -77,15 +93,31 @@ PuTTY instalado localmente (plink em `C:\Program Files\PuTTY\`).
 - 2026-06-23: Media stack via Docker Compose (`/opt/media`), mount único `/data` para hardlinks atómicos (TRaSH).
 - 2026-06-23: Admin (*arr/qBit) privados em `127.0.0.1` + túnel SSH; só Jellyfin+Jellyseerr públicos. Sem VPN no qBittorrent (por agora).
 - 2026-06-23: Credenciais sensíveis (CF token+R2, passwords das apps) em ficheiros locais fora do git (`~/.cloudflare/datalix.json`, `~/.datalix/media-stack-creds.json`).
+- 2026-06-27: **TryPost deployado via Docker atrás do Caddy do sistema** (não bare-metal Nginx do `production.md`, não o Caddy embutido do compose) — VPS padroniza Caddy+Docker; app em `127.0.0.1:8000` (privado, padrão *arr). Segredos `openssl` em `/root/.trypost-creds.json` (chmod 600). Verificação cor/cert: o cert LE é on-demand (1º pedido dispara emissão → 525 transitório do CF até emitir; depois 200).
+- 2026-06-27: **Connectors sociais via apps próprias do user** (TikTok Developers + Meta), creds inline no `compose.prod.yaml` `environment:`. **Gotcha-chave: TryPost precisa de `<PLAT>_CLIENT_REDIRECT` explícito** (não só ID+SECRET) — `config('services.<plat>.redirect')` vem `null` sem ela → erro `redirect_uri`. Aplica-se a todos os connectors.
+- 2026-06-27: **Instagram via flow standalone** (`connect/instagram`, "Instagram API with Instagram login") — sem Página FB; creds = Instagram App ID do produto (≠ App ID Meta). Erro "cargo de programador insuficiente" = conta não é tester OU convite não aceite no IG (Settings→Apps and websites→Tester invites). Publicar exige permissão `instagram_business_content_publish` ("Ready for testing" basta em dev mode).
+- 2026-06-27: **Páginas legais servidas pelo Caddy** (`/privacy`,`/terms`,`/data-deletion` em `/var/www/trypost-legal`, blocos `handle` no Caddyfile) para satisfazer review TikTok/Meta. Ícone da app gerado por img-gen (`JOCA_Drops/trypost-icon/post-icon.png`).
+- 2026-06-27: **`alkimiawine.pt` migrado para Cloudflare** (cliente Alkimia/Luís Gonçalo). Zona adicionada pelo user via dashboard (token não tem `zone.create`); estava parqueada em `host-redirect.com` (0 records, sem A/www/MX/TXT — não servia nada, nada a recriar). NS no registrador → `bill`+`rosalyn`; zona **active**. Continua vazia — não aponta para nada até definir records.
 
 ## Pendente
-- **Indexers no Prowlarr** (0) — precisam das escolhas/contas do user; sincronizam para Sonarr/Radarr depois de adicionados.
-- Mudar passwords iniciais (Jellyfin admin, opcional qBittorrent).
-- (opcional) VPN Gluetun para o qBittorrent se ToS/IP for preocupação.
-- Configurar HTTPS end-to-end (Cloudflare Origin Certificate → Caddy) se proxy orange causar problemas SSL.
+- **TryPost — autenticar o MCP no Claude Code** (só o user): `/mcp` → trypost → Authenticate → login `admin@rfdev.pt`. Depois ficam 14 tools (JOCA publica sozinho).
+- **TryPost — mudar password do admin** (`admin@rfdev.pt`, ainda `password`).
+- **Instagram — adicionar `instagram_business_content_publish`** + reconectar (para PUBLICAR, não só ler). "Ready for testing" basta em dev mode.
+- **Testar publicação** e2e (post de teste IG/TikTok via TryPost).
+- **WhatsApp (OpenWA)** — Fase 2: gateway `rmyndharis/OpenWA` Docker :2785 + MCP (precisa telemóvel extra). Ref: `gestao-autonoma-redes-sociais.docx`.
+- **Facebook** — app Meta existe (App IDs `2447191762442849`/`1342702778017532`, secret nas mãos do user) — não cablado; se quiser, set `FACEBOOK_CLIENT_ID/SECRET/REDIRECT`.
+- **TikTok/Meta produção** — auditoria/App Review p/ publicar a terceiros (sandbox só posta a contas tester/privado). App OAuth Meta em dev mode.
+- **TryPost Reverb (live-UI)** — não funciona no domínio custom com imagem publicada (cliente baked `localhost:8080`); rebuild c/ build-args se quiser updates ao vivo. Publicar/MCP não dependem disto.
+- **TryPost uploads >100MB** — proxy CF orange corta; usar R2 (`FILESYSTEM_DISK=r2`) ou grey-cloud.
+- (media stack) ~~Indexers Prowlarr~~ — N/A (stack removida).
 - Selector de domínio root (`rfdev.pt @` e `www`) — ainda não configurado.
+- **`alkimiawine.pt`** — zona Cloudflare **active mas vazia** (0 records). Definir para onde aponta (site / redirect / VPS Datalix) quando o user decidir — records via API (token tem DNS CRUD na zona).
 
 ## Última sessão
+2026-06-27 (c) — **`alkimiawine.pt` migrado para a Cloudflare** (cliente Alkimia). Confirmado que o token Datalix lê todas as zonas + DNS CRUD mas **não cria zonas** → user adicionou a zona pelo dashboard. Verificado que o domínio estava parqueado em `host-redirect.com` e **não servia nada** (0 records públicos). NS no registrador → `bill`+`rosalyn` (par fixo da conta); zona confirmada **active** por API. Fica vazia até definir records. Aprendizagem-chave persistida: par de NS da conta + escopo do token.
+
+2026-06-27 — **TryPost (agendador social self-hosted) DEPLOYADO na VPS em `trypost.rfdev.pt` + 2 connectors ligados e2e + MCP no Claude.** Docker `compose.prod.yaml` (app+pg16+redis) atrás do Caddy do sistema (127.0.0.1:8000), segredos `openssl` em `/root/.trypost-creds.json`, DNS+cert LE OK, admin email → `admin@rfdev.pt`. **Instagram** (`simao_sina`, flow standalone) e **TikTok** (sandbox) ligados — incluiu criar apps no TikTok Developers + Meta, páginas legais servidas pelo Caddy (`/privacy`,`/terms`,`/data-deletion`), ícone gerado (img-gen), verificação de domínio TikTok (TXT Cloudflare). Gotcha-chave: `<PLAT>_CLIENT_REDIRECT` explícito senão `redirect_uri` falha. MCP registado (`claude mcp add ... /mcp/trypost -s user`, OAuth) — falta o user autenticar via `/mcp`. **Media stack removida pelo user.**
+
 2026-06-23 (b) — Media stack **instalada E cablada** end-to-end via APIs: qBittorrent (paths+categorias, auth bypass localhost/subnet), Sonarr+Radarr (download client + root folders), Prowlarr (apps fullSync), Jellyfin (wizard headless + admin + bibliotecas), Jellyseerr (owner via login Jellyfin + Radarr/Sonarr default). Tudo verificado. Credenciais em `~/.datalix/media-stack-creds.json`. Falta só indexers (user).
 
 2026-06-23 (a) — Media stack instalada: Docker 29.6 + Compose v5.1; 6 containers em `/opt/media`; Caddy a servir `jellyfin.rfdev.pt` + `requests.rfdev.pt` (HTTPS LE via proxy CF, 302/307); 2 registos A via API; credenciais CF em `~/.cloudflare/datalix.json`.

@@ -8,7 +8,8 @@ directorio: G:\O meu disco\Clientes\Luis Goncalo (Elite Cozinhas e Bracaris)\Bra
 
 # Bracaris — Website Brasil 2026
 
-> Memória de projecto. Iniciado 2026-05-30. Última actualização: 2026-06-25.
+> Memória de projecto. Iniciado 2026-05-30. Última actualização: 2026-06-27.
+> Última sessão (2026-06-27): ligado `bracaris.com.br` ao Wix por pointing (Cloudflare); reescrita do testemunho Alvarinho→Loureiro.
 
 ## Descrição
 Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho Verde / casta Loureiro). Trabalho é **edição e melhoria de conteúdo** (copy, storytelling, SEO local, conversão, imagens), não dev from-scratch.
@@ -41,10 +42,11 @@ Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho V
 - **Imagens:** hero das 3 garrafas finalizada; 6 product shots 3:4 em vinha + cenas 1:1 estilo loja + 16:9 em `Gerados/produtos/`; 19 JPGs CMYK convertidos a WebP sRGB; `Produtos_Site/*.webp` prontos.
 - **Campanhas pagas SP/RJ entregues** (2026-06-01): relatório HTML + pesquisa de mercado + 4 criativos gpt-image-2. Plano R$1.000/mês × 3 meses (Jun–Ago), 60/40 SP/RJ, 60/40 Meta/Google, 76/24 B2C/B2B.
 - **Relatório publicado online** (2026-06-23): https://planobracaris.rfdev.pt (VPS Datalix + Caddy + DNS Cloudflare).
+- **Domínio BR a apontar p/ Wix** (2026-06-27): `bracaris.com.br` (zona Cloudflare `2941377f3d0945ceb70b75bd409b3395`, conta datalix `~/.cloudflare/datalix.json`) recebeu o pointing Wix **via API**, valores **autoritativos do próprio ecrã Wix** (NÃO os 3 IPs do `.com` — Wix pede **1 só A**): A `@` → `185.230.63.107` + CNAME `www`→`pointing.wixdns.net`, **DNS-only/proxy OFF** (obrigatório). Mail (MX null + SPF + DMARC) intacto. ⚠ Wix oferece 2 métodos: usar **pointing** (mantém Cloudflare), NÃO nameservers (`ns6/ns7.wixdns.net` — perderia a Cloudflare + mail). Wix troca `pointing.wixdns.net`→`cdn1.wixdns.net` sozinho após verificar (normal). Renato fez o connect via pointing no Wix; **DNS propagado e verificado publicamente** (apex→`185.230.63.107`, www→`pointing.wixdns.net` em 1.1.1.1+8.8.8.8). **Wix em estado "a verificar"** (aviso padrão "até 48h", deadline 29 Jun 2026). **Falta** (quando Wix verificar): definir `.com.br` como **primário** (decisão 2026-06-27: manter `.com` conectado a fazer 301 p/ `.com.br`, não desligar) + confirmar SSL ao vivo.
 
 ## Pendências
 **Site / homepage (achados render ao vivo 2026-06-01):**
-- 🔴 **Testemunho falso refere "Alvarinho"** (Juliana Sá) — produto inexistente; os 3 testemunhos são genéricos → substituir por reais BR ou remover.
+- 🟠 **Testemunho falso refere "Alvarinho"** (Juliana Sá) — produto inexistente (gama BR = Loureiro/Branco Blend/Rosé, sem Alvarinho). Reescrita pt-BR fornecida 2026-06-27 (trocar Alvarinho→**Loureiro**: "Experimentei o Loureiro e me rendi: aroma floral intenso e sabor sofisticado, uma verdadeira experiência."). **Falta:** Renato colar no Wix + decidir o **autor** (Juliana Sá real? senão tornar genérico).
 - 🔴 **Falta aviso CONAR persistente** "Beba com moderação. Venda proibida para menores de 18 anos" (rodapé/junto ao preço). Age-gate já existe ✓.
 - 🟡 Rodapé "© 2025 Bracaris" → 2026.
 - 🟡 **SEO title tags dos 6 produtos vazias** (usam nome por defeito) → corrigir por API (PATCH seoData title).
