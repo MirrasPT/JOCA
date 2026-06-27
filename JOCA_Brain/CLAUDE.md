@@ -157,6 +157,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
 | deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
+| cPanel · UAPI · addon domain · gerir hosting · conta de email cPanel · zona DNS cPanel · criar subdomínio · stableserver | `cpanel` |
 | media stack · *arr · Jellyfin · Jellyseerr · Sonarr/Radarr/Prowlarr · qBittorrent · self-hosted media | `selfhosted-arr` |
 | deploy · publicar site · correr pipeline de deploy | `deploy-executor` (agent) |
 | corrigir a11y · WCAG fix · acessibilidade | `a11y-fixer` (agent) |

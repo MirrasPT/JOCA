@@ -322,6 +322,23 @@
   },
   {
     "type": "skill",
+    "name": "cpanel",
+    "category": "general",
+    "path": ".claude\\skills\\cpanel.md",
+    "description": "Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API token. Driver = .claude/scripts/cpanel.mjs lendo creds de ~/.cpanel/<account>.json. Triggers cPanel, ",
+    "triggers": [
+      "cpanel",
+      "uapi",
+      "addon domain",
+      "gerir hosting",
+      "conta de email cpanel",
+      "zona dns cpanel",
+      "criar subdominio",
+      "cpanel database"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "create-skill",
     "category": "general",
     "path": ".claude\\skills\\create-skill.md",
