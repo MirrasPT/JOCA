@@ -15,6 +15,9 @@ import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
 import { masterRouter } from './http/master-routes';
 import { automationsRouter, automationDeps } from './http/automations-routes';
+import { tasksRouter } from './http/tasks-routes';
+import { startTasksEngine } from './tasks/engine';
+import { setTasksBroadcaster } from './tasks/store';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
 // ('done' is consumed by the Master; it is NOT broadcast, so the UI is unchanged.)
@@ -49,7 +52,11 @@ app.use(projectsRouter());
 app.use(toolkitRouter());
 app.use(masterRouter());
 app.use(automationsRouter());
+app.use(tasksRouter());
 app.use(filesRouter());
+
+// Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
+setTasksBroadcaster(() => broadcast({ type: 'tasks_changed' }));
 
 // JSON error handler — must precede static + catch-all to intercept errors from API routes
 // before the SPA fallback swallows them. 5xx responses use a generic message to avoid leaking
@@ -78,4 +85,5 @@ server.listen(PORT, '127.0.0.1', () => {
     console.log(`  Skills: ${items.skills.length} · Agents: ${items.agents.length} · Commands: ${items.commands.length}`);
   }
   startScheduler(automationDeps);
+  startTasksEngine();
 });

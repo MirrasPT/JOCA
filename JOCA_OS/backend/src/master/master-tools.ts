@@ -24,6 +24,7 @@ import type { Project } from '../project-store';
 import { safePath } from '../security-fs';
 import { searchLongMemory, readDiary } from './master-memory';
 import { makeAutomation, upsertAutomation, loadAutomations, notifyAutomationsChanged, runAutomationByRef, type Schedule } from '../automations/store';
+import { makeTask, upsertTask, loadTasks, moveTask, notifyTasksChanged, triggerTaskRun, type TaskStatus } from '../tasks/store';
 import type { MasterProvider } from '../project-store';
 
 export interface MasterToolsOptions {
@@ -454,6 +455,84 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
             : s?.kind === 'interval' ? `cada ${s.everyMinutes}min` : 'agendada';
           return `${a.id} | "${a.name}" | ${when} | agente=${a.provider ?? 'default'} | ${a.enabled ? 'on' : 'off'} | último=${a.lastStatus ?? '—'}`;
         }).join('\n');
+      },
+    },
+    {
+      name: 'create_task',
+      description: 'Cria uma tarefa no quadro Kanban do JOCA UI (separador Tarefas). Uma tarefa = um objectivo em linguagem natural que o Master executa quando estiver na coluna "A Executar" (puxa automaticamente). Usa quando o Renato pede "adiciona uma tarefa para...", "mete no quadro...", "tenho de fazer X". Por defeito fica em "A Definir" (rascunho); passa status="a-executar" para o pôr já na fila de execução.',
+      zodShape: {
+        title: z.string().describe('Título curto da tarefa'),
+        description: z.string().optional().describe('O objectivo em linguagem natural (o que o worker deve fazer). Default = o título.'),
+        status: z.enum(['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada']).optional().describe('Coluna inicial. Default "a-definir". Usa "a-executar" para o Master começar já.'),
+        projectId: z.string().optional().describe('id do projecto a que a tarefa pertence (define o contexto/cwd)'),
+        provider: z.enum(['claude', 'codex', 'ollama']).optional().describe('agente que a executa; default = o Master actual'),
+        model: z.string().optional().describe('modelo (só claude): sonnet/opus/haiku'),
+        skills: z.array(z.string()).optional().describe('skills/agentes do JOCA_Brain a usar (o worker faz Read antes de agir)'),
+        requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis e pedir OK ao Renato'),
+      },
+      jsonSchema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Título curto da tarefa' },
+          description: { type: 'string', description: 'Objectivo em linguagem natural (default = título)' },
+          status: { type: 'string', enum: ['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada'], description: 'Coluna inicial; default "a-definir"' },
+          projectId: { type: 'string', description: 'id do projecto' },
+          provider: { type: 'string', enum: ['claude', 'codex', 'ollama'], description: 'agente que executa' },
+          model: { type: 'string', description: 'modelo (só claude)' },
+          skills: { type: 'array', items: { type: 'string' }, description: 'skills/agentes do JOCA a usar' },
+          requireConfirm: { type: 'boolean', description: 'parar antes de acções irreversíveis' },
+        },
+        required: ['title'],
+      },
+      handler: async (args) => {
+        const t = makeTask({
+          title: args.title,
+          description: typeof args.description === 'string' && args.description.trim() ? args.description.trim() : undefined,
+          status: (args.status as TaskStatus | undefined),
+          projectId: typeof args.projectId === 'string' ? args.projectId : undefined,
+          provider: args.provider as MasterProvider | undefined,
+          model: typeof args.model === 'string' && args.model.trim() ? args.model.trim() : undefined,
+          skills: Array.isArray(args.skills) ? args.skills : undefined,
+          requireConfirm: args.requireConfirm === true || undefined,
+        });
+        upsertTask(t);
+        notifyTasksChanged();
+        const queued = t.status === 'a-executar' ? ' — está na fila "A Executar", o Master vai puxá-la.' : ' — em "A Definir".';
+        return `tarefa criada: id=${t.id} "${t.title}"${queued} Aparece no separador Tarefas.`;
+      },
+    },
+    {
+      name: 'move_task',
+      description: 'Move uma tarefa para outra coluna do Kanban (por id). Usa "a-executar" para o Master começar a executá-la, "arquivada" para a arrumar. Colunas: a-definir, a-executar, em-execucao, concluida, arquivada.',
+      zodShape: {
+        id: z.string().describe('id da tarefa'),
+        status: z.enum(['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada']).describe('coluna de destino'),
+      },
+      jsonSchema: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'id da tarefa' },
+          status: { type: 'string', enum: ['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada'], description: 'coluna de destino' },
+        },
+        required: ['id', 'status'],
+      },
+      handler: async (args) => {
+        const moved = moveTask(args.id, args.status as TaskStatus);
+        if (!moved) return `erro: tarefa ${args.id} não encontrada.`;
+        notifyTasksChanged();
+        if (moved.status === 'a-executar') { try { await triggerTaskRun(moved.id); } catch { /* engine offline */ } }
+        return `tarefa "${moved.title}" movida para ${moved.status}.`;
+      },
+    },
+    {
+      name: 'list_tasks',
+      description: 'Lista as tarefas do quadro Kanban (id, título, coluna, estado). Usa para evitar duplicados antes de create_task, ou quando o Renato pergunta que tarefas tem.',
+      zodShape: {},
+      jsonSchema: { type: 'object', properties: {} },
+      handler: async () => {
+        const list = loadTasks();
+        if (list.length === 0) return 'sem tarefas no quadro.';
+        return list.map((t) => `${t.id} | "${t.title}" | ${t.status} | último=${t.lastStatus ?? '—'}`).join('\n');
       },
     },
   ];

@@ -9,12 +9,13 @@ interface Props {
   projects: Project[];
   activeId: string | null;
   unreadIds: Set<string>;
-  mainView: 'dashboard' | 'project' | 'session' | 'master' | 'automations';
+  mainView: 'dashboard' | 'project' | 'session' | 'master' | 'automations' | 'tasks';
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
   onShowMaster: () => void;
   onShowAutomations: () => void;
+  onShowTasks: () => void;
   onShowProject: (projectId: string) => void;
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
@@ -34,7 +35,7 @@ type LucideName =
   | 'terminal' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
-  | 'grip' | 'archive' | 'archive-restore' | 'cpu';
+  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks';
 
 function LucideIcon({ name }: { name: LucideName }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
@@ -62,6 +63,7 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'archive') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M10 12h4" /></svg>;
   if (name === 'archive-restore') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h4" /><path d="M19 8v3" /><path d="m15 18 4-4 4 4" /><path d="M19 22v-8" /></svg>;
   if (name === 'cpu') return <svg {...common}><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" /><rect x="9.5" y="9.5" width="5" height="5" rx="1" /></svg>;
+  if (name === 'list-checks') return <svg {...common}><path d="m3 7 2 2 4-4M3 17l2 2 4-4M13 6h8M13 12h8M13 18h8" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
 
@@ -368,7 +370,7 @@ function ProjectGroup({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowMaster, onShowAutomations, onShowProject,
+  sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowMaster, onShowAutomations, onShowTasks, onShowProject,
   onSelect, onClose, onRename, onNew, onOpenProject, onProjectsChange, onCreateProject, onInput, onRenameProject,
   onArchiveProject, onReorderProjects,
 }: Props) {
@@ -470,6 +472,14 @@ export default function SessionSidebar({
           >
             <span className="nav-icon"><LucideIcon name="zap" /></span>
             <span>Automações</span>
+          </button>
+          <button
+            className={`nav-btn ${mainView === 'tasks' ? 'active' : ''}`}
+            type="button"
+            onClick={onShowTasks}
+          >
+            <span className="nav-icon"><LucideIcon name="list-checks" /></span>
+            <span>Tarefas</span>
           </button>
         </div>
 

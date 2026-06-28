@@ -10,6 +10,7 @@ import DashboardView, { type RateLimits } from './components/DashboardView';
 import TerminalView from './components/TerminalView';
 import MasterChatView from './components/MasterChatView';
 import { AutomationsView } from './components/AutomationsView';
+import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import type { JocaItems, JocaLogicInfo, MainView, MasterEntry, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
@@ -48,6 +49,7 @@ export default function App() {
   const [mainView, setMainView] = useState<MainView>('dashboard');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
+  const [tasksRefresh, setTasksRefresh] = useState(0);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -252,7 +254,7 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setMasterLog, setMasterPending, setMasterActivity, setUnreadIds, setAutomationsRefresh,
+    setMasterLog, setMasterPending, setMasterActivity, setUnreadIds, setAutomationsRefresh, setTasksRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
     activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
   });
@@ -582,6 +584,7 @@ export default function App() {
           onSend={handleSendMaster}
           onBack={() => setMainView(prevViewRef.current)}
           stats={masterStats}
+          tasksRefreshKey={tasksRefresh}
         />
       </div>
     );
@@ -600,6 +603,7 @@ export default function App() {
         onShowDashboard={() => setMainView('dashboard')}
         onShowMaster={handleShowMaster}
         onShowAutomations={() => setMainView('automations')}
+        onShowTasks={() => setMainView('tasks')}
         onShowProject={handleShowProject}
         onSelect={handleSwitchSession}
         onClose={handleCloseSession}
@@ -617,6 +621,8 @@ export default function App() {
       <div className="main-area">
         {mainView === 'automations' ? (
           <AutomationsView refreshKey={automationsRefresh} />
+        ) : mainView === 'tasks' ? (
+          <TasksView refreshKey={tasksRefresh} projects={projects} />
         ) : mainView === 'dashboard' || mainView === 'project' ? (
           <DashboardView
             mainView={mainView}

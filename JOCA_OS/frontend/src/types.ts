@@ -92,7 +92,7 @@ export interface JocaLogicInfo {
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
-export type MainView = 'dashboard' | 'project' | 'session' | 'master' | 'automations';
+export type MainView = 'dashboard' | 'project' | 'session' | 'master' | 'automations' | 'tasks';
 export type RightPanel = 'files' | 'toolkit' | 'settings' | null;
 
 // Master chat — one entry per WS event in the orchestration stream.

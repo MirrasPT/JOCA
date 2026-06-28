@@ -3,6 +3,7 @@ import type { ChangeEvent, ClipboardEvent as ReactClipboardEvent, DragEvent as R
 import type { MasterEntry } from '../types';
 import { renderMarkdown } from '../lib/markdown';
 import { captureDrop, resolveDrop, uploadPastedImages, uploadPickedFiles, quotePath } from '../lib/fileDrop';
+import MasterTasksBoard from './MasterTasksBoard';
 import './MasterChatView.css';
 
 export interface MasterStats {
@@ -25,6 +26,7 @@ interface Props {
   onSend: (text: string) => void;
   onBack?: () => void; // when set, renders a back button — the Master runs full-screen
   stats?: MasterStats; // live counts for the side rail (workers, sessions, projects)
+  tasksRefreshKey?: number; // bumps on WS tasks_changed → the collapsible tasks board refetches
 }
 
 const EXAMPLES = [
@@ -160,7 +162,7 @@ function StatRail({ stats, pending }: { stats?: MasterStats; pending: number }) 
   );
 }
 
-export default function MasterChatView({ entries, pending, activity, brainLabel, onSend, onBack, stats }: Props) {
+export default function MasterChatView({ entries, pending, activity, brainLabel, onSend, onBack, stats, tasksRefreshKey }: Props) {
   const [draft, setDraft] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -399,6 +401,8 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
         </div>
 
         <StatRail stats={stats} pending={pending} />
+
+        <MasterTasksBoard refreshKey={tasksRefreshKey ?? 0} />
       </div>
 
       <input ref={fileInputRef} type="file" multiple hidden onChange={onPickFiles} aria-hidden tabIndex={-1} />

@@ -34,7 +34,8 @@ export type ServerMessage =
   | { type: 'master_chat_cleared' }
   | { type: 'automation_message'; id: string; text: string; ts: number }
   | { type: 'automation_activity'; text: string }
-  | { type: 'automations_changed' };
+  | { type: 'automations_changed' }
+  | { type: 'tasks_changed' };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
@@ -52,6 +53,7 @@ export interface SessionSocketDeps {
   setMasterActivity: Dispatch<SetStateAction<string | null>>;
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
+  setTasksRefresh: Dispatch<SetStateAction<number>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -217,6 +219,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           break;
         case 'automations_changed':
           d.setAutomationsRefresh((n) => n + 1);
+          break;
+        case 'tasks_changed':
+          d.setTasksRefresh((n) => n + 1);
           break;
 
         default:
