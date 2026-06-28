@@ -1,12 +1,12 @@
 ---
 name: tcg
-description: TCG 1v1 (duelo de cartas) tema histórico-medieval + mitologia — Unity (C#), alvo Android
+description: OmniClash (OC) 1v1 (duelo de cartas) crossover de temas (histórico, mitologia, cultura pop) — Unity (C#), alvo Android
 type: project
 directorio: C:\Users\renat\Projetos\tcg
 ---
 
 **Stack:** Unity (C#) · alvo **Android** · motor de regras C# puro (POCO) separado da apresentação
-**Objectivo:** TCG de duelo 1v1 onde cada jogador comanda um exército histórico-mítico liderado por um General. Construir deck ~50 cartas, gerir gold, combate ATK vs DEF, derrubar as 5 muralhas do general adversário. Vibe *Age of Empires* + mitologia (deuses gregos/romanos/nórdicos) e lendas portuguesas (ex.: Padeira de Aljubarrota).
+**Objectivo:** OmniClash (OC) é um TCG de duelo 1v1 onde cada jogador comanda um exército temático (civilizações históricas, super-heróis, futebolistas, etc.) liderado por um General. Construir deck ~50 cartas, gerir gold, combate ATK vs DEF, derrubar as 5 muralhas do general adversário.
 **Directório:** `C:\Users\renat\Projetos\tcg`
 **GitHub:** `MirrasPT/tcg` (PRIVADO) — `master` ≡ local; remote `origin` configurado. Inclui código + arte (`assets/cards/`) + `cards.html`.
 **Catálogo online:** `cards.html` (Codex de cartas) **LIVE** em `https://cartastcg.rfdev.pt` (VPS Datalix, vhost estático Caddy: `/var/www/cartastcg/` = `index.html` + `assets/cards/*.png`). Re-deploy: scp `cards.html`→`index.html` + PNGs. Ver `memory/projects/datalix-vps.md`.
@@ -16,7 +16,8 @@ directorio: C:\Users\renat\Projetos\tcg
 **How to apply:** Ler skill `unity-gamedev` ANTES de código de gameplay. **Separação dura motor↔UI** (regras = C# puro testável em EditMode, UI consome eventos). Arte de cartas → `img-gen` + `graphic-design`. Conteúdo histórico/mítico afirmado como facto → validar contra fonte real (não inventar lendas/nomes). NÃO confundir com `mediaval-chess` (jogo SEPARADO: grelha+React).
 
 ## Conceito (regras-chave — fonte: PRD.md §5)
-- **1v1**, deck **~50 cartas**. **General** em campo desde o início, habilidade fixa única (ex.: Romano = **+2 gold/turno**).
+- **1v1**, deck **~50 cartas**. **General** em campo desde o início, habilidade fixa única (ex.: Romano = +2 limite de gold e buffs de defesa).
+- **Estrutura de Cartas:** Custo, ATK/DEF (se Unidade), Raridade (Recruta, Veterano, Campeão, General, Divindade), Habilidade, Facção e **Época** (usada para rotação de formato e evitar powercreep; todas atualmente na Época 1).
 - **Gold** = recurso por turno para jogar cartas.
 - **3 tipos de carta:**
   - **Unidade** — ATK + DEF. Combate: **ATK atacante > DEF alvo → destrói**; senão nada acontece.
@@ -101,9 +102,9 @@ Vikings = cemitério→**tempo** · Astecas = sacrifício→**buff/ofensiva** ·
 | Marte | Ao Jogar | +2 ATK a romanos |
 
 ## Pendente
-- **20ª carta por facção:** Romanos=19, Vikings=19 — falta 1 cada.
+- **20ª carta por facção:** Concluído (todas as 5 facções com 20 cartas, total de 100 no catálogo).
 - **Habilidades Vikings:** identidade Viking ainda por definir (sessão de design).
-- **Raridades a rever:** distribuição de raridade actual (recruta/veterano/campeão/monarca/divindade) foi atribuída por inferência de custo — confirmar com Renato.
+- **Raridades a rever:** distribuição de raridade actual (recruta/veterano/campeão/general/divindade) foi atribuída por inferência de custo — confirmar com Renato.
 - **Em Campo como trigger novo:** actualizar CLAUDE.md do projecto + motor C# (EffectRegistry precisa de `OnField` trigger além de OnPlay/Activated/OnDeath).
 - **formation_buff:** efeito novo no motor (`Em Campo: +ATK/+DEF por contagem de unidades`) — a implementar quando design validado.
 - **Motor — primitivos exigidos pelo catálogo de 100 cartas (cards.html está À FRENTE do motor):** OnField/auras + 2 listeners (`sempre-que-Evento`, `sempre-que-carta-entra-no-cemitério`/morte) + `grant_keyword` + `draw` + `count_buff` (campo+cemitério) + `destroy_wall` + `sacrifice`/`discard` (custo) + `resurrect` com filtro de custo + retaliate-to-killer + scry + gold diferido over-cap + modal/multi-alvo + bounce-do-cemitério + **`Imortal`** (intercepta morte→paga descarte→fica) + gate de jogabilidade por contagem do cemitério. 11 cartas mantêm efeito "difícil" original (decisão do user). Saqueador/Hírdman adaptados (sem 3º listener on-attack).
@@ -115,6 +116,12 @@ Vikings = cemitério→**tempo** · Astecas = sacrifício→**buff/ofensiva** ·
 - **Q8 (PRD §13.3 lição 2):** decidir agência do defensor — Evento "Counter" estilo One Piece **vs** combate determinístico simples.
 
 ## Última sessão
+2026-06-28 (e) — **Definição de OmniClash (OC), Ordenação, Numeração, Regras e Design clean.** Batizado o TCG de OmniClash (OC) para suportar a visão "multiverso/crossover sandbox". Catálogo index.html atualizado com abas de navegação "Cartas" e "Regras do Jogo" (com as regras do PRD.md). Removida a barra horizontal nos nomes das cartas e centralizada a informação de Tipo · Raridade + Número de carta (EP1001 a EP1105) no rodapé. Altura do plate uniformizada para 165px com auto-escalonamento de texto. Linhas decorativas brilham com a cor de cada raridade.
+
+2026-06-28 (d) — **Adição do campo Época.** Introduzido o campo Época (Season) no catálogo cards.html e tcg.md para controlo de rotação de formatos e prevenção de powercreep. Cartas atuais configuradas por defeito para "Época 1" (EP1) visível no canto superior direito do plate de cada carta.
+
+2026-06-28 (c) — **Remoção de Monarca e Adição de General.** Substituída a raridade Monarca por General. Adicionado 1 General para cada uma das 5 facções com habilidades específicas de faction identity e mecânica de muralhas (rom_augusto, vik_ragnar, azt_montezuma, gre_pericles, egy_cleopatra). Total de 105 cartas no catálogo.
+
 2026-06-28 (b) — **Catálogo COMPLETO + 5ª facção Egípcios + arte toda + deploy.** Deploy do `cards.html` para `https://cartastcg.rfdev.pt` (VPS Datalix, vhost Caddy estático). Balanço v1 (Völva→tapa, Aquilifer→só formação, Macuahuitl-W→buff-aliada; ramp Romano capa 2, recursão Viking 4→2). Saqueador/Hírdman adaptados p/ snapshot OnPlay (sem 3º listener). **11 cartas mantêm efeito difícil original** (Oráculo/Hércules/Arqueiro/Quetzal/Guarda/Filósofo/Vítima/Raio/Poseidon/Chimalli/Oferendas) → motor cresce. **Arte: pipeline novo Anima** (workflow `Anima_Turbo_t2i` + LoRA turbo, ~5s/img vs 65s Krea2; conduzido por script PowerShell via `POST /prompt` — o `enqueue` do MCP comfy falhava). Estilo afinado p/ casar com o manga Krea2 (lineart grossa, saturado). Geradas **63 imagens** (43 faltavam + 20 Egípcios). **Catálogo: 100 cartas, 5 facções (Romanos/Vikings/Astecas/Gregos/Egípcios), TODAS com arte, 0 placeholders, LIVE.** Gerador reutilizável em scratchpad (`anima_gen.ps1` + `batch_prompts*.json`).
 
 2026-06-28 — **Design de cartas romanas** (sessão de design puro, sem código). Adicionadas habilidades aos 13 romanos que não tinham (4 triggers: Ao Jogar / Em Campo / Activar / Ao Morrer). `cards.html` actualizado com novo campo `ab`/`abs`, prefixo `.trg` nas tags de habilidade. Identidade romana formalizada: ramp economy (Príncipes+Aquilifer+Júpiter) + formation buff (Hastati+Centurião+Aquilifer). Triarii = Ao Morrer: muralha (flavor "último reduto").
