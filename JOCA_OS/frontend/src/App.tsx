@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import type { CSSProperties } from 'react';
 
 import SessionSidebar from './components/SessionSidebar';
 import CreateProjectModal from './components/CreateProjectModal';
@@ -11,19 +10,9 @@ import DashboardView, { type RateLimits } from './components/DashboardView';
 import TerminalView from './components/TerminalView';
 import MasterChatView from './components/MasterChatView';
 import { AutomationsView } from './components/AutomationsView';
+import CommandPalette from './components/CommandPalette';
+import { useSessionSocket } from './hooks/useSessionSocket';
 import type { JocaItems, JocaLogicInfo, MainView, MasterEntry, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
-
-// Human-readable labels for the Master's orchestration tool calls — shown live in the bottom
-// activity indicator so the user sees what it's doing (dispatching workers, reading, etc.).
-const MASTER_STEP_LABELS: Record<string, string> = {
-  spawn_worker: 'A abrir um worker…',
-  send_to_worker: 'A enviar a tarefa ao worker…',
-  read_worker: 'A acompanhar o worker…',
-  list_workers: 'A ver os workers abertos…',
-  create_project: 'A criar o projecto…',
-  search_memory: 'A consultar a memória…',
-  read_diary: 'A ler o histórico…',
-};
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
 // output parseado produz um estado idêntico ao anterior (ex.: mesmo marcador repetido).
@@ -34,24 +23,6 @@ function workflowEquals(a: WorkflowState, b: WorkflowState): boolean {
     && a.history.length === b.history.length
     && a.history.every((h, i) => h === b.history[i]);
 }
-
-type ServerMessage =
-  | { type: 'sessions_list'; sessions: SessionInfo[] }
-  | { type: 'session_created'; session: SessionInfo }
-  | { type: 'session_closed'; sessionId: string }
-  | { type: 'session_renamed'; sessionId: string; name: string }
-  | { type: 'output'; sessionId: string; data: string }
-  | { type: 'buffer'; sessionId: string; data: string }
-  | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
-  | { type: 'master_message'; text: string }
-  | { type: 'orchestration_step'; tool: string; input: unknown }
-  | { type: 'worker_summary'; summary: string; isError: boolean; costUsd: number }
-  | { type: 'master_error'; error: string }
-  | { type: 'projects_changed' }
-  | { type: 'master_chat_cleared' }
-  | { type: 'automation_message'; id: string; text: string; ts: number }
-  | { type: 'automation_activity'; text: string }
-  | { type: 'automations_changed' };
 
 interface ServiceConnection {
   id: string;
@@ -64,8 +35,6 @@ const SERVICE_CONNECTIONS: ServiceConnection[] = [
   { id: 'filesystem', name: 'Local Files', status: 'connected', scope: 'Leitura real, preview e drag para terminal' },
   { id: 'terminal', name: 'Terminal Sessions', status: 'connected', scope: 'PTY real por sessão' },
 ];
-
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
 export default function App() {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -108,7 +77,7 @@ export default function App() {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [pinOutput, setPinOutput] = useState(false);
   const pinOutputRef = useRef(false);
-  
+
   const handleTogglePinOutput = useCallback(() => {
     setPinOutput((prev) => {
       const next = !prev;
@@ -123,10 +92,7 @@ export default function App() {
   const outputBuffers = useRef<Map<string, string>>(new Map());
 
   // Refs
-  const wsRef = useRef<WebSocket | null>(null);
   const termRefs = useRef<Map<string, TerminalRef>>(new Map());
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unmountedRef = useRef(false);
   const sessionsRef = useRef<SessionInfo[]>([]);
   const activeIdRef = useRef<string | null>(null);
 
@@ -262,12 +228,6 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const send = useCallback((msg: object) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    }
-  }, []);
-
   const activateSession = useCallback((id: string) => {
     setActivatedIds((prev) => {
       if (prev.has(id)) return prev;
@@ -287,174 +247,15 @@ export default function App() {
     }
   }, []);
 
-  // Mirror the WS message handlers in a ref so the socket is created once on mount and
-  // never torn down/rebuilt if a handler identity changes in a future edit.
-  const wsHandlersRef = useRef({ activateSession, addToast, processOutput });
-  useEffect(() => { wsHandlersRef.current = { activateSession, addToast, processOutput }; }, [activateSession, addToast, processOutput]);
-
-  const connect = useCallback(() => {
-    if (unmountedRef.current) return;
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      let msg: ServerMessage;
-      try { msg = JSON.parse(event.data) as ServerMessage; }
-      catch { return; }
-
-      switch (msg.type) {
-        case 'sessions_list':
-          setSessions(msg.sessions);
-          msg.sessions.forEach((s) => wsHandlersRef.current.activateSession(s.id));
-          if (msg.sessions.length > 0) {
-            setActiveId((prev) => prev ?? msg.sessions[0].id);
-          }
-          break;
-
-        case 'session_created':
-          setSessions((prev) => {
-            if (prev.some((s) => s.id === msg.session.id)) return prev;
-            return [...prev, msg.session];
-          });
-          setActivityEvents((prev) => [
-            { id: crypto.randomUUID(), title: 'Session created', detail: msg.session.name, timestamp: Date.now() },
-            ...prev,
-          ].slice(0, 80));
-          wsHandlersRef.current.activateSession(msg.session.id);
-          // Keep workers in the BACKGROUND when the user is in the Master view — spawning a worker
-          // must not yank focus to the terminal. Only switch + select when not orchestrating.
-          setMainView((prev) => {
-            if (prev === 'master') return prev;
-            setActiveId(msg.session.id);
-            return 'session';
-          });
-          break;
-
-        case 'session_closed':
-          setSessions((prev) => {
-            const next = prev.filter((s) => s.id !== msg.sessionId);
-            setActiveId((cur) => {
-              if (cur !== msg.sessionId) return cur;
-              return next.length > 0 ? next[next.length - 1].id : null;
-            });
-            return next;
-          });
-          termRefs.current.delete(msg.sessionId);
-          outputBuffers.current.delete(msg.sessionId);
-          workflowRef.current.delete(msg.sessionId);
-          setWorkflowStates(new Map(workflowRef.current));
-          setActivityEvents((prev) => [
-            { id: crypto.randomUUID(), title: 'Session closed', detail: msg.sessionId, timestamp: Date.now() },
-            ...prev,
-          ].slice(0, 80));
-          break;
-
-        case 'session_renamed':
-          setSessions((prev) => prev.map((s) =>
-            s.id === msg.sessionId ? { ...s, name: msg.name } : s
-          ));
-          break;
-
-        case 'output':
-          termRefs.current.get(msg.sessionId)?.write(msg.data);
-          wsHandlersRef.current.processOutput(msg.sessionId, msg.data);
-          if (pinOutputRef.current && msg.sessionId === activeIdRef.current) {
-            termRefs.current.get(msg.sessionId)?.scrollToBottom?.();
-          }
-          break;
-
-        case 'buffer': {
-          const ref = termRefs.current.get(msg.sessionId);
-          ref?.reset();
-          ref?.write(msg.data);
-          requestAnimationFrame(() => ref?.fit?.());
-          outputBuffers.current.set(msg.sessionId, '');
-          workflowRef.current.delete(msg.sessionId);
-          wsHandlersRef.current.processOutput(msg.sessionId, msg.data);
-          break;
-        }
-
-        case 'session_status':
-          setSessions((prev) => prev.map((s) =>
-            s.id === msg.sessionId ? { ...s, status: msg.status } : s
-          ));
-          if (msg.isDone) {
-            const session = sessionsRef.current.find((s) => s.id === msg.sessionId);
-            if (session && session.id !== activeIdRef.current) {
-              wsHandlersRef.current.addToast(session);
-              setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
-            }
-          }
-          break;
-
-        // The Master's "thinking" — interim narration and tool calls. The final chat shows only the
-        // answer (worker_summary), but we surface these live as a bottom activity indicator so the
-        // user knows it's working / dispatching workers instead of waiting in silence.
-        case 'master_message':
-          setMasterActivity(msg.text.replace(/\s+/g, ' ').trim().slice(0, 200));
-          break;
-        case 'orchestration_step':
-          setMasterActivity(MASTER_STEP_LABELS[msg.tool] ?? `A usar ${msg.tool}…`);
-          break;
-
-        case 'worker_summary':
-          // Every run ends with exactly one worker_summary carrying the final answer. This is the
-          // only thing the chat shows for an assistant turn.
-          setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'summary' as const, text: msg.summary, isError: msg.isError, costUsd: msg.costUsd }]);
-          setMasterPending((n) => Math.max(0, n - 1));
-          break;
-
-        case 'master_error':
-          setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'error', text: msg.error }]);
-          setMasterPending((n) => Math.max(0, n - 1));
-          break;
-
-        case 'projects_changed':
-          // The Master created/registered a project — refresh the sidebar list + memory.
-          reloadProjects();
-          reloadProjectMemory();
-          break;
-
-        case 'master_chat_cleared':
-          setMasterLog([]);
-          break;
-
-        // An automation delivered a result → show it in the Master chat (it persists server-side too).
-        case 'automation_message':
-          setMasterLog((prev) => [...prev, { id: msg.id, role: 'summary' as const, text: msg.text, isError: false, costUsd: 0 }]);
-          break;
-        case 'automation_activity':
-          setMasterActivity(msg.text.replace(/\s+/g, ' ').trim().slice(0, 200));
-          break;
-        case 'automations_changed':
-          setAutomationsRefresh((n) => n + 1);
-          break;
-
-        default:
-          if (import.meta.env.DEV) console.warn('Unknown WS message type', (msg as { type?: string }).type);
-          break;
-      }
-    };
-
-    ws.onclose = () => {
-      if (!unmountedRef.current) {
-        reconnectTimer.current = setTimeout(() => { reconnectTimer.current = null; connect(); }, 2000);
-      }
-    };
-
-    ws.onerror = () => ws.close();
-    // Handlers are read via wsHandlersRef; the socket is intentionally created once.
-  }, []);
-
-  useEffect(() => {
-    unmountedRef.current = false;
-    connect();
-    return () => {
-      unmountedRef.current = true;
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
-      wsRef.current?.close();
-    };
-  }, [connect]);
+  // WebSocket lifecycle (connect / reconnect / message routing) lives in the hook; it returns a
+  // stable `send`. All parent state it touches is passed in and read through a ref, so the socket
+  // is created once on mount.
+  const { send } = useSessionSocket({
+    setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
+    setMasterLog, setMasterPending, setMasterActivity, setUnreadIds, setAutomationsRefresh,
+    termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
+    activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
+  });
 
   const handleNewSession = useCallback(() => {
     send({ type: 'create_session' });
@@ -745,7 +546,7 @@ export default function App() {
   const contextProjectId = mainView === 'project'
     ? activeProjectId
     : (activeSession?.projectId ?? activeProjectId);
-  
+
   const rightSlotExpanded = rightPanel !== null;
   const expandedRightSlotSize = Math.round(Math.max(408, Math.min(viewportWidth * 0.32, 424)));
   const rightSlotSize = rightSlotExpanded ? `${expandedRightSlotSize}px` : '54px';
@@ -913,50 +714,21 @@ export default function App() {
       )}
 
       {commandPaletteOpen && (
-        <div className="create-skill-overlay" onClick={(e) => { if (e.target === e.currentTarget) setCommandPaletteOpen(false); }}>
-          <div className="command-palette-modal" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
-            <div className="create-skill-header">
-              <span className="create-skill-title" id="command-palette-title">Commands, Skills, Agents</span>
-              <button className="create-skill-close" onClick={() => setCommandPaletteOpen(false)} aria-label="Close command palette">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="command-palette-grid">
-              <div>
-                <h3>Workspace</h3>
-                <button onClick={() => { setMainView('dashboard'); setCommandPaletteOpen(false); }}>Dashboard</button>
-                <button onClick={() => { setRightPanel('files'); setCommandPaletteOpen(false); }}>Open Files</button>
-                <button onClick={() => { setRightPanel('toolkit'); loadCommandPalette(); setCommandPaletteOpen(false); }}>Open Toolkit</button>
-                <button onClick={() => { setRightPanel('settings'); setCommandPaletteOpen(false); }}>Open Settings</button>
-              </div>
-              <div>
-                <h3>Sessions</h3>
-                {sessions.map((session) => <button key={session.id} onClick={() => { handleSwitchSession(session.id); setCommandPaletteOpen(false); }}>{session.name}</button>)}
-                {sessions.length === 0 && <button onClick={() => { handleNewSession(); setCommandPaletteOpen(false); }}>New Session</button>}
-              </div>
-              <div>
-                <h3>Projects</h3>
-                {projects.map((project) => <button key={project.id} onClick={() => { handleShowProject(project.id); setCommandPaletteOpen(false); }}>{project.name}</button>)}
-                {projects.length === 0 && <button onClick={() => { handleCreateProjectPrompt(); setCommandPaletteOpen(false); }}>Create Project</button>}
-              </div>
-              <div>
-                <h3>Commands</h3>
-                {(jocaItems?.commands ?? []).map((item) => <button key={item.name} onClick={() => insertCommandDraft(item.insert)}>{item.name}</button>)}
-              </div>
-              <div>
-                <h3>Skills</h3>
-                {(jocaItems?.skills ?? []).map((item) => <button key={`${item.category}-${item.name}`} onClick={() => insertCommandDraft(item.insert)}>{item.name}</button>)}
-              </div>
-              <div>
-                <h3>Agents</h3>
-                {(jocaItems?.agents ?? []).map((item) => <button key={item.name} onClick={() => insertCommandDraft(item.insert)}>{item.name}</button>)}
-              </div>
-            </div>
-            {!jocaItems && <p className="create-skill-hint">A carregar registry JOCA...</p>}
-          </div>
-        </div>
+        <CommandPalette
+          sessions={sessions}
+          projects={projects}
+          jocaItems={jocaItems}
+          onClose={() => setCommandPaletteOpen(false)}
+          onShowDashboard={() => { setMainView('dashboard'); setCommandPaletteOpen(false); }}
+          onOpenFiles={() => { setRightPanel('files'); setCommandPaletteOpen(false); }}
+          onOpenToolkit={() => { setRightPanel('toolkit'); loadCommandPalette(); setCommandPaletteOpen(false); }}
+          onOpenSettings={() => { setRightPanel('settings'); setCommandPaletteOpen(false); }}
+          onSelectSession={(id) => { handleSwitchSession(id); setCommandPaletteOpen(false); }}
+          onNewSession={() => { handleNewSession(); setCommandPaletteOpen(false); }}
+          onShowProject={(id) => { handleShowProject(id); setCommandPaletteOpen(false); }}
+          onCreateProject={() => { handleCreateProjectPrompt(); setCommandPaletteOpen(false); }}
+          onInsert={insertCommandDraft}
+        />
       )}
 
       <ToastNotification
