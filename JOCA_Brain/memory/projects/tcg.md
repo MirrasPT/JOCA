@@ -21,7 +21,7 @@ directorio: C:\Users\renat\Projetos\tcg
 - **Gold** = recurso por turno para jogar cartas.
 - **3 tipos de carta:**
   - **Unidade** — ATK + DEF. Combate: **ATK atacante ≥ DEF alvo → destrói**; senão nada acontece.
-  - **Equipamento** — equipa numa unidade (+ATK / +DEF / habilidade).
+  - **Equipamento** — equipa numa unidade (+ATK / +DEF / habilidade). É destruído com a unidade.
   - **Evento** — uso único (dano, "pesar"/tap, ressuscitar…).
 - **Vitória:** atacar o general. Qualquer unidade ataca uma unidade inimiga OU o general directamente. General tem **5 muralhas** (variável); 1 ataque = 1 muralha; **6º ataque mata**.
 - **Habilidades:** ressuscitar (cemitério→campo), combo, buff condicional (se carta X em campo → +ATK/+DEF), block (bloquear ataque), quick attack (atacar no turno em que é jogada), reconstruir muralha.
