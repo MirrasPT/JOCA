@@ -186,6 +186,21 @@ With Postmark: pass the rendered `html`/`text` to the Postmark client instead. K
 
 ---
 
+## Static HTML email (no-build — colável num ESP / `gws`)
+
+Quando o entregável é um `.html` **sendable** sem toolchain (cold-reach, newsletter colada num ESP, anexo de `gws +send`), **não** uses os componentes React desta skill (precisam de build/render). Hand-code HTML **table-based** seguindo as MESMAS regras client-safe da secção 4:
+
+- Layout só com `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` (nunca flex/grid); coluna única ≤600px centrada.
+- **Todo o CSS inline** (`style="..."`); zero `<style>`/CSS externo para layout. px + hex + font-stack web-safe.
+- **MSO conditionals** para Outlook (`<!--[if mso]> … <![endif]-->`) — botões VML e larguras fixas.
+- `<img>` sempre com `width`/`height`/`alt` e **URL absoluto https**; hospedar imagens com `?v=N` (cache-bust — ver gotcha Cloudflare na skill `cpanel`).
+- Pré-visualizar via Chrome `--headless --screenshot` antes de enviar; gerar versão plain-text.
+- Enviar: `( cd <pasta> && gws gmail +send ... --body "$(cat email.html)" --html -a <anexo-no-cwd> )` (anexos do `gws` têm de estar no cwd).
+
+> Regra: `react-email` = React/`.tsx` (precisa build). Para HTML estático colável → este skeleton table-based. Mesmas regras client-safe, output diferente.
+
+---
+
 ## Related skills
 
 - `transactional-email` / `postmark` — delivery, streams, deliverability

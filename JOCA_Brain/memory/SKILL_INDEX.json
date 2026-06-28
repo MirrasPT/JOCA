@@ -980,6 +980,20 @@
   },
   {
     "type": "skill",
+    "name": "notion",
+    "category": "general",
+    "path": ".claude\\skills\\notion.md",
+    "description": "Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell no Windows. Query/criar/actualizar/arquivar páginas e tarefas em databases (data sources). Cobre os",
+    "triggers": [
+      "notion",
+      "ntn",
+      "tarefa notion",
+      "base de dados notion",
+      "data source notion"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "page-cro",
     "category": "general",
     "path": ".claude\\skills\\page-cro.md",
@@ -1411,6 +1425,22 @@
   },
   {
     "type": "skill",
+    "name": "social-scheduler",
+    "category": "general",
+    "path": ".claude\\skills\\social-scheduler.md",
+    "description": "Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Executor do flow create→upload→attach→privacy→publish, com os gotchas por plataforma (TikTok privacy_l",
+    "triggers": [
+      "agendar post",
+      "publicar nas redes",
+      "schedule social post",
+      "trypost",
+      "carrossel instagram",
+      "publicar tiktok",
+      "agendar campanha social"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "stop-slop",
     "category": "general",
     "path": ".claude\\skills\\stop-slop.md",
@@ -1520,6 +1550,14 @@
       "voltar ao normal",
       "remove guard"
     ]
+  },
+  {
+    "type": "skill",
+    "name": "unity-gamedev",
+    "category": "general",
+    "path": ".claude\\skills\\unity-gamedev.md",
+    "description": "Unity 6 (LTS) + C# game development — project structure, ScriptableObject-driven data, deterministic rules-engine separation, turn state machines, and Android build/export. Distilled focused skill (",
+    "triggers": []
   },
   {
     "type": "skill",

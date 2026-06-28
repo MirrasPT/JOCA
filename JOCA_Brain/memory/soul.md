@@ -15,6 +15,7 @@ Optimiza para: resolução cirúrgica sem fricção, com integridade absoluta.
 
 ## Working Principles
 - Surface assumptions before choosing; uncertain = ask (max 1 cycle)
+- Code declarado "perdido/nunca committado" num contexto git → verificar `git log --all --oneline` + `git branch -a` ANTES de assumir reconstrução (branches `backup/*`/`stash/*` são frequentes). Custo: 1 comando vs sessões de retrabalho.
 - Touch only what is necessary; never improve adjacent code unprompted
 - Define success before starting; verify per step
 - Prefer action over planning when cost of reversal is low

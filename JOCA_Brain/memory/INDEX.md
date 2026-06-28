@@ -16,9 +16,16 @@
 - [eurico-fertuzinhos.md](projects/eurico-fertuzinhos.md) — WEOPTIMIZE social media — img-gen com brand azul corporativo para Instagram/Facebook/LinkedIn
 - [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
 - [royal-douro.md](projects/royal-douro.md) — Marca de vinho DOC Douro ultra-premium (cliente Luís Gonçalo) — híbrido marketing + website static (Vanilla HTML/CSS/JS + Tailwind CDN). royaldouro.com / @royaldouro.wine.
+- [tcg.md](projects/tcg.md) — TCG 1v1 (duelo de cartas) tema histórico-medieval + mitologia — Unity (C#), alvo Android; motor de regras puro separado da UI
 ## Feedback
 <!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_
+
+Processed 2026-06-27 (/upgrade-joca — 10 sessions, 12 improvements) — archived:
+- 2 new skills: `social-scheduler` (TryPost executor), `notion` (`ntn` wrapper)
+- skills: `agent-sdk` (tools:[] pure completion) · `social-content` (Step 0 read refs + copy-fill) · `deploy-vps` (App Docker behind Caddy + 525 cert)
+- rules/workflows-and-tooling.md (Windows PHP/Octane/composer, __dirname external subprocess, visual anti-fabrication, external-DB duplicate) · soul.md (git log --all before reconstruction)
+- commands/resume.md (git branch -a/--all + PHP path) · commands/install.md (gws @googleworkspace/cli + auth gotchas) · scripts/cpanel.mjs (read dir/file fix, applied earlier)
 
 Processed 2026-06-23 (/upgrade-joca + /sync-questionnaires — 10 sessions, 7 improvements) — archived:
 - 3 new skills: `agent-sdk`, `deploy-vps`, `comfy-mcp-workarounds`; frontend.md (Game UI section + triggers)

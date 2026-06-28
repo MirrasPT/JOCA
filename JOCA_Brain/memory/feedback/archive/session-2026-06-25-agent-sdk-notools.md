@@ -3,6 +3,8 @@ type: feedback-joca
 source: auto-extracted-by-save
 session_date: 2026-06-25
 project: JOCA
+processed: true
+processed_date: 2026-06-27
 ---
 
 # Feedback JOCA — sessão 2026-06-25 (cont.5): Agent SDK tem ferramentas por default

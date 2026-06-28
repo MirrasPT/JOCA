@@ -180,6 +180,26 @@ This SDK has sparse public documentation. When a method or option is not confirm
 
 ---
 
+## Pure text completion — disable tools (no side effects)
+
+**The Agent SDK is an AGENT, not a completer.** `query()` ships the built-in tools (Bash, Read, Edit, …) **ON by default** even when you pass no `mcpServers`. So using it as a plain "rewrite this text" / "summarise" call is dangerous: given an imperative prompt ("lê os meus emails com o gws e resume"), the model will **actually run the tools** (executes `gws`, returns real emails) instead of rewriting the instruction. A system prompt saying "don't execute" does **not** stop it — the model has the tools and uses them.
+
+For a pure, side-effect-free text completion, **disable all tools**:
+
+```ts
+const stream = query({
+  prompt,
+  options: {
+    tools: [],     // empty array = ALL built-ins OFF (confirmed in sdk.d.ts)
+    maxTurns: 1,   // defensive: no multi-step agentic loop
+  },
+});
+```
+
+Rule of thumb: **Agent SDK ≠ Messages API.** When you only want text out, constrain `tools: []`; otherwise the agent can reach shell/files and act. Confirm the option in the installed `.d.ts` (online docs don't highlight this). (Source: JOCA_OS "Optimizar" feature 2026-06-25.)
+
+---
+
 ## Anti-patterns
 
 | Wrong | Correct |
@@ -190,3 +210,4 @@ This SDK has sparse public documentation. When a method or option is not confirm
 | `pty.write(prompt + '\n')` | Bracketed-paste + delayed CR |
 | Trust online docs | Read installed `.d.ts` first |
 | Invent undocumented options | `TODO: verify in .d.ts` |
+| Agent SDK as plain text completer (tools ON → it executes) | `tools: []` + `maxTurns: 1` for pure completion |

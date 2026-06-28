@@ -66,5 +66,6 @@ Carregar sempre estas tres regras — sub-agentes NAO herdam `soul.md`, so o bri
 - **Nunca expor** o conteudo de credenciais/tokens no output.
 - **Skill-first** — sem `personal-comms.md` lida, nao operar.
 - **Distincao de dominio** — se o pedido for email transaccional/marketing (template, drip, newsletter), redireccionar para a skill correcta (`react-email`/`transactional-email`/`postmark`/`email-sequence`), nao tratar aqui.
+- **gws `+send` anexos** — `--attach`/`-a` só aceita ficheiros no **cwd** (fora → `validationError 400`). Correr a partir da pasta dos anexos (`( cd <pasta> && gws ... -a <nome> )`) ou copiar p/ cwd primeiro. Body HTML completo via `--body "$(cat file.html)" --html`.
 """
 name = "personal-comms"

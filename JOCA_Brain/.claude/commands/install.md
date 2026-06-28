@@ -283,7 +283,7 @@ Se seleccionado: instalar via comandos na FASE EXECUCAO.
 ```
 Source control & cloud
 [ ] gh             — GitHub (repos, PRs, issues, code search)
-[ ] gws            — Google Workspace (Drive, Gmail, Calendar, Sheets) — requer gcloud
+[ ] gws            — Google Workspace CLI `@googleworkspace/cli` (Drive, Gmail, Calendar, Sheets) — requer gcloud; auth com `--scopes` explícito + publicar app (senão token expira ~7d)
 [ ] gcloud         — Google Cloud (prereq para gws auth setup)
 [ ] aws-cli        — AWS S3, deploy, file-storage skill
 
@@ -639,6 +639,14 @@ gws auth login    # logins subsequentes
 ```
 
 Sem gcloud: configurar OAuth client manualmente no Cloud Console, download JSON para `~/.config/gws/client_secret.json`, depois `gws auth login`.
+
+Gotchas de auth (vividos — conta **pessoal**, não Workspace):
+- `gws auth setup --login` pede **86 scopes** (incl. admin de Workspace, `cloud-identity.devices`) → numa conta pessoal dá `invalid_scope`/Erro 400.
+- `gws auth login --services gmail --readonly` **NÃO** restringe scopes — só `--scopes <lista explícita>` restringe (ex.: `https://www.googleapis.com/auth/gmail.readonly`).
+- Consent screen em "Testing" sem test users → `403 access_denied` (add user em `console.cloud.google.com/auth/audience?project=<id>`).
+- App em "Testing" → Google **expira o refresh token ~7 dias**. Fix: **publicar a app em Production** (conta pessoal não tem via Workspace-Internal).
+- Headless/VPS: creds no keyring + `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`. Capacidades p/ automações (e2e): `gws gmail +triage` (não-lidos), `+read`, `+send`/`+reply`/`+forward` — corre non-interactive via `child_process.exec`.
+- **`+send` anexos têm de estar no cwd** — `--attach <path>` fora da pasta actual → `validationError 400` ("outside the current directory"). Correr o `+send` a partir da pasta dos ficheiros (subshell `( cd <pasta> && gws ... -a <nome-relativo> )`) ou copiar o anexo para cwd primeiro. Body HTML completo passa bem por `--body "$(cat file.html)" --html`.
 
 **sentry-cli** (se seleccionado):
 

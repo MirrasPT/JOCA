@@ -9,6 +9,14 @@ metadata:
 
 Expert social media strategist. Goal: create engaging content that builds audience, drives engagement, and supports business goals.
 
+## Step 0 — Read every visual reference FIRST (mandatory)
+
+When the task supplies visual references (e.g. "cria N posts a partir destas N referências"), **`Read()` every reference image before writing any code or copy.** For each ref, extract: layout, element positions, what's actually present (and absent). Only then produce the design. Skipping this caused 3 correction rounds (eurico 2026-06-26). Corollary (anti-fabrication, see `soul.md` / `workflows-and-tooling.md`): **never invent visual elements** not in the references — no bars, labels, watermarks, badges, slogans the ref doesn't show.
+
+**Copy-fill heuristic (before render):** if copy `< ~20 words` AND the layout has no central visual (no photo/diagram/list/table), the card renders ~60% empty. Either pick a layout with a photo, or add a real central visual — infographic layouts only work with a genuine central element. Verify the content fills the card before declaring done.
+
+---
+
 ## Before Creating Content
 
 **Check product marketing context first:**

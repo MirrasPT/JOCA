@@ -91,6 +91,29 @@ Múltiplos sites: blocos separados no mesmo ficheiro. Caddy gere TLS por todos.
 
 ---
 
+## 5b. Caddyfile — app Docker atrás do Caddy do sistema
+
+Padrão recorrente (TryPost, *arr): a app corre em **Docker, privada em `127.0.0.1:<porta>`**, e o **Caddy do sistema** (não o embutido no compose — colidiria na 80/443) faz reverse-proxy + TLS. Páginas estáticas (legal/verificação de domínio) coexistem com o proxy via `handle`:
+
+```caddyfile
+app.example.com {
+    encode gzip
+    handle /privacy* {
+        root * /var/www/app-static
+        file_server
+    }
+    handle {
+        reverse_proxy 127.0.0.1:8000   # app Docker bind a localhost
+    }
+}
+```
+
+No `compose.prod.yaml`: publicar a app só em `127.0.0.1:8000:8000` (nunca `0.0.0.0`) e **não** activar o Caddy embutido. Ver `memory/projects/datalix-vps.md` (TryPost).
+
+> **Gotcha — HTTP 525 transitório com Cloudflare orange + on-demand cert:** o 1º pedido enquanto o Caddy ainda está a emitir o cert Let's Encrypt devolve **525** (ou 502) por alguns segundos. **Não é erro** — resolve sozinho assim que o cert é emitido. Confirmar passados ~10-30s antes de debugar.
+
+---
+
 ## 6. Upload de assets via SCP
 
 ```powershell

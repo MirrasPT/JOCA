@@ -106,6 +106,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | security code review · IDOR · mass assignment · OWASP | `security-review` (agent) |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
+| Unity · C# · MonoBehaviour · ScriptableObject · prefab · build Android · jogo Unity · card game engine · AAB/APK | `unity-gamedev` |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
 | generate video · video clip · motion | `video-gen` (agent) |
@@ -122,6 +123,8 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | AI slop · soa a AI · escrito por AI · limpar a escrita · polir copy · de-slop | `stop-slop` |
 | email sequence · drip · nurture | `email-sequence` |
 | plano de publicação · calendário social · rollout · lançamento · captions · agendamento | `content-calendar` |
+| agendar/publicar post · publicar nas redes · TryPost · carrossel IG · publicar TikTok · executar campanha social | `social-scheduler` |
+| Notion · ntn · tarefa Notion · base de dados/data source Notion · workspace de clientes | `notion` |
 | lyric sync · forced alignment · letra sincronizada · LRC/ASS · timestamps de voz | `lyric-align` |
 | browser automation · litegraph · conduzir app web local · Playwright headless | `browser-automate` |
 | paid ads · Facebook Ads | `paid-ads` |
