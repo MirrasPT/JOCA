@@ -1,6 +1,6 @@
 ---
 name: page-cro
-description: "Optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. MUST be invoked when the user says: CRO,, conversion rate optimization,, this page isn, t this page working,, my landing page sucks,, nobody."
+description: "Optimize conversion on any marketing page (homepage, landing, pricing). Invoke on: CRO, conversion rate, page not converting, my landing page isn't working."
 metadata:
   version: 1.1.0
 ---

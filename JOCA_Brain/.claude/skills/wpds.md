@@ -1,6 +1,6 @@
 ---
 name: wpds
-description: "Building UIs with the WordPress Design System (WPDS): components, tokens, patterns. MUST be invoked when the user mentions: UIs, WordPress Design System, WPDS."
+description: "Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Invoke on: WPDS, @wordpress/components, Gutenberg UI."
 compatibility: "Requires WPDS MCP server configured and running. Targets WordPress 6.9+ (PHP 7.2.24+)."
 ---
 

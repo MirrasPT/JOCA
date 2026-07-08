@@ -2,6 +2,7 @@
 name: design-tokens
 description: "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture. SHOULD also invoke when: DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index."
 triggers: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture, DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index, dark mode, dark theme, tema escuro, colour tokens, color tokens, shadow tokens, motion tokens, token file, tokens.css, tokens.json
+chain: component-system
 ---
 # Design Tokens
 

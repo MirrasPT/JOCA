@@ -22,6 +22,8 @@ const sanitizeProvider = (v: unknown) =>
 const sanitizeModel = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 80) : undefined);
 const sanitizeSkills = (v: unknown) =>
   Array.isArray(v) ? (v.filter((s) => typeof s === 'string' && s.trim()) as string[]).map((s) => s.trim()).slice(0, 20) : undefined;
+const sanitizeAttachments = (v: unknown) =>
+  Array.isArray(v) ? (v.filter((s) => typeof s === 'string' && s.trim()) as string[]).map((s) => s.trim()).slice(0, 50) : undefined;
 const isStatus = (v: unknown): v is TaskStatus => TASK_STATUSES.includes(v as TaskStatus);
 
 export function tasksRouter(): Router {
@@ -43,6 +45,7 @@ export function tasksRouter(): Router {
       model: sanitizeModel(b.model),
       skills: sanitizeSkills(b.skills),
       requireConfirm: b.requireConfirm === true || undefined,
+      attachments: sanitizeAttachments(b.attachments),
     });
     upsertTask(t);
     broadcast({ type: 'tasks_changed' });
@@ -61,6 +64,7 @@ export function tasksRouter(): Router {
     if ('model' in b) updated.model = sanitizeModel(b.model);
     if ('skills' in b) updated.skills = sanitizeSkills(b.skills);
     if ('requireConfirm' in b) updated.requireConfirm = b.requireConfirm === true || undefined;
+    if ('attachments' in b) updated.attachments = sanitizeAttachments(b.attachments);
     upsertTask(updated);
     broadcast({ type: 'tasks_changed' });
     res.json(updated);

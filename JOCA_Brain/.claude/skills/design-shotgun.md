@@ -19,6 +19,7 @@ Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **diverg
 ### 1. Fundação (sequencial, antes do fan-out)
 - Ler o sistema de design se existir: `DESIGN.md`, tokens, `brand-guidelines`. Variantes respeitam o sistema (não inventam paletas do nada, salvo se o brief for "explorar identidade").
 - Definir o **brief comum**: o que é a página/componente, o objectivo, a audiência, 1 constraint dura (ex.: "tem de caber above-the-fold").
+- **Ler o banco de eixos**: `Read(".claude/reference/design-dataset.md")` — paletas OKLCH verificadas, pares de fontes e estilos nomeados. Cada variante = 1 estilo + 1 paleta + 1 par de fontes, combinações DISTINTAS; registar a combinação no output (`[V2: brutalist-editorial + Ember + Fraunces/Inter]`). Anti-convergence: excluir os eixos usados nos 2-3 projectos anteriores do mesmo tipo (`memory/projects/`).
 - Definir **3-6 eixos de divergência** (cada variante explora um): ex.: editorial vs minimal vs bold; grid vs assimétrico; foto-driven vs tipográfico.
 
 ### 2. Fan-out das variantes (paralelo)

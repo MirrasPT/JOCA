@@ -20,9 +20,8 @@ JOCA/                     ← raiz = JOCA_Logic directo
 │   ├── hooks/
 │   ├── rules/
 │   ├── scripts/
-│   ├── skills/           ← base/, design/, dev/, marketing/, tools/, video/
-│   ├── settings.json
-│   └── templates/
+│   ├── skills/           ← flat, *.md (sem subpastas)
+│   └── settings.json
 ├── memory/
 │   ├── INDEX.md
 │   ├── SKILL_INDEX.json  ← auto-gerado
@@ -172,7 +171,7 @@ ls .claude/commands/
 # Deve incluir: install.md, resume.md, save.md, init-project.md, etc.
 
 ls .claude/skills/
-# Deve incluir: base/, design/, dev/, marketing/, tools/, video/
+# Estrutura FLAT: só ficheiros *.md, sem subpastas (base/design/dev nested = v1-legacy)
 ```
 
 ### 3. Instalar dependências do JOCA_UI
@@ -194,13 +193,7 @@ cd JOCA_UI/backend && npm install && cd ../frontend && npm install && cd ../..
 
 ### 1. Recriar soul.md (NOVO na v2.0)
 
-Se `memory/soul.md` não existir, copiar template:
-
-```bash
-cp .claude/templates/soul-template.md memory/soul.md 2>/dev/null
-```
-
-Se o template não existir, criar com a estrutura base (os valores de calibração serão preenchidos na Fase 4):
+Se `memory/soul.md` não existir, criar inline com a estrutura base abaixo (os valores de calibração serão preenchidos na Fase 4):
 
 ```markdown
 ---
@@ -307,7 +300,7 @@ O INDEX.md da v2.0 tem formato diferente — já não lista commands/agents/skil
 - [mcp-routing.md](tools/mcp-routing.md) — decisões de routing MCP
 
 ## Feedback
-<!-- Entradas adicionadas por /feedback-joca e /save -->
+<!-- Entradas adicionadas por /save (auto-extract) -->
 ```
 
 Preencher com as entradas que realmente existem em `projects/`, `tools/` e `feedback/`.
@@ -315,7 +308,8 @@ Preencher com as entradas que realmente existem em `projects/`, `tools/` e `feed
 ### 6. Regenerar SKILL_INDEX.json
 
 ```bash
-python3 .claude/scripts/build-skill-index.py 2>/dev/null || echo "Script não encontrado — SKILL_INDEX será gerado na próxima sessão"
+# Windows usa `python` (o `python3` é o stub vazio da Store); macOS/Linux usam `python3`.
+for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done || echo "Script não encontrado — SKILL_INDEX será gerado na próxima sessão"
 ```
 
 ---
@@ -397,10 +391,10 @@ Ler o `~/CLAUDE.md` existente. Actualizar a secção JOCA sem apagar dados pesso
 ```markdown
 ## JOCA
 Toolkit instalado em: [caminho]
-Comandos: /install · /init-project · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /feedback-joca · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
+Comandos: /install · /init-project · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
 
 Skills activas:
-- Base: caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
+- Base: caveman, karpathy-guidelines, agent-context, create-skill
 - [categoria]: [lista por área activada]
 
 MCPs globais: [lista dos MCPs configurados]
@@ -427,8 +421,9 @@ echo "=== JOCA_UI ===" && ls JOCA_UI/
 ```bash
 cd JOCA_UI && npm run dev &
 sleep 3
-curl -s http://localhost:3001/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend falhou"
-curl -s http://localhost:3001/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detectado" || echo "✗ JOCA_Logic não encontrado"
+# Portas reais: backend 7371 · frontend 7372
+curl -s http://localhost:7371/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend falhou"
+curl -s http://localhost:7371/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detectado" || echo "✗ JOCA_Logic não encontrado"
 kill %1 2>/dev/null
 cd ..
 ```

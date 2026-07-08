@@ -2,6 +2,7 @@
 name: filament-builder
 description: "Use to scaffold a complete Filament (v4/v5) admin resource from an Eloquent model — form, table, infolist, relation managers, and policy. Triggered by: \"build filament resource\", \"scaffold filament\", \"generate admin for\", \"filament crud for\", \"make filament resource\", \"admin panel for this model\", \"filament resource from model\". Reads the model + migration, infers fields/relations/casts, generates idiomatic v5 code, and validates namespaces. Different from the filament skill (knowledge) — this agent does the full generation workflow."
 skills: filament
+chain: tester-code
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---

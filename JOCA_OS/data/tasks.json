@@ -1,0 +1,54 @@
+[
+  {
+    "id": "7912be05-77df-4dca-a9ab-3014f9d4298b",
+    "title": "Plano",
+    "description": "Planear a capanha de julho do livro de elogios do  Pacote livro + suporte. a ideia é criar um html, com todo o plano mensal para promover este novo produto.",
+    "status": "concluida",
+    "order": 0,
+    "provider": "claude",
+    "model": "sonnet",
+    "skills": [
+      "content-calendar",
+      "social-content",
+      "copywriting"
+    ],
+    "lastStatus": "ok",
+    "createdAt": 1782897703627,
+    "updatedAt": 1782991906976,
+    "result": "A trabalhar sem bloqueios. Leu as 3 skills, verificou o calendário de julho, agora está a construir o plano e o copy real.\n\nResumo:\n- `0eaa6189...` (JOCA_Brain): recebeu o brief, skills lidas, `working`. Quando fechar notifico-te com o caminho do HTML.",
+    "testerResult": "Arrancou bem. Worker `bd33bbe8...` está `working`, recebeu o brief completo com as 30 correcções e arrancou a auditoria (código + testes funcionais + regressões).\n\nResumo:\n- `bd33bbe8...` `LE_Plataforma` — **tester novo** a correr: auditoria de código (git diff, grep, leitura de ficheiros-chave) + testes funcionais dos 30 pontos + verificação de regressões. Quando terminar notifico-te com o relatório completo.\n- `a1b2ab53...` `LE_Plataforma` — ainda `working` na investigação do alerta Sentry `Route [login] not defined`.\n- `0eaa6189...` `JOCA_Brain` — `working` na campanha de Julho."
+  },
+  {
+    "id": "813fedc6-7891-4657-9f33-f06d9fa76c45",
+    "title": "Corrigir e melhorias LE",
+    "description": "No projeto LE_Plataforma corrige os seguintes erros ou faz as seguinte melhorais, usa as skills necessarias:\n\n1- O nome doa dados pessoais, nao grava. eu altero grava, mas volta ao do registo.\n2- o nr telefone apresenta em blocos de 3, exemplo +351 934 243 525 (em todos os sitios que tem numero de telefone)\n3- ao inserir codigo postal,se o pais for portugal, automaticamente formata assim: 0000-000 (implementar tambem ou apontar nas tarefas futuras deste projeto, para ao preencher o codigo postal ele automaticamente ir buscar o resto da informação da murada (tendo depois de meter so rua, e nr da porta por exemplo.\n4- no formulario da minha empresa, em vez de um formulario continua usa o “passo a passo” em que vai bloco a bloco até criar a empressa, no criar empresa da primeira vez, de incluir logo as imagens da empresa, assim como a informação da primeira loja. - ver ponto 5\n5- atualmente ele esta a criar a primeira loja coma mesma informação da empresa. mas no formulario da criação da empresa, deve ter logo isso. deve ter um check a preguntar se a informação é a mesma (se a informação da empresa é a mesma da loja e explicar a diferença de loja vs empresa) se sim, ai cria com os mesmos dados, se nao, preenche o formulario da primeira loja.\n6- A loja nao deve ser criada ativa. para ativar preciso de gastar Página digitas (créditos), ou ter uma assinatura, atualmente ele ativou sem eu pagar nada. \n7 - nos funcionarios eu apareço como administador, mas nao estou em nenhuma loja, eu devo me poder adicionar as lojas a mim proprio\n8 - os funcionarios nao estoa a funcionar, consigo prencher o formulario de convite, mas depois nem nos convidados nem nada, simplesmente nao aparece em lado nenhum.\n9 - na pagina da empres http://localhost:5173/empresa/estudio-ferreira o logo esta “partido” a imagem (o caminho deve estar errado)\n10 - Fiz um elogio na página mas não aparece no backoffice\n11- a configurações da empresa nao deve estar so escondido no dropdown das empresas, mas sim tambem no menu lateral.\n12 - Os widgets nao funcionam, o codigo gerado é inutil. a cores nao ficam gravadas.\n13 - o link por agora devia ser o local host e nao https://livrodeelogios.pt/empresa/estudio-ferreira\n14 - na partilha, tem os materiais, podes “melhorar” o design de todos. quer o preview que depois o exporte serem melhores e mais ligados ao proprios materiais do livro. podia tambem usar o logo da empresa, em vez de usar so as inciias do nome. Melhora tambem a assinatura de emal, devia ser tipo um “BTN”\n15 - Comprar Paginas Digitais e planos nao está a funcionar (por agora o gateway de pagamento nao esta  funcionar, saltamos o pagamento, mas deve funcionar o resto a 100%)\n16 - Cria os produtos na loja (já estiveram criado anteriormente).",
+    "status": "concluida",
+    "projectId": "164c8353-91d7-4161-a43b-4ab9c09b160c",
+    "order": 1,
+    "provider": "claude",
+    "model": "opus",
+    "skills": [
+      "filament",
+      "laravel-specialist",
+      "laravel-react"
+    ],
+    "lastStatus": "ok",
+    "createdAt": 1782991803000,
+    "updatedAt": 1782991906978,
+    "result": "Recebido e a trabalhar. O worker `3ce72dfe...` (LE_Plataforma) já começou — leu a tarefa completa (16 pontos) e está a arrancar (thinking), sem menu preso. A sentinela de fim foi armada.\n\nResumo:\n- `3ce72dfe...` (LE_Plataforma): a executar os 16 pontos, vai ler as skills filament/laravel-specialist/laravel-react primeiro; estado `working`.\n- Saio agora; volto quando o worker terminar ou pedir uma escolha. Como são 16 pontos, isto vai levar tempo — se algum for irreversível (deploy/apagar) paro e pergunto-te.",
+    "testerResult": "Confirmado: o worker `87f86326` (LE) recebeu a nova ordem e está a trabalhar (`working`, a processar a tarefa de revisão+teste). A survey \"How is Claude doing\" é overlay não-bloqueante (`awaitingChoice=false`), não requer acção.\n\nResumo:\n- `87f86326` (LE_Plano): a rever e testar \"Corrigir e melhorias LE\" com tester-code + tester-ui-ux; vai listar problemas sem corrigir. `working`.\n- `3ce72dfe` (LE_Plataforma): estava `working` — não toquei.\n\nVolto quando o worker terminar com o relatório de problemas."
+  },
+  {
+    "id": "e4e07757-a768-4687-8c18-ee11c67b2c10",
+    "title": "LE Plataforma Erros",
+    "description": "No Livro de Elogios Plataforma, Eu consigo ativer 4 loja num plano de 3, na primeira vez que ativei a 4, apareceu o alerta que pagava, mas depois consegui ativar 4 sem pagar.\nDepois de pagar 1 Loja posso ter sempre uma loja ativa (nao pago sempro que ativo, pago por 1 loja ativa), posso ate desativar uma e ativar outra, mas depois de pagar, fico sempre com uma online. mesmo que ative depois uma subscrição com 3 lojas, se ja tiver uma paga, passo a poder ter 4 (3 da subscrição + 1 paga) se cancelar a subscrição, passo a ter 1 paga (perco so as 3 da subscrição)",
+    "status": "a-definir",
+    "projectId": "164c8353-91d7-4161-a43b-4ab9c09b160c",
+    "order": 0,
+    "provider": "claude",
+    "model": "opus",
+    "lastStatus": null,
+    "createdAt": 1783013125980,
+    "updatedAt": 1783013125980
+  }
+]

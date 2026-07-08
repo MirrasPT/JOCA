@@ -3,6 +3,9 @@
 ## Core
 - [soul.md](soul.md) — Personality engine: drives, decision filters, motivational states, user alignment. Foundation for all agents.
 
+## Workflows (`.claude/workflows/`, correr via Workflow tool `{name: '<x>', args: {...}}`)
+- `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
+
 ## Projects
 - [joca.md](projects/joca.md) — JOCA toolkit self-development (skills/agents/commands)
 - [meu-site-github.md](projects/meu-site-github.md) — Portfolio pessoal Node.js + Express + SQLite + Vanilla JS + GSAP
@@ -17,8 +20,12 @@
 - [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
 - [royal-douro.md](projects/royal-douro.md) — Marca de vinho DOC Douro ultra-premium (cliente Luís Gonçalo) — híbrido marketing + website static (Vanilla HTML/CSS/JS + Tailwind CDN). royaldouro.com / @royaldouro.wine.
 - [tcg.md](projects/tcg.md) — TCG 1v1 (duelo de cartas) tema histórico-medieval + mitologia — Unity (C#), alvo Android; motor de regras puro separado da UI
+- [livro-de-elogios-geral.md](projects/livro-de-elogios-geral.md) — **Umbrella** Livro de Elogios: SaaS de elogios PT (rebuild + legacy Wireframes) + Brasil (logo/vídeo/site) + redes sociais + parceria FIZ
+- [livro-de-elogios.md](projects/livro-de-elogios.md) — Plataforma (rebuild 2026): Laravel 13/PHP 8.4 + Filament v5 + React 19/Vite 8, multi-tenant multi-país
+- [livro-elogios-redes-sociais.md](projects/livro-elogios-redes-sociais.md) — Pipeline mensal de conteúdo social (Posts/Stories IG+FB), Lato + ilustrações laranja+roxo, galeria leredes.rfdev.pt
+- [stickers-premium.md](projects/stickers-premium.md) — Redesign de stickerspremium.com (loja vinil/decals auto, Shopify). Proposta template HTML/CSS/JS → Shopify. Conteúdo real extraído em content/
 ## Feedback
-<!-- Populated by /feedback-joca — processed sessions live in feedback/archive/ -->
+<!-- Populated by /save (auto-extract) — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_
 
 Processed 2026-06-27 (/upgrade-joca — 10 sessions, 12 improvements) — archived:
@@ -60,7 +67,6 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `/know` — ingest content into the Knowledge Base (markitdown → summary → tags)
 - `/migrate` — v1-legacy → v2.0 migration guide
 - `/build-plan` — supervised phased build: plan doc → per-phase tasks → loop with test gate
-- `/feedback-joca` — capture workflow issues from this session
 - `/init-project` — initialize new project entry in memory
 - `/install` — JOCA setup on a new machine
 - `/upgrade-joca` — apply feedback + self-improvement loop
@@ -68,12 +74,15 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `/create-skill [desc]` — create new skill via research pipeline
 - `/sync-questionnaires` — audit + realign questionnaires/counters with the real skill/agent inventory
 - `/status` — mostra rate limits, modelo e uso de contexto atual
+- `/help-joca` — quick reference: commands, agents, skills
+- `/wp-perf` — quick WordPress performance triage
+- `/wp-perf-review` — WordPress performance code review (Critical/Warning/Info)
 
 
 ## Agents
 
 ### Review & Testing
-- `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api`
+- `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api` · `tester-ratelimit`
 - `codex-review` (Master Review: Security/Perf/Clean/Arch) · `prd-reviewer`
 
 ### Orchestration
@@ -83,7 +92,7 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `deep-research` · `seo-analyst` · `log-debugger` · `query-debugger`
 
 ### Generation & Media
-- `img-gen-google` · `img-gen-openai` · `gemini-brain` · `watch`
+- `img-gen-google` · `img-gen-openai` · `gemini-brain` · `watch` · `video-gen`
 
 ### Specialists
 - `payment-integration` · `dependency-auditor` · `design-system-audit`
@@ -93,8 +102,12 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `laravel-refactor` (dead code/complexity/Larastan/scale) · `filament-builder` (scaffold resource) · `security-review`
 - `tech-debt-auditor` (mede ganho) · `pr-repair` (repara PR até verde) · `deploy-executor` (corre+verifica deploy)
 
-### Autonomia & Pessoal (FUTUROS)
-- `knowledge-ingest` (/know) · `automation-builder` (Fase 3) · `personal-comms` (email/calendário, Fase 2/3) · `a11y-fixer` (aplica fixes WCAG)
+### Game Dev (TCG + Unity)
+- `tcg-balance-auditor` (power-budget + caça loops infinitos) · `card-catalog-sync` (cards.html ↔ motor C#) · `tcg-playtester` (self-play seeded: crashes/stalls/win-rate) · `unity-build-runner` (corre+verifica build headless, ignora exit code)
+- Skills: `card-game-design` · `game-balance` · `card-art-pipeline` · `unity-gamedev` (director) · `unity-ui` (UGUI/board/animação/mobile) · `unity-build-android` (IL2CPP/AAB/keystore)
+
+### Autonomia & Pessoal
+- `knowledge-ingest` (/know) · `automation-builder` · `personal-comms` (email/calendário, Fase 2/3) · `a11y-fixer` (aplica fixes WCAG)
 
 ## Tools
 - [mcps.md](tools/mcps.md) — MCP servers ligados (markitdown, playwright, comfy) + setup markitdown para /know

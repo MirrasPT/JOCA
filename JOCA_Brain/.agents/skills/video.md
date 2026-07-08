@@ -237,8 +237,6 @@ cinematic color grading, 4K
 - Missing style — "cinematic," "documentary," "commercial"
 - Requesting text in video — AI models struggle with readable text
 
-**Detailed prompting guides**: See [references/ai-video-prompting.md](references/ai-video-prompting.md)
-
 ### AI Generation vs. Stock
 
 | Use Case | AI Generation | Stock Footage |

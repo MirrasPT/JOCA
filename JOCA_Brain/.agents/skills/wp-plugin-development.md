@@ -1,6 +1,6 @@
 ---
 name: wp-plugin-development
-description: "Plugin architecture, hooks, activation/deactivation/uninstall, admin UI, Settings API, data storage, cron, security. MUST be invoked when the user mentions: WordPress, UI, Settings API."
+description: "WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Invoke on: criar plugin WP, settings page, nonces/capabilities."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
 ---
 
@@ -26,9 +26,8 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 ### 0) Triage and locate entrypoints
 
 1. Run triage:
-   - `node skills/wp-project-triage/scripts/detect_wp_project.mjs`
-2. Detect plugin headers:
-   - `node skills/wp-plugin-development/scripts/detect_plugins.mjs`
+   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
+2. Detect plugin headers manualmente: grep por `Plugin Name:` em `*.php` — o script não existe nesta instalação.
 
 For full site repos, pick the specific plugin under `wp-content/plugins/` or `mu-plugins/` before editing.
 
@@ -39,8 +38,6 @@ For full site repos, pick the specific plugin under `wp-content/plugins/` or `mu
 - Dedicated loader/class to register hooks.
 - Admin-only code behind `is_admin()` (or admin hooks) to cut frontend overhead.
 
-See: `references/structure.md`
-
 ### 2) Hooks and lifecycle
 
 Activation hooks are fragile; follow guardrails:
@@ -49,14 +46,10 @@ Activation hooks are fragile; follow guardrails:
 - Flush rewrite rules only when needed, only after registering CPTs/rules.
 - Explicit, safe uninstall (`uninstall.php` or `register_uninstall_hook`).
 
-See: `references/lifecycle.md`
-
 ### 3) Settings and admin UI (Settings API)
 
 - `register_setting()`, `add_settings_section()`, `add_settings_field()`
 - Sanitize via `sanitize_callback`
-
-See: `references/settings-api.md`
 
 ### 4) Security baseline (always)
 
@@ -65,15 +58,11 @@ See: `references/settings-api.md`
 - Never trust raw `$_POST`/`$_GET`; use `wp_unslash()` and specific keys.
 - `$wpdb->prepare()` for SQL; no string-concatenated queries.
 
-See: `references/security.md`
-
 ### 5) Data storage, cron, migrations (if needed)
 
 - Options for small config; custom tables only when necessary.
 - Cron tasks must be idempotent; provide manual run paths (WP-CLI or admin).
 - Schema changes need upgrade routines + stored schema version.
-
-See: `references/data-and-cron.md`
 
 ## Verification
 
@@ -90,8 +79,6 @@ See: `references/data-and-cron.md`
   - Settings not registered, wrong option group, missing capability, nonce failure.
 - Security regressions:
   - Nonce present but missing capability checks; sanitized input not escaped on output.
-
-See: `references/debugging.md`
 
 ## Escalation
 

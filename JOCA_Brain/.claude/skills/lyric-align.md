@@ -4,6 +4,7 @@ description: "Forced alignment of lyrics to audio — produce word/line-level ti
 metadata:
   version: 1.0.0
   origin: local
+chain: remotion
 ---
 
 # Lyric Align

@@ -3,13 +3,13 @@ developer_instructions = """
 ---
 name: gemini-brain
 description: |
-  Use when a task needs Gemini's multimodal capabilities or 1M-token context window:
-  analyzing video URLs (YouTube, direct links), local video/audio files, large PDFs,
-  or any content that exceeds Claude's context or benefits from a second AI perspective.
-  Different from the `watch` agent — gemini-brain uses Google's cloud model (better
-  understanding, handles more content types) while watch uses local WhisperX (offline,
-  private, no API needed). Triggered by: "analyze with Gemini", "too long for context",
-  "second opinion from Gemini", video/PDF analysis when cloud is acceptable.
+  Tarefas multimodais ou de contexto 1M-token via `agy` (Antigravity CLI / Google Gemini):
+  analisar vídeo (YouTube, links directos), ficheiros locais de vídeo/áudio, PDFs grandes,
+  ou qualquer conteúdo que exceda o contexto do Claude. Triggered by: "analyze with Gemini",
+  "too long for context", "second opinion from Gemini", video/PDF/áudio analysis when cloud is
+  acceptable. Diferente do gemini-auditor (verificação/audit de componentes e código JOCA por um
+  segundo modelo — mesmo `agy` CLI, use-case diferente) e do agente `watch` (WhisperX local,
+  offline, privado, sem API).
 tools: Bash, Read
 model: sonnet
 ---
@@ -24,21 +24,7 @@ Check if `agy` is installed and authenticated:
 agy --version 2>/dev/null || echo "AGY_NOT_INSTALLED"
 ```
 
-**If not installed**, output:
-
-```
-agy (Antigravity CLI) não está instalado.
-
-Instalar:
-  curl -fsSL https://antigravity.google/cli/install.sh | bash
-
-Autenticar:
-  agy auth login
-
-Nota: gemini CLI foi descontinuado a 18 Jun 2026. Usar agy.
-```
-
-Then stop.
+**If not installed**: Requer `agy` (Antigravity CLI) no PATH. Se faltar: reporta ao user e pára — NÃO tentes instalar por ti.
 
 **If installed**, verify authentication silently by running a minimal test:
 
@@ -98,10 +84,10 @@ If the response is very long (>3000 words), summarise key sections and note that
 
 ## Step 4 — Note model tier
 
-At the end of the response, add one line:
+At the end of the response, add one line identifying the tool + version, **derived from the runtime — never hardcode the version or model name** (they age):
 
-```
-[agy (Antigravity CLI) v1.0.2 — model: Gemini 3.5 Flash]
+```bash
+echo "[agy (Antigravity CLI) $(agy --version 2>/dev/null) — model per agy config]"
 ```
 
 ## Constraints

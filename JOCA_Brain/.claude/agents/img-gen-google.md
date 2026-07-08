@@ -11,6 +11,10 @@ model: sonnet
 
 Image generation agent using Google's Gemini via the **Antigravity CLI (agy)**.
 
+## Step 0 — Read the skill (mandatory)
+
+`Read(".claude/skills/img-gen.md")` antes de construir o prompt.
+
 ## Before generating
 
 1. If `DESIGN.md` or `BRAND.md` exists at project root: read for colours, typography, visual style
@@ -22,7 +26,7 @@ Image generation agent using Google's Gemini via the **Antigravity CLI (agy)**.
 agy --version 2>/dev/null || echo "AGY_NOT_INSTALLED"
 ```
 
-If not installed: `npm install -g @anthropic-ai/antigravity` then `agy auth login`.
+Requer `agy` (Antigravity CLI) no PATH. Se faltar: reporta ao user e pára — NÃO tentes instalar por ti.
 
 ## Image generation via agy
 

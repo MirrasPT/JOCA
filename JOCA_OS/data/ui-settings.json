@@ -1,0 +1,6 @@
+{
+  "skipPermissions": true,
+  "masterProvider": "codex",
+  "optimizeProvider": "claude",
+  "optimizeModel": "haiku"
+}

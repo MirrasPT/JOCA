@@ -3,6 +3,7 @@ name: selfhosted-arr
 description: "Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr + qBittorrent) on a Docker VPS, including inter-app wiring via REST APIs. MUST be invoked when the user says: media stack, *arr, arr stack, Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, qBittorrent, self-hosted media, Plex alternative. SHOULD also invoke when: TRaSH guides, hardlinks media, docker media server, indexers, download client wiring."
 triggers: media stack, arr stack, *arr, selfhosted, self-hosted media, jellyfin, jellyseerr, sonarr, radarr, prowlarr, qbittorrent, TRaSH, trash guides, hardlinks, docker media, download client, indexers, servarr, linuxserver, media server, plex alternative
 origin: local
+chain: deploy-executor
 ---
 
 # Self-Hosted *arr Media Stack

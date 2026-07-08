@@ -1,0 +1,95 @@
+[
+  {
+    "id": "05ce2da3-a2f2-4d65-9254-3ba1bca57bca",
+    "name": "JOCA",
+    "path": "C:\\Users\\renat\\Desktop\\JOCA_FINAL",
+    "color": "#84cc16",
+    "order": 3,
+    "archived": false,
+    "githubRepo": "MirrasPT/JOCA"
+  },
+  {
+    "id": "0331de0d-222c-4616-98dd-d91e6e1752c5",
+    "name": "Bracaris Wix",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\Bracaris\\2026_Website_Brasil",
+    "color": "#ff4500",
+    "order": 4,
+    "archived": false
+  },
+  {
+    "id": "5026389d-b5b5-41af-99b6-4c37694b4bb1",
+    "name": "Bigorna",
+    "path": "D:\\Mega\\Bigorna\\2026_Website_Bigorna",
+    "color": "#84cc16",
+    "order": 5,
+    "archived": false
+  },
+  {
+    "id": "6bbf30e5-c6c7-48b0-89bc-60db47fc33d6",
+    "name": "Redes Vinhos",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\_DB",
+    "color": "#ff4500",
+    "order": 6,
+    "archived": false
+  },
+  {
+    "id": "c6cefc2a-7a4d-4bb4-8351-2960254bdd23",
+    "name": "UniMedia",
+    "path": "C:\\Users\\renat\\Projetos\\UniMedia",
+    "color": "#ff4500",
+    "order": 0,
+    "archived": false
+  },
+  {
+    "id": "c5bdfe4c-bc5d-4935-bf19-9e53e1efc562",
+    "name": "Simao-sina",
+    "path": "D:\\Mega\\_1_Varios_Save\\Simao-sina",
+    "color": "#58d879",
+    "order": 2,
+    "archived": false
+  },
+  {
+    "id": "e2224107-dbeb-4cc1-895e-57544db654a3",
+    "name": "Comfy UI",
+    "path": "D:\\_Comfyui",
+    "color": "#14b8a6",
+    "order": 1,
+    "archived": false
+  },
+  {
+    "id": "4590ee95-f68f-4479-8fe8-9f2286f4eba2",
+    "name": "Meu Site",
+    "path": "C:\\Users\\renat\\Projetos\\meu-site-github",
+    "color": "#94a3b8",
+    "githubRepo": "MirrasPT/portfolio",
+    "archived": false
+  },
+  {
+    "id": "db13ffcc-a5af-4344-99b8-cf2bfcba5769",
+    "name": "LE_Nova_Plataforma",
+    "path": "D:\\Mega\\Livro_De_Elogios\\2026_Nova_Plataforma",
+    "color": "#ff4500",
+    "archived": false
+  },
+  {
+    "id": "b1e4ab65-d2f2-4900-aea8-d49fa2f19e7d",
+    "name": "Bodegas do Campo",
+    "path": "D:\\Mega\\Bodegas do Campo (Espanhol)",
+    "color": "#a98cff"
+  },
+  {
+    "id": "a59fe8ee-f38f-49a9-95d2-b34bfc8a952c",
+    "name": "Medieval Chess",
+    "path": "C:\\Users\\renat\\Projetos\\mediaval_chess"
+  },
+  {
+    "id": "301e327e-6635-4560-bc0f-a51002f1acc6",
+    "name": "Gerador de Rótulos",
+    "path": "D:\\_Restauros\\Roma\\Gerador"
+  },
+  {
+    "id": "42a115ac-b392-4524-8512-a9bbba3df627",
+    "name": "Projeto Teste JOCA",
+    "path": "C:\\Users\\renat\\Desktop\\JOCA_FINAL\\JOCA_OS\\backend\\joca-projeto-teste"
+  }
+]

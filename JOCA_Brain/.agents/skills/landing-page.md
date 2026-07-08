@@ -2,6 +2,7 @@
 name: landing-page
 description: "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page, webinar registration, product launch page. SHOULD also invoke when: single page offer, ad landing page, pagina de captura, pagina de conversao."
 triggers: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page, webinar registration, product launch page, single page offer, ad landing page, pagina de captura, pagina de conversao
+chain: copywriting, page-cro, stop-slop
 ---
 
 # Landing Page Builder

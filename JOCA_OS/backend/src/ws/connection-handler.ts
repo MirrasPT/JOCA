@@ -6,6 +6,7 @@ import { safePath } from '../security-fs';
 import { appendMasterChat, loadUiSettings } from '../project-store';
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { runMaster } from '../master/orchestrator';
+import { resetWorkerAutoCounts } from '../master/worker-watch';
 import { HOME } from '../http/helpers';
 import { addClient, removeClient, broadcast, send } from './broadcast';
 
@@ -119,6 +120,8 @@ export function attachConnectionHandler(wss: WebSocketServer) {
             // back to THIS client only (orchestration state is per-conversation, not broadcast).
             const text = (msg.text ?? '').trim();
             if (!text) { send(ws, { type: 'error', error: 'master_message needs text' }); break; }
+            // Fresh user intent → refill each worker's auto-continuation budget (worker-watch).
+            resetWorkerAutoCounts();
             // Persist the user turn so the chat survives reloads/restarts (see GET /master-chat).
             appendMasterChat({ id: randomUUID(), role: 'user', text, ts: Date.now() });
             // Fire-and-forget; steps stream via onStep. Errors surface as a master_error message.
@@ -131,7 +134,7 @@ export function attachConnectionHandler(wss: WebSocketServer) {
                 if (step.type === 'message') send(ws, { type: 'master_message', text: step.text });
                 else if (step.type === 'step') send(ws, { type: 'orchestration_step', tool: step.tool, input: step.input });
                 else if (step.type === 'done') {
-                  send(ws, { type: 'worker_summary', summary: step.summary, isError: step.isError, costUsd: step.costUsd });
+                  send(ws, { type: 'worker_summary', summary: step.summary, isError: step.isError, costUsd: step.costUsd, auto: false, continued: step.continued });
                   appendMasterChat({ id: randomUUID(), role: 'summary', text: step.summary, isError: step.isError, costUsd: step.costUsd, ts: Date.now() });
                 }
               },

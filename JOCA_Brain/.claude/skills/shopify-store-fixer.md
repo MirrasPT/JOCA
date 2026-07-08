@@ -1,6 +1,6 @@
 ---
 name: shopify-store-fixer
-description: "Implementing fixes to a Shopify store via Admin API (GraphQL). MUST be invoked when the user mentions: Shopify, Admin API, GraphQL, Every."
+description: "Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with per-write approval. Invoke on: fix shopify store, bulk update products, apply audit fixes."
 compatibility: "Requires Shopify Admin API access (OAuth token or custom app token). GraphQL Admin API 2024-01+."
 ---
 

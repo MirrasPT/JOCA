@@ -7,7 +7,7 @@ Never touches project files, external repos, or user data.
 
 ## When to run
 
-- After accumulating `/feedback-joca` or `/save` sessions that generated feedback
+- After accumulating `/save` sessions that generated feedback
 - When the user says "upgrade joca", "apply feedback", "self-improve", "improve toolkit"
 - As periodic maintenance
 
@@ -34,7 +34,7 @@ Scan `memory/feedback/` for all `.md` files. For each file:
 3. Skip if file is inside `memory/feedback/archive/`
 
 Accepted filename patterns:
-- `session-*.md` -- manual `/feedback-joca` sessions
+- `session-*.md` -- feedback sessions auto-extracted by `/save`
 - `auto-*.md` -- auto-extracted by `/save`
 - `joca-patterns.md` -- accumulated trigger/skill patterns
 
@@ -61,7 +61,7 @@ If no unprocessed feedback files exist, inform the user:
 
 ```
 No unprocessed feedback found in memory/feedback/.
-Run /feedback-joca to capture session issues first, or /save to auto-extract patterns.
+Run /save to auto-extract feedback patterns from a session first.
 ```
 
 Stop here.
@@ -285,7 +285,8 @@ Report errors if any.
 ### 5.3 Regenerate SKILL_INDEX.json
 
 ```bash
-python3 .claude/scripts/build-skill-index.py
+# Windows usa `python` (o `python3` e o stub vazio da Store); macOS/Linux usam `python3`.
+for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done
 ```
 
 If the script does not exist or fails: manually rebuild the index by scanning `.claude/skills/` and `.claude/agents/` for frontmatter (`name`, `description`, `path`) and writing to `memory/SKILL_INDEX.json`.
@@ -371,7 +372,7 @@ For `joca-patterns.md`: do NOT move -- only mark individual entries as processed
 Next steps:
   - Run /update-joca if upstream changes are available
   - Run /sync-questionnaires if skills/agents changed (realign questionnaires + counters)
-  - Run /feedback-joca in your next session to capture new patterns
+  - Run /save in your next session to auto-capture new feedback patterns
   - Review failed items manually: <list of failed items>
 ```
 

@@ -95,8 +95,6 @@ wp_interactivity_state( 'myPlugin', array(
 
 Ensures directives like `data-wp-bind--hidden="!state.hasItems"` render correctly on first load.
 
-See `references/server-side-rendering.md` for detailed patterns.
-
 ### 4) Implement or change directives safely
 
 - Keep directive usage minimal and scoped.
@@ -108,8 +106,6 @@ See `references/server-side-rendering.md` for detailed patterns.
 - **`data-wp-ignore` deprecated** -- broke context inheritance and client-side navigation. Avoid it.
 - **Unique directive IDs**: Multiple same-type directives per element via `---` separator (e.g., `data-wp-on--click---plugin-a="..."` and `data-wp-on--click---plugin-b="..."`).
 - **New TypeScript types**: `AsyncAction<ReturnType>` and `TypeYield<T>` for async action typing.
-
-See `references/directives-quickref.md`.
 
 ### 5) Build/tooling alignment
 
@@ -124,8 +120,6 @@ If "nothing happens" on interaction:
 - Confirm DOM element has `data-wp-interactive`.
 - Confirm store namespace matches directive value.
 - Confirm no JS errors before hydration.
-
-See `references/debugging.md`.
 
 ## Verification
 
@@ -145,4 +139,3 @@ See `references/debugging.md`.
 ## Escalation
 
 - If build constraints unclear, ask: "Using `@wordpress/scripts` or custom bundler (webpack/vite)?"
-- References: `references/server-side-rendering.md`, `references/directives-quickref.md`, `references/debugging.md`

@@ -1,6 +1,6 @@
 ---
 name: agent-context
-description: "Always-active base principles for agent orchestration and context management. MUST be invoked when the user mentions: Always, Apply."
+description: "Base principles for agent orchestration and context management (briefs, fan-out caps, compression). Invoke when orchestrating sub-agents or debugging context loss."
 ---
 
 # Agent Context Engineering — Base Principles

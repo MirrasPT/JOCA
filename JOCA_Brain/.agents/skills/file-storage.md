@@ -1,6 +1,6 @@
 ---
 name: file-storage
-description: "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. MUST be invoked when the user mentions: Secure, Laravel SaaS, Cloudflare, URL, ClamAV, CDN."
+description: "Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation, virus scan, signed CDN URLs. Invoke on: file upload, S3, R2, presigned URL, ClamAV."
 when_to_use: |
   - "file upload Laravel", "upload to S3", "upload to R2", "direct upload to storage"
   - "presigned URL", "temporary upload URL", "bypass server upload"
@@ -11,6 +11,7 @@ when_to_use: |
   - "Storage facade", "Storage::fake()", "test file uploads"
   - "intervention/image", "image variants", "thumbnail generation"
 allowed-tools: Read Write Edit Bash Grep
+chain: tester-security
 ---
 
 # File Storage

@@ -1,6 +1,6 @@
 ---
 name: ab-test-setup
-description: "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test,, split test,, experiment,, test this change,, variant copy,, multivariate test,."
+description: "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test, split test, experiment, test this change, variant copy, multivariate test,."
 metadata:
   version: 1.2.0
 ---

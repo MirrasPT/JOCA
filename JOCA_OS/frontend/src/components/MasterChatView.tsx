@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, ClipboardEvent as ReactClipboardEvent, DragEvent as ReactDragEvent, KeyboardEvent } from 'react';
 import type { MasterEntry } from '../types';
 import { renderMarkdown } from '../lib/markdown';
-import { captureDrop, resolveDrop, uploadPastedImages, uploadPickedFiles, quotePath } from '../lib/fileDrop';
+import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, uploadPickedFiles, quotePath } from '../lib/fileDrop';
 import MasterTasksBoard from './MasterTasksBoard';
 import './MasterChatView.css';
 
@@ -167,23 +167,28 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
+  const [dropHint, setDropHint] = useState(false); // brief note when a drag yields no real path
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachRef = useRef<HTMLDivElement>(null);
+  const hintTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const el = logRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [entries, pending]);
 
-  // Auto-grow the textarea up to its max-height.
+  // Auto-grow the textarea from its taller default up to half the viewport height.
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.5)}px`;
   }, [draft]);
+
+  // Clear the pending drop-hint timer on unmount.
+  useEffect(() => () => { if (hintTimer.current) window.clearTimeout(hintTimer.current); }, []);
 
   // Close the attach menu on outside click / Escape.
   useEffect(() => {
@@ -235,8 +240,16 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
     finally { setUploading(false); }
   };
 
-  // Drag-drop files/images/folders onto the Master: resolve to absolute paths (upload when the
-  // browser hides the path) and append them to the draft, so the Master can hand them to a worker.
+  // Show a brief note (auto-hides) when a drag carried no usable path.
+  const flashDropHint = () => {
+    setDropHint(true);
+    if (hintTimer.current) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setDropHint(false), 4200);
+  };
+
+  // Drag-drop files/images/folders onto the Master: same rule as the terminals — a DRAG references the
+  // file's real on-disk path (no copy). Only Ctrl+V saves a copy to JOCA_Drops. The browser hides
+  // OS-file-manager paths (Windows Explorer sandbox) → dragRealPaths is [] there; then hint the user.
   const onDragOver = (e: ReactDragEvent) => {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
@@ -245,16 +258,16 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
   const onDragLeave = (e: ReactDragEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false);
   };
-  const onDrop = async (e: ReactDragEvent) => {
+  const onDrop = (e: ReactDragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const cap = captureDrop(e.nativeEvent);
-    setUploading(true);
-    try {
-      const { paths } = await resolveDrop(cap);
-      insertPaths(paths);
-    } finally {
-      setUploading(false);
+    const paths = dragRealPaths(cap);
+    if (paths.length > 0) { insertPaths(paths); return; } // real path (JOCA Files / Finder) → no copy
+    if (dropHadFilesWithoutPath(cap)) {
+      // Explorer drag (#3): no real path → upload a copy to JOCA_Drops and insert that path.
+      flashDropHint();
+      void resolveDrop(cap).then(({ paths: uploaded }) => { if (uploaded.length) insertPaths(uploaded); });
     }
   };
 
@@ -336,6 +349,12 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
             </div>
           )}
 
+          {dropHint && (
+            <div className="mc-drop-note" role="status">
+              Arrastar não copia o ficheiro — usa Ctrl+V ou o painel Ficheiros.
+            </div>
+          )}
+
           <div className="mc-composer">
             <div className="mc-composer-inner">
               <textarea
@@ -347,7 +366,7 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
                 onPaste={onPaste}
                 placeholder={uploading ? 'A carregar ficheiro(s)…' : 'Instrução para o Master…'}
                 aria-label="Instrução para o Master"
-                rows={1}
+                rows={3}
               />
               <div className="mc-composer-bar">
                 <div className="mc-attach" ref={attachRef}>

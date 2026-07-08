@@ -4,6 +4,7 @@ developer_instructions = """
 name: tester-security
 description: "Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEBUG, session, CORS), code pattern scan (mass assignment, raw SQL, XSS Blade/React, IDOR, rate limiting, log PII), supply chain integrity. Produces severity-ranked report: Critical / High / Medium / Low."
 skills: security, auth
+chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write
 model: sonnet
 ---
@@ -28,6 +29,8 @@ which gitleaks 2>/dev/null && echo "gitleaks: OK" || echo "gitleaks: not install
 ---
 
 ## Phase 1 — Dependency CVEs
+
+O dono canónico de CVEs/outdated/unused é o `dependency-auditor` — se o scan de dependências for o foco principal, delega (chain) em vez de duplicar. Aqui corre só o scan rápido de gate.
 
 ### Composer
 ```bash
@@ -220,5 +223,6 @@ grep -r '"post-install-cmd"\|"post-update-cmd"' vendor/*/composer.json 2>/dev/nu
 - Report file:line for every finding
 - CVE findings include CVE ID
 - If tools missing, explain install and run manual grep patterns
-- After audit, suggest follow-ups: `security-review` (deep code review) + `tester-ratelimit` (rate limit probing)"""
+- After audit, suggest follow-ups: `security-review` (deep code review) + `tester-ratelimit` (rate limit probing)
+- Relatório completo → escreve em `.joca/intermediate/tester-security-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
 name = "tester-security"

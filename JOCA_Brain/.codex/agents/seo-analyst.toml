@@ -122,7 +122,7 @@ From scraped pages, look for JSON-LD blocks. Validate:
 
 ## Phase 5 — Report
 
-Save to `seo-audit/` in the project directory (create if needed).
+Save to `.joca/intermediate/seo-analyst-<domain>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão — nunca dentro da árvore do projecto, o content-scanner do Tailwind v4 apanha-o).
 
 ```markdown
 # SEO Audit — <domain>

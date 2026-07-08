@@ -1,0 +1,116 @@
+[
+  {
+    "id": "05ce2da3-a2f2-4d65-9254-3ba1bca57bca",
+    "name": "JOCA",
+    "path": "C:\\Users\\renat\\Desktop\\JOCA_FINAL",
+    "color": "#84cc16",
+    "order": 3,
+    "archived": true,
+    "githubRepo": "MirrasPT/JOCA"
+  },
+  {
+    "id": "0331de0d-222c-4616-98dd-d91e6e1752c5",
+    "name": "Bracaris Wix",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\Bracaris\\2026_Website_Brasil",
+    "color": "#ff4500",
+    "order": 4,
+    "archived": true
+  },
+  {
+    "id": "5026389d-b5b5-41af-99b6-4c37694b4bb1",
+    "name": "Bigorna",
+    "path": "D:\\Mega\\Bigorna\\2026_Website_Bigorna",
+    "color": "#84cc16",
+    "order": 5,
+    "archived": true
+  },
+  {
+    "id": "6bbf30e5-c6c7-48b0-89bc-60db47fc33d6",
+    "name": "Redes Vinhos",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\_DB",
+    "color": "#ff4500",
+    "order": 6,
+    "archived": true
+  },
+  {
+    "id": "c6cefc2a-7a4d-4bb4-8351-2960254bdd23",
+    "name": "UniMedia",
+    "path": "C:\\Users\\renat\\Projetos\\UniMedia",
+    "color": "#ff4500",
+    "order": 7,
+    "archived": true
+  },
+  {
+    "id": "c5bdfe4c-bc5d-4935-bf19-9e53e1efc562",
+    "name": "Simao-sina",
+    "path": "D:\\Mega\\_1_Varios_Save\\Simao-sina",
+    "color": "#58d879",
+    "order": 8,
+    "archived": true
+  },
+  {
+    "id": "4590ee95-f68f-4479-8fe8-9f2286f4eba2",
+    "name": "Meu Site",
+    "path": "C:\\Users\\renat\\Projetos\\meu-site-github",
+    "color": "#94a3b8",
+    "githubRepo": "MirrasPT/portfolio",
+    "archived": true,
+    "order": 9
+  },
+  {
+    "id": "154b321e-59cb-49dd-aa2f-c81cff09a71b",
+    "name": "Bodegas do Campo (Espanhol)",
+    "path": "D:\\Mega\\Bodegas do Campo (Espanhol)",
+    "color": "#a98cff",
+    "archived": true,
+    "order": 2
+  },
+  {
+    "id": "89a0ae2c-cbe0-4e22-9e5e-bca2dee3bedb",
+    "name": "JOCA - Open Source",
+    "path": "C:\\Users\\renat\\Desktop\\JOCA - Open Source",
+    "color": "#ff4500",
+    "archived": true,
+    "order": 11
+  },
+  {
+    "id": "164c8353-91d7-4161-a43b-4ab9c09b160c",
+    "name": "LE",
+    "path": "D:\\Mega\\Livro_De_Elogios",
+    "color": "#ff5000",
+    "archived": false,
+    "order": 0
+  },
+  {
+    "id": "bff76a78-7c00-4504-a7fa-2c259ee585fd",
+    "name": "Eurico Fertuzinhos",
+    "path": "D:\\Mega\\Eurico Fertuzinhos",
+    "color": "#0ea5e9",
+    "archived": true,
+    "order": 1
+  },
+  {
+    "id": "4bf1d667-375b-40f0-a3f1-d66cc1ab2f31",
+    "name": "Royal Douro",
+    "path": "G:\\O meu disco\\Clientes\\Luis Goncalo (Elite Cozinhas e Bracaris)\\Royal Douro",
+    "color": "#f97316",
+    "archived": true,
+    "order": 14
+  },
+  {
+    "id": "06b65187-f5fa-4833-a025-67e27c7fe1eb",
+    "name": "tcg",
+    "path": "C:\\Users\\renat\\Projetos\\tcg",
+    "color": "#ff4500",
+    "archived": true,
+    "order": 15
+  },
+  {
+    "id": "5a5f1d41-16b6-4f80-b48b-f8bae53fd5d9",
+    "name": "Comfy Ui",
+    "path": "D:\\_Comfyui",
+    "color": "#84cc16",
+    "archived": true,
+    "order": 16
+  }
+]

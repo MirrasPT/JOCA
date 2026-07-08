@@ -18,6 +18,9 @@ directorio: N/A (servidor remoto)
 | `planobracaris.rfdev.pt` | `/var/www/planobracaris/` | Relatório campanhas ads Bracaris SP/RJ 2026 (HTML + 5 imagens) |
 | `trypost.rfdev.pt` | Docker `/opt/trypost` (127.0.0.1:8000) | **TryPost** — agendador/publicador social self-hosted (Laravel, AGPL-3.0). Caddy → 127.0.0.1:8000 |
 | `cartastcg.rfdev.pt` | `/var/www/cartastcg/` | **TCG — Codex de cartas** (catálogo estático do projecto `tcg`): `index.html` (= `cards.html`) + `assets/cards/*.png` (38 PNGs). Vhost estático Caddy. Deploy 2026-06-27 |
+| `leredes.rfdev.pt` | `/var/www/leredes/` | **Livro de Elogios — galeria Redes Sociais** (review do cliente): `index.html` mobile-first (Lato, `#FD5000`, grid 2-col→1-col, lightbox, `noindex`) + `img/julho/` (9) + `img/junho/` (9) + `img/maio/` (6). Secções por mês (array `DATA` no HTML, newest first). Vhost estático Caddy. Deploy 2026-06-29. |
+| `renatoferreira.rfdev.pt` | `/opt/portfolio/` (Node, `127.0.0.1:3002`) | **Portfólio Renato Ferreira** (projecto `meu-site-github`) — **app dinâmica Node/Express+SQLite** (NÃO estático). Serviço `systemd portfolio.service` → `node server.js` em `/opt/portfolio/backend`, bound `127.0.0.1:3002` (ufw off → HOST=127.0.0.1 no `.env` é o que o mantém privado). Caddy `reverse_proxy 127.0.0.1:3002`. 32 projectos na BD + 245 MB de imagens em `frontend/public/uploads/`. Deploy 2026-07-03. |
+| `luisplanoredes.rfdev.pt` | `/var/www/luisplanoredes/` | **Elite Imagens DB — calendário de posts** (projecto `elite-imagens-db`, cliente Luis Gonçalo): `index.html` (= `posts_MM-2026.html`) + PNGs (Alkimia/Royal Douro/Bracaris) na raiz. Vhost estático Caddy. Deploy 2026-07-03 (ciclo Julho, 6/8 posts — 2 pendentes de quota Gemini, redeploy a seguir). |
 
 > **Media stack (*arr/Jellyfin) REMOVIDA pelo user em 2026-06-27** — decisão intencional, completamente apagada (0 containers, sem `/opt/media`). A secção histórica abaixo fica só como referência do que existiu.
 
@@ -64,7 +67,8 @@ Instalada 2026-06-23. Docker 29.6 + Compose v5.1 (repo oficial, codename `resolu
 - **Zonas na conta:** `rfdev.pt` (`5249326e14740641fc7bca37bbe0c0c8`), `bracaris.com.br`, `divinealvarinho.com`, `renatoferreira.org`, `royaldouro.com`, `vinartis.pt`, `alkimiawine.pt` (`396f62f329714d98b96a3e3bd80a255c`, **active** 2026-06-27, **vazia** — 0 records).
 - ⚠ API token e credenciais R2/S3 NÃO guardados aqui (sensíveis). **Pointer:** `C:\Users\renat\.cloudflare\datalix.json` (local, fora do git) — token `red-frost-a681` (`cfat_…`), + R2 S3 keys. Reutilizar este ficheiro, NÃO criar tokens novos.
 - **⚠ Escopo do token:** **lê TODAS as zonas da conta** + DNS CRUD, MAS **NÃO tem `zone.create`** (erro `com.cloudflare.api.account.zone.create`) nem `/user/tokens/verify`. → **Adicionar uma zona nova faz-se pelo dashboard** (ou bump da permissão Account→Zone→Create no token); depois a gestão de DNS records dessa zona já é por API.
-- Registos A geridos via API (proxied, → `194.62.248.50`): `planobracaris`, `trypost`, `jellyfin`, `requests`, `cartastcg`.
+- **Subdomínios `rfdev.pt` LIVE** (confirmado por API 2026-07-06 — 7 registos A, todos proxied → `194.62.248.50`): `cartastcg`, `leredes`, `luisplanoredes`, `packlancamento`, `planobracaris`, `renatoferreira`, `trypost`. (+ TXT `tiktok-developers-site-verification` em `trypost`.) ⚠ `jellyfin`/`requests` já **não existem** (media stack removida). ⚠ `packlancamento.rfdev.pt` aponta para o VPS mas **não está na tabela Sites activos** — origem/docroot por documentar.
+- ⚠ **rfdev.pt ≠ cPanel.** rfdev.pt vive **só** aqui (Cloudflare DNS → VPS). A conta cPanel/stableserver (`renatoferreira`) aloja `renatoferreira.org` + addons `alkimiawine.pt`/`bracaris.com`/`divinealvarinho.com`/`royaldouro.com`/`vinartis.pt` + subs `luz`/`borntobyhype`/`baby`.renatoferreira.org — infra distinta.
 
 ## Setup SSH (padrão estabelecido 2026-06-23)
 1. Gerar chave: `ssh-keygen -t ed25519 -f ~/.ssh/datalix_id -N "" -C "joca@datalix"`
@@ -115,6 +119,8 @@ VPS operacional. Caddy v2.11.4 activo. Sites: `planobracaris.rfdev.pt` (relatór
 - **`alkimiawine.pt`** — zona Cloudflare **active mas vazia** (0 records). Definir para onde aponta (site / redirect / VPS Datalix) quando o user decidir — records via API (token tem DNS CRUD na zona).
 
 ## Última sessão
+2026-07-06 — **Auditoria de subdomínios `rfdev.pt`** (read-only). Consulta à zona Cloudflare (`5249326e14740641fc7bca37bbe0c0c8`) via API: 7 subdomínios A live (todos proxied → VPS). Corrigida a lista de registos A (estava a listar `jellyfin`/`requests` já removidos; faltavam `renatoferreira`/`leredes`/`packlancamento`). Detectado `packlancamento.rfdev.pt` sem entrada na tabela Sites activos. Confirmado que rfdev.pt não toca no cPanel (esse = `renatoferreira.org` + 5 addons).
+
 2026-06-27 (d) — **Deploy de `cartastcg.rfdev.pt`** (catálogo estático de cartas do projecto `tcg`). DNS A via API (proxied) + `/var/www/cartastcg/` (`cards.html`→`index.html` + 38 PNGs de `assets/cards/`, 48 MB) via scp + vhost estático Caddy (`root`+`file_server`+`encode gzip`) + `chown caddy:caddy` + `caddy fmt`+reload. Health-check 200 à 1ª (página + arte `image/png`), sem 525 transitório. Cartas Astecas/Gregas mostram placeholder (`noart:true`, sem PNG).
 
 2026-06-27 (c) — **`alkimiawine.pt` migrado para a Cloudflare** (cliente Alkimia). Confirmado que o token Datalix lê todas as zonas + DNS CRUD mas **não cria zonas** → user adicionou a zona pelo dashboard. Verificado que o domínio estava parqueado em `host-redirect.com` e **não servia nada** (0 records públicos). NS no registrador → `bill`+`rosalyn` (par fixo da conta); zona confirmada **active** por API. Fica vazia até definir records. Aprendizagem-chave persistida: par de NS da conta + escopo do token.

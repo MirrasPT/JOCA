@@ -27,7 +27,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 ### 0) Triage and locate REST usage
 
 1. Run triage:
-   - `node skills/wp-project-triage/scripts/detect_wp_project.mjs`
+   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
 2. Search for existing REST usage:
    - `register_rest_route`
    - `WP_REST_Controller`
@@ -41,11 +41,9 @@ For full site repos, pick the specific plugin/theme before changing code.
 - **Expose CPT/taxonomy in `wp/v2`:**
   - Set `show_in_rest => true` + `rest_base` if needed.
   - Optionally provide `rest_controller_class`.
-  - Read `references/custom-content-types.md`.
 - **Custom endpoints:**
   - Use `register_rest_route()` on `rest_api_init`.
   - Prefer a controller class (`WP_REST_Controller` subclass) for non-trivial cases.
-  - Read `references/routes-and-endpoints.md` and `references/schema.md`.
 
 ### 2) Register routes safely (namespaces, methods, permissions)
 
@@ -55,15 +53,11 @@ For full site repos, pick the specific plugin/theme before changing code.
 - Return data via `rest_ensure_response()` or `WP_REST_Response`.
 - Return errors via `WP_Error` with explicit `status`.
 
-Read `references/routes-and-endpoints.md`.
-
 ### 3) Validate/sanitize request args
 
 - Define `args` with `type`, `default`, `required`, `validate_callback`, `sanitize_callback`.
 - Prefer JSON Schema validation with `rest_validate_value_from_schema` then `rest_sanitize_value_from_schema`.
 - Never read `$_GET`/`$_POST` directly; use `WP_REST_Request`.
-
-Read `references/schema.md`.
 
 ### 4) Responses, fields, and links
 
@@ -73,23 +67,17 @@ Read `references/schema.md`.
 - For unfiltered post content (e.g., ToC plugins injecting HTML), request `?context=edit` to access `content.raw` (auth required). Pair with `_fields=content.raw` to keep responses small.
 - Add related resource links via `WP_REST_Response::add_link()`.
 
-Read `references/responses-and-fields.md`.
-
 ### 5) Authentication and authorization
 
 - For wp-admin/JS: cookie auth + `X-WP-Nonce` (action `wp_rest`).
 - For external clients: application passwords (basic auth) or auth plugin.
 - Use capability checks in `permission_callback` (authorization), not just "logged in".
 
-Read `references/authentication.md`.
-
 ### 6) Client-facing behavior (discovery, pagination, embeds)
 
 - Ensure discovery works (`Link` header or `<link rel="https://api.w.org/">`).
 - Support `_fields`, `_embed`, `_method`, `_envelope`, pagination headers.
 - `per_page` capped at 100.
-
-Read `references/discovery-and-params.md`.
 
 ## Verification
 

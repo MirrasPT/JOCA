@@ -1,6 +1,6 @@
 ---
 name: launch-strategy
-description: "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch,, Product Hunt,, feature release,, announcement,, go-to-market,, beta launch,."
+description: "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch, Product Hunt, feature release, announcement, go-to-market, beta launch,."
 metadata:
   version: 1.1.0
 ---

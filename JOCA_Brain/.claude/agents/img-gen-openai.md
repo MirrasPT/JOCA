@@ -12,6 +12,10 @@ model: sonnet
 
 Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.
 
+## Step 0 — Read the skill (mandatory)
+
+`Read(".claude/skills/img-gen.md")` antes de construir o prompt.
+
 ## Before generating
 
 1. If `DESIGN.md` or `BRAND.md` exists at project root: read for colours, typography, visual style

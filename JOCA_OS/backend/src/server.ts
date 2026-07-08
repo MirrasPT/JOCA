@@ -18,6 +18,7 @@ import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
+import { initMasterWorkerWatch } from './master/worker-watch';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
 // ('done' is consumed by the Master; it is NOT broadcast, so the UI is unchanged.)
@@ -86,4 +87,5 @@ server.listen(PORT, '127.0.0.1', () => {
   }
   startScheduler(automationDeps);
   startTasksEngine();
+  initMasterWorkerWatch(); // worker done → auto follow-up Master turn (continue / answer)
 });

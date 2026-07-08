@@ -2,7 +2,7 @@ import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems } from '../types';
 import TerminalPane from './TerminalPane';
 import { shortPath, basename } from '../lib/paths';
-import { captureDrop, resolveDrop, uploadPickedFiles } from '../lib/fileDrop';
+import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
 import './TerminalView.css';
 
 interface Props {
@@ -158,6 +158,34 @@ export default function TerminalView({
     setAttachments((prev) => prev.filter((p) => p !== path));
   }, []);
 
+  // Model quick-switch (#20): sends `/model <alias>` straight into the active Claude Code terminal.
+  const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const modelWrapRef = useRef<HTMLDivElement>(null);
+  const setModel = useCallback((alias: string) => {
+    if (!activeId) return;
+    onInput(activeId, `/model ${alias}\r`);
+    setModelMenuOpen(false);
+  }, [activeId, onInput]);
+  // Close the model menu on an outside click.
+  useEffect(() => {
+    if (!modelMenuOpen) return;
+    const onDoc = (ev: MouseEvent) => {
+      if (modelWrapRef.current && !modelWrapRef.current.contains(ev.target as Node)) setModelMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [modelMenuOpen]);
+
+  // Non-blocking hint shown when a drop carried files but the OS hid the real path (Explorer sandbox).
+  const [dropHint, setDropHint] = useState(false);
+  const dropHintTimer = useRef<number | null>(null);
+  const flashDropHint = useCallback(() => {
+    setDropHint(true);
+    if (dropHintTimer.current) clearTimeout(dropHintTimer.current);
+    dropHintTimer.current = window.setTimeout(() => setDropHint(false), 4000);
+  }, []);
+  useEffect(() => () => { if (dropHintTimer.current) clearTimeout(dropHintTimer.current); }, []);
+
   const [slashIndex, setSlashIndex] = useState(-1);
   const slashMenuRef = useRef<HTMLDivElement>(null);
 
@@ -252,18 +280,53 @@ export default function TerminalView({
     <div
       className="terminal-area"
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
-      onDrop={async (e) => {
+      onDrop={(e) => {
         e.preventDefault();
-        // Resolve via o helper canónico: caminho real quando disponível, senão upload
-        // p/ JOCA_Drops (o browser esconde o path on-disk). Ver lib/fileDrop.ts.
+        // Drag = referência ao caminho real do ficheiro (sem cópia). Só o Ctrl+V grava em JOCA_Drops.
+        // O browser esconde o path de drags do explorador do SO → dragRealPaths fica vazio nesses
+        // casos; arrastar do file browser do JOCA (ou Finder) dá o caminho. Ver lib/fileDrop.ts.
         const cap = captureDrop(e.nativeEvent);
-        const { paths } = await resolveDrop(cap);
+        const paths = dragRealPaths(cap);
         if (paths.length > 0) {
+          // Real path available (JOCA Files panel / Finder) → attach the ORIGINAL, no copy.
           paths.forEach((p) => addAttachment(p));
           inputAreaRef.current?.focus();
+        } else if (dropHadFilesWithoutPath(cap)) {
+          // Explorer drag: the browser sandbox hides the real path (#3). Fall back to uploading a copy
+          // to JOCA_Drops and attach that path, so the drop WORKS instead of doing nothing.
+          flashDropHint();
+          void resolveDrop(cap).then(({ paths: uploaded }) => {
+            uploaded.forEach((p) => addAttachment(p));
+            if (uploaded.length) inputAreaRef.current?.focus();
+          });
         }
       }}
     >
+      {dropHint && (
+        <div
+          role="status"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 56,
+            transform: 'translateX(-50%)',
+            maxWidth: 'calc(100% - 32px)',
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: 'rgba(232, 96, 28, 0.12)',
+            border: '1px solid rgba(232, 96, 28, 0.35)',
+            color: 'var(--text-bright)',
+            fontSize: 11,
+            fontWeight: 500,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 20,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
+          }}
+        >
+          A copiar para JOCA_Drops e anexar… (o Explorer não expõe o caminho original)
+        </div>
+      )}
       <div className="terminal-panel">
         <div className="terminal-titlebar">
           <div className="titlebar-dots" aria-hidden>
@@ -363,6 +426,49 @@ export default function TerminalView({
               </>
             )}
 
+            <div className="command-bar-divider" />
+            <div ref={modelWrapRef} style={{ position: 'relative', display: 'inline-flex' }}>
+              <button
+                type="button"
+                className="quick-command-btn"
+                onClick={() => setModelMenuOpen((o) => !o)}
+                disabled={!activeId}
+                data-tooltip="Mudar o modelo do Claude (/model)"
+              >
+                Model ▾
+              </button>
+              {modelMenuOpen && (
+                <div
+                  role="menu"
+                  style={{
+                    position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 30,
+                    display: 'flex', flexDirection: 'column', minWidth: 120, padding: 4, gap: 2,
+                    background: 'var(--surface-panel, #1c1917)', border: '1px solid var(--border-bento, rgba(255,255,255,0.08))',
+                    borderRadius: 10, boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+                  }}
+                >
+                  {[
+                    { alias: 'opus', label: 'Opus' },
+                    { alias: 'sonnet', label: 'Sonnet' },
+                    { alias: 'haiku', label: 'Haiku' },
+                    { alias: 'fable', label: 'Fable' },
+                    { alias: 'default', label: 'Default' },
+                  ].map((m) => (
+                    <button
+                      key={m.alias}
+                      type="button"
+                      role="menuitem"
+                      className="quick-command-btn"
+                      style={{ justifyContent: 'flex-start', width: '100%' }}
+                      onClick={() => setModel(m.alias)}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill">+</button>
           </div>
 
@@ -429,6 +535,17 @@ export default function TerminalView({
               aria-activedescendant={showSlashMenu && slashItems[slashIndex] ? `slash-opt-${slashItems[slashIndex].type}-${slashItems[slashIndex].name}` : undefined}
               rows={4}
               onChange={(e) => setTerminalDraft(e.target.value)}
+              onPaste={(e) => {
+                // Ctrl+V of an image (screenshot / copied picture) → upload to JOCA_Drops and add its
+                // saved path as an attachment. Text pastes fall through to the normal textarea handler.
+                const imgs = Array.from(e.clipboardData?.items ?? [])
+                  .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+                  .map((it) => it.getAsFile())
+                  .filter((f): f is File => f !== null);
+                if (imgs.length === 0) return;
+                e.preventDefault();
+                void uploadPastedImages(imgs, Date.now()).then((paths) => paths.forEach(addAttachment));
+              }}
               onKeyDown={(e) => {
                 if (showSlashMenu) {
                   if (e.key === 'ArrowDown') { e.preventDefault(); setSlashIndex((i) => Math.min(i + 1, slashItems.length - 1)); return; }

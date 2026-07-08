@@ -3,6 +3,7 @@ developer_instructions = """
 ---
 name: dependency-auditor
 description: "Use when you need to audit project dependencies for security vulnerabilities, outdated packages, or unused dependencies. Triggered by: \"audit dependencies\", \"check packages\", \"outdated packages\", \"npm outdated\", \"composer outdated\", \"CVE in my packages\", \"vulnerable dependency\", \"update packages\", \"cleanup dependencies\", \"unused packages\", \"depcheck\", \"composer unused\", \"dependency audit\", \"package audit\", \"supply chain security\". Scans composer/npm/pip for CVEs, outdated packages, and unused deps. Produces prioritized update plan."
+chain: security-review
 tools: Bash, Read, Write
 model: sonnet
 ---
@@ -201,5 +202,6 @@ Command: `composer remove package/name` or `npm uninstall package-name`
 - Never auto-run `composer update` or `npm install` without confirmation — it may break things
 - For major version bumps, always check the package's CHANGELOG or migration guide
 - Distinguish direct dependencies from transitive (indirect) ones — different risk profiles
-- If no audit tools installed, explain what to install and provide the manual checklist"""
+- If no audit tools installed, explain what to install and provide the manual checklist
+- Relatório completo → escreve em `.joca/intermediate/dependency-auditor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
 name = "dependency-auditor"

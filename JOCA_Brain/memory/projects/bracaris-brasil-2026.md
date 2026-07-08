@@ -8,8 +8,8 @@ directorio: G:\O meu disco\Clientes\Luis Goncalo (Elite Cozinhas e Bracaris)\Bra
 
 # Bracaris — Website Brasil 2026
 
-> Memória de projecto. Iniciado 2026-05-30. Última actualização: 2026-06-27.
-> Última sessão (2026-06-27): ligado `bracaris.com.br` ao Wix por pointing (Cloudflare); reescrita do testemunho Alvarinho→Loureiro.
+> Memória de projecto. Iniciado 2026-05-30. Última actualização: 2026-07-03.
+> Última sessão (2026-07-03): plano de campanhas revisto (calendário Jul–Set, copy Meta ≤125 chars) + criativos RJ/churrasco regenerados em v2 com fidelidade de rótulo corrigida.
 
 ## Descrição
 Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho Verde / casta Loureiro). Trabalho é **edição e melhoria de conteúdo** (copy, storytelling, SEO local, conversão, imagens), não dev from-scratch.
@@ -42,6 +42,8 @@ Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho V
 - **Imagens:** hero das 3 garrafas finalizada; 6 product shots 3:4 em vinha + cenas 1:1 estilo loja + 16:9 em `Gerados/produtos/`; 19 JPGs CMYK convertidos a WebP sRGB; `Produtos_Site/*.webp` prontos.
 - **Campanhas pagas SP/RJ entregues** (2026-06-01): relatório HTML + pesquisa de mercado + 4 criativos gpt-image-2. Plano R$1.000/mês × 3 meses (Jun–Ago), 60/40 SP/RJ, 60/40 Meta/Google, 76/24 B2C/B2B.
 - **Relatório publicado online** (2026-06-23): https://planobracaris.rfdev.pt (VPS Datalix + Caddy + DNS Cloudflare).
+- **Plano de campanhas revisto** (2026-07-03): calendário corrido **Jun–Ago → Jul–Set 2026** (lançamento não aconteceu em Junho; Setembro passa a ser o 1º mês do pico Set–Dez), erro de colunas na tabela do calendário corrigido, projeções re-etiquetadas + nota de realocação do budget mês 1, textos principais Meta encurtados para ≤125 chars visíveis, item `.com.br` na checklist, footer "Redigido Jun/2026 · Calendário revisto Jul/2026". **Só no ficheiro local — falta re-deploy** para planobracaris.rfdev.pt.
+- **Criativos v2** (2026-07-03): `Gerados/ads/RJ_verao_9x16_v2.png` + `churrasco_1x1_v2.png` — fidelidade do Rosé corrigida (wordmark azul + nós coloridos + vinho rosa-salmão; as v1 tinham wordmark dourado e vinho cobre) e composição limpa (garrafas ~65% da altura, churrasco sem clutter). Originais intactos; SP_urbano + b2b_horeca mantidos (já fiéis). Promovidas a variantes de anúncio sem custo: `Gerados/produtos/Rose_cena.png` (M2 RJ) + `Pack_Loureiro_Branco_cena_openai.png` (packs/Dia dos Pais).
 - **Domínio BR a apontar p/ Wix** (2026-06-27): `bracaris.com.br` (zona Cloudflare `2941377f3d0945ceb70b75bd409b3395`, conta datalix `~/.cloudflare/datalix.json`) recebeu o pointing Wix **via API**, valores **autoritativos do próprio ecrã Wix** (NÃO os 3 IPs do `.com` — Wix pede **1 só A**): A `@` → `185.230.63.107` + CNAME `www`→`pointing.wixdns.net`, **DNS-only/proxy OFF** (obrigatório). Mail (MX null + SPF + DMARC) intacto. ⚠ Wix oferece 2 métodos: usar **pointing** (mantém Cloudflare), NÃO nameservers (`ns6/ns7.wixdns.net` — perderia a Cloudflare + mail). Wix troca `pointing.wixdns.net`→`cdn1.wixdns.net` sozinho após verificar (normal). Renato fez o connect via pointing no Wix; **DNS propagado e verificado publicamente** (apex→`185.230.63.107`, www→`pointing.wixdns.net` em 1.1.1.1+8.8.8.8). **Wix em estado "a verificar"** (aviso padrão "até 48h", deadline 29 Jun 2026). **Falta** (quando Wix verificar): definir `.com.br` como **primário** (decisão 2026-06-27: manter `.com` conectado a fazer 301 p/ `.com.br`, não desligar) + confirmar SSL ao vivo.
 
 ## Pendências
@@ -52,7 +54,11 @@ Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho V
 - 🟡 **SEO title tags dos 6 produtos vazias** (usam nome por defeito) → corrigir por API (PATCH seoData title).
 - 🟡 "Três rótulos, uma só origem" ao lado de 6 cards → ajustar.
 
-**Campanhas (antes de lançar):** instalar Meta Pixel+CAPI e GA4 (eventos compra+lead)+UTMs; aplicar aviso CONAR como sobreposição nos 4 criativos; (opcional) corrigir fidelidade de rótulos em Figma/PS; criar landing/secção B2B (CNPJ) para M3/G2; contactar Evino/Divvino. ⚠ Confirmar manualmente anúncios activos dos concorrentes em facebook.com/ads/library?country=BR.
+**Campanhas (antes de lançar):** instalar Meta Pixel+CAPI e GA4 (eventos compra+lead)+UTMs; aplicar aviso CONAR como sobreposição nos 6 criativos (4 base + 2 cenas promovidas); criar landing/secção B2B (CNPJ) para M3/G2; contactar Evino/Divvino. ⚠ Confirmar manualmente anúncios activos dos concorrentes em facebook.com/ads/library?country=BR.
+
+**Relatório (pós-revisão 2026-07-03):** re-deploy do HTML actualizado para planobracaris.rfdev.pt (aguarda OK); actualizar secção 07 com os criativos v2 + 2 cenas promovidas (aguarda OK).
+
+**Branding:** decidir cor oficial do wordmark do Branco — o packshot real (`Produtos/Bracaris_Branco_Garrafa.png`) tem **salmão**, a cena canónica (`Pack_Loureiro_Branco_cena_openai.png`) tem **dourado**; alinhar os assets senão cada geração nova herda a ambiguidade.
 
 **Operacional Wix:** Renato regenera API key → actualizar `.wix-bracaris.json`; confirmar no dashboard que a app de descontos está a 3→5%/6→10%; Renato cola product shots de `Gerados/produtos/` nas páginas de produto.
 
@@ -61,6 +67,7 @@ Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho V
 - **2026-05-30 (catálogo):** descoberto acesso REST API V1 ao Wix Stores; ângulo de copy reforçado de "Origem" → **Portugal** (gatilho de valor no BR).
 - **2026-05-31:** promo de quantidade no topo da descrição (não ribbon), via REST API com `<br><br>`; conversão de assets que preservam cor via **Pillow CMYK→sRGB**, nunca ffmpeg.
 - **2026-06-01:** plano de media SP/RJ R$1.000/mês × 3, 60/40 SP/RJ, 60/40 Meta/Google, 76/24 B2C/B2B (Renato confirmou); concentração faseada, sem PMax/Advantage+; diferenciação por **origem/DOC/terroir**, não perseguir Gen Z da Casal Garcia; criativos de álcool **sem texto queimado** (copy + aviso CONAR como sobreposição na publicação).
+- **2026-07-03:** calendário do plano corrido para **Jul–Set** (lançamento não ocorreu em Junho; mês 3 entra no pico); geração de product shots usa **cenas canónicas como identity refs** (`Rose_cena.png`, `Pack_Loureiro_Branco_cena_openai.png`) — nunca garrafas soltas (gpt-image-2 inventa cores, cf. img-gen.md §2.5); v2 gravadas em ficheiros novos, originais preservados.
 - **Posicionamento de preço:** Loureiro R$54,90 (banda superior entrada/médio, ~Casal Garcia R$49–58); Branco/Rosé R$44,90 (em linha c/ Gazela). Carga fiscal import PT→BR ~60–82% → preços coerentes.
 
 ## Ficheiros / paths importantes
@@ -70,7 +77,7 @@ Site Wix **já construído** da marca **Bracaris** — vinho português (Vinho V
 - `Relatorio_Campanhas_Ads_SP-RJ_2026.html` — plano/síntese de campanhas (online em planobracaris.rfdev.pt).
 - `Produtos/` — assets-base (garrafas+latas PNG alta resolução).
 - `Produtos_Site/*.webp` — imagens prontas para o site; `Produtos_Site/_jpg/` — fontes CMYK (reconverter via Pillow).
-- `Gerados/` — heros (`Bracaris_Hero_Final_OpenAI_2K.{png,webp}`); `Gerados/produtos/` — product shots vinha 3:4 + cenas; `Gerados/ads/` — 4 criativos (RJ_verao_9x16, SP_urbano_1x1, churrasco_1x1, b2b_horeca_1x1).
+- `Gerados/` — heros (`Bracaris_Hero_Final_OpenAI_2K.{png,webp}`); `Gerados/produtos/` — product shots vinha 3:4 + cenas (**identity refs canónicas**: `Rose_cena.png`, `Pack_Loureiro_Branco_cena_openai.png`); `Gerados/ads/` — criativos: SP_urbano_1x1 + b2b_horeca_1x1 (v1 finais) · RJ_verao_9x16_v2 + churrasco_1x1_v2 (usar estas; v1 obsoletas mas preservadas).
 - `C:\Users\renat\.wix-bracaris.json` — credenciais Wix REST API (não-committed; key a regenerar).
 - **IDs de produto:** Loureiro `69ec21ce-14ea-b498-4a5f-e480cd65a557` · Branco `dc42e6f4-2edb-b77a-6e3b-0e08650ca392` · Rosé `6f6de631-bfde-0672-4e41-7a290dd2aa9b` · Pack B+R `8acbe3fc-92a6-93bf-3599-aa233ea39aa3` · Pack L+B `c1b6bbf5-8c3d-2f9f-29cf-26aa7bada026` · Pack L+R `f8efa56f-e925-c5d9-8427-2a94f0f84ad2`.
 

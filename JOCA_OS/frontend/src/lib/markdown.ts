@@ -28,6 +28,8 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// `src` stays allowed so inline markdown images (![alt](url)) render — <img> is intentionally NOT
+// in BLOCKED_TAGS. Only script/style/iframe/etc. and javascript:/data:text/html URLs are stripped.
 const ALLOWED_URL_ATTRS = new Set(['href', 'src']);
 const BLOCKED_TAGS = new Set(['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'input', 'button']);
 
@@ -44,6 +46,11 @@ function sanitizeHtml(html: string): string {
         el.removeAttribute(attr.name);
       }
     });
+  });
+  // Chat runs inside the app shell — open links in a new tab so a click never navigates the app away.
+  template.content.querySelectorAll('a[href]').forEach((a) => {
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener noreferrer');
   });
   return template.innerHTML;
 }

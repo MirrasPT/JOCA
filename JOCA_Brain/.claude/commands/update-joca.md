@@ -16,7 +16,7 @@ Determine the platform to use the correct shell syntax throughout.
 - **Windows:** `$env:OS` contains `Windows_NT`, or `node -e "console.log(process.platform)"` returns `win32`
 - **macOS/Linux:** `uname` returns `Darwin` or `Linux`
 
-All subsequent commands use `git` (cross-platform). Avoid bash-only constructs (`find`, `sed`, `date +%F`, `grep -rl`). Use `node -e` or `python3 -c` one-liners for any string/file processing.
+All subsequent commands use `git` (cross-platform). Avoid bash-only constructs (`find`, `sed`, `date +%F`, `grep -rl`). Use `node -e` or `python -c` one-liners for any string/file processing (Windows: `python`, not `python3` — the Store stub; try `python` first, fall back to `python3` on macOS/Linux).
 
 ### 2. Locate JOCA directory
 
@@ -148,7 +148,7 @@ N new commits:
   def5678 <message>
 
 Core files to update (safe):
-  M  .claude/skills/feedback-joca.md
+  M  .claude/skills/create-skill.md
   A  .claude/commands/novo-comando.md
   M  CLAUDE.md
 
@@ -302,10 +302,10 @@ If any `.claude/hooks/*.js` files were in the diff:
 ### 5d. Regenerate SKILL_INDEX (always)
 
 ```
-python3 .claude/scripts/build-skill-index.py
+for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done
 ```
 
-If `python3` is not available, try `python`. If neither works: report and skip.
+Python-first (`python` before `python3` — the Windows Store `python3` is an empty stub). If neither works: report and skip.
 
 ### 5e. New/updated skills notification (if skills changed)
 

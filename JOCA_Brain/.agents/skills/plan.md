@@ -1,6 +1,6 @@
 ---
 name: plan
-description: "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem. MUST be invoked when the user mentions: Planeamento, OODA."
+description: "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução. Invoke on: planeia, arquitectura de, migra, reestrutura, tarefa multi-ficheiro/irreversível."
 chain: design-review, frontend, laravel-specialist
 metadata:
   type: skill

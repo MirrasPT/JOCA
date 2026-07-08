@@ -316,7 +316,7 @@ Com base no tipo de projecto, pré-seleccionar áreas relevantes:
 | Tipo                    | Áreas sugeridas                                                              |
 |-------------------------|------------------------------------------------------------------------------|
 | Website/App (genérico)  | `frontend`, `tailwind`, `shadcn`, `react-patterns`, `react-composition`, `rest-api`, `auth`, `yagni`, Analytics (+ agent `a11y-fixer`) |
-| Laravel / SaaS          | `laravel-specialist`, `filament`, `laravel-react`, `saas-patterns`, `auth`, `security`, `mysql`, `queues`/`horizon-queues`, `file-storage`, `caching`, `webhooks`, `error-tracking-dev`/`error-tracking-prod`, `yagni` (+ agents `tech-debt-auditor`, `pr-repair`) |
+| Laravel / SaaS          | `laravel-specialist`, `filament`, `laravel-react`, `saas-patterns`, `auth`, `security`, `mysql`, `queues`/`horizon`, `file-storage`, `caching`, `webhooks`, `error-tracking-dev`/`error-tracking-prod`, `yagni` (+ agents `tech-debt-auditor`, `pr-repair`) |
 | E-commerce (PT)         | + `portugal-payments` (ifthenpay/MB WAY), `portugal-invoicing` (Moloni), `payment-integration` (agent) |
 | Email transacional      | `react-email`, `transactional-email`, `postmark`                            |
 | Deploy / DevOps         | `deploy-docker`, `deploy-ploi`, `deploy-cpanel`, `github` (+ agents `deploy-executor`, `pr-repair`) |

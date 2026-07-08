@@ -1,6 +1,6 @@
 ---
 name: blueprint
-description: "Creating, editing, or reviewing WordPress Playground blueprint JSON files. MUST be invoked when the user mentions: WordPress Playground, JSON, Triggers, WordPress."
+description: "Create/edit/review WordPress Playground blueprint JSON. Invoke on: Playground blueprint, blueprint.json, run-blueprint, Playground steps."
 compatibility: "WordPress 6.9+, PHP 7.2.24+. Optionally Playground CLI or a browser"
 ---
 

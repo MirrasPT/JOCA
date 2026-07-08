@@ -2,6 +2,7 @@
 name: anima
 description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone. SHOULD also invoke when: animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada."
 triggers: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone, animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada, animar, micro-interacao, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequencia animada, loading animation, skeleton, shimmer, morphing, SVG animation
+chain: design-review, tester-performance
 ---
 # Anima — Animation Specialist
 
@@ -312,14 +313,9 @@ iconAnim.addEventListener("complete", () => {
 });
 ```
 
-### Deep dives -> `./lottie-animator/`
+### Deep dives
 
-Read `./lottie-animator/SKILL.md` for advanced cases:
-- JSON Lottie from scratch (SVG path mastery)
-- Bezier easing -> `./lottie-animator/references/bezier-easing.md`
-- Pro techniques (morphing, walk cycles, frame-by-frame) -> `./lottie-animator/references/professional-techniques.md`
-- SVG -> Lottie conversion -> `./lottie-animator/references/svg-to-lottie.md`
-- Full JSON structure -> `./lottie-animator/references/lottie-structure.md`
+Read(".claude/skills/lottie-animator.md") for advanced cases: JSON Lottie from scratch (SVG path mastery), bezier easing, pro techniques (morphing, walk cycles, frame-by-frame), SVG -> Lottie conversion, full JSON structure.
 
 ---
 

@@ -11,7 +11,7 @@ Recodificado a partir de referências públicas (addyosmani/agent-skills, system
 Um agente despachado via `Agent()` **não pode** despachar outro agente. A árvore tem 1 nível: main loop → workers. Não há netos.
 
 Consequências directas:
-- **Auto-orquestração vive no main loop ou num command** (ex.: `/one-shot`, `/goal`) — **nunca** num agente-que-chama-agentes. O `master-orchestrator` é despachado pelo command/main loop e é ele que dispara workers; ele próprio não é despachado por outro agente.
+- **Auto-orquestração vive no main loop ou num command** (ex.: `/one-shot`, `/goal`) — **nunca** num agente-que-chama-agentes. O `master-orchestrator.md` é um **PLAYBOOK que o main loop/command ADOPTA** — é o **main loop** que lê o índice, decompõe e **dispara os workers ele próprio** (via `Agent()`). **NÃO** se faz `Agent(subagent_type="master-orchestrator")`: um subagente não poderia despachar workers (seriam netos, proibido). O ficheiro vive em `.claude/agents/` como doutrina canónica, mas é **executado pelo main loop**, não spawned.
 - Um classificador (`task-router`) **devolve uma decisão**; quem a executa é o **caller** (main loop / command). Ver `.claude/agents/task-router.md`.
 - Pipeline de N fases que precisa de fan-out em cada fase → orquestrar do main loop / command, não enfiar tudo num único agente.
 
@@ -24,7 +24,7 @@ Se um design exige "agente que coordena agentes", o coordenador tem de ser o mai
 ### 1. Router-que-classifica-não-executa
 Separar **classificação** de **execução**. Um agente leve recebe a tarefa NL, decide a via, devolve JSON, **pára**. O caller dispara.
 - Implementação JOCA: `.claude/agents/task-router.md` (4 vias A/B/C/D).
-- Thresholds canónicos em `rules/task-intake.md`. **NOTA:** à data desta regra esse ficheiro é **referenciado mas pode não existir** (`soul.md` e `task-router` apontam-lhe) — se faltar, o router usa fallback heurístico e di-lo no `justificacao`. Não inventar thresholds.
+- Thresholds canónicos em `rules/task-intake.md` (existe; é a fonte de verdade da decisão). Se por algum motivo faltar, o router usa fallback heurístico e di-lo no `justificacao`. Não inventar thresholds.
 - Vantagem: classificação barata (modelo `inherit`/leve) decide antes de gastar tokens com orquestrador pesado.
 
 ### 2. Loop steward-não-initiator (com travão)
@@ -62,11 +62,11 @@ Sequência determinística não-paralelizável + git destrutivo → **script ver
 
 ## Ligações
 
-- `.claude/agents/master-orchestrator.md` — motor de fan-out do `/one-shot`; despachado pelo command, não por outro agente.
+- `.claude/agents/master-orchestrator.md` — **playbook** de fan-out do `/one-shot`/`/goal`, **executado PELO main loop/command** (não spawned via `Agent()` — ver Regra Crítica).
 - `.claude/agents/task-router.md` — classificador puro (padrão 1).
-- `.claude/commands/one-shot.md` — entrada autónoma PRD → orchestrator → workers → testers.
-- `/goal` — referenciado em `soul.md`/`task-router` como caller que executa a via do router. **NOTA:** não há `commands/goal.md` dedicado à data desta regra; na lista de skills, `/goal` mapeia para `commands/migrate.md`. Confirmar antes de assumir um command `/goal` autónomo — não fabricar.
-- `rules/task-intake.md` — thresholds das 4 vias (ver NOTA no padrão 1: referenciado, possivelmente ausente).
+- `.claude/commands/one-shot.md` — entrada autónoma PRD → main loop adopta o playbook → workers → testers.
+- `.claude/commands/goal.md` — entrada NL sem PRD: o main loop sintetiza GOAL+critérios e adopta o playbook do orchestrator (loop até concluir).
+- `rules/task-intake.md` — thresholds das 4 vias (fonte de verdade da classificação).
 - `rules/workflows-and-tooling.md` — briefs de sub-agente, componentes partilhados, gotchas de workflow.
 
 ---

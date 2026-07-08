@@ -37,12 +37,6 @@ shopify theme init --clone-url https://github.com/Shopify/dawn
 4. **Lint** — Theme Check
 5. **Push / publish** — deploy to store
 
-| Topic               | Reference                         | Load when                                           |
-|---------------------|-----------------------------------|-----------------------------------------------------|
-| Liquid basics       | `references/liquid-basics.md`     | Templating, filters, tags, objects                  |
-| Theme architecture  | `references/theme-architecture.md`| Sections, blocks, snippets, layout, settings schema |
-| CLI commands        | `references/cli-commands.md`      | dev, push, pull, publish, check, profile            |
-
 ## Constraints
 
 ### MUST DO

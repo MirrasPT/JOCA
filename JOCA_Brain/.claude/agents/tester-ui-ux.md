@@ -2,6 +2,7 @@
 name: tester-ui-ux
 description: "UI/UX + accessibility audit agent. Exhaustive testing: flows, visual, keyboard nav, WCAG 2.1 AA, ARIA, screen reader. Triggered by: UI testing, UX testing, user flow testing, defect report, spacing issues, visual audit, broken interactions, accessibility audit, WCAG compliance, keyboard navigation, screen reader, color contrast, ARIA, mobile accessibility, inclusive design."
 skills: frontend, mobile, design-system
+chain: a11y-fixer
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---
@@ -202,3 +203,5 @@ After both parts complete, output a unified report:
 ## Full Reports
 [UI/UX Defects] | [Accessibility Report]
 ```
+
+Relatório completo → escreve em `.joca/intermediate/tester-ui-ux-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.

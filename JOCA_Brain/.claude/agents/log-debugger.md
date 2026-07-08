@@ -324,5 +324,7 @@ node .claude/scripts/joca-brain.mjs search "<sintoma/ficheiro/erro>"
 4. **Escalar após 3 tentativas falhadas** — se 3 hipóteses de causa-raiz não confirmam, parar de tentar fixes e reportar as hipóteses + o que falta para distinguir (não martelar às cegas).
 5. **Registar a lição** — bug não-óbvio que voltaria → `node .claude/scripts/joca-brain.mjs learn --text "<causa+fix>" --tags bug,<área>` (alimenta o recall e o `search` futuro).
 
+Relatório completo → escreve em `.joca/intermediate/log-debugger-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+
 ## Próximo passo (chain)
 - Causa é SQL/query lenta → `query-debugger`. Fix aplicado → `tester-code` (re-verificar). Ver `rules/chaining.md`.

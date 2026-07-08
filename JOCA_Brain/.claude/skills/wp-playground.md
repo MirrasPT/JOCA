@@ -45,7 +45,6 @@ npx @wp-playground/cli@latest server --auto-mount
 
 - Use `--mount=/host/path:/vfs/path` (repeatable) for multi-plugin, mu-plugins, or custom content.
 - Use `--mount-before-install` for bootstrapping installer flows.
-- Reference: `references/cli-commands.md`
 
 ### 3) Run a Blueprint (no server needed)
 
@@ -54,7 +53,6 @@ npx @wp-playground/cli@latest run-blueprint --blueprint=<file-or-url>
 ```
 - For scripted setup/CI validation. Supports remote URLs and local files.
 - Allow bundled assets with `--blueprint-may-read-adjacent-files` when required.
-- See `references/blueprints.md` for structure and flags.
 
 ### 4) Build a snapshot for sharing
 
@@ -67,7 +65,6 @@ npx @wp-playground/cli@latest build-snapshot --blueprint=<file> --outfile=./site
 
 - Start with `--xdebug` (or `--enable-xdebug` depending on CLI release) to expose an IDE key, then connect VS Code/PhpStorm to host/port shown in CLI output.
 - Combine with `--auto-mount` for plugin/theme debugging.
-- Checklist: `references/debugging.md`
 
 ### 6) Version switching
 

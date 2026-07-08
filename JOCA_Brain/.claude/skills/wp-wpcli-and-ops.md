@@ -1,6 +1,6 @@
 ---
 name: wp-wpcli-and-ops
-description: "Working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite. MUST be invoked when the user mentions: WP, CLI, WordPress."
+description: "WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Invoke on: wp search-replace, migração de domínio, wp db."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Requires WP-CLI in the execution environment."
 ---
 
@@ -36,13 +36,9 @@ WP-CLI commands can be destructive. Before any write operation:
 2. Confirm targeting (path/url) to avoid hitting the wrong site.
 3. Back up before risky operations.
 
-Read `references/safety.md`.
-
 ### 1) Inspect WP-CLI and site targeting (deterministic)
 
-Run the inspector:
-
-- `node skills/wp-wpcli-and-ops/scripts/wpcli_inspect.mjs --path=<path> [--url=<url>]`
+Inspecionar manualmente: `wp --info`, `wp cli version` e targeting (`--path`/`--url`) — o script inspector não existe nesta instalação.
 
 If WP-CLI is unavailable, install via the project's documented tooling (Composer, container, or system package), or ask for the expected execution environment.
 
@@ -57,19 +53,13 @@ Follow this sequence:
 3. Run the real replace with appropriate flags
 4. Flush caches/rewrite if needed
 
-Read `references/search-replace.md`.
-
 #### B) Plugin/theme operations
 
 Use `wp plugin *` / `wp theme *`. Confirm you are acting on the intended site (and network) first.
 
-Read `references/packages-and-updates.md`.
-
 #### C) Cron and queues
 
 Inspect cron state and run individual events for debugging rather than running everything blindly.
-
-Read `references/cron-and-cache.md`.
 
 #### D) Multisite operations
 
@@ -78,8 +68,6 @@ Multisite changes can affect many sites. Always decide scope:
 - Single site (`--url=`), or
 - Network-wide (`--network` / iterating sites)
 
-Read `references/multisite.md`.
-
 ### 3) Automation patterns (scripts + wp-cli.yml)
 
 For repeatable ops, prefer:
@@ -87,8 +75,6 @@ For repeatable ops, prefer:
 - `wp-cli.yml` for defaults (path/url, PHP memory limits)
 - Shell scripts that log commands and stop on error
 - CI jobs that run read-only checks by default
-
-Read `references/automation.md`.
 
 ## Verification
 
@@ -107,8 +93,6 @@ Read `references/automation.md`.
   - Missing `--url` or wrong URL
 - Search-replace causes unexpected serialization issues
   - Wrong flags or changing serialized data unsafely
-
-Read `references/debugging.md`.
 
 ## Escalation
 

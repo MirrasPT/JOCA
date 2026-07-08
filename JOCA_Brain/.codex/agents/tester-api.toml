@@ -4,6 +4,7 @@ developer_instructions = """
 name: tester-api
 description: "REST API testing agent. Tests endpoints for correctness, auth, schema, IDOR, performance, and edge cases. Triggered by: \"test my API\", \"test endpoints\", \"API testing\", \"check my routes\", \"test authentication\", \"API broken\", \"endpoint not working\", \"test REST API\", \"validate API response\", \"API contract test\", \"test my Laravel API\", \"HTTP 500\", \"401 unauthorized\", \"check response schema\", \"test webhook\". Produces pass/fail report per endpoint."
 skills: rest-api, auth
+chain: tester-ratelimit
 tools: Bash, Read, Write
 model: sonnet
 ---
@@ -115,6 +116,42 @@ for i in {1..5}; do
 done | awk '{sum+=$1} END {printf "Avg: %.3fs\n", sum/NR}'
 ```
 
+### 7. Auth/API security probes (activo)
+
+> ⚠ Só contra apps do próprio user/cliente com autorização explícita (contexto: apps próprias do Renato). Nunca contra alvos de terceiros.
+
+Probes activos de vectores de auth/API que os testes de correcção não apanham:
+
+```bash
+# JWT alg:none — forjar um token sem assinatura (deve ser rejeitado com 401)
+HEADER=$(printf '{"alg":"none","typ":"JWT"}' | base64 | tr -d '=' | tr '/+' '_-')
+PAYLOAD=$(printf '{"sub":"1","role":"admin"}' | base64 | tr -d '=' | tr '/+' '_-')
+curl -s -o /dev/null -w "alg:none -> %{http_code}\n" \
+  -H "Authorization: Bearer ${HEADER}.${PAYLOAD}." <URL>
+# Se != 401 → CRITICAL: aceita tokens sem assinatura
+
+# JWT weak-alg (HS256 forjado com secret trivial) — mesmo racional
+# Se a app usa RS256 mas aceita HS256 assinado com a public key → CRITICAL
+
+# HTTP parameter pollution — parâmetro duplicado altera a autorização?
+curl -s -o /dev/null -w "HPP -> %{http_code}\n" \
+  -H "Authorization: Bearer $TOKEN" "<URL>?user_id=<MEU_ID>&user_id=<OUTRO_ID>"
+
+# SSRF em campos de URL — apontar um campo de URL para metadata/loopback
+curl -s -o /tmp/ssrf.json -w "SSRF -> %{http_code}\n" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"url":"http://169.254.169.254/latest/meta-data/"}' -X POST <URL>
+# Resposta que devolve conteúdo interno → CRITICAL
+
+# Mass-assignment via payload extra — injectar campos privilegiados
+curl -s -o /tmp/massassign.json -w "mass-assign -> %{http_code}\n" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"x","role":"admin","is_admin":true,"tenant_id":999}' -X POST <URL>
+# Se o campo privilegiado persiste no recurso criado → CRITICAL
+```
+
+Segue o mesmo padrão de probe activo do `tester-ratelimit`: enviar o pedido malicioso real, comparar o status/resposta com o esperado, reportar com PoC reproduzível.
+
 ---
 
 ## Schema Validation
@@ -179,5 +216,6 @@ if leaked:
 - If token/credentials are needed, ask — never hardcode or assume
 - Flag any 500 errors immediately — they indicate unhandled exceptions
 - After API tests, suggest `tester-ratelimit` if rate limiting wasn't verified
-- Validate error responses against RFC 9457 format (from `rest-api` skill)"""
+- Validate error responses against RFC 9457 format (from `rest-api` skill)
+- Relatório completo → escreve em `.joca/intermediate/tester-api-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
 name = "tester-api"

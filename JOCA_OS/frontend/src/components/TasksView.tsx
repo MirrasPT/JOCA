@@ -2,12 +2,14 @@
 // the linked project). Five columns model the lifecycle: A Definir → A Executar → Em Execução →
 // Concluída → Arquivada. Drag a card between columns to change its status (POST /tasks/:id/move) or
 // reorder it inside a column (PUT /tasks/reorder). Mirrors AutomationsView's fetch/icon/pt-PT style.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import type { Project } from '../types';
+import { uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
 import './TasksView.css';
 
 // Minimal inline-SVG icons (the project has no shared icon module / lucide-react dep).
-type IconName = 'plus' | 'x' | 'play' | 'loader' | 'trash-2' | 'archive' | 'rotate';
+type IconName = 'plus' | 'x' | 'play' | 'loader' | 'trash-2' | 'archive' | 'rotate' | 'paperclip';
 function LucideIcon({ name }: { name: IconName }) {
   const c = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
   if (name === 'plus') return <svg {...c}><path d="M12 5v14M5 12h14" /></svg>;
@@ -16,8 +18,12 @@ function LucideIcon({ name }: { name: IconName }) {
   if (name === 'loader') return <svg {...c}><path d="M12 3v4M12 17v4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M3 12h4M17 12h4M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" /></svg>;
   if (name === 'archive') return <svg {...c}><path d="M3 5h18v4H3zM5 9v10h14V9M9 13h6" /></svg>;
   if (name === 'rotate') return <svg {...c}><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></svg>;
+  if (name === 'paperclip') return <svg {...c}><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" /></svg>;
   return <svg {...c}><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>; // trash-2
 }
+
+// Basename de um caminho absoluto (Windows \ ou POSIX /), para o chip do anexo.
+const baseName = (p: string) => p.split(/[\\/]/).filter(Boolean).pop() ?? p;
 
 // ── Schema (mirrors backend/src/tasks/store.ts) ───────────────────────────────
 type TaskStatus = 'a-definir' | 'a-executar' | 'em-execucao' | 'concluida' | 'arquivada';
@@ -32,6 +38,7 @@ interface Task {
   model?: string;
   skills?: string[];
   requireConfirm?: boolean;
+  attachments?: string[];
   sessionId?: string;
   result?: string;
   testerResult?: string;
@@ -68,6 +75,12 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   const [skillQuery, setSkillQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [requireConfirm, setRequireConfirm] = useState(false);
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Um só <input type=file> reutilizado: o alvo (form de criação vs cartão) fica no ref.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachTarget = useRef<{ kind: 'create' } | { kind: 'task'; id: string } | null>(null);
 
   const reload = useCallback(() => {
     fetch('/tasks').then((r) => r.json()).then((d: Task[]) => setTasks(Array.isArray(d) ? d : [])).catch(() => setTasks([]));
@@ -111,11 +124,59 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       model: provider === 'claude' && model.trim() ? model.trim() : undefined,
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
+      attachments: attachments.length ? attachments : undefined,
     };
     await fetch('/tasks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setTitle(''); setDescription(''); setProjectId(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setCreating(false);
+    setTitle(''); setDescription(''); setProjectId(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCreating(false);
     reload();
-  }, [title, description, projectId, provider, model, selectedSkills, requireConfirm, reload]);
+  }, [title, description, projectId, provider, model, selectedSkills, requireConfirm, attachments, reload]);
+
+  // Persistir os anexos de uma tarefa existente (PATCH). Reversível → sem confirmação.
+  const patchAttachments = useCallback(async (id: string, next: string[]) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, attachments: next.length ? next : undefined } : t)));
+    await fetch(`/tasks/${id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attachments: next }) });
+    reload();
+  }, [reload]);
+
+  // Abrir o picker apontado ao form de criação ou a uma tarefa concreta.
+  const openPicker = useCallback((target: { kind: 'create' } | { kind: 'task'; id: string }) => {
+    attachTarget.current = target;
+    fileInputRef.current?.click();
+  }, []);
+
+  const onFilesPicked = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ''; // permite re-escolher o mesmo ficheiro
+    const target = attachTarget.current;
+    attachTarget.current = null;
+    if (!files.length || !target) return;
+    setUploading(true);
+    try {
+      const paths = await uploadPickedFiles(files);
+      if (!paths.length) return;
+      if (target.kind === 'create') {
+        setAttachments((a) => [...a, ...paths]);
+      } else {
+        const t = tasks.find((x) => x.id === target.id);
+        await patchAttachments(target.id, [...(t?.attachments ?? []), ...paths]);
+      }
+    } finally { setUploading(false); }
+  }, [tasks, patchAttachments]);
+
+  // #12: Ctrl+V of an image while creating a task → upload to JOCA_Drops and add as an attachment.
+  const onCreatePaste = useCallback(async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const imgs = Array.from(e.clipboardData?.items ?? [])
+      .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+      .map((it) => it.getAsFile())
+      .filter((f): f is File => f !== null);
+    if (imgs.length === 0) return; // let the text paste through
+    e.preventDefault();
+    setUploading(true);
+    try {
+      const paths = await uploadPastedImages(imgs, Date.now());
+      if (paths.length) setAttachments((a) => [...a, ...paths]);
+    } finally { setUploading(false); }
+  }, []);
 
   // Move to another column (or reposition across columns). Optimistic, then reconcile via reload.
   const move = useCallback(async (id: string, status: TaskStatus, order?: number) => {
@@ -191,7 +252,8 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
           <label className="tk-field">
             <span>Objectivo (o que o worker faz)</span>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-              placeholder="Revê o formulário de contacto, valida campos e melhora o CTA." />
+              onPaste={onCreatePaste}
+              placeholder="Revê o formulário de contacto, valida campos e melhora o CTA. (Ctrl+V cola imagens como anexo)" />
           </label>
           <div className="tk-row">
             <label className="tk-field tk-inline">
@@ -246,11 +308,31 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
               <span>Confirmar antes de acções irreversíveis</span>
             </label>
           </div>
+          <div className="tk-field">
+            <span>Anexos (opcional)</span>
+            <div className="tk-attach-row">
+              <button type="button" className="tk-attach-btn" onClick={() => openPicker({ kind: 'create' })} disabled={uploading}>
+                <LucideIcon name="paperclip" /> {uploading ? 'A carregar…' : 'Anexar ficheiros'}
+              </button>
+              {attachments.length > 0 && (
+                <div className="tk-attach-chips">
+                  {attachments.map((p) => (
+                    <button type="button" key={p} className="tk-attach-chip" title={p} onClick={() => setAttachments((a) => a.filter((x) => x !== p))}>
+                      <LucideIcon name="paperclip" /><span className="tk-attach-name">{baseName(p)}</span> ✕
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
           <button className="tk-btn-primary" type="button" onClick={create} disabled={!title.trim()}>
             Criar tarefa
           </button>
         </div>
       )}
+
+      {/* Um só picker, reutilizado pelo form de criação e por cada cartão (alvo no ref). */}
+      <input ref={fileInputRef} type="file" multiple hidden onChange={onFilesPicked} />
 
       <div className="tk-board">
         {COLUMNS.map((col) => {
@@ -292,6 +374,21 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                         {t.skills?.length ? <span className="tk-tag">skills: {t.skills.join(', ')}</span> : null}
                         {t.requireConfirm ? <span className="tk-tag">✋ confirma</span> : null}
                       </div>
+                      {t.attachments?.length ? (
+                        <div className="tk-attach-chips">
+                          {t.attachments.map((p) => (
+                            <button
+                              type="button"
+                              key={p}
+                              className="tk-attach-chip"
+                              title={p}
+                              onClick={() => patchAttachments(t.id, (t.attachments ?? []).filter((x) => x !== p))}
+                            >
+                              <LucideIcon name="paperclip" /><span className="tk-attach-name">{baseName(p)}</span> ✕
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                       {(t.result || t.testerResult) && (
                         <div className="tk-card-result">{(t.result ?? t.testerResult ?? '').slice(0, 220)}</div>
                       )}
@@ -301,6 +398,9 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                             <LucideIcon name={busy === t.id ? 'loader' : 'play'} /> Correr
                           </button>
                         )}
+                        <button type="button" onClick={() => openPicker({ kind: 'task', id: t.id })} disabled={uploading} data-tooltip="Anexar ficheiro">
+                          <LucideIcon name="paperclip" />
+                        </button>
                         {t.status !== 'arquivada' ? (
                           <button type="button" onClick={() => move(t.id, 'arquivada')} data-tooltip="Arquivar">
                             <LucideIcon name="archive" />

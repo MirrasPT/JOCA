@@ -4,6 +4,7 @@ developer_instructions = """
 name: payment-integration
 description: "Payment integration agent. Implements Stripe, Laravel Cashier, MB Way, Multibanco, webhook handling, subscription billing, SCA/3DS. Triggered by: \"integrate Stripe\", \"add payments\", \"Stripe Checkout\", \"subscription billing\", \"Cashier setup\", \"webhook Stripe\", \"refund flow\", \"PCI compliance\", \"payment failed\", \"3D Secure\", \"SCA\", \"dunning\", \"checkout flow\", \"MB Way\", \"Multibanco\", \"chargeback\", \"payment provider\"."
 skills: laravel-specialist, webhooks, security
+chain: tester-security
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---

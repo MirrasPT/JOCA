@@ -24,8 +24,6 @@ Activate when the user requests:
 
 Before animating ANY SVG, you MUST understand its path structure.
 
-See: [references/svg-path-mastery.md](references/svg-path-mastery.md)
-
 ### SVG Path Command Quick Reference
 
 | Command | Description | Lottie Conversion |
@@ -94,11 +92,9 @@ cat icon.svg | grep -E '<(path|g|rect|circle|ellipse|line|polyline)' | head -30
 | Loader | Progress, spinners | Rotation + Trim Path |
 | **Frame-by-Frame** | Walk/run cycles, complex characters | ip/op layer switching |
 
-For complex character animations (walk/run cycles), use **Frame-by-Frame** over continuous animation. See [references/professional-techniques.md](references/professional-techniques.md)
+For complex character animations (walk/run cycles), use **Frame-by-Frame** over continuous animation.
 
 ### Phase 4: Create Lottie JSON
-
-See: [references/lottie-structure.md](references/lottie-structure.md)
 
 **Base Structure:**
 ```json
@@ -117,8 +113,6 @@ See: [references/lottie-structure.md](references/lottie-structure.md)
 ```
 
 ### Phase 5: Apply Professional Easing
-
-See: [references/bezier-easing.md](references/bezier-easing.md)
 
 | Use Case | Out Tangent | In Tangent |
 |----------|-------------|------------|
@@ -139,8 +133,6 @@ echo "Open in: https://lottiefiles.com/preview"
 ```
 
 ## Shape Modifiers
-
-See: [references/shape-modifiers.md](references/shape-modifiers.md)
 
 ### Trim Path (Icon Drawing Animation)
 
@@ -185,8 +177,6 @@ See: [references/shape-modifiers.md](references/shape-modifiers.md)
 ```
 
 ## Advanced Techniques
-
-See: [references/advanced-animation.md](references/advanced-animation.md) and [references/professional-techniques.md](references/professional-techniques.md)
 
 ### Frame-by-Frame Animation
 
@@ -437,14 +427,6 @@ For character animations, combine **stroke (contour) + fill (color)** per shape:
 
 ## References
 
-- [SVG Path Mastery](references/svg-path-mastery.md) - **START HERE** for SVG understanding
-- [Professional Techniques](references/professional-techniques.md) - **Frame-by-frame, parenting, outline style**
-- [Lottie JSON Structure](references/lottie-structure.md)
-- [Bezier Curves and Easing](references/bezier-easing.md)
-- [Shape Modifiers](references/shape-modifiers.md)
-- [Advanced Animation](references/advanced-animation.md)
-- [SVG to Lottie Conversion](references/svg-to-lottie.md)
-- [Animation Examples](references/examples.md)
 - [Official Lottie Documentation](https://lottiefiles.github.io/lottie-docs/)
 
 ## Final Checklist

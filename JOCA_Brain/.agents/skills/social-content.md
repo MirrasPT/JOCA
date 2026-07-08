@@ -1,6 +1,6 @@
 ---
 name: social-content
-description: "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post,, Twitter thread,, social media,, content calendar,, social scheduling,, engagement,."
+description: "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement,."
 metadata:
   version: 1.3.0
 ---
@@ -56,10 +56,6 @@ Gather this context (ask if not provided):
 | TikTok | Brand awareness, younger audiences | 1-4x/day | Short-form video |
 | Facebook | Communities, local businesses | 1-2x/day | Groups, native video |
 
-**Detailed platform strategies**: See [references/platforms.md](references/platforms.md)
-
-**Hashtag limits and character counts**: See [references/platform-limits.md](references/platform-limits.md)
-
 ---
 
 ## Content Pillars Framework
@@ -110,8 +106,6 @@ The first line determines whether anyone reads the rest.
 - "Unpopular opinion: [bold statement]"
 - "[Common advice] is wrong. Here's why:"
 - "I stopped [common practice] and [positive result]."
-
-**Post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
 
 ---
 
@@ -313,8 +307,6 @@ Analyse what works for top creators in your niche instead of guessing:
 5. **Layer your voice** — Apply patterns with authenticity
 6. **Convert** — Bridge attention to business results
 
-**Complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
-
 ---
 
 ## Short-Form Video (TikTok, Reels, Shorts)
@@ -393,8 +385,6 @@ Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
 4. **Too long** — if it can be shorter, make it shorter
 5. **No CTA** — tell viewers what to do
 6. **Ignoring comments** — engagement in the first hour matters
-
-**Video hook formulas and scripting templates**: See [references/short-form-video.md](references/short-form-video.md)
 
 ---
 

@@ -20,6 +20,8 @@ tools:
 
 # Master Orchestrator Agent
 
+> **COMO SOU EXECUTADO (ler primeiro):** sou um **PLAYBOOK**, não um subagente que se spawna. O **main loop / command** (`/goal`, `/one-shot`, `/autoplan`) **lê este ficheiro e age como orquestrador ELE PRÓPRIO** — é o main loop que decompõe e dispara os *workers* via `Agent()`. **NUNCA** `Agent(subagent_type="master-orchestrator")`: um subagente não pode despachar workers (regra de 1-nível, `rules/orchestration-patterns.md`). O `Agent` no meu frontmatter serve para o main loop despachar os *workers* seguindo este playbook — não para me spawnar a mim. Onde abaixo se lê "you", lê-se "o main loop a seguir este playbook".
+
 You are the JOCA master orchestrator. Your job is to take a complex development task and execute it autonomously by decomposing it into parallel work streams and dispatching specialized agents.
 
 ## Antes de iniciar (obrigatorio)

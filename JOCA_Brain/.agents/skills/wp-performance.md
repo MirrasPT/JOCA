@@ -1,6 +1,6 @@
 ---
 name: wp-performance
-description: "Investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers). MUST be invoked when the user mentions: WordPress, WP, CLI, Server, Timing, Query Monitor."
+description: "Profile and fix WordPress backend performance via WP-CLI profile/doctor, Server-Timing, Query Monitor headless. Invoke on: WordPress slow, TTFB alto, admin lento."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Backend-only agent; prefers WP-CLI (doctor/profile) when available."
 ---
 
@@ -31,16 +31,9 @@ No browser UI. Prefer WP-CLI, logs, and HTTP requests.
    - TTFB/time with `curl` if possible
    - WP-CLI profiling if available
 
-Read:
-- `references/measurement.md`
-
 ### 1) Generate backend-only performance report (deterministic)
 
-Run:
-
-- `node skills/wp-performance/scripts/perf_inspect.mjs --path=<path> [--url=<url>]`
-
-Detects:
+Verificar manualmente (o script perf_inspect não existe nesta instalação):
 
 - WP-CLI availability and core version
 - `wp doctor` / `wp profile` availability
@@ -55,9 +48,6 @@ With WP-CLI access, prefer:
 
 Catches common production issues (autoload bloat, SAVEQUERIES/WP_DEBUG, plugin counts, updates).
 
-Read:
-- `references/wp-cli-doctor.md`
-
 ### 3) Deep profiling (no browser required)
 
 Preferred order:
@@ -66,9 +56,6 @@ Preferred order:
 2. `wp profile hook` (optionally `--url=`) -- slow hooks/callbacks.
 3. `wp profile eval` -- targeted code paths.
 
-Read:
-- `references/wp-cli-profile.md`
-
 ### 4) Query Monitor (backend-only usage)
 
 Query Monitor works headlessly via REST API response headers and `_envelope` responses:
@@ -76,29 +63,17 @@ Query Monitor works headlessly via REST API response headers and `_envelope` res
 - Authenticate (nonce or Application Password).
 - Inspect `x-qm-*` headers and/or `qm` property with `?_envelope`.
 
-Read:
-- `references/query-monitor-headless.md`
-
 ### 5) Fix by category (pick dominant bottleneck)
 
 Use profile output to target *one* primary bottleneck:
 
 - **DB queries** -- reduce count, fix N+1, improve indexes, avoid expensive meta queries.
-  - `references/database.md` -- profiling approach
-  - `references/wp-query-guide.md` -- WP_Query patterns and fixes (elvismdev)
 - **Autoloaded options** -- identify largest autoloaded options, stop autoloading large blobs.
-  - `references/autoload-options.md`
 - **Object cache misses** -- add caching or fix cache key/group usage; add persistent object cache.
-  - `references/object-cache.md` -- architecture and setup
-  - `references/caching-guide.md` -- code patterns and transient pitfalls (elvismdev)
 - **Remote HTTP calls** -- add timeouts, caching, batching; avoid per-request API calls.
-  - `references/http-api.md`
 - **Cron** -- reduce due-now spikes, de-duplicate events, move heavy tasks off request path.
-  - `references/cron.md`
-- **Code-level anti-patterns** (hooks, assets, sessions, JS polling, meta queries):
-  - `references/code-anti-patterns.md` -- full catalog with grep patterns (elvismdev)
-- **Pre-launch / high-traffic prep**:
-  - `references/measurement-guide.md` -- load testing, traffic event prep (elvismdev)
+- **Code-level anti-patterns** (hooks, assets, sessions, JS polling, meta queries).
+- **Pre-launch / high-traffic prep**: load testing, traffic event prep.
 
 ### 6) Verify (repeat same measurement)
 

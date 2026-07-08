@@ -2,6 +2,7 @@
 name: tech-spec
 description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
 triggers: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
+chain: c4-diagram, task-breakdown
 ---
 
 # Tech Spec

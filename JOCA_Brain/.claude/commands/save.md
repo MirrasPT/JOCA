@@ -47,15 +47,11 @@ printf '## Decisões desta sessão\n- <...>\n## Trabalho restante\n- <...>\n## P
 - `--status done` se a tarefa ficou concluída; senão `wip`.
 - O helper escreve `memory/checkpoints/<slug>/<ts>.md` (frontmatter branch/ts/status), poda aos últimos 12, rename atómico.
 
-**Decisões/aprendizagens atómicas** desta sessão (não-óbvias, reutilizáveis) → registar no Brain log (reversível, sem perguntar):
-```bash
-node .claude/scripts/joca-brain.mjs decide --text "<decisão>" --rationale "<porquê>" --source user
-node .claude/scripts/joca-brain.mjs learn  --text "<lição>" --tags <a,b>
-```
+**Decisões/aprendizagens atómicas** desta sessão (não-óbvias, reutilizáveis) → registar no Brain log (reversível, sem perguntar) — sintaxe do `joca-brain decide/learn`: ver `/learn` (fonte única).
 
 ---
 
-## PASSO 3 — Feedback do projecto (inline, substitui /feedback-projeto)
+## PASSO 3 — Feedback do projecto (inline, auto-extract)
 
 Analisar a conversa e extrair aprendizagens com impacto em sessoes futuras:
 
@@ -179,6 +175,5 @@ Sessao guardada.
 ## Notas
 
 - ZERO perguntas. Tudo inferido da sessao.
-- Feedback do projecto substitui `/feedback-projeto` — esse comando agora redireciona para aqui.
-- Feedback do JOCA e auto-extraido, nao interactivo. Para feedback manual detalhado: `/feedback-joca`.
+- Feedback do projecto (PASSO 3) e do JOCA (PASSO 4) sao auto-extraidos aqui — os antigos comandos `/feedback-projeto` e `/feedback-joca` foram removidos (fundidos neste `/save`).
 - Se nao ha nada a guardar num passo, saltar silenciosamente — nao reportar "nada encontrado" para cada seccao vazia.

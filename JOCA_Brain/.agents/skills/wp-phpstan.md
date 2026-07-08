@@ -22,8 +22,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Requires Composer-based PH
 ## Procedure
 
 ### 0) Discover PHPStan entrypoints (deterministic)
-1. Inspect PHPStan setup (config, baseline, scripts):
-   - `node skills/wp-phpstan/scripts/phpstan_inspect.mjs`
+1. Inspect PHPStan setup manualmente: `phpstan.neon*`, baseline, scripts em `composer.json` — o script inspector não existe nesta instalação.
 
 Prefer the repo's existing `composer` script (e.g. `composer run phpstan`) when present.
 
@@ -31,17 +30,14 @@ Prefer the repo's existing `composer` script (e.g. `composer run phpstan`) when 
 
 `szepeviktor/phpstan-wordpress` or `php-stubs/wordpress-stubs` are required for most WordPress repos. Without them, expect high error volume about unknown core functions.
 
-- Confirm package is installed (see `composer.dependencies` in inspect report).
-- Ensure PHPStan config references stubs (see `references/third-party-classes.md`).
+- Confirm package is installed (check `composer.json`).
+- Ensure PHPStan config references stubs.
 
 ### 2) Ensure a sane `phpstan.neon` for WordPress
 
 - Keep `paths` focused on first-party code (plugin/theme directories).
 - Exclude generated and vendored code (`vendor/`, `node_modules/`, build artifacts, tests unless explicitly analyzed).
 - Keep `ignoreErrors` narrow and documented.
-
-See:
-- `references/configuration.md`
 
 ### 3) Fix errors with WordPress-specific typing (preferred)
 
@@ -52,9 +48,6 @@ Prefer correcting types over ignoring errors. Common WP patterns needing help:
 - Database results and iterables: use array shapes or object shapes for query results
 - Action Scheduler: type `$args` array shapes for job callbacks
 
-See:
-- `references/wordpress-annotations.md`
-
 ### 4) Handle third-party plugin/theme classes (only when needed)
 
 When integrating with plugins/themes absent from the analysis environment:
@@ -63,16 +56,10 @@ When integrating with plugins/themes absent from the analysis environment:
 - Prefer plugin-specific stubs already in the repo (e.g. `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`).
 - If PHPStan still cannot resolve classes, add targeted `ignoreErrors` for the specific vendor prefix.
 
-See:
-- `references/third-party-classes.md`
-
 ### 5) Baseline management (migration tool, not trash bin)
 
 - Generate baseline once for legacy code, then reduce over time.
 - Never baseline newly introduced errors.
-
-See:
-- `references/configuration.md`
 
 ## Verification
 

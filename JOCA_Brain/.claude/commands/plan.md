@@ -2,6 +2,8 @@
 
 Entrar em Plan Mode.
 
+`Read(".claude/skills/plan.md")` — metodologia de planeamento (interrogar + OODA), a mesma que o `/autoplan` usa.
+
 Analisar contexto:
 - Ficheiros relevantes do projecto
 - Stack detectada
@@ -14,3 +16,6 @@ Produzir plano com:
 - Ficheiros que serão tocados
 
 Não sair do Plan Mode sem aprovação explícita do utilizador.
+
+## Próximo passo (chain)
+- Plano aprovado → skill/agente do domínio para implementar (via Trigger Map do `CLAUDE.md`). Notificar `[chain → <x>]`. Ver `rules/chaining.md`.

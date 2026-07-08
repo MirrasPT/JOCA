@@ -40,7 +40,7 @@ The director decides direction, then delegates craft. Notify in 1 line: `[+ <ski
 | **Responsive/touch depth** | `mobile` | `Read(".claude/skills/mobile.md")` |
 | **Images** | `img-gen` | `Read(".claude/skills/img-gen.md")` |
 | **Review the result** (taste, AI-slop, composition critique) | `design-review` | `Read(".claude/skills/design-review.md")` |
-| **Game UI** (board/card/tactical game, Zustand engine+UI stores, DOM grid vs Canvas) | See `## Game UI` section below | (inline — no separate skill file) |
+| **Game UI** (board/card/tactical game, Zustand engine+UI stores, DOM grid vs Canvas) | game-ui reference | `Read(".claude/reference/frontend/game-ui.md")` |
 
 **Typical production flow:**
 ```
@@ -50,100 +50,6 @@ design-system (contract) → frontend (direction + assembly)
 ```
 (`html-review` is NOT a UI reviewer — it converts planning `.md` docs to HTML. Design critique = `design-review`.)
 Read specialists on demand when their layer comes up — never pre-load all of them.
-
----
-
-## Game UI
-
-### State architecture
-
-Two separate Zustand stores — **never collapse them:**
-
-| Store | Owns | Rule |
-|-------|------|------|
-| `useEngineStore` | Board, units, turn, phase, valid moves | Zero React imports. Pure TS. |
-| `useUIStore` | Selection, hover, highlights, animation queue | Reads engine state; drives visuals only. |
-
-Use `immer` middleware: mutate draft, never spread deeply nested board arrays.
-
-```ts
-// engineStore — pure game logic, no React
-export const useEngineStore = create<EngineState>()(immer((set) => ({
-  board: initialBoard,
-  currentTurn: 0,
-  phase: 'deploy' as Phase,
-  move: (from, to) => set((s) => { applyMove(s.board, from, to); s.currentTurn++; }),
-})));
-
-// uiStore — visual state only, references engine via selectors
-export const useUIStore = create<UIState>()(immer((set) => ({
-  selectedCell: null,
-  highlights: new Map<string, 'valid' | 'selected' | 'danger'>(),
-  animationQueue: [] as Animation[],
-  select: (cellId) => set((s) => { s.selectedCell = cellId; }),
-  setHighlights: (map) => set((s) => { s.highlights = map; }),
-})));
-```
-
-### Engine / UI separation (hard rule)
-
-`src/engine/` has zero React or Zustand imports — pure TS functions/classes only. UI consumes via selector hooks:
-
-```ts
-const board = useEngineStore((s) => s.board);       // selector — only re-renders when board changes
-const currentTurn = useEngineStore((s) => s.currentTurn);
-```
-
-Never subscribe to the full store (`useEngineStore()`) — always use selectors. If an engine file gains a React import, move the logic back into `src/` hooks.
-
-**Web Worker:** if the engine is compute-heavy, run it in a Worker and communicate via `postMessage`. Never share a Zustand store across threads — the UI store lives on the main thread; the engine Worker sends serialised state diffs.
-
-### Rendering: DOM grid vs Canvas
-
-**Default: DOM grid.** Escalate to Canvas only when the grid exceeds 12×12 **and** animation is per-frame.
-
-| | DOM Grid | Canvas |
-|---|---|---|
-| Setup | `grid-template-columns: repeat(var(--grid-cols), 1fr)` | `<canvas>` + draw loop |
-| Events | Click on each cell | Manual hit-test on `mousedown` |
-| Animation | Framer Motion / CSS transitions | RAF draw |
-| Accessibility | Native | None |
-
-**Ambiguous case (e.g. 10×10 with per-tile effects):** CSS transitions on `data-highlight` = DOM. Per-frame RAF with arbitrary draw = Canvas. If you're reaching for `requestAnimationFrame` for every tile every frame, switch to Canvas.
-
-### Component performance
-
-- `React.memo` on all card/unit components — numerous and rarely change individually
-- Key = stable unit/card ID, never array index
-- `useMemo` for derived data (valid moves, reachable cells) keyed to actual reactive slice: `[board, currentTurn]`
-
-### Visual feedback via CSS custom properties
-
-```css
-.cell[data-highlight="valid"]    { background: var(--cell-highlight); }
-.cell[data-highlight="selected"] { background: var(--cell-selected); }
-.cell[data-highlight="danger"]   { background: var(--cell-danger); }
-```
-
-Drive from `useUIStore.highlights: Map<cellId, 'valid'|'selected'|'danger'>`. Set in the cell component:
-
-```tsx
-<div
-  data-highlight={highlights.get(cell.id) ?? undefined}
-  onClick={() => select(cell.id)}
-/>
-```
-
-`undefined` removes the attribute entirely; `null` would set it to the string `"null"`. No inline styles.
-
-### Game UI checklist
-- [ ] `src/engine/` — zero React/Zustand imports
-- [ ] Two stores: `useEngineStore` (logic) + `useUIStore` (visuals), never merged
-- [ ] Store access via selectors, never full-store subscription
-- [ ] DOM grid default; Canvas only if grid >12×12 **and** per-frame RAF
-- [ ] `React.memo` on cards/units; stable ID keys
-- [ ] `data-highlight` + CSS vars for highlights; no inline styles
-- [ ] Worker engines communicate via `postMessage`, not shared store
 
 ---
 
@@ -164,25 +70,7 @@ If present in project -- **read before any code.** Extract `--color-*` tokens, t
 
 If absent and brand exists -- suggest `brand-guidelines` skill first (via `design-system`).
 
-### Brand Asset Protocol (when brand involved)
-
-Brand recognition comes from real assets, not palettes.
-
-| Prioridade | Asset | Impacto |
-|-----------|-------|---------|
-| 1 | Logo (SVG/PNG) | Maximo |
-| 2 | Imagens produto / screenshots UI | Maximo |
-| 3 | Cores (extraidas de assets reais) | Medio |
-| 4 | Tipografia | Suporte |
-
-**Protocol:**
-1. Ask for full list (logo, images, colors, fonts, guidelines)
-2. Search `brand.com/press`, `/brand`, `/press-kit`; extract SVG inline from header
-3. Download via `curl` or Python `urllib`
-4. Verify quality: logo opens clean, images >= 2000px, UI is current version
-5. Write `brand-spec.md` with paths + CSS variables
-
-**Never:** CSS shapes or SVG drawings to replace real photos. Stop and ask before using filler.
+Brand Asset Protocol (prioridade de assets reais + protocolo de recolha) → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
@@ -220,33 +108,8 @@ If vision is maximalist -- code is elaborate with extensive animations.
 If vision is minimal -- restraint, precision, spacing and typography.
 Match execution depth to vision intensity.
 
-### Cor
-- OKLCH. Reduce chroma when lightness approaches 0 or 100.
-- Never pure `#000` or `#fff` -- tint toward brand color (chroma 0.005-0.01).
-- Pick strategy:
-  - **Restrained** -- neutrals + 1 accent <= 10% (default product)
-  - **Committed** -- 1 saturated color 30-60% (strong identity)
-  - **Drenched** -- the surface IS the color (heroes, campaigns)
-- Semantic CSS variables. Never raw hex in components. (Tokens → `design-tokens`; Tailwind mapping → `tailwind`.)
-- Light and dark designed together, not one after the other.
-- WCAG 4.5:1 body text, 3:1 large text.
-
-### Tema (dark vs light)
-Never a default. Write 1 sentence of physical scene: who uses it, where, what ambient light. If the sentence doesn't force the answer, it's not concrete enough.
-
-### Tipografia
-- Distinctive display + refined body. Ratio >= 1.25 between steps.
-- Line length: 65-75ch long text, 35-60ch mobile.
-- Vary fonts between generations -- never converge on the same one.
-- 16px minimum body on mobile.
-
-### Layout
-- Vary spacing for rhythm. Same padding everywhere = monotony.
-- Asymmetry, overlap, diagonal flow, grid-breaking > centered symmetric.
-- **Cardless by default.** Sections, columns, dividers, lists, media blocks > cards. A card only when the card IS the interaction. If a panel works as plain layout without losing meaning, drop the card treatment. (Stacked-cards app UI is the #1 AI tell.)
-- **Full-bleed hero:** hero runs edge-to-edge — no inherited page gutters, framed container, or shared max-width; constrain only the inner text/action column. First viewport is a poster, not a document.
-- **Viewport budget:** sticky/fixed header counts against the hero. Header + hero must fit the initial viewport — use `calc(100svh - var(--header-h))` or overlay the header, don't stack.
-- Z-index scale defined as tokens, never ad-hoc.
+Eixos de estilo/paleta/fontes → `Read(".claude/reference/design-dataset.md")` (banco de paletas OKLCH + pares de fontes + estilos nomeados; anti-convergence obrigatório).
+Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
@@ -256,34 +119,9 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 1. Can someone guess theme + palette from category alone? ("SaaS = dark blue", "health = white + teal") -> revise
 2. Can someone guess the aesthetic family with category+anti-references? -> revise again
 
-### Bans absolutos
-
-| Evitar | Porque |
-|--------|--------|
-| Gradientes roxos em fundo branco | Cliche "tech/AI" -- zero identity |
-| Inter/Roboto/Arial/Space Grotesk como display | No visual character, AI convergence |
-| Card + left colored border accent | 2020-2024 slop |
-| SVG-drawn people/faces/objects | Proportions always wrong |
-| CSS silhouettes instead of product photos | Generic "tech animation", destroys brand identity |
-| Emoji como icones | Amateur signal |
-| Decorative stats/icons/gradients | Data slop, icon slop, gradient slop |
-| Side-stripe borders como accent | `border-left/right` > 1px colorido |
-| Gradient text | `background-clip: text` + gradient. Decorative, never meaningful |
-| Glassmorphism como default | Decorative blurs without purpose |
-| Hero-metric template | Big number + label + stats + gradient (SaaS cliche) |
-| Identical repeated card grids | Same cards icon+heading+text |
-| Modal como primeira opcao | Modals are lazy -- exhaust inline alternatives |
-| PowerPoint transitions | Independent scenes that fade in/out separately |
-
 **Rule:** if removing an element loses no info, don't add it.
 
-### Naming (adblock-safe) — NUNCA usar tokens de adblock em nomes
-
-Ficheiros, componentes, ids, classes e `data-*` do frontend **não podem conter** `banner, cookie, consent, ad, ads, advert, sponsor, promo, popup, newsletter, analytics, track, doubleclick`. O uBlock Origin (e outros adblockers) esconde-os (cosmético) ou **bloqueia o pedido** (`ERR_BLOCKED_BY_CLIENT`):
-- token na **raiz** (ex. `<html data-cookie-banner>`) → filtros cosméticos escondem o `<html>` → **página toda branca**;
-- token num **módulo carregado em todas as páginas** (ex. `CookieBanner.tsx` importado no layout) → no Vite dev os módulos servem-se no path de origem, e em produção em chunks/assets → o pedido é bloqueado → **ecrã branco em todo o lado**.
-
-Usar nomes **neutros**: `BottomNotice` (não `CookieBanner`), `PresenteDestaque` (não `BannerPresente`), `presente.png` (não `banner.png`), `data-bottom-bar` (não `data-cookie-banner`). Um banner de cookies pode existir — mas o ficheiro/id/atributo tem de ser neutro. **Build verde e `tsc` NÃO apanham isto** — só se vê no browser com a extensão; testar com uBlock ligado ou simular bloqueio de `**/*banner*` e `[data-cookie*]`. (Aprendido em Bigorna 2026-06-16 — branqueou o site 2×.)
+Tabela de bans absolutos + naming adblock-safe (tokens proibidos em nomes de ficheiros/componentes/ids/classes/`data-*`) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
 
 ### Anti-convergence (output diversity)
 
@@ -291,17 +129,9 @@ Before committing fonts / accent / aesthetic: check `memory/projects/` for the l
 
 ---
 
-## #4b Anti-slop guard-rails (geração) — adoptado de taste-skill (MIT)
+## #4b Anti-slop guard-rails (geração)
 
-Aplicar na ESCRITA, não só no review. Cada regra é hard-stop durante a geração. (Origem: Leonxlnx/taste-skill, MIT — atribuir.)
-
-- **Em-dash ban** — nunca escrever `—`/`–` em copy de UI. Vírgula, parêntesis ou dois pontos. É o tell #1 de LLM.
-- **Serif / Inter discipline** — `Inter`/`system-ui`/`Roboto`/`Arial`/`Space Grotesk` NUNCA como display/heading; só body fallback. Display = serif editorial / grotesque distintivo / face com carácter.
-- **Anti AI-purple/lila** — zero roxo/índigo/violeta como accent ou gradiente. Banir hue ~`250–290` e os hex `#6366f1 #7c3aed #8b5cf6 #a855f7 #818cf8`. Roxo→rosa em fundo branco = proibido.
-- **Paleta premium beige+brass banida** — não usar bege quente + dourado/latão como par dominante (`#f5f0e8 #ede4d3 #e8dcc4` + `#b8860b #c9a227 #bfa46f #d4af37`). É tão slop como o roxo. Divergir.
-- **Color/shape consistency lock** — 1 decisão de cor + 1 linguagem de forma em toda a peça. Border-radius, sombra e borda coerentes entre componentes do mesmo nível. Parecer sistema, não sampler.
-- **Anti-center-hero** — não centrar tudo no hero. Assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything = default de LLM.
-- **Italic descender clearance** — itálico precisa de `line-height`/`padding-right` para não cortar descenders (`g j p q y`) nem a inclinação contra a borda. Nunca itálico com `overflow:hidden` apertado.
+Guard-rails de escrita hard-stop (em-dash ban, serif/Inter discipline, anti AI-purple, beige+brass banida, consistency lock, anti-center-hero, italic clearance) → `Read(".claude/reference/frontend/anti-slop-bans.md")`. Aplicar na ESCRITA, não só no review.
 
 ### Mecanismo dos 3 dials calibráveis
 
@@ -333,197 +163,22 @@ Se algum campo cair num default banido (Inter, roxo, beige+brass, center-hero, d
 
 Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
 
-Don't guess and build. Enter advisor mode:
-
-1. Max 3 questions: audience, main message, emotional tone
-2. Restate brief in 100-150 words
-3. Recommend 3 directions from 3 different schools:
-
-| Escola | Caracter |
-|--------|---------|
-| Arquitectura de Informacao (Pentagram) | Rational, data-driven, contained |
-| Motion Poetry (Field.io) | Dynamic, immersive, technical beauty |
-| Minimalismo (Kenya Hara) | Order, negative space, refined |
-| Vanguarda Experimental (Sagmeister) | Avant-garde, generative, impact |
-| Filosofia Oriental | Warm, poetic, contemplative |
-
-4. Generate 3 quick HTML demos with real content -> Playwright screenshot -> show
-5. User picks -> Junior Designer mode with chosen direction
+Modo advisor completo (max 3 perguntas → brief → 3 direcções de 3 escolas → 3 demos HTML → escolha) → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
-## #6 Production stack (then delegate)
+## Referências (carregar on-demand)
 
-Default stack the specialists assume:
-```
-React 19 + TypeScript + Vite + Tailwind CSS 4
-```
-Alternatives accepted: Next.js (SSR/SSG), Remix, Astro (when it fits).
-
-Standard component architecture:
-```
-src/
-  components/{ui,layout,sections}/   hooks/   lib/{utils.ts,constants.ts}
-  styles/globals.css                 types/   pages/
-```
-
-Then hand off the craft:
-- **Component shape & API** → `react-composition` (compound, context, slots, controlled/uncontrolled)
-- **Styling & variants** → `tailwind` (`@theme`, `cva`, `cn`, dark mode)
-- **Performance & data** → `react-patterns` (re-renders, effects, waterfalls, RSC, bundle, Lighthouse targets)
-- **Motion** → `anima`
-
-The director assembles sections and enforces direction; specialists own their layer's correctness.
-
-### Multi-agent builds: FOUNDATION before fan-out
-
-When parallel agents build per-page or per-feature, shared components (player, card, layout primitives, nav) **MUST be defined and implemented in a sequential FOUNDATION phase** before any fan-out begins. Fan-out agents import from that foundation — they never recreate shared components independently. Classic failure: two agents each build a video player; result is two inconsistent implementations with divergent APIs, styles, and behaviour that cannot be merged without a rewrite. Foundation phase output = a locked shared-components module that all agents treat as read-only.
+| Tema | Reference | Carregar quando |
+|---|---|---|
+| Game UI (Zustand engine/UI stores, DOM vs Canvas, checklist) | `Read(".claude/reference/frontend/game-ui.md")` | jogo tabuleiro/cartas, engineStore/uiStore, grelha |
+| Bans anti-slop (tabela absoluta, naming adblock-safe, guard-rails taste-skill) | `Read(".claude/reference/frontend/anti-slop-bans.md")` | antes de gerar UI nova; review de slop |
+| Design craft (brand assets, cor, tema, tipografia, layout, design advisor) | `Read(".claude/reference/frontend/design-craft.md")` | fixar direcção visual; direcção indefinida |
+| Design dataset (paletas OKLCH + pares de fontes + estilos nomeados) | `Read(".claude/reference/design-dataset.md")` | antes do Design Read; anti-convergence |
+| Produção + UX + validação (#6 stack/foundation, #7 UX rules, #9 /components, #10 critique, checklists, quality gate) | `Read(".claude/reference/frontend/production-ux.md")` | escrever código de produção; antes de entregar |
+| Prototype mode (single-file HTML+React+Babel) | `Read(".claude/reference/frontend/prototype-mode.md")` | modo Prototype (sem repo React) |
 
 ---
-
-## #7 UX Rules (apply always, without asking)
-
-### Accessibility (CRITICAL)
-- Minimum contrast 4.5:1 text/background, 3:1 large text
-- Visible focus rings (2-4px) on all interactives
-- Alt text on meaningful images
-- Labels on all inputs (not placeholder alone)
-- Keyboard navigation works
-- `prefers-reduced-motion` respected
-- No info conveyed by color alone
-- Tab order = visual order
-
-### Touch & Interaction
-- Clickable elements >= 44px (HIG) / >= 48px (Material)
-- Minimum 8px between targets
-- Cursor pointer on clickables
-- Loading feedback on async actions
-- All animations interruptible -- UI active during motion
-
-### Layout & Responsive
-- Mobile-first breakpoints: 375 / 768 / 1024 / 1440
-- Correct `viewport-meta` (never disable zoom)
-- No horizontal scroll on mobile
-- `min-height: 100dvh` (not `100vh`)
-- `aspect-ratio` or explicit `width`/`height` on images (CLS prevention)
-
-### Utility copy (product UI ≠ marketing)
-
-Dashboards/admin/app surfaces use **utility copy**, not marketing copy:
-- Headings say what the area IS or what you can do: "Selected KPIs", "Plan status", "Last sync" — not "Unlock powerful insights".
-- Litmus: an operator scanning only headings/labels/numbers understands the page.
-- **No hero on a dashboard** unless explicitly asked.
-- Active voice, Title Case, numerals for counts ("8 deployments"), specific button labels ("Save API Key" not "Continue"), error messages that state the fix.
-
-(Marketing/landing copy → `copywriting`, `landing-page`.)
-
----
-
-## #8 Prototype mode (single-file)
-
-When no React project exists:
-```html
-<script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel">
-  // React inline -- abre com file://
-</script>
-```
-- Never `const styles = {...}` without unique names (`heroStyles`, `cardStyles`)
-- Multiple babel scripts don't share scope -- export via `Object.assign(window, {...})`
-
-Prototype is the director's own territory (fast, no build) — specialists kick in for production repos.
-
----
-
-## #9 /components
-
-When asked `/components` or "generate component library":
-
-1. `components.md` -- design tokens + typography + each component with props and states
-2. `components.html` -- interactive visual library with preview of all components
-
-(Formal specs → `component-system`; styling implementation → `tailwind` + `react-composition`.)
-
----
-
-## #10 Expert Critique
-
-On request ("review", "score", "is this good?") or proactively when output seems uncertain:
-
-0-10 on 5 dimensions:
-1. **Philosophical coherence** -- does the whole feel intentional?
-2. **Visual hierarchy** -- priority perceived in 3 seconds?
-3. **Detail execution** -- spacing, alignment, typography
-4. **Functionality** -- works as UI?
-5. **Originality** -- avoids cliches?
-
-Output: total + **Keep** + **Fix** (critical / important / optimization) + **Quick Wins** (top 3 in < 5 min).
-
-### Falsifiable self-tests (run before delivery)
-
-Not opinions — pass/fail gates:
-- **Remove-the-image test** — if the first viewport still works without the hero image, the image is too weak.
-- **Hide-the-nav test** — if the brand disappears when the nav is hidden, the hierarchy is too weak.
-- **Delete-30%-copy test** — if cutting 30% of copy improves the page, keep cutting.
-- **Remove-shadows test** — if it stops feeling premium with all decorative shadows removed, the design leaned on decoration.
-- **Cardless test** — if any panel becomes plain layout without losing meaning, remove the card.
-
-For a full, structured review pass (3-pillar rubric, AI-slop reject, file:line lint, verdict) → hand to the **`design-review`** skill. This #10 is the quick inline critique during generation.
-
----
-
-## Validation before delivery
-
-### Prototype
-- [ ] Opens in browser without JS errors
-- [ ] Mobile 375px tested
-- [ ] Contrast verified
-- [ ] Keyboard navigation works
-
-### Production
-- [ ] TypeScript error-free (`npm run type-check`)
-- [ ] Build error-free (`npm run build`)
-- [ ] Lighthouse >= 90 performance, >= 90 accessibility
-- [ ] Mobile 375px, tablet 768px, desktop 1280px
-- [ ] CSS variables from DESIGN.md applied
-- [ ] No `any` in TypeScript
-- [ ] Focus visible on all interactives
-- [ ] No adblock tokens in file/component/id/class/`data-*` names (`banner`/`cookie`/`ad`/`sponsor`/`popup`/`analytics`…) — test once with uBlock ON (white page = blocked name)
-- [ ] Code-craft specialists' checklists passed (`react-patterns`, `react-composition`, `tailwind`)
-
----
-
-## Quality Gate
-
-After delivery, suggest the right reviewer by need:
-- **`design-review`** (skill) — taste, AI-slop, composition critique + file:line lint. The default "is this good?" pass.
-- **`tester-ui-ux`** (agent) — QA flows + deep WCAG/screen-reader/keyboard.
-- **`tester-performance`** (agent) — Lighthouse / load (production).
-
-(`html-review` is unrelated — it converts planning `.md` to HTML for stakeholders, not UI review.)
-
----
-
-## Related skills
-
-**Code craft (invoked by this director):**
-- `react-patterns` -- re-renders, effects, data fetching, bundle, RSC
-- `react-composition` -- compound components, context, slots, React 19
-- `tailwind` -- Tailwind 4, cva, cn, dark mode, responsive
-- `shadcn` -- shadcn/ui component toolkit (Radix + Tailwind, CLI-driven)
-- `react-email` -- email templates (React Email)
-
-**Design contract:**
-- `design-system` -- router for `brand-guidelines` → `design-tokens` → `component-system`
-
-**Support:**
-- `anima` -- GSAP + Lottie (invoked autonomously)
-- `mobile` -- responsive and mobile-first
-- `img-gen` -- generate images
-- `html-review` -- review UI vs current web standards
-- `video` -- export HTML animations as MP4/GIF
 
 ## Próximo passo (chain)
 Após construir UI nova, encadear automaticamente (reversível → sem perguntar, notificar `[chain → x]`):

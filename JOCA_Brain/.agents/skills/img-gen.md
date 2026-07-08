@@ -1,6 +1,7 @@
 ---
 name: img-gen
 description: "Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). MUST be invoked when the user mentions: generate image, create image, illustration, product shot, mockup, hero image, background image."
+chain: design-review
 ---
 
 # img-gen -- Image Generation Router

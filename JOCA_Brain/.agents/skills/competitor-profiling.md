@@ -1,6 +1,6 @@
 ---
 name: competitor-profiling
-description: "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile,, competitor research,, competitor analysis,, profile this competitor,, analyze competitor,, competitive intelligence,."
+description: "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile, competitor research, competitor analysis, profile this competitor, analyze competitor, competitive intelligence,."
 metadata:
   version: 1.0.0
 ---

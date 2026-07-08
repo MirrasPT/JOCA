@@ -13,6 +13,7 @@ import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import { useSessionSocket } from './hooks/useSessionSocket';
+import { ensureNotificationPermission, notify } from './lib/notify';
 import type { JocaItems, JocaLogicInfo, MainView, MasterEntry, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
@@ -213,6 +214,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    ensureNotificationPermission(); // ask once for OS desktop-notification permission
     reloadProjects();
     reloadRuntime();
     reloadProjectMemory();
@@ -244,9 +246,8 @@ export default function App() {
       { id: crypto.randomUUID(), title: 'Session finished', detail: session.name, timestamp: Date.now() },
       ...prev,
     ].slice(0, 80));
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('JOCA — Done', { body: session.name });
-    }
+    // Sound + OS notification (Windows/macOS), so the user is alerted even off-window.
+    notify('JOCA — Terminado', session.name);
   }, []);
 
   // WebSocket lifecycle (connect / reconnect / message routing) lives in the hook; it returns a

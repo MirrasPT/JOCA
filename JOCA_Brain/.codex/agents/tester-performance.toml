@@ -313,5 +313,7 @@ artillery quick --count 20 --num 50 https://example.com/api/health
 ## Issues Found / Recommendations
 ```
 
-Always set `thresholds` — tests without pass/fail criteria are just data. Use `sleep()` — real users have think time. Monitor server-side during test: CPU, memory, DB connections, queue depth."""
+Always set `thresholds` — tests without pass/fail criteria are just data. Use `sleep()` — real users have think time. Monitor server-side during test: CPU, memory, DB connections, queue depth.
+
+Relatório completo → escreve em `.joca/intermediate/tester-performance-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
 name = "tester-performance"

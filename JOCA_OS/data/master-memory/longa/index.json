@@ -1,0 +1,359 @@
+[
+  {
+    "id": "win-8",
+    "fromTs": 1782082063144,
+    "toTs": 1782082365703,
+    "turns": 8,
+    "title": "Teste de orquestração JOCA — estado de Bigorna, Meu Site e Livro de Elogios",
+    "tags": [
+      "JOCA",
+      "Bigorna 2026",
+      "Meu Site",
+      "Livro de Elogios",
+      "git",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-16",
+    "fromTs": 1782082442993,
+    "toTs": 1782205804937,
+    "turns": 8,
+    "title": "Bigorna ligado ao GitHub + organização da pasta 2026_Parentalidade",
+    "tags": [
+      "bigorna-2026",
+      "git",
+      "github",
+      "2026_parentalidade",
+      "organizacao-ficheiros",
+      "seguranca-social"
+    ]
+  },
+  {
+    "id": "win-24",
+    "fromTs": 1782207088808,
+    "toTs": 1782384966540,
+    "turns": 8,
+    "title": "Limpeza de duplicados RP5092 (Parentalidade) + resumo geral de projectos",
+    "tags": [
+      "parentalidade",
+      "RP5092",
+      "gestao-ficheiros",
+      "duplicados",
+      "resumo-projectos",
+      "JOCA-workers"
+    ]
+  },
+  {
+    "id": "win-32",
+    "fromTs": 1782386089575,
+    "toTs": 1782386301819,
+    "turns": 8,
+    "title": "Análise do FUTUROS.md do JOCA — roadmap por fases vs. estado real",
+    "tags": [
+      "JOCA",
+      "FUTUROS.md",
+      "roadmap",
+      "provider-selector",
+      "Ollama",
+      "automações"
+    ]
+  },
+  {
+    "id": "win-40",
+    "fromTs": 1782386459580,
+    "toTs": 1782386794178,
+    "turns": 8,
+    "title": "Estado dos 10 projectos + criação de Medieval Chess e Gerador de Rótulos no JOCA_OS",
+    "tags": [
+      "joca_os",
+      "gestao-projectos",
+      "memoria-joca-brain",
+      "criacao-projectos",
+      "worker-resume",
+      "datalix-vps"
+    ]
+  },
+  {
+    "id": "win-48",
+    "fromTs": 1782386830702,
+    "toTs": 1782387320578,
+    "turns": 8,
+    "title": "Worker resume dos 12 projectos + criação de memórias (Bracaris Wix, Simão Sina, README Medieval Chess, CLAUDE.md Gerador)",
+    "tags": [
+      "gestão-projectos",
+      "memória-JOCA",
+      "bracaris-brasil",
+      "simao-sina",
+      "medieval-chess",
+      "gerador-rotulos"
+    ]
+  },
+  {
+    "id": "win-56",
+    "fromTs": 1782387371389,
+    "toTs": 1782408040864,
+    "turns": 8,
+    "title": "JOCA — READMEs/CLAUDE.md de Medieval Chess e Gerador + pedido de reavaliação do Livro de Elogios",
+    "tags": [
+      "medieval-chess",
+      "gerador-rotulos",
+      "livro-de-elogios",
+      "joca-orquestrador",
+      "documentacao",
+      "worker"
+    ]
+  },
+  {
+    "id": "win-64",
+    "fromTs": 1782408199296,
+    "toTs": 1782413100991,
+    "turns": 8,
+    "title": "JOCA reavalia LE_Nova_Plataforma e verifica updates do Claude/Codex CLI",
+    "tags": [
+      "LE_Nova_Plataforma",
+      "JOCA",
+      "Laravel",
+      "Claude Code",
+      "Codex CLI",
+      "documentação"
+    ]
+  },
+  {
+    "id": "win-72",
+    "fromTs": 1782413317795,
+    "toTs": 1782419413082,
+    "turns": 8,
+    "title": "Update de CLIs (codex/agy) via workers JOCA + automações matinais",
+    "tags": [
+      "JOCA",
+      "codex-cli",
+      "antigravity-cli",
+      "workers",
+      "automações",
+      "CLIs"
+    ]
+  },
+  {
+    "id": "win-80",
+    "fromTs": 1782419427390,
+    "toTs": 1782426472296,
+    "turns": 8,
+    "title": "Automações JOCA — resumos de email/diário, acções echo e alerta de segurança Google",
+    "tags": [
+      "JOCA",
+      "automações",
+      "gws",
+      "gmail",
+      "resumo-matinal",
+      "segurança-google"
+    ]
+  },
+  {
+    "id": "win-88",
+    "fromTs": 1782551808077,
+    "toTs": 1782726231046,
+    "turns": 8,
+    "title": "Testes de orquestração JOCA (worker/projecto/automação) + resumos diário e semanal via GWS",
+    "tags": [
+      "JOCA",
+      "automação",
+      "gws",
+      "resumo-diário",
+      "resumo-semanal",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-96",
+    "fromTs": 1782726387814,
+    "toTs": 1782726921167,
+    "turns": 8,
+    "title": "Lazy loading no Livro de Elogios, dados TikTok sandbox do Simão-sina e resumo semanal",
+    "tags": [
+      "livro-de-elogios",
+      "simao-sina",
+      "tiktok",
+      "trypost",
+      "workers",
+      "resumo-semanal"
+    ]
+  },
+  {
+    "id": "win-104",
+    "fromTs": 1782727217460,
+    "toTs": 1782729331473,
+    "turns": 8,
+    "title": "Ponto de situação dos 3 workers JOCA — Livro de Elogios (backoffice não-limpo), Simão-sina (TikTok sandbox), Eurico",
+    "tags": [
+      "JOCA",
+      "Livro de Elogios",
+      "Simao-sina",
+      "TikTok sandbox",
+      "workers",
+      "backoffice"
+    ]
+  },
+  {
+    "id": "win-112",
+    "fromTs": 1782729390850,
+    "toTs": 1782736235664,
+    "turns": 8,
+    "title": "Livro de Elogios — brief de 30 correcções ao backoffice via worker, com testers a seguir",
+    "tags": [
+      "livro-de-elogios",
+      "joca-orquestrador",
+      "backoffice",
+      "workflow-testers",
+      "bug-fixes",
+      "paginas-digitais"
+    ]
+  },
+  {
+    "id": "win-120",
+    "fromTs": 1782897886931,
+    "toTs": 1782899182262,
+    "turns": 8,
+    "title": "Resumo matinal do JOCA — alerta Sentry do Livro de Elogios corrigido + campanha de Julho",
+    "tags": [
+      "Livro de Elogios",
+      "JOCA orquestrador",
+      "Sentry",
+      "campanha Julho 2026",
+      "backoffice",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-128",
+    "fromTs": 1782899212629,
+    "toTs": 1782899359526,
+    "turns": 8,
+    "title": "Livro de Elogios — campanha Julho, auditoria backoffice e fix Sentry",
+    "tags": [
+      "livro-de-elogios",
+      "joca-os",
+      "campanha-julho-2026",
+      "auditoria-backoffice",
+      "sentry",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-136",
+    "fromTs": 1782899388528,
+    "toTs": 1782982747290,
+    "turns": 8,
+    "title": "Livro de Elogios — fix Sentry, auditoria 30 pontos e campanha Julho 2026",
+    "tags": [
+      "livro-de-elogios",
+      "joca-workers",
+      "sentry",
+      "campanha-julho",
+      "auditoria",
+      "backend"
+    ]
+  },
+  {
+    "id": "win-144",
+    "fromTs": 1782982765188,
+    "toTs": 1782982958310,
+    "turns": 8,
+    "title": "Resumo matinal JOCA — estado de workers e emails, 2026-07-02",
+    "tags": [
+      "joca",
+      "resumo-matinal",
+      "livro-de-elogios",
+      "gws",
+      "automacoes",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-152",
+    "fromTs": 1782983079716,
+    "toTs": 1782983378834,
+    "turns": 8,
+    "title": "Resumo matinal JOCA + consulta estado UniMedia",
+    "tags": [
+      "joca",
+      "unimedia",
+      "resumo-matinal",
+      "gws",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-160",
+    "fromTs": 1782983401487,
+    "toTs": 1782983675210,
+    "turns": 8,
+    "title": "UniMedia commit+push bloqueado; LE_Plano banners abertos para revisão",
+    "tags": [
+      "UniMedia",
+      "Livro de Elogios",
+      "JOCA_OS",
+      "git",
+      "workers",
+      "imagens"
+    ]
+  },
+  {
+    "id": "win-168",
+    "fromTs": 1782983696184,
+    "toTs": 1782983862973,
+    "turns": 8,
+    "title": "UniMedia push para GitHub + abertura de banners LE",
+    "tags": [
+      "unimedia",
+      "livro-de-elogios",
+      "git",
+      "workers",
+      "joca-os"
+    ]
+  },
+  {
+    "id": "win-176",
+    "fromTs": 1782983870221,
+    "toTs": 1782983976839,
+    "turns": 8,
+    "title": "Tentativa de fechar terminal UniMedia no JOCA UI",
+    "tags": [
+      "joca-os",
+      "unimedia",
+      "workers",
+      "terminal-ui",
+      "limitações-master"
+    ]
+  },
+  {
+    "id": "win-184",
+    "fromTs": 1782984005023,
+    "toTs": 1782986255666,
+    "turns": 8,
+    "title": "JOCA Master — Livro de Elogios: abertura de plataformas e regeneração de banner lifestyle",
+    "tags": [
+      "livro-de-elogios",
+      "joca",
+      "banner-email",
+      "le-plataforma",
+      "le-plano",
+      "workers"
+    ]
+  },
+  {
+    "id": "win-192",
+    "fromTs": 1782986268967,
+    "toTs": 1782989679529,
+    "turns": 8,
+    "title": "Livro de Elogios — arranque da plataforma dev + banner final do email do plano",
+    "tags": [
+      "livro-de-elogios",
+      "joca",
+      "workers",
+      "email-banner",
+      "laravel",
+      "vite"
+    ]
+  }
+]

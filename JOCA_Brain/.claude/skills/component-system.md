@@ -2,6 +2,7 @@
 name: component-system
 description: "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec. SHOULD also invoke when: input spec, card spec, UI components, UI kit, component library, component documentation."
 triggers: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec, input spec, card spec, UI components, UI kit, component library, component documentation, anatomia do componente, component anatomy
+chain: frontend
 ---
 
 # Component System

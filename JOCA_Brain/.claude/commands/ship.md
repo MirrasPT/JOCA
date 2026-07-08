@@ -26,4 +26,5 @@ Adaptado do `ship` do gstack. Pipeline de envio pré-merge: sincroniza a base, c
 - Registar a release no Brain se relevante: `node .claude/scripts/joca-brain.mjs decide --text "shipped <feature> em PR #N" --source user`.
 
 ## Próximo passo (chain)
-- PR aberto → `/canary`-equivalente: monitorizar pós-merge (ou `deploy-executor` se o merge dispara deploy). CI vermelho / reviews de bot → `pr-repair`. Ver `rules/chaining.md`.
+- PR merged e há deploy a fazer → agente `deploy-executor` (corre pipeline + health-check; ⛔ gate próprio).
+- PR vermelho (CI a falhar / conflitos / reviews de bot) → agente `pr-repair`. Ver `rules/chaining.md`.

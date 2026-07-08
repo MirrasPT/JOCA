@@ -21,6 +21,16 @@ Diferença vs UniTV: UniTV foi reiniciado SEM VidSrc/Real-Debrid. UniMedia volta
 
 ## Estado actual
 
+### Redesign B&W + player media-chrome + streaming HEVC/cache + ranking + bug-fixes (2026-06-30/07-01) — build verde, NÃO commitado
+Sessões grandes pós-unificação. **Plano detalhado de bugs+features em `docs/ui-bugs-features-plan.md`** (tabela de bugs, work-streams, 5 fases, T2 HLS) — fonte para o próximo workflow.
+
+- **Redesign PRETO & BRANCO, TV-first** (substituiu o clone Netflix vermelho): `globals.css` paleta grayscale (true black, acento = branco, `accent-fg` = preto), tipografia maior, espaçamento generoso. **Sidebar esquerda fixa** (`components/layout/Sidebar.tsx` + `AppShell.tsx`) substituiu o top Navbar. **Scroll só vertical** — carrosséis horizontais → grelhas (`components/section/SectionGrid.tsx`); `Row`/`HoverCard`/`BillboardCarousel`/`Navbar` APAGADOS. Anel de foco branco p/ D-pad.
+- **Detalhe = PÁGINA INTEIRA, sem modais** (2026-07-01): apagado o intercepting route `app/@modal/`; info = `app/title/[id]` full page com `BackButton`. Regra do user: **nada em popups/modais, tudo full pages**.
+- **Player = media-chrome@4.19.2** (embrulha o nosso `<video slot=media>`, preserva todo o pipeline): chrome B&W minimal auto-hide, ±10s, scrubber, volume, **fullscreen real** (wrapper, capture-phase retry), painel de legendas (sync ±0.5s + picker de candidatos PT), botões rápidos **Fonte** + **Legenda**, scroll-lock. `Player.tsx` = wrapper `next/dynamic({ssr:false})` de `MediaChromePlayer.tsx`.
+- **Streaming-server (T1/T5/cache):** decisão de codec por probe (native `/file` Range seekable · remux h264-mkv · **transcode HEVC→H264** = agora TOCA); **cache de ffprobe** (`probe-cache.json`); **download eager do ficheiro todo** em background + **cache em disco 30min idle** (`CACHE_IDLE_MIN`) → sair/voltar reusa instantâneo. Ver memória `unimedia-native-range-playback`.
+- **Ranking de fontes** (`lib/sources/score.ts`): 1080p dominante · original sem-dub (penaliza tags de língua estrangeira) · **pequeno+seeders** (size favorece compacto, pesa > seeders) · boost de ano (reboots tipo Avatar 2024 vs 2005). Matcher de título (`lib/sources/match.ts`): prefixo+next-word+ano → resolve "toca o título errado". Ver memória `unimedia-source-title-matching`.
+- **Bugs corrigidos (Fase 1, 2026-07-01):** info do filme errado (links sem `?type=` → ids movie/TV colidem) · restart ao trocar legenda (`onFatal` saiu das deps do `useHls`) · fullscreen real. **Por resolver (T2/HLS):** barra de tempo só +15s + seek recomeça em mkv/HEVC (fMP4 `empty_moov` sem duração) — filmes mp4 nativos já têm seek.
+
 ### UNIFICAÇÃO UniTV+UniMedia + redesign Netflix (2026-06-23) — COMPLETA, build verde, NÃO commitada
 Decisão: **UniMedia é a base** (Next 16, mais moderno); portou-se do UniTV só o que faltava. Produto final único = **Filmes + Séries + TV(IPTV) + Ficheiros locais** num só app Netflix-grade. Análise + plano em `_unification/` (PLAN.md + 4 relatórios). Construído em 4 workflows multi-agente (análise → foundation → fan-out → polish), todos com gate tsc+build+smoke autenticado.
 - **Design Netflix:** tokens OKLCH dark + aliases legacy (`globals.css`), fontes **Bricolage Grotesque + Hanken Grotesk** (subst. Geist), `@custom-variant fine-pointer` (NUNCA usar arbitrary `[@media(hover:hover)and(...)]` — gera CSS inválido E o Tailwind v4 faz scan de `.md`/comentários, branqueia tudo). Componentes: `layout/Navbar` (global no `layout.tsx`, esconde-se em /login+/profiles via usePathname), `hero/Billboard(+Carousel)`, `row/{Row,RowContinue,RowTop10,RowChannels}`, `card/{PosterCard,HoverCard,ChannelCard}`, `ui/{Button(CVA),IconButton,Skeleton}`, `modal/TitleDetail`.
@@ -87,15 +97,21 @@ Next.js 16.2.9 + Tailwind v4 + better-sqlite3. Dir `C:\Users\renat\Projetos\UniM
 - 2026-06-23: **UNIFICAR UniTV → UniMedia** (não fundir 50/50): UniMedia é a base (Next 16), porta-se do UniTV só IPTV+HLS+spatial-nav+micro-lifts; descarta-se perfis/watch-state/TMDB/torrent-sourcing/player do UniTV (UniMedia já melhor).
 - 2026-06-23: **TV/comando é objectivo** (Q user) → spatial-nav portado. Accent vermelho `#E50914` literal (clone Netflix pedido). Modal = intercepting routes (não só modal nem só página). IPTV = secção `/live` separada (por-canal, não polui catálogo TMDB).
 - 2026-06-23: user optou por **não fazer commit baseline** antes da reescrita grande (avançou sobre uncommitted).
+- 2026-06-30: **Redesign para PRETO & BRANCO, TV-first** (acabou-se o vermelho Netflix); **sidebar esquerda** substitui top nav; **scroll só vertical** (grelhas, não carrosséis).
+- 2026-06-30: **Player open-source = media-chrome** (embrulha o `<video>`, preserva pipeline) vs Vidstack/Plyr — escolhido por React-19-safe + temável só por CSS vars + preserva tudo.
+- 2026-06-30: **Servir mp4 nativo do torrent via HTTP Range** (`/file/:id`) em vez de remuxar → duração+seek reais; **transcode HEVC→H264** (T1) p/ tocar; **cache de probe** (T5) + **download eager + cache disco 30min**.
+- 2026-06-30: **Ranking**: 1080p > tudo; original sem-dub; **ficheiro pequeno+seeders ganha** (validado: 900s/500MB > 1000s/2GB); boost de ano p/ reboots.
+- 2026-07-01: **Tudo full pages — ZERO modais/popups** (apagado o intercepting modal da info).
+- 2026-07-01: Fase 1 de bugs = navegação `?type=` + no-modal + restart-legenda + fullscreen. Bugs de seek/duração em mkv ficam para **T2 (HLS)**.
 
 ## Pendente
-- **Commitar TUDO** (unificação inteira + Fase 4 anterior está uncommitted — MUITO código; recomendado urgente como ponto de restauro).
-- Testar **playback real end-to-end na UI**: 1 canal IPTV (clicar→toca via proxy /iptv) + 1 ficheiro local (configurar pasta em /admin/sources → Scan → tocar). Rotas todas 200; falta o clique-e-toca visual.
-- Config local files: definir `LOCAL_LIBRARY_DIRS` ou pastas em /admin/sources (serving recusa pastas não-configuradas por segurança).
-- TODOs conhecidos: **AES-128** em canais IPTV encriptados (proxy `/iptv`); **transcode HEVC para torrents** (só local resolvido, `-c:v copy` em torrents → HEVC não toca); DASH(.mpd)/DRM-clearkey flagged mas não tocam.
-- Limpeza Fase 3: remover `components/VideoPlayer.tsx` órfão + `components/{MediaCard,MediaRow,SiteHeader,TitleDetail}.tsx` antigos (substituídos) + aliases legacy em globals.css; renomear `middleware`→`proxy` (aviso Next 16).
-- Suggestions antigas ainda válidas: AbortController no fetch ao stream-server; `/api/subtitles` 502 não expor `err.message`.
+- **Commitar TUDO** (último commit é 2026-06-17; todo o redesign+streaming+scoring+bugfixes está uncommitted — URGENTE como ponto de restauro; user ainda não pediu push).
+- **Workflow de implementação** (plano em `docs/ui-bugs-features-plan.md`): Fase 2 backend (Minha Lista/watchlist + auto-marcar episódios vistos) → Fase 3 UI (controlos player: próximo/anterior episódio, velocidade 1/1.25/1.5/2x) → **Fase 4 T2 HLS** (seek+duração em mkv/HEVC) → Fase 5 QA.
+- **T2 (HLS on-the-fly)** é o próximo grande: resolve barra-só-+15s + seek-recomeça em mkv/HEVC (padrão webtor `content-transcoder`: `-ss` + seek quantizado ~30s + segmentos).
+- Confirmar **fullscreen real no Chrome do user** (Playwright headless não valida bem).
+- Auto-sync de legendas (viabilidade: preferir sub com melhor `moviehash` primeiro).
+- Antigos: AES-128 IPTV · DASH/DRM-clearkey não tocam · config pastas locais em /admin/sources.
 
 ## Última sessão
-2026-06-23: Unificação UniTV+UniMedia + redesign Netflix completo em 4 workflows multi-agente (análise→foundation→fan-out→polish, 15 agentes). Filmes+Séries+IPTV+Locais num só app, build verde + smoke autenticado (todas as rotas 200). Por commitar.
+2026-07-01: Plano detalhado de bugs+features escrito (`docs/ui-bugs-features-plan.md`) + Fase 1 implementada e testada — info do filme errado corrigida (`?type=` + **info = página inteira, modais removidos**), restart-ao-trocar-legenda corrigido, fullscreen real. Antes (mesma janela): redesign B&W + sidebar + player media-chrome + streaming HEVC/cache + ranking pequeno-seeders. Tudo build verde, por commitar.
 <!-- preenchido por /save -->

@@ -4,7 +4,7 @@ description: "Unity 6 (LTS) + C# game development — project structure, Scripta
 metadata:
   type: skill
   category: game-dev
-chain: tester-code
+chain: unity-ui, unity-build-android, tester-code
 ---
 
 # Unity Game Dev (C#)
@@ -12,6 +12,12 @@ chain: tester-code
 Skill focada (destilada de packs públicos: Nice-Wolf-Studio/unity-claude-skills, XeldarAlz/everything-claude-unity, The1Studio) — **só o essencial** para construir um jogo Unity (alvo Android), com viés para **card games / TCG**. Sem custo de plugin always-on.
 
 > **Read-first:** antes de escrever qualquer `.cs` de gameplay, ler esta skill. Notify `[skill: unity-gamedev]`.
+
+> **Director — encaminha para especialistas:** esta skill cobre a arquitectura/engine/build base. Para trabalho focado, lê também o especialista certo:
+> - UI/apresentação (UGUI/UI Toolkit, prefabs de carta, board, animação, mobile) → **`unity-ui`**
+> - Shipping Android (IL2CPP/ARM64, AAB, keystore, gradle, gotchas) → **`unity-build-android`**
+> - Correr+verificar um build headless (sem confiar no exit code) → agente **`unity-build-runner`**
+> - Card-game design/balanço/arte → `card-game-design` · `game-balance` · `card-art-pipeline` (+ agentes `tcg-balance-auditor` · `card-catalog-sync` · `tcg-playtester`).
 
 ---
 

@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
 import type { MainView, MasterEntry, SessionInfo, TerminalRef } from '../types';
+import { notify } from '../lib/notify';
 
 // Human-readable labels for the Master's orchestration tool calls — shown live in the bottom
 // activity indicator so the user sees what it's doing (dispatching workers, reading, etc.).
@@ -28,7 +29,7 @@ export type ServerMessage =
   | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
   | { type: 'master_message'; text: string }
   | { type: 'orchestration_step'; tool: string; input: unknown }
-  | { type: 'worker_summary'; summary: string; isError: boolean; costUsd: number }
+  | { type: 'worker_summary'; summary: string; isError: boolean; costUsd: number; auto?: boolean; continued?: boolean }
   | { type: 'master_error'; error: string }
   | { type: 'projects_changed' }
   | { type: 'master_chat_cleared' }
@@ -172,7 +173,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           if (msg.isDone) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
-              d.addToast(session);
+              // Erros.md #14/#16: NO popup toast for terminal work — not for your own manual work,
+              // not for Master/automation workers (the Master chat narrates those), and never for
+              // opening/closing/switching terminals. Keep only the subtle unread dot in the sidebar.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
             }
           }
@@ -193,6 +196,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           // only thing the chat shows for an assistant turn.
           d.setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'summary' as const, text: msg.summary, isError: msg.isError, costUsd: msg.costUsd }]);
           d.setMasterPending((n) => Math.max(0, n - 1));
+          // Notify only on user-initiated turns (auto === false) and on auto follow-ups that ENDED
+          // (continued === false) — i.e. once at dispatch and once when the worker's work is done.
+          // An auto follow-up that continued the chain (continued === true) is intermediate → silent.
+          if (!msg.auto || !msg.continued) {
+            notify('JOCA — Master', msg.summary.replace(/\s+/g, ' ').trim().slice(0, 120));
+          }
           break;
 
         case 'master_error':
@@ -213,6 +222,7 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         // An automation delivered a result → show it in the Master chat (it persists server-side too).
         case 'automation_message':
           d.setMasterLog((prev) => [...prev, { id: msg.id, role: 'summary' as const, text: msg.text, isError: false, costUsd: 0 }]);
+          notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120));
           break;
         case 'automation_activity':
           d.setMasterActivity(msg.text.replace(/\s+/g, ' ').trim().slice(0, 200));

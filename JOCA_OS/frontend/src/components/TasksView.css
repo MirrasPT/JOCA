@@ -150,3 +150,28 @@
 .tk-card-actions .tk-danger { margin-left: auto; }
 .tk-card-actions .tk-danger:hover { color: #ff8a8a; border-color: #ff8a8a; }
 .tk-card-actions svg { width: 15px; height: 15px; }
+
+/* ── Anexos (form + cartão) ──────────────────────────────────────────────────── */
+.tk-attach-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.tk-attach-btn {
+  display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+  background: var(--surface-base, #131210);
+  border: 1px solid var(--border-bento, rgba(255,255,255,.1));
+  border-radius: 10px; padding: 8px 12px; cursor: pointer;
+  color: var(--text-secondary, #c4bfb8); font-family: inherit; font-size: 13px; font-weight: 600;
+}
+.tk-attach-btn:hover:not(:disabled) { color: var(--text-primary, #f5f3ef); border-color: var(--accent, #ff4500); }
+.tk-attach-btn:disabled { opacity: .6; cursor: progress; }
+.tk-attach-btn svg { width: 15px; height: 15px; }
+
+.tk-attach-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tk-attach-chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  border: 1px solid var(--border-bento, rgba(255,255,255,.12));
+  border-radius: 999px; padding: 3px 9px; cursor: pointer;
+  background: var(--surface-base, #131210);
+  color: var(--text-secondary, #c4bfb8); font-family: inherit; font-size: 11px;
+}
+.tk-attach-chip:hover { color: #ff8a8a; border-color: #ff8a8a; }
+.tk-attach-chip svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.tk-attach-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }

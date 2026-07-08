@@ -4,6 +4,7 @@ description: "Generates and maintains PRD.md — living requirements doc optimis
 metadata:
   type: skill
   category: base
+chain: tech-spec
 ---
 
 # PRD

@@ -1,6 +1,6 @@
 ---
 name: analytics-tracking
-description: "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking,, GA4,, Google Analytics,, conversion tracking,, event tracking,, UTM parameters,."
+description: "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking, GA4, Google Analytics, conversion tracking, event tracking, UTM parameters,."
 metadata:
   version: 1.1.0
 ---

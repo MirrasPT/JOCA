@@ -27,6 +27,7 @@ export default defineConfig({
       '/master-chat': { target: http },
       '/master-providers': { target: http },
       '/automations': { target: http },
+      '/tasks': { target: http },
       '/optimize-objective': { target: http },
       '/roots': { target: http },
       '/ui-settings': { target: http },

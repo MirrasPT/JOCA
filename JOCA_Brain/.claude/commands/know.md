@@ -2,7 +2,7 @@
 
 Guarda conteúdo no segundo cérebro pessoal. `/know <url|ficheiro|texto>`.
 
-Atalho para o agente `knowledge-ingest` (FUTUROS Fase 5).
+Atalho para o agente `knowledge-ingest`.
 
 ## Fluxo
 

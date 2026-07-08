@@ -2,6 +2,7 @@
 name: filament
 description: "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page. SHOULD also invoke when: filament widget, filament form, filament table, filament action, Filament v4, Filament v5."
 triggers: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page, filament widget, filament form, filament table, filament action, Filament v4, Filament v5, make:filament-resource, NavigationGroup, admin painel, painel admin, gestao, dashboard admin
+chain: tester-code
 ---
 # Filament
 
@@ -79,60 +80,6 @@ final class ProductResource extends Resource
 
 ---
 
-## Enums -- 3 contracts required
-
-```php
-<?php declare(strict_types=1);
-
-namespace App\Enums;
-
-use Filament\Support\Contracts\HasLabel;
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasIcon;
-
-enum OrderStatus: string implements HasLabel, HasColor, HasIcon
-{
-    case Pending    = 'pending';
-    case Processing = 'processing';
-    case Completed  = 'completed';
-    case Cancelled  = 'cancelled';
-
-    public function getLabel(): string
-    {
-        return match ($this) {
-            self::Pending    => __('orders.status.pending'),
-            self::Processing => __('orders.status.processing'),
-            self::Completed  => __('orders.status.completed'),
-            self::Cancelled  => __('orders.status.cancelled'),
-        };
-    }
-
-    public function getColor(): string|array|null
-    {
-        return match ($this) {
-            self::Pending    => 'warning',
-            self::Processing => 'info',
-            self::Completed  => 'success',
-            self::Cancelled  => 'danger',
-        };
-    }
-
-    public function getIcon(): string|\BackedEnum|null
-    {
-        return match ($this) {
-            self::Pending    => Heroicon::OutlinedClock,
-            self::Processing => Heroicon::OutlinedArrowPath,
-            self::Completed  => Heroicon::OutlinedCheckCircle,
-            self::Cancelled  => Heroicon::OutlinedXCircle,
-        };
-    }
-}
-```
-
-> **Gotcha:** `HasIcon::getIcon()` returns `string|\BackedEnum|null` in v5 — return the Heroicon enum **case** (`Heroicon::OutlinedClock`), never `->value`. Returning the string value bypasses the enum's SVG resolution and throws `Svg ... not found` when the badge renders.
-
----
-
 ## Forms
 
 ```php
@@ -157,156 +104,6 @@ $schema->components([
         RichEditor::make('description')->columnSpanFull(),
     ])->columns(2),
 ]);
-```
-
----
-
-## Multi-tenancy -- CRITICAL
-
-Form selects are NOT auto-scoped. Manual scoping required:
-
-```php
-Select::make('team_id')
-    ->relationship('team', 'name')
-    ->modifyQueryUsing(fn (Builder $query) =>
-        $query->where('id', Filament::getTenant()->id))
-    ->searchable()
-    ->preload()
-
-// Validacao tenant-aware:
-->scopedUnique()    // NAO ->unique()
-->scopedExists()    // NAO ->exists()
-```
-
-Without this = **data leak between tenants**.
-
----
-
-## RBAC / Filament Shield
-
-`shield:install` does **not** migrate the spatie permissions table. Run the steps in this order or `shield:generate` fails with *"Table 'permissions' doesn't exist"*:
-
-```bash
-php artisan shield:install <panel>
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
-php artisan migrate
-php artisan shield:generate --all
-php artisan shield:super-admin --user=1
-```
-
-`shield:generate` creates one Policy per resource (`$user->can('ViewAny:X')`). Under `RefreshDatabase` the DB has no permissions, so every Filament test 403s. Add a super_admin bypass in `AppServiceProvider::boot()` — more robust than seeded permissions (which `RefreshDatabase` wipes) and how the real admin gets full access:
-
-```php
-use Illuminate\Support\Facades\Gate;
-
-Gate::before(fn ($user, $ability) =>
-    method_exists($user, 'hasRole') && $user->hasRole('super_admin') ? true : null);
-```
-
-TestCase helper — `findOrCreate` the role and assign it to the acting user:
-
-```php
-protected function superAdmin(): User
-{
-    $role = \Spatie\Permission\Models\Role::findOrCreate('super_admin');
-    $user = User::factory()->create();
-    $user->assignRole($role);
-    return $user;
-}
-```
-
----
-
-## Advanced building blocks
-
-### Infolists (View page — read-only)
-```php
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Section;
-
-public static function infolist(Schema $schema): Schema
-{
-    return $schema->components([
-        Section::make('Order')->schema([
-            TextEntry::make('reference')->copyable(),
-            TextEntry::make('status')->badge(),          // enum HasColor/HasIcon → coloured badge
-            TextEntry::make('total')->money('EUR'),
-        ])->columns(3),
-    ]);
-}
-```
-
-### Relation Managers (hasMany / belongsToMany on the Edit/View page)
-```php
-php artisan make:filament-relation-manager OrderResource items name
-```
-```php
-final class ItemsRelationManager extends RelationManager
-{
-    protected static string $relationship = 'items';
-    public function table(Table $table): Table
-    {
-        return $table->columns([...])->headerActions([CreateAction::make()])
-            ->recordActions([EditAction::make(), DeleteAction::make()]);
-    }
-}
-// Register in the Resource: public static function getRelations(): array { return [ItemsRelationManager::class]; }
-```
-
-### Widgets (dashboard)
-```php
-// Stats overview
-final class OrderStats extends StatsOverviewWidget
-{
-    protected function getStats(): array
-    {
-        return [
-            Stat::make('Revenue (30d)', Number::currency($revenue, 'EUR'))
-                ->chart($spark)->color('success'),
-            Stat::make('Pending', $pending)->color('warning'),
-        ];
-    }
-}
-// Chart widget → extends ChartWidget; Table widget → extends TableWidget.
-// Register: getHeaderWidgets()/getFooterWidgets() on a Page, or auto-discovered Dashboard widgets.
-```
-
-### Custom Actions (row / bulk / header)
-```php
-use Filament\Actions\Action;
-
-Action::make('refund')
-    ->requiresConfirmation()
-    ->schema([TextInput::make('amount')->numeric()->required()])   // modal form: ->schema NOT ->form
-    ->action(fn (Order $record, array $data) => app(RefundAction::class)->handle($record, $data))
-    ->visible(fn (Order $record) => $record->isRefundable());
-```
-Business logic stays in an Action class (`laravel-specialist`) — the Filament action only collects input and delegates.
-
-### Global search
-```php
-protected static ?string $recordTitleAttribute = 'name';          // required
-public static function getGloballySearchableAttributes(): array { return ['name', 'sku', 'reference']; }
-public static function getGlobalSearchResultDetails(Model $record): array {
-    return ['Category' => $record->category->name];
-}
-```
-
-### Import / Export (bulk data — CMS/e-commerce)
-```php
-use Filament\Actions\ImportAction; use Filament\Actions\ExportAction;
-// toolbarActions([ ImportAction::make()->importer(ProductImporter::class),
-//                  ExportAction::make()->exporter(ProductExporter::class) ])
-php artisan make:filament-importer Product --generate
-php artisan make:filament-exporter Product --generate
-```
-Importers/exporters run on the **queue** by default (offload — see `queues`/`horizon`).
-
-### Notifications
-```php
-use Filament\Notifications\Notification;
-Notification::make()->title('Saved')->success()->send();            // to current user
-Notification::make()->title('New order')->sendToDatabase($admin);   // persistent + bell badge
 ```
 
 ---
@@ -356,42 +153,6 @@ Agent(subagent_type="filament-builder", prompt="Build a Filament resource for Ap
 
 ---
 
-## Testing (Pest + Livewire)
-
-```php
-uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    $this->user = User::factory()->create();
-    actingAs($this->user);
-});
-
-it('can list products', function () {
-    $products = Product::factory()->count(5)->create();
-    livewire(ListProducts::class)
-        ->assertCanSeeTableRecords($products);
-});
-
-it('can create a product', function () {
-    livewire(CreateProduct::class)
-        ->fillForm(['name' => 'Widget', 'price' => 9.99])
-        ->call('create')
-        ->assertHasNoFormErrors()
-        ->assertNotified();
-    expect(Product::where('name', 'Widget')->exists())->toBeTrue();
-});
-```
-
----
-
-## Deploy
-```bash
-php artisan optimize
-php artisan filament:optimize   # SO PRODUCAO -- quebra dev local
-```
-
----
-
 ## Checklist
 
 - [ ] `$recordTitleAttribute` em cada resource
@@ -404,3 +165,11 @@ php artisan filament:optimize   # SO PRODUCAO -- quebra dev local
 - [ ] `FilamentUser` interface + `canAccessPanel()` em producao
 - [ ] Model policies para viewAny, create, update, delete
 - [ ] Sem texto hardcoded -- language files
+
+## Referências (carregar on-demand)
+
+| Referência | Quando |
+|---|---|
+| `Read(".claude/reference/filament/advanced-blocks.md")` | Enums (HasLabel/HasColor/HasIcon + gotcha Heroicon), infolists, relation managers, widgets, custom actions, global search, import/export, notifications |
+| `Read(".claude/reference/filament/tenancy-rbac.md")` | Multi-tenancy (scoping manual de selects — sem isto = data leak) e RBAC/Filament Shield (ordem de install, super_admin bypass, helper de testes) |
+| `Read(".claude/reference/filament/testing-deploy.md")` | Testes Pest+Livewire de resources e optimize/deploy em produção |

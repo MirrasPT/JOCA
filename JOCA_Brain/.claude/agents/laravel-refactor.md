@@ -2,6 +2,7 @@
 name: laravel-refactor
 description: "Use to refactor and optimize Laravel code for scale — remove dead code, reduce complexity, fix N+1s, extract to Actions, run Larastan/PHPStan, and harden for scalability. Triggered by: \"refactor laravel\", \"optimize laravel\", \"clean up this code\", \"dead code\", \"unused code\", \"reduce complexity\", \"larastan\", \"phpstan\", \"fat controller\", \"scale this\", \"laravel scalability\", \"remove unused\", \"tech debt\". Reads code, runs static analysis, proposes and applies surgical refactors. Different from security-review (security) and query-debugger (single-query EXPLAIN)."
 skills: laravel-specialist, caching
+chain: tester-code
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: sonnet
 ---
@@ -119,3 +120,4 @@ php artisan test → all green · phpstan → 0 errors · behavior preserved
 - Don't add features or change public contracts while refactoring.
 - Prefer deleting code over adding it. The best refactor removes lines.
 - Larastan/PHPStan is the objective gate — raise the level, don't just silence errors.
+- Relatório completo → escreve em `.joca/intermediate/laravel-refactor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.

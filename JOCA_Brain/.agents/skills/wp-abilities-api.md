@@ -1,6 +1,6 @@
 ---
 name: wp-abilities-api
-description: "Working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities. MUST be invoked when the user mentions: WordPress Abilities API, REST."
+description: "Register/expose/consume WordPress Abilities (wp_register_ability, wp-abilities/v1 REST, @wordpress/abilities). Invoke on: abilities API, ability not visible."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
 ---
 
@@ -43,7 +43,7 @@ If none exist, decide whether to introduce fresh registrations + client consumpt
 
 ### 3) Register categories (optional)
 
-For logical grouping, register an ability category early (see `references/php-registration.md`).
+For logical grouping, register an ability category early.
 
 ### 4) Register abilities (PHP)
 
@@ -56,11 +56,11 @@ Register with:
   - `readonly: true` for informational abilities,
   - `show_in_rest: true` for client-visible abilities.
 
-Use documented init hooks for registration timing (see `references/php-registration.md`).
+Use documented init hooks for registration timing.
 
 ### 5) Confirm REST exposure
 
-- Verify endpoints exist and return expected results (see `references/rest-api.md`).
+- Verify endpoints exist and return expected results.
 - Ability invisible to client: confirm `meta.show_in_rest` is enabled and query targets the right endpoint.
 
 ### 6) Consume from JS (if needed)
@@ -90,6 +90,3 @@ Use documented init hooks for registration timing (see `references/php-registrat
 ## Escalation
 
 - Uncertain about version support: confirm target WP core versions and whether Abilities API comes from core or plugin.
-- Canonical details:
-  - `references/rest-api.md`
-  - `references/php-registration.md`

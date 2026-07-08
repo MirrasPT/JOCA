@@ -165,6 +165,23 @@ async function walkEntry(
   }
 }
 
+// Drag semantics (distinct from Ctrl+V): a DRAG references the file where it ALREADY lives — return
+// the real on-disk path when the drag source provides one (JOCA's own FileBrowser sets text/plain;
+// macOS Finder sets text/uri-list). It NEVER uploads a copy to JOCA_Drops — only Ctrl+V does that.
+// Browsers sandbox OS-file-manager drags (Windows Explorer exposes no path) → those yield [], and the
+// caller simply inserts nothing (the user can Ctrl+V instead, which intentionally saves a copy).
+// Synchronous: safe to call without the dataTransfer-expiry dance (no await, no upload).
+export function dragRealPaths(cap: DropCapture): string[] {
+  return cap.real;
+}
+
+// A DRAG carried file(s)/folder(s) but the browser exposed NO real on-disk path (Windows Explorer
+// sandbox) → dragRealPaths() is []. Lets the caller show a non-blocking hint (use the JOCA file
+// panel, which sets a real path, or Ctrl+V, which uploads a copy) instead of the drop looking dead.
+export function dropHadFilesWithoutPath(cap: DropCapture): boolean {
+  return cap.real.length === 0 && (cap.files.length > 0 || cap.entries.length > 0);
+}
+
 // ── resolve a captured drop to a list of absolute paths ──
 export async function resolveDrop(cap: DropCapture): Promise<{ paths: string[]; truncated: boolean }> {
   // 1) real paths win — original on-disk location, no copy needed

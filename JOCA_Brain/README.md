@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 22 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 113 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 26 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 40 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 133 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**171 componentes:** 113 skills + 36 agents + 22 commands.
+**199 componentes:** 133 skills + 40 agents + 26 commands.
 
 ---
 
@@ -110,12 +110,15 @@ Para ligar um projecto existente:
 
 ---
 
-## Skills (113)
+## Skills (133)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
 ### Base & JOCA
-`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate` · `yagni` · `agent-sdk` · `comfy-mcp-workarounds`
+`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `context-pack` · `pt-pt-translator` · `joca-ui-windows` · `browser-automate` · `yagni` · `agent-sdk` · `comfy-mcp-workarounds`
+
+### Guard-rails
+`freeze` · `careful` · `guard` · `tdd` · `unfreeze`
 
 ### Planeamento & Specs
 `plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
@@ -124,7 +127,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `frontend` · `mobile` · `design-system` · `design-tokens` · `component-system` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-review` · `tailwind` · `shadcn` · `react-composition` · `react-patterns` · `landing-page`
 
 ### Dev (Laravel / backend)
-`laravel-specialist` · `filament` · `laravel-react` · `saas-patterns` · `rest-api` · `mysql` · `auth` · `security` · `file-storage` · `caching` · `queues` · `bullmq` · `horizon-queues` · `reverb-realtime` · `search-engine` · `webhooks` · `availability` · `error-tracking-dev` · `error-tracking-prod` · `github`
+`laravel-specialist` · `filament` · `laravel-react` · `saas-patterns` · `rest-api` · `mysql` · `auth` · `security` · `file-storage` · `caching` · `queues` · `bullmq` · `horizon` · `reverb-realtime` · `search` · `webhooks` · `availability` · `error-tracking-dev` · `error-tracking-prod` · `github`
 
 ### Email
 `react-email` · `transactional-email` · `postmark`
@@ -136,7 +139,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `portugal-payments` (ifthenpay/MB WAY/Multibanco) · `portugal-invoicing` (Moloni/faturacao certificada)
 
 ### Marketing
-`marketing-router` · `paid-ads` · `seo` · `seo-local` · `copywriting` · `content-strategy` · `content-calendar` · `social-content` · `email-sequence` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling` · `lead-capture`
+`marketing` · `paid-ads` · `seo` · `seo-local` · `copywriting` · `content-strategy` · `content-calendar` · `social-content` · `email-sequence` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling` · `lead-capture`
 
 ### Analytics
 `google-analytics` · `microsoft-clarity`
@@ -153,12 +156,12 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 ### Wix
 `wix-cli`
 
-### Autonomia & Pessoal (FUTUROS)
-`knowledge-ingest` (/know) · `automations` · `personal-comms`
+### Autonomia & Pessoal
+`knowledge-ingest` (/know) · `automations` · `personal-comms` (Fase 2/3)
 
 ---
 
-## Agents (36)
+## Agents (40)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -180,12 +183,15 @@ Agentes correm em sub-processos isolados, em paralelo.
 ### Specialists
 `payment-integration` · `security-review` · `laravel-refactor` · `filament-builder` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
 
-### Autonomia & Pessoal (FUTUROS)
-`knowledge-ingest` · `automation-builder` · `personal-comms`
+### Game Dev (TCG / Unity)
+`tcg-balance-auditor` · `card-catalog-sync` · `tcg-playtester` · `unity-build-runner`
+
+### Autonomia & Pessoal
+`knowledge-ingest` · `automation-builder` · `personal-comms` (Fase 2/3)
 
 ---
 
-## Commands (22)
+## Commands (26)
 
 | Command | Funcao |
 |---------|--------|
@@ -203,8 +209,6 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
 | `/create-skill` | Pipeline self-improving para criar skills |
 | `/sync-questionnaires` | Audita e actualiza os questionarios/listas contra o inventario real |
-| `/feedback-joca` | Captura gaps no workflow JOCA |
-| `/feedback-projeto` | Actualiza docs do projecto |
 | `/upgrade-joca` | Le feedback e implementa melhorias |
 | `/update-joca` | Sync com repositorio GitHub |
 | `/migrate` | Guia de migracao v1-legacy -> v2.0 |

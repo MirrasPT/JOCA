@@ -1,6 +1,6 @@
 ---
 name: karpathy-guidelines
-description: "Behavioral guidelines to reduce common LLM coding mistakes. MUST be invoked when the user mentions: Behavioral, LLM."
+description: "Karpathy-style behavioural rules to reduce LLM coding mistakes — think first, simplicity, surgical edits. Invoke on: coding discipline, avoid overengineering, LLM coding mistakes."
 license: MIT
 ---
 

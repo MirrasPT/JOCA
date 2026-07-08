@@ -25,6 +25,7 @@ export interface Task {
   model?: string;              // e.g. 'sonnet'|'opus'|'haiku' (Claude); undefined = default do provider
   skills?: string[];           // skills/agentes do JOCA_Brain a usar
   requireConfirm?: boolean;    // PÁRA antes de acções irreversíveis e pede OK
+  attachments?: string[];      // caminhos de ficheiros anexados (contexto para o worker)
   sessionId?: string;          // worker spawned (em-execucao)
   result?: string;             // resumo final do worker
   testerResult?: string;       // output do passo de tester
@@ -75,6 +76,7 @@ export function makeTask(partial: {
   model?: string;
   skills?: string[];
   requireConfirm?: boolean;
+  attachments?: string[];
 }): Task {
   const status: TaskStatus = TASK_STATUSES.includes(partial.status as TaskStatus) ? (partial.status as TaskStatus) : 'a-definir';
   const list = loadTasks();
@@ -93,6 +95,9 @@ export function makeTask(partial: {
       ? partial.skills.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 20)
       : undefined,
     requireConfirm: partial.requireConfirm ?? undefined,
+    attachments: Array.isArray(partial.attachments)
+      ? partial.attachments.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 50)
+      : undefined,
     sessionId: undefined,
     result: undefined,
     testerResult: undefined,

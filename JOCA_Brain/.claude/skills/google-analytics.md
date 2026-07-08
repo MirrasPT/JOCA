@@ -1,98 +1,81 @@
 ---
 name: google-analytics
-description: "Query Google Analytics 4 data. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
+description: "Google Analytics 4 — setup gtag em sites (snippet, eventos custom, consent mode), verificação (DebugView/Realtime) e query de dados via GA4 Data API REST. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
 ---
 
-# Google Analytics 4 Skill
+# Google Analytics 4
 
-Query GA4 property data via the Google Analytics Data API v1.
+Conhecimento GA4: instalar tracking num site, verificar que dispara, e consultar dados via Data API REST.
 
-## Setup
+## Setup — gtag.js num site
 
-Edit `ga_query.py` and set:
-- `CREDENTIALS_PATH` — service account JSON key path
-- `PROPERTY_ID` — GA4 property ID (number only, e.g. `123456789`)
+Snippet base no `<head>`, o mais cedo possível:
+```html
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+```
+- `G-XXXXXXXXXX` = Measurement ID (GA4 Admin → Data Streams → Web).
+- SPAs: o `page_view` automático só dispara no load inicial — em route change enviar `gtag('event', 'page_view', {page_location, page_title})` ou usar o Enhanced Measurement (history changes).
 
-Or use environment variables:
+### Eventos custom
+```js
+gtag('event', 'sign_up', { method: 'email' });
+gtag('event', 'purchase', { currency: 'EUR', value: 49.90, transaction_id: 'T-1001' });
+```
+- Preferir nomes de eventos recomendados GA4 (`sign_up`, `login`, `purchase`, `generate_lead`, …) — ganham relatórios standard.
+- Parâmetros custom só aparecem nos relatórios depois de registados como custom dimensions (Admin → Custom definitions).
+
+### Consent mode (obrigatório com banner de cookies UE)
+Antes do snippet gtag:
+```html
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    ad_storage: 'denied', ad_user_data: 'denied',
+    ad_personalization: 'denied', analytics_storage: 'denied'
+  });
+</script>
+```
+Após consentimento do user: `gtag('consent', 'update', { analytics_storage: 'granted' });`
+
+## Verificação
+
+- **DebugView** (Admin → DebugView): eventos em tempo real com `?debug_mode=1` no URL, `gtag('config', ID, {debug_mode: true})`, ou a extensão GA Debugger.
+- **Realtime report**: confirma page_views ~30s depois do deploy.
+- Sem dados? Confirmar Measurement ID, desligar ad-blockers no teste, e verificar que o consent mode concede `analytics_storage`.
+
+## Query de dados — GA4 Data API (REST)
+
+Precisa de OAuth ou service account com acesso à property (papel Viewer no GA4 Admin → Property access management). **Se a credencial faltar: deixar `TODO: credencial em falta` e reportar — nunca inventar chaves/IDs (Hard Limit soul.md).**
+
+Com gcloud autenticado (ADC):
 ```bash
-export GA4_CREDENTIALS=/path/to/service-account.json
-export GA4_PROPERTY_ID=123456789
+# 1x, para obter ADC com scope de leitura Analytics
+gcloud auth application-default login --scopes=https://www.googleapis.com/auth/analytics.readonly
+
+TOKEN=$(gcloud auth application-default print-access-token)
+curl -s -X POST \
+  "https://analyticsdata.googleapis.com/v1beta/properties/PROPERTY_ID:runReport" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "dateRanges": [{"startDate": "30daysAgo", "endDate": "today"}],
+    "dimensions": [{"name": "pagePath"}],
+    "metrics": [{"name": "screenPageViews"}, {"name": "totalUsers"}],
+    "limit": 20
+  }'
 ```
+- `PROPERTY_ID` = número da property (Admin → Property details) — **não** é o Measurement ID `G-…`.
+- Realtime: endpoint `:runRealtimeReport` (mesmo shape, sem `dateRanges`).
+- Service account: key JSON no GCP + dar acesso Viewer ao email da SA na property; depois `GOOGLE_APPLICATION_CREDENTIALS=/path/key.json gcloud auth application-default print-access-token`.
 
-**Python dependency**: handled via `uv run` (no install needed).
-
-## Script path
-
-```
-${CLAUDE_SKILL_DIR}/ga_query.py
-```
-
-Run:
-```bash
-uv run "${CLAUDE_SKILL_DIR}/ga_query.py" --report <type> [options]
-```
-
-## Available Reports
-
-### `overview` — High-level summary
-```bash
-uv run "...ga_query.py" --report overview --days 30
-```
-Returns: total users, sessions, page views, avg session duration, bounce rate, new vs returning users.
-
-### `pages` — Top pages by views
-```bash
-uv run "...ga_query.py" --report pages --days 30 --limit 20
-```
-Returns: page path, title, views, users, avg engagement time.
-
-### `sources` — Traffic sources
-```bash
-uv run "...ga_query.py" --report sources --days 30 --limit 20
-```
-Returns: source, medium, sessions, users, conversions.
-
-### `countries` — Geographic breakdown
-```bash
-uv run "...ga_query.py" --report countries --days 30 --limit 20
-```
-Returns: country, sessions, users, engagement rate.
-
-### `devices` — Device breakdown
-```bash
-uv run "...ga_query.py" --report devices --days 30
-```
-Returns: device category (desktop/mobile/tablet), sessions, users.
-
-### `daily` — Day-by-day trend
-```bash
-uv run "...ga_query.py" --report daily --days 30
-```
-Returns: date, users, sessions, page views per day.
-
-### `realtime` — Active users now
-```bash
-uv run "...ga_query.py" --report realtime
-```
-Returns: active users in last 30 minutes by source.
-
-### `custom` — Custom query
-```bash
-uv run "...ga_query.py" --report custom --metrics "sessions,totalUsers" --dimensions "city" --days 7 --limit 10
-```
-Pass any valid GA4 API metric/dimension names as comma-separated values.
-
-## Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--days` | `30` | Lookback period in days |
-| `--limit` | `10` | Max rows returned |
-| `--start` | — | Explicit start date (YYYY-MM-DD), overrides --days |
-| `--end` | — | Explicit end date (YYYY-MM-DD), defaults to today |
-| `--output` | `table` | Output format: `table`, `json`, `csv` |
-
-## GA4 Metric & Dimension Reference (for `--report custom`)
+## Referência de métricas & dimensões (runReport)
 
 **Metrics**: `totalUsers` `newUsers` `sessions` `screenPageViews` `averageSessionDuration` `bounceRate` `engagementRate` `conversions` `eventCount` `activeUsers`
 

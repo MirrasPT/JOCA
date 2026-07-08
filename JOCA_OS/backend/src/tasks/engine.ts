@@ -35,6 +35,9 @@ function buildObjective(task: Task): string {
   if (task.requireConfirm) {
     directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao Renato; só age depois do OK dele.');
   }
+  if (task.attachments?.length) {
+    directives.push(`Ficheiros anexados à tarefa (usa-os como contexto; lê-os se precisares): ${task.attachments.join(', ')}.`);
+  }
   return directives.length ? `${base}\n\n[Instruções da tarefa]\n${directives.join('\n')}` : base;
 }
 

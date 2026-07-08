@@ -40,7 +40,7 @@ ls .claude/commands/*.md | xargs -n1 basename | sed 's/\.md$//' | sed 's/^/CMD /
 echo "COUNT skills=$(ls .claude/skills/*.md | wc -l | tr -d ' ') agents=$(ls .claude/agents/*.md | wc -l | tr -d ' ') commands=$(ls .claude/commands/*.md | wc -l | tr -d ' ')"
 ```
 
-> Nota: o `name:` do frontmatter manda, não o nome do ficheiro. Ex.: `horizon.md`→`horizon-queues`, `marketing.md`→`marketing-router`, `search.md`→`search-engine`. Listar sempre pelo `name:`.
+> Nota: o `name:` do frontmatter manda — mas deve bater certo com o nome do ficheiro (alinhados em 2026-07). Se algum divergir, o `name:` é a fonte de verdade; listar sempre pelo `name:`.
 
 ---
 
@@ -74,8 +74,8 @@ Contadores desactualizados:
   ...
 
 Skills referenciadas que NÃO existem (fantasma — corrigir/remover):
-  install.md FASE 2: frontend-design, frontend-dev, api-designer, devops-engineer, canvas-design, blender
-  README.md: nodejs, flutter, realtime, comfyui-*
+  install.md FASE 2: frontend-design, frontend-dev, api-designer, devops-engineer, canvas-design, blender   (exemplos ilustrativos, não achados actuais)
+  README.md: nodejs, flutter, realtime, comfyui-*   (exemplos ilustrativos, não achados actuais)
 
 Skills no disco AUSENTES dos questionários (cobertura em falta):
   deploy-cpanel, deploy-docker, deploy-ploi, portugal-invoicing, portugal-payments,

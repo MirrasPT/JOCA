@@ -60,6 +60,10 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
       if (!objective.trim()) throw new Error('master node sem objective');
       // Action directives: which JOCA skills/agents to use, and a confirm-before-irreversible gate.
       const directives: string[] = [];
+      // Erros.md #15 + #17: an automation must NEVER hijack an existing terminal (a project terminal
+      // or one the user opened) — it opens a fresh, dedicated worker; and when finished, it closes
+      // that worker so automation terminals don't pile up.
+      directives.push('Isto é uma AUTOMAÇÃO. NÃO reutilizes nenhum terminal já aberto (nem workers nem terminais do utilizador, mesmo que estejam idle): abre SEMPRE um worker NOVO e dedicado para esta automação. Quando a automação estiver concluída, FECHA esse worker com close_worker(workerId) antes de dares o resultado final.');
       if (auto.skills?.length) directives.push(`Usa estas skills/agentes do JOCA (faz Read da skill ANTES de agir): ${auto.skills.join(', ')}.`);
       if (auto.requireConfirm) directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao Renato; só age depois do OK dele.');
       const fullObjective = directives.length ? `${objective}\n\n[Instruções da acção]\n${directives.join('\n')}` : objective;

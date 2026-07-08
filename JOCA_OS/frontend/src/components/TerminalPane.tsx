@@ -1,9 +1,9 @@
-import { useEffect, useRef, useLayoutEffect, useState } from 'react';
+import { useEffect, useRef, useLayoutEffect, useState, useCallback } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import type { TerminalRef } from '../types';
-import { captureDrop, resolveDrop, uploadPastedImages, quotePath } from '../lib/fileDrop';
+import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, quotePath } from '../lib/fileDrop';
 
 interface Props {
   sessionId: string;
@@ -19,6 +19,16 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
   const fitRef = useRef<FitAddon | null>(null);
   const resizeObserver = useRef<ResizeObserver | null>(null);
   const [dragOver, setDragOver] = useState(false);
+
+  // Non-blocking hint when a drop carried files but the OS hid the real path (Explorer sandbox).
+  const [dropHint, setDropHint] = useState(false);
+  const dropHintTimer = useRef<number | null>(null);
+  const flashDropHint = useCallback(() => {
+    setDropHint(true);
+    if (dropHintTimer.current) clearTimeout(dropHintTimer.current);
+    dropHintTimer.current = window.setTimeout(() => setDropHint(false), 4000);
+  }, []);
+  useEffect(() => () => { if (dropHintTimer.current) clearTimeout(dropHintTimer.current); }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -68,6 +78,29 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
 
     termRef.current = term;
     fitRef.current = fitAddon;
+
+    // Terminal-friendly Ctrl+C / Ctrl+V (Cmd on macOS):
+    //  • Ctrl+C WITH a selection → copy to clipboard (don't send ^C). No selection → let ^C through
+    //    (interrupt), the standard Windows-Terminal behaviour.
+    //  • Ctrl+Shift+V → paste clipboard text into the PTY (Ctrl+V alone stays free for xterm's own
+    //    paste path, which also feeds the image-paste handler below).
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type !== 'keydown') return true;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && (e.key === 'c' || e.key === 'C')) {
+        const sel = term.getSelection();
+        if (sel && sel.length > 0) {
+          navigator.clipboard?.writeText(sel).catch(() => {});
+          return false; // handled: copy instead of interrupt
+        }
+        return true; // no selection → send ^C (interrupt)
+      }
+      if (mod && e.shiftKey && (e.key === 'v' || e.key === 'V')) {
+        navigator.clipboard?.readText().then((t) => { if (t) onInput(sessionId, t); }).catch(() => {});
+        return false;
+      }
+      return true;
+    });
 
     term.onData((data) => onInput(sessionId, data));
 
@@ -124,17 +157,26 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       if (!el.contains(e.relatedTarget as Node)) setDragOver(false);
     };
 
-    const onDrop = async (e: DragEvent) => {
+    const onDrop = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setDragOver(false);
 
-      // Capture synchronously (dataTransfer expires after await), then resolve to absolute paths:
-      // real path if the source gave one, otherwise upload the file/folder content and use the
-      // saved-copy path. See lib/fileDrop.ts.
+      // Drag = reference the file by its real PATH (no copy). Only Ctrl+V saves to JOCA_Drops. The
+      // browser hides OS-file-manager paths (Windows Explorer sandbox) → dragRealPaths is [] there;
+      // dragging from JOCA's own file browser (or macOS Finder) provides the real path. See fileDrop.ts.
       const cap = captureDrop(e);
-      const { paths } = await resolveDrop(cap);
-      if (paths.length === 0) return;
+      const paths = dragRealPaths(cap);
+      if (paths.length === 0) {
+        if (dropHadFilesWithoutPath(cap)) {
+          // Explorer drag (#3): no real path → upload a copy to JOCA_Drops and paste that path.
+          flashDropHint();
+          void resolveDrop(cap).then(({ paths: uploaded }) => {
+            if (uploaded.length) { onInput(sessionId, uploaded.map(quotePath).join(' ')); termRef.current?.focus(); }
+          });
+        }
+        return;
+      }
       onInput(sessionId, paths.map(quotePath).join(' '));
       termRef.current?.focus();
     };
@@ -166,7 +208,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       el.removeEventListener('drop', onDrop);
       el.removeEventListener('paste', onPaste, true);
     };
-  }, [sessionId, onInput]);
+  }, [sessionId, onInput, flashDropHint]);
 
   useLayoutEffect(() => {
     if (!isActive || !fitRef.current || !termRef.current) return;
@@ -186,9 +228,36 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
   }, [isActive, sessionId, onResize]);
 
   return (
-    <div
-      ref={containerRef}
-      className={`terminal-container ${dragOver ? 'drag-over' : ''}`}
-    />
+    <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div
+        ref={containerRef}
+        className={`terminal-container ${dragOver ? 'drag-over' : ''}`}
+      />
+      {dropHint && (
+        <div
+          role="status"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 12,
+            transform: 'translateX(-50%)',
+            maxWidth: 'calc(100% - 24px)',
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: 'rgba(232, 96, 28, 0.12)',
+            border: '1px solid rgba(232, 96, 28, 0.35)',
+            color: 'var(--text-bright)',
+            fontSize: 11,
+            fontWeight: 500,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 20,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
+          }}
+        >
+          Arrasta do painel Ficheiros do JOCA ou usa Ctrl+V para anexar
+        </div>
+      )}
+    </div>
   );
 }

@@ -4,7 +4,7 @@ developer_instructions = """
 name: security-review
 description: "Deep security code review agent. Reads code and applies OWASP ASVS 5.0 patterns for Laravel + React. Checks: authorization coverage (IDOR), FormRequest validation, mass assignment vectors, file upload patterns, session/CORS config, error handling, encryption on PII, business logic flaws, privilege escalation paths. Produces findings with exploit scenarios and Laravel-native fixes. Different from tester-security (tool-based scan) — this agent reads and reasons about code."
 skills: security, auth
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Write
 model: sonnet
 ---
 
@@ -138,5 +138,6 @@ Severity levels:
 - Never auto-fix — report only
 - Always include exploit scenario (how would an attacker use this?)
 - Always include Laravel-native fix (not generic advice)
-- If you can't determine severity with certainty, mark as MEDIUM and note the uncertainty"""
+- If you can't determine severity with certainty, mark as MEDIUM and note the uncertainty
+- Relatório completo → escreve em `.joca/intermediate/security-review-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path. `Write` está nas tools só para isto."""
 name = "security-review"

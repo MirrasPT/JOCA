@@ -35,50 +35,16 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 5. **Validation?** code changed → queue auto-test · config changed → show diff
 
 ## Repository Structure
-
-```
-JOCA/
-├── CLAUDE.md              ← behavior base (this file)
-├── AGENTS.md              ← cross-CLI compatibility bridge
-├── GEMINI.md              ← context for Antigravity/Gemini CLI
-├── README.md              ← public documentation
-├── memory/
-│   ├── soul.md            ← personality engine (slot #1, template)
-│   ├── INDEX.md           ← index of all components
-│   ├── SKILL_INDEX.json   ← lazy-loading index (auto-generated)
-│   ├── projects/          ← per-project entries (created by /save)
-│   └── feedback/          ← /feedback-joca sessions
-└── .claude/
-    ├── skills/            ← ALL skills flat (one .md per skill, depth 1)
-    ├── rules/             ← global behavior directives (task-intake, pipelines, chaining, orchestration, testing, api-design)
-    ├── commands/          ← slash commands (/install, /save, /plan, etc.)
-    ├── agents/            ← sub-agents (tester-*, orchestrator, etc.)
-    ├── hooks/             ← PostToolUse + Stop hooks (auto-test pipeline)
-    ├── scripts/           ← utility scripts (compile-bridges, graphify, etc.)
-    └── settings.json      ← hooks and permissions config
-```
-
-## Adding Components
-
-**Skill:** create `.claude/skills/<name>.md` with frontmatter `name`, `description`. Add to `memory/INDEX.md`.
-
-**Agent:** create `.claude/agents/<name>.md`. Available via `Agent(subagent_type="<name>")`.
-
-**Command:** create `.claude/commands/<name>.md`. Available as `/<name>`.
+`memory/` — `soul.md` (personality, `@import`ed) · `INDEX.md`+`SKILL_INDEX.json` (component index) · `projects/`+`feedback/` (per-project, by `/save`).
+`.claude/` — `skills/` (flat, depth 1) · `rules/` (global directives — task-intake/pipelines/chaining/orchestration/testing/api-design) · `commands/` · `agents/` · `hooks/` (auto-test) · `scripts/` · `settings.json`.
+Add a **skill** = `.claude/skills/<name>.md` (frontmatter `name`+`description`, add to `INDEX.md`) · **agent** = `.claude/agents/<name>.md` (`Agent(subagent_type=…)`) · **command** = `.claude/commands/<name>.md` (`/<name>`).
 
 ## Context & Agents
-Sub-agents isolate context, not divide roles. Real cost ~15x tokens. Cap supervisor: 3-5 workers.
-Compress at 70-80% — before degradation, not after. Method: anchored iterative.
-U-curve: critical info at start and end. Middle loses 10-40% recall.
-
-**Mandatory brief:** Every agent receives: (1) objective in 2 sentences, (2) relevant files/paths, (3) project constraints, (4) what NOT to do.
+Sub-agents isolate context, not divide roles. Real cost ~15x tokens. Cap supervisor 3-5 workers. Compress at 70-80% (anchored iterative). U-curve: critical info at start+end, middle loses 10-40% recall.
+**Mandatory brief:** every agent gets (1) objective in 2 sentences, (2) relevant files/paths, (3) project constraints, (4) what NOT to do.
 
 ## Skills
-
-All skills live in `.claude/skills/` (flat, depth 1). Activate by reading directly:
-```
-Read(".claude/skills/<name>.md")
-```
+Flat in `.claude/skills/`. Activate via `Read(".claude/skills/<name>.md")`. Lazy: `SKILL_INDEX.json` holds the light index (name/path/triggers); skills load on-demand, never pre-loaded. Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, não `python3`).
 
 ### Activation Rule
 Relevance ≥ 60% → **Read() the skill BEFORE writing code**. Mandatory, not optional.
@@ -106,7 +72,16 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | security code review · IDOR · mass assignment · OWASP | `security-review` (agent) |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
-| Unity · C# · MonoBehaviour · ScriptableObject · prefab · build Android · jogo Unity · card game engine · AAB/APK | `unity-gamedev` |
+| Unity · C# · MonoBehaviour · ScriptableObject · prefab · jogo Unity · card game engine (arquitectura/director) | `unity-gamedev` |
+| Unity UI · UGUI · UI Toolkit · card prefab · board view · CardView · Canvas · animar carta · mobile UI · touch · safe area · IMGUI→UGUI | `unity-ui` |
+| build Android · AAB · APK · IL2CPP · ARM64 · keystore · Play Console · gradle Unity · batchmode build · assinar Android · Fase 5 | `unity-build-android` |
+| correr/verificar build Unity · compilar Unity · fazer o APK/AAB · did it build · batchmode build | `unity-build-runner` (agent) |
+| desenhar carta · faction identity · color pie · keyword · win condition · deck archetype · TCG mechanics · general/leader · rarity · set rotation | `card-game-design` |
+| balancear cartas · power budget · stat curve · cost a card · price a keyword · win rate · power creep · degenerate · nerf | `game-balance` |
+| arte de cartas · estilo 5 · ANIMA splash art · unificar arte · card key art · regenerate card · OmniClash art | `card-art-pipeline` |
+| balance audit · caça combo infinito · carta forte demais · power-budget · fuzz the engine (TCG) | `tcg-balance-auditor` (agent) |
+| sync catalog · cards.html vs motor · primitivos em falta · regras divergem · catalogue drift | `card-catalog-sync` (agent) |
+| playtest · simular partidas · self-play · win rate · stall · does the game end · fuzz matches (TCG) | `tcg-playtester` (agent) |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
 | generate video · video clip · motion | `video-gen` (agent) |
@@ -144,7 +119,9 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | freeze · trancar edições · lock scope · só editar esta pasta | `freeze` (guard-rail) |
 | careful · avisa antes de apagar · modo cauteloso · destrutivo | `careful` (guard-rail) |
 | guard · modo seguro · segurança máxima · lock it down | `guard` (guard-rail) |
-| unfreeze · destrancar · remover lock · desligar guard | `unfreeze` (guard-rail) |
+| tdd · test first · testes primeiro · red green · força testes | `tdd` (guard-rail) |
+| unfreeze · destrancar · remover lock · desligar guard/tdd | `unfreeze` (guard-rail) |
+| pack codebase · empacotar repo · repo num ficheiro · contexto para agente/gemini · repomix | `context-pack` |
 | encadear skills · próximo passo · auto-delegação · auto-runner · pipeline corre sozinha | `rules/chaining.md` + `rules/pipelines.md` |
 | registar decisão · guardar aprendizagem · o que decidimos · didn't we fix this | `/learn` (Brain log) |
 | plano completo revisto · autoplan · planear a sério | `/autoplan` |
@@ -169,51 +146,13 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | auto-orquestração · quando disparar workflow · subagentes | `orchestration-patterns` (rule) |
 
 ### Pipelines
-
-Estas pipelines **correm pelo auto-runner** (`rules/pipelines.md`) — o JOCA conduz a sequência inteira sozinho (cada passo a fundo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:`). O catálogo completo + princípios de auto-decisão estão em `rules/pipelines.md`.
-
-| Workflow | Sequence |
-|---|---|
-| New Laravel feature | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
-| SaaS / multi-tenant | `plan` → `saas-patterns` → `laravel-specialist` → `tester-security` |
-| Admin panel (Filament) | `laravel-specialist` → `filament` / `filament-builder` (agent) → `tester-code` |
-| Admin ↔ frontend | `laravel-react` → (backend `laravel-specialist` · API) + (frontend `frontend` cluster · consume) |
-| Backend hardening | `laravel-refactor` (agent: dead code/complexity/Larastan/scale) + `query-debugger` (queries) + `security-review` (security) |
-| E-commerce full-stack | `plan` → `saas-patterns` → `laravel-specialist` → `filament-builder` (admin) → `laravel-react` (API) → `frontend`+`shadcn` (storefront) → `payment-integration` → hardening |
-| Plan design review | `plan` → `design-review` (plan-mode) → `frontend` |
-| UI prototype | `frontend` → `design-review` → `tester-ui-ux` |
-| Frontend production | `design-system` → `frontend` → `react-composition` + `tailwind` + `react-patterns` → `anima` → `design-review` (taste/slop) + `tester-ui-ux` (flows/WCAG) + `tester-performance` (perf) |
-| Email build | `react-email` → `copywriting` → `postmark`/`transactional-email` (send) |
-| API design | `plan` → `rest-api` → `laravel-specialist` → `tester-api` |
-| Debug session | `log-debugger` → `query-debugger` (if SQL) |
-| One-shot (PRD→prod) | `master-orchestrator` → parallel agents → `tester-*` (auto) |
-| Auto-orquestração (NL) | `task-intake` → `task-router` → `/goal` → `master-orchestrator` (loop) → `tester-*` |
-| Knowledge ingest | `knowledge-ingest` (markitdown → resumo → tags → `memory/knowledge/`) |
-| Automação | `automation-builder` (NL → `automacoes.json` → cron) |
-| Self-improvement | `self-improver` → `gemini-auditor` → apply |
+Sequências nomeadas cross-stack (Feature Laravel, Frontend produção, E-commerce full-stack, Debug, Ship, CSO, etc.) correm pelo **auto-runner** — o JOCA conduz a sequência inteira sozinho (cada passo a fundo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:`). **Catálogo completo + princípios de auto-decisão: `rules/pipelines.md`** (não duplicar aqui).
 
 ## Cross-CLI Bridge
-
-JOCA works with 3 CLIs: **Claude Code** (canonical), **Codex** (GPT), **agy** (Gemini).
-
-Source of truth: `skills/` + `.claude/` → compiled to other formats via `compile-bridges.sh`:
-- `GEMINI.md` — Antigravity/Gemini CLI context
-- `AGENTS.md` — Codex + Gemini compatibility bridge
-
-Recompile: `bash .claude/scripts/compile-bridges.sh`
-
-## Lazy Loading
-
-`memory/SKILL_INDEX.json` contains lightweight index (name, path, triggers) for all skills/agents.
-Skills load **on-demand** via `Read()` when trigger matches — never pre-loaded into context.
-Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, não `python3` — stub da Store; macOS/Linux: `python3`)
+Claude Code (canonical) + Codex (GPT) + agy (Gemini). Fonte = `skills/`+`.claude/` → `GEMINI.md`/`AGENTS.md` compilados via `bash .claude/scripts/compile-bridges.sh`.
 
 ## Autonomous Testing (Hooks)
-
-3-layer pipeline for automatic validation:
-1. **PostToolUse** (Write|Edit) → logs file to `.joca/test-queue.jsonl`
-2. **Stop** → reads queue, recommends appropriate testers
-3. **CLAUDE.md rule** → after implementing, dispatch tester agents without asking
+PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recomenda testers → após implementar, despachar testers sem perguntar.
 
 ## Commands
 | Command | Function |
@@ -237,8 +176,6 @@ Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, n�
 | `/review-design` | UI/UX + accessibility |
 | `/create-skill [desc]` | new skill via research pipeline |
 | `/sync-questionnaires` | audit + realign questionnaires/counters with real skill/agent inventory |
-| `/feedback-joca` | capture workflow issues from this session |
-| `/feedback-projeto` | update project docs |
 | `/help-joca` | quick reference |
 | `/migrate` | v1-legacy → v2.0 migration guide |
 | `/upgrade-joca` | feedback → self-improvement → apply |

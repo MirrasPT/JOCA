@@ -341,6 +341,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Transient hint shown when a drag carried no usable path (OS file-manager sandbox) */
+.mc-drop-note {
+  width: 100%;
+  max-width: var(--mc-col);
+  margin: 0 auto;
+  padding: 8px var(--sp-5) 0;
+  font-size: 12px;
+  color: var(--accent-amber);
+  animation: mc-activity-in 180ms var(--ease-bento, ease);
+}
+
 /* ─── Composer ─────────────────────────────────────────────────── */
 .mc-composer {
   flex-shrink: 0;
@@ -366,8 +377,8 @@
 .mc-input {
   flex: 1;
   resize: none;
-  max-height: 200px;
-  min-height: 26px;
+  max-height: 50vh;      /* grows with content up to half the viewport (JS caps to window.innerHeight*0.5) */
+  min-height: 68px;      /* taller default (~3 rows) so there is room to type before it scrolls */
   padding: 2px 4px;
   background: transparent;
   border: none;
@@ -605,6 +616,60 @@
   overflow-x: auto;
 }
 .mc-md pre.md-code code { background: none; border: none; padding: 0; color: var(--text-bright); font-size: 12.5px; line-height: 1.55; }
+
+/* Headings — summaries sometimes use them; keep them tight inside a bubble */
+.mc-md h1, .mc-md h2, .mc-md h3, .mc-md h4, .mc-md h5, .mc-md h6 {
+  margin: 1em 0 0.45em;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--text-bright);
+}
+.mc-md h1 { font-size: 1.35em; }
+.mc-md h2 { font-size: 1.2em; }
+.mc-md h3 { font-size: 1.08em; }
+.mc-md h4, .mc-md h5, .mc-md h6 { font-size: 1em; }
+
+/* Emphasis + inline breaks */
+.mc-md strong { color: var(--text-bright); font-weight: 650; }
+.mc-md em { font-style: italic; }
+.mc-md hr { border: none; border-top: 1px solid var(--border-subtle); margin: 1em 0; }
+
+/* Blockquote */
+.mc-md blockquote {
+  margin: 0.6em 0;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid var(--accent-border);
+  color: var(--text-dim);
+}
+.mc-md blockquote p:last-child { margin-bottom: 0; }
+
+/* Inline images — contained, never overflow the bubble */
+.mc-md img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-faint);
+  margin: 0.4em 0;
+  display: block;
+}
+
+/* Tables — scrollable on overflow, tokenised borders/zebra like the file-preview markdown */
+.mc-md table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.7em 0;
+  font-size: 13px;
+  display: block;
+  overflow-x: auto;
+}
+.mc-md th, .mc-md td {
+  border: 1px solid var(--border-default);
+  padding: 6px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.mc-md th { background: rgba(255,255,255,0.03); color: var(--text-bright); font-weight: 600; }
+.mc-md tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
 
 @media (prefers-reduced-motion: reduce) {
   .mc-busy-dot, .mc-hero-orb { animation: none; }

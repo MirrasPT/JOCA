@@ -1,7 +1,8 @@
 ---
 name: deploy-cpanel
-description: "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, Passenger, Node.js cPanel, Setup Node.js App. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, restart.txt, nodevenv."
-triggers: cpanel, cPanel, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
+description: "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, Passenger, Node.js cPanel, Setup Node.js App. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, restart.txt, nodevenv."
+triggers: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
+chain: deploy-executor
 ---
 # Deploy — cPanel
 

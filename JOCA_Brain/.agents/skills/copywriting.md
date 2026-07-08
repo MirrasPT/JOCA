@@ -1,6 +1,6 @@
 ---
 name: copywriting
-description: "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy for,, improve this copy,, rewrite this page,, marketing copy,, headline help,, CTA copy,."
+description: "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy for, improve this copy, rewrite this page, marketing copy, headline help, CTA copy,."
 chain: stop-slop, pt-pt-translator
 metadata:
   version: 1.1.0
@@ -119,10 +119,6 @@ Puns and wit make copy memorable -- only if it fits the brand and doesn't underm
 - "Never {unpleasant event} again"
 - "{Question highlighting main pain point}"
 
-**For comprehensive headline formulas**: See [references/copy-frameworks.md](references/copy-frameworks.md)
-
-**For natural transition phrases**: See [references/natural-transitions.md](references/natural-transitions.md)
-
 **Subheadline**
 - Expands on headline
 - Adds specificity
@@ -142,8 +138,6 @@ Puns and wit make copy memorable -- only if it fits the brand and doesn't underm
 | How It Works | Reduce perceived complexity (3-4 steps) |
 | Objection Handling | FAQ, comparisons, guarantees |
 | Final CTA | Recap value, repeat CTA, risk reversal |
-
-**For detailed section types and page templates**: See [references/copy-frameworks.md](references/copy-frameworks.md)
 
 ---
 

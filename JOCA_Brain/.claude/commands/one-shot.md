@@ -1,6 +1,6 @@
 # /one-shot — Desenvolvimento Autónomo End-to-End
 
-Ponto de entrada único para produção autónoma. Lê documentação de planeamento, invoca o `master-orchestrator-agent`, e executa até conclusão sem interrupções.
+Ponto de entrada único para produção autónoma. Lê documentação de planeamento, o **main loop adopta o playbook `master-orchestrator`** e executa até conclusão sem interrupções.
 
 ## Pré-requisitos
 
@@ -32,28 +32,13 @@ Verificar:
 
 Se faltar algo crítico → reportar e parar. Não inventar requisitos.
 
-### 3. Invocar Master Orchestrator
+### 3. Orquestrar (o main loop adopta o playbook)
 
-```
-Agent(subagent_type="master-orchestrator", prompt="""
-Objectivo: Implementar [features do PRD/TASKS] de forma autónoma.
+O **main loop lê `.claude/agents/master-orchestrator.md` e age como orquestrador ELE PRÓPRIO** — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não despacha workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop decompõe o PRD/TASKS em work-streams e dispara os *workers* via `Agent()`, cada um com o brief canónico obrigatório (8 cláusulas), sob:
 
-Documentação:
-- PRD: [resumo 3 linhas]
-- Stack: [stack detectada]
-- Constraints: [do CLAUDE.md]
-
-Ficheiros de planeamento no projecto:
-- PRD.md
-- TECH_SPEC.md (se existe)
-- TASKS.md (se existe)
-
-Regras:
-- Zero confirmações — executar até conclusão
-- Auto-trigger testes após cada stream
-- Reportar resultado final estruturado
-""")
-```
+- **Objectivo:** implementar as features do PRD/TASKS de forma autónoma.
+- **Documentação:** PRD (resumo 3 linhas), stack detectada, constraints do `CLAUDE.md`, ficheiros `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
+- **Regras:** zero confirmações (excepto acção irreversível → gate); auto-trigger dos testers após cada stream; relatório final estruturado.
 
 ### 4. Pós-Execução
 

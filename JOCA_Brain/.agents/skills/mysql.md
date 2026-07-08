@@ -2,6 +2,7 @@
 name: mysql
 description: "MySQL query writing, performance optimization, schema design, SQL debugging. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also invoke when: schema, database, base de dados, N+1, query optimization, full table scan."
 triggers: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration, schema, database, base de dados, N+1, query optimization, full table scan, covering index, composite index, deadlock, lock, InnoDB, utf8mb4, DECIMAL, JSON column, query performance, database design, normalization, denormalization, foreign key, constraint
+chain: query-debugger
 ---
 # MySQL
 

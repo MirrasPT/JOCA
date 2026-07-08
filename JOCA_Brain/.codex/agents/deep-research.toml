@@ -17,18 +17,16 @@ You are a deep research specialist. Your output is a fully cited, multi-source r
 
 ## Step 0 — Read declared skills (mandatory, before any action)
 
-Read every skill declared in this agent's frontmatter `skills:` key BEFORE acting:
-- (list = whatever is in your frontmatter `skills:`)
-
-This frontmatter declares no `skills:` key. If a `deep-research` skill exists at `.claude/skills/deep-research.md`, Read it first; otherwise proceed without it. Never fabricate a skill path that does not exist.
+`Read(".claude/skills/deep-research.md")` BEFORE any action — the research methodology, phases, and quality gates live there. This frontmatter declares no `skills:` key, so this Read is the skill-load. If the file is genuinely absent, proceed without it and say so; never fabricate a skill path that does not exist.
 
 ## Methodology
 
 **Always start by reading the methodology:**
 
-First, resolve the JOCA install path:
+First, resolve the JOCA install path (try the current install first, then fall back to a generic find):
 ```bash
-JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" -path "*/JOCA/CLAUDE.md" 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
+JOCA_DIR="/c/Users/renat/desktop/joca_final/joca_brain"
+[ -f "$JOCA_DIR/CLAUDE.md" ] || JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" \( -path "*/joca_brain/CLAUDE.md" -o -path "*/JOCA_Brain/CLAUDE.md" \) 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 ```
 
 Then read (path = `${JOCA_DIR}/.claude/agents/deep-research/reference/methodology.md`):

@@ -1,0 +1,10 @@
+# Limpeza de duplicados RP5092 (Parentalidade) + resumo geral de projectos
+
+TAGS: parentalidade, RP5092, gestao-ficheiros, duplicados, resumo-projectos, JOCA-workers
+JANELA: win-24 (8 turnos)
+
+Renato pediu para tratar duplicados na pasta de requerimentos da Parentalidade: nos ficheiros preenchidos com datas diferentes, manter ambos e deixar só as datas no fim do nome. O worker da Parentalidade tinha ficado parado por instrução colada no input mas por enviar; foi reenviada e arrancou. Tarefa: verificar duplicados do RP5092 (14 dias) por hash, apagar só cópias byte-a-byte idênticas, manter os dois períodos (14d e 120d) e renomear com data/período no fim.
+Resultado final (sentinela f7ab553f): 4 ficheiros em `03_Requerimentos_preenchidos`, todos com hash distinto — nenhum duplicado idêntico, nada apagado. Os dois ficheiros de 14 dias não são cópias: um é o assinado/digitalizado (133 KB), outro o digital-completo (1.15 MB). Datas/períodos já constam nos nomes (14d: 2026-06-02 a 2026-06-15; 120d: 2026-06-16 a 2026-10-14). Trabalho de renomeação/limpeza concluído.
+Ficaram 2 decisões opcionais pendentes para o Renato: (1) se quer manter ambas as versões de 14 dias ou só uma; (2) se quer acrescentar data ao nome do RP5049 (subsídio parental), que está sem data.
+Renato pediu depois um resumo dos projectos activos. JOCA listou por categorias: Web/Apps (JOCA_OS, Meu Site, UniMedia, LE_Nova_Plataforma/Livro de Elogios, Medieval Chess), Vinho/Clientes (Bracaris Brasil 2026, Bodegas do Campo, Gerador de Rótulos, Bracaris/Royal/Alkimia), Media/Criativo (ComfyUI, Simao-sina, UniTV) e Infra (Datalix VPS).
+Pendências quentes assinaladas: URL correcto do remote do Livro de Elogios (`MirrasPT/livro_redesign` dava "not found"); commitar o UniMedia; deploy Bodegas + Bigorna (à espera de credenciais de produção). Preferência do Renato: instruções curtas e directas em pt-pt, decisões por confirmar antes de apagar/renomear.

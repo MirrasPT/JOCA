@@ -1,0 +1,34 @@
+[
+  {
+    "id": "cd405dbe-a9ea-413b-b893-2bab8347cabd",
+    "name": "Resumo matinal",
+    "enabled": true,
+    "provider": "claude",
+    "model": "sonnet",
+    "trigger": {
+      "type": "schedule",
+      "schedule": {
+        "kind": "daily",
+        "time": "10:00"
+      }
+    },
+    "nodes": [
+      {
+        "type": "master",
+        "objective": "Verifica os meus emails não lidos e o calendário para hoje. Dá-me um resumo: quantos não lidos, remetentes e assuntos principais, e eventos agendados com horários.",
+        "id": "afb680a8-d3c5-4940-8072-1a7fc84ca4ed"
+      },
+      {
+        "type": "message",
+        "text": "{{input}}",
+        "title": "Resumo matinal",
+        "id": "8fd9c9b7-d6ea-44b8-9064-3a930f864f8f"
+      }
+    ],
+    "nextRunAt": 1783501200000,
+    "lastRunAt": 1783414855258,
+    "lastStatus": "ok",
+    "createdAt": 1782897801727,
+    "lastResult": "Ainda a inicializar. Aguardo."
+  }
+]

@@ -2,6 +2,7 @@
 name: deploy-docker
 description: "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy. SHOULD also invoke when: containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker."
 triggers: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy, containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker, docker production, docker deploy, imagem docker, docker image, registry, docker hub
+chain: deploy-executor
 ---
 # Deploy -- Docker on VPS
 

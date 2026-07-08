@@ -1,6 +1,6 @@
 ---
 name: brand-positioning
-description: "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning,, value proposition,, who is this for,, how do I describe my product,, messaging,, ICP,."
+description: "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning, value proposition, who is this for, how do I describe my product, messaging, ICP,."
 ---
 
 # Brand Positioning

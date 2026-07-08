@@ -2,8 +2,10 @@ description = """name: design-system-audit"""
 developer_instructions = """
 ---
 name: design-system-audit
-description: "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces audit/design-system-violations.md with Critical/Warning/Info tiers."
+description: "Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces a violations report (.joca/intermediate/) with Critical/Warning/Info tiers."
 skills: design-tokens, component-system, brand-guidelines
+chain: a11y-fixer, frontend
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
@@ -79,7 +81,9 @@ Use `grep` and `find` to scan. Focus on:
 
 ## Output format
 
-Write to `audit/design-system-violations.md`:
+`Write` está nas tools só para escrever o relatório em disco — não para editar código.
+
+Write to `.joca/intermediate/design-system-audit-violations.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão — nunca dentro da árvore do projecto, o content-scanner do Tailwind v4 apanha-o):
 
 ```markdown
 # Design System Audit

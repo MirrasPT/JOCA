@@ -4,7 +4,7 @@
     "name": "ab-test-setup",
     "category": "general",
     "path": ".claude\\skills\\ab-test-setup.md",
-    "description": "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test,, split test,, experiment,, test this change,, variant cop",
+    "description": "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test, split test, experiment, test this change, variant copy, m",
     "triggers": []
   },
   {
@@ -31,7 +31,7 @@
     "name": "agent-context",
     "category": "general",
     "path": ".claude\\skills\\agent-context.md",
-    "description": "Always-active base principles for agent orchestration and context management. MUST be invoked when the user mentions: Always, Apply.",
+    "description": "Base principles for agent orchestration and context management (briefs, fan-out caps, compression). Invoke when orchestrating sub-agents or debugging context loss.",
     "triggers": []
   },
   {
@@ -57,7 +57,7 @@
     "name": "analytics-tracking",
     "category": "general",
     "path": ".claude\\skills\\analytics-tracking.md",
-    "description": "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking,, GA4,, Google Analytics,, conversion tracking,, event tracking,, UTM parameters,.",
+    "description": "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking, GA4, Google Analytics, conversion tracking, event tracking, UTM parameters,.",
     "triggers": []
   },
   {
@@ -130,7 +130,7 @@
     "name": "blueprint",
     "category": "general",
     "path": ".claude\\skills\\blueprint.md",
-    "description": "Creating, editing, or reviewing WordPress Playground blueprint JSON files. MUST be invoked when the user mentions: WordPress Playground, JSON, Triggers, WordPress.",
+    "description": "Create/edit/review WordPress Playground blueprint JSON. Invoke on: Playground blueprint, blueprint.json, run-blueprint, Playground steps.",
     "triggers": []
   },
   {
@@ -157,7 +157,7 @@
     "name": "brand-positioning",
     "category": "general",
     "path": ".claude\\skills\\brand-positioning.md",
-    "description": "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning,, value proposition,, who is this for,, how do I describe my product,, messaging,, ICP,.",
+    "description": "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning, value proposition, who is this for, how do I describe my product, messaging, ICP,.",
     "triggers": []
   },
   {
@@ -227,6 +227,43 @@
   },
   {
     "type": "skill",
+    "name": "card-art-pipeline",
+    "category": "general",
+    "path": ".claude\\skills\\card-art-pipeline.md",
+    "description": "Generate consistent trading-card-game card art at scale via local ComfyUI + ANIMA — the OmniClash 'estilo 5' recipe (semi-realistic painterly splash art). Exact model stack, prompt scaffold, anti-ca",
+    "triggers": [
+      "card art",
+      "gerar arte de cartas",
+      "estilo 5",
+      "ANIMA splash art",
+      "unificar arte",
+      "card key art",
+      "regenerate card",
+      "OmniClash art",
+      "cartastcg art"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "card-game-design",
+    "category": "general",
+    "path": ".claude\\skills\\card-game-design.md",
+    "description": "Trading/collectible card game (TCG/CCG) design fundamentals for a 1v1 digital duel — card anatomy & data model, the three card types, resource systems (per-turn ramp vs land/mana), leader/general + ",
+    "triggers": [
+      "card design",
+      "desenhar carta",
+      "faction identity",
+      "color pie",
+      "keyword",
+      "win condition",
+      "deck archetype",
+      "TCG mechanics",
+      "leader general",
+      "rarity"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "careful",
     "category": "general",
     "path": ".claude\\skills\\careful.md",
@@ -274,7 +311,7 @@
     "name": "competitor-profiling",
     "category": "general",
     "path": ".claude\\skills\\competitor-profiling.md",
-    "description": "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile,, competitor research,, competitor analysis,, profile this competitor,, analyze compet",
+    "description": "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile, competitor research, competitor analysis, profile this competitor, analyze competitor",
     "triggers": []
   },
   {
@@ -309,8 +346,26 @@
     "name": "content-strategy",
     "category": "general",
     "path": ".claude\\skills\\content-strategy.md",
-    "description": "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy,, what should I write about,, content ideas,, blog stra",
+    "description": "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy, what should I write about, content ideas, blog strateg",
     "triggers": []
+  },
+  {
+    "type": "skill",
+    "name": "context-pack",
+    "category": "general",
+    "path": ".claude\\skills\\context-pack.md",
+    "description": "Empacota uma árvore de código num único ficheiro AI-readable (repomix-style) para briefs de sub-agentes ou modelos de contexto longo (gemini-brain 1M). Usar quando: preparar brief de agente sobre p",
+    "triggers": [
+      "pack codebase",
+      "empacotar repo",
+      "pack context",
+      "context pack",
+      "repo num ficheiro",
+      "empacota o projecto",
+      "codebase num ficheiro",
+      "preparar contexto para agente",
+      "repomix"
+    ]
   },
   {
     "type": "skill",
@@ -369,10 +424,8 @@
     "name": "deploy-cpanel",
     "category": "general",
     "path": ".claude\\skills\\deploy-cpanel.md",
-    "description": "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: cpanel, cPanel, shared hosting, hosting partilhado, public_html, ",
+    "description": "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin,",
     "triggers": [
-      "cpanel",
-      "cPanel",
       "shared hosting",
       "hosting partilhado",
       "public_html",
@@ -380,7 +433,9 @@
       "phpMyAdmin",
       ".htaccess",
       "hosting barato",
-      "alojamento"
+      "alojamento",
+      "hosting tradicional",
+      "cpanel deploy"
     ]
   },
   {
@@ -540,7 +595,7 @@
     "name": "email-sequence",
     "category": "general",
     "path": ".claude\\skills\\email-sequence.md",
-    "description": "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence,, drip campaign,, nurture sequence,, onboardin",
+    "description": "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence, drip campaign, nurture sequence, onboarding e",
     "triggers": []
   },
   {
@@ -583,19 +638,6 @@
   },
   {
     "type": "skill",
-    "name": "feedback-joca",
-    "category": "general",
-    "path": ".claude\\skills\\feedback-joca.md",
-    "description": "Capturing workflow issues, documenting what failed in a JOCA session, or logging improvement opportunities. MUST be invoked when the user says: - /feedback-joca.",
-    "triggers": [
-      "/feedback-joca",
-      "feedback sobre o joca",
-      "o que melhorar no joca",
-      "o que correu mal nesta sessão"
-    ]
-  },
-  {
-    "type": "skill",
     "name": "filament",
     "category": "general",
     "path": ".claude\\skills\\filament.md",
@@ -618,7 +660,7 @@
     "name": "file-storage",
     "category": "general",
     "path": ".claude\\skills\\file-storage.md",
-    "description": "Secure file storage and delivery for Laravel SaaS using S3 or Cloudflare R2. MUST be invoked when the user mentions: Secure, Laravel SaaS, Cloudflare, URL, ClamAV, CDN.",
+    "description": "Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation, virus scan, signed CDN URLs. Invoke on: file upload, S3, R2, presigned URL, ClamAV.",
     "triggers": []
   },
   {
@@ -661,6 +703,25 @@
   },
   {
     "type": "skill",
+    "name": "game-balance",
+    "category": "general",
+    "path": ".claude\\skills\\game-balance.md",
+    "description": "Card-game balance methodology — power-budget math (stat points per cost, pricing keywords/abilities), the deckbuilding curve, win-rate & first-player targets, and the degenerate-pattern taxonomy (in",
+    "triggers": [
+      "balance",
+      "balancear",
+      "power budget",
+      "stat curve",
+      "mana curve",
+      "cost a card",
+      "price a keyword",
+      "win rate",
+      "power creep",
+      "infinite combo"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "github",
     "category": "general",
     "path": ".claude\\skills\\github.md",
@@ -683,7 +744,7 @@
     "name": "google-analytics",
     "category": "general",
     "path": ".claude\\skills\\google-analytics.md",
-    "description": "Query Google Analytics 4 data. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4.",
+    "description": "Google Analytics 4 — setup gtag em sites (snippet, eventos custom, consent mode), verificação (DebugView/Realtime) e query de dados via GA4 Data API REST. MUST be invoked when the user says: analy",
     "triggers": []
   },
   {
@@ -802,7 +863,7 @@
     "name": "karpathy-guidelines",
     "category": "general",
     "path": ".claude\\skills\\karpathy-guidelines.md",
-    "description": "Behavioral guidelines to reduce common LLM coding mistakes. MUST be invoked when the user mentions: Behavioral, LLM.",
+    "description": "Karpathy-style behavioural rules to reduce LLM coding mistakes — think first, simplicity, surgical edits. Invoke on: coding discipline, avoid overengineering, LLM coding mistakes.",
     "triggers": []
   },
   {
@@ -875,7 +936,7 @@
     "name": "launch-strategy",
     "category": "general",
     "path": ".claude\\skills\\launch-strategy.md",
-    "description": "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch,, Product Hunt,, feature release,, announcement,, go-to-market,, beta launch,.",
+    "description": "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch, Product Hunt, feature release, announcement, go-to-market, beta launch,.",
     "triggers": []
   },
   {
@@ -997,7 +1058,7 @@
     "name": "page-cro",
     "category": "general",
     "path": ".claude\\skills\\page-cro.md",
-    "description": "Optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. MUST be invoked when the user says: CRO,, conversio",
+    "description": "Optimize conversion on any marketing page (homepage, landing, pricing). Invoke on: CRO, conversion rate, page not converting, my landing page isn't working.",
     "triggers": []
   },
   {
@@ -1021,7 +1082,7 @@
     "name": "plan",
     "category": "general",
     "path": ".claude\\skills\\plan.md",
-    "description": "Planeamento estruturado em 7 fases antes de execução — auto-activado em tarefas complexas; incorpora OODA orient, assumption surfacing bloqueante, ambiguidade check, pre-mortem. MUST be invoked wh",
+    "description": "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução. Invoke on: planeia, arquitectura de, migra, reestrutura, tarefa multi-ficheiro/irreversível.",
     "triggers": []
   },
   {
@@ -1112,7 +1173,7 @@
     "name": "pt-pt-translator",
     "category": "general",
     "path": ".claude\\skills\\pt-pt-translator.md",
-    "description": "Translating content to European Portuguese (PT-PT), adapting tone, or localizing interfaces. MUST be invoked when the user mentions: European Portuguese, PT.",
+    "description": "Translate/localize content into European Portuguese with register control (tu/você/senhor). Invoke on: traduzir para PT-PT, localizar UI, rever português.",
     "triggers": []
   },
   {
@@ -1361,7 +1422,7 @@
     "name": "shopify-app",
     "category": "general",
     "path": ".claude\\skills\\shopify-app.md",
-    "description": "Building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. MUST be invoked when",
+    "description": "Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Invoke on: shopify app init, checkout extension, admin extension.",
     "triggers": []
   },
   {
@@ -1385,7 +1446,7 @@
     "name": "shopify-store-fixer",
     "category": "general",
     "path": ".claude\\skills\\shopify-store-fixer.md",
-    "description": "Implementing fixes to a Shopify store via Admin API (GraphQL). MUST be invoked when the user mentions: Shopify, Admin API, GraphQL, Every.",
+    "description": "Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with per-write approval. Invoke on: fix shopify store, bulk update products, apply audit fixes.",
     "triggers": []
   },
   {
@@ -1420,7 +1481,7 @@
     "name": "social-content",
     "category": "general",
     "path": ".claude\\skills\\social-content.md",
-    "description": "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post,, Twitter thr",
+    "description": "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post, Twitter thre",
     "triggers": []
   },
   {
@@ -1498,6 +1559,25 @@
   },
   {
     "type": "skill",
+    "name": "tdd",
+    "category": "general",
+    "path": ".claude\\skills\\tdd.md",
+    "description": "Activa o modo test-first (TDD guard) na sessão — editar código de produção sem teste novo/alterado primeiro dispara confirmação (ask, nunca deny) via hook check-tdd. Usar quando o user disser:",
+    "triggers": [
+      "tdd",
+      "test first",
+      "test-first",
+      "testes primeiro",
+      "modo tdd",
+      "tdd guard",
+      "red green",
+      "red-green",
+      "força testes",
+      "forca testes"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "tech-spec",
     "category": "general",
     "path": ".claude\\skills\\tech-spec.md",
@@ -1539,16 +1619,36 @@
     "name": "unfreeze",
     "category": "general",
     "path": ".claude\\skills\\unfreeze.md",
-    "description": "Remove os guard-rails activos — apaga o lock de edição (/freeze) e o flag de avisos (/careful), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar, remover lock, desligar gu",
+    "description": "Remove os guard-rails activos — apaga o lock de edição (/freeze), o flag de avisos (/careful) e o modo test-first (/tdd), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar,",
     "triggers": [
       "unfreeze",
       "destrancar",
       "remover lock",
       "desligar guard",
       "desligar careful",
+      "desligar tdd",
       "unlock edits",
       "voltar ao normal",
       "remove guard"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "unity-build-android",
+    "category": "general",
+    "path": ".claude\\skills\\unity-build-android.md",
+    "description": "Ship a Unity game to Android — module/SDK/NDK/JDK prerequisites, Player settings (package id, min API, IL2CPP + ARM64, orientation), keystore creation + signing (secrets OUT of git), AAB vs APK, hea",
+    "triggers": [
+      "build Android",
+      "AAB",
+      "APK",
+      "IL2CPP",
+      "ARM64",
+      "keystore",
+      "Play Console",
+      "gradle Unity",
+      "batchmode build",
+      "BuildScript"
     ]
   },
   {
@@ -1558,6 +1658,25 @@
     "path": ".claude\\skills\\unity-gamedev.md",
     "description": "Unity 6 (LTS) + C# game development — project structure, ScriptableObject-driven data, deterministic rules-engine separation, turn state machines, and Android build/export. Distilled focused skill (",
     "triggers": []
+  },
+  {
+    "type": "skill",
+    "name": "unity-ui",
+    "category": "general",
+    "path": ".claude\\skills\\unity-ui.md",
+    "description": "Build the presentation layer of a Unity card game — choosing UGUI vs UI Toolkit, card prefabs that overlay art + stats, a board view that consumes the deterministic engine's event bus (never reads r",
+    "triggers": [
+      "Unity UI",
+      "UGUI",
+      "UI Toolkit",
+      "card prefab",
+      "board view",
+      "CardView",
+      "Canvas",
+      "animate card",
+      "mobile UI Unity",
+      "touch input"
+    ]
   },
   {
     "type": "skill",
@@ -1629,7 +1748,7 @@
     "name": "wordpress-router",
     "category": "general",
     "path": ".claude\\skills\\wordpress-router.md",
-    "description": "Classifies WordPress repos (plugin, theme, block theme, core, full site) and routes to the correct domain skill. MUST be invoked when the user mentions: WordPress, Gutenberg, WP, REST API, CLI.",
+    "description": "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task.",
     "triggers": []
   },
   {
@@ -1637,7 +1756,7 @@
     "name": "wp-abilities-api",
     "category": "general",
     "path": ".claude\\skills\\wp-abilities-api.md",
-    "description": "Working with the WordPress Abilities API (wp_register_ability, wp_register_ability_category, /wp-json/wp-abilities/v1/*, @wordpress/abilities) including defining abilities. MUST be invoked when the us",
+    "description": "Register/expose/consume WordPress Abilities (wp_register_ability, wp-abilities/v1 REST, @wordpress/abilities). Invoke on: abilities API, ability not visible.",
     "triggers": []
   },
   {
@@ -1645,7 +1764,7 @@
     "name": "wp-block-development",
     "category": "general",
     "path": ".claude\\skills\\wp-block-development.md",
-    "description": "Developing WordPress (Gutenberg) blocks: block.json metadata, register_block_type(_from_metadata), attributes/serialization, supports, dynamic rendering. MUST be invoked when the user mentions: WordPr",
+    "description": "Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations, @wordpress/scripts. Invoke on: block invalid, block.json, create-block.",
     "triggers": []
   },
   {
@@ -1653,7 +1772,7 @@
     "name": "wp-block-themes",
     "category": "general",
     "path": ".claude\\skills\\wp-block-themes.md",
-    "description": "Block theme development: theme.json settings/styles, templates, template parts, patterns, style variations, Site Editor debugging. MUST be invoked when the user mentions: WordPress, Site Editor.",
+    "description": "Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor debugging. Invoke on: theme.json, block theme, styles not applying.",
     "triggers": []
   },
   {
@@ -1677,7 +1796,7 @@
     "name": "wp-performance",
     "category": "general",
     "path": ".claude\\skills\\wp-performance.md",
-    "description": "Investigating or improving WordPress performance (backend-only agent): profiling and measurement (WP-CLI profile/doctor, Server-Timing, Query Monitor via REST headers). MUST be invoked when the user m",
+    "description": "Profile and fix WordPress backend performance via WP-CLI profile/doctor, Server-Timing, Query Monitor headless. Invoke on: WordPress slow, TTFB alto, admin lento.",
     "triggers": []
   },
   {
@@ -1701,7 +1820,7 @@
     "name": "wp-plugin-development",
     "category": "general",
     "path": ".claude\\skills\\wp-plugin-development.md",
-    "description": "Plugin architecture, hooks, activation/deactivation/uninstall, admin UI, Settings API, data storage, cron, security. MUST be invoked when the user mentions: WordPress, UI, Settings API.",
+    "description": "WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Invoke on: criar plugin WP, settings page, nonces/capabilities.",
     "triggers": []
   },
   {
@@ -1709,7 +1828,7 @@
     "name": "wp-plugin-directory-guidelines",
     "category": "general",
     "path": ".claude\\skills\\wp-plugin-directory-guidelines.md",
-    "description": "Reviewing WordPress plugins for GPL compliance, checking license headers or compatibility, evaluating upsell/freemium/trialware patterns, validating plugin naming or trademark. MUST be invoked when th",
+    "description": "Review a WordPress plugin for WP.org Directory compliance — GPL licensing, trademark/naming, trialware/upsell rules. Invoke on: plugin directory guidelines, GPL compliance, license header, plugin su",
     "triggers": []
   },
   {
@@ -1717,7 +1836,7 @@
     "name": "wp-project-triage",
     "category": "general",
     "path": ".claude\\skills\\wp-project-triage.md",
-    "description": "Deterministic inspection of a WordPress repository (plugin/theme/block theme/WP core/Gutenberg/full site) including tooling/tests/version hints, outputting structured JSON. MUST be invoked when the us",
+    "description": "Deterministic WP repo inspection (kind, tooling, versions) with JSON output — run before any WP change. Invoke on: que tipo de projecto WP é este.",
     "triggers": []
   },
   {
@@ -1733,7 +1852,7 @@
     "name": "wp-wpcli-and-ops",
     "category": "general",
     "path": ".claude\\skills\\wp-wpcli-and-ops.md",
-    "description": "Working with WP-CLI (wp) for WordPress operations: safe search-replace, db export/import, plugin/theme/user/content management, cron, cache flushing, multisite. MUST be invoked when the user mentions:",
+    "description": "WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Invoke on: wp search-replace, migração de domínio, wp db.",
     "triggers": []
   },
   {
@@ -1741,7 +1860,7 @@
     "name": "wpds",
     "category": "general",
     "path": ".claude\\skills\\wpds.md",
-    "description": "Building UIs with the WordPress Design System (WPDS): components, tokens, patterns. MUST be invoked when the user mentions: UIs, WordPress Design System, WPDS.",
+    "description": "Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Invoke on: WPDS, @wordpress/components, Gutenberg UI.",
     "triggers": []
   },
   {
@@ -1777,6 +1896,14 @@
     "category": "agents",
     "path": ".claude\\agents\\automation-builder.md",
     "description": "Traduz um pedido em linguagem natural numa automação estruturada (quando + o-que + reportar) e persiste-a em automacoes.json. Gere agendamento (cron), condicionais e retries. A acção é uma tarefa",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "card-catalog-sync",
+    "category": "agents",
+    "path": ".claude\\agents\\card-catalog-sync.md",
+    "description": "Audits divergence between a card-game's design source-of-truth catalogue (e.g. OmniClash cards.html, live at cartastcg.rfdev.pt) and its code engine (Tcg.Core C#: Cards.cs/Decks.cs/Generals.cs/EffectR",
     "triggers": []
   },
   {
@@ -2057,6 +2184,22 @@
   },
   {
     "type": "agent",
+    "name": "tcg-balance-auditor",
+    "category": "agents",
+    "path": ".claude\\agents\\tcg-balance-auditor.md",
+    "description": "Card-game balance audit agent for a deterministic TCG rules engine (e.g. OmniClash/Tcg.Core in C#). Reads the card catalogue + engine, builds a stat-per-gold power-budget table, flags over/under-statt",
+    "triggers": []
+  },
+  {
+    "type": "agent",
+    "name": "tcg-playtester",
+    "category": "agents",
+    "path": ".claude\\agents\\tcg-playtester.md",
+    "description": "Deterministic playtest agent for a UI-independent TCG rules engine (e.g. OmniClash/Tcg.Core C#). Drives many seeded matches to find crashes, illegal states, stalls (games that never end), turn-count d",
+    "triggers": []
+  },
+  {
+    "type": "agent",
     "name": "tech-debt-auditor",
     "category": "agents",
     "path": ".claude\\agents\\tech-debt-auditor.md",
@@ -2087,7 +2230,7 @@
     "name": "tester-code",
     "category": "agents",
     "path": ".claude\\agents\\tester-code.md",
-    "description": "Code review agent. Reviews completed work against plan, coding standards, and stack-specific patterns. Triggered after major steps: feature complete, endpoint batch, refactor. Checks plan alignment, c",
+    "description": "Code review AND fix agent — reviews completed work against plan, coding standards, and stack-specific patterns, then (when the brief asks to close) applies the fixes in a test→fix→verify loop wi",
     "triggers": []
   },
   {
@@ -2150,6 +2293,14 @@
       "WCAG compliance",
       "keyboard navigation"
     ]
+  },
+  {
+    "type": "agent",
+    "name": "unity-build-runner",
+    "category": "agents",
+    "path": ".claude\\agents\\unity-build-runner.md",
+    "description": "Runs AND verifies a headless Unity batchmode build (Windows standalone or Android AAB/APK) and reports the real result — because Unity's batchmode exit code is misleading. Locates the editor, runs t",
+    "triggers": []
   },
   {
     "type": "agent",

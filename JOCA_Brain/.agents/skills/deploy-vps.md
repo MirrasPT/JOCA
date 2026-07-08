@@ -3,6 +3,7 @@ name: deploy-vps
 description: "Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, SSH key setup VPS, Cloudflare DNS API, scp upload site, static site VPS. SHOULD invoke when: fresh Ubuntu server, bootstrap SSH, plink fingerprint, ED25519 key, /var/www, site no ar, publicar no VPS, configurar servidor."
 triggers: deploy VPS, VPS setup, Caddy, Caddy server, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, fresh Ubuntu server, bootstrap SSH, plink fingerprint, ED25519 key, /var/www, publicar VPS, configurar servidor, Datalix, caddy vhost, static hosting
 origin: local
+chain: deploy-executor
 ---
 # Deploy VPS — Caddy + Cloudflare
 

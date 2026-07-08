@@ -5,9 +5,24 @@ Corre no início de cada sessão de trabalho num projecto.
 ## Passos
 
 ### 1. Identificar projecto actual
-Verificar em que pasta estamos. Procurar entrada correspondente em `JOCA/memory/projects/`.
+Determinar o **path-alvo**: o 1º argumento se dado (ex.: `/resume D:\Mega\Livro_De_Elogios`), senão o CWD.
 
-Se não existir entrada: sugerir correr `/init-project` primeiro.
+**Resolver PRIMEIRO por caminho (`directorio:` do frontmatter), e só se o caminho não casar é que se cai para match por nome.** Uma pasta-mãe e um subdir podem ter entradas separadas (umbrella vs sub-projecto); casar pelo nome primeiro carrega a errada.
+
+**Prioridade 1 — por CAMINHO** (`directorio:` == path-alvo):
+```bash
+grep -rIl "^directorio: *<path-alvo>$" memory/projects/*.md   # match EXACTO do path
+```
+1. **Match exacto** (`directorio:` == path-alvo) → é essa a entrada. Carregar essa.
+2. **Múltiplos matches exactos** (ex.: `<nome>.md` + `<nome>-geral.md` ambos com o mesmo `directorio`) → carregar a **umbrella** primeiro (a que tem `-geral` no nome, ou a de descrição mais abrangente) e listar as irmãs.
+3. **Path-alvo é pasta-MÃE de entradas** (nenhum match exacto, mas há entradas cujo `directorio` começa por `<path-alvo>`) → listar todas e apresentar a umbrella se existir, não uma só sub-entrada.
+4. **Path-alvo é SUBDIR de uma entrada** → carregar essa entrada-mãe.
+
+**Prioridade 2 — por NOME** (fallback, só se a Prioridade 1 não deu nada — ex.: o `directorio:` na memória está desactualizado/movido, ou a pasta não bate certo com nenhum `directorio`): fazer match do **basename do path-alvo** (normalizado: minúsculas, `_`/espaços→`-`) contra o `name:`/ficheiro das entradas em `memory/projects/`. Se casar, carregar essa entrada **e avisar** que se resolveu por nome porque o `directorio:` não bateu — sugerir corrigir o `directorio:` da entrada para o path real.
+
+> Exemplo (por caminho): `/resume D:\Mega\Livro_De_Elogios` → umbrella `livro-de-elogios-geral.md` (`directorio` == pasta-mãe). `/resume D:\Mega\Livro_De_Elogios\2026_Nova_Plataforma` → `livro-de-elogios.md` (`directorio` == subdir da plataforma). Nunca o inverso.
+
+**Nenhuma relação nem por caminho nem por nome** → sugerir correr `/init-project` primeiro.
 
 ### 1b. Arg opcional: `<git-remote-url>`
 
@@ -18,7 +33,7 @@ Se o comando for invocado com um 2º argumento (URL de remote GitHub/GitLab):
 4. Se tiver mas apontar para URL diferente: reportar conflito, não alterar automaticamente
 
 ### 2. Ler contexto do projecto
-Ler `JOCA/memory/projects/<nome>.md` — estado actual, decisões tomadas, pendentes.
+Ler a **entrada resolvida no passo 1** — estado actual, decisões tomadas, pendentes. Se for uma umbrella, seguir os `[[links]]` para as sub-entradas relevantes ao que o utilizador for fazer (não despejar todas de uma vez).
 
 #### 2a. Restaurar checkpoint + Brain (machine-readable)
 

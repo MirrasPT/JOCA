@@ -1,6 +1,6 @@
 ---
 name: wordpress-router
-description: "Classifies WordPress repos (plugin, theme, block theme, core, full site) and routes to the correct domain skill. MUST be invoked when the user mentions: WordPress, Gutenberg, WP, REST API, CLI."
+description: "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
 ---
 
@@ -21,15 +21,14 @@ Activate at the start of WordPress tasks to:
 
 ## Procedure
 
-1. Run triage script:
-   - `node skills/wp-project-triage/scripts/detect_wp_project.mjs`
+1. Triage do repo:
+   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
 2. Read output and classify:
    - primary project kind(s),
    - available tooling (PHP/Composer, Node, @wordpress/scripts),
    - tests present (PHPUnit, Playwright, wp-env),
    - version hints.
-3. Route to domain workflows based on intent + repo kind:
-   - Decision tree: `skills/wordpress-router/references/decision-tree.md`.
+3. Route to domain workflows based on intent + repo kind.
 4. Apply guardrails before changes:
    - Confirm version constraints if unclear.
    - Prefer the repo's existing tooling and conventions for builds/tests.

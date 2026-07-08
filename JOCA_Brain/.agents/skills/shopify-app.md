@@ -1,6 +1,6 @@
 ---
 name: shopify-app
-description: "Building or extending a Shopify app: CLI scaffold, app config, Admin API (GraphQL preferred), extensions (checkout/admin/POS/customer account), webhooks, OAuth, Shopify Functions. MUST be invoked when the user mentions: Shopify, CLI, Admin API, GraphQL, POS, OAuth."
+description: "Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Invoke on: shopify app init, checkout extension, admin extension."
 compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Requires Shopify Partner account and dev store."
 ---
 
@@ -53,13 +53,6 @@ npx skills add Shopify/shopify-ai-toolkit --skill shopify-admin
 3. **Build extensions** — scaffold + implement
 4. **Test** — webhook triggers, function local runs
 5. **Deploy + release** — push config and extensions, publish version
-
-| Topic               | Reference                          | Load when                                             |
-|---------------------|------------------------------------|-------------------------------------------------------|
-| CLI commands        | `references/cli-commands.md`       | Any CLI operation (init, dev, build, deploy)          |
-| GraphQL Admin API   | `references/graphql-admin-api.md`  | Store data queries/mutations, bulk operations         |
-| Extensions          | `references/extensions.md`         | Checkout UI, Admin UI, POS, Customer Account, Theme   |
-| Webhooks & OAuth    | `references/webhooks-oauth.md`     | Event handling, OAuth flow, billing, security         |
 
 ## Constraints
 

@@ -1,6 +1,6 @@
 ---
 name: content-strategy
-description: "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy,, what should I write about,, content ideas,, blog strategy,, topic clusters,, content planning,."
+description: "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy, what should I write about, content ideas, blog strategy, topic clusters, content planning,."
 metadata:
   version: 1.1.0
 ---
@@ -349,8 +349,6 @@ Visual or structured representation of how content interconnects.
 ---
 
 ## References
-
-- **[Headless CMS Guide](references/headless-cms.md)**: CMS selection, content modeling for marketing, editorial workflows, platform comparison (Sanity, Contentful, Strapi)
 
 ---
 

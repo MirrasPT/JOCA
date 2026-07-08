@@ -3,6 +3,7 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
+  origin?: 'user' | 'master';   // who spawned it: 'user' (UI) or 'master' (orchestrator)
   status: 'working' | 'idle';
 }
 

@@ -29,13 +29,16 @@ export interface Session {
   name: string;
   cwd: string;
   projectId?: string;
+  origin: 'user' | 'master';   // who spawned it: 'user' (UI) or 'master' (orchestrator)
   pty: pty.IPty;
   buffer: string;
   status: 'working' | 'idle';
   lastOutputTime: number;
   idleTimer: ReturnType<typeof setTimeout> | null;
   workingSince: number | null;
-  notifyOnIdle: boolean;
+  notifyOnIdle: boolean;    // any work burst was initiated (user OR master) → drives isDone (toast/unread)
+  masterAwaiting: boolean;  // the MASTER sent this work (submitMessage / brief) → drives 'done' (wakes the orchestrator).
+                            // User keystrokes set notifyOnIdle but NOT this, so working in a worker never wakes the Master.
 }
 
 export interface SessionInfo {
@@ -43,6 +46,7 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
+  origin: 'user' | 'master';
   status: 'working' | 'idle';
 }
 
@@ -52,6 +56,7 @@ export interface SpawnOptions {
   sessionName?: string;
   projectId?: string;
   initialInput?: string;
+  origin?: 'user' | 'master';   // default 'user'
 }
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -116,7 +121,7 @@ export class SessionManager extends EventEmitter {
   get(id: string): Session | undefined { return this.sessions.get(id); }
 
   info(s: Session): SessionInfo {
-    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, status: s.status };
+    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, status: s.status };
   }
 
   listInfo(): SessionInfo[] { return this.list().map((s) => this.info(s)); }
@@ -124,6 +129,7 @@ export class SessionManager extends EventEmitter {
   spawn(opts: SpawnOptions = {}): Session {
     const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
     const { resumePath, sessionName, projectId, initialInput } = opts;
+    const origin = opts.origin ?? 'user';
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
@@ -138,7 +144,7 @@ export class SessionManager extends EventEmitter {
     });
 
     const session: Session = {
-      id, name, cwd, projectId,
+      id, name, cwd, projectId, origin,
       pty: ptyProcess,
       buffer: '',
       status: 'idle',
@@ -146,6 +152,7 @@ export class SessionManager extends EventEmitter {
       idleTimer: null,
       workingSince: null,
       notifyOnIdle: false,
+      masterAwaiting: false,
     };
     this.sessions.set(id, session);
 
@@ -172,26 +179,23 @@ export class SessionManager extends EventEmitter {
     const claudeArgs = loadUiSettings().skipPermissions ? ' --dangerously-skip-permissions' : '';
     setTimeout(() => ptyProcess.write(`${this.claudeBin}${claudeArgs}\r`), 100);
 
+    // Resolve the /resume|/init-project command synchronously (cheap fs checks). It is SENT only once
+    // the Claude TUI is actually ready (see runStartupSequence). Fixed timers were the bug behind
+    // "sometimes it doesn't send /resume": on a slow boot or a "trust this folder?" prompt the command
+    // landed before the CLI could receive it and was lost.
+    let startupCmd: string | null = null;
     if (resumePath) {
       let resolved: string | null = null;
       try { resolved = safePath(resumePath); } catch {}
       const safe = resolved && PATH_SAFE.test(resolved) && fs.existsSync(resolved);
       if (safe && resolved) {
         const hasClaudeMd = fs.existsSync(path.join(resolved, 'CLAUDE.md'));
-        const cmd = hasClaudeMd ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
-        setTimeout(() => {
-          ptyProcess.write(cmd);
-          setTimeout(() => ptyProcess.write('\r'), 80);
-        }, 1200);
+        startupCmd = hasClaudeMd ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
       }
     }
 
-    if (initialInput) {
-      setTimeout(() => {
-        // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the
-        // first line into the Claude TUI. writeSubmit enters the whole body then one CR submits.
-        writeSubmit(ptyProcess, initialInput);
-      }, resumePath ? 2200 : 1200);
+    if (startupCmd || initialInput) {
+      void this.runStartupSequence(session, startupCmd, initialInput);
     }
 
     ptyProcess.onData((data: string) => {
@@ -219,15 +223,20 @@ export class SessionManager extends EventEmitter {
       session.idleTimer = setTimeout(() => {
         const wasWorking = session.status === 'working';
         const workedFor = session.workingSince ? Date.now() - session.workingSince : 0;
-        const isDone = session.notifyOnIdle && wasWorking && workedFor > DONE_MIN_WORK_MS;
+        const substantial = wasWorking && workedFor > DONE_MIN_WORK_MS;
+        const isDone = session.notifyOnIdle && substantial;         // toast/unread: any initiated burst finished
+        const masterDone = session.masterAwaiting && substantial;   // wakes the Master: ONLY its own dispatches
 
         session.status = 'idle';
         session.workingSince = null;
         session.notifyOnIdle = false;
+        session.masterAwaiting = false;
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
-        if (isDone) this.emit('done', { sessionId: id });
+        // 'done' re-invokes the orchestrator (worker-watch). Gated on masterAwaiting so that YOU typing
+        // in a Master-worker no longer wakes the Master (was the "3-4× feedback" spam, Erros.md #14).
+        if (masterDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
     });
 
@@ -242,6 +251,54 @@ export class SessionManager extends EventEmitter {
     // MCP spawn_worker tool) become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session });
     return session;
+  }
+
+  // Resolve once the PTY has produced output and then gone quiet for `quietMs` (the Claude TUI
+  // finished rendering its current screen), or after `capMs` as a hard fallback. Poll-based; reads the
+  // live session fields the onData handler keeps fresh. Resolves early if the session is gone.
+  private waitForQuiet(session: Session, quietMs: number, capMs: number): Promise<void> {
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const tick = () => {
+        if (!this.sessions.has(session.id)) return resolve();
+        const quietFor = Date.now() - session.lastOutputTime;
+        const booted = session.buffer.length > 0;
+        if ((booted && quietFor >= quietMs) || Date.now() - start >= capMs) return resolve();
+        setTimeout(tick, 150);
+      };
+      setTimeout(tick, quietMs);
+    });
+  }
+
+  // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
+  // "trust this folder?" prompt if present, THEN send /resume|/init-project, THEN submit any brief.
+  // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
+  private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
+    const p = session.pty;
+    await this.waitForQuiet(session, 700, 12000);
+    // First-time folders show "Do you trust the files in this folder?" — accept the default (Enter) so
+    // the CLI reaches its prompt. These are folders the user explicitly opened in JOCA.
+    if (/trust the files in this folder|Do you trust the files/i.test(session.buffer.slice(-2000))) {
+      p.write('\r');
+      await this.waitForQuiet(session, 700, 8000);
+    }
+    if (!this.sessions.has(session.id)) return;
+    if (startupCmd) {
+      p.write(startupCmd);
+      await new Promise((r) => setTimeout(r, 120)); // let the line register before the submit CR
+      p.write('\r');
+      if (initialInput) await this.waitForQuiet(session, 900, 20000); // /resume loads context — let it settle
+    }
+    if (initialInput && this.sessions.has(session.id)) {
+      // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
+      // (this is what lets the Master's worker-watch re-invoke the brain when the worker finishes).
+      // masterAwaiting = the Master dispatched this → its completion is what wakes the orchestrator.
+      session.notifyOnIdle = true;
+      session.masterAwaiting = true;
+      // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
+      // into the Claude TUI. writeSubmit enters the whole body then one CR submits.
+      writeSubmit(p, initialInput);
+    }
   }
 
   // Write to a session, replicating the WS 'input' semantics: a multi-char line ending in CR is
@@ -266,7 +323,9 @@ export class SessionManager extends EventEmitter {
   submitMessage(sessionId: string, text: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session || text === undefined) return false;
-    if (text.trim().length > 0) session.notifyOnIdle = true;
+    // Master-initiated (this method is only used by the orchestrator) → arm BOTH: notifyOnIdle (toast)
+    // and masterAwaiting (so the completion wakes the Master's follow-up loop).
+    if (text.trim().length > 0) { session.notifyOnIdle = true; session.masterAwaiting = true; }
     writeSubmit(session.pty, text);
     return true;
   }

@@ -2,6 +2,7 @@
 name: webhooks
 description: "Implement webhook receivers with signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the user says: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix. SHOULD also invoke when: hookdeck, webhook handler, webhook retry, hmac signature."
 triggers: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook, shopify webhook, svix, hookdeck, webhook handler, webhook retry, hmac signature
+chain: tester-api
 ---
 
 # Webhooks

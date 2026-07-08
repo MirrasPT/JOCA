@@ -25,7 +25,7 @@ Video generation agent using Google's Gemini via the **Antigravity CLI (agy)**.
 agy --version 2>/dev/null || echo "AGY_NOT_INSTALLED"
 ```
 
-If not installed: `npm install -g @anthropic-ai/antigravity` then `agy auth login`.
+Requer `agy` (Antigravity CLI) no PATH. Se faltar: reporta ao user e pára — NÃO tentes instalar por ti.
 
 ## Video generation via agy
 

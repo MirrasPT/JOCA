@@ -2,6 +2,7 @@
 name: brand-guidelines
 description: "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide. SHOULD also invoke when: brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md."
 triggers: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide, brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md, criar BRAND.md, sistema de marca, documentação de marca, brand colors, brand typography, brand guide, diretrizes de marca, visual identity
+chain: design-tokens
 ---
 
 # Brand Guidelines

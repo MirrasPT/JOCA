@@ -42,6 +42,11 @@ interface WorkerMeta { nonce: string; donePattern: RegExp; objective: string }
 const workerRegistry = new Map<string, WorkerMeta>();
 let cleanupHooked = false;
 
+// Exposed so the worker-done watcher (master/worker-watch.ts) can tell a Master-spawned worker
+// apart from a plain user terminal, and recover its objective for the follow-up prompt.
+export function isMasterWorker(id: string): boolean { return workerRegistry.has(id); }
+export function getWorkerObjective(id: string): string | undefined { return workerRegistry.get(id)?.objective; }
+
 function ok(text: string) {
   return { content: [{ type: 'text' as const, text }] };
 }
@@ -138,23 +143,27 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
         required: ['objective'],
       },
       handler: async (args) => {
-        // Resolve a JOCA projectId to its real path: the worker then runs IN the project folder
-        // (cwd) and /resume's its context — same as the UI's "open project". Never fabricate a path.
-        let cwd = args.cwd;
-        let resumePath: string | undefined;
+        // #13: a Master worker ALWAYS boots in the JOCA_Brain (cwd stays undefined → sm.spawn defaults
+        // to JOCA_LOGIC_ROOT) so it has the full toolkit/memory; the target folder is loaded via
+        // /resume "<path>" (resumePath), exactly like the UI "Abrir projecto". This holds for BOTH a
+        // JOCA projectId AND a raw cwd — the worker never boots directly inside the project folder.
+        // Never fabricate a path.
+        const cwd = undefined;                       // always boot in JOCA_Brain
+        let resumePath: string | undefined = args.cwd; // raw cwd → /resume into it (not boot-cwd)
+        let projectPath: string | undefined = args.cwd;
         if (args.projectId) {
           const project = loadProjects().find((p) => p.id === args.projectId);
           if (!project) {
             const list = loadProjects().map((p) => `${p.id} (${p.name})`).join(', ') || '(nenhum)';
             return `erro: projectId "${args.projectId}" nao existe. Projectos validos: ${list}`;
           }
-          cwd = project.path;
-          resumePath = project.path;
+          resumePath = project.path; // /resume "<project.path>" loads the project context
+          projectPath = project.path;
         }
 
         const brief = buildWorkerBrief({
           objective: args.objective,
-          projectPath: cwd,
+          projectPath,
           constraints: args.constraints,
           doNot: args.doNot,
           skills: args.skills,
@@ -163,11 +172,12 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
           projectId: args.projectId,
           cwd,
           resumePath,
+          origin: 'master',
           sessionName: `worker: ${args.objective.slice(0, 40)}`,
           initialInput: brief.text,
         });
         workers.set(session.id, { nonce: brief.nonce, donePattern: brief.donePattern, objective: args.objective });
-        const where = resumePath ? ` no projecto (${cwd})` : cwd ? ` em ${cwd}` : '';
+        const where = resumePath ? ` no projecto (${resumePath})` : cwd ? ` em ${cwd}` : '';
         return `workerId=${session.id}\nO worker foi aberto${where} e o brief enviado. Le o output com read_worker quando quiseres acompanhar; ele imprime <<<JOCA_DONE:${brief.nonce}>>> quando terminar.`;
       },
     },
@@ -269,6 +279,43 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
           return `${s.id} [${s.status}] (${kind}) "${s.name}"${proj} cwd=${s.cwd}`;
         });
         return lines.join('\n');
+      },
+    },
+    {
+      name: 'close_worker',
+      description: 'Fecha (mata) um terminal/worker aberto, por id. Usa para arrumar um worker que já não precisas (ex.: no fim de uma automação/acção, fecha o worker que abriste). Fecha SÓ o que faz sentido — nunca um terminal do utilizador que esteja [working] com trabalho dele em curso, a menos que ele peça explicitamente.',
+      zodShape: { workerId: z.string() },
+      jsonSchema: { type: 'object', properties: { workerId: { type: 'string' } }, required: ['workerId'] },
+      handler: async (args) => {
+        const s = sm.get(args.workerId);
+        if (!s) return `erro: worker ${args.workerId} não existe (já fechado?).`;
+        const name = sm.info(s).name;
+        const okKill = sm.kill(args.workerId);
+        return okKill ? `fechado: ${args.workerId} ("${name}").` : `erro: não consegui fechar ${args.workerId}.`;
+      },
+    },
+    {
+      name: 'close_project_workers',
+      description: 'Fecha TODOS os terminais/workers de um projecto (por projectId). Usa quando o Renato diz "fecha o projecto X por hoje" / "arruma os terminais do X". Por defeito NÃO fecha terminais [working] (trabalho em curso) — passa includeWorking=true só se o Renato confirmar que quer fechar mesmo os que estão a trabalhar. Devolve quantos fechou.',
+      zodShape: {
+        projectId: z.string().describe('id do projecto cujos terminais fechar'),
+        includeWorking: z.boolean().optional().describe('true para fechar também os que estão [working]; default false (só idle)'),
+      },
+      jsonSchema: {
+        type: 'object',
+        properties: {
+          projectId: { type: 'string', description: 'id do projecto' },
+          includeWorking: { type: 'boolean', description: 'fechar também [working]; default false' },
+        },
+        required: ['projectId'],
+      },
+      handler: async (args) => {
+        const targets = sm.listInfo().filter((s) => s.projectId === args.projectId && (args.includeWorking === true || s.status === 'idle'));
+        if (targets.length === 0) return `sem terminais a fechar para o projecto ${args.projectId} (nenhum aberto${args.includeWorking ? '' : ' e idle'}).`;
+        let closed = 0;
+        for (const t of targets) { if (sm.kill(t.id)) closed++; }
+        const skipped = sm.listInfo().filter((s) => s.projectId === args.projectId).length;
+        return `fechei ${closed} terminal(is) do projecto ${args.projectId}.${skipped ? ` Ficaram ${skipped} aberto(s) (working, não fechados).` : ''}`;
       },
     },
     {
@@ -469,6 +516,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
         model: z.string().optional().describe('modelo (só claude): sonnet/opus/haiku'),
         skills: z.array(z.string()).optional().describe('skills/agentes do JOCA_Brain a usar (o worker faz Read antes de agir)'),
         requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis e pedir OK ao Renato'),
+        attachments: z.array(z.string()).optional().describe('caminhos de ficheiros anexados à tarefa (contexto para o worker)'),
       },
       jsonSchema: {
         type: 'object',
@@ -481,6 +529,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
           model: { type: 'string', description: 'modelo (só claude)' },
           skills: { type: 'array', items: { type: 'string' }, description: 'skills/agentes do JOCA a usar' },
           requireConfirm: { type: 'boolean', description: 'parar antes de acções irreversíveis' },
+          attachments: { type: 'array', items: { type: 'string' }, description: 'caminhos de ficheiros anexados à tarefa' },
         },
         required: ['title'],
       },
@@ -494,6 +543,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
           model: typeof args.model === 'string' && args.model.trim() ? args.model.trim() : undefined,
           skills: Array.isArray(args.skills) ? args.skills : undefined,
           requireConfirm: args.requireConfirm === true || undefined,
+          attachments: Array.isArray(args.attachments) ? args.attachments : undefined,
         });
         upsertTask(t);
         notifyTasksChanged();

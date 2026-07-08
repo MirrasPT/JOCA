@@ -47,7 +47,7 @@ Detect from page signals before analysis. Determines which checks apply.
 
 ## Industry Vertical Detection
 
-Detect from page signals and GBP category patterns. Routes to industry-specific checks from `references/local-schema-types.md`.
+Detect from page signals and GBP category patterns.
 
 | Vertical | Detection Signals |
 |----------|------------------|
@@ -151,7 +151,7 @@ Citations declining for traditional pack rankings but **3 of top 5 AI visibility
   - Facebook business page references
 - Apple Business Connect awareness (usage doubled to 27%, BrightLocal 2026 -- recommend claiming)
 - Bing Places awareness (powers ChatGPT, Copilot, Alexa -- recommend claiming)
-- Industry-specific directory recommendations: load `references/local-schema-types.md` for per-vertical citation sources
+- Industry-specific directory recommendations (per-vertical citation sources)
 - Data aggregator awareness: Data Axle, Foursquare, Neustar/TransUnion (recommend submission for downstream distribution)
 
 **Scoring guide:**
@@ -167,14 +167,14 @@ Schema is NOT a direct ranking factor (John Mueller confirmed). But enables rich
 - LocalBusiness schema presence (extract JSON-LD blocks)
 - Required properties: `name`, `address` with PostalAddress sub-properties
 - Recommended properties: `geo` (minimum 5 decimal places, Confirmed), `openingHoursSpecification`, `telephone`, `url`, `priceRange` (<100 chars), `image`, `aggregateRating`
-- **Correct subtype for industry** -- load `references/local-schema-types.md`:
+- **Correct subtype for industry**:
   - Restaurant using `Restaurant` not generic `LocalBusiness`
   - Legal using `LegalService` not deprecated `Attorney`
   - Auto dealer using `AutoDealer` not deprecated `VehicleListing`
   - Healthcare using `MedicalClinic`/`Hospital`/`Dentist` not generic `MedicalBusiness`
 - SAB-specific: `areaServed` with named cities (recommended, not in Google's official list but Schema.org supported)
 - Multi-location: each location page has own LocalBusiness with unique `@id`, linked via `branchOf` to Organization on homepage
-- Industry-specific schema patterns (per `references/local-schema-types.md`):
+- Industry-specific schema patterns:
   - Restaurant: Menu + MenuSection + MenuItem + ReserveAction
   - Healthcare: Physician (Person) + MedicalSpecialty + sameAs to NPI
   - Legal: LegalService + Person + Service (practice areas)
@@ -222,14 +222,6 @@ Key local AI facts:
 - AI-powered local packs (mobile US) show only 1-2 businesses, 32% fewer shown (Sterling Sky)
 
 **Recommendation**: Run `/seo geo <url>` for comprehensive AI search visibility analysis including citability scoring, llms.txt check, and brand mention audit.
-
----
-
-## Reference Files
-
-Load on-demand:
-- `references/local-seo-signals.md`: Ranking factors, review benchmarks, citation tiers, GBP feature status, algorithm updates
-- `references/local-schema-types.md`: LocalBusiness subtypes by industry, schema patterns, citation sources per vertical
 
 ---
 

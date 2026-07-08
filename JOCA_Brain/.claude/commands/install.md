@@ -194,7 +194,7 @@ OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
 
 ## FASE 2 — Areas de Trabalho
 
-Areas globais que determinam quais skills ficam activas. O JOCA tem **113 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
+Areas globais que determinam quais skills ficam activas. O JOCA tem **133 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
 
 `AskUserQuestion`:
 ```
@@ -219,8 +219,8 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 | Print              | graphic-design, brand-guidelines                                               |
 | Animacao           | anima (GSAP router), lottie-animator                                           |
 | Video              | video, hyperframes, remotion, lyric-align (+ agent `watch`)                      |
-| Marketing/SEO      | marketing-router, paid-ads, seo, seo-local, email-sequence, content-strategy, content-calendar, social-content, copywriting, page-cro, lead-capture, launch-strategy, ab-test-setup, competitor-profiling, analytics-tracking |
-| Dev web (Laravel)  | laravel-specialist, filament, laravel-react, rest-api, mysql, auth, security, saas-patterns, file-storage, caching, queues, bullmq, horizon-queues, reverb-realtime, search-engine, webhooks, availability, error-tracking-dev, error-tracking-prod, github |
+| Marketing/SEO      | marketing, paid-ads, seo, seo-local, email-sequence, content-strategy, content-calendar, social-content, copywriting, page-cro, lead-capture, launch-strategy, ab-test-setup, competitor-profiling, analytics-tracking |
+| Dev web (Laravel)  | laravel-specialist, filament, laravel-react, rest-api, mysql, auth, security, saas-patterns, file-storage, caching, queues, bullmq, horizon, reverb-realtime, search, webhooks, availability, error-tracking-dev, error-tracking-prod, github |
 | Email              | react-email, transactional-email, postmark                                     |
 | Deploy / DevOps    | deploy-docker, deploy-ploi, deploy-cpanel, deploy-vps                          |
 | Portugal           | portugal-payments (ifthenpay/MB WAY), portugal-invoicing (Moloni)              |
@@ -232,7 +232,7 @@ Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, An
 | Analytics          | google-analytics, microsoft-clarity                                            |
 | Research           | deep-research (agent)                                                          |
 | Specs / Planning   | plan, planning, prd, tech-spec, task-breakdown, adr, rfc, c4-diagram, blueprint, html-review |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca, pt-pt-translator, yagni |
+| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, pt-pt-translator, yagni |
 | Autonomia (sempre) | auto-orquestracao via `rules/task-intake.md` (4 vias) + agentes `task-router`, `master-orchestrator` (loop) + comando `/goal`; padroes em `rules/orchestration-patterns.md` |
 | Knowledge & Pessoal | knowledge-ingest (`/know`, requer markitdown), automations, personal-comms (+ agentes `knowledge-ingest`, `automation-builder`, `personal-comms`) — FUTUROS Fases 2/3/5 |
 | Windows (auto)     | `joca-ui-windows` — activa automaticamente quando o OS (Q4) e Windows (ver FASE EXECUCAO 8) |
@@ -457,8 +457,8 @@ SOUL
   Autonomia: [nivel] · Comunicacao: [modo] · Erros: [comportamento] · Auto-test: [sim/nao]
   Fortes: [lista] · A aprender: [lista]
 
-SKILLS (103 — trigger system RFC 2119)
-  Base:  caveman, karpathy-guidelines, agent-context, create-skill, feedback-joca
+SKILLS (133 — trigger system RFC 2119)
+  Base:  caveman, karpathy-guidelines, agent-context, create-skill
   [categoria]: [lista]
 
 INTEGRACOES
@@ -510,8 +510,8 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 
 ## JOCA
 Toolkit instalado em: [caminho_joca]
-Skills activas: 103 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /init-project, /resume, /save, /create-skill, /sync-questionnaires, /plan, /debug, /review-code, /review-design, /feedback-joca, /feedback-projeto, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
+Skills activas: 133 (trigger system RFC 2119 — activacao automatica por relevancia)
+Comandos: /install, /init-project, /resume, /save, /create-skill, /sync-questionnaires, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_UI
@@ -823,7 +823,7 @@ Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
 ### 7. settings.json do projecto
 
-Verificar que `<caminho_joca>/.claude/settings.json` tem os hooks configurados com `node` (nao bash):
+Verificar que `<caminho_joca>/.claude/settings.json` tem os **10 hooks** configurados. Substituir `<BRAIN>` pelo caminho absoluto do JOCA_Brain instalado (ex.: `C:/Users/renat/Desktop/JOCA_FINAL/JOCA_Brain`) — **paths absolutos porque no Windows o cwd dos hooks não é garantidamente a raiz do repo**, e paths relativos falham em silêncio.
 
 ```json
 {
@@ -832,25 +832,50 @@ Verificar que `<caminho_joca>/.claude/settings.json` tem os hooks configurados c
     "deny": []
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-freeze.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-tdd.js\"" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-careful.js\"" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/session-intake.js\"" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/prompt-triage.js\"" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/track-changes.js \"$TOOL_INPUT_FILE_PATH\"",
-            "async": true
-          }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"", "async": true },
+          { "type": "command", "command": "bash \"<BRAIN>/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/skill-lint.js\"" }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/auto-test-dispatch.js"
-          }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-checkpoint.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-test-dispatch.js\"" }
         ]
       }
     ]
@@ -858,7 +883,10 @@ Verificar que `<caminho_joca>/.claude/settings.json` tem os hooks configurados c
 }
 ```
 
-Confirmar que todos os hooks usam `node` como runtime — nunca `bash` ou `sh`.
+Notas:
+- **Ordem no array Stop importa:** `stop-checkpoint.js` corre ANTES de `auto-test-dispatch.js` (este limpa a `.joca/test-queue.jsonl`).
+- Runtime `node` para todos os hooks excepto `check-skill-paths.sh` (bash, vive em `.claude/scripts/`).
+- Hooks flag-file (`check-freeze`, `check-careful`, `check-tdd`) são no-op sem a flag `.joca/*.flag` — armados pelas skills `freeze`/`careful`/`tdd`, desarmados por `unfreeze`.
 
 ### 8. JOCA_UI (instala por defeito)
 
@@ -936,7 +964,7 @@ Executar `/create-skill [nome]` para cada skill nova aprovada na FASE 2.
 OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
-OK Skills: 103 configuradas (RFC 2119 trigger system)
+OK Skills: 133 configuradas (RFC 2119 trigger system)
 OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
 OK JOCA_UI: instalado (backend :7371, frontend :7372)[ · Windows: skill joca-ui-windows aplicada]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)

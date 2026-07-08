@@ -34,6 +34,24 @@ Páginas geradas por JSON `_elementor_data` → import via post meta → editáv
 - Trocar = a classe é silenciosamente ignorada (renderiza sem ela). Confirmado em Elementor (common-base.php=`_css_classes` widget; container.php=`css_classes`).
 - Limpar `_elementor_element_cache`/`_elementor_css` + `flush_css` ao re-importar; desligar experiment `e_element_cache` evita HTML em cache.
 
+**Última sessão:** 2026-07-06 — deploy staging + diagnóstico de links partidos (Elementor relativo em subpasta); fix pronto, bloqueado em credenciais.
+
+## Deploy staging (2026-07-06)
+- **URL:** https://wp.setuptech.dev/bodegas/ (migrado via All-in-One WP Migration; SÓ acesso wp-admin, sem SSH conhecido).
+- **Problema:** botões/nav não funcionam. Causa: botões Elementor com URL **relativo à raiz** (`/enoturismo/`, `/shop/`, `/la-bodega/`, `/noticias/`, `/premios/`, `/contacto/`) — sem prefixo `/bodegas/`. No localhost (raiz) resolviam; na subpasta apontam para fora → 404. Cabeçalho HFE (site-wide) + home/enoturismo. Menu WP + core WP OK.
+- **Fix pronto (não aplicado):** Better Search Replace, `"url":"\/` → `"url":"\/bodegas\/` em wp_postmeta (dry-run→run UMA vez→Regenerate CSS→verificar por curl). Detalhe no CLAUDE.md do projecto.
+- ⚠ **BLOQUEADO:** wp-admin remoto rejeita `admin` / `&w2%$0B$JP` E a local `admin_local_pw`. User `admin` existe mas password não bate. Preciso da password remota correcta (ou SSH, ou corrigir fonte + re-deploy). "Lost password" provavelmente não sai (SMTP produção pendente).
+- **Alternativa definitiva:** tornar botões URLs absolutas na fonte local → migration-clean.
+
+## Re-link JOCA (2026-07-06)
+
+## Re-link JOCA (2026-07-06)
+- `/init-project` correu em modo **refrescar** (projecto já estava ligado). Sem re-init do zero.
+- graphify indexado sobre `website_wordpress`: **538 nós · 624 edges · 49 comunidades** (`graphify-out/`).
+- `graphify-out/` adicionado ao `.gitignore` (não sincronizar no Mega nem versionar — regenerável).
+- Secção **Navegação de Código** adicionada ao `CLAUDE.md` do projecto (aponta para `graphify-out/GRAPH_REPORT.md`).
+- Nota: pasta-mãe `D:\Mega\Bodegas do Campo (Espanhol)` contém `website_design/`, `Logotipo/`, backup `.wpress` (314 MB) e `info/`; o projecto de código é só `website_wordpress/`.
+
 ## Estado actual (2026-06-24)
 **SITE COMPLETO com conteúdo real, verificado e no GitHub** (`MirrasPT/Espanhol`, branch `main`). Todas as páginas Elementor-editáveis; forms a funcionar; WooCommerce es_ES; mobile ok; v0.5.2. Só falta deploy (em espera por decisão do cliente) + SMTP em produção. Detalhe na secção "Sessão 2026-06-24" abaixo.
 
@@ -108,7 +126,7 @@ Iteração visual com o cliente (cada fix verificado por screenshot Playwright l
 **Plugins:** All-in-One WP Migration + S3 Client Extension instalados/activos.
 
 ## Pendente
-- **Deploy** (cliente pediu para NÃO avançar ainda). Export via All-in-One WP Migration (S3) ou cPanel.
+- **Deploy** (cliente pediu para NÃO avançar ainda). Export via All-in-One WP Migration (S3) ou cPanel. **Artefacto pronto:** `../localhost-20260625-074919-wa6yzbu5bpph.wpress` (315 MB, full-site export AIO-WP-Migration, 2026-06-25) na pasta-pai — importar no destino quando o cliente autorizar.
 - **SMTP em produção** — notificações dos forms configuradas p/ comercial@bodegasdocampo.com, mas local sem servidor de email (entrega só funciona com plugin SMTP no deploy).
 - Confirmar preços/IVA finais com cliente; decidir se loja vende (preço visível + add-to-cart no single).
 - Enoturismo: validar veracidade do alojamento s.XVI / imagem do hotel.
@@ -116,3 +134,9 @@ Iteração visual com o cliente (cada fix verificado por screenshot Playwright l
 
 ## Última sessão
 2026-06-24 — Conteúdo REAL end-to-end (10 produtos, prémios, 10 posts, contacto form, enoturismo, multimédia, footer) só com dados do site antigo; loja/single corrigidos; mobile via workflow; verificação Elementor+forms logado; **push para github.com/MirrasPT/Espanhol (main)** com dump DB+uploads. Assets em v0.5.2.
+
+## Refresh 2026-06-29 (/init-project — re-scan, sem mudança de scope)
+Re-verificado o estado real no disco (projecto já inicializado no JOCA). Sem trabalho novo desde 2026-06-24:
+- Git: `MirrasPT/Espanhol` main, **1 commit squashed** (`a4b2507`), em sync com origin. Working tree limpo exceto `M CLAUDE.md` (uncommitted — apenas documentação: secções shortcodes/gotchas-Woo/repo-backup, conteúdo já reflectido nesta memória).
+- Snapshot DB+uploads presente (`snapshot/database/bodegas-docampo.sql` + `snapshot/uploads/`).
+- **Único facto novo:** export full-site `.wpress` (315 MB, 2026-06-25) criado na pasta-pai (ver Pendente → Deploy). Não houve deploy.

@@ -126,3 +126,4 @@ Ganho: <LOC / complexidade / deps / custo — marcado medido|estimado>
 - **Não inventes paths, APIs ou capacidades.** Repo inacessível ou detalhe incerto → di-lo explicitamente e verifica contra a fonte real (gh CLI autenticado, `composer`/`npm` info, ou WebFetch do README/raw). Sem fabricação.
 - **Não dupliques o `laravel-refactor`.** Tu MEDES e PRIORIZAS com ganho; ele EXECUTA o refactor. Entrega-lhe a lista priorizada.
 - **Windows-first.** `python`, não `python3`. `command -v <tool>` antes de correr qualquer ferramenta opcional.
+- Relatório completo → escreve em `.joca/intermediate/tech-debt-auditor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
