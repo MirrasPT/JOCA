@@ -9,7 +9,7 @@
 
 ## CC-1 — CLAUDE.md · Decision Filter passo 2 (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\CLAUDE.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\CLAUDE.md`
 Seccao: `## Decision Filter (sequential, before any action)`
 
 SUBSTITUIR a linha actual:
@@ -42,7 +42,7 @@ INSERIR como primeiro item da lista (antes do actual "1. Reversible?"), renumera
 
 ## CC-3 — rules/task-intake.md · NOVO ficheiro (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\rules\task-intake.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\rules\task-intake.md`
 Accao: CRIAR. Conteudo exacto:
 
 ```markdown
@@ -83,7 +83,7 @@ UserPromptSubmit hook. Sobrevive ao recall loss por estar tambem nos hooks.
 
 ## CC-4 — soul.md · Working Principles (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\memory\soul.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\memory\soul.md`
 Seccao: `## Working Principles`
 
 ADICIONAR como ultima linha da lista:
@@ -108,7 +108,7 @@ loop_max_iterations: 4       # travao anti-loop-infinito no workflow goal-seekin
 
 ## CC-6 — settings.json · SessionStart + UserPromptSubmit hooks (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\settings.json`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\settings.json`
 Accao: ADICIONAR dois blocos dentro de `"hooks"` (manter PostToolUse e Stop existentes).
 
 ADICIONAR ao objecto `"hooks"`:
@@ -143,7 +143,7 @@ ADICIONAR ao objecto `"hooks"`:
 
 ## CC-7 — hooks/session-intake.js · NOVO (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\hooks\session-intake.js`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\hooks\session-intake.js`
 Accao: CRIAR. Espec para o autor (Node, Windows-safe, sem deps externas):
 - Ler `memory/SKILL_INDEX.json`.
 - Construir digest compacto `trigger -> path` (so name + triggers + path, NAO o corpo das skills).
@@ -155,7 +155,7 @@ Accao: CRIAR. Espec para o autor (Node, Windows-safe, sem deps externas):
 
 ## CC-8 — hooks/prompt-triage.js · NOVO (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\hooks\prompt-triage.js`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\hooks\prompt-triage.js`
 Accao: CRIAR. Espec (Node):
 - A cada UserPromptSubmit, emitir 1 linha de lembrete:
   `[task-intake] classifica: directa/skill/agente/workflow antes de responder. rules/task-intake.md`
@@ -166,7 +166,7 @@ Accao: CRIAR. Espec (Node):
 
 ## CC-9 — master-orchestrator.md · loop-ate-concluir + GOAL (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\agents\master-orchestrator.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\agents\master-orchestrator.md`
 
 (a) ADICIONAR ao topo de `## Before Starting`, antes do item 1:
 ```
@@ -209,7 +209,7 @@ Para GOALs nao-web (automacoes, /know, research, acoes) usar os agentes de domin
 
 ## CC-10 — commands/goal.md · NOVO command (P0)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\commands\goal.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\commands\goal.md`
 Accao: CRIAR. Espec:
 - `/goal <descricao NL>` — entrada autonoma de workflow SEM PRD.
 - Fluxo: (1) ler CLAUDE.md + SKILL_INDEX.json; (2) sintetizar plano minimo in-memory a partir da descricao (GOAL + criterios de aceitacao + work-streams candidatos); (3) detectar accoes irreversiveis → 1 confirmacao; (4) invocar `master-orchestrator` com o GOAL e o plano in-memory; (5) reportar.
@@ -250,7 +250,7 @@ documentado em workflows-and-tooling.md:
 ```
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import sys" && break; done
 ```
-Razao: `python3` e o stub vazio da Microsoft Store no Windows do Renato (ModuleNotFoundError).
+Razao: `python3` e o stub vazio da Microsoft Store no Windows do utilizador (ModuleNotFoundError).
 
 ---
 
@@ -294,7 +294,7 @@ Ficheiro: `CLAUDE.md`
 
 ## CC-15 — migrate.md · corrigir header (P2)
 
-Ficheiro: `C:\Users\renat\Desktop\JOCA_FINAL\JOCA_Brain\.claude\commands\migrate.md`
+Ficheiro: `C:\Users\<user>\Desktop\JOCA\JOCA_Brain\.claude\commands\migrate.md`
 Accao: SUBSTITUIR o header `# /goal` por `# /migrate`. (Heranca errada — confunde o router e
 colide com o novo /goal.)
 

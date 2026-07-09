@@ -15,7 +15,7 @@ origin: local
 
 # Social Scheduler — TryPost (MCP)
 
-Executor de agendamento/publicação social via **TryPost** self-hosted (LIVE em `trypost.rfdev.pt`, MCP `mcp__trypost__*`, OAuth, user scope). A skill `content-calendar` faz o *planeamento* (calendário, captions, rollout); esta faz a *execução*. Ver `memory/projects/datalix-vps.md` (stack/creds TryPost).
+Executor de agendamento/publicação social via **TryPost** self-hosted (LIVE no teu domínio configurado, MCP `mcp__trypost__*`, OAuth, user scope). A skill `content-calendar` faz o *planeamento* (calendário, captions, rollout); esta faz a *execução*. Ver o teu ficheiro de projecto VPS (`/init-project`) para stack/credenciais.
 
 ## Pré-requisitos
 - Contas sociais ligadas: `mcp__trypost__list-social-accounts-tool` (confirmar `id` + estado de cada plataforma antes de publicar).

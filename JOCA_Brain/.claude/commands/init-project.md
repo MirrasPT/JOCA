@@ -202,7 +202,7 @@ Lista numerada:
 > wp option update woocommerce_coming_soon no
 > wp option update woocommerce_store_pages_only no
 > ```
-> (Fonte: bodegas-do-campo 2026-06-23 — custou diagnóstico longo.)
+> (lição de projecto anterior — custou diagnóstico longo.)
 
 **Q6 — Ambiente local**
 Lista numerada:

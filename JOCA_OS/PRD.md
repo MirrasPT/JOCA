@@ -34,7 +34,7 @@ Princípio central: o Master é uma **camada aditiva** sobre o JOCA_UI existente
 
 | Persona | Descrição | Job-to-be-Done | Principal dor |
 |---|---|---|---|
-| Renato Ferreira (Setup Tech) | Designer + Product Manager, Portugal. Forte em design/produto/UX; a aprender backend/DevOps. Visão "Jarvis": parceiro autónomo, não assistente. | Quando trabalho em vários projectos, quero descrever o objectivo em linguagem natural e ter o sistema a abrir, instruir e coordenar os terminais Claude Code por mim — devolvendo-me só resumos. | Ser o cola manual entre N terminais; trocar de contexto; vigiar outputs; não ter continuidade de conversa entre sessões. |
+| [Nome do Utilizador] | Designer + Product Manager, Portugal. Forte em design/produto/UX; a aprender backend/DevOps. Visão "Jarvis": parceiro autónomo, não assistente. | Quando trabalho em vários projectos, quero descrever o objectivo em linguagem natural e ter o sistema a abrir, instruir e coordenar os terminais Claude Code por mim — devolvendo-me só resumos. | Ser o cola manual entre N terminais; trocar de contexto; vigiar outputs; não ter continuidade de conversa entre sessões. |
 
 Alinhamento (de `soul.md`): comunicação tersa, caveman-lite; máximo 1 confirmação por fluxo; design/UX → executar directo; backend/DevOps → 1 linha de explicação antes de implementar; mostrar output visual sempre que possível. Frustração: verbosidade, repetição, confirmações desnecessárias.
 

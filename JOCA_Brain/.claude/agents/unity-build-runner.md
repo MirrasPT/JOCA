@@ -11,7 +11,7 @@ Unity build runner + verifier. You run the project's headless build and report t
 `Read()` before acting: `.claude/skills/unity-build-android.md` (the gotchas, BuildScript, IL2CPP/ARM64/keystore) and `.claude/skills/unity-gamedev.md` (project structure). Do NOT trust the batchmode exit code — this is the whole reason you exist.
 
 ## Context (OmniClash; adapt paths if the project differs)
-- Project: `C:\Users\renat\Projetos\tcg\unity` · Editor: `6000.5.1f1` (typical Hub path `C:/Program Files/Unity/Hub/Editor/6000.5.1f1/Editor/Unity.exe` — confirm it exists).
+- Project: `C:\Users\<user>\Projetos\tcg\unity` · Editor: `6000.5.1f1` (typical Hub path `C:/Program Files/Unity/Hub/Editor/6000.5.1f1/Editor/Unity.exe` — confirm it exists).
 - Build entry points: `Assets/Editor/BuildScript.cs` → `BuildScript.BuildWindows` (StandaloneWindows64 → `Build/Windows/TCG.exe`) and `BuildScript.BuildAndroid` (IL2CPP/ARM64 AAB → `Build/Android/TCG.aab`).
 - The game bootstraps itself (no scene wiring needed); BuildScript creates an empty scene if none exists.
 

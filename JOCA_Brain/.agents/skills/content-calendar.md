@@ -160,7 +160,7 @@ For waterfall/episodic: one-paragraph narrative of the sequence logic, flagging 
 
 **Asset inventory incomplete:** generate a blank Asset Sheet, mark all status as `Asset missing`, and tell the user which slots are blocked before building captions.
 
-**Timezone not provided:** default to Europe/Lisbon (Renato's base), flag it explicitly, and ask for confirmation before finalising.
+**Timezone not provided:** default to Europe/Lisbon (base do utilizador), flag it explicitly, and ask for confirmation before finalising.
 
 **Cadence conflicts (too many assets for slot count):** surface the conflict — list which assets can't fit — and ask whether to extend the campaign window or drop lower-priority assets.
 

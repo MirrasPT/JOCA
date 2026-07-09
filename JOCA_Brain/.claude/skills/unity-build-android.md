@@ -22,7 +22,7 @@ Taking a Unity game from editor to a signed `.aab`/`.apk`. Specialist under `uni
 - On Windows: long-path support on; build to a short path to avoid gradle path-length failures.
 
 ## 1. Player settings (Project Settings → Player → Android)
-- **Package name**: `com.<vendor>.<game>` (OmniClash = `com.renatoferreira.tcg`). Immutable once on Play.
+- **Package name**: `com.<vendor>.<game>` (OmniClash = `com.<vendor>.tcg`). Immutable once on Play.
 - **Scripting backend = IL2CPP**, **Target architectures = ARM64** (mandatory for Google Play; ARMv7-only is rejected).
 - **Minimum API** 24+ (typical), Target API = latest Play requires.
 - **Orientation** (card game = usually landscape or auto), splash off for a clean boot, product name.
@@ -42,9 +42,9 @@ Taking a Unity game from editor to a signed `.aab`/`.apk`. Specialist under `uni
 OmniClash has `Assets/Editor/BuildScript.cs` with `BuildWindows()` and `BuildAndroid()` (sets IL2CPP/ARM64, package id, `buildAppBundle = true`, then `BuildPipeline.BuildPlayer`). It auto-creates an empty scene because the game bootstraps itself (`GameDemo.Bootstrap` via `RuntimeInitializeOnLoadMethod`). Run headless:
 ```bash
 "<UnityHub>/Editor/6000.5.1f1/Editor/Unity.exe" -quit -batchmode -nographics \
-  -projectPath "C:/Users/renat/Projetos/tcg/unity" \
+  -projectPath "C:/Users/<user>/Projetos/tcg/unity" \
   -executeMethod BuildScript.BuildAndroid \
-  -logFile "C:/Users/renat/Projetos/tcg/unity_build.log"
+  -logFile "C:/Users/<user>/Projetos/tcg/unity_build.log"
 ```
 
 ## 5. The Windows/Unity gotchas (these bite every time)

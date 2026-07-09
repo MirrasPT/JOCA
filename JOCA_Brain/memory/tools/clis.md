@@ -1,8 +1,8 @@
 # CLIs externos — inventário definitivo
 
-Registo canónico dos CLIs que o setup do Renato usa. Fonte de verdade para migrações de máquina (o `CLAUDE.md` "CLIs externos" e o `install.md` estavam **incompletos** — faltavam ntn, wix, wp-cli, stripe, aws, gcloud, huggingface, zmail, last30days). Actualizar aqui sempre que se instala/remove um CLI.
+Registo canónico dos CLIs que o setup do utilizador usa. Fonte de verdade para migrações de máquina (o `CLAUDE.md` "CLIs externos" e o `install.md` estavam **incompletos** — faltavam ntn, wix, wp-cli, stripe, aws, gcloud, huggingface, zmail, last30days). Actualizar aqui sempre que se instala/remove um CLI.
 
-Última reconciliação: **2026-07-08** (migração Windows → Mac `/Users/renatoferreira`). Instalar via install command; **auth é interactiva (login do Renato), nunca migra** — não inventar chaves.
+Última reconciliação: **2026-07-08** (migração Windows → Mac `~`). Instalar via install command; **auth é interactiva (login do utilizador), nunca migra** — não inventar chaves.
 
 ## Instalados e verificados (Mac)
 
@@ -25,9 +25,9 @@ Registo canónico dos CLIs que o setup do Renato usa. Fonte de verdade para migr
 | `markitdown` | `brew install markitdown` (+ MCP `uvx markitdown-mcp`) | — | ficheiro/URL → Markdown (/know) |
 | `browser-use` | `uv tool install browser-use` | key do modelo | automação browser (default) |
 | `playwright-cli` | `npm i -g playwright-cli` | — | browser control (fallback) |
-| `ntn` (Notion) v0.18+ | `npm i -g ntn` (Node≥22) | `ntn login` (keychain) | Notion clientes (Luís Gonçalo) |
-| `wix` (@wix/cli) | `npm i -g @wix/cli` | login browser / key | Wix/Velo (Bracaris) |
-| `wp` (wp-cli) | `brew install wp-cli` | — (por site) | WordPress/WooCommerce (Bodegas) |
+| `ntn` (Notion) v0.18+ | `npm i -g ntn` (Node≥22) | `ntn login` (keychain) | Notion clientes |
+| `wix` (@wix/cli) | `npm i -g @wix/cli` | login browser / key | Wix/Velo |
+| `wp` (wp-cli) | `brew install wp-cli` | — (por site) | WordPress/WooCommerce |
 | `shopify` | `npm i -g @shopify/cli` | `shopify auth` | Shopify |
 | `supabase` | `brew install supabase/tap/supabase` | `supabase login` | Supabase |
 | `railway` | `brew install railway` | `railway login` | deploy Railway |
@@ -41,7 +41,7 @@ Ver `tools/mcps.md`. Ligados: `markitdown` (`uvx markitdown-mcp`), `playwright` 
 - `last30days@last30days-skill` — `claude plugin marketplace add mvanhorn/last30days-skill` + install. Sinal social 30d (Reddit/X/YT/TikTok/HN/Polymarket/GitHub). `.env` em `~/.config/last30days/` + keys ScrapeCreators/X opcionais. (O "Digg CLI" da memória era dependência Go deste motor.)
 
 ## Por reinstalar quando necessário (não urgentes no Mac)
-- `whisperx` — STT local forced-align (só Simão Sina; pesado, torch; venv dedicado). Instalar quando o projecto vier p/ o Mac.
+- `whisperx` — STT local forced-align (só projectos de forced-align; pesado, torch; venv dedicado). Instalar quando o projecto vier p/ o Mac.
 - Plugins `cloudflare@cloudflare` (purga cache/DNS deploy-vps via API + token `~/.cloudflare/*.json`) e `comfy`/`civitai` (media local; requer ComfyUI). Não reinstalados nesta migração.
 
 ## PATH (`~/.zshrc`)

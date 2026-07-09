@@ -1,7 +1,7 @@
 export const meta = {
   name: 'analisar-plataforma',
   description: 'Análise total de uma plataforma: 8 lentes de auditoria em paralelo, verificação adversarial dos achados e relatório consolidado',
-  whenToUse: 'Quando o Renato pede uma análise/auditoria completa de uma plataforma ou codebase (bugs, segurança, performance, código morto, prontidão de produção). Args: { path, nome?, reportDir?, lentes?, dataISO? }',
+  whenToUse: 'Quando o utilizador pede uma análise/auditoria completa de uma plataforma ou codebase (bugs, segurança, performance, código morto, prontidão de produção). Args: { path, nome?, reportDir?, lentes?, dataISO? }',
   phases: [
     { title: 'Recon', detail: 'mapear stack e superfícies do projecto' },
     { title: 'Auditoria', detail: '8 lentes read-only em paralelo' },

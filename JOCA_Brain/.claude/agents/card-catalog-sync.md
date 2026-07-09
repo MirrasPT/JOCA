@@ -1,6 +1,6 @@
 ---
 name: card-catalog-sync
-description: "Audits divergence between a card-game's design source-of-truth catalogue (e.g. OmniClash cards.html, live at cartastcg.rfdev.pt) and its code engine (Tcg.Core C#: Cards.cs/Decks.cs/Generals.cs/EffectRegistry/GameConstants). Reports missing cards, missing ability primitives, and rule drift (field size, gold cap, walls, combat). Reports only — never edits either side. Triggers: sync catalog, cards.html vs engine, motor diverge, missing primitives, regras divergem, catalogue drift, what's missing from the engine, Imortal/Julgamento not implemented."
+description: "Audits divergence between a card-game's design source-of-truth catalogue (e.g. OmniClash cards.html, live at <dominio-do-projecto>) and its code engine (Tcg.Core C#: Cards.cs/Decks.cs/Generals.cs/EffectRegistry/GameConstants). Reports missing cards, missing ability primitives, and rule drift (field size, gold cap, walls, combat). Reports only — never edits either side. Triggers: sync catalog, cards.html vs engine, motor diverge, missing primitives, regras divergem, catalogue drift, what's missing from the engine, Imortal/Julgamento not implemented."
 skills: card-game-design, unity-gamedev
 tools: Read, Grep, Glob, Bash, Write
 model: inherit

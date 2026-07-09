@@ -9,7 +9,7 @@ JOCA_OS v2 = camada **aditiva** sobre a base JOCA_UI já copiada. Não se reescr
 - Ordem por dependência. Não saltar gate. Cada fase fecha só com TODOS os critérios de aceitação verdes.
 - Caminhos verificados contra o código real (não fabricados). Onde a fonte (server.ts) discorda dos números de linha do plano de arquitectura, referir por NOME de estrutura, não por linha.
 - Windows-first: `python` (não `python3`); matar portas com `taskkill /F /T /PID`; não renomear a pasta-raiz de dentro do Master a correr (cwd lock).
-- **Pré-requisito de runtime — Node >= 22.5 (dura):** `getCodexLimits` (`server.ts` ~L1011-1020) usa `node:sqlite`, ausente em Node 20 / < 22.5. Outros projectos do Renato fazem gate em Node >= 20.17, logo uma instalação fresca pode cair abaixo do mínimo e **partir silenciosamente** a leitura de rate-limits do Codex (o sinal de quota que alimenta o fallback). Verificar/gate da versão de Node antes de qualquer fase.
+- **Pré-requisito de runtime — Node >= 22.5 (dura):** `getCodexLimits` (`server.ts` ~L1011-1020) usa `node:sqlite`, ausente em Node 20 / < 22.5. Outros projectos do utilizador fazem gate em Node >= 20.17, logo uma instalação fresca pode cair abaixo do mínimo e **partir silenciosamente** a leitura de rate-limits do Codex (o sinal de quota que alimenta o fallback). Verificar/gate da versão de Node antes de qualquer fase.
 - **Anti-fabricação (soul.md):** SDK/API/credencial em falta ou incerta → `TODO` explícito + reportar. NUNCA inventar key/endpoint/assinatura. Confirmar assinaturas de SDK contra doc oficial ao implementar.
 
 ## Estado base verificado (2026-06-21)

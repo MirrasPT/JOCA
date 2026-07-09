@@ -1903,7 +1903,7 @@
     "name": "card-catalog-sync",
     "category": "agents",
     "path": ".claude/agents/card-catalog-sync.md",
-    "description": "Audits divergence between a card-game's design source-of-truth catalogue (e.g. OmniClash cards.html, live at cartastcg.rfdev.pt) and its code engine (Tcg.Core C#: Cards.cs/Decks.cs/Generals.cs/EffectR",
+    "description": "Audits divergence between a card-game's design source-of-truth catalogue (e.g. OmniClash cards.html, live at <dominio-do-projecto>) and its code engine (Tcg.Core C#: Cards.cs/Decks.cs/Generals.cs/Effe",
     "triggers": []
   },
   {

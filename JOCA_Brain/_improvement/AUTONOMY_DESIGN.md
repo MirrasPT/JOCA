@@ -8,7 +8,7 @@ Caveman-lite. Claude-first. Windows primario.
 > - Hooks (`settings.json`): so PostToolUse(Write|Edit) + Stop. SEM SessionStart, SEM UserPromptSubmit.
 > - `tester-code.md`: FAZ in-body `Read()` das skills (padrao correcto). `master-orchestrator.md`/`self-improver.md`: declaram `skills:` no frontmatter mas NAO forcam `Read()` no corpo.
 > - Decision Filter (CLAUDE.md) passo 2 = "Skill exists?" — nunca pergunta skill-vs-agente-vs-workflow.
-> - `self-improver.md` Fase 5 chama `python3` — stub vazio da Store no Windows do Renato.
+> - `self-improver.md` Fase 5 chama `python3` — stub vazio da Store no Windows do utilizador.
 
 ---
 
@@ -21,7 +21,7 @@ regra a meio do contexto perde-se. Resultado: auto-seleccao inconsistente.
 Falta tambem o degrau a seguir: a regra so decide "skill ou nao". Nunca decide
 "isto precisa de 1 agente" ou "isto precisa de workflow multi-agente em loop".
 O unico caminho para o `master-orchestrator` e `/one-shot`, que EXIGE PRD.md/TECH_SPEC.md/TASKS.md.
-Logo: tarefa NL arbitraria nunca auto-escala para orquestracao. Quebra objectivos #1 e #3 do Renato.
+Logo: tarefa NL arbitraria nunca auto-escala para orquestracao. Quebra objectivos #1 e #3 do utilizador.
 
 Solucao em 3 camadas, da mais determinista para a mais flexivel:
 1. **Hooks** (deterministico — garante a decisao, nao depende da memoria do modelo).

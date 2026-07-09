@@ -1,7 +1,7 @@
 # gstack → JOCA — Integração de Autonomia (design)
 
 Fonte: análise do repo `garrytan/gstack` (59 skills, lib/, docs) clonado e lido em 2026-06-26.
-Objectivo do Renato: **JOCA máximamente autónomo** — user diz, JOCA delega o workflow com as skills/agentes certos; skills/agentes encadeiam para a próxima automaticamente; subagentes têm conhecimento das skills; integrar o workflow gstack + GBrain para correr **automaticamente** no JOCA.
+Objectivo do utilizador: **JOCA máximamente autónomo** — user diz, JOCA delega o workflow com as skills/agentes certos; skills/agentes encadeiam para a próxima automaticamente; subagentes têm conhecimento das skills; integrar o workflow gstack + GBrain para correr **automaticamente** no JOCA.
 
 ---
 
@@ -26,7 +26,7 @@ E o **loop de aprendizagem** (`learn`/`retro`): `learnings.jsonl` por projecto, 
 ## 2. Veredicto de borrowability (todas as skills)
 
 ### BORROW — alto valor (núcleo da autonomia)
-- **autoplan** → padrão de auto-runner de pipeline (o centro do pedido do Renato).
+- **autoplan** → padrão de auto-runner de pipeline (o centro do pedido do utilizador).
 - **gstack-decision (lib)** → log de decisões/aprendizagens event-sourced no Brain.
 - **learn + retro** → recall automático + retrospectiva (encaixa em automação cron).
 - **freeze/careful/guard/unfreeze** → guard-rails por hook (scope-lock + warn destrutivo).

@@ -10,7 +10,7 @@ metadata:
 
 # Unity UI (card game presentation)
 
-The **View** layer of a Unity card game: turning the deterministic engine's state into something you can see and touch, faithfully to the design (for OmniClash, the board + card look of `cards.html` / cartastcg.rfdev.pt). Specialist under `unity-gamedev` (architecture/build director) — read that first for the engine↔view split.
+The **View** layer of a Unity card game: turning the deterministic engine's state into something you can see and touch, faithfully to the design (for OmniClash, the board + card look of `cards.html` / <dominio-do-projecto>). Specialist under `unity-gamedev` (architecture/build director) — read that first for the engine↔view split.
 
 > **Read-first** before writing any `View/` MonoBehaviour, prefab, or Canvas code. The #1 rule (from `unity-gamedev`): **the View consumes engine events; it never owns or mutates rules state.**
 

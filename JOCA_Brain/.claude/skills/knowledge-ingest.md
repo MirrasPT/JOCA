@@ -23,7 +23,7 @@ fonte ──→ markitdown ──→ raw .md ──→ resumo + tags ──→ w
 
 ## Estrutura de Pastas
 
-Tudo vive em `/Users/renatoferreira/JOCA/JOCA_Brain/memory/knowledge/`. A pasta **não existe ainda** — criar na primeira ingestão.
+Tudo vive em `$CLAUDE_PROJECT_DIR/memory/knowledge/`. A pasta **não existe ainda** — criar na primeira ingestão.
 
 ```
 memory/knowledge/

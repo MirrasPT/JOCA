@@ -110,7 +110,7 @@ done | awk '{sum+=$1} END {printf "Avg: %.3fs\n", sum/NR}'
 
 ### 7. Auth/API security probes (activo)
 
-> ⚠ Só contra apps do próprio user/cliente com autorização explícita (contexto: apps próprias do Renato). Nunca contra alvos de terceiros.
+> ⚠ Só contra apps do próprio user/cliente com autorização explícita (contexto: apps próprias do utilizador). Nunca contra alvos de terceiros.
 
 Probes activos de vectores de auth/API que os testes de correcção não apanham:
 

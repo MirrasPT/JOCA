@@ -10,11 +10,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/check-freeze.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-freeze.js\""
           },
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/check-tdd.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-tdd.js\""
           }
         ]
       },
@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/check-careful.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-careful.js\""
           }
         ]
       }
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/session-intake.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-intake.js\""
           }
         ]
       }
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/prompt-triage.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-triage.js\""
           }
         ]
       }
@@ -54,16 +54,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "bash \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\""
           },
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/skill-lint.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/skill-lint.js\""
           }
         ]
       }
@@ -73,11 +73,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/stop-checkpoint.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-checkpoint.js\""
           },
           {
             "type": "command",
-            "command": "node \"/Users/renatoferreira/JOCA/JOCA_Brain/.claude/hooks/auto-test-dispatch.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-test-dispatch.js\""
           }
         ]
       }

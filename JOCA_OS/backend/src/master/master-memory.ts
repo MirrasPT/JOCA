@@ -57,7 +57,7 @@ function readSummary(id: string): string {
 }
 
 function who(e: MasterChatEntry): string {
-  return e.role === 'user' ? 'Renato' : e.role === 'error' ? 'JOCA(erro)' : 'JOCA';
+  return e.role === 'user' ? 'Utilizador' : e.role === 'error' ? 'JOCA(erro)' : 'JOCA';
 }
 function transcriptOf(turns: MasterChatEntry[]): string {
   return turns.map((e) => `${who(e)}: ${e.text}`).join('\n');
@@ -108,11 +108,11 @@ export async function refreshShortMemory(): Promise<void> {
     // One LLM call produces the detailed window summary + a title + tags (longa), which also becomes
     // the refreshed curta (continuity). Subscription auth via the provider.
     const prompt = [
-      'Arquiva esta JANELA da conversa entre o Renato e o JOCA (Master orquestrador).',
+      'Arquiva esta JANELA da conversa entre o utilizador e o JOCA (Master orquestrador).',
       'Devolve EXACTAMENTE neste formato, em pt-pt:',
       'TITULO: <uma linha curta que identifique a janela>',
       'TAGS: <3 a 6 etiquetas separadas por virgulas — projectos, temas, palavras-chave>',
-      'RESUMO: <8-14 linhas, factual: decisoes tomadas, projectos/workers mencionados, o que ficou por fazer, preferencias do Renato>',
+      'RESUMO: <8-14 linhas, factual: decisoes tomadas, projectos/workers mencionados, o que ficou por fazer, preferencias do utilizador>',
       '',
       `JANELA:\n${transcriptOf(windowTurns)}`,
     ].join('\n');

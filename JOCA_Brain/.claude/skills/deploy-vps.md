@@ -1,13 +1,13 @@
 ---
 name: deploy-vps
 description: "Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, SSH key setup VPS, Cloudflare DNS API, scp upload site, static site VPS. SHOULD invoke when: fresh Ubuntu server, bootstrap SSH, plink fingerprint, ED25519 key, /var/www, site no ar, publicar no VPS, configurar servidor."
-triggers: deploy VPS, VPS setup, Caddy, Caddy server, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, fresh Ubuntu server, bootstrap SSH, plink fingerprint, ED25519 key, /var/www, publicar VPS, configurar servidor, Datalix, caddy vhost, static hosting
+triggers: deploy VPS, VPS setup, Caddy, Caddy server, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, fresh Ubuntu server, bootstrap SSH, plink fingerprint, ED25519 key, /var/www, publicar VPS, configurar servidor, caddy vhost, static hosting
 origin: local
 chain: deploy-executor
 ---
 # Deploy VPS — Caddy + Cloudflare
 
-Padrão validado: Ubuntu VPS (Datalix) + Caddy v2 + Cloudflare DNS via API. Windows-first.
+Padrão validado: Ubuntu VPS (qualquer provider) + Caddy v2 + Cloudflare DNS via API. Windows-first.
 
 ---
 
@@ -109,7 +109,7 @@ app.example.com {
 }
 ```
 
-No `compose.prod.yaml`: publicar a app só em `127.0.0.1:8000:8000` (nunca `0.0.0.0`) e **não** activar o Caddy embutido. Ver `memory/projects/datalix-vps.md` (TryPost).
+No `compose.prod.yaml`: publicar a app só em `127.0.0.1:8000:8000` (nunca `0.0.0.0`) e **não** activar o Caddy embutido. Ver o teu ficheiro de projecto VPS (`/init-project`).
 
 > **Gotcha — HTTP 525 transitório com Cloudflare orange + on-demand cert:** o 1º pedido enquanto o Caddy ainda está a emitir o cert Let's Encrypt devolve **525** (ou 502) por alguns segundos. **Não é erro** — resolve sozinho assim que o cert é emitido. Confirmar passados ~10-30s antes de debugar.
 

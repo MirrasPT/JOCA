@@ -229,7 +229,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
         const awaitingChoice = !done && detectSelectionPrompt(buf);
         const tail = buf.slice(-ANSI_TAIL);
         const hint = awaitingChoice
-          ? '\n⚠ MENU DE SELECCAO detectado — o worker esta a ESPERAR uma escolha e NAO avanca sozinho. Le as opcoes no tail. Se a escolha for reversivel e clara, escolhe a melhor com select_in_worker. Se for irreversivel ou ambigua, PERGUNTA ao Renato qual e espera a resposta dele antes de escolher.'
+          ? '\n⚠ MENU DE SELECCAO detectado — o worker esta a ESPERAR uma escolha e NAO avanca sozinho. Le as opcoes no tail. Se a escolha for reversivel e clara, escolhe a melhor com select_in_worker. Se for irreversivel ou ambigua, PERGUNTA ao utilizador qual e espera a resposta dele antes de escolher.'
           : '';
         return `status=${status} done=${done} awaitingChoice=${awaitingChoice}${hint}\n--- output (tail) ---\n${tail}`;
       },
@@ -296,7 +296,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'close_project_workers',
-      description: 'Fecha TODOS os terminais/workers de um projecto (por projectId). Usa quando o Renato diz "fecha o projecto X por hoje" / "arruma os terminais do X". Por defeito NÃO fecha terminais [working] (trabalho em curso) — passa includeWorking=true só se o Renato confirmar que quer fechar mesmo os que estão a trabalhar. Devolve quantos fechou.',
+      description: 'Fecha TODOS os terminais/workers de um projecto (por projectId). Usa quando o utilizador diz "fecha o projecto X por hoje" / "arruma os terminais do X". Por defeito NÃO fecha terminais [working] (trabalho em curso) — passa includeWorking=true só se o utilizador confirmar que quer fechar mesmo os que estão a trabalhar. Devolve quantos fechou.',
       zodShape: {
         projectId: z.string().describe('id do projecto cujos terminais fechar'),
         includeWorking: z.boolean().optional().describe('true para fechar também os que estão [working]; default false (só idle)'),
@@ -403,7 +403,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'create_automation',
-      description: 'Cria uma automação no JOCA UI (aparece em Automações). Uma automação = um objectivo em linguagem natural que um agente corre num horário. Usa quando o Renato pede "cria uma automação que todos os dias às 9h..." ou similar. O agente (provider) que a executa default = o Master actual; podes escolher claude/codex/ollama. O resultado é entregue no chat do Master.',
+      description: 'Cria uma automação no JOCA UI (aparece em Automações). Uma automação = um objectivo em linguagem natural que um agente corre num horário. Usa quando o utilizador pede "cria uma automação que todos os dias às 9h..." ou similar. O agente (provider) que a executa default = o Master actual; podes escolher claude/codex/ollama. O resultado é entregue no chat do Master.',
       zodShape: {
         name: z.string().describe('Nome curto da automação, ex: "Resumo Matinal"'),
         objective: z.string().describe('O que a automação faz, em linguagem natural (ex: "lê os meus emails não lidos com o gws e faz um resumo curto")'),
@@ -414,7 +414,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
         provider: z.enum(['claude', 'codex', 'ollama']).optional().describe('agente que executa; default = o Master actual'),
         model: z.string().optional().describe('modelo (só claude): sonnet/opus/haiku'),
         skills: z.array(z.string()).optional().describe('skills/agentes do JOCA_Brain a usar (ex: ["img-gen"]) — o agente faz Read antes de agir'),
-        requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis (enviar email, apagar, deploy) e pedir OK ao Renato — usa em acções de envio'),
+        requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis (enviar email, apagar, deploy) e pedir OK ao utilizador — usa em acções de envio'),
         input: z.string().optional().describe('para frequency=manual (uma ACÇÃO): o objectivo pode ter {{input}}; este texto preenche-o quando a corres já. Deixa vazio para só criar.'),
       },
       jsonSchema: {
@@ -470,7 +470,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'run_automation',
-      description: 'Corre AGORA uma automação/acção existente (por id ou nome). Para ACÇÕES (trigger manual) passa o input — preenche o {{input}} do objectivo (ex.: acção "Email formal" + input "reunião passou para as 11h"). Usa quando o Renato pede para correr uma acção/automação já criada.',
+      description: 'Corre AGORA uma automação/acção existente (por id ou nome). Para ACÇÕES (trigger manual) passa o input — preenche o {{input}} do objectivo (ex.: acção "Email formal" + input "reunião passou para as 11h"). Usa quando o utilizador pede para correr uma acção/automação já criada.',
       zodShape: { ref: z.string().describe('id ou nome da automação/acção'), input: z.string().optional().describe('input para acções (preenche {{input}})') },
       jsonSchema: {
         type: 'object',
@@ -488,7 +488,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'list_automations',
-      description: 'Lista as automações existentes no JOCA UI (nome, horário, agente, estado). Usa para evitar duplicados antes de create_automation, ou quando o Renato pergunta que automações tem.',
+      description: 'Lista as automações existentes no JOCA UI (nome, horário, agente, estado). Usa para evitar duplicados antes de create_automation, ou quando o utilizador pergunta que automações tem.',
       zodShape: {},
       jsonSchema: { type: 'object', properties: {} },
       handler: async () => {
@@ -506,7 +506,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'create_task',
-      description: 'Cria uma tarefa no quadro Kanban do JOCA UI (separador Tarefas). Uma tarefa = um objectivo em linguagem natural que o Master executa quando estiver na coluna "A Executar" (puxa automaticamente). Usa quando o Renato pede "adiciona uma tarefa para...", "mete no quadro...", "tenho de fazer X". Por defeito fica em "A Definir" (rascunho); passa status="a-executar" para o pôr já na fila de execução.',
+      description: 'Cria uma tarefa no quadro Kanban do JOCA UI (separador Tarefas). Uma tarefa = um objectivo em linguagem natural que o Master executa quando estiver na coluna "A Executar" (puxa automaticamente). Usa quando o utilizador pede "adiciona uma tarefa para...", "mete no quadro...", "tenho de fazer X". Por defeito fica em "A Definir" (rascunho); passa status="a-executar" para o pôr já na fila de execução.',
       zodShape: {
         title: z.string().describe('Título curto da tarefa'),
         description: z.string().optional().describe('O objectivo em linguagem natural (o que o worker deve fazer). Default = o título.'),
@@ -515,7 +515,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
         provider: z.enum(['claude', 'codex', 'ollama']).optional().describe('agente que a executa; default = o Master actual'),
         model: z.string().optional().describe('modelo (só claude): sonnet/opus/haiku'),
         skills: z.array(z.string()).optional().describe('skills/agentes do JOCA_Brain a usar (o worker faz Read antes de agir)'),
-        requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis e pedir OK ao Renato'),
+        requireConfirm: z.boolean().optional().describe('true para PARAR antes de acções irreversíveis e pedir OK ao utilizador'),
         attachments: z.array(z.string()).optional().describe('caminhos de ficheiros anexados à tarefa (contexto para o worker)'),
       },
       jsonSchema: {
@@ -576,7 +576,7 @@ export function buildMasterToolDefs(ctx: MasterToolsCtx): MasterToolDef[] {
     },
     {
       name: 'list_tasks',
-      description: 'Lista as tarefas do quadro Kanban (id, título, coluna, estado). Usa para evitar duplicados antes de create_task, ou quando o Renato pergunta que tarefas tem.',
+      description: 'Lista as tarefas do quadro Kanban (id, título, coluna, estado). Usa para evitar duplicados antes de create_task, ou quando o utilizador pergunta que tarefas tem.',
       zodShape: {},
       jsonSchema: { type: 'object', properties: {} },
       handler: async () => {

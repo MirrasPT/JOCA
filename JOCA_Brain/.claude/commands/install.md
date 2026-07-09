@@ -823,7 +823,7 @@ Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
 ### 7. settings.json do projecto
 
-Verificar que `<caminho_joca>/.claude/settings.json` tem os **10 hooks** configurados. Substituir `<BRAIN>` pelo caminho absoluto do JOCA_Brain instalado (ex.: `C:/Users/renat/Desktop/JOCA_FINAL/JOCA_Brain`) — **paths absolutos porque no Windows o cwd dos hooks não é garantidamente a raiz do repo**, e paths relativos falham em silêncio.
+Verificar que `<caminho_joca>/.claude/settings.json` tem os **10 hooks** configurados. Substituir `<BRAIN>` pelo caminho absoluto do JOCA_Brain instalado (ex.: `C:/Users/<user>/Desktop/JOCA/JOCA_Brain`) — **paths absolutos porque no Windows o cwd dos hooks não é garantidamente a raiz do repo**, e paths relativos falham em silêncio.
 
 ```json
 {

@@ -12,7 +12,7 @@ Before any analysis, `Read()` these (they are NOT auto-loaded into your context)
 ## Context (OmniClash / Tcg.Core — adapt if the project differs)
 - Catalogue: `src/Tcg.Core/Data/Cards.cs` (UnitDefinition/EquipmentDefinition/EventDefinition: `GoldCost`, `Attack`, `Defense`, `Keywords`, `Abilities`), `Decks.cs`, `Generals.cs`.
 - Rules: `src/Tcg.Core/Rules/` (`GameConstants.cs` — field cap, gold hard cap, walls; `CombatResolver.cs` — ATK ≥ DEF destroys; `GoldSystem.cs`), `Abilities/EffectRegistry.cs` + `Effects.cs`.
-- The catalogue source-of-truth for design intent is `cards.html` (live at cartastcg.rfdev.pt) — but the **engine** (`Cards.cs`) is what you audit for what actually plays. If they diverge, note it and defer the divergence list to `card-catalog-sync`.
+- The catalogue source-of-truth for design intent is `cards.html` (live at <dominio-do-projecto>) — but the **engine** (`Cards.cs`) is what you audit for what actually plays. If they diverge, note it and defer the divergence list to `card-catalog-sync`.
 - Tests/sims: `dotnet test tests/Tcg.Core.Tests`; console sim `samples/Tcg.ConsoleDemo`.
 
 ## Method

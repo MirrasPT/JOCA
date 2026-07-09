@@ -3,7 +3,7 @@
 **Versão:** 2.0 (draft)
 **Estado:** Spec técnica
 **Última actualização:** 2026-06-21
-**Autor:** Renato Ferreira (Setup Tech)
+**Autor:** [Nome do Utilizador]
 **Alinha com:** `FUTUROS.md` Fase 1 (Master), `CLAUDE.md`, `memory/soul.md`
 
 ---
@@ -217,7 +217,7 @@ Sem base de dados nova. Local-first, loopback (`127.0.0.1`), 1 JOCA por pessoa.
 
 > **Constraint de runtime — Node >= 22.5 (dura).** `getCodexLimits`
 > (`server.ts` ~L1011-1020) usa `node:sqlite`, módulo ausente em Node 20 /
-> < 22.5. Outros projectos do Renato fazem gate em **Node >= 20.17**, logo uma
+> < 22.5. Outros projectos do utilizador fazem gate em **Node >= 20.17**, logo uma
 > instalação fresca pode cair abaixo deste mínimo e **partir silenciosamente** a
 > leitura de rate-limits do Codex (o sinal de quota que alimenta o fallback).
 > Gate explícito de versão no arranque.

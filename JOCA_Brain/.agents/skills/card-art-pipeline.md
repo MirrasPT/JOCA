@@ -27,7 +27,7 @@ How OmniClash card art is produced: local **ComfyUI + ANIMA 1.0** (Cosmos DiT 2B
 **Sampler:** `er_sde` / `simple` / **12 steps** / **cfg 1** / denoise 1. **Resolution 896×1152** (3:4 card ratio). Turbo path → cfg 1 is correct (not washed; it's turbo).
 
 ### Alt engine — Krea 2 Turbo (estilo 5, richer oil-paint look)
-The same "estilo 5" descriptor can be driven by **Krea 2 Turbo** instead of ANIMA (Renato may ask for it by name; Krea2 gives a richer painterly/oil-paint finish). Stack: `UNETLoader krea2_turbo_fp8_scaled.safetensors` · `CLIPLoader qwen3vl_4b_fp8_scaled.safetensors` type **`krea2`** · `VAELoader qwen_image_vae.safetensors` · negative via `ConditioningZeroOut` (cfg 1 ⇒ negative unused) · KSampler **`euler` / `simple` / 8 steps / cfg 1** / 896×1152. **CRITICAL — bypass the template's LLM enhancer:** the `image_krea2_turbo_t2i` template routes the prompt through a `TextGenerate` enhancer (System+User prompt) that *rewrites* it and breaks set consistency. Build the graph WITHOUT it: feed the estilo-5 prompt straight to `CLIPTextEncode`. Verified 2026-06-29: 20 Romans + 20 Vikings.
+The same "estilo 5" descriptor can be driven by **Krea 2 Turbo** instead of ANIMA (o utilizador pode pedir por nome; Krea2 gives a richer painterly/oil-paint finish). Stack: `UNETLoader krea2_turbo_fp8_scaled.safetensors` · `CLIPLoader qwen3vl_4b_fp8_scaled.safetensors` type **`krea2`** · `VAELoader qwen_image_vae.safetensors` · negative via `ConditioningZeroOut` (cfg 1 ⇒ negative unused) · KSampler **`euler` / `simple` / 8 steps / cfg 1** / 896×1152. **CRITICAL — bypass the template's LLM enhancer:** the `image_krea2_turbo_t2i` template routes the prompt through a `TextGenerate` enhancer (System+User prompt) that *rewrites* it and breaks set consistency. Build the graph WITHOUT it: feed the estilo-5 prompt straight to `CLIPTextEncode`. Verified 2026-06-29: 20 Romans + 20 Vikings.
 
 ## 2. The "estilo 5" descriptor (exact — do not paraphrase)
 Positive prompt = this prefix, then `\n\n`, then the subject:
@@ -37,7 +37,7 @@ cinematic dramatic lighting, painterly brushwork, trading card game key art,
 artstation quality, highly detailed,
 immersive full-bleed scene, background extends to all four edges, no empty space
 ```
-This is the chosen style after Renato rejected the earlier manga/cel-shaded look (decision 2026-06-28). Keep it identical across cards so the set is cohesive.
+This is the chosen style after the user rejected the earlier manga/cel-shaded look (decision 2026-06-28). Keep it identical across cards so the set is cohesive.
 
 ## 3. Negatives — anti card-frame (balanced, NOT aggressive)
 ```
@@ -63,17 +63,17 @@ def post(wf):
     req = urllib.request.Request(COMFY+"/prompt", data=data, headers={"Content-Type":"application/json"})
     return json.loads(urllib.request.urlopen(req, timeout=30).read())["prompt_id"]
 ```
-The 10-node graph (UNET→CLIP→VAE→turbo-LoRA→2×CLIPTextEncode→EmptyLatentImage→KSampler→VAEDecode→SaveImage) is in the OmniClash session history; rebuild it with the params in §1. Batch all cards from a JSON of `{id: {seed, subject}}`. Save to `C:\Users\renat\Projetos\tcg\assets\cards\<id>.png`.
+The 10-node graph (UNET→CLIP→VAE→turbo-LoRA→2×CLIPTextEncode→EmptyLatentImage→KSampler→VAEDecode→SaveImage) is in the OmniClash session history; rebuild it with the params in §1. Batch all cards from a JSON of `{id: {seed, subject}}`. Save to `C:\Users\<user>\Projetos\tcg\assets\cards\<id>.png`.
 
 ## 6. Verify before declaring done (asset readiness)
 A file existing ≠ the art being right. After a batch, **visually sample** the PNGs: full-bleed (no painted frame), correct subject, style matches the rest. Regenerate the misses (frame leaked, wrong subject) with the same seed + a nudged subject. Don't trust filenames.
 
 ## 7. Deploy — ALWAYS push to the live catalogue + purge Cloudflare
-Renato reviews the catalogue **live** at `cartastcg.rfdev.pt`, not locally. Any art change ships immediately (permanent instruction):
-1. `scp -i ~/.ssh/datalix_id assets/cards/<ids>.png root@194.62.248.50:/var/www/cartastcg/assets/cards/`
-2. Purge Cloudflare (else it serves the old image): `POST zones/<zone_rfdev_pt>/purge_cache {files:[urls]}`, Bearer token from `~/.cloudflare/datalix.json`.
+The user reviews the catalogue **live** at `<dominio-do-projecto>`, not locally. Any art change ships immediately (permanent instruction):
+1. `scp -i ~/.ssh/<key> assets/cards/<ids>.png <user>@<vps-host>:/var/www/<projecto>/assets/cards/`
+2. Purge Cloudflare (else it serves the old image): `POST zones/<zone_rfdev_pt>/purge_cache {files:[urls]}`, Bearer token from `~/.cloudflare/<conta>.json`.
 3. Verify: `curl -I` → `200` + `cf-cache-status: MISS` + new content-length.
-See the `deploy-vps`/`cpanel` skills and `memory/projects/datalix-vps.md` for the full recipe. (Also covered by the always-deploy-live memory.)
+See the `deploy-vps`/`cpanel` skills and o teu ficheiro de projecto VPS (`/init-project`) for the full recipe. (Also covered by the always-deploy-live memory.)
 
 ## Anti-patterns
 | Wrong | Right |
@@ -88,4 +88,4 @@ See the `deploy-vps`/`cpanel` skills and `memory/projects/datalix-vps.md` for th
 | Invent faction regalia/symbols | validate against real history/myth |
 
 ## Próximo passo (chain)
-After a batch is generated + sampled → `deploy-vps` (scp + Cloudflare purge to `cartastcg.rfdev.pt`). Integrating the PNGs into the Unity card UI → `unity-gamedev`.
+After a batch is generated + sampled → `deploy-vps` (scp + Cloudflare purge to `<dominio-do-projecto>`). Integrating the PNGs into the Unity card UI → `unity-gamedev`.

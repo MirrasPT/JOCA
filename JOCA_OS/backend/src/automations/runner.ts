@@ -65,7 +65,7 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
       // that worker so automation terminals don't pile up.
       directives.push('Isto é uma AUTOMAÇÃO. NÃO reutilizes nenhum terminal já aberto (nem workers nem terminais do utilizador, mesmo que estejam idle): abre SEMPRE um worker NOVO e dedicado para esta automação. Quando a automação estiver concluída, FECHA esse worker com close_worker(workerId) antes de dares o resultado final.');
       if (auto.skills?.length) directives.push(`Usa estas skills/agentes do JOCA (faz Read da skill ANTES de agir): ${auto.skills.join(', ')}.`);
-      if (auto.requireConfirm) directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao Renato; só age depois do OK dele.');
+      if (auto.requireConfirm) directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao utilizador; só age depois do OK dele.');
       const fullObjective = directives.length ? `${objective}\n\n[Instruções da acção]\n${directives.join('\n')}` : objective;
       const done = await runMaster(fullObjective, {
         provider: auto.provider ?? ui.masterProvider ?? 'claude',

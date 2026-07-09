@@ -16,7 +16,7 @@ Diferença para `frontend`: o `frontend` constrói a app React/Next; o `design-h
 
 ## Princípios
 - **Zero deps por defeito** — HTML + CSS nativo (custom properties, grid/flex, container queries). Sem framework salvo se o projecto já o tiver.
-- **Fidelidade ao mockup** — replicar fielmente (espaçamento, hierarquia, cor, tipografia). NÃO divergir após a 1ª secção (regra [[renato-design-prototype-fidelity]]: a AI tende a inventar a partir da secção 2 — não fazer).
+- **Fidelidade ao mockup** — replicar fielmente (espaçamento, hierarquia, cor, tipografia). NÃO divergir após a 1ª secção (regra [[design-prototype-fidelity]]: a AI tende a inventar a partir da secção 2 — não fazer).
 - **Tokens do design system** — usar `DESIGN.md`/tokens existentes; sem hardcode de cor/spacing inventado (sem token adequado → `TODO: token em falta`, não um valor "que parece bem").
 - **Texto reflui / alturas computadas** — nada de alturas fixas que cortam conteúdo; o layout adapta-se ao conteúdo real.
 - **Smart routing de padrões** — escolher o padrão certo por tipo de página (hero+rows de marketing; card-grid de catálogo; form de checkout).

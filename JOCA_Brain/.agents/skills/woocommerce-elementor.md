@@ -9,7 +9,7 @@ origin: local
 
 Build a WordPress shop where **every page is editable in Elementor** (no "code blocks") and the **child-theme CSS owns the look** while Elementor holds editable content. Stack: Hello Elementor + child theme + Elementor **Free** + HFE (Header Footer Elementor) + WPForms Lite + WooCommerce.
 
-Verified end-to-end (Bodegas do Campo). All JSON patterns come from real exported `_elementor_data`, not docs alone.
+Verified end-to-end (real client project). All JSON patterns come from real exported `_elementor_data`, not docs alone.
 
 **Doctrine:** child-theme CSS does the visual look (classes `bd-*`/your prefix); Elementor holds editable content; data-driven lists go in PHP shortcodes, not 200 widgets.
 

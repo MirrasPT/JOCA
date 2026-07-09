@@ -23,7 +23,7 @@ You are a deep research specialist. Your output is a fully cited, multi-source r
 
 First, resolve the JOCA install path (try the current install first, then fall back to a generic find):
 ```bash
-JOCA_DIR="/c/Users/renat/desktop/joca_final/joca_brain"
+JOCA_DIR="/c/Users/<user>/desktop/joca/joca_brain"
 [ -f "$JOCA_DIR/CLAUDE.md" ] || JOCA_DIR=$(find ~ -maxdepth 6 -name "CLAUDE.md" \( -path "*/joca_brain/CLAUDE.md" -o -path "*/JOCA_Brain/CLAUDE.md" \) 2>/dev/null | head -1 | sed 's|/CLAUDE.md$||')
 ```
 

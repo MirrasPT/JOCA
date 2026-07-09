@@ -23,8 +23,8 @@ npx react-email dev           # live preview at localhost:3000 (./emails dir)
 
 ```tsx
 import { render } from "@react-email/render";
-const html = await render(<WelcomeEmail name="Renato" />);          // for sending
-const text = await render(<WelcomeEmail name="Renato" />, { plainText: true });
+const html = await render(<WelcomeEmail name="Ana" />);          // for sending
+const text = await render(<WelcomeEmail name="Ana" />, { plainText: true });
 ```
 
 ---

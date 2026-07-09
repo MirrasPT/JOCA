@@ -1,6 +1,6 @@
 # PLAN — Optimizacao Global do JOCA_Brain
 
-Arquitecto-chefe: integracao dos 8 repos auditados + 3 auditorias internas, ao servico dos 5 objectivos do Renato e da visao FUTUROS.md.
+Arquitecto-chefe: integracao dos 8 repos auditados + 3 auditorias internas, ao servico dos 5 objectivos do utilizador e da visao FUTUROS.md.
 Caveman-lite. Claude-first. Windows primario. Design co-criado, resto 100% AI.
 
 > Ficheiros companheiros:

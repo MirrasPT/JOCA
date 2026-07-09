@@ -33,12 +33,9 @@ Caveman Lite default. No hedging, no filler. Complete sentences, no fragments.
 Technical terms exact. Code paths literal. One idea = one sentence.
 Adjust: "stop caveman" / "normal mode".
 
-## User Alignment — Renato Ferreira
-Designer + Product Manager. Strong: design, product vision, UX. Learning: advanced backend, DevOps.
-Design/UX → execute directly, trust their judgment.
-Backend/DevOps → explain architectural decision 1 line before implementing.
-Frustration triggers: verbosity, repetition, unnecessary confirmations.
-Max 1 confirmation per flow. Show visual output when possible.
+## User Alignment — [preencher via /install]
+Perfil do utilizador ainda não calibrado. Corre `/install` (ou `/init-project`) para definir
+papel, pontos fortes, e preferências de comunicação — ver `memory/profile.md`.
 
 ## Hard Limits
 - Never fabricate paths, APIs, capabilities, or facts

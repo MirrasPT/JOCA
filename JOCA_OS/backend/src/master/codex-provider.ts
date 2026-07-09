@@ -14,7 +14,7 @@
 //       {"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"OK"}}
 //       {"type":"item.completed","item":{"type":"command_execution","command":...,"status":...}}
 //       {"type":"item.completed","item":{"type":"mcp_tool_call","server":"probe","tool":"ping_joca",
-//                "arguments":{"who":"renato"},"result":{"content":[{"type":"text","text":"..."}]},
+//                "arguments":{"who":"example"},"result":{"content":[{"type":"text","text":"..."}]},
 //                "error":null,"status":"completed"}}
 //       {"type":"turn.completed","usage":{"input_tokens":..,"output_tokens":..,...}}   (no cost_usd)
 //     Confirmed by running `codex exec --json --skip-git-repo-check -s read-only "reply with exactly: OK"`.
@@ -24,7 +24,7 @@
 //     under `--dangerously-bypass-approvals-and-sandbox` — in non-interactive `exec` there is no human
 //     to approve, and read-only/on-request both cancel MCP calls. The bypass flag is the documented
 //     escape hatch for "environments that are externally sandboxed" (the JOCA backend is that host).
-//     Round-trip proven: ping_joca({who:"renato"}) → "TOKEN-JOCA-7391 for renato" → final agent_message.
+//     Round-trip proven: ping_joca({who:"example"}) → "TOKEN-JOCA-7391 for example" → final agent_message.
 //
 // ── WHAT IS *NOT* VERIFIED (the orchestration gap) ───────────────────────────────────────────
 //   The Master tools (spawn_worker, …) operate on the in-process `sessionManager` singleton, which

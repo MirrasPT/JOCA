@@ -54,7 +54,7 @@ git log --oneline -5       # últimos 5 commits reais (branch actual)
 git branch -a | head -20   # TODAS as branches (locais + remotas)
 git log --oneline --all | head -10  # histórico de TODAS as branches
 ```
-- **Antes de declarar trabalho "perdido/nunca committado": correr `git log --all` + `git branch -a` é Step 0 obrigatório.** Branches `backup/*`, `stash/*`, ou outra branch que não a actual escondem trabalho real após um switch de remote. Se detectar `backup/*` → `⚠ Existe branch de backup — verificar antes de reconstruir trabalho`. (Fonte: livro-de-elogios 2026-06-26 — backoffice completo estava em `backup/local-pre-dev`, foi declarado perdido.)
+- **Antes de declarar trabalho "perdido/nunca committado": correr `git log --all` + `git branch -a` é Step 0 obrigatório.** Branches `backup/*`, `stash/*`, ou outra branch que não a actual escondem trabalho real após um switch de remote. Se detectar `backup/*` → `⚠ Existe branch de backup — verificar antes de reconstruir trabalho`. (lição de projecto anterior — backoffice completo estava em `backup/local-pre-dev`, foi declarado perdido.)
 - Extrair a data da secção **"Última sessão"** da memória
 - Se o commit mais recente for **>14 dias depois** da data de memória: alertar com `⚠ MEMÓRIA DESACTUALIZADA — último commit é X dias mais recente que a memória`
 - Se houver commits com mensagens que contradizem o "Estado actual" (ex.: memória diz "backend pendente" mas há commits "feat: complete backend"): alertar e re-inferir estado a partir do git
@@ -110,7 +110,7 @@ Se o projecto já tem código (detectável por existência de `package.json`, `c
 
 Indicar o flow em 1 linha no resumo, não como pergunta — o utilizador redirige se quiser outra coisa.
 
-**Projectos com `composer.json` (Laravel/PHP) em Windows:** verificar `php -v 2>&1` no arranque. Se falhar (PHP não está no PATH), alertar com o path do ambiente local do Renato — `C:\Users\renat\php84\php.exe` — e sugerir add ao PATH ou usar `& C:\Users\renat\php84\php.exe artisan ...`. Sem isto, qualquer operação artisan/composer falha silenciosamente e acaba-se a usar Python/sqlite directamente para a BD. (Fonte: livro-de-elogios 2026-06-26.)
+**Projectos com `composer.json` (Laravel/PHP) em Windows:** verificar `php -v 2>&1` no arranque. Se falhar (PHP não está no PATH), alertar com o path do ambiente local do utilizador — `C:\Users\<user>\php84\php.exe` — e sugerir add ao PATH ou usar `& C:\Users\<user>\php84\php.exe artisan ...`. Sem isto, qualquer operação artisan/composer falha silenciosamente e acaba-se a usar Python/sqlite directamente para a BD. (lição de projecto anterior.)
 
 ### 4. Apresentar resumo ao utilizador
 

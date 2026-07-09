@@ -159,7 +159,7 @@ Build por GUI: `File → Build Profiles → Android → Build`.
 Build por linha de comando (CI / batchmode):
 ```bash
 "<Unity>/Editor/Unity" -quit -batchmode -nographics \
-  -projectPath "C:/Users/renat/Projetos/tcg" \
+  -projectPath "C:/Users/<user>/Projetos/tcg" \
   -buildTarget Android \
   -executeMethod BuildScript.AndroidBuild \
   -logFile -

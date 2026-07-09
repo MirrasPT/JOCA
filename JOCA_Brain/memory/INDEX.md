@@ -7,49 +7,12 @@
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
 ## Projects
-- [joca.md](projects/joca.md) — JOCA toolkit self-development (skills/agents/commands)
-- [meu-site-github.md](projects/meu-site-github.md) — Portfolio pessoal Node.js + Express + SQLite + Vanilla JS + GSAP
-- [bracaris-brasil-2026.md](projects/bracaris-brasil-2026.md) — Site Wix da marca de vinho Bracaris — conteúdo/copy/SEO para mercado Brasil (pt-BR)
-- [bigorna-2026.md](projects/bigorna-2026.md) — Primeira loja online do Bigorna — e-commerce Laravel + Filament + React/Tailwind
-- [unimedia.md](projects/unimedia.md) — Netflix self-hosted multi-fonte (Next.js 15 + SQLite + WebTorrent/FFmpeg), uso pessoal
-- [simao-sina.md](projects/simao-sina.md) — Engine de lyric videos programáticos (Remotion + React) para o músico Simão/Sina
-- [comfyui.md](projects/comfyui.md) — ComfyUI portable — experimentação pessoal de geração de media (imagem/vídeo/upscale/inpaint/3D) via MCP
-- [mediaval-chess.md](projects/mediaval-chess.md) — Jogo táctica em grelha + deckbuilder (tema medieval), React + Vite + TS, motor de regras custom
-- [bodegas-do-campo.md](projects/bodegas-do-campo.md) — Loja de vinho DO Ribeiro (ES) em WordPress+WooCommerce+Elementor Free, build do design homepage-v2 (Docker, pipeline JSON Elementor editável)
-- [eurico-fertuzinhos.md](projects/eurico-fertuzinhos.md) — WEOPTIMIZE social media — img-gen com brand azul corporativo para Instagram/Facebook/LinkedIn
-- [datalix-vps.md](projects/datalix-vps.md) — VPS Datalix 194.62.248.50 — infraestrutura pessoal/clientes. Ubuntu, Caddy v2.11.4, SSH por chave ED25519, Cloudflare DNS. Site activo: planobracaris.rfdev.pt.
-- [royal-douro.md](projects/royal-douro.md) — Marca de vinho DOC Douro ultra-premium (cliente Luís Gonçalo) — híbrido marketing + website static (Vanilla HTML/CSS/JS + Tailwind CDN). royaldouro.com / @royaldouro.wine.
-- [tcg.md](projects/tcg.md) — TCG 1v1 (duelo de cartas) tema histórico-medieval + mitologia — Unity (C#), alvo Android; motor de regras puro separado da UI
-- [livro-de-elogios-geral.md](projects/livro-de-elogios-geral.md) — **Umbrella** Livro de Elogios: SaaS de elogios PT (rebuild + legacy Wireframes) + Brasil (logo/vídeo/site) + redes sociais + parceria FIZ
-- [livro-de-elogios.md](projects/livro-de-elogios.md) — Plataforma (rebuild 2026): Laravel 13/PHP 8.4 + Filament v5 + React 19/Vite 8, multi-tenant multi-país
-- [livro-elogios-redes-sociais.md](projects/livro-elogios-redes-sociais.md) — Pipeline mensal de conteúdo social (Posts/Stories IG+FB), Lato + ilustrações laranja+roxo, galeria leredes.rfdev.pt
-- [stickers-premium.md](projects/stickers-premium.md) — Redesign de stickerspremium.com (loja vinil/decals auto, Shopify). Proposta template HTML/CSS/JS → Shopify. Conteúdo real extraído em content/
-- [joca-archive-mac-2026-07-08.md](projects/joca-archive-mac-2026-07-08.md) — Registo do JOCA antigo (Mac) arquivado+apagado em 2026-07-08, substituído pelo snapshot de migração MirrasPT/JOCA-OS
+<!-- Populated by /init-project. Vazio numa instalação nova. -->
+_(nenhum projecto registado)_
+
 ## Feedback
 <!-- Populated by /save (auto-extract) — processed sessions live in feedback/archive/ -->
-_(none pending — all processed)_
-
-Processed 2026-06-27 (/upgrade-joca — 10 sessions, 12 improvements) — archived:
-- 2 new skills: `social-scheduler` (TryPost executor), `notion` (`ntn` wrapper)
-- skills: `agent-sdk` (tools:[] pure completion) · `social-content` (Step 0 read refs + copy-fill) · `deploy-vps` (App Docker behind Caddy + 525 cert)
-- rules/workflows-and-tooling.md (Windows PHP/Octane/composer, __dirname external subprocess, visual anti-fabrication, external-DB duplicate) · soul.md (git log --all before reconstruction)
-- commands/resume.md (git branch -a/--all + PHP path) · commands/install.md (gws @googleworkspace/cli + auth gotchas) · scripts/cpanel.mjs (read dir/file fix, applied earlier)
-
-Processed 2026-06-23 (/upgrade-joca + /sync-questionnaires — 10 sessions, 7 improvements) — archived:
-- 3 new skills: `agent-sdk`, `deploy-vps`, `comfy-mcp-workarounds`; frontend.md (Game UI section + triggers)
-- rules/workflows-and-tooling.md (6 gotchas: Playwright fallback, Vite/Sail Windows, robocopy /XD, ComfyUI portable, SDK types, plugin SSH→HTTPS)
-- commands/resume.md (git-remote arg, drift detection, iteration flow) · commands/save.md (Conceito check PASSO 2b)
-
-Processed 2026-06-20 (/upgrade-joca + /sync-questionnaires batch — 8 sessions, 13 improvements) — archived:
-- 3 new skills: `content-calendar`, `lyric-align`, `browser-automate`; 1 new command: `/build-plan`
-- soul.md (sub-agent anti-fabrication) · api-design.md (parser verification) · frontend.md (shared-components-before-fanout) · deploy-cpanel.md (Node/Passenger)
-- python3→python (Windows Store stub) across resume/save/init-project/CLAUDE.md · graph exclusions · stop.bat `/T` · init-project real-vs-PLANNED
-- new rule `workflows-and-tooling.md` (LOW gotchas bundle)
-
-Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memory, sessions archived:
-- laravel-sail-windows → memory `laravel-sail-windows` + `laravel-specialist` (Windows+Sail) | [archived](feedback/archive/laravel-sail-windows.md)
-- filament-v5-gotchas → folded into `filament` skill (v5 type gotchas + HasIcon) | [archived](feedback/archive/filament-v5-gotchas.md)
-- filament-shield-testing → folded into `filament` skill (RBAC/Shield) | [archived](feedback/archive/filament-shield-testing.md)
+_(nenhum feedback pendente ou processado — instalação nova)_
 
 ## Commands
 - `/resume` — load project context and knowledge graph
@@ -115,4 +78,5 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - [mcps.md](tools/mcps.md) — MCP servers ligados (markitdown, playwright, comfy) + setup markitdown para /know
 
 ## Knowledge
-- [joca-os-macos-setup.md](knowledge/joca-os-macos-setup.md) — Correr JOCA_OS em macOS: node-pty prebuild + spawn-helper +x, launchers, portas 7491/7492, JOCA_EXTRA_ROOTS (validado 2026-07-08)
+<!-- Populated by /know. Vazio numa instalação nova. -->
+_(nenhum conhecimento ingerido)_

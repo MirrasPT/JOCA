@@ -57,14 +57,14 @@ async function drain(): Promise<void> {
     autoCount.set(workerId, (autoCount.get(workerId) ?? 0) + 1);
     const objective = getWorkerObjective(workerId) ?? '';
     const prompt =
-      `[EVENTO AUTOMÁTICO DO SISTEMA — não é o Renato a falar]\n` +
+      `[EVENTO AUTOMÁTICO DO SISTEMA — não é o utilizador a falar]\n` +
       `O worker ${workerId}${objective ? ` (objectivo: "${objective}")` : ''} passou a IDLE (pode ter terminado ou estar à espera de uma escolha).\n` +
       `1) Lê o output com read_worker("${workerId}").\n` +
       `2) Decide:\n` +
-      `   - awaitingChoice=true → resolve o menu conforme as regras (reversível: escolhe com select_in_worker; irreversível/ambíguo: pergunta ao Renato e espera).\n` +
+      `   - awaitingChoice=true → resolve o menu conforme as regras (reversível: escolhe com select_in_worker; irreversível/ambíguo: pergunta ao utilizador e espera).\n` +
       `   - ainda faltam passos para o objectivo → continua (reutiliza este worker com send_to_worker, ou abre outro só se precisares).\n` +
-      `   - objectivo concluído → responde ao Renato no chat com um resumo curto (2-4 linhas) do que foi feito.\n` +
-      `Não repitas trabalho já feito nem abras workers desnecessários. Se não há nada a fazer, diz só o resultado ao Renato.`;
+      `   - objectivo concluído → responde ao utilizador no chat com um resumo curto (2-4 linhas) do que foi feito.\n` +
+      `Não repitas trabalho já feito nem abras workers desnecessários. Se não há nada a fazer, diz só o resultado ao utilizador.`;
 
     const ui = loadUiSettings();
     await runMaster(prompt, {

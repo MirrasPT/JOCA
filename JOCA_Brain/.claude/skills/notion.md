@@ -12,7 +12,7 @@ origin: local
 
 # Notion (`ntn` CLI)
 
-Wrapper fino sobre o CLI oficial **`ntn`** (Notion CLI, `winget install Notion.ntn`). Acesso programático ao workspace (o Renato tem tarefas de clientes — Luís Gonçalo / Elite Cozinhas / Bracaris). A API expõe **data sources** (não "databases" no sentido antigo) — cada database tem um ou mais data sources com `id` próprio.
+Wrapper fino sobre o CLI oficial **`ntn`** (Notion CLI, `winget install Notion.ntn`). Acesso programático ao workspace (o utilizador tem tarefas de clientes (exemplo)). A API expõe **data sources** (não "databases" no sentido antigo) — cada database tem um ou mais data sources com `id` próprio.
 
 ## Uso
 ```bash

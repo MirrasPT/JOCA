@@ -21,7 +21,7 @@ Gerir contas cPanel a partir do Windows via **API token** (sem password, revogá
 1. cPanel → **Security → Manage API Tokens → Create** (Full Access ou restrito).
 2. Guardar em `~/.cpanel/<account>.json`:
    ```json
-   { "host": "s4835.lux1.stableserver.net", "port": 2083, "user": "renatoferreira", "primaryDomain": "renatoferreira.org", "token": "..." }
+   { "host": "<host>.stableserver.net", "port": 2083, "user": "<cpanel-user>", "primaryDomain": "<dominio-principal>", "token": "..." }
    ```
    O token vive só neste ficheiro (fora do git), nunca no chat/memória.
 
@@ -61,11 +61,11 @@ node .claude/scripts/cpanel.mjs read <path>      # Fileman/get_file_content
 Apagar email/BD/domínio, editar zona DNS, instalar SSL → **1 linha de confirmação** antes (gate `soul.md`). Read-only (`list_*`, `parse_zone`, `get_file_content`) → corre sem perguntar.
 
 ## SSH / SFTP
-Conta `renatoferreira` (stableserver): chave ED25519 em `~/.ssh/cpanel_renatoferreira` (autorizada no cPanel, nome `JOCA`), **porta 22**.
+Conta `<cpanel-user>` (stableserver): chave ED25519 em `~/.ssh/cpanel_<cpanel-user>` (autorizada no cPanel, nome `JOCA`), **porta 22**.
 - **Shell interactivo DESACTIVADO** pelo host (`Shell access is not enabled`) → `git`/`mysql`/scripts no servidor precisam de **ticket ao stableserver** a pedir "enable shell/SSH access".
 - **SFTP FUNCIONA** mesmo com shell off — usar para upload/download/bulk e deploy de ficheiros:
   ```bash
-  KEY=~/.ssh/cpanel_renatoferreira; HOST=s4835.lux1.stableserver.net; USR=renatoferreira
+  KEY=~/.ssh/cpanel_<cpanel-user>; HOST=<host>.stableserver.net; USR=<cpanel-user>
   printf 'put -r dist/* public_html/\n' | sftp -i "$KEY" -P 22 -o BatchMode=yes "$USR@$HOST"
   # avisos "post-quantum key exchange" são ruído (stderr), ignorar.
   ```
@@ -80,11 +80,11 @@ Conta `renatoferreira` (stableserver): chave ED25519 em `~/.ssh/cpanel_renatofer
   # criar:  newdomain=<dom> subdomain=<label-curto> dir=<docroot-rel-home>
   curl -s "https://$HOST:2083/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=addaddondomain&newdomain=ex.pt&subdomain=expt&dir=ex.pt" -H "Authorization: cpanel $USER:$TOKEN"
   # apagar (mantém ficheiros): domain=<dom> subdomain=<label>_<maindomain>
-  curl -s "https://$HOST:2083/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=deladdondomain&domain=ex.pt&subdomain=expt_renatoferreira.org" -H "Authorization: cpanel $USER:$TOKEN"
+  curl -s "https://$HOST:2083/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=deladdondomain&domain=ex.pt&subdomain=expt_<dominio-principal>" -H "Authorization: cpanel $USER:$TOKEN"
   ```
-  Envelope API2 = `cpanelresult.data[].result:1`. `deladdondomain` remove vhost/subdomínio/zona-local mas **não apaga o docroot**. Subdomínio standalone: API2 `SubDomain/delsubdomain&domain=<sub>_<rootdomain>` (a `domainkey`, ex.: `app_rateitplus.pt` — obter de `SubDomain/listsubdomains`). AutoSSL user-level: UAPI `SSL/start_autossl_check --post` (status:1 = queued; emite cert assim que o domínio resolve + serve HTTP). DNS desta conta de domínios `.pt`/etc. vive no **Cloudflare** (não na zona cPanel) → criar A record `194.42.98.200` (+ www) via Cloudflare API.
+  Envelope API2 = `cpanelresult.data[].result:1`. `deladdondomain` remove vhost/subdomínio/zona-local mas **não apaga o docroot**. Subdomínio standalone: API2 `SubDomain/delsubdomain&domain=<sub>_<rootdomain>` (a `domainkey`, ex.: `app_exemplo.pt` — obter de `SubDomain/listsubdomains`). AutoSSL user-level: UAPI `SSL/start_autossl_check --post` (status:1 = queued; emite cert assim que o domínio resolve + serve HTTP). DNS desta conta de domínios `.pt`/etc. vive no **Cloudflare** (não na zona cPanel) → criar A record `<IP-do-servidor>` (+ www) via Cloudflare API.
 - **Apagar ficheiros: UAPI `Fileman/trash` não existe; `fileop unlink` só apaga FICHEIROS (no-op silencioso em dir não-vazia, devolve `result:1` na mesma).** Apagar docroot recursivamente = **SFTP** (`-rm`/`-rmdir`, prefixo `-` = continua em erro; **rmdir é bottom-up**, deepest-first). ⚠ Ficheiros com **espaços** no nome → comandos SFTP têm de ser **quoted** (`-rm "…/a b.svg"`); gerar a batch a partir do `ls` remoto, não do `find` local (o backup local pode falhar nomes com espaços). Verificar com `ls` no fim — uma rmdir falhada deixa a pasta com sobras.
-- **Cloudflare cacheia o `404→index.html` ANTES do asset existir.** Em docroot com `.htaccess` SPA-rewrite (fallback `index.html`), um asset acedido antes do upload devolve `index.html` (HTTP 200) e o Cloudflare **cacheia isso** (`Cf-Cache-Status: HIT`, `max-age` longo). Depois do upload, o URL continua a servir HTML. **Sintoma enganador:** `curl` a um asset binário devolve `content-type: text/html` (parece upload falhado, mas o ficheiro está lá). Diagnóstico: `curl '<url>?cb=RANDOM'` (cache-buster) → vê o origin real. Fix: servir URLs **versionados** (`?v=N`) ou purgar a cache CF. Aplica-se a qualquer site static/SPA atrás de Cloudflare. (Fonte: royal-douro 2026-06-27.)
+- **Cloudflare cacheia o `404→index.html` ANTES do asset existir.** Em docroot com `.htaccess` SPA-rewrite (fallback `index.html`), um asset acedido antes do upload devolve `index.html` (HTTP 200) e o Cloudflare **cacheia isso** (`Cf-Cache-Status: HIT`, `max-age` longo). Depois do upload, o URL continua a servir HTML. **Sintoma enganador:** `curl` a um asset binário devolve `content-type: text/html` (parece upload falhado, mas o ficheiro está lá). Diagnóstico: `curl '<url>?cb=RANDOM'` (cache-buster) → vê o origin real. Fix: servir URLs **versionados** (`?v=N`) ou purgar a cache CF. Aplica-se a qualquer site static/SPA atrás de Cloudflare.
 - **Dump de BD sem shell:** `getsqlbackup/<db>.sql.gz` dá **Forbidden** com token (precisa de sessão). Em vez disso: (1) UAPI `Mysql/add_host host=<meu-ip-público> --post` (Remote MySQL whitelist), (2) ligar de fora com `mysql2` (node) lendo creds do `.env`/`config` do app, dump por `SHOW CREATE TABLE` + `SELECT *`, (3) **remover a whitelist** `Mysql/delete_host host=<ip> --post` no fim. Apagar BD = `Mysql/delete_database name=<db>` + `Mysql/delete_user name=<user>` (`--post`).
 
 ## Chain

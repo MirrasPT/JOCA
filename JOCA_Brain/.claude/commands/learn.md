@@ -25,7 +25,7 @@ CLI: `.claude/scripts/joca-brain.mjs` (slug = nome do repo git do cwd).
 
 ## Regras
 - **Nunca logar segredos** — o CLI rejeita HIGH-tier (AWS/JWT/GitHub/Slack/credential-shaped). Se rejeitar, remove o valor e re-regista.
-- **`source`** — `user` (o Renato decidiu), `skill`/`agent` (auto). Decisões de `user` ganham peso no recall.
+- **`source`** — `user` (o utilizador decidiu), `skill`/`agent` (auto). Decisões de `user` ganham peso no recall.
 - **Scope** — `repo` (sempre relevante) ou `branch` (só na branch). Default `repo`.
 - O recall (decisões activas + aprendizagens recentes) é injectado **automaticamente** no arranque de cada sessão pelo hook `session-intake.js`.
 
