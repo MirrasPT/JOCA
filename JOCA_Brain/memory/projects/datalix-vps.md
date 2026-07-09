@@ -8,6 +8,7 @@ directorio: N/A (servidor remoto)
 **Servidor:** Datalix VPS · IP `194.62.248.50` · Gateway `194.62.248.1` · IPv6 `/64` `2a0e:97c0:3ea:2db::/64`
 **OS:** Ubuntu 7.0.0-15-generic (kernel Linux x86_64, instalado ~2026-06-18)
 **Acesso SSH:** `root` · chave `~/.ssh/datalix_id` (ED25519) · host fingerprint `SHA256:tWycRkZCkOoVPccMjfO5/+HBgZYeE7W78/RRiQk6qSk`
+**Chave Mac instalada (2026-07-08):** o Mac (`/Users/renatoferreira`) tem a SUA própria `~/.ssh/datalix_id` (ED25519, `joca@datalix-mac`, fp `SHA256:hBrafNJ6979oxs0c1Ftcypsu4lsxyUVqJEhCmZHCKOc`) instalada no `authorized_keys` da VPS via password bootstrap. Acesso por chave confirmado (`root@v66474`). (Password root também disponível; Renato optou por não rotacionar — 2026-07-08.)
 **Comando SSH:** `ssh -i ~/.ssh/datalix_id root@194.62.248.50 "comando"`
 **Servidor web:** Caddy v2.11.4 (instalado 2026-06-23). Config em `/etc/caddy/Caddyfile`. Reiniciar: `systemctl restart caddy`.
 
@@ -119,6 +120,8 @@ VPS operacional. Caddy v2.11.4 activo. Sites: `planobracaris.rfdev.pt` (relatór
 - **`alkimiawine.pt`** — zona Cloudflare **active mas vazia** (0 records). Definir para onde aponta (site / redirect / VPS Datalix) quando o user decidir — records via API (token tem DNS CRUD na zona).
 
 ## Última sessão
+2026-07-08 — **1º acesso à VPS a partir do Mac + fix do `trypost-redis` em crash-loop.** Chave `datalix_id` do Mac instalada (ver secção Acesso SSH). Redis com **1814 reinícios** (ExitCode 1): AOF incremental corrompido (`Bad file format ... appendonly.aof.58.incr.aof`) — base RDB (228 keys) intacto, só a cauda do incr. Fix: `docker stop` → backup `appendonlydir.bak-<ts>` → `redis-check-aof --fix` (truncou 19767 B de 44 MB) → `docker start`. Estável: `RestartCount=0`, `PONG`, 3 containers `healthy`. ⚠ Se a corrupção do AOF repetir, investigar causa (disco cheio / kill abrupto / OOM do host) — a `vm.overcommit_memory` está OFF (warning nos logs; considerar `sysctl vm.overcommit_memory=1`).
+
 2026-07-06 — **Auditoria de subdomínios `rfdev.pt`** (read-only). Consulta à zona Cloudflare (`5249326e14740641fc7bca37bbe0c0c8`) via API: 7 subdomínios A live (todos proxied → VPS). Corrigida a lista de registos A (estava a listar `jellyfin`/`requests` já removidos; faltavam `renatoferreira`/`leredes`/`packlancamento`). Detectado `packlancamento.rfdev.pt` sem entrada na tabela Sites activos. Confirmado que rfdev.pt não toca no cPanel (esse = `renatoferreira.org` + 5 addons).
 
 2026-06-27 (d) — **Deploy de `cartastcg.rfdev.pt`** (catálogo estático de cartas do projecto `tcg`). DNS A via API (proxied) + `/var/www/cartastcg/` (`cards.html`→`index.html` + 38 PNGs de `assets/cards/`, 48 MB) via scp + vhost estático Caddy (`root`+`file_server`+`encode gzip`) + `chown caddy:caddy` + `caddy fmt`+reload. Health-check 200 à 1ª (página + arte `image/png`), sem 525 transitório. Cartas Astecas/Gregas mostram placeholder (`noart:true`, sem PNG).

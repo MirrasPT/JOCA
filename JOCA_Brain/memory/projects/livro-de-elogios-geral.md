@@ -2,7 +2,7 @@
 name: livro-de-elogios-geral
 description: Livro de Elogios — visão geral do projecto/cliente (umbrella). SaaS de elogios/testemunhos para empresas; cobre plataforma PT (rebuild + legacy), expansão Brasil, redes sociais, parceria FIZ. Não confundir com a entrada só-da-plataforma livro-de-elogios.md.
 type: project
-directorio: D:\Mega\Livro_De_Elogios
+directorio: /Users/renatoferreira/MEGA/Livro_de_Elogios
 ---
 
 # Livro de Elogios — Umbrella (todo o projecto/cliente)
@@ -111,6 +111,8 @@ NUNCA push/branch sem ordem do Renato. `dev` = local-only. Push → sempre `setu
 - **Email PRONTO A ENVIAR:** banner hospedado (URL absoluto `https://packlancamento.rfdev.pt/email/assets/img/banner_final_text.png`), **preço 34,90€+IVA** antes do CTA (c/ 40,80€ riscado + poupança), pré-header implementado, "UNSUBSCRIBE"→"CANCELAR SUBSCRIÇÃO", frase institucional corrigida, neutros→`#E8E8E8`, CSS morto removido. Falta: assunto no Brevo + teste Gmail/Outlook/Apple Mail + envio.
 - **`apresentacao.html` refinada** (pós-audit vs DESIGN.md): nav pill flutuante (padrão 8.4) **com o logótipo laranja `assets/logo.svg`** (não texto), CTAs reais `.btn-primary` (loja + reel), tipografia `clamp()` c/ hero 900, footer `rgba(255,255,255,.7)`, success-bg `#EBF5F0`, **secção Vídeo** (player + storyboard) + **secção KPIs** (metas propostas a validar: 50 pacotes/2,5% CTR/3× ROAS/10k alcance), calendário 4 dias (reel na terça). **Imagem da secção "três peças" trocada** de `_ref/livro_pack.jpg` (mostrava autocolante de vinil — item errado) → `_ref/pack.png` (packshot real livro+suporte+cartaz).
 - **⚠ Ad-blocker (uBlock/Ghostery) escondia a secção de campanhas:** os filtros cosméticos apanham nomes de classe/id típicos de anúncio — `ad-block`/`ad-col`/`ad-p`/`id="anuncios"`. Renomeados para neutros (`mkt-group`/`mkt-col`/`mkt-line`/`id="campanhas"`) + texto "Publicidade paga"→"Media paga", "Meta & Google **Ads**"→"Campanhas Meta & Google", "**Ads** Manager"→"gestor de campanhas". **Regra: nunca usar `ad-*`/`anuncios`/`sponsor`/`banner-ad` em markup de páginas próprias.**
+- **`material a publicar/`** (2026-07-08) — pasta consolidada com os entregáveis finais prontos a publicar: `reel_pacote.mp4` + 4 imagens de redes (`post1_anuncio`/`post2_balcao`/`post3_suporte`/`story_pacote`) + 5 imagens de produto usadas nos anúncios (`ad-hero`/`hero-balcao`/`flatlay-pack`/`loja-close` + packshot `pack.png`). Cópias, não movidos — fontes ficam no lugar.
+- **`_FINAL/Produto/para_site/`** (2026-07-09) — 8 fotos de produto 1500×1500 convertidas para WebP **q90 lossy** (52–240 KB, −82 a −97% vs PNG; PSNR>39 dB) prontas para o site; PNGs ficam como master lossless. Receita cwebp → Brain `webp,imagens`. (Renato achou o WebP lossless ainda grande ~1 MB → q90 é o caminho web.)
 - **Deploy `packlancamento.rfdev.pt`:** VPS Datalix, vhost Caddy `file_server` → `/var/www/packlancamento`, Cloudflare A proxied. Conteúdo (~18 MB): index.html (=apresentacao) + `assets/logo.svg`+`logo-branco.svg` + `_ref/` + `redes-sociais/_Final/` + `email/preview.png` + banner + `video/reel_pacote.mp4`. Verificado live (200 em tudo). Mudanças → scp + **purgar cache CF**. ⚠ DNS acabado de criar demora a propagar ao resolver local — validar via `curl --resolve packlancamento.rfdev.pt:443:104.21.94.239`.
 
 ## Newsletter Digital (`2026_Newsletter/`) — email marketing (2026-07-06)

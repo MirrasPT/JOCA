@@ -10,7 +10,7 @@ Um sub-agente com brief "lê estes 40 paths" gasta 40 Reads e perde-se; com "lê
 
 ## Executar
 ```bash
-node "C:/Users/renat/desktop/joca_final/joca_brain/.claude/scripts/pack-context.mjs" <dir-alvo> [--out <file>] [--max-kb 512] [--ext php,ts,tsx] [--exclude tests,fixtures]
+node "/Users/renatoferreira/JOCA/JOCA_Brain/.claude/scripts/pack-context.mjs" <dir-alvo> [--out <file>] [--max-kb 512] [--ext php,ts,tsx] [--exclude tests,fixtures]
 ```
 - Respeita `.gitignore` (via `git ls-files`; fallback walk com exclusões standard: node_modules, vendor, dist, storage…).
 - Binários/locks/minified ficam sempre de fora.

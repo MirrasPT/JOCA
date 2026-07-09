@@ -7,6 +7,8 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_PORT=7491
 FRONTEND_PORT=7492
 URL="http://localhost:$FRONTEND_PORT"
+# File-browser roots beyond HOME (parity with start.sh). Default: whole filesystem (/).
+EXTRA_ROOTS="${JOCA_EXTRA_ROOTS:-/}"
 
 # Already running?
 if lsof -ti:$BACKEND_PORT > /dev/null 2>&1 && lsof -ti:$FRONTEND_PORT > /dev/null 2>&1; then
@@ -29,7 +31,7 @@ sleep 1
 # Backend
 cd "$DIR/backend" || exit 1
 npm run build >/dev/null 2>&1
-nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
+nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" JOCA_EXTRA_ROOTS="$EXTRA_ROOTS" node dist/server.js \
   >> /tmp/joca-backend.log 2>&1 < /dev/null &
 disown $!
 

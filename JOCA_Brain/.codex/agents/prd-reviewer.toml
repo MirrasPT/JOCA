@@ -1,19 +1,5 @@
-description = """name: prd-reviewer"""
+description = """|"""
 developer_instructions = """
----
-name: prd-reviewer
-description: |
-  Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD.
-  
-  Triggers: "revê o PRD", "valida o PRD", "o PRD está completo?", "review do PRD", after generating PRD.md
-skills: planning-prd
-chain: plan
-model: sonnet
-tools:
-  - Read
-  - Bash
-  - Glob
----
 
 # Agent: prd-reviewer
 
@@ -134,5 +120,6 @@ Próximos passos prioritários:
 
 - Adaptar severidade à fase: Draft → só CRITICAL conta; Pré-lançamento → tudo conta
 - Lean PRD tem requisitos reduzidos (sem Rollout, sem Glossário, sem Analytics)
-- Não sugerir reescritas completas — edições cirúrgicas apenas"""
+- Não sugerir reescritas completas — edições cirúrgicas apenas
+"""
 name = "prd-reviewer"

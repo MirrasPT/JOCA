@@ -149,6 +149,15 @@ export default function TerminalView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
 
+  // Ao entrar numa sessão (ou trocar de sessão activa), o foco vai para a caixa de texto do composer,
+  // NÃO para o terminal xterm (o TerminalPane deixou de auto-focar o terminal na activação). O terminal
+  // continua a ganhar foco por clique. Só dispara na mudança de activeId — não rouba o foco a meio da escrita.
+  useEffect(() => {
+    if (!activeId) return;
+    const t = setTimeout(() => inputAreaRef.current?.focus(), 60);
+    return () => clearTimeout(t);
+  }, [activeId]);
+
 
   const addAttachment = useCallback((path: string) => {
     setAttachments((prev) => prev.includes(path) ? prev : [...prev, path]);

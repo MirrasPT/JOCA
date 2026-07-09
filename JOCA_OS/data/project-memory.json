@@ -55,8 +55,11 @@
   "5026389d-b5b5-41af-99b6-4c37694b4bb1": {
     "projectId": "5026389d-b5b5-41af-99b6-4c37694b4bb1",
     "color": "#84cc16",
-    "path": "D:\\Mega\\Bigorna\\2026_Website_Bigorna",
+    "path": "/Users/renatoferreira/MEGA/Bigorna/Bigorna-Website",
     "recentSessions": [
+      "f2ef5050-f9a5-4c7d-aa45-9384e4b59194",
+      "84979233-a0fd-4bf5-80f1-ec8ecec6a606",
+      "def9c9d5-a30b-47ca-9d9f-a730817c42bb",
       "2350e4ee-3a50-48af-9aa2-da530e37323c",
       "475fde1e-62dc-4f49-bb76-dc0e911e1fb6",
       "d0efd958-cf00-44cf-bdc9-457d5325ff03",
@@ -72,7 +75,7 @@
     ],
     "openFiles": [],
     "rightPanel": null,
-    "updatedAt": "2026-07-06T12:04:16.992Z"
+    "updatedAt": "2026-07-08T22:48:35.067Z"
   },
   "6bbf30e5-c6c7-48b0-89bc-60db47fc33d6": {
     "projectId": "6bbf30e5-c6c7-48b0-89bc-60db47fc33d6",
@@ -168,8 +171,13 @@
   "154b321e-59cb-49dd-aa2f-c81cff09a71b": {
     "projectId": "154b321e-59cb-49dd-aa2f-c81cff09a71b",
     "color": "#a98cff",
-    "path": "D:\\Mega\\Bodegas do Campo (Espanhol)",
+    "path": "/Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)/website_wordpress",
     "recentSessions": [
+      "652b8128-3d3f-4912-afe6-ad4ede1294e2",
+      "db89b498-db56-4b38-a5b1-5b44073fbe07",
+      "7b64f746-4c9a-4397-a886-24f6621414fc",
+      "466e479e-e495-4f3f-9382-bab0b57356d1",
+      "9c7b866e-2515-48c9-8c92-78c2637ec258",
       "49a58aba-1ee9-40ff-96b9-dc3f8e32ebb8",
       "da05d492-56bb-46b8-b958-ed778b7db3c1",
       "e10747c0-bf0e-4796-b420-41e2c22a91fd",
@@ -184,7 +192,7 @@
     ],
     "openFiles": [],
     "rightPanel": null,
-    "updatedAt": "2026-07-06T12:09:38.548Z"
+    "updatedAt": "2026-07-09T07:36:02.150Z"
   },
   "89a0ae2c-cbe0-4e22-9e5e-bca2dee3bedb": {
     "projectId": "89a0ae2c-cbe0-4e22-9e5e-bca2dee3bedb",
@@ -207,20 +215,20 @@
   "164c8353-91d7-4161-a43b-4ab9c09b160c": {
     "projectId": "164c8353-91d7-4161-a43b-4ab9c09b160c",
     "color": "#ff5000",
-    "path": "D:\\Mega\\Livro_De_Elogios",
+    "path": "/Users/renatoferreira/MEGA/Livro_de_Elogios",
     "recentSessions": [
-      "c8fd979a-57be-4f0b-94a7-1aee891305e9",
-      "a893c7ac-a527-4e86-a3f6-11743f910431",
-      "f0a6ae40-5496-4b47-9974-8925d05551ca",
-      "d9c31297-a910-4016-a973-d357dafb0248",
-      "7c0e2d8d-cdf9-468a-8136-a45234d4c68d",
-      "3a825a52-911e-49e1-9ad1-340d45b8fd91",
-      "3ce72dfe-b404-4971-92d2-78dd41aed20c",
-      "87f86326-71bb-46b3-93b1-9981243517db",
-      "2fee7529-f64d-4f09-9821-24ae93d400be",
-      "69f66702-9c07-41e0-99b5-d29e7d094a2c",
-      "bd33bbe8-e421-4025-8a91-8f53b8f43d44",
-      "a1b2ab53-fe8c-4c78-b066-4187d06e6a0b"
+      "82272ad4-f5bb-4487-87bb-0915fd63339e",
+      "0841b84d-96c8-499e-8800-e6715fd96773",
+      "dc05371c-64b7-42a9-a644-bde192971a73",
+      "ae66db08-f51c-49fc-a7fd-7013d932859d",
+      "bc24b210-75bc-4aee-b94c-eafe351b82a4",
+      "786f1b2b-d428-4979-8c56-05e32b29ef24",
+      "7a4bbb4c-1baf-49c7-8144-411e0523fcb4",
+      "22660a7f-5be2-45b6-84ca-3f1f85f346ea",
+      "4313dd86-c37f-4452-826e-e72b325e3a10",
+      "bc19c5f9-1062-4cc4-8c61-b3c5235ae843",
+      "424d9c2f-3e51-4d10-b7d1-247d0b7bf54e",
+      "ae1c40d2-04e1-46bd-a72a-34184b2b7169"
     ],
     "favoriteSkills": [],
     "favoriteAgents": [],
@@ -231,7 +239,7 @@
     ],
     "openFiles": [],
     "rightPanel": null,
-    "updatedAt": "2026-07-07T12:50:55.751Z"
+    "updatedAt": "2026-07-09T09:16:50.939Z"
   },
   "bff76a78-7c00-4504-a7fa-2c259ee585fd": {
     "projectId": "bff76a78-7c00-4504-a7fa-2c259ee585fd",
@@ -333,5 +341,24 @@
     "openFiles": [],
     "rightPanel": null,
     "updatedAt": "2026-07-06T13:16:20.946Z"
+  },
+  "f246e864-c49d-4a04-b4be-781fc7de0c25": {
+    "projectId": "f246e864-c49d-4a04-b4be-781fc7de0c25",
+    "color": "#94a3b8",
+    "path": "/Users/renatoferreira/MEGA/Stickers Premium",
+    "recentSessions": [
+      "c13811c9-b969-42e9-a0de-ab6b486c1d48",
+      "16668932-7b98-4a6f-a37d-60ba152636bd"
+    ],
+    "favoriteSkills": [],
+    "favoriteAgents": [],
+    "quickCommands": [
+      "save",
+      "compact",
+      "clear"
+    ],
+    "openFiles": [],
+    "rightPanel": null,
+    "updatedAt": "2026-07-09T09:16:47.714Z"
   }
 }

@@ -104,10 +104,14 @@ export class CodexProvider implements MasterProvider {
   async *run(prompt: string, opts: MasterRunOptions = {}): AsyncGenerator<ProviderEvent, void> {
     const fullPrompt = opts.systemPrompt ? `${opts.systemPrompt}\n\n---\n\n${prompt}` : prompt;
     const args = ['exec', '--json', '--skip-git-repo-check', '--dangerously-bypass-approvals-and-sandbox'];
-    // Register the bridge via -c overrides (verified-working pattern). Each whole key=value is wrapped
-    // in double quotes so cmd.exe (shell:true — needed for the codex .cmd shim on Windows) keeps it as
-    // one token; the inner single quotes are TOML literal strings (backslashes/spaces in paths stay literal).
-    const q = (kv: string) => `"${kv}"`;
+    // Register the bridge via -c overrides (verified-working pattern). On WINDOWS spawn runs through the
+    // cmd.exe shim (shell:true — needed for the codex .cmd), so each whole key=value must be wrapped in
+    // double quotes to survive as one token. On macOS/Linux spawn is shell:false and passes argv
+    // literally — wrapping in double quotes there injects LITERAL " chars into the arg, so codex fails to
+    // parse the -c override, registers ZERO mcp_servers, and the brain runs with no Master tools
+    // ("sem ferramentas Master expostas"). So quote only on win32; pass raw otherwise.
+    // The inner single quotes are TOML literal strings (backslashes/spaces in paths stay literal).
+    const q = (kv: string) => (process.platform === 'win32' ? `"${kv}"` : kv);
     args.push('-c', q(`mcp_servers.master.command='${NODE_BIN}'`));
     // argv = [bridge.mjs, backendUrl, secretFile]. Pass the EXACT secret path (bridge-config is the
     // single source of truth for DATA_DIR) so the bridge never recomputes it with ../../ — that trap

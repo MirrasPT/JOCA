@@ -1,4 +1,4 @@
-description = """name: dependency-auditor"""
+description = """name: dependency-auditor"""
 developer_instructions = """
 ---
 name: dependency-auditor
@@ -203,5 +203,5 @@ Command: `composer remove package/name` or `npm uninstall package-name`
 - For major version bumps, always check the package's CHANGELOG or migration guide
 - Distinguish direct dependencies from transitive (indirect) ones — different risk profiles
 - If no audit tools installed, explain what to install and provide the manual checklist
-- Relatório completo → escreve em `.joca/intermediate/dependency-auditor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
+- Relatório completo → escreve em `.joca/intermediate/dependency-auditor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path."""
 name = "dependency-auditor"

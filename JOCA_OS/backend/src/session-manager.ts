@@ -189,8 +189,14 @@ export class SessionManager extends EventEmitter {
       try { resolved = safePath(resumePath); } catch {}
       const safe = resolved && PATH_SAFE.test(resolved) && fs.existsSync(resolved);
       if (safe && resolved) {
-        const hasClaudeMd = fs.existsSync(path.join(resolved, 'CLAUDE.md'));
-        startupCmd = hasClaudeMd ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
+        // "Já ligado ao JOCA?" — aceita QUALQUER marcador de init (não só CLAUDE.md exacto): CLAUDE.md /
+        // AGENTS.md / pasta .claude/. ⚠ Se o /init sempre re-dispara é quase sempre PATH errado no
+        // registo (projects.json aponta a pasta-mãe; o CLAUDE.md vive numa subpasta) — corrigir o path.
+        const initialized =
+          fs.existsSync(path.join(resolved, 'CLAUDE.md')) ||
+          fs.existsSync(path.join(resolved, 'AGENTS.md')) ||
+          fs.existsSync(path.join(resolved, '.claude'));
+        startupCmd = initialized ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
       }
     }
 
@@ -270,12 +276,40 @@ export class SessionManager extends EventEmitter {
     });
   }
 
+  // Like waitForQuiet, but gated on the Claude TUI having ACTUALLY painted — not merely on the buffer
+  // being non-empty. The old quiet-only gate mistook the shell's own prompt (present at ~30ms, before
+  // `claude` is even launched) for "booted": on a cold start the `claude` Node process has a >quietMs
+  // silence gap while loading modules, so quiet-only resolved DURING that gap and wrote /resume into a
+  // not-yet-ready TUI, where it was lost ("sometimes it doesn't send /resume"). Here we require a Claude
+  // TUI marker in the buffer before accepting the quiet period. Version-agnostic markers; cap is the
+  // ultimate fallback (if markers ever change, it degrades to a delay, never to sending too early).
+  private waitForClaudeReady(session: Session, quietMs: number, capMs: number): Promise<void> {
+    // Markers VERIFIED against the live Claude Code TUI (v2.1.x): the startup banner "Claude Code", the
+    // mode line "manual mode", the input prompt glyph "❯", the model/status line ("Opus"/"Sonnet"/"Haiku"),
+    // or the first-run "trust the files" prompt. The prior guesses (for shortcuts / ╭─ / Welcome to Claude)
+    // matched NOTHING in this version, so the gate always fell through to the cap (~15s) and the command
+    // landed late/flaky. The echoed launch path contains "claude" but never "Claude Code"/"❯", so no false
+    // positive before paint.
+    const READY = /Claude Code|manual mode|❯|\bOpus\b|\bSonnet\b|\bHaiku\b|trust the files|Do you trust/i;
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const tick = () => {
+        if (!this.sessions.has(session.id)) return resolve();
+        const painted = READY.test(session.buffer.slice(-6000));
+        const quietFor = Date.now() - session.lastOutputTime;
+        if ((painted && quietFor >= quietMs) || Date.now() - start >= capMs) return resolve();
+        setTimeout(tick, 120);
+      };
+      setTimeout(tick, 250);
+    });
+  }
+
   // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
   // "trust this folder?" prompt if present, THEN send /resume|/init-project, THEN submit any brief.
   // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
   private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
     const p = session.pty;
-    await this.waitForQuiet(session, 700, 12000);
+    await this.waitForClaudeReady(session, 700, 15000);
     // First-time folders show "Do you trust the files in this folder?" — accept the default (Enter) so
     // the CLI reaches its prompt. These are folders the user explicitly opened in JOCA.
     if (/trust the files in this folder|Do you trust the files/i.test(session.buffer.slice(-2000))) {

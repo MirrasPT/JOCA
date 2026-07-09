@@ -217,7 +217,8 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
         fitRef.current?.fit();
         if (termRef.current) {
           onResize(sessionId, termRef.current.cols, termRef.current.rows);
-          termRef.current.focus();
+          // NÃO focar o xterm ao activar a sessão: por default o foco vai para a caixa de texto
+          // (composer) do TerminalView, não para o terminal. O terminal ainda ganha foco por clique.
         }
       } catch {}
     };

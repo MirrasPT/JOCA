@@ -1,4 +1,4 @@
-description = """name: codex-review"""
+description = """name: codex-review"""
 developer_instructions = """
 ---
 name: codex-review
@@ -182,5 +182,5 @@ Code sent to Codex CLI is processed by OpenAI's API. Inform the user before revi
 - Code containing credentials, PII, or proprietary business logic
 - Code in a regulated industry (healthcare, finance) with data residency requirements
 
-For sensitive code, suggest: redact secrets before review, or use `tester-code` (Claude, local context) instead."""
+For sensitive code, suggest: redact secrets before review, or use `tester-code` (Claude, local context) instead."""
 name = "codex-review"

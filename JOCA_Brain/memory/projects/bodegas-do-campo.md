@@ -2,12 +2,12 @@
 name: bodegas-do-campo
 description: Loja online de vinho (DO Ribeiro, Galicia) em WordPress + WooCommerce + Elementor Free — build do design homepage-v2
 type: project
-directorio: D:\Mega\Bodegas do Campo (Espanhol)\website_wordpress
+directorio: /Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)/website_wordpress
 ---
 
 **Stack:** WordPress (php8.3) + WooCommerce + Elementor **Free** + HFE (Header Footer Elementor) + WPForms Lite · tema Hello Elementor + child `bodegas-child`
 **Objectivo:** Loja online de vinho com a homepage **visualmente idêntica** a `website_design/homepage-v2.html`, **todas as páginas editáveis no Elementor** (sem "blocos de código").
-**Directório:** `D:\Mega\Bodegas do Campo (Espanhol)\website_wordpress`
+**Directório:** `/Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)/website_wordpress`
 **Design escolhido:** `../website_design/homepage-v2.html` (+ `DESIGN.md` manda em cor/tipografia/regras premium). Cliente escolheu v2.
 **Iniciado:** 2026-06-23
 **PRD:** não gerado (design + DESIGN.md servem de spec)
@@ -15,10 +15,10 @@ directorio: D:\Mega\Bodegas do Campo (Espanhol)\website_wordpress
 **How to apply:** Build via pipeline JSON Elementor (ver abaixo). Fidelidade ao protótipo é o critério. Nunca despejar HTML num widget — estrutura Elementor real + CSS do child theme.
 
 ## Ambiente local (Docker — não há PHP/WP-CLI no host)
-- `cd "D:/Mega/Bodegas do Campo (Espanhol)/website_wordpress"` → `docker compose up -d db wordpress adminer`
+- `cd "/Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)/website_wordpress"` → `docker compose up -d db wordpress adminer`
 - WP-CLI: `docker compose run --rm wpcli <cmd>` (entrypoint já é `wp`); para encadear: `docker compose run --rm --entrypoint sh wpcli -c '...'`
 - **WP:** http://localhost:8090 · admin/admin_local_pw · **Adminer:** http://localhost:8091 (server `db`)
-- Portas 8090/8091 escolhidas para não colidir com JOCA_UI (7371/7372) / JOCA_OS (7381/7382).
+- Portas 8090/8091 escolhidas para não colidir com JOCA OS (7491/7492).
 - **Named volumes** `wp_core`+`db_data` (core/plugins/uploads/DB) **fora do MEGAsync**. Repo (em Mega) só tem: compose, `.env`, child theme, mu-plugins, `elementor-templates/`, docs. ⚠ não pôr runtime WP dentro do Mega.
 
 ## Pipeline de build Elementor (PROVADO end-to-end)
@@ -37,6 +37,7 @@ Páginas geradas por JSON `_elementor_data` → import via post meta → editáv
 **Última sessão:** 2026-07-06 — deploy staging + diagnóstico de links partidos (Elementor relativo em subpasta); fix pronto, bloqueado em credenciais.
 
 ## Deploy staging (2026-07-06)
+> ✅ **RESOLVIDO 2026-07-08** — ver secção "Fix staging RESOLVIDO" acima. Acesso agora via FTP + wp-admin. Os links partidos abaixo estão corrigidos.
 - **URL:** https://wp.setuptech.dev/bodegas/ (migrado via All-in-One WP Migration; SÓ acesso wp-admin, sem SSH conhecido).
 - **Problema:** botões/nav não funcionam. Causa: botões Elementor com URL **relativo à raiz** (`/enoturismo/`, `/shop/`, `/la-bodega/`, `/noticias/`, `/premios/`, `/contacto/`) — sem prefixo `/bodegas/`. No localhost (raiz) resolviam; na subpasta apontam para fora → 404. Cabeçalho HFE (site-wide) + home/enoturismo. Menu WP + core WP OK.
 - **Fix pronto (não aplicado):** Better Search Replace, `"url":"\/` → `"url":"\/bodegas\/` em wp_postmeta (dry-run→run UMA vez→Regenerate CSS→verificar por curl). Detalhe no CLAUDE.md do projecto.
@@ -50,7 +51,7 @@ Páginas geradas por JSON `_elementor_data` → import via post meta → editáv
 - graphify indexado sobre `website_wordpress`: **538 nós · 624 edges · 49 comunidades** (`graphify-out/`).
 - `graphify-out/` adicionado ao `.gitignore` (não sincronizar no Mega nem versionar — regenerável).
 - Secção **Navegação de Código** adicionada ao `CLAUDE.md` do projecto (aponta para `graphify-out/GRAPH_REPORT.md`).
-- Nota: pasta-mãe `D:\Mega\Bodegas do Campo (Espanhol)` contém `website_design/`, `Logotipo/`, backup `.wpress` (314 MB) e `info/`; o projecto de código é só `website_wordpress/`.
+- Nota: pasta-mãe `/Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)` contém `website_design/`, `Logotipo/`, backup `.wpress` (314 MB) e `info/`; o projecto de código é só `website_wordpress/`.
 
 ## Estado actual (2026-06-24)
 **SITE COMPLETO com conteúdo real, verificado e no GitHub** (`MirrasPT/Espanhol`, branch `main`). Todas as páginas Elementor-editáveis; forms a funcionar; WooCommerce es_ES; mobile ok; v0.5.2. Só falta deploy (em espera por decisão do cliente) + SMTP em produção. Detalhe na secção "Sessão 2026-06-24" abaixo.
@@ -133,10 +134,61 @@ Iteração visual com o cliente (cada fix verificado por screenshot Playwright l
 - Cart "Carrito" label (HFE só ícone+contador) — polish.
 
 ## Última sessão
-2026-06-24 — Conteúdo REAL end-to-end (10 produtos, prémios, 10 posts, contacto form, enoturismo, multimédia, footer) só com dados do site antigo; loja/single corrigidos; mobile via workflow; verificação Elementor+forms logado; **push para github.com/MirrasPT/Espanhol (main)** com dump DB+uploads. Assets em v0.5.2.
+2026-07-08 (tarde) — **2 fixes no staging + auditoria site-wide** via FTP (acesso directo ao WP remoto desbloqueado): (1) links partidos na subpasta `/bodegas/` (3 classes de URL), (2) `.bd-reveal` invisível no editor Elementor (fix CSS scoped ao editor, v0.5.3), (3) auditei todo o CSS/JS por casos parecidos → só o `.bd-reveal` existia, site limpo. Detalhe nas secções abaixo. (Manhã: refresh Mac /init-project.)
+
+## Fix editor Elementor — `.bd-reveal` invisível ao editar (2026-07-08)
+**Sintoma:** no editor, o hero da home (e outras secções) mostra só a imagem de fundo — textos/botões editáveis (aparecem nas settings) mas invisíveis no preview. Frontend OK.
+**Causa:** `design-system.css` tem `.bd-reveal{opacity:0}` (reveal-on-scroll); o `nav.js` (IntersectionObserver) adiciona `.is-visible` para revelar. **O editor Elementor NÃO corre o JS de frontend do tema** → os `.bd-reveal` ficam presos a `opacity:0`. 14 elementos `.bd-reveal` só na home (hero content `hpheroct`, cards, secções).
+**Fix:** regra scoped ao editor no fim de `design-system.css` (frontend intacto):
+```css
+.elementor-editor-active .bd-reveal { opacity: 1 !important; transform: none !important; }
+```
++ bump `BODEGAS_VERSION` 0.5.2→**0.5.3** (cache-bust). Aplicado no servidor E no repo local (estavam em sync). Confirmado no editor: hero completo visível.
+
+**Auditoria site-wide (2026-07-08):** varri todo o CSS do child theme (`design-system.css` + `pages/*.css`) por padrões de invisibilidade-no-editor. Conclusão: **`.bd-reveal` (`opacity:0`) era o ÚNICO estado escondido-por-JS** → o fix cobre o site inteiro. Restantes `display:none`/`visibility:hidden` são todos legítimos (responsive/hover/intencional, nenhum revelado por JS). Nav transparente (`.bd-nav-transparent` sem `.is-scrolled`) verificado no editor do Contacto → renderiza **sólido e legível** (não há bug). Shortcodes (`[bodegas_*]`) **executam** no widget shortcode do Elementor (não ficam vazios). Mapa do Contacto (embed sem API key) renderiza. **Site limpo — sem mais casos.**
+
+### ⚠ Gotcha FTP (stableserver/dominiosprofissionais) — ficheiros grandes
+- Upload de ficheiro grande (~32KB) via **FTPS explícito com TLS no canal de dados** → **erro 451** ("local error in processing") e o curl **trunca o ficheiro-destino a 0 bytes** (partiu o CSS do site live momentaneamente). Ficheiros pequenos (~2KB functions.php) passam.
+- **Fix:** `curl --ftp-ssl-control` (TLS só no canal de CONTROLO, dados em plano) → upload OK. **SEMPRE verificar o tamanho no servidor após upload** (curl LIST) e reenviar se 0/parcial.
+
+## Fix staging RESOLVIDO (2026-07-08)
+
+## Fix staging RESOLVIDO (2026-07-08)
+O bug de links partidos em `wp.setuptech.dev/bodegas/` está **corrigido**. Todas as 7 páginas: hrefs `/bodegas/...`, destinos 200.
+
+### Acesso ao staging (NÃO é Docker isolado — é hosting partilhado real)
+- `wp.setuptech.dev` → **194.42.98.200** = **mesmo IP** que `s4835.lux1.stableserver.net`. O site vive no servidor partilhado (reseller `dominiosprofissionais.com`), conta com pasta por-site (`/bodegas/`, `/bigorna/`, `/clubio/`…).
+- **FTP/FTPS explícito:** host `ftp.dominiosprofissionais.com` porta 21, user `claude@wp.setuptech.dev`. **Password NÃO guardada aqui** (pedir ao Renato). Cliente curl: `curl --ssl-reqd -k -u '<user>:<pw>' ftp://.../bodegas/`. Raiz WP em `/bodegas/` (wp-load.php, wp-config.php, wp-content).
+- **wp-admin:** https://wp.setuptech.dev/bodegas/wp-admin/ · user `admin` (password fornecida pelo Renato) — **funciona**.
+- **Prefixo de tabelas DB = `wpif_`** (não `wp_`). Alvo dos fixes: `wpif_postmeta`.
+- Sem SSH/WP-CLI (shell partilhado off); DB não acessível de fora (host localhost). **Padrão que funcionou:** subir script PHP que faz `require wp-load.php` + `$wpdb`, disparar via HTTPS com `?key=<token>&mode=dry|run`, **apagar o script no fim**.
+
+### As 3 classes de URL root-relative (Elementor guarda URLs em 3 formatos distintos!)
+Uma migração para subpasta tem de corrigir **os 3** — o BSR default só apanha o 1º:
+1. **JSON url escapado** `"url":"\/shop\/"` — botões Elementor (footer post 46, home 38, enoturismo 34). 3 células, 15 URLs.
+2. **JSON url NÃO-escapado** `"url":"/shop/"` — header HFE (post 45) + La Bodega (33). Diferença = como o JSON foi importado. 2 células, 3 URLs.
+3. **Âncora HTML escapada** `href=\"\/shop\/\"` dentro de widgets Text Editor — cards + "ver todos" da home (post 38). 1 célula, 8 hrefs. Técnica protect-replace-restore p/ não duplo-prefixar.
+Itens de menu (`nav_menu_item` type=post_type) derivam URL do permalink → já corretos, não tocar. URLs absolutas (`http://.../bodegas/...`) intactas (não começam por `/`).
+
+### Nota
+- Instalei **Better Search Replace** (plugin) via wp-admin no início mas **NÃO o usei** (fiz via FTP+PHP) → **removido a pedido do Renato** (desactivado+apagado via `delete_plugins()`). Plugins no staging = mesmos da lista de 2026-06-24 (Akismet, AIO-WP-Migration+S3, Elementor, Hello Dolly, UAE, WooCommerce, WPForms Lite).
+
+### Sessão original 2026-06-24 — Conteúdo REAL end-to-end (10 produtos, prémios, 10 posts, contacto form, enoturismo, multimédia, footer) só com dados do site antigo; loja/single corrigidos; mobile via workflow; verificação Elementor+forms logado; **push para github.com/MirrasPT/Espanhol (main)** com dump DB+uploads. Assets em v0.5.2.
 
 ## Refresh 2026-06-29 (/init-project — re-scan, sem mudança de scope)
 Re-verificado o estado real no disco (projecto já inicializado no JOCA). Sem trabalho novo desde 2026-06-24:
 - Git: `MirrasPT/Espanhol` main, **1 commit squashed** (`a4b2507`), em sync com origin. Working tree limpo exceto `M CLAUDE.md` (uncommitted — apenas documentação: secções shortcodes/gotchas-Woo/repo-backup, conteúdo já reflectido nesta memória).
 - Snapshot DB+uploads presente (`snapshot/database/bodegas-docampo.sql` + `snapshot/uploads/`).
 - **Único facto novo:** export full-site `.wpress` (315 MB, 2026-06-25) criado na pasta-pai (ver Pendente → Deploy). Não houve deploy.
+
+## Refresh 2026-07-08 (/init-project em Mac — migração PC→Mac, sem mudança de scope)
+Projecto migrou de PC (Windows) para Mac. Nenhum trabalho de dev; só reconciliação de ambiente:
+- **Paths Windows→macOS** corrigidos (eram stale de `D:\Mega\…`): `directorio:` frontmatter + `Directório:` + `cd` docker + nota pasta-mãe nesta memória; `cd` + comando graphify (`python`→`python3`) em `website_wordpress/CLAUDE.md`.
+- **Portas JOCA** actualizadas nas notas de "não colidir": `7371/7372 + 7381/7382` (JOCA_UI/JOCA_OS antigos) → **JOCA OS 7491/7492** (realidade actual). Loja continua em 8090/8091.
+- **`~/CLAUDE.md`**: adicionada linha na tabela de projectos activos (faltava; aponta para `…/website_wordpress`).
+- **Duplicado MEGAsync removido:** pasta `Bodegas do Campo (Espanhol) (1)/` era conflito de sync, **conteúdo byte-idêntico** (`.wpress` igual, mesmos ficheiros; só diferia o `CLAUDE.md` por ser pré-refresh). Apagada → projecto 13 GB → **6,4 GB**.
+
+### Re-scan 2026-07-08 (2ª passagem /init-project — no-op)
+- Segunda corrida do `/init-project` no mesmo dia. **Nada mudou de scope.** CLAUDE.md do projecto (nav + paths macOS `python3` + localhost:8090) e `~/CLAUDE.md` (tabela) já em sync da 1ª passagem.
+- graphify re-indexado: **540 nós · 505 edges · 35 comunidades** (era 538/624/49 — drift menor, ok).
+- **⚠ Sem `.git` local:** o `website_wordpress/` NÃO tem repositório git (MEGAsync não sincroniza `.git` na migração PC→Mac). O remoto `github.com/MirrasPT/Espanhol` (main) continua a existir, mas para voltar a versionar localmente é preciso `git clone`/`git init` + re-vincular ao remoto. Não bloqueia dev (build é via Docker+WP-CLI); só afecta versionamento.

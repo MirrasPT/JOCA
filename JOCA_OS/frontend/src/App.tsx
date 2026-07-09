@@ -393,6 +393,8 @@ export default function App() {
 
   const handleOpenProject = useCallback((project: Project) => {
     setMainView('session');
+    // NÃO passar cwd: o Claude Code corre SEMPRE em JOCA_Brain (JOCA_LOGIC_ROOT). O contexto do projecto
+    // vem do /resume "path" (resumePath), não do cwd do shell. Ver memory/projects/joca.md.
     send({ type: 'create_session', resumePath: project.path, sessionName: project.name, projectId: project.id });
   }, [send]);
 
@@ -400,8 +402,8 @@ export default function App() {
     setMainView('session');
     const instruction = `Vamos criar uma skill. Para tal, usa o /create-skill para criar a skill "${skillName}" apenas para o projeto no path "${project.path}". Antes de iniciar, faz-me o questionário perguntando o que é e para que serve esta skill, e só depois de eu responder é que deves avançar com o ciclo de criação da skill.`;
     send({
+      // Sem cwd: Claude Code corre SEMPRE em JOCA_Brain; contexto vem do resumePath/instrução (path no texto).
       type: 'create_session',
-      cwd: project.path,
       resumePath: project.path,
       sessionName: `Criar Skill: ${skillName}`,
       projectId: project.id,

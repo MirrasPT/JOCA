@@ -24,6 +24,7 @@
 - [livro-de-elogios.md](projects/livro-de-elogios.md) — Plataforma (rebuild 2026): Laravel 13/PHP 8.4 + Filament v5 + React 19/Vite 8, multi-tenant multi-país
 - [livro-elogios-redes-sociais.md](projects/livro-elogios-redes-sociais.md) — Pipeline mensal de conteúdo social (Posts/Stories IG+FB), Lato + ilustrações laranja+roxo, galeria leredes.rfdev.pt
 - [stickers-premium.md](projects/stickers-premium.md) — Redesign de stickerspremium.com (loja vinil/decals auto, Shopify). Proposta template HTML/CSS/JS → Shopify. Conteúdo real extraído em content/
+- [joca-archive-mac-2026-07-08.md](projects/joca-archive-mac-2026-07-08.md) — Registo do JOCA antigo (Mac) arquivado+apagado em 2026-07-08, substituído pelo snapshot de migração MirrasPT/JOCA-OS
 ## Feedback
 <!-- Populated by /save (auto-extract) — processed sessions live in feedback/archive/ -->
 _(none pending — all processed)_
@@ -110,4 +111,8 @@ Processed 2026-05-31 (/upgrade-joca batch) — knowledge folded into skills/memo
 - `knowledge-ingest` (/know) · `automation-builder` · `personal-comms` (email/calendário, Fase 2/3) · `a11y-fixer` (aplica fixes WCAG)
 
 ## Tools
+- [clis.md](tools/clis.md) — inventário DEFINITIVO de CLIs externos (install + auth + usado-por); fonte de verdade p/ migrações de máquina
 - [mcps.md](tools/mcps.md) — MCP servers ligados (markitdown, playwright, comfy) + setup markitdown para /know
+
+## Knowledge
+- [joca-os-macos-setup.md](knowledge/joca-os-macos-setup.md) — Correr JOCA_OS em macOS: node-pty prebuild + spawn-helper +x, launchers, portas 7491/7492, JOCA_EXTRA_ROOTS (validado 2026-07-08)

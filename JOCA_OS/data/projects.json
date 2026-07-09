@@ -19,10 +19,10 @@
   {
     "id": "5026389d-b5b5-41af-99b6-4c37694b4bb1",
     "name": "Bigorna",
-    "path": "D:\\Mega\\Bigorna\\2026_Website_Bigorna",
+    "path": "/Users/renatoferreira/MEGA/Bigorna/Bigorna-Website",
     "color": "#84cc16",
     "order": 5,
-    "archived": true
+    "archived": false
   },
   {
     "id": "6bbf30e5-c6c7-48b0-89bc-60db47fc33d6",
@@ -60,9 +60,9 @@
   {
     "id": "154b321e-59cb-49dd-aa2f-c81cff09a71b",
     "name": "Bodegas do Campo (Espanhol)",
-    "path": "D:\\Mega\\Bodegas do Campo (Espanhol)",
+    "path": "/Users/renatoferreira/MEGA/Bodegas do Campo (Espanhol)/website_wordpress",
     "color": "#a98cff",
-    "archived": true,
+    "archived": false,
     "order": 2
   },
   {
@@ -76,7 +76,7 @@
   {
     "id": "164c8353-91d7-4161-a43b-4ab9c09b160c",
     "name": "LE",
-    "path": "D:\\Mega\\Livro_De_Elogios",
+    "path": "/Users/renatoferreira/MEGA/Livro_de_Elogios",
     "color": "#ff5000",
     "archived": false,
     "order": 0
@@ -112,5 +112,11 @@
     "color": "#84cc16",
     "archived": true,
     "order": 16
+  },
+  {
+    "id": "f246e864-c49d-4a04-b4be-781fc7de0c25",
+    "name": "Stickers Premium",
+    "path": "/Users/renatoferreira/MEGA/Stickers Premium",
+    "color": "#94a3b8"
   }
 ]

@@ -6,6 +6,10 @@ FRONTEND_PORT=7492
 URL="http://localhost:$FRONTEND_PORT"
 FRONTEND_VITE="$DIR/frontend/node_modules/.bin/vite"
 
+# File-browser roots beyond HOME. Default: whole filesystem (/) — parity with Windows all-drives.
+# Narrow by exporting JOCA_EXTRA_ROOTS first (colon-separated, e.g. "/Users:/Volumes").
+EXTRA_ROOTS="${JOCA_EXTRA_ROOTS:-/}"
+
 # Detect sibling JOCA_Brain
 LOGIC_DIR="$DIR/../JOCA_Brain"
 if [ -d "$LOGIC_DIR/.claude" ]; then
@@ -43,7 +47,7 @@ if [ $? -ne 0 ]; then
   echo "ERROR: Backend build failed. See /tmp/joca-backend-v2-build.log"
   exit 1
 fi
-nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
+nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" JOCA_EXTRA_ROOTS="$EXTRA_ROOTS" node dist/server.js \
   >> /tmp/joca-backend-v2.log 2>&1 < /dev/null &
 BACKEND_PID=$!
 disown $BACKEND_PID

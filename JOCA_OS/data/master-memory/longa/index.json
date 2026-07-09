@@ -355,5 +355,20 @@
       "laravel",
       "vite"
     ]
+  },
+  {
+    "id": "win-200",
+    "fromTs": 1782989697675,
+    "toTs": 1783328438537,
+    "turns": 8,
+    "title": "Turno de monitorização de workers JOCA (LE Plataforma, review LE, inbox/agenda)",
+    "tags": [
+      "JOCA",
+      "Livro de Elogios",
+      "LE_Plataforma",
+      "review",
+      "orquestração",
+      "resumo-matinal"
+    ]
   }
 ]

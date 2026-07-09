@@ -19,7 +19,7 @@ Gerir contas cPanel a partir do Windows via **API token** (sem password, revogá
 
 ## Setup (1 vez por conta)
 1. cPanel → **Security → Manage API Tokens → Create** (Full Access ou restrito).
-2. Guardar em `C:\Users\renat\.cpanel\<account>.json`:
+2. Guardar em `~/.cpanel/<account>.json`:
    ```json
    { "host": "s4835.lux1.stableserver.net", "port": 2083, "user": "renatoferreira", "primaryDomain": "renatoferreira.org", "token": "..." }
    ```

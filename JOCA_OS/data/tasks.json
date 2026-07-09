@@ -14,7 +14,7 @@
     ],
     "lastStatus": "ok",
     "createdAt": 1782897703627,
-    "updatedAt": 1782991906976,
+    "updatedAt": 1783585141438,
     "result": "A trabalhar sem bloqueios. Leu as 3 skills, verificou o calendário de julho, agora está a construir o plano e o copy real.\n\nResumo:\n- `0eaa6189...` (JOCA_Brain): recebeu o brief, skills lidas, `working`. Quando fechar notifico-te com o caminho do HTML.",
     "testerResult": "Arrancou bem. Worker `bd33bbe8...` está `working`, recebeu o brief completo com as 30 correcções e arrancou a auditoria (código + testes funcionais + regressões).\n\nResumo:\n- `bd33bbe8...` `LE_Plataforma` — **tester novo** a correr: auditoria de código (git diff, grep, leitura de ficheiros-chave) + testes funcionais dos 30 pontos + verificação de regressões. Quando terminar notifico-te com o relatório completo.\n- `a1b2ab53...` `LE_Plataforma` — ainda `working` na investigação do alerta Sentry `Route [login] not defined`.\n- `0eaa6189...` `JOCA_Brain` — `working` na campanha de Julho."
   },
@@ -34,21 +34,38 @@
     ],
     "lastStatus": "ok",
     "createdAt": 1782991803000,
-    "updatedAt": 1782991906978,
+    "updatedAt": 1783585141438,
     "result": "Recebido e a trabalhar. O worker `3ce72dfe...` (LE_Plataforma) já começou — leu a tarefa completa (16 pontos) e está a arrancar (thinking), sem menu preso. A sentinela de fim foi armada.\n\nResumo:\n- `3ce72dfe...` (LE_Plataforma): a executar os 16 pontos, vai ler as skills filament/laravel-specialist/laravel-react primeiro; estado `working`.\n- Saio agora; volto quando o worker terminar ou pedir uma escolha. Como são 16 pontos, isto vai levar tempo — se algum for irreversível (deploy/apagar) paro e pergunto-te.",
     "testerResult": "Confirmado: o worker `87f86326` (LE) recebeu a nova ordem e está a trabalhar (`working`, a processar a tarefa de revisão+teste). A survey \"How is Claude doing\" é overlay não-bloqueante (`awaitingChoice=false`), não requer acção.\n\nResumo:\n- `87f86326` (LE_Plano): a rever e testar \"Corrigir e melhorias LE\" com tester-code + tester-ui-ux; vai listar problemas sem corrigir. `working`.\n- `3ce72dfe` (LE_Plataforma): estava `working` — não toquei.\n\nVolto quando o worker terminar com o relatório de problemas."
   },
   {
-    "id": "e4e07757-a768-4687-8c18-ee11c67b2c10",
-    "title": "LE Plataforma Erros",
-    "description": "No Livro de Elogios Plataforma, Eu consigo ativer 4 loja num plano de 3, na primeira vez que ativei a 4, apareceu o alerta que pagava, mas depois consegui ativar 4 sem pagar.\nDepois de pagar 1 Loja posso ter sempre uma loja ativa (nao pago sempro que ativo, pago por 1 loja ativa), posso ate desativar uma e ativar outra, mas depois de pagar, fico sempre com uma online. mesmo que ative depois uma subscrição com 3 lojas, se ja tiver uma paga, passo a poder ter 4 (3 da subscrição + 1 paga) se cancelar a subscrição, passo a ter 1 paga (perco so as 3 da subscrição)",
-    "status": "a-definir",
+    "id": "a7be7bc0-7016-42ff-8288-052e4b399096",
+    "title": "Corrigir Loja",
+    "description": "Na paltaforma do livro de elogios, eu comprei uma loja com créditos, depois ativei um plano base, que premite ter 3 lojas. por defeito eu devia poder ter 4 lojas (1 que eu paguei com creditos + 3 do meu plano), atualmente ele so deixa ativar 3 na mesma, e a ativar a 4 pede creditos.",
+    "status": "concluida",
     "projectId": "164c8353-91d7-4161-a43b-4ab9c09b160c",
-    "order": 0,
+    "order": 3,
     "provider": "claude",
     "model": "opus",
-    "lastStatus": null,
-    "createdAt": 1783013125980,
-    "updatedAt": 1783013125980
+    "lastStatus": "ok",
+    "createdAt": 1783584049269,
+    "updatedAt": 1783585141439,
+    "result": "Worker aberto no LE, mas o brief ainda não apareceu no input (in:0 out:0 — CLI ainda a arrancar/resume). Vou deixar assentar; se ficar idle sem agir, reenvio o brief. O sistema re-invoca-me quando houver novidade.\n\nEstado:\n- **Bug LE (limite de lojas):** worker `0841b84d` aberto no projecto Livro de Elogios com o objectivo — diagnosticar porque é que \"1 loja comprada com créditos + plano de 3\" só permite 3 activas (deve ser 4). Modo: investigar causa raiz + corrigir no backend + teste do caso. Sem deploy/push.\n- LE `dc05371c` (teu terminal) está [working] — não lhe toquei.\n- Confirmo a entrega do brief e volto com o diagnóstico assim que ele arrancar.",
+    "testerResult": "Vi o estado. A tarefa **\"Corrigir Loja\"** ainda está **em-execução** — os 2 workers LE estão a meio da correcção, não há código final para rever ainda:\n\n- **`0841b84d`** — a corrigir o bug core: o check de quota conta *todas* as lojas activas contra `max_shops`, por isso uma loja comprada por créditos consome quota do plano. Está no `ShopActivationService.php`.\n- **`82272ad4`** — a mapear/documentar a regra canónica dos SLOTS (loja paga por créditos = 1 slot; plano abre N slots; slots comprados somam-se aos do plano; desactivar liberta o slot). Ainda em passagem read-only.\n\nRever/testar agora seria prematuro — apanharia código incompleto. Vou **esperar** que ambos terminem (o sistema re-chama-me quando ficarem idle) e só então lanço a review **read-only** com `tester-code` + `tester-ui-ux`, sem correcções automáticas (como preferes), e reporto problemas.\n\nEstado: review em espera; 2 workers LE a fecharem a correcção da Loja."
+  },
+  {
+    "id": "e1b5a3d4-ebf1-4c58-a7c1-00bff9676ef7",
+    "title": "Loja ativas",
+    "description": "na plataforma do livro de eleogios, a ativação de loja, é paga por créditos, que ira ativar um \"slot\" de loja ativa, isto quer dizer que se eu tiver uma loja ativa (paguei 10 creditos desta loja) e depois criar outra. posso desativar a que esta ativa, e ativar a segunda sem pagar. o \"slot\" nunca é por loja. Isto é igual com os planos. que por exemplo, o plano base abre 3 \"slots\", e posso as 3 slots ter mais slots que eu ja paguei/pago.",
+    "status": "concluida",
+    "projectId": "164c8353-91d7-4161-a43b-4ab9c09b160c",
+    "order": 2,
+    "provider": "claude",
+    "model": "opus",
+    "lastStatus": "ok",
+    "createdAt": 1783584255171,
+    "updatedAt": 1783585141438,
+    "result": "Worker `82272ad4` a arrancar (Claude Code a inicializar, o brief foi entregue). Dou-lhe tempo — o sistema re-invoca-me quando ficar idle.\n\n**Estado:**\n- Regra de slots registada e enviada ao worker novo `82272ad4` (projecto LE): slot = contentor de \"loja activa\" transferível, pago por créditos, nunca ligado a uma loja; planos abrem N slots (base=3) e créditos somam-se por cima.\n- Worker vai primeiro **mapear** a lógica actual (read-only) e reportar o diff proposto antes de tocar em produção.\n- Terminal LE `dc05371c` [working] do teu lado — não lhe toquei.\n\nEspero que arranque; volto quando tiver o mapeamento.",
+    "testerResult": "Confirmado — a mensagem submeteu e o worker `dc05371c` está agora a trabalhar (thinking high effort) na review read-only.\n\nResumo:\n- **Reutilizei** o terminal LE [idle] do utilizador (`dc05371c`) — não abri worker novo.\n- Objectivo dado: review + teste **read-only** da feature \"Lojas ativas\" (activação, contagem, regra plano gratuito), correr testes Pest/tsc, testar fluxo UI, reportar por severidade. Sem correcções.\n- Os outros 2 workers Led ([working]) ficaram intocados.\n\nWorker a arrancar. Volto quando terminar com o relatório de problemas."
   }
 ]

@@ -1,13 +1,5 @@
-description = """name: filament-builder"""
+description = """Use to scaffold a complete Filament (v4/v5) admin resource from an Eloquent model — form, table, infolist, relation managers, and policy. Triggered by: \"build filament resource\", \"scaffold filament\", \"generate admin for\", \"filament crud for\", \"make filament resource\", \"admin panel for this model\", \"filament resource from model\". Reads the model + migration, infers fields/relations/casts, generates idiomatic v5 code, and validates namespaces. Different from the filament skill (knowledge) — this agent does the full generation workflow."""
 developer_instructions = """
----
-name: filament-builder
-description: "Use to scaffold a complete Filament (v4/v5) admin resource from an Eloquent model — form, table, infolist, relation managers, and policy. Triggered by: \"build filament resource\", \"scaffold filament\", \"generate admin for\", \"filament crud for\", \"make filament resource\", \"admin panel for this model\", \"filament resource from model\". Reads the model + migration, infers fields/relations/casts, generates idiomatic v5 code, and validates namespaces. Different from the filament skill (knowledge) — this agent does the full generation workflow."
-skills: filament
-chain: tester-code
-tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
----
 
 Filament resource scaffolding specialist. Turns an Eloquent model into a complete, idiomatic Filament admin resource — form, table, infolist, relation managers, policy — following the project's existing conventions. Generates real code, then validates it (the v5 namespace traps cause silent 500s).
 
@@ -109,5 +101,6 @@ Next: register Policy / add to NavigationGroup / customize widgets?
 - Multi-tenant projects: never ship a select without `modifyQueryUsing` (data leak).
 - Match the project's existing resources' style — don't introduce a second convention.
 - Don't invent fields not in the model/migration. State every assumption.
-- Generate the Policy — an admin resource without authorization is a finding."""
+- Generate the Policy — an admin resource without authorization is a finding.
+"""
 name = "filament-builder"
