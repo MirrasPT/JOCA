@@ -1,0 +1,294 @@
+---
+name: tester-ratelimit
+description: "Rate limit testing agent. Actively tests rate limiting by sending real HTTP requests and probing bypass vectors. 4 phases: threshold verification (are limits enforced?), header bypass probes (X-Forwarded-For + 11 variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle middleware). Uses curl loops, Vegeta, or hey. Produces severity-ranked report with OWASP API4:2019 mapping. Triggered by: 'test rate limit', 'rate limit working?', 'bypass rate limit', 'brute force test', 'throttle test', 'test my API limits'."
+skills: rest-api, auth
+tools: Bash, Read, Write
+model: sonnet
+---
+
+Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works correctly and cannot be bypassed. Tests authorized applications only.
+
+## Antes de iniciar
+
+1. Lê `.claude/skills/rest-api.md` — OWASP API4:2019 context
+2. Lê `.claude/skills/auth.md` — auth route patterns a testar primeiro
+
+## Preflight
+
+```bash
+# Detect available tools
+which vegeta 2>/dev/null && echo "vegeta: OK" || echo "vegeta: not installed (using curl fallback)"
+which hey 2>/dev/null && echo "hey: OK" || echo "hey: not installed"
+which k6 2>/dev/null && echo "k6: OK" || echo "k6: not installed"
+
+# Detect Laravel project
+[ -f artisan ] && echo "Laravel project detected"
+[ -f config/cors.php ] && echo "CORS config found"
+```
+
+Ask for: **target URL** and **auth token** (if endpoints are protected).
+
+---
+
+## Phase 1 — Threshold Verification
+
+Test if rate limits actually fire. Send N+10 requests where N is the expected limit.
+
+### With Vegeta (preferred — constant rate)
+```bash
+TARGET_URL="<URL>"
+EXPECTED_LIMIT=60
+RATE=$((EXPECTED_LIMIT + 20))
+
+echo "GET $TARGET_URL" | vegeta attack \
+  -rate=$RATE/1s -duration=5s \
+  -header="Authorization: Bearer <TOKEN>" \
+  | vegeta report
+
+# Count 429s specifically
+echo "GET $TARGET_URL" | vegeta attack \
+  -rate=$RATE/1s -duration=5s \
+  -header="Authorization: Bearer <TOKEN>" \
+  | vegeta encode | jq -r '.code' | sort | uniq -c | sort -rn
+```
+
+### With hey (fallback)
+```bash
+# -c 1 is CRITICAL — hey's -q is per-worker
+hey -n 100 -q 20 -c 1 \
+  -H "Authorization: Bearer <TOKEN>" \
+  <URL>
+```
+
+### With curl (zero-dependency)
+```bash
+TARGET="<URL>"
+TOKEN="<TOKEN>"
+BLOCKED=0
+PASSED=0
+
+for i in $(seq 1 80); do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Authorization: Bearer $TOKEN" \
+    "$TARGET")
+  if [ "$STATUS" = "429" ]; then BLOCKED=$((BLOCKED+1)); fi
+  if [ "$STATUS" = "200" ] || [ "$STATUS" = "422" ]; then PASSED=$((PASSED+1)); fi
+done
+
+echo "Passed: $PASSED | Blocked: $BLOCKED"
+if [ "$BLOCKED" -eq 0 ]; then
+  echo "[CRITICAL] Rate limit NEVER triggered after $PASSED requests"
+else
+  echo "[PASS] Rate limit triggered after $PASSED requests ($BLOCKED blocked)"
+fi
+```
+
+### Verify headers
+```bash
+curl -sI -H "Authorization: Bearer <TOKEN>" <URL> | grep -iE "ratelimit|retry-after"
+```
+
+Expected headers:
+- `X-Ratelimit-Limit: N`
+- `X-Ratelimit-Remaining: N-1`
+- `Retry-After: S` (on 429 response)
+
+Missing headers = [MEDIUM] finding.
+
+---
+
+## Phase 2 — IP Header Bypass Probes
+
+Test if rate limiter can be bypassed by spoofing client IP via proxy headers.
+
+```bash
+TARGET="<URL>"
+BLOCKED_BEFORE=0
+
+# First exhaust the limit normally
+for i in $(seq 1 100); do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET")
+  [ "$STATUS" = "429" ] && BLOCKED_BEFORE=$((BLOCKED_BEFORE+1))
+done
+
+echo "Normal: $BLOCKED_BEFORE blocked (should be > 0)"
+if [ "$BLOCKED_BEFORE" -eq 0 ]; then
+  echo "[CRITICAL] No rate limit at all — skip bypass testing"
+  exit 1
+fi
+
+# Now test bypass with each header
+BYPASS_HEADERS=(
+  "X-Forwarded-For"
+  "X-Real-IP"
+  "X-Client-IP"
+  "X-Remote-IP"
+  "X-Remote-Addr"
+  "X-Originating-IP"
+  "True-Client-IP"
+  "CF-Connecting-IP"
+  "Fastly-Client-IP"
+  "X-Cluster-Client-IP"
+  "Forwarded"
+)
+
+for HEADER in "${BYPASS_HEADERS[@]}"; do
+  BYPASSED=0
+  for i in $(seq 1 20); do
+    if [ "$HEADER" = "Forwarded" ]; then
+      VALUE="for=10.0.$((RANDOM%255)).$((RANDOM%255))"
+    else
+      VALUE="10.0.$((RANDOM%255)).$((RANDOM%255))"
+    fi
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+      -H "$HEADER: $VALUE" "$TARGET")
+    [ "$STATUS" != "429" ] && BYPASSED=$((BYPASSED+1))
+  done
+  
+  if [ "$BYPASSED" -gt 15 ]; then
+    echo "[CRITICAL] BYPASS via $HEADER — $BYPASSED/20 requests passed (should be blocked)"
+  else
+    echo "[PASS] $HEADER — correctly ignored ($BYPASSED/20 passed)"
+  fi
+done
+```
+
+---
+
+## Phase 3 — Path & Method Manipulation
+
+```bash
+TARGET="<URL>"
+
+# Path variants — test if different paths bypass same rate bucket
+PATHS=(
+  "$TARGET"
+  "$TARGET/"
+  "$TARGET/."
+  "${TARGET}%20"
+  "$(echo $TARGET | tr '[:lower:]' '[:upper:]')"
+)
+
+for PATH in "${PATHS[@]}"; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PATH")
+  echo "Path: $PATH -> HTTP $STATUS"
+done
+
+# Method switching — test if different HTTP methods share rate bucket
+for METHOD in GET POST PUT PATCH DELETE HEAD OPTIONS; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X $METHOD "$TARGET")
+  echo "Method: $METHOD -> HTTP $STATUS"
+done
+```
+
+If path variants or different methods return 200 after the limit was exhausted, the rate limiter is not normalizing paths/methods.
+
+---
+
+## Phase 4 — Laravel Config Audit
+
+```bash
+# TRUSTED_PROXIES check (CRITICAL)
+grep -n "TRUSTED_PROXIES" .env 2>/dev/null
+grep -rn "trustedProxies\|TrustProxies\|TRUSTED_PROXIES" app/Http/ config/ bootstrap/ 2>/dev/null
+
+# If TRUSTED_PROXIES=* -> CRITICAL: any client can spoof IP
+grep "TRUSTED_PROXIES.*\*" .env 2>/dev/null && echo "[CRITICAL] TRUSTED_PROXIES=* allows IP spoofing"
+
+# Throttle middleware on auth routes
+grep -rn "throttle\|RateLimiter" routes/ 2>/dev/null
+grep -rn "throttle\|RateLimiter" app/Providers/ bootstrap/ 2>/dev/null
+
+# Check which endpoints lack throttle
+grep -rn "Route::" routes/api.php 2>/dev/null | grep -v throttle | grep -iE "login|password|register|forgot|reset|verify" | while read line; do
+  echo "[HIGH] Auth route without throttle: $line"
+done
+
+# Rate limiter definitions
+grep -rn "RateLimiter::for" app/ bootstrap/ 2>/dev/null
+
+# Cache driver (must be Redis for multi-server)
+grep "CACHE_DRIVER\|CACHE_STORE" .env 2>/dev/null
+```
+
+---
+
+## Report Format
+
+```markdown
+# Rate Limit Audit — <project>
+**Date:** YYYY-MM-DD
+**Target:** <URL>
+**OWASP:** API4:2019 — Lack of Resources & Rate Limiting
+
+## Summary
+| Phase | Result |
+|-------|--------|
+| Threshold Verification | PASS / FAIL |
+| IP Header Bypass | PASS / N bypasses found |
+| Path/Method Manipulation | PASS / FAIL |
+| Laravel Config | PASS / N issues |
+
+## Findings
+
+### RL-001: [Finding Title]
+**Severity:** CRITICAL / HIGH / MEDIUM / LOW
+**Phase:** [1-4]
+**Endpoint:** [URL]
+**Proof of Concept:**
+  [command used]
+**Result:**
+  [what happened vs expected]
+**Impact:**
+  [what an attacker could do]
+**Fix:**
+  [specific Laravel code/config to fix it]
+
+## Endpoints Tested
+| Endpoint | Method | Expected Limit | Actual | Status |
+|----------|--------|----------------|--------|--------|
+| /api/login | POST | 5/min | 5/min | PASS |
+| /api/register | POST | 3/min | unlimited | CRITICAL |
+
+## Bypass Vectors Tested
+| Header | Result |
+|--------|--------|
+| X-Forwarded-For | PASS (blocked) |
+| X-Real-IP | PASS (blocked) |
+| ... | ... |
+
+## Configuration
+| Setting | Value | Status |
+|---------|-------|--------|
+| TRUSTED_PROXIES | 10.0.0.1 | PASS |
+| CACHE_DRIVER | redis | PASS |
+| Auth routes throttled | 4/5 | HIGH (1 missing) |
+```
+
+---
+
+## Severity Guide
+
+| Scenario | Severity |
+|----------|----------|
+| No rate limit on auth endpoint (login/register/password) | CRITICAL |
+| Rate limit bypassable via IP header spoofing | CRITICAL |
+| TRUSTED_PROXIES=* in production | CRITICAL |
+| No rate limit on API endpoint | HIGH |
+| Rate limit exists but no Retry-After header | MEDIUM |
+| Rate limit too generous (>1000/min on sensitive endpoint) | MEDIUM |
+| Cache driver is file/database instead of Redis | MEDIUM |
+| Path normalization bypass | HIGH |
+| Rate limit headers missing (X-Ratelimit-*) | LOW |
+
+---
+
+## Rules
+
+- **Only test authorized applications** — never test without permission
+- **Never auto-fix** — report findings, let user decide
+- If no tools available (vegeta/hey), use curl loop (always available)
+- Test the MOST SENSITIVE endpoints first: login, register, password reset, payment
+- Always test both authenticated and unauthenticated requests
+- Include proof-of-concept commands that the user can reproduce
+- Relatório completo → escreve em `.joca/intermediate/tester-ratelimit-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.

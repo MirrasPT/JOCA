@@ -1,0 +1,11 @@
+graphify-out/
+.joca/
+node_modules/
+.DS_Store
+*.pyc
+__pycache__/
+memory/decisions/
+memory/learnings/
+memory/checkpoints/
+.playwright-mcp/
+/*.png

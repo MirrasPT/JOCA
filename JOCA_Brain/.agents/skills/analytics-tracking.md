@@ -1,0 +1,287 @@
+---
+name: analytics-tracking
+description: "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking, GA4, Google Analytics, conversion tracking, event tracking, UTM parameters,."
+metadata:
+  version: 1.1.0
+---
+
+# Analytics Tracking
+
+Expert in analytics implementation and measurement. Sets up tracking that provides actionable insights for marketing and product decisions.
+
+**Nota JOCA:** This skill covers tracking *implementation* (event setup, GTM, UTM, tracking plan). For GA4 *queries and reports* use the `google-analytics` skill in `tools/`.
+
+## Initial Assessment
+
+**Check product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking questions. Use that context; only ask for info not covered.
+
+Before implementing, understand:
+
+1. **Business Context** - What decisions will this data inform? Key conversions?
+2. **Current State** - What tracking exists? What tools in use?
+3. **Technical Context** - Tech stack? Privacy/compliance requirements?
+
+---
+
+## Core Principles
+
+### 1. Track for Decisions, Not Data
+- Every event should inform a decision
+- Avoid vanity metrics
+- Quality > quantity of events
+
+### 2. Start with the Questions
+- What do you need to know?
+- What actions follow from this data?
+- Work backwards to required tracking
+
+### 3. Name Things Consistently
+- Naming conventions matter
+- Establish patterns before implementing
+- Document everything
+
+### 4. Maintain Data Quality
+- Validate implementation
+- Monitor for issues
+- Clean data > more data
+
+---
+
+## Tracking Plan Framework
+
+### Structure
+
+```
+Event Name | Category | Properties | Trigger | Notes
+---------- | -------- | ---------- | ------- | -----
+```
+
+### Event Types
+
+| Type | Examples |
+|------|----------|
+| Pageviews | Automatic, enhanced with metadata |
+| User Actions | Button clicks, form submissions, feature usage |
+| System Events | Signup completed, purchase, subscription changed |
+| Custom Conversions | Goal completions, funnel stages |
+
+---
+
+## Event Naming Conventions
+
+### Format: Object-Action
+
+```
+signup_completed
+button_clicked
+form_submitted
+article_read
+checkout_payment_completed
+```
+
+### Rules
+- Lowercase with underscores
+- Be specific: `cta_hero_clicked` vs `button_clicked`
+- Include context in properties, not event name
+- No spaces or special characters
+- Document decisions
+
+---
+
+## Essential Events
+
+### Marketing Site
+
+| Event | Properties |
+|-------|------------|
+| cta_clicked | button_text, location |
+| form_submitted | form_type |
+| signup_completed | method, source |
+| demo_requested | - |
+
+### Product/App
+
+| Event | Properties |
+|-------|------------|
+| onboarding_step_completed | step_number, step_name |
+| feature_used | feature_name |
+| purchase_completed | plan, value |
+| subscription_cancelled | reason |
+
+---
+
+## Event Properties
+
+### Standard Properties
+
+| Category | Properties |
+|----------|------------|
+| Page | page_title, page_location, page_referrer |
+| User | user_id, user_type, account_id, plan_type |
+| Campaign | source, medium, campaign, content, term |
+| Product | product_id, product_name, category, price |
+
+### Rules
+- Use consistent property names
+- Include relevant context
+- Don't duplicate automatic properties
+- No PII in properties
+
+---
+
+## GA4 Implementation
+
+### Quick Setup
+
+1. Create GA4 property and data stream
+2. Install gtag.js or GTM
+3. Enable enhanced measurement
+4. Configure custom events
+5. Mark conversions in Admin
+
+### Custom Event Example
+
+```javascript
+gtag('event', 'signup_completed', {
+  'method': 'email',
+  'plan': 'free'
+});
+```
+
+---
+
+## Google Tag Manager
+
+### Container Structure
+
+| Component | Purpose |
+|-----------|---------|
+| Tags | Code that executes (GA4, pixels) |
+| Triggers | When tags fire (page view, click) |
+| Variables | Dynamic values (click text, data layer) |
+
+### Data Layer Pattern
+
+```javascript
+dataLayer.push({
+  'event': 'form_submitted',
+  'form_name': 'contact',
+  'form_location': 'footer'
+});
+```
+
+---
+
+## UTM Parameter Strategy
+
+### Standard Parameters
+
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| utm_source | Traffic source | google, newsletter |
+| utm_medium | Marketing medium | cpc, email, social |
+| utm_campaign | Campaign name | spring_sale |
+| utm_content | Differentiate versions | hero_cta |
+| utm_term | Paid search keywords | running+shoes |
+
+### Naming Rules
+- Lowercase everything
+- Use underscores or hyphens consistently
+- Be specific but concise: `blog_footer_cta`, not `cta1`
+- Document all UTMs in a spreadsheet
+
+---
+
+## Debugging and Validation
+
+### Testing Tools
+
+| Tool | Use For |
+|------|---------|
+| GA4 DebugView | Real-time event monitoring |
+| GTM Preview Mode | Test triggers before publish |
+| Tag Assistant | Verify GA4 tags firing |
+
+### Validation Checklist
+
+- [ ] Events firing on correct triggers
+- [ ] Property values populating correctly
+- [ ] No duplicate events
+- [ ] Works across browsers and mobile
+- [ ] Conversions recorded correctly
+- [ ] No PII leaking
+
+### Common Issues
+
+| Issue | Check |
+|-------|-------|
+| Events not firing | Trigger config, GTM loaded |
+| Wrong values | Variable path, data layer structure |
+| Duplicate events | Multiple containers, trigger firing twice |
+
+---
+
+## Privacy and Compliance
+
+### Requirements
+- Cookie consent required in EU/UK/CA
+- No PII in analytics properties
+- Configure data retention settings
+- Provide user deletion capabilities
+
+### Implementation
+- Use consent mode (wait for consent)
+- IP anonymization
+- Collect only what you need
+- Integrate with consent management platform
+
+---
+
+## Output: Tracking Plan Document
+
+```markdown
+# [Site/Product] Tracking Plan
+
+## Overview
+- Tools: GA4, GTM
+- Last updated: [Date]
+
+## Events
+
+| Event Name | Description | Properties | Trigger |
+|------------|-------------|------------|---------|
+| signup_completed | User completes signup | method, plan | Success page |
+
+## Custom Dimensions
+
+| Name | Scope | Parameter |
+|------|-------|-----------|
+| user_type | User | user_type |
+
+## Conversions
+
+| Conversion | Event | Counting |
+|------------|-------|----------|
+| Signup | signup_completed | Once per session |
+```
+
+---
+
+## Task-Specific Questions
+
+1. What tools are you using (GA4, Mixpanel, etc.)?
+2. What key actions do you want to track?
+3. What decisions will this data inform?
+4. Who implements -- dev team or marketing?
+5. Are there privacy/consent requirements?
+6. What's already tracked?
+
+---
+
+## Related Skills
+
+- **ab-test-setup**: For experiment tracking
+- **seo**: For organic traffic analysis
+- **page-cro**: For conversion optimization (uses this data)
+- **google-analytics**: Para queries e relatórios GA4 (em tools/)

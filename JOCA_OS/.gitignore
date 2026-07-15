@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.env
+.env.*
+# Runtime + personal state: projects, settings, persisted Master chat, and the 3-layer
+# conversational memory (curta/longa/diário). Never commit — local-only per machine.
+data/
+backend/data/

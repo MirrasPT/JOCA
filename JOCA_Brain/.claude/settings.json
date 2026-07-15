@@ -1,0 +1,86 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/check-freeze.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/check-tdd.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/check-careful.js\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/session-intake.js\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/prompt-triage.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "bash \"<JOCA_ROOT>/JOCA_Brain/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/skill-lint.js\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/stop-checkpoint.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/auto-test-dispatch.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

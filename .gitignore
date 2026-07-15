@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.*
+graphify-out/
+package-lock.json
+# Runtime + personal state (projects, settings, Master chat, 3-layer memory).
+# Local-only per machine — never commit. Mirrors JOCA_OS/.gitignore.
+JOCA_OS/data/
+JOCA_OS/backend/data/
+JOCA_Brain/temp_audio/
+rename-to-brain.bat
+# Local per-machine Claude Code settings (permissions, local overrides) — never commit.
+# Do NOT rely on a global gitignore for this: it must be enforced by the repo itself.
+**/.claude/settings.local.json
+.claude/scheduled_tasks.lock
+**/.playwright-mcp/

@@ -1,0 +1,337 @@
+/* ─── Master tasks board ──────────────────────────────────────────
+   4º bloco do Master: mini-Kanban recolhível, vive no .mc-body ao lado
+   do StatRail. Mesma superfície bento dos outros blocos (--surface-panel,
+   --border-bento, --radius-bento, --shadow-bento). Tokens vêm de App.css. */
+
+.mtb {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-bento);
+  border-radius: var(--radius-bento);
+  box-shadow: var(--shadow-bento);
+}
+
+/* ─── Recolhido: barra fina vertical ──────────────────────────── */
+.mtb--collapsed {
+  width: 48px;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) 0;
+}
+.mtb-rail-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.mtb-rail-btn:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+.mtb-rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mtb-rail-btn svg { width: 15px; height: 15px; }
+.mtb-rail-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mtb-rail-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin-top: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+}
+
+/* Duplo-chevron do toggle: mesma forma aberto/recolhido, só roda (aponta para dentro/fora). */
+.mtb-chevron { display: inline-grid; place-items: center; transition: transform var(--t-fast); }
+.mtb-chevron--flip { transform: rotate(180deg); }
+
+/* ─── Cabeçalho ────────────────────────────────────────────────── */
+.mtb-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--border-faint);
+}
+.mtb-head-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+}
+.mtb-head-count {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-faint);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* Botões de acção do cabeçalho (+ novo · recolher). O primeiro empurra os restantes p/ a direita. */
+.mtb-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.mtb-icon-btn + .mtb-icon-btn { margin-left: 0; }
+.mtb-icon-btn:first-of-type { margin-left: auto; }
+.mtb-icon-btn:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+.mtb-icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mtb-icon-btn.is-active { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+.mtb-icon-btn svg { width: 15px; height: 15px; }
+
+/* ─── Mini-form de criação ─────────────────────────────────────── */
+.mtb-form {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+  background: var(--surface-soft);
+}
+.mtb-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  padding: 7px 9px;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: 12.5px;
+}
+.mtb-input::placeholder { color: var(--text-ghost); }
+.mtb-input:focus { outline: none; border-color: var(--accent-border); background: var(--bg-card-hover); }
+.mtb-textarea { resize: vertical; min-height: 34px; line-height: 1.4; }
+.mtb-select { cursor: pointer; }
+.mtb-form-row { display: flex; gap: 6px; align-items: stretch; }
+.mtb-form-row .mtb-select { flex: 1; min-width: 0; }
+.mtb-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.mtb-attach-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+.mtb-attach-btn:disabled { opacity: 0.6; cursor: progress; }
+.mtb-attach-btn svg { width: 13px; height: 13px; }
+.mtb-create {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.mtb-create:hover:not(:disabled) { opacity: 0.9; }
+.mtb-create:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ─── Chips de anexos (form + cartão) ──────────────────────────── */
+.mtb-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.mtb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+.mtb-chip:hover { color: var(--red); border-color: var(--red); }
+.mtb-chip--static { cursor: default; }
+.mtb-chip--static:hover { color: var(--text-dim); border-color: var(--border-subtle); }
+.mtb-chip svg { width: 10px; height: 10px; flex-shrink: 0; }
+.mtb-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+.mtb-chip-x { flex-shrink: 0; opacity: 0.7; font-size: 9px; }
+.mtb-card-chips { margin-top: 6px; padding-left: 16px; }
+
+/* ─── Colunas ──────────────────────────────────────────────────── */
+.mtb-cols {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.mtb-cols::-webkit-scrollbar { width: 7px; }
+.mtb-cols::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
+
+.mtb-col { display: flex; flex-direction: column; gap: 7px; }
+.mtb-col-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-faint);
+}
+.mtb-col-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.mtb-col-num {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-align: center;
+  color: var(--text-ghost);
+  font-variant-numeric: tabular-nums;
+}
+.mtb-col-body { display: flex; flex-direction: column; gap: 6px; }
+.mtb-col-empty {
+  margin: 0;
+  padding: 3px 0 4px;
+  font-size: 12px;
+  color: var(--text-ghost);
+  text-align: center;
+}
+
+/* ─── Cartão minúsculo ─────────────────────────────────────────── */
+.mtb-card {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.mtb-card:hover { border-color: var(--accent-border); background: var(--bg-card-hover); }
+.mtb-card:hover .mtb-card-actions { opacity: 1; }
+.mtb-card--busy { opacity: 0.6; }
+.mtb-card-row { display: flex; align-items: center; gap: 8px; }
+.mtb-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text-normal);
+}
+.mtb-card-actions {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: opacity var(--t-fast);
+}
+.mtb-act {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.mtb-act svg { width: 13px; height: 13px; }
+.mtb-act:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
+.mtb-act:disabled { opacity: 0.5; cursor: not-allowed; }
+.mtb-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ─── Dots de status ───────────────────────────────────────────── */
+.mtb-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--text-ghost);
+}
+.mtb-dot--a-definir { background: var(--text-ghost); }
+.mtb-dot--a-executar { background: var(--accent-amber); }
+.mtb-dot--em-execucao {
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--accent-glow);
+  animation: mtb-pulse 1.4s ease-out infinite;
+}
+.mtb-dot--concluida { background: var(--status-idle, #4ade80); }
+.mtb-dot--arquivada { background: var(--text-ghost); }
+.mtb-dot--error { background: var(--red, #f06a6a); }
+
+@keyframes mtb-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--accent-glow); }
+  70%  { box-shadow: 0 0 0 5px rgba(255,69,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,69,0,0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mtb-dot--em-execucao { animation: none; }
+  .mtb-chevron { transition: none; }
+}
+
+/* ─── Responsive — esconde junto com o rail em ecrãs estreitos ─── */
+@media (max-width: 1080px) {
+  .mtb { display: none; }
+}

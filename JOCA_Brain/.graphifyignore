@@ -1,0 +1,13 @@
+estado.md
+memory/projects/
+memory/feedback/
+graphify-out/
+node_modules/
+vendor/
+dist/
+.git/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+.venv/
