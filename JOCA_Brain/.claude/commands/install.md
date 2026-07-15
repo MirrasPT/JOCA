@@ -159,19 +159,39 @@ Em que areas estas a aprender ou tens menos experiencia? (selecciona todas as qu
 [ ] Outro: ___
 ```
 
+**Q-SOUL-7 — O que te irrita** *(multi-select — lista com checkboxes)*
+```
+O que te faz perder a paciencia com um assistente? (selecciona todas as que se aplicam)
+[ ] Verbosidade / respostas longas de mais
+[ ] Repetir o que ja foi dito
+[ ] Pedir confirmacao a toda a hora
+[ ] Hedging ("talvez", "pode ser que")
+[ ] Mudar codigo que nao foi pedido
+[ ] Outro: ___
+```
+
 ### Aplicar Calibracao
 
-Apos as respostas, ler `memory/soul.md` e substituir os placeholders:
+Apos as respostas, ler `memory/soul.md` e substituir os placeholders da seccao
+**User Alignment**. Os nomes abaixo sao os que existem literalmente no ficheiro —
+confirmar com `grep -o '<[A-Z_]*>' memory/soul.md` antes de substituir:
 
 | Placeholder | Valor |
 |-------------|-------|
-| `<USER_NAME>` | Q1 (Nome) |
-| `<USER_ROLE>` | Q2 (Papel) |
-| `<COMMUNICATION_MODE>` | Q-SOUL-2 (full / lite / normal) |
-| `<USER_STRENGTHS>` | Q-SOUL-5 (lista separada por virgula) |
-| `<USER_LEARNING_AREAS>` | Q-SOUL-6 (lista separada por virgula) |
-| `<STRENGTH_AREA>` | Primeiro item de Q-SOUL-5 |
-| `<LEARNING_AREA>` | Primeiro item de Q-SOUL-6 |
+| `<YOUR_NAME>` | Q1 (Nome) |
+| `<YOUR_ROLE>` | Q2 (Papel) |
+| `<YOUR_STRENGTHS>` | Q-SOUL-5 (lista separada por virgula) |
+| `<YOUR_LEARNING_AREAS>` | Q-SOUL-6 (lista separada por virgula) |
+| `<STRONG_DOMAIN>` | Primeiro item de Q-SOUL-5 |
+| `<LEARNING_DOMAIN>` | Primeiro item de Q-SOUL-6 |
+| `<YOUR_FRUSTRATION_TRIGGERS>` | Q-SOUL-7 (lista separada por virgula) |
+
+Substituir tambem o titulo `## User Alignment — <template, fill on first run>` por
+`## User Alignment — <nome do utilizador>` e apagar o comentario HTML de instrucoes
+que fica logo abaixo (ja cumpriu a funcao).
+
+O modo de comunicacao (Q-SOUL-2) **nao** e um placeholder — vai no bloco
+`Calibration Parameters` abaixo, no campo `communication_mode`.
 
 Actualizar seccao Calibration Parameters:
 
@@ -194,7 +214,7 @@ OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
 
 ## FASE 2 — Areas de Trabalho
 
-Areas globais que determinam quais skills ficam activas. O JOCA tem **133 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
+Areas globais que determinam quais skills ficam activas. O JOCA tem **127 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
 
 `AskUserQuestion`:
 ```
@@ -457,7 +477,7 @@ SOUL
   Autonomia: [nivel] · Comunicacao: [modo] · Erros: [comportamento] · Auto-test: [sim/nao]
   Fortes: [lista] · A aprender: [lista]
 
-SKILLS (133 — trigger system RFC 2119)
+SKILLS (127 — trigger system RFC 2119)
   Base:  caveman, karpathy-guidelines, agent-context, create-skill
   [categoria]: [lista]
 
@@ -510,7 +530,7 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 
 ## JOCA
 Toolkit instalado em: [caminho_joca]
-Skills activas: 133 (trigger system RFC 2119 — activacao automatica por relevancia)
+Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
 Comandos: /install, /init-project, /resume, /save, /create-skill, /sync-questionnaires, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
 Geracao de imagens: [motores seleccionados]
 
@@ -823,7 +843,36 @@ Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
 ### 7. settings.json do projecto
 
-Verificar que `<caminho_joca>/.claude/settings.json` tem os **10 hooks** configurados. Substituir `<BRAIN>` pelo caminho absoluto do JOCA_Brain instalado (ex.: `<JOCA_ROOT>/JOCA_Brain`) — **paths absolutos porque no Windows o cwd dos hooks não é garantidamente a raiz do repo**, e paths relativos falham em silêncio.
+**PASSO OBRIGATORIO — sem isto os hooks nao correm.**
+
+O `JOCA_Brain/.claude/settings.json` vem com os **10 hooks** a apontar para o placeholder
+`<JOCA_ROOT>`. Substituir **todas** as ocorrencias pelo caminho absoluto onde o JOCA foi
+clonado (a pasta que contem `JOCA_Brain/`), sem barra final:
+
+```bash
+# macOS / Linux
+JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # ou o caminho escolhido na FASE 0
+sed -i '' "s|<JOCA_ROOT>|$JOCA_ROOT|g" JOCA_Brain/.claude/settings.json
+```
+```powershell
+# Windows
+$JOCA_ROOT = "C:/Users/<utilizador>/Desktop/JOCA"   # caminho real, com barras /
+(Get-Content JOCA_Brain\.claude\settings.json -Raw) -replace '<JOCA_ROOT>', $JOCA_ROOT |
+  Set-Content JOCA_Brain\.claude\settings.json -NoNewline
+```
+
+Verificar (tem de dar **0** e o JSON tem de continuar valido):
+```bash
+grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json    # 0
+node -e "JSON.parse(require('fs').readFileSync('JOCA_Brain/.claude/settings.json','utf8')); console.log('JSON ok')"
+```
+
+**Porque absolutos:** no Windows o cwd dos hooks nao e garantidamente a raiz do repo e a
+variavel `$CLAUDE_PROJECT_DIR` pode vir vazia (alem de os hooks poderem correr em `cmd`, que
+nao expande `$VAR`). Paths relativos falham **em silencio** — o hook nao corre e nao ha erro.
+Usar `/` mesmo em Windows.
+
+⚠ Se mudares a pasta do JOCA de sitio, tens de repetir esta substituicao.
 
 ```json
 {
@@ -964,7 +1013,7 @@ Executar `/create-skill [nome]` para cada skill nova aprovada na FASE 2.
 OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
-OK Skills: 133 configuradas (RFC 2119 trigger system)
+OK Skills: 127 configuradas (RFC 2119 trigger system)
 OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
 OK JOCA_OS: instalado (backend :7371, frontend :7372)[ · Windows: skill joca-os-windows aplicada]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)

@@ -25,28 +25,33 @@ JOCA/
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
 │       ├── commands/        <- 26 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 40 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 133 skills flat (.md) — on-demand loading
+│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 127 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
-└── JOCA_OS/                 <- Interface Visual (browser)
+└── JOCA_OS/                 <- Interface: chat Master + terminais multi-sessao
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- projects.json, project-memory.json
+    ├── data/                <- estado local (projectos, chat, memoria) — nunca commitado
     ├── start.sh             <- launcher macOS/Linux
     ├── start.bat            <- launcher Windows
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**199 componentes:** 133 skills + 40 agents + 26 commands.
+**189 componentes:** 127 skills + 36 agents + 26 commands.
 
 ---
 
-## JOCA_OS — Interface Visual
+## JOCA_OS — Master + Interface Visual
 
-Dashboard browser com terminal multi-sessao, file browser, toolkit panel e notificacoes.
+Um chat orquestrador (o **Master**) que comanda N terminais Claude Code por linguagem
+natural, sobre um dashboard browser com terminais multi-sessao, file browser e toolkit panel.
+
+- **Master:** descreve o objectivo; ele decompoe, abre os terminais e acompanha ate ao fim
+- **Cerebro provider-agnostico:** Claude Agent SDK por omissao (subscricao), Ollama como fallback
+- **Automacoes + Kanban:** tarefas em cron e quadro de trabalho que o Master puxa sozinho
 
 - **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain status em tempo real
@@ -84,7 +89,7 @@ bash JOCA_OS/start.sh
 JOCA_OS\start.bat
 ```
 
-Backend em `http://localhost:7371`, interface em `http://localhost:7372`.
+Backend em `http://localhost:7491`, interface em `http://localhost:7492`.
 
 ### Actualizar o JOCA
 
@@ -110,7 +115,7 @@ Para ligar um projecto existente:
 
 ---
 
-## Skills (133)
+## Skills (127)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
@@ -161,7 +166,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 
 ---
 
-## Agents (40)
+## Agents (36)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
