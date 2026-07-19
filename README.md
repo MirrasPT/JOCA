@@ -32,10 +32,10 @@ JOCA/
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
 │       └── scripts/         <- statusline, compile-bridges, build-skill-index
 │
-└── JOCA_OS/                 <- Interface: chat Master + terminais multi-sessao
+└── JOCA_OS/                 <- Interface: terminais multi-sessao + automacoes/tarefas
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- estado local (projectos, chat, memoria) — nunca commitado
+    ├── data/                <- estado local (projectos, definicoes, tarefas) — nunca commitado
     ├── start.sh / start.bat <- launchers cross-platform
     └── stop.sh / stop.bat   <- stop scripts
 ```
@@ -44,18 +44,19 @@ JOCA/
 
 ---
 
-## JOCA_OS — Master + Interface Visual
+## JOCA_OS — Interface Visual
 
-Um chat orquestrador (o **Master**) que comanda N terminais Claude Code por linguagem natural, sobre um dashboard browser com terminais multi-sessao, file browser, toolkit panel e rate limits em tempo real.
+Um dashboard browser com terminais Claude Code multi-sessao, file browser, toolkit panel e rate
+limits em tempo real — com automacoes e um quadro de tarefas que correm sozinhos em workers
+dedicados, sem precisares de estar a olhar.
 
-### Master — orquestracao por linguagem natural
+### Automacoes + Tarefas — trabalho em background
 
-- **Chat orquestrador:** descreve o objectivo em linguagem natural; o Master decompoe, abre os terminais que precisar, despacha o brief a cada um e acompanha ate ao fim
-- **Cerebro provider-agnostico:** Claude Agent SDK por omissao (corre na subscricao, custo zero), com Ollama local como fallback e bridge para Codex
+- **Automacoes:** cria por formulario, corre em cron (diario/semanal/intervalo); cada automacao abre um worker dedicado (terminal real), executa a ordem e o worker fica aberto com o resultado — recebes uma notificacao no fim
+- **Tarefas / Kanban:** quadro de 5 colunas (A Definir → A Executar → Em Execucao → Concluida → Arquivada); as tarefas movem-se sozinhas pelo quadro conforme o trabalho avanca
+- **Um worker por projecto:** tarefas do mesmo projecto correm em SEQUENCIA no mesmo worker (nunca em paralelo — nao se pisam); o worker carrega o contexto do projecto (`/resume` da pasta) antes da primeira tarefa
+- **Supervisao silenciosa:** um juiz SDK (sem ferramentas) classifica cada execucao — ok, erro, ou bloqueada numa pergunta; nesse caso recebes uma notificacao para ir responder ao terminal e a fila espera por ti
 - **Workers visiveis:** cada worker e um terminal PTY real que podes ler e assumir a qualquer momento — nao ha caixa preta
-- **Memoria em 3 camadas:** curta (contexto vivo), longa (arquivo) e diario — o Master lembra-se entre sessoes
-- **Automacoes:** cria por linguagem natural ou por formulario, corre em cron, com input em runtime e confirmacao em passos irreversiveis
-- **Tarefas / Kanban:** quadro de 5 colunas; o Master puxa trabalho de "A Executar" sozinho e testa cada entrega
 
 ### Interface
 

@@ -1,7 +1,8 @@
 // AutomationsView — v1 panel. Lists automations (enable toggle, next/last run, run-now, delete) and
-// a "new automation" form. The common shape is a scheduled Master task delivered to the Master chat:
-// nodes = [{master, objective}, {message, {{input}}}]. The runtime supports more node types; the
-// visual node editor (n8n-style canvas) comes next — this form generates the 80% case.
+// a "new automation" form. The common shape is a scheduled worker task: nodes = [{worker, objective}]
+// — a dedicated Claude Code worker executes it and stays open with the result. The runtime supports
+// more node types; the visual node editor (n8n-style canvas) comes next — this form generates the
+// 80% case.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import './AutomationsView.css';
 
@@ -22,13 +23,12 @@ interface Schedule { kind: ScheduleKind; time?: string; weekday?: number; everyM
 interface AutomationNode { id: string; type: string; objective?: string; text?: string; title?: string }
 interface Automation {
   id: string; name: string; enabled: boolean;
-  provider?: string; model?: string; skills?: string[]; requireConfirm?: boolean;
+  model?: string; skills?: string[]; requireConfirm?: boolean;
   trigger: { type: 'schedule' | 'manual'; schedule?: Schedule };
   nodes: AutomationNode[];
   nextRunAt?: number | null; lastRunAt?: number | null;
   lastStatus?: 'ok' | 'error' | 'running' | null; lastResult?: string;
 }
-interface ProviderInfo { id: string; label: string; available: boolean; wired: boolean }
 interface JocaItem { name: string; description?: string; kind: 'skill' | 'agent' }
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -45,7 +45,6 @@ function describeTrigger(a: Automation): string {
 
 export function AutomationsView({ refreshKey }: { refreshKey: number }) {
   const [items, setItems] = useState<Automation[]>([]);
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -53,7 +52,6 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
   const [name, setName] = useState('');
   const [objective, setObjective] = useState('');
   const [optimizing, setOptimizing] = useState(false);
-  const [provider, setProvider] = useState('claude');
   const [model, setModel] = useState('');
   const [jocaItems, setJocaItems] = useState<JocaItem[]>([]);
   const [skillQuery, setSkillQuery] = useState('');
@@ -81,10 +79,6 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
     } catch { /* ignore */ } finally { setOptimizing(false); }
   }, [objective, optimizing]);
   useEffect(() => { reload(); }, [reload, refreshKey]);
-  // Which agents can run an automation (Claude/Codex/Ollama wired; Antigravity blocked → disabled).
-  useEffect(() => {
-    fetch('/master-providers').then((r) => r.json()).then(setProviders).catch(() => setProviders([]));
-  }, []);
   // JOCA_Brain skills + agents, for the "skills a usar" picker (don't make the user memorise names).
   useEffect(() => {
     fetch('/joca-items').then((r) => r.json()).then((o) => {
@@ -109,20 +103,19 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
     const body = {
       name: name.trim(),
       enabled: true,
-      provider,
-      model: provider === 'claude' && model.trim() ? model.trim() : undefined,
+      model: model.trim() ? model.trim() : undefined,
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
       trigger: { type: triggerType, schedule },
       nodes: [
-        { type: 'master', objective: objective.trim() },
+        { type: 'worker', objective: objective.trim() },
         { type: 'message', text: '{{input}}', title: name.trim() },
       ],
     };
     await fetch('/automations', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     setName(''); setObjective(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setCreating(false);
     reload();
-  }, [name, objective, provider, model, selectedSkills, requireConfirm, triggerType, kind, time, weekday, everyMinutes, reload]);
+  }, [name, objective, model, selectedSkills, requireConfirm, triggerType, kind, time, weekday, everyMinutes, reload]);
 
   const toggle = useCallback(async (a: Automation) => {
     await fetch(`/automations/${a.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ enabled: !a.enabled }) });
@@ -149,7 +142,7 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
       <header className="av-header">
         <div>
           <h1>Automações</h1>
-          <p>Tarefas agendadas que o Master corre sozinho. O resultado cai no chat do Master.</p>
+          <p>Tarefas agendadas que correm sozinhas num worker dedicado. O worker fica aberto com o resultado e recebes uma notificação.</p>
         </div>
         <button className="av-btn-primary" type="button" onClick={() => setCreating((v) => !v)}>
           <LucideIcon name={creating ? 'x' : 'plus'} /> {creating ? 'Cancelar' : 'Nova automação'}
@@ -174,21 +167,9 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
           </div>
           <div className="av-trigger-row">
             <label className="av-field av-inline">
-              <span>Agente</span>
-              <select value={provider} onChange={(e) => setProvider(e.target.value)}>
-                {(providers.length ? providers : [{ id: 'claude', label: 'Claude', available: true, wired: true }]).map((p) => (
-                  <option key={p.id} value={p.id} disabled={!p.wired}>
-                    {p.label}{!p.wired ? ' (indisponível)' : ''}
-                  </option>
-                ))}
-              </select>
+              <span>Modelo dos nós llm (opcional)</span>
+              <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
             </label>
-            {provider === 'claude' && (
-              <label className="av-field av-inline">
-                <span>Modelo (opcional)</span>
-                <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
-              </label>
-            )}
           </div>
           <div className="av-trigger-row">
             <label className="av-field av-inline">
@@ -281,7 +262,6 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
               </div>
               <div className="av-meta">
                 <span><LucideIcon name="clock" /> {describeTrigger(a)}</span>
-                <span className="av-agent">{(a.provider ?? 'claude')}{a.model ? `·${a.model}` : ''}</span>
                 {a.skills?.length ? <span className="av-agent">skills: {a.skills.join(', ')}</span> : null}
                 {a.requireConfirm ? <span className="av-agent">✋ confirma</span> : null}
                 {a.trigger.type === 'schedule' && <span>próxima: {fmtTs(a.nextRunAt)}</span>}

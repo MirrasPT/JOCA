@@ -1,32 +1,34 @@
-// Automation runner — v1. Executes a linear pipeline of nodes, threading each node's output as the
+// Automation runner — v2. Executes a linear pipeline of nodes, threading each node's output as the
 // `input` of the next ({{input}} in templates). Node types:
-//   master  → runs the Master loop (spawns/uses workers) with an objective; output = the summary.
+//   worker  → agentic step: opens a DEDICATED Claude Code worker (no project), hands it the
+//             objective, waits for it to finish and captures the terminal output. The worker STAYS
+//             OPEN so the user can inspect the result; completion fires the normal done
+//             notification (toast/unread) in the UI.
 //   llm     → prompts the brain directly (no terminal); cheap summarise/transform.
 //   shell   → runs a local command; output = stdout.
 //   http    → GETs a URL; output = body (truncated).
-//   message → OUTPUT: delivers text to the Master chat via the injected `deliver` callback.
+//   message → OUTPUT: delivers text as a notification via the injected `deliver` callback.
 //
 // Report-style automations are [schedule]→[…source…]→[llm]→[message]. Action automations are
-// [schedule]→[master(objective)] (the brain decides, spawns workers, handles selection menus).
+// [schedule]→[worker(objective)] (the worker executes autonomously in its own terminal).
 import { exec } from 'child_process';
 import type { Automation, AutomationNode } from './store';
-import { runMaster } from '../master/orchestrator';
-import { claudeProvider } from '../master/provider';
-import { loadUiSettings, type MasterProvider } from '../project-store';
+import { claudeProvider } from '../providers/provider';
+import { sessionManager, MAX_SESSIONS } from '../session-manager';
 
-// Per-automation agent override + action extras applied to the agentic (master) step.
-interface AutoCtx { provider?: MasterProvider; model?: string; skills?: string[]; requireConfirm?: boolean }
+// Per-automation extras applied to the agentic (worker) step.
+interface AutoCtx { model?: string; skills?: string[]; requireConfirm?: boolean }
 
 export interface NodeLog { nodeId: string; type: string; ok: boolean; output: string }
 export interface RunResult { ok: boolean; finalOutput: string; log: NodeLog[] }
 
 export interface RunnerDeps {
-  // message node output channel — server.ts injects (appendMasterChat + broadcast). Keeps the runner
-  // decoupled from express/WS. automationName lets the chat label where the message came from.
+  // message node output channel — server.ts injects (WS broadcast → UI notification). Keeps the
+  // runner decoupled from express/WS. automationName lets the UI label where the message came from.
   deliver: (text: string, automationName: string) => void;
-  onActivity?: (text: string) => void; // optional live progress (broadcast as automation_activity)
 }
 
+const WORKER_TIMEOUT_MS = 60 * 60_000; // hard cap for one worker step (1h)
 const TRUNC = 8000;
 const tr = (s: string) => (s.length > TRUNC ? s.slice(0, TRUNC) + `\n…[truncado ${s.length - TRUNC} chars]` : s);
 const render = (tpl: string, input: string) => (tpl ?? '').replace(/\{\{\s*input\s*\}\}/g, input);
@@ -53,35 +55,35 @@ function runShell(command: string, cwd?: string): Promise<string> {
 }
 
 async function runNode(node: AutomationNode, input: string, automationName: string, deps: RunnerDeps, auto: AutoCtx): Promise<string> {
-  const ui = loadUiSettings();
   switch (node.type) {
-    case 'master': {
+    case 'worker': {
       const objective = render(node.objective ?? '', input);
-      if (!objective.trim()) throw new Error('master node sem objective');
-      // Action directives: which JOCA skills/agents to use, and a confirm-before-irreversible gate.
+      if (!objective.trim()) throw new Error('worker node sem objective');
+      if (sessionManager.size >= MAX_SESSIONS) throw new Error(`limite de ${MAX_SESSIONS} sessões atingido — fecha terminais e volta a correr`);
       const directives: string[] = [];
-      // Erros.md #15 + #17: an automation must NEVER hijack an existing terminal (a project terminal
-      // or one the user opened) — it opens a fresh, dedicated worker; and when finished, it closes
-      // that worker so automation terminals don't pile up.
-      directives.push('Isto é uma AUTOMAÇÃO. NÃO reutilizes nenhum terminal já aberto (nem workers nem terminais do utilizador, mesmo que estejam idle): abre SEMPRE um worker NOVO e dedicado para esta automação. Quando a automação estiver concluída, FECHA esse worker com close_worker(workerId) antes de dares o resultado final.');
+      directives.push('Isto é uma AUTOMAÇÃO a correr num worker dedicado (sem projecto). Executa a ordem acima de forma autónoma e termina com um resumo claro do resultado.');
       if (auto.skills?.length) directives.push(`Usa estas skills/agentes do JOCA (faz Read da skill ANTES de agir): ${auto.skills.join(', ')}.`);
       if (auto.requireConfirm) directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao utilizador; só age depois do OK dele.');
-      const fullObjective = directives.length ? `${objective}\n\n[Instruções da acção]\n${directives.join('\n')}` : objective;
-      const done = await runMaster(fullObjective, {
-        provider: auto.provider ?? ui.masterProvider ?? 'claude',
-        model: auto.model ?? ui.masterModel,
-        onStep: (s) => { if (s.type === 'message' && deps.onActivity) deps.onActivity(s.text.slice(0, 160)); },
+      const brief = `${objective}\n\n[Instruções da automação]\n${directives.join('\n')}`;
+      // Dedicated worker, NO project (cwd defaults to the Brain). It shows up in the UI like any
+      // session; when the run finishes the normal done-notification fires and the worker stays open
+      // so the user can inspect (or continue) the result in the terminal.
+      const session = sessionManager.spawn({
+        sessionName: `Automação: ${automationName}`.slice(0, 80),
+        origin: 'auto',
+        initialInput: brief,
       });
-      // runMaster always resolves to the 'done' step.
-      const summary = done.type === 'done' ? done.summary : '';
-      if (done.type === 'done' && done.isError) throw new Error(summary || 'master falhou');
-      return summary;
+      const outcome = await sessionManager.waitForDone(session.id, WORKER_TIMEOUT_MS);
+      const tail = (sessionManager.readBuffer(session.id, { strip: true }) ?? '').slice(-6000);
+      if (outcome === 'closed') throw new Error(`worker da automação foi fechado antes de terminar\n\n${tail}`);
+      if (outcome === 'timeout') return tr(`⚠ worker ainda a executar após ${WORKER_TIMEOUT_MS / 60000} min — vê o terminal "${session.name}".\n\n${tail}`);
+      return tr(tail);
     }
     case 'llm': {
       const prompt = render(node.prompt ?? '', input);
       if (!prompt.trim()) throw new Error('llm node sem prompt');
       // Direct brain call, no tools/terminal — cheap summarise/transform.
-      const events = claudeProvider.run(prompt, { model: auto.model ?? ui.masterModel ?? 'sonnet' }) as unknown as AsyncGenerator<{ type: string; text?: string }>;
+      const events = claudeProvider.run(prompt, { model: auto.model ?? 'sonnet' }) as unknown as AsyncGenerator<{ type: string; text?: string }>;
       return await collectProviderText(events);
     }
     case 'shell': {
@@ -115,7 +117,7 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
 // scheduled automations / actions without input.
 export async function runAutomation(a: Automation, deps: RunnerDeps, seedInput = ''): Promise<RunResult> {
   const log: NodeLog[] = [];
-  const auto: AutoCtx = { provider: a.provider, model: a.model, skills: a.skills, requireConfirm: a.requireConfirm };
+  const auto: AutoCtx = { model: a.model, skills: a.skills, requireConfirm: a.requireConfirm };
   let input = seedInput;
   for (const node of a.nodes) {
     try {

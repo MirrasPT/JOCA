@@ -1,4 +1,4 @@
-// Shared drag-and-drop file handling for the terminal panes and the Master chat.
+// Shared drag-and-drop file handling for the terminal panes.
 //
 // Browser sandboxes hide the real on-disk path of files dragged from the OS file manager —
 // Windows Explorer exposes only File.name (no path). To still hand a worker a usable absolute

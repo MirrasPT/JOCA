@@ -11,7 +11,7 @@ JOCA/
 │   ├── .claude/         <- agents, commands, hooks, scripts, settings
 │   ├── memory/          <- INDEX, SKILL_INDEX, soul, tools, projects
 │   └── CLAUDE.md        <- configuracao base
-├── JOCA_OS/             <- Interface: chat Master + terminais multi-sessao
+├── JOCA_OS/             <- Interface: terminais multi-sessao + automacoes/tarefas
 │   ├── backend/         <- Node.js + Express + WebSocket + node-pty
 │   └── frontend/        <- React + Vite + xterm.js
 └── README.md

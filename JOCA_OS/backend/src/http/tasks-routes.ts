@@ -5,21 +5,17 @@ import {
 } from '../tasks/store';
 import { runTaskNow } from '../tasks/engine';
 import { broadcast } from '../ws/broadcast';
-import { MASTER_PROVIDERS } from './helpers';
 
 // ── Tasks / Kanban (v1) ────────────────────────────────────────────────────────
-// CRUD + board moves over the tasks store. The auto-pull engine (started in server.ts via
+// CRUD + board moves over the tasks store. The worker-sequential engine (started in server.ts via
 // startTasksEngine()) drains the 'a-executar' column; these routes let the UI define/edit/reorder tasks
 // and force an immediate run. Importing ../tasks/engine here also registers its store runner
-// (setTasksRunner) as a side-effect, so the Master's "run task" tool works too.
+// (setTasksRunner) as a side-effect.
 // Every mutation broadcasts `tasks_changed` so connected clients refresh.
 
-// Let the Master's task tools (and the engine) refresh the UI live, decoupled from this router.
+// Refresh the UI live, decoupled from this router.
 setTasksBroadcaster(() => broadcast({ type: 'tasks_changed' }));
 
-const sanitizeProvider = (v: unknown) =>
-  MASTER_PROVIDERS.includes(v as typeof MASTER_PROVIDERS[number]) ? (v as Task['provider']) : undefined;
-const sanitizeModel = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 80) : undefined);
 const sanitizeSkills = (v: unknown) =>
   Array.isArray(v) ? (v.filter((s) => typeof s === 'string' && s.trim()) as string[]).map((s) => s.trim()).slice(0, 20) : undefined;
 const sanitizeAttachments = (v: unknown) =>
@@ -41,8 +37,6 @@ export function tasksRouter(): Router {
       description: typeof b.description === 'string' ? b.description : undefined,
       status: isStatus(b.status) ? b.status : undefined,
       projectId: typeof b.projectId === 'string' ? b.projectId : undefined,
-      provider: sanitizeProvider(b.provider),
-      model: sanitizeModel(b.model),
       skills: sanitizeSkills(b.skills),
       requireConfirm: b.requireConfirm === true || undefined,
       attachments: sanitizeAttachments(b.attachments),
@@ -60,8 +54,6 @@ export function tasksRouter(): Router {
     if (typeof b.title === 'string') updated.title = b.title.trim().slice(0, 200) || cur.title;
     if ('description' in b) updated.description = typeof b.description === 'string' ? b.description : undefined;
     if ('projectId' in b) updated.projectId = typeof b.projectId === 'string' ? b.projectId : undefined;
-    if ('provider' in b) updated.provider = sanitizeProvider(b.provider);
-    if ('model' in b) updated.model = sanitizeModel(b.model);
     if ('skills' in b) updated.skills = sanitizeSkills(b.skills);
     if ('requireConfirm' in b) updated.requireConfirm = b.requireConfirm === true || undefined;
     if ('attachments' in b) updated.attachments = sanitizeAttachments(b.attachments);

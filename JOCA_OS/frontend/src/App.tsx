@@ -8,13 +8,12 @@ import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './componen
 import RightWorkspace from './components/RightWorkspace';
 import DashboardView, { type RateLimits } from './components/DashboardView';
 import TerminalView from './components/TerminalView';
-import MasterChatView from './components/MasterChatView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { ensureNotificationPermission, notify } from './lib/notify';
-import type { JocaItems, JocaLogicInfo, MainView, MasterEntry, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import type { JocaItems, JocaLogicInfo, MainView, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
 // output parseado produz um estado idêntico ao anterior (ex.: mesmo marcador repetido).
@@ -60,12 +59,6 @@ export default function App() {
 
   const [jocaLogicInfo, setJocaLogicInfo] = useState<JocaLogicInfo | null>(null);
 
-  const [masterLog, setMasterLog] = useState<MasterEntry[]>([]);
-  // Count of in-flight Master runs. A counter (not a boolean) so the user can fire a new
-  // instruction while a previous one is still orchestrating — each run resolves independently.
-  const [masterPending, setMasterPending] = useState(0);
-  // Latest live activity text (what the Master is doing right now) — shown in the bottom indicator.
-  const [masterActivity, setMasterActivity] = useState<string | null>(null);
   // Claude/Codex/Gemini usage limits, from GET /rate-limits. Fonte única — passada ao DashboardView por prop.
   const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
 
@@ -141,18 +134,6 @@ export default function App() {
     fetch('/joca-logic').then((r) => r.json()).then(setJocaLogicInfo).catch(() => {});
   }, []);
 
-  // Load the persisted Master chat so the conversation survives reloads/backend restarts.
-  const reloadMasterChat = useCallback(() => {
-    fetch('/master-chat').then((r) => r.json()).then((items: Array<{ id: string; role: 'user' | 'summary' | 'error'; text: string; isError?: boolean; costUsd?: number }>) => {
-      setMasterLog(items.map((e) =>
-        e.role === 'summary' ? { id: e.id, role: 'summary', text: e.text, isError: !!e.isError, costUsd: e.costUsd ?? 0 }
-        : e.role === 'error' ? { id: e.id, role: 'error', text: e.text }
-        : { id: e.id, role: 'user', text: e.text }
-      ));
-    }).catch(() => {});
-  }, []);
-
-
   const handleProjectSaved = useCallback((savedProject: Project) => {
     setProjects((current) => {
       const exists = current.some((project) => project.id === savedProject.id);
@@ -202,29 +183,16 @@ export default function App() {
     fetch('/rate-limits').then((r) => (r.ok ? r.json() : null)).then(setRateLimits).catch(() => {});
   }, []);
 
-  // Master brain label for the header pill (provider/model from Settings).
-  const [masterBrainLabel, setMasterBrainLabel] = useState('Sonnet');
-  const reloadMasterBrain = useCallback(() => {
-    fetch('/ui-settings').then((r) => r.json()).then((s: { masterProvider?: string; masterModel?: string }) => {
-      const prov = s.masterProvider ?? 'claude';
-      const model = (s.masterModel ?? '').trim();
-      const provLabel: Record<string, string> = { claude: 'Claude', codex: 'Codex', antigravity: 'Gemini', ollama: 'Ollama' };
-      setMasterBrainLabel(model || (prov === 'claude' ? 'Sonnet' : (provLabel[prov] ?? prov)));
-    }).catch(() => {});
-  }, []);
-
   useEffect(() => {
     ensureNotificationPermission(); // ask once for OS desktop-notification permission
     reloadProjects();
     reloadRuntime();
     reloadProjectMemory();
     reloadJocaLogic();
-    reloadMasterChat();
     reloadRateLimits();
-    reloadMasterBrain();
     const timer = window.setInterval(() => { reloadRuntime(); reloadRateLimits(); }, 10_000);
     return () => window.clearInterval(timer);
-  }, [reloadProjectMemory, reloadProjects, reloadRuntime, reloadJocaLogic, reloadMasterChat, reloadRateLimits, reloadMasterBrain]);
+  }, [reloadProjectMemory, reloadProjects, reloadRuntime, reloadJocaLogic, reloadRateLimits]);
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -255,7 +223,7 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setMasterLog, setMasterPending, setMasterActivity, setUnreadIds, setAutomationsRefresh, setTasksRefresh,
+    setUnreadIds, setAutomationsRefresh, setTasksRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
     activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
   });
@@ -415,23 +383,6 @@ export default function App() {
     setMainView('project');
   }, []);
 
-  // Remember where the user was so the Master's full-screen "back" button returns there.
-  const prevViewRef = useRef<MainView>('dashboard');
-  const handleShowMaster = useCallback(() => {
-    reloadMasterBrain(); // refresh the header pill in case the provider/model changed in Settings
-    setMainView((prev) => {
-      if (prev !== 'master') prevViewRef.current = prev;
-      return 'master';
-    });
-  }, [reloadMasterBrain]);
-
-  const handleSendMaster = useCallback((text: string) => {
-    setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', text }]);
-    setMasterPending((n) => n + 1);
-    setMasterActivity('A pensar…');
-    send({ type: 'master_message', text });
-  }, [send]);
-
   const loadCommandPalette = useCallback(() => {
     if (jocaItems) return;
     fetch('/joca-items').then((r) => r.json()).then(setJocaItems).catch(() => setJocaItems({ commands: [], skills: [], agents: [] }));
@@ -558,39 +509,6 @@ export default function App() {
     if (contextProjectId) updateProjectMemory(contextProjectId, { rightPanel });
   }, [contextProjectId, rightPanel, updateProjectMemory]);
 
-  // Master runs full-screen: just the chat + a back button, no sidebar / right workspace.
-  if (mainView === 'master') {
-    const workersWorking = sessions.filter((s) => s.status === 'working').length;
-    const cl = rateLimits?.claude;
-    const masterStats = {
-      workersWorking,
-      workersIdle: sessions.length - workersWorking,
-      sessionsTotal: sessions.length,
-      projects: projects.length,
-      limits: cl
-        ? {
-            fiveHour: cl.five_hour ? { pct: cl.five_hour.used_pct ?? null, resetAt: cl.five_hour.resets_at ?? null } : null,
-            sevenDay: cl.seven_day ? { pct: cl.seven_day.used_pct ?? null, resetAt: cl.seven_day.resets_at ?? null } : null,
-            sonnet: cl.sonnet_seven_day ? { pct: cl.sonnet_seven_day.used_pct ?? null, resetAt: cl.sonnet_seven_day.resets_at ?? null } : null,
-          }
-        : null,
-    };
-    return (
-      <div className="master-fullscreen">
-        <MasterChatView
-          entries={masterLog}
-          pending={masterPending}
-          activity={masterActivity}
-          brainLabel={masterBrainLabel}
-          onSend={handleSendMaster}
-          onBack={() => setMainView(prevViewRef.current)}
-          stats={masterStats}
-          tasksRefreshKey={tasksRefresh}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="app">
       <SessionSidebar
@@ -602,7 +520,6 @@ export default function App() {
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
         onShowDashboard={() => setMainView('dashboard')}
-        onShowMaster={handleShowMaster}
         onShowAutomations={() => setMainView('automations')}
         onShowTasks={() => setMainView('tasks')}
         onShowProject={handleShowProject}

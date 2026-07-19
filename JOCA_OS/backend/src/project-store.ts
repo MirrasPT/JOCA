@@ -27,13 +27,11 @@ export interface ProjectMemory {
   updatedAt: string;
 }
 
-export type MasterProvider = 'claude' | 'codex' | 'antigravity' | 'ollama';
+export type LlmProvider = 'claude' | 'ollama';
 
 export interface UiSettings {
   skipPermissions: boolean;
-  masterProvider?: MasterProvider; // which brain drives the Master (default 'claude')
-  masterModel?: string;            // optional model override for that provider
-  optimizeProvider?: MasterProvider; // SDK used by "Optimizar" (independent of the Master); default claude
+  optimizeProvider?: LlmProvider;  // SDK used by "Optimizar" (text rewrite); default claude
   optimizeModel?: string;          // model used by the "Optimizar" feature (text rewrite); default sonnet
 }
 
@@ -42,7 +40,7 @@ const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 const PROJECT_MEMORY_FILE = path.join(DATA_DIR, 'project-memory.json');
 const UI_SETTINGS_FILE = path.join(DATA_DIR, 'ui-settings.json');
 
-const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false, masterProvider: 'claude' };
+const DEFAULT_UI_SETTINGS: UiSettings = { skipPermissions: false };
 
 export function readJsonFile<T>(filePath: string, fallback: T): T {
   try { return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T; } catch { return fallback; }
@@ -89,33 +87,4 @@ export function loadProjectMemory(): Record<string, ProjectMemory> {
 
 export function saveProjectMemory(memory: Record<string, ProjectMemory>) {
   writeJsonFile(PROJECT_MEMORY_FILE, memory);
-}
-
-// Master chat persistence — the visible conversation survives browser reloads and backend
-// restarts (each runMaster is otherwise stateless). Only the user turns and final answers are
-// stored (not the intermediate "thinking"), matching what the chat shows.
-export interface MasterChatEntry {
-  id: string;
-  role: 'user' | 'summary' | 'error';
-  text: string;
-  isError?: boolean;
-  costUsd?: number;
-  ts: number;
-}
-
-const MASTER_CHAT_FILE = path.join(DATA_DIR, 'master-chat.json');
-const MASTER_CHAT_CAP = 500; // keep the file bounded — newest entries win
-
-export function loadMasterChat(): MasterChatEntry[] {
-  return readJsonFile<MasterChatEntry[]>(MASTER_CHAT_FILE, []);
-}
-
-export function appendMasterChat(entry: MasterChatEntry): void {
-  const all = loadMasterChat();
-  all.push(entry);
-  writeJsonFile(MASTER_CHAT_FILE, all.length > MASTER_CHAT_CAP ? all.slice(-MASTER_CHAT_CAP) : all);
-}
-
-export function clearMasterChat(): void {
-  writeJsonFile(MASTER_CHAT_FILE, []);
 }

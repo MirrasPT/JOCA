@@ -13,17 +13,16 @@ import { attachConnectionHandler } from './ws/connection-handler';
 import { projectsRouter } from './http/projects-routes';
 import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
-import { masterRouter } from './http/master-routes';
+import { llmRouter } from './http/llm-routes';
 import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
-import { initMasterWorkerWatch } from './master/worker-watch';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
-// ('done' is consumed by the Master; it is NOT broadcast, so the UI is unchanged.)
+// ('done' is consumed by the automations runner / tasks engine; it is NOT broadcast.)
 // 'spawn' is the single broadcast source for session_created — covers both UI-created sessions
-// and workers the Master spawns programmatically (MCP spawn_worker), so workers show in the UI.
+// and workers spawned programmatically (automations/tasks), so workers show in the UI.
 sessionManager.on('spawn', ({ session }: { session: Session }) => {
   broadcast({ type: 'session_created', session: sessionManager.info(session) });
 });
@@ -51,7 +50,7 @@ const wss = new WebSocketServer({
 // HTTP routes, grouped by domain (see backend/src/http/*).
 app.use(projectsRouter());
 app.use(toolkitRouter());
-app.use(masterRouter());
+app.use(llmRouter());
 app.use(automationsRouter());
 app.use(tasksRouter());
 app.use(filesRouter());
@@ -87,5 +86,4 @@ server.listen(PORT, '127.0.0.1', () => {
   }
   startScheduler(automationDeps);
   startTasksEngine();
-  initMasterWorkerWatch(); // worker done → auto follow-up Master turn (continue / answer)
 });

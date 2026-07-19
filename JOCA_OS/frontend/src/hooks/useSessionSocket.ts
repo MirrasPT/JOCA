@@ -2,20 +2,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
-import type { MainView, MasterEntry, SessionInfo, TerminalRef } from '../types';
+import type { MainView, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
-
-// Human-readable labels for the Master's orchestration tool calls — shown live in the bottom
-// activity indicator so the user sees what it's doing (dispatching workers, reading, etc.).
-const MASTER_STEP_LABELS: Record<string, string> = {
-  spawn_worker: 'A abrir um worker…',
-  send_to_worker: 'A enviar a tarefa ao worker…',
-  read_worker: 'A acompanhar o worker…',
-  list_workers: 'A ver os workers abertos…',
-  create_project: 'A criar o projecto…',
-  search_memory: 'A consultar a memória…',
-  read_diary: 'A ler o histórico…',
-};
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
 
@@ -27,15 +15,10 @@ export type ServerMessage =
   | { type: 'output'; sessionId: string; data: string }
   | { type: 'buffer'; sessionId: string; data: string }
   | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
-  | { type: 'master_message'; text: string }
-  | { type: 'orchestration_step'; tool: string; input: unknown }
-  | { type: 'worker_summary'; summary: string; isError: boolean; costUsd: number; auto?: boolean; continued?: boolean }
-  | { type: 'master_error'; error: string }
   | { type: 'projects_changed' }
-  | { type: 'master_chat_cleared' }
   | { type: 'automation_message'; id: string; text: string; ts: number }
-  | { type: 'automation_activity'; text: string }
   | { type: 'automations_changed' }
+  | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
   | { type: 'tasks_changed' };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
@@ -49,9 +32,6 @@ export interface SessionSocketDeps {
   setActivityEvents: Dispatch<SetStateAction<ActivityEvent[]>>;
   setMainView: Dispatch<SetStateAction<MainView>>;
   setWorkflowStates: Dispatch<SetStateAction<Map<string, WorkflowState>>>;
-  setMasterLog: Dispatch<SetStateAction<MasterEntry[]>>;
-  setMasterPending: Dispatch<SetStateAction<number>>;
-  setMasterActivity: Dispatch<SetStateAction<string | null>>;
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   setTasksRefresh: Dispatch<SetStateAction<number>>;
@@ -113,13 +93,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             ...prev,
           ].slice(0, 80));
           d.activateSession(msg.session.id);
-          // Keep workers in the BACKGROUND when the user is in the Master view — spawning a worker
-          // must not yank focus to the terminal. Only switch + select when not orchestrating.
-          d.setMainView((prev) => {
-            if (prev === 'master') return prev;
+          // Workers spawned by automations/tasks (origin 'auto') stay in the BACKGROUND — they must
+          // not yank focus to the terminal. Only user-created sessions switch the view.
+          if (msg.session.origin !== 'auto') {
             d.setActiveId(msg.session.id);
-            return 'session';
-          });
+            d.setMainView('session');
+          }
           break;
 
         case 'session_closed':
@@ -173,59 +152,31 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           if (msg.isDone) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
-              // Erros.md #14/#16: NO popup toast for terminal work — not for your own manual work,
-              // not for Master/automation workers (the Master chat narrates those), and never for
-              // opening/closing/switching terminals. Keep only the subtle unread dot in the sidebar.
+              // NO popup toast for your own terminal work — keep only the subtle unread dot in the
+              // sidebar. Automation/task workers (origin 'auto') DO fire an OS notification: they run
+              // in the background, so the user must be alerted that the result is ready to inspect.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
+              if (session.origin === 'auto') {
+                notify('JOCA — Terminado', session.name);
+              }
             }
           }
           break;
 
-        // The Master's "thinking" — interim narration and tool calls. The final chat shows only the
-        // answer (worker_summary), but we surface these live as a bottom activity indicator so the
-        // user knows it's working / dispatching workers instead of waiting in silence.
-        case 'master_message':
-          d.setMasterActivity(msg.text.replace(/\s+/g, ' ').trim().slice(0, 200));
-          break;
-        case 'orchestration_step':
-          d.setMasterActivity(MASTER_STEP_LABELS[msg.tool] ?? `A usar ${msg.tool}…`);
-          break;
-
-        case 'worker_summary':
-          // Every run ends with exactly one worker_summary carrying the final answer. This is the
-          // only thing the chat shows for an assistant turn.
-          d.setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'summary' as const, text: msg.summary, isError: msg.isError, costUsd: msg.costUsd }]);
-          d.setMasterPending((n) => Math.max(0, n - 1));
-          // Notify only on user-initiated turns (auto === false) and on auto follow-ups that ENDED
-          // (continued === false) — i.e. once at dispatch and once when the worker's work is done.
-          // An auto follow-up that continued the chain (continued === true) is intermediate → silent.
-          if (!msg.auto || !msg.continued) {
-            notify('JOCA — Master', msg.summary.replace(/\s+/g, ' ').trim().slice(0, 120));
-          }
-          break;
-
-        case 'master_error':
-          d.setMasterLog((prev) => [...prev, { id: crypto.randomUUID(), role: 'error', text: msg.error }]);
-          d.setMasterPending((n) => Math.max(0, n - 1));
-          break;
-
         case 'projects_changed':
-          // The Master created/registered a project — refresh the sidebar list + memory.
+          // A project was created/updated server-side — refresh the sidebar list + memory.
           d.reloadProjects();
           d.reloadProjectMemory();
           break;
 
-        case 'master_chat_cleared':
-          d.setMasterLog([]);
-          break;
-
-        // An automation delivered a result → show it in the Master chat (it persists server-side too).
+        // An automation delivered a message-node result → OS notification (the worker terminal and
+        // the automation's lastResult hold the full output).
         case 'automation_message':
-          d.setMasterLog((prev) => [...prev, { id: msg.id, role: 'summary' as const, text: msg.text, isError: false, costUsd: 0 }]);
           notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120));
           break;
-        case 'automation_activity':
-          d.setMasterActivity(msg.text.replace(/\s+/g, ' ').trim().slice(0, 200));
+        // A task worker is blocked waiting for the user (question/confirmation in the terminal).
+        case 'task_question':
+          notify('JOCA — Tarefa precisa de ti', `${msg.title}: ${(msg.summary ?? 'responde no terminal').slice(0, 100)}`);
           break;
         case 'automations_changed':
           d.setAutomationsRefresh((n) => n + 1);

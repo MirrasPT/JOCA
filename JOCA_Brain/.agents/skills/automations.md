@@ -17,8 +17,8 @@ Skill do agente `automation-builder`. Estilo cron simples — nao e n8n/Zapier.
 Toda a automacao decompoe-se em tres campos. Extrair sempre os tres do pedido NL.
 
 1. **QUANDO** — horario/trigger. Cron OU intervalo. Opcionalmente uma **condicao** ("se X entao reporta").
-2. **O-QUE** — a tarefa, em linguagem natural. Passada ao Master para executar.
-3. **REPORTAR** — canal de entrega do resultado (`whatsapp`, `joca_ui`, `email`, `sms`, `push`).
+2. **O-QUE** — a tarefa, em linguagem natural. Passada a um worker dedicado para executar.
+3. **REPORTAR** — canal de entrega do resultado (`whatsapp`, `joca_os`, `email`, `sms`, `push`).
 
 ### Exemplo de traducao NL → estrutura
 
@@ -65,7 +65,7 @@ Lista de objectos. Cada automacao:
 | `intervalo_min` | int\|null | sim* | intervalo em minutos (ex: `240` = a cada 4h). `null` se usar cron |
 | `condicao` | string\|null | nao | logica condicional NL ("verificar Y; se Z entao..."). `null` = sem condicao |
 | `tarefa` | string | sim | a tarefa NL (parte O-QUE) |
-| `canal` | enum | sim | `whatsapp` \| `joca_ui` \| `email` \| `sms` \| `push` |
+| `canal` | enum | sim | `whatsapp` \| `joca_os` \| `email` \| `sms` \| `push` |
 | `enabled` | bool | sim | `false` = desactivada (nao apagada) |
 | `report_policy` | enum | sim | `sempre` \| `so_se_problema` \| `so_se_mudou` |
 | `retries` | object | sim | `{ max: int, backoff_min: int }` |
@@ -128,7 +128,7 @@ Operacoes sobre `automacoes.json`. Edicao surgical — tocar so o objecto certo,
 
 ## Retries e tratamento de falha
 
-Quando a tarefa falha (erro do Master, timeout, ferramenta indisponivel):
+Quando a tarefa falha (erro do worker, timeout, ferramenta indisponivel):
 
 1. **Retry** — repetir ate `retries.max`, com espera `retries.backoff_min` minutos entre tentativas. Registar cada tentativa no `historico` (`tentativa: N`).
 2. **Apos esgotar retries** — aplicar `on_failure`:
@@ -196,7 +196,7 @@ Quando a tarefa falha (erro do Master, timeout, ferramenta indisponivel):
   "intervalo_min": null,
   "condicao": null,
   "tarefa": "Resumir o que foi feito hoje nos terminais",
-  "canal": "joca_ui",
+  "canal": "joca_os",
   "enabled": true,
   "report_policy": "sempre",
   "retries": { "max": 1, "backoff_min": 5 },

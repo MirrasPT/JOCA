@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 
 // Single source of the connected-client set + the broadcast/send helpers. Both the HTTP routers
-// (master, automations) and the WS connection handler import from here, so no module threads a
+// (llm, automations, tasks) and the WS connection handler import from here, so no module threads a
 // `broadcast` dependency through its constructor — they import it directly.
 const clients = new Set<WebSocket>();
 

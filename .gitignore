@@ -6,7 +6,7 @@ dist/
 .env.*
 graphify-out/
 package-lock.json
-# Runtime + personal state (projects, settings, Master chat, 3-layer memory).
+# Runtime + personal state (projects, settings, tasks, automations).
 # Local-only per machine — never commit. Mirrors JOCA_OS/.gitignore.
 JOCA_OS/data/
 JOCA_OS/backend/data/

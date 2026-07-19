@@ -31,10 +31,10 @@ JOCA/
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
-└── JOCA_OS/                 <- Interface: chat Master + terminais multi-sessao
+└── JOCA_OS/                 <- Interface: terminais multi-sessao + automacoes/tarefas
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- estado local (projectos, chat, memoria) — nunca commitado
+    ├── data/                <- estado local (projectos, definicoes, tarefas) — nunca commitado
     ├── start.sh             <- launcher macOS/Linux
     ├── start.bat            <- launcher Windows
     └── stop.sh              <- stop macOS/Linux
@@ -44,14 +44,14 @@ JOCA/
 
 ---
 
-## JOCA_OS — Master + Interface Visual
+## JOCA_OS — Interface Visual
 
-Um chat orquestrador (o **Master**) que comanda N terminais Claude Code por linguagem
-natural, sobre um dashboard browser com terminais multi-sessao, file browser e toolkit panel.
+Um dashboard browser com terminais Claude Code multi-sessao, file browser e toolkit panel.
+Automacoes (cron) e um Kanban de tarefas correm sozinhos em workers dedicados — um worker
+sequencial por projecto, com notificacao quando terminam ou quando precisam de resposta.
 
-- **Master:** descreve o objectivo; ele decompoe, abre os terminais e acompanha ate ao fim
-- **Cerebro provider-agnostico:** Claude Agent SDK por omissao (subscricao), Ollama como fallback
-- **Automacoes + Kanban:** tarefas em cron e quadro de trabalho que o Master puxa sozinho
+- **Automacoes:** cron diario/semanal/intervalo; cada corrida abre um worker dedicado que fica aberto com o resultado
+- **Tarefas / Kanban:** 5 colunas; as tarefas movem-se sozinhas; um juiz SDK classifica cada execucao (ok/erro/pergunta)
 
 - **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain status em tempo real

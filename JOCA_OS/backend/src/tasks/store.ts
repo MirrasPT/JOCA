@@ -1,12 +1,12 @@
-// Tasks/Kanban store — v1. A Task is a unit of work the Master can execute: an objective + optional
-// project (cwd), provider/model/skills, that flows across columns (a-definir → a-executar →
-// em-execucao → concluida → arquivada). Source of truth = DATA_DIR/tasks.json (atomic writes via
-// project-store.writeJsonFile, so a kill mid-write can't corrupt it). Mirrors automations/store.ts:
+// Tasks/Kanban store — v2. A Task is a unit of work executed in a real Claude Code worker: an
+// objective + optional project, that flows across columns (a-definir → a-executar → em-execucao →
+// concluida → arquivada) as the engine works. Source of truth = DATA_DIR/tasks.json (atomic writes
+// via project-store.writeJsonFile, so a kill mid-write can't corrupt it). Mirrors automations/store.ts:
 // same atomic-write pattern, injectable broadcaster (WS refresh) and injectable runner (engine wires
 // the real executor). One schema, many editors.
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { DATA_DIR, readJsonFile, writeJsonFile, type MasterProvider } from '../project-store';
+import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 
 // ── Schema ──────────────────────────────────────────────────────────────────
 export type TaskStatus = 'a-definir' | 'a-executar' | 'em-execucao' | 'concluida' | 'arquivada';
@@ -17,18 +17,16 @@ export const TASK_STATUSES: TaskStatus[] = ['a-definir', 'a-executar', 'em-execu
 export interface Task {
   id: string;
   title: string;
-  description?: string;        // objectivo dado ao Master quando executa
+  description?: string;        // objectivo dado ao worker quando executa
   status: TaskStatus;
-  projectId?: string;          // liga a um projecto (define cwd do worker)
+  projectId?: string;          // liga a um projecto (o worker faz /resume da pasta)
   order: number;               // ordem dentro da coluna
-  provider?: MasterProvider;   // override do provider global (Claude/Codex/Ollama)
-  model?: string;              // e.g. 'sonnet'|'opus'|'haiku' (Claude); undefined = default do provider
   skills?: string[];           // skills/agentes do JOCA_Brain a usar
   requireConfirm?: boolean;    // PÁRA antes de acções irreversíveis e pede OK
   attachments?: string[];      // caminhos de ficheiros anexados (contexto para o worker)
-  sessionId?: string;          // worker spawned (em-execucao)
-  result?: string;             // resumo final do worker
-  testerResult?: string;       // output do passo de tester
+  sessionId?: string;          // worker que executa/executou a tarefa
+  result?: string;             // veredicto/resumo do juiz sobre a execução
+  testerResult?: string;       // (reservado) output de um passo de verificação
   lastStatus?: 'ok' | 'error' | 'running' | null;
   createdAt: number;
   updatedAt: number;
@@ -37,8 +35,7 @@ export interface Task {
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
 // Decoupled change broadcaster: server.ts injects a fn that broadcasts `tasks_changed` over WS.
-// Lets the Master's task tools / the runner refresh the UI without threading a callback through the
-// orchestrator/provider chain. No-op until set.
+// No-op until set.
 let tasksBroadcaster: (() => void) | null = null;
 export function setTasksBroadcaster(fn: () => void): void { tasksBroadcaster = fn; }
 export function notifyTasksChanged(): void { try { tasksBroadcaster?.(); } catch { /* ignore */ } }
@@ -65,15 +62,13 @@ export function getTask(id: string): Task | undefined {
   return loadTasks().find((t) => t.id === id);
 }
 
-// Build a fresh task from a partial spec (used by POST /tasks + the future Master tool). New tasks land
-// at the end of their column (default 'a-definir').
+// Build a fresh task from a partial spec (used by POST /tasks). New tasks land at the end of their
+// column (default 'a-definir').
 export function makeTask(partial: {
   title: string;
   description?: string;
   status?: TaskStatus;
   projectId?: string;
-  provider?: MasterProvider;
-  model?: string;
   skills?: string[];
   requireConfirm?: boolean;
   attachments?: string[];
@@ -89,8 +84,6 @@ export function makeTask(partial: {
     status,
     projectId: partial.projectId,
     order,
-    provider: partial.provider,
-    model: partial.model,
     skills: Array.isArray(partial.skills)
       ? partial.skills.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 20)
       : undefined,

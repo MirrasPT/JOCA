@@ -2,16 +2,16 @@
 // spawn/input/resize/kill, the rolling output buffer, and the idle→done heuristic. All timings
 // and constants are IDENTICAL to the original god-file (BUFFER_MAX, IDLE_DEBOUNCE_MS,
 // DONE_MIN_WORK_MS, MAX_SESSIONS). Shared state lives in the single exported `sessionManager`
-// singleton — server.ts and the future Master both talk to that instance.
+// singleton — server.ts, the automations runner and the tasks engine all talk to that instance.
 //
 // Eventing: extends EventEmitter and emits:
 //   'spawn'  { session }                     — session created (forwarded as 'session_created'); the
-//                                              SINGLE broadcast source for both UI- and Master-spawned PTYs
+//                                              SINGLE broadcast source for both UI- and auto-spawned PTYs
 //   'output' { sessionId, data }            — every PTY chunk (server forwards to WS as 'output')
 //   'status' { sessionId, status, isDone }   — working↔idle transitions (forwarded as 'session_status')
 //   'closed' { sessionId }                   — PTY exit (forwarded as 'session_closed')
-//   'done'   { sessionId }                   — ADDITIVE: fired once when a real work burst ends
-//                                              (isDone === true); for the Master orchestrator.
+//   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
+//                                              work burst ends; automations/tasks await this.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -29,16 +29,16 @@ export interface Session {
   name: string;
   cwd: string;
   projectId?: string;
-  origin: 'user' | 'master';   // who spawned it: 'user' (UI) or 'master' (orchestrator)
+  origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
   pty: pty.IPty;
   buffer: string;
   status: 'working' | 'idle';
   lastOutputTime: number;
   idleTimer: ReturnType<typeof setTimeout> | null;
   workingSince: number | null;
-  notifyOnIdle: boolean;    // any work burst was initiated (user OR master) → drives isDone (toast/unread)
-  masterAwaiting: boolean;  // the MASTER sent this work (submitMessage / brief) → drives 'done' (wakes the orchestrator).
-                            // User keystrokes set notifyOnIdle but NOT this, so working in a worker never wakes the Master.
+  notifyOnIdle: boolean;    // any work burst was initiated (user OR programmatic) → drives isDone (toast/unread)
+  awaitingDone: boolean;    // a PROGRAMMATIC dispatch (submitMessage / initial brief) → drives 'done' (wakes
+                            // the awaiting runner). User keystrokes set notifyOnIdle but NOT this.
 }
 
 export interface SessionInfo {
@@ -46,7 +46,7 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
-  origin: 'user' | 'master';
+  origin: 'user' | 'auto';
   status: 'working' | 'idle';
 }
 
@@ -56,7 +56,7 @@ export interface SpawnOptions {
   sessionName?: string;
   projectId?: string;
   initialInput?: string;
-  origin?: 'user' | 'master';   // default 'user'
+  origin?: 'user' | 'auto';   // default 'user'
 }
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -87,7 +87,7 @@ function findClaude(): string {
   catch { return 'claude'; }
 }
 
-// CSI/OSC/SGR escape stripper for readBuffer({ strip: true }) — leaves plain text for the Master.
+// CSI/OSC/SGR escape stripper for readBuffer({ strip: true }) — leaves plain text for programmatic readers.
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
 
 // Reliable programmatic submit into a Claude Code TUI over a PTY. The problem: a multi-line
@@ -152,7 +152,7 @@ export class SessionManager extends EventEmitter {
       idleTimer: null,
       workingSince: null,
       notifyOnIdle: false,
-      masterAwaiting: false,
+      awaitingDone: false,
     };
     this.sessions.set(id, session);
 
@@ -225,18 +225,18 @@ export class SessionManager extends EventEmitter {
         const workedFor = session.workingSince ? Date.now() - session.workingSince : 0;
         const substantial = wasWorking && workedFor > DONE_MIN_WORK_MS;
         const isDone = session.notifyOnIdle && substantial;         // toast/unread: any initiated burst finished
-        const masterDone = session.masterAwaiting && substantial;   // wakes the Master: ONLY its own dispatches
+        const dispatchDone = session.awaitingDone && substantial;   // wakes an awaiting runner: ONLY programmatic dispatches
 
         session.status = 'idle';
         session.workingSince = null;
         session.notifyOnIdle = false;
-        session.masterAwaiting = false;
+        session.awaitingDone = false;
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
-        // 'done' re-invokes the orchestrator (worker-watch). Gated on masterAwaiting so that YOU typing
-        // in a Master-worker no longer wakes the Master (was the "3-4× feedback" spam, Erros.md #14).
-        if (masterDone) this.emit('done', { sessionId: id });
+        // 'done' wakes whoever dispatched work programmatically (automations runner / tasks engine).
+        // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
+        if (dispatchDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
     });
 
@@ -247,8 +247,8 @@ export class SessionManager extends EventEmitter {
     });
 
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
-    // single source of the broadcast — workers spawned programmatically by the Master (via the
-    // MCP spawn_worker tool) become visible in the UI exactly like UI-created sessions.
+    // single source of the broadcast — workers spawned programmatically (automations/tasks)
+    // become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session });
     return session;
   }
@@ -291,10 +291,9 @@ export class SessionManager extends EventEmitter {
     }
     if (initialInput && this.sessions.has(session.id)) {
       // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
-      // (this is what lets the Master's worker-watch re-invoke the brain when the worker finishes).
-      // masterAwaiting = the Master dispatched this → its completion is what wakes the orchestrator.
+      // (this is what lets the automations runner / tasks engine await the worker's completion).
       session.notifyOnIdle = true;
-      session.masterAwaiting = true;
+      session.awaitingDone = true;
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
       // into the Claude TUI. writeSubmit enters the whole body then one CR submits.
       writeSubmit(p, initialInput);
@@ -317,15 +316,15 @@ export class SessionManager extends EventEmitter {
     return true;
   }
 
-  // Programmatic message submit (Master → worker). Unlike input() (which mirrors raw UI keystrokes),
+  // Programmatic message submit (runner → worker). Unlike input() (which mirrors raw UI keystrokes),
   // this guarantees the whole message is entered and submitted once, via bracketed-paste for
-  // multi-line bodies. Use for send_to_worker / any orchestrator-driven message.
+  // multi-line bodies. Use for any programmatically-driven message (tasks tester pass, etc.).
   submitMessage(sessionId: string, text: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session || text === undefined) return false;
-    // Master-initiated (this method is only used by the orchestrator) → arm BOTH: notifyOnIdle (toast)
-    // and masterAwaiting (so the completion wakes the Master's follow-up loop).
-    if (text.trim().length > 0) { session.notifyOnIdle = true; session.masterAwaiting = true; }
+    // Programmatic dispatch → arm BOTH: notifyOnIdle (toast) and awaitingDone (so the completion
+    // fires 'done' and wakes the awaiting runner).
+    if (text.trim().length > 0) { session.notifyOnIdle = true; session.awaitingDone = true; }
     writeSubmit(session.pty, text);
     return true;
   }
@@ -374,11 +373,30 @@ export class SessionManager extends EventEmitter {
     return this.sessions.get(sessionId)?.buffer;
   }
 
-  // Programmatic read for the Master. strip=true removes ANSI escapes for plain-text consumption.
+  // Programmatic read (automations/tasks). strip=true removes ANSI escapes for plain-text consumption.
   readBuffer(sessionId: string, opts: { strip?: boolean } = {}): string | undefined {
     const buf = this.sessions.get(sessionId)?.buffer;
     if (buf === undefined) return undefined;
     return opts.strip ? buf.replace(ANSI_RE, '') : buf;
+  }
+
+  // Await the completion of a programmatic dispatch on a session: resolves 'done' when the armed
+  // work burst finishes, 'closed' if the PTY exits first, 'timeout' after timeoutMs. Used by the
+  // automations runner and the tasks engine (the worker stays open — this only observes).
+  waitForDone(sessionId: string, timeoutMs: number): Promise<'done' | 'closed' | 'timeout'> {
+    return new Promise((resolve) => {
+      if (!this.sessions.has(sessionId)) return resolve('closed');
+      const cleanup = () => {
+        clearTimeout(timer);
+        this.off('done', onDone);
+        this.off('closed', onClosed);
+      };
+      const onDone = ({ sessionId: sid }: { sessionId: string }) => { if (sid === sessionId) { cleanup(); resolve('done'); } };
+      const onClosed = ({ sessionId: sid }: { sessionId: string }) => { if (sid === sessionId) { cleanup(); resolve('closed'); } };
+      const timer = setTimeout(() => { cleanup(); resolve('timeout'); }, timeoutMs);
+      this.on('done', onDone);
+      this.on('closed', onClosed);
+    });
   }
 }
 

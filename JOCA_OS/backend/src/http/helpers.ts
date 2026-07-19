@@ -11,8 +11,8 @@ export const HOME = os.homedir();
 export const IS_WINDOWS = process.platform === 'win32';
 export const STARTED_AT = Date.now();
 
-export const MASTER_PROVIDERS = ['claude', 'codex', 'antigravity', 'ollama'] as const;
-export type MasterProvider = typeof MASTER_PROVIDERS[number];
+export const LLM_PROVIDERS = ['claude', 'ollama'] as const;
+export type LlmProvider = typeof LLM_PROVIDERS[number];
 
 // All drops land in a dedicated folder (not the Desktop) so the worker gets a real, stable path
 // without cluttering common dirs. Folders preserve their relative structure under here.

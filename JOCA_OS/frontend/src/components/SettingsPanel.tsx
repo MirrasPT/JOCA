@@ -33,27 +33,22 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
   const [skipPermissions, setSkipPermissions] = useState(false);
-  const [masterProvider, setMasterProvider] = useState('claude');
-  const [masterModel, setMasterModel] = useState('');
   const [optimizeProvider, setOptimizeProvider] = useState('claude');
   const [optimizeModel, setOptimizeModel] = useState('');
-  const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; wired: boolean; defaultModel: string; detail: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
 
   useEffect(() => {
     fetch('/ui-settings').then(r => r.json()).then(s => {
       setSkipPermissions(s.skipPermissions ?? false);
-      setMasterProvider(s.masterProvider ?? 'claude');
-      setMasterModel(s.masterModel ?? '');
       setOptimizeProvider(s.optimizeProvider ?? 'claude');
       setOptimizeModel(s.optimizeModel ?? '');
     }).catch(() => {});
-    fetch('/master-providers').then(r => r.json()).then(setProviders).catch(() => {});
+    fetch('/llm-providers').then(r => r.json()).then(setProviders).catch(() => {});
   }, []);
 
   const patchSettings = useCallback((patch: Record<string, unknown>) => {
     fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }).catch(() => {});
   }, []);
-  const selectProvider = useCallback((id: string) => { setMasterProvider(id); patchSettings({ masterProvider: id }); }, [patchSettings]);
   const selectOptimizeProvider = useCallback((id: string) => { setOptimizeProvider(id); patchSettings({ optimizeProvider: id }); }, [patchSettings]);
 
   const toggleSkipPermissions = useCallback(() => {
@@ -143,51 +138,11 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         </div>
         <div className="settings-service-card">
           <div className="settings-service-head">
-            <span className="status-pill status-pill--connected">master</span>
-            <span>Master — Provider</span>
-          </div>
-          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
-            Que cérebro orquestra os workers. Todos correm na subscrição (custo-zero). Claude está activo; os outros ligam-se a seguir.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {(providers.length ? providers : [{ id: 'claude', label: 'Claude · Agent SDK', available: true, wired: true, defaultModel: 'sonnet', detail: 'Subscrição Anthropic' }]).map((p) => (
-              <label
-                key={p.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 'var(--r-md)',
-                  border: `1px solid ${masterProvider === p.id ? 'var(--accent-border)' : 'var(--border-subtle)'}`,
-                  background: masterProvider === p.id ? 'var(--accent-soft)' : 'transparent',
-                  cursor: p.available ? 'pointer' : 'not-allowed', opacity: p.available ? 1 : 0.45,
-                }}
-              >
-                <input type="radio" name="master-provider" value={p.id} checked={masterProvider === p.id} disabled={!p.available} onChange={() => selectProvider(p.id)} />
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '0.9em', color: 'var(--text-bright)' }}>{p.label}</span>
-                  <span style={{ display: 'block', fontSize: '0.72em', opacity: 0.55 }}>{p.detail}</span>
-                </span>
-                <span className={`status-pill status-pill--${p.wired ? 'connected' : p.available ? 'mock' : 'offline'}`}>
-                  {p.wired ? 'activo' : p.available ? 'em breve' : 'n/d'}
-                </span>
-              </label>
-            ))}
-          </div>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
-            <span style={{ fontSize: '0.75em', opacity: 0.6 }}>Modelo (opcional)</span>
-            <input
-              type="text" value={masterModel} placeholder="ex: sonnet · opus · gemma4:12b"
-              onChange={(e) => setMasterModel(e.target.value)}
-              onBlur={(e) => { const m = e.target.value.trim(); setMasterModel(m); patchSettings({ masterModel: m }); }}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em', fontFamily: 'var(--font-mono)' }}
-            />
-          </label>
-        </div>
-        <div className="settings-service-card">
-          <div className="settings-service-head">
             <span className="status-pill status-pill--connected">optimizar</span>
             <span>Optimizações — Provider</span>
           </div>
           <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
-            SDK + modelo do botão "Optimizar" (reescrita de texto). Independente do Master. Sem ferramentas — só reescreve.
+            SDK + modelo do botão "Optimizar" (reescrita de texto). Sem ferramentas — só reescreve.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[{ id: 'claude', label: 'Claude · Agent SDK', detail: 'Subscrição, sem ferramentas' }, { id: 'ollama', label: 'Ollama · local', detail: 'Grátis, local' }].map((p) => {

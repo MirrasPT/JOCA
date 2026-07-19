@@ -15,7 +15,7 @@ import {
 } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
-  HOME, STARTED_AT, MASTER_PROVIDERS,
+  HOME, STARTED_AT, LLM_PROVIDERS,
   assertClaudePath, validateToolkitContent, sanitizeToolkitName, sanitizeToolkitCategory,
 } from './helpers';
 
@@ -55,15 +55,8 @@ export function toolkitRouter(): Router {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const updated = { ...current };
     if ('skipPermissions' in body) updated.skipPermissions = body.skipPermissions === true;
-    if ('masterProvider' in body && MASTER_PROVIDERS.includes(body.masterProvider as typeof MASTER_PROVIDERS[number])) {
-      updated.masterProvider = body.masterProvider as typeof MASTER_PROVIDERS[number];
-    }
-    if ('masterModel' in body) {
-      const m = typeof body.masterModel === 'string' ? body.masterModel.trim().slice(0, 80) : '';
-      updated.masterModel = m || undefined;
-    }
-    if ('optimizeProvider' in body && MASTER_PROVIDERS.includes(body.optimizeProvider as typeof MASTER_PROVIDERS[number])) {
-      updated.optimizeProvider = body.optimizeProvider as typeof MASTER_PROVIDERS[number];
+    if ('optimizeProvider' in body && LLM_PROVIDERS.includes(body.optimizeProvider as typeof LLM_PROVIDERS[number])) {
+      updated.optimizeProvider = body.optimizeProvider as typeof LLM_PROVIDERS[number];
     }
     if ('optimizeModel' in body) {
       const m = typeof body.optimizeModel === 'string' ? body.optimizeModel.trim().slice(0, 80) : '';

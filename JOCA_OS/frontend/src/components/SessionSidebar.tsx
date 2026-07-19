@@ -9,11 +9,10 @@ interface Props {
   projects: Project[];
   activeId: string | null;
   unreadIds: Set<string>;
-  mainView: 'dashboard' | 'project' | 'session' | 'master' | 'automations' | 'tasks';
+  mainView: 'dashboard' | 'project' | 'session' | 'automations' | 'tasks';
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
-  onShowMaster: () => void;
   onShowAutomations: () => void;
   onShowTasks: () => void;
   onShowProject: (projectId: string) => void;
@@ -370,7 +369,7 @@ function ProjectGroup({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowMaster, onShowAutomations, onShowTasks, onShowProject,
+  sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowProject,
   onSelect, onClose, onRename, onNew, onOpenProject, onProjectsChange, onCreateProject, onInput, onRenameProject,
   onArchiveProject, onReorderProjects,
 }: Props) {
@@ -456,14 +455,6 @@ export default function SessionSidebar({
           >
             <span className="nav-icon"><LucideIcon name="layout-dashboard" /></span>
             <span>Dashboard</span>
-          </button>
-          <button
-            className={`nav-btn ${mainView === 'master' ? 'active' : ''}`}
-            type="button"
-            onClick={onShowMaster}
-          >
-            <span className="nav-icon"><LucideIcon name="cpu" /></span>
-            <span>Master</span>
           </button>
           <button
             className={`nav-btn ${mainView === 'automations' ? 'active' : ''}`}

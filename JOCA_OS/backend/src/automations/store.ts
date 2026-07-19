@@ -1,18 +1,17 @@
 // Automations store — v1. An automation is a linear pipeline of nodes with a trigger (schedule or
 // manual). Source of truth = DATA_DIR/automacoes.json (atomic writes via project-store.writeJsonFile,
-// so a kill mid-write can't corrupt it). This is the SAME format the Master will write via a tool and
-// the visual editor will edit later — one schema, many editors (n8n model).
+// so a kill mid-write can't corrupt it). One schema, many editors (n8n model).
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { DATA_DIR, readJsonFile, writeJsonFile, type MasterProvider } from '../project-store';
+import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 
 // ── Schema ──────────────────────────────────────────────────────────────────
-export type NodeType = 'master' | 'llm' | 'shell' | 'http' | 'message';
+export type NodeType = 'worker' | 'llm' | 'shell' | 'http' | 'message';
 
 export interface AutomationNode {
   id: string;
   type: NodeType;
-  // master: agentic step — runs the Master loop (spawns/uses workers) with this objective.
+  // worker: agentic step — opens a dedicated Claude Code worker (no project) with this objective.
   objective?: string;
   // llm: cheap text step — prompt the brain directly (no terminal). May reference {{input}}.
   prompt?: string;
@@ -21,7 +20,7 @@ export interface AutomationNode {
   cwd?: string;
   // http: GET a URL, capture the body (truncated).
   url?: string;
-  // message: OUTPUT — deliver text to the Master chat (and, later, WhatsApp). May reference {{input}}.
+  // message: OUTPUT — deliver text as a UI notification. May reference {{input}}.
   text?: string;
   title?: string;
 }
@@ -38,10 +37,7 @@ export interface Automation {
   id: string;
   name: string;
   enabled: boolean;
-  // Which agent/brain runs the agentic (master) step. Override of the global ui-settings provider —
-  // lets each automation pick Claude / Codex / Ollama (cheaper local). undefined = use global default.
-  provider?: MasterProvider;
-  model?: string;                 // e.g. 'sonnet'|'opus'|'haiku' (Claude); undefined = provider default
+  model?: string;                 // model for the `llm` nodes (e.g. 'sonnet'|'opus'|'haiku'); undefined = default
   // Acção/automação extras (uma Acção = automação de trigger manual + input em runtime):
   skills?: string[];              // skills/agentes do JOCA_Brain a usar (injectados como directiva ao agente)
   requireConfirm?: boolean;       // PÁRA antes de acções irreversíveis (envio/apagar/deploy) e pede OK
@@ -57,24 +53,10 @@ export interface Automation {
 const AUTOMATIONS_FILE = path.join(DATA_DIR, 'automacoes.json');
 
 // Decoupled change broadcaster: server.ts injects a fn that broadcasts `automations_changed` over WS.
-// Lets the Master's create_automation tool refresh the UI without threading a callback through the
-// orchestrator/provider chain. No-op until set.
+// No-op until set.
 let automationsBroadcaster: (() => void) | null = null;
 export function setAutomationsBroadcaster(fn: () => void): void { automationsBroadcaster = fn; }
 export function notifyAutomationsChanged(): void { try { automationsBroadcaster?.(); } catch { /* ignore */ } }
-
-// Injectable runner so the Master's run_automation tool can fire an action (needs the scheduler's
-// deps, which live in server.ts). Resolves a name OR id. No-op until server.ts wires it.
-export interface AutomationRunOutcome { ok: boolean; finalOutput: string }
-let automationRunner: ((id: string, input?: string) => Promise<AutomationRunOutcome | null>) | null = null;
-export function setAutomationRunner(fn: (id: string, input?: string) => Promise<AutomationRunOutcome | null>): void { automationRunner = fn; }
-export async function runAutomationByRef(ref: string, input?: string): Promise<AutomationRunOutcome | null> {
-  if (!automationRunner) return null;
-  const list = loadAutomations();
-  const match = list.find((a) => a.id === ref) ?? list.find((a) => a.name.toLowerCase() === ref.toLowerCase());
-  if (!match) return { ok: false, finalOutput: `automação "${ref}" não existe` };
-  return automationRunner(match.id, input);
-}
 
 export function loadAutomations(): Automation[] {
   return readJsonFile<Automation[]>(AUTOMATIONS_FILE, []);
@@ -128,14 +110,13 @@ export function computeNextRun(schedule: Schedule | undefined, from: number = Da
   return next.getTime();
 }
 
-// Build a fresh automation from a partial spec (used by POST /automations + the future Master tool).
+// Build a fresh automation from a partial spec (used by POST /automations).
 export function makeAutomation(spec: Partial<Automation> & { name: string; nodes: AutomationNode[] }): Automation {
   const trigger = spec.trigger ?? { type: 'manual' as const };
   const a: Automation = {
     id: spec.id ?? randomUUID(),
     name: spec.name.trim().slice(0, 120) || 'Automação',
     enabled: spec.enabled ?? true,
-    provider: spec.provider,
     model: spec.model,
     skills: Array.isArray(spec.skills) ? spec.skills.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 20) : undefined,
     requireConfirm: spec.requireConfirm ?? undefined,

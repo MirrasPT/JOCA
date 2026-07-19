@@ -1,6 +1,6 @@
-// TasksView — Kanban board of tasks. A task is an objective the Master executes in a worker (cwd =
-// the linked project). Five columns model the lifecycle: A Definir → A Executar → Em Execução →
-// Concluída → Arquivada. Drag a card between columns to change its status (POST /tasks/:id/move) or
+// TasksView — Kanban board of tasks. A task is an objective executed in a real Claude Code worker
+// (one sequential worker per project). Five columns model the lifecycle: A Definir → A Executar →
+// Em Execução → Concluída → Arquivada. Drag a card between columns to change its status (POST /tasks/:id/move) or
 // reorder it inside a column (PUT /tasks/reorder). Mirrors AutomationsView's fetch/icon/pt-PT style.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
@@ -34,8 +34,6 @@ interface Task {
   status: TaskStatus;
   projectId?: string;
   order: number;
-  provider?: string;
-  model?: string;
   skills?: string[];
   requireConfirm?: boolean;
   attachments?: string[];
@@ -46,7 +44,6 @@ interface Task {
   createdAt: number;
   updatedAt: number;
 }
-interface ProviderInfo { id: string; label: string; available: boolean; wired: boolean }
 interface JocaItem { name: string; description?: string; kind: 'skill' | 'agent' }
 
 const COLUMNS: { status: TaskStatus; label: string }[] = [
@@ -59,7 +56,6 @@ const COLUMNS: { status: TaskStatus; label: string }[] = [
 
 export function TasksView({ refreshKey, projects }: { refreshKey: number; projects: Project[] }) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -69,8 +65,6 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState('');
-  const [provider, setProvider] = useState('claude');
-  const [model, setModel] = useState('');
   const [jocaItems, setJocaItems] = useState<JocaItem[]>([]);
   const [skillQuery, setSkillQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -87,10 +81,6 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   }, []);
   useEffect(() => { reload(); }, [reload, refreshKey]);
 
-  // Which agents can run a task (Claude/Codex/Ollama wired; Antigravity blocked → disabled).
-  useEffect(() => {
-    fetch('/master-providers').then((r) => r.json()).then(setProviders).catch(() => setProviders([]));
-  }, []);
   // JOCA_Brain skills + agents, for the "skills a usar" picker (don't make the user memorise names).
   useEffect(() => {
     fetch('/joca-items').then((r) => r.json()).then((o) => {
@@ -120,16 +110,14 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       description: description.trim() || undefined,
       status: 'a-definir' as TaskStatus,
       projectId: projectId || undefined,
-      provider,
-      model: provider === 'claude' && model.trim() ? model.trim() : undefined,
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
       attachments: attachments.length ? attachments : undefined,
     };
     await fetch('/tasks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setTitle(''); setDescription(''); setProjectId(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCreating(false);
+    setTitle(''); setDescription(''); setProjectId(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCreating(false);
     reload();
-  }, [title, description, projectId, provider, model, selectedSkills, requireConfirm, attachments, reload]);
+  }, [title, description, projectId, selectedSkills, requireConfirm, attachments, reload]);
 
   // Persistir os anexos de uma tarefa existente (PATCH). Reversível → sem confirmação.
   const patchAttachments = useCallback(async (id: string, next: string[]) => {
@@ -229,14 +217,12 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
     }
   }, [draggingId, tasks, columnTasks, reorder, move]);
 
-  const provLabel = (id?: string) => providers.find((p) => p.id === id)?.label ?? (id ?? 'claude');
-
   return (
     <div className="tasks-view">
       <header className="tk-header">
         <div>
           <h1>Tarefas</h1>
-          <p>Quadro Kanban. Cada tarefa é um objectivo que o Master executa num worker (cwd = projecto). Arrasta entre colunas.</p>
+          <p>Quadro Kanban. Cada tarefa corre num worker Claude Code do projecto — um worker por projecto, tarefas em sequência. Arrasta entre colunas.</p>
         </div>
         <button className="tk-btn-primary" type="button" onClick={() => setCreating((v) => !v)}>
           <LucideIcon name={creating ? 'x' : 'plus'} /> {creating ? 'Cancelar' : 'Nova tarefa'}
@@ -263,22 +249,6 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </label>
-            <label className="tk-field tk-inline">
-              <span>Agente</span>
-              <select value={provider} onChange={(e) => setProvider(e.target.value)}>
-                {(providers.length ? providers : [{ id: 'claude', label: 'Claude', available: true, wired: true }]).map((p) => (
-                  <option key={p.id} value={p.id} disabled={!p.wired}>
-                    {p.label}{!p.wired ? ' (indisponível)' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {provider === 'claude' && (
-              <label className="tk-field tk-inline">
-                <span>Modelo (opcional)</span>
-                <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
-              </label>
-            )}
           </div>
           <div className="tk-row">
             <label className="tk-field tk-inline">
@@ -370,7 +340,6 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                       {t.description && <p className="tk-card-desc">{t.description}</p>}
                       <div className="tk-card-meta">
                         {proj && <span className="tk-tag" style={proj.color ? { borderColor: proj.color, color: proj.color } : undefined}>{proj.name}</span>}
-                        <span className="tk-tag tk-tag-agent">{provLabel(t.provider)}{t.model ? `·${t.model}` : ''}</span>
                         {t.skills?.length ? <span className="tk-tag">skills: {t.skills.join(', ')}</span> : null}
                         {t.requireConfirm ? <span className="tk-tag">✋ confirma</span> : null}
                       </div>

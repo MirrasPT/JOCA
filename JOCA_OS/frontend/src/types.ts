@@ -3,7 +3,7 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
-  origin?: 'user' | 'master';   // who spawned it: 'user' (UI) or 'master' (orchestrator)
+  origin?: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
   status: 'working' | 'idle';
 }
 
@@ -93,13 +93,5 @@ export interface JocaLogicInfo {
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
-export type MainView = 'dashboard' | 'project' | 'session' | 'master' | 'automations' | 'tasks';
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks';
 export type RightPanel = 'files' | 'toolkit' | 'settings' | null;
-
-// Master chat — one entry per WS event in the orchestration stream.
-export type MasterEntry =
-  | { id: string; role: 'user'; text: string }
-  | { id: string; role: 'assistant'; text: string }
-  | { id: string; role: 'step'; tool: string; input: unknown }
-  | { id: string; role: 'summary'; text: string; isError: boolean; costUsd: number }
-  | { id: string; role: 'error'; text: string };
