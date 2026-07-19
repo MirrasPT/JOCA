@@ -75,7 +75,7 @@ Executar `/install` — o assistente configura:
 - Skills (127 disponíveis, sistema de triggers) + auto-orquestração (task-intake 4 vias)
 - Browser automation (browser-use CLI, Playwright Agent CLI)
 - MCPs (playwright, markitdown — motor do /know)
-- CLIs externos (gh, gws, sentry-cli, ffmpeg, codex, agy, cli-printing-press, zmail-cli)
+- CLIs externos (gh, ffmpeg, codex, agy, gws, …) — inventário completo com comandos de instalação por plataforma em `JOCA_Brain/memory/tools/clis.md`
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_OS (browser interface)
 - StatusLine + Rate Limits tracking (Node.js cross-platform)

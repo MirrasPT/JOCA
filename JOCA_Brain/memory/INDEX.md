@@ -71,3 +71,4 @@ _(none yet — run `/save` at the end of a session to record feedback)_
 
 ## Tools
 - [mcps.md](tools/mcps.md) — MCP servers ligados (markitdown, playwright, comfy) + setup markitdown para /know
+- [clis.md](tools/clis.md) — inventário de CLIs externos (função + instalação macOS/Windows + auth interactiva); percorrido pelo /install
