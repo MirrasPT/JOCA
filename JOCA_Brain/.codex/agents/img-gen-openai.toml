@@ -76,6 +76,17 @@ Codex generates images natively through OpenAI's gpt-image-2 model. Output goes 
 `~/.codex/generated_images/<session>/` by default — codex copies to the requested path when told,
 otherwise copy the newest PNG from that dir afterwards.
 
+**Parallel-safe copy by session-id (preferred).** Each `codex exec` prints `session id: <uuid>` and
+writes ONLY into `~/.codex/generated_images/<uuid>/`. Copy the PNG **from that session's subdir**, not
+"newest global": `SID=$(printf '%s' "$OUT" | grep -oiE 'session id: [0-9a-fA-F-]+' | awk '{print $NF}'); cp "$(ls -t ~/.codex/generated_images/$SID/*.png | head -1)" dest.png`.
+This makes it **collision-proof to run N codex in parallel** (validated: 30 gens, 4/batch, 0 swaps) —
+the old "never run codex in parallel" swap bug was only from copying newest-global.
+
+**Exact small digits are unreliable.** gpt-image-2 regenerates; when a prompt pins a small variable
+string (a serial, a count, a year on a fixed-layout label), the model often ignores it and anchors on
+memorized/plausible values (~30% miss, retries don't fix). For exact variable fields, composite the text
+by code (Pillow) over the AI chrome — do NOT trust the model to render them.
+
 ## Reliability (Windows/codex)
 
 - **LF line endings in prompt files.** Write `prompt.txt` with LF, not CRLF. PowerShell `Set-Content`
