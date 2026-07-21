@@ -281,13 +281,21 @@ export function filesRouter(): Router {
     if (/[\r\n]/.test(rawExt)) return res.status(400).json({ error: 'Invalid extension header' });
     const ext = rawExt.replace(/[^\w-]/g, '').toLowerCase();
     if (!UPLOAD_ALLOWED_EXTS.has(ext)) return res.status(400).json({ error: `Extension .${ext} not allowed` });
-    const originalName = (req.headers['x-file-name'] as string) || '';
+    // Client percent-encodes x-file-name / x-rel-path: HTTP headers are Latin-1 only, but real
+    // filenames aren't (macOS screenshots carry a U+202F before AM/PM). Decode here; malformed → 400.
+    let originalName: string;
+    let rawRel: string;
+    try {
+      originalName = decodeURIComponent((req.headers['x-file-name'] as string) || '');
+      rawRel = decodeURIComponent((req.headers['x-rel-path'] as string) || '');
+    } catch {
+      return res.status(400).json({ error: 'Invalid header encoding' });
+    }
     // Reject null bytes, CR, LF in filename — Node path.join truncates at \x00, bypassing ext check.
     if (/[\x00\r\n]/.test(originalName)) return res.status(400).json({ error: 'Invalid filename' });
 
     // Folder drop: x-rel-path carries the file's path relative to the dropped folder
     // (e.g. "Assets/sub/a.png"). We rebuild that tree under DROP_DIR and report the folder root.
-    const rawRel = (req.headers['x-rel-path'] as string) || '';
     let filepath: string;
     let root: string | undefined;
     if (rawRel) {

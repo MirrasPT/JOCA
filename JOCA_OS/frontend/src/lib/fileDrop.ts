@@ -85,15 +85,23 @@ async function uploadFile(file: File, opts: UploadOpts = {}): Promise<{ path: st
       headers: {
         'Content-Type': file.type || 'application/octet-stream',
         'x-file-ext': extOf(name, file.type),
-        'x-file-name': name,
-        ...(opts.relPath ? { 'x-rel-path': opts.relPath } : {}),
+        // HTTP headers are Latin-1 only. Real-world filenames aren't: macOS screenshot names carry a
+        // narrow no-break space (U+202F) before AM/PM, so a raw non-ASCII name throws inside fetch()
+        // itself ("non ISO-8859-1 code point") before any request is even sent. Percent-encode; the
+        // server decodes it back (see files-routes.ts).
+        'x-file-name': encodeURIComponent(name),
+        ...(opts.relPath ? { 'x-rel-path': encodeURIComponent(opts.relPath) } : {}),
       },
       body: buf,
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`[upload] ${res.status} ${res.statusText}: ${await res.text().catch(() => '')}`);
+      return null;
+    }
     const data = (await res.json()) as { path?: string; root?: string };
     return data.path ? { path: data.path, root: data.root } : null;
-  } catch {
+  } catch (err) {
+    console.error('[upload] request failed', err);
     return null;
   }
 }
