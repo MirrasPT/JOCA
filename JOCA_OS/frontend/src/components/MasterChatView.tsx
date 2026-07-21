@@ -168,11 +168,13 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
   const [uploading, setUploading] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [dropHint, setDropHint] = useState(false); // brief note when a drag yields no real path
+  const [pasteError, setPasteError] = useState(false); // brief note when Ctrl+V image upload fails
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachRef = useRef<HTMLDivElement>(null);
   const hintTimer = useRef<number | null>(null);
+  const pasteErrorTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const el = logRef.current;
@@ -187,8 +189,11 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
     el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.5)}px`;
   }, [draft]);
 
-  // Clear the pending drop-hint timer on unmount.
-  useEffect(() => () => { if (hintTimer.current) window.clearTimeout(hintTimer.current); }, []);
+  // Clear the pending drop-hint timers on unmount.
+  useEffect(() => () => {
+    if (hintTimer.current) window.clearTimeout(hintTimer.current);
+    if (pasteErrorTimer.current) window.clearTimeout(pasteErrorTimer.current);
+  }, []);
 
   // Close the attach menu on outside click / Escape.
   useEffect(() => {
@@ -273,6 +278,12 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
 
   // Ctrl+V of an image (screenshot, copied picture): upload it to JOCA_Drops and insert its path.
   // Plain-text pastes have no image items and fall through to the textarea unchanged.
+  const flashPasteError = () => {
+    setPasteError(true);
+    if (pasteErrorTimer.current) window.clearTimeout(pasteErrorTimer.current);
+    pasteErrorTimer.current = window.setTimeout(() => setPasteError(false), 4200);
+  };
+
   const onPaste = async (e: ReactClipboardEvent<HTMLTextAreaElement>) => {
     const imgs = Array.from(e.clipboardData?.items ?? [])
       .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
@@ -282,7 +293,9 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
     e.preventDefault();
     setUploading(true);
     try {
-      insertPaths(await uploadPastedImages(imgs, Date.now()));
+      const paths = await uploadPastedImages(imgs, Date.now());
+      if (paths.length === 0) { flashPasteError(); return; } // upload failed silently — see console for [upload] error
+      insertPaths(paths);
     } finally {
       setUploading(false);
     }
@@ -352,6 +365,12 @@ export default function MasterChatView({ entries, pending, activity, brainLabel,
           {dropHint && (
             <div className="mc-drop-note" role="status">
               Arrastar não copia o ficheiro — usa Ctrl+V ou o painel Ficheiros.
+            </div>
+          )}
+
+          {pasteError && (
+            <div className="mc-drop-note" role="status">
+              Falha ao carregar a imagem colada — vê a consola do browser (erro [upload]).
             </div>
           )}
 

@@ -33,6 +33,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
   const [skipPermissions, setSkipPermissions] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'));
   const [masterProvider, setMasterProvider] = useState('claude');
   const [masterModel, setMasterModel] = useState('');
   const [optimizeProvider, setOptimizeProvider] = useState('claude');
@@ -42,6 +43,12 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   useEffect(() => {
     fetch('/ui-settings').then(r => r.json()).then(s => {
       setSkipPermissions(s.skipPermissions ?? false);
+      if (s.theme === 'light' || s.theme === 'dark') {
+        setTheme(s.theme);
+        if (s.theme === 'light') document.documentElement.dataset.theme = 'light';
+        else delete document.documentElement.dataset.theme;
+        try { localStorage.setItem('joca-theme', s.theme); } catch { /* ignore */ }
+      }
       setMasterProvider(s.masterProvider ?? 'claude');
       setMasterModel(s.masterModel ?? '');
       setOptimizeProvider(s.optimizeProvider ?? 'claude');
@@ -55,6 +62,15 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   }, []);
   const selectProvider = useCallback((id: string) => { setMasterProvider(id); patchSettings({ masterProvider: id }); }, [patchSettings]);
   const selectOptimizeProvider = useCallback((id: string) => { setOptimizeProvider(id); patchSettings({ optimizeProvider: id }); }, [patchSettings]);
+
+  const toggleTheme = useCallback(() => {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    if (next === 'light') document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+    try { localStorage.setItem('joca-theme', next); } catch { /* ignore */ }
+    patchSettings({ theme: next });
+  }, [theme, patchSettings]);
 
   const toggleSkipPermissions = useCallback(() => {
     const next = !skipPermissions;
@@ -87,6 +103,16 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         </button>
       </div>
       <div className="settings-panel-body">
+        <div className="settings-service-card">
+          <div className="settings-service-head">
+            <span className="status-pill status-pill--connected">aparência</span>
+            <span>Tema</span>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer' }}>
+            <input type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
+            <span>Light mode</span>
+          </label>
+        </div>
         {services.map((service) => (
           <div key={service.id} className="settings-service-card">
             <div className="settings-service-head">

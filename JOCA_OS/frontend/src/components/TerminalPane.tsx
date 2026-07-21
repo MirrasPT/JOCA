@@ -13,6 +13,60 @@ interface Props {
   onReady: (sessionId: string, ref: TerminalRef) => void;
 }
 
+const DARK_TERM_THEME = {
+  background: '#0c0c0c',
+  foreground: '#e0e0e0',
+  cursor: '#ff4500',
+  cursorAccent: '#0c0c0c',
+  selectionBackground: 'rgba(255,69,0,0.18)',
+  selectionForeground: '#ffffff',
+  black: '#1a1a1a',
+  red: '#f06a6a',
+  green: '#4ade80',
+  yellow: '#fbbf24',
+  blue: '#60a5fa',
+  magenta: '#c084fc',
+  cyan: '#22d3ee',
+  white: '#a0a0a0',
+  brightBlack: '#555555',
+  brightRed: '#ff8888',
+  brightGreen: '#86efac',
+  brightYellow: '#fde68a',
+  brightBlue: '#93c5fd',
+  brightMagenta: '#d8b4fe',
+  brightCyan: '#67e8f9',
+  brightWhite: '#f5f5f5',
+};
+
+const LIGHT_TERM_THEME = {
+  background: '#fbfaf7',
+  foreground: '#2b2822',
+  cursor: '#ff4500',
+  cursorAccent: '#fbfaf7',
+  selectionBackground: 'rgba(255,69,0,0.16)',
+  selectionForeground: '#17140f',
+  black: '#3c382f',
+  red: '#c2410c',
+  green: '#15803d',
+  yellow: '#a16207',
+  blue: '#1d4ed8',
+  magenta: '#a21caf',
+  cyan: '#0e7490',
+  white: '#6c675d',
+  brightBlack: '#8a8578',
+  brightRed: '#dc2626',
+  brightGreen: '#16a34a',
+  brightYellow: '#b45309',
+  brightBlue: '#2563eb',
+  brightMagenta: '#c026d3',
+  brightCyan: '#0891b2',
+  brightWhite: '#17140f',
+};
+
+function currentTermTheme() {
+  return document.documentElement.dataset.theme === 'light' ? LIGHT_TERM_THEME : DARK_TERM_THEME;
+}
+
 export default function TerminalPane({ sessionId, isActive, onInput, onResize, onReady }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -34,30 +88,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
     if (!containerRef.current) return;
 
     const term = new Terminal({
-      theme: {
-        background: '#0c0c0c',
-        foreground: '#e0e0e0',
-        cursor: '#ff4500',
-        cursorAccent: '#0c0c0c',
-        selectionBackground: 'rgba(255,69,0,0.18)',
-        selectionForeground: '#ffffff',
-        black: '#1a1a1a',
-        red: '#f06a6a',
-        green: '#4ade80',
-        yellow: '#fbbf24',
-        blue: '#60a5fa',
-        magenta: '#c084fc',
-        cyan: '#22d3ee',
-        white: '#a0a0a0',
-        brightBlack: '#555555',
-        brightRed: '#ff8888',
-        brightGreen: '#86efac',
-        brightYellow: '#fde68a',
-        brightBlue: '#93c5fd',
-        brightMagenta: '#d8b4fe',
-        brightCyan: '#67e8f9',
-        brightWhite: '#f5f5f5',
-      },
+      theme: currentTermTheme(),
       fontFamily: '"JetBrains Mono", "Fira Code", ui-monospace, monospace',
       fontSize: 13,
       lineHeight: 1.4,
@@ -132,11 +163,17 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
     ro.observe(containerRef.current);
     resizeObserver.current = ro;
 
+    const themeObserver = new MutationObserver(() => {
+      term.options.theme = currentTermTheme();
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       ro.disconnect();
+      themeObserver.disconnect();
       term.dispose();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
