@@ -33,6 +33,7 @@ export interface UiSettings {
   skipPermissions: boolean;
   optimizeProvider?: LlmProvider;  // SDK used by "Optimizar" (text rewrite); default claude
   optimizeModel?: string;          // model used by the "Optimizar" feature (text rewrite); default sonnet
+  theme?: 'dark' | 'light';        // UI theme; default dark (undefined = dark)
 }
 
 export const DATA_DIR = path.join(__dirname, '../../data');

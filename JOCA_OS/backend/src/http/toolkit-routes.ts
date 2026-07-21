@@ -62,6 +62,9 @@ export function toolkitRouter(): Router {
       const m = typeof body.optimizeModel === 'string' ? body.optimizeModel.trim().slice(0, 80) : '';
       updated.optimizeModel = m || undefined;
     }
+    if ('theme' in body) {
+      updated.theme = body.theme === 'light' ? 'light' : 'dark';
+    }
     saveUiSettings(updated);
     res.json(updated);
   });
