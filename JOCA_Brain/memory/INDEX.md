@@ -37,6 +37,7 @@ _(none yet — run `/save` at the end of a session to record feedback)_
 - `/update-joca` — sync with official GitHub repo (protects local components)
 - `/create-skill [desc]` — create new skill via research pipeline
 - `/sync-questionnaires` — audit + realign questionnaires/counters with the real skill/agent inventory
+- `/sync-brain` — sincronização multi-PC: resolve divergência git + estado `JOCA_OS/data/*.json`
 - `/status` — mostra rate limits, modelo e uso de contexto atual
 - `/help-joca` — quick reference: commands, agents, skills
 - `/wp-perf` — quick WordPress performance triage

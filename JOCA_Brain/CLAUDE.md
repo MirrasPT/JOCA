@@ -106,6 +106,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | enqueue_workflow not running · comfyui mcp bug · workflow crashes via MCP · start_comfyui fails · comfy plugin | `comfy-mcp-workarounds` |
 | JOCA_OS no Windows · node-pty · PowerShell PTY · install/upgrade Windows | `joca-os-windows` |
 | classificar tarefa · que via · skill ou agente ou workflow · preciso de workflow? | `task-router` (agent) |
+| sync multi-PC · sincronizar máquinas · a outra máquina fez push · conflito JOCA_OS/data | `sync-brain` |
 | freeze · trancar edições · lock scope · só editar esta pasta | `freeze` (guard-rail) |
 | careful · avisa antes de apagar · modo cauteloso · destrutivo | `careful` (guard-rail) |
 | guard · modo seguro · segurança máxima · lock it down | `guard` (guard-rail) |
@@ -166,6 +167,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | `/review-design` | UI/UX + accessibility |
 | `/create-skill [desc]` | new skill via research pipeline |
 | `/sync-questionnaires` | audit + realign questionnaires/counters with real skill/agent inventory |
+| `/sync-brain` | sincronização multi-PC: resolve divergência git + estado `JOCA_OS/data/*.json` |
 | `/help-joca` | quick reference |
 | `/migrate` | v1-legacy → v2.0 migration guide |
 | `/upgrade-joca` | feedback → self-improvement → apply |
