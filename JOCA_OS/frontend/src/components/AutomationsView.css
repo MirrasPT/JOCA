@@ -92,9 +92,9 @@
 .av-toggle.on .av-toggle-dot { left: 19px; }
 
 .av-status { font-size: 11px; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
-.av-status-ok { background: rgba(70,180,90,.18); color: #6fdc8c; }
-.av-status-error { background: rgba(220,70,70,.18); color: #ff8a8a; }
-.av-status-running { background: rgba(255,180,60,.18); color: #ffce7a; }
+.av-status-ok { background: rgba(70,180,90,.18); color: var(--status-idle, #6fdc8c); }
+.av-status-error { background: rgba(220,70,70,.18); color: var(--red, #ff8a8a); }
+.av-status-running { background: rgba(255,180,60,.18); color: var(--status-working, #ffce7a); }
 
 .av-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--text-muted, #9b9690); }
 .av-meta span { display: inline-flex; align-items: center; gap: 5px; }
@@ -116,5 +116,5 @@
 }
 .av-card-actions button:hover { color: var(--text-primary, #f5f3ef); border-color: var(--accent, #ff4500); }
 .av-card-actions button:disabled { opacity: .5; cursor: progress; }
-.av-card-actions .av-danger:hover { color: #ff8a8a; border-color: #ff8a8a; }
+.av-card-actions .av-danger:hover { color: var(--red, #ff8a8a); border-color: var(--red, #ff8a8a); }
 .av-card-actions svg { width: 16px; height: 16px; }

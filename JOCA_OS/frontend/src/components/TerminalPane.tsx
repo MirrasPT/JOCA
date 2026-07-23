@@ -98,6 +98,10 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       cursorWidth: 2,
       scrollback: 2000000,
       allowTransparency: false,
+      // Apps que imprimem branco truecolor/ANSI cru (fora da palette do theme) ficam
+      // invisíveis num fundo claro — xterm ajusta o foreground por célula para manter
+      // contraste mínimo, independente da cor pedida pela app.
+      minimumContrastRatio: 4.5,
     });
 
     const fitAddon = new FitAddon();

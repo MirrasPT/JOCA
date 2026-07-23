@@ -107,17 +107,17 @@
 }
 
 .titlebar-btn--compact:hover {
-  color: #60a5fa;
+  color: var(--badge-blue);
   border-color: rgba(96, 165, 250, 0.3);
 }
 
 .titlebar-btn--restart:hover {
-  color: #4ade80;
+  color: var(--status-idle);
   border-color: rgba(74, 222, 128, 0.3);
 }
 
 .titlebar-btn--interrupt {
-  color: rgba(240, 106, 106, 0.7);
+  color: color-mix(in srgb, var(--red) 70%, transparent);
 }
 
 .titlebar-btn--interrupt:hover {
@@ -259,13 +259,13 @@
 .quick-command-btn--highlight {
   background: rgba(74, 222, 128, 0.08);
   border-color: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  color: var(--status-idle);
 }
 
 .quick-command-btn--highlight:hover {
   background: rgba(74, 222, 128, 0.15);
   border-color: rgba(74, 222, 128, 0.3);
-  color: #4ade80;
+  color: var(--status-idle);
 }
 
 .quick-command-btn--plus {
@@ -464,25 +464,25 @@
 
 .slash-menu-badge--command {
   background: rgba(255,69,0,0.12);
-  color: #ff6b35;
+  color: var(--badge-orange);
   border: 1px solid rgba(255,69,0,0.2);
 }
 
 .slash-menu-badge--skill {
   background: rgba(74,222,128,0.1);
-  color: #4ade80;
+  color: var(--status-idle);
   border: 1px solid rgba(74,222,128,0.18);
 }
 
 .slash-menu-badge--agent {
   background: rgba(168,85,247,0.1);
-  color: #a78bfa;
+  color: var(--badge-purple);
   border: 1px solid rgba(168,85,247,0.18);
 }
 
 .slash-menu-badge--claude {
   background: rgba(96,165,250,0.1);
-  color: #60a5fa;
+  color: var(--badge-blue);
   border: 1px solid rgba(96,165,250,0.18);
 }
 

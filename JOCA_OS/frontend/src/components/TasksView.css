@@ -117,9 +117,9 @@
 .tk-card-desc { margin: 0; font-size: 12.5px; color: var(--text-muted, #9b9690); line-height: 1.4; max-height: 54px; overflow: hidden; }
 
 .tk-status { font-size: 10.5px; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; flex: 0 0 auto; }
-.tk-status-ok { background: rgba(70,180,90,.18); color: #6fdc8c; }
-.tk-status-error { background: rgba(220,70,70,.18); color: #ff8a8a; }
-.tk-status-running { background: rgba(255,180,60,.18); color: #ffce7a; }
+.tk-status-ok { background: rgba(70,180,90,.18); color: var(--status-idle, #6fdc8c); }
+.tk-status-error { background: rgba(220,70,70,.18); color: var(--red, #ff8a8a); }
+.tk-status-running { background: rgba(255,180,60,.18); color: var(--status-working, #ffce7a); }
 
 .tk-card-meta { display: flex; flex-wrap: wrap; gap: 6px; }
 .tk-tag {
@@ -148,7 +148,7 @@
 .tk-card-actions button:disabled { opacity: .5; cursor: progress; }
 .tk-card-actions .tk-run { color: var(--accent, #ff4500); }
 .tk-card-actions .tk-danger { margin-left: auto; }
-.tk-card-actions .tk-danger:hover { color: #ff8a8a; border-color: #ff8a8a; }
+.tk-card-actions .tk-danger:hover { color: var(--red, #ff8a8a); border-color: var(--red, #ff8a8a); }
 .tk-card-actions svg { width: 15px; height: 15px; }
 
 /* ── Anexos (form + cartão) ──────────────────────────────────────────────────── */
@@ -172,6 +172,6 @@
   background: var(--surface-base, #131210);
   color: var(--text-secondary, #c4bfb8); font-family: inherit; font-size: 11px;
 }
-.tk-attach-chip:hover { color: #ff8a8a; border-color: #ff8a8a; }
+.tk-attach-chip:hover { color: var(--red, #ff8a8a); border-color: var(--red, #ff8a8a); }
 .tk-attach-chip svg { width: 11px; height: 11px; flex: 0 0 auto; }
 .tk-attach-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }

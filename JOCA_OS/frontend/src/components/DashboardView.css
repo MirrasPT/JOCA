@@ -447,12 +447,12 @@
 
 .memory-chip--skill {
   border-color: rgba(96, 200, 184, 0.2);
-  color: #60c8b8;
+  color: var(--badge-teal);
 }
 
 .memory-chip--agent {
   border-color: rgba(167, 139, 250, 0.2);
-  color: #a78bfa;
+  color: var(--badge-purple);
 }
 
 .memory-chip-remove {

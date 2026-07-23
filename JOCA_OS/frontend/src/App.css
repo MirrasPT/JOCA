@@ -28,6 +28,13 @@
   --status-idle-glow:    rgba(74,222,128,0.18);
   --status-done-glow:    rgba(74,222,128,0.42);
 
+  /* Badge/tag hues beyond the status pair above — same "tuned for dark bg"
+     caveat, darkened per-hue for light mode below. */
+  --badge-purple: #a78bfa;
+  --badge-blue:   #60a5fa;
+  --badge-teal:   #25c2a0;
+  --badge-orange: #ff6b35;
+
   --text-bright:  #f5f5f5;
   --text-normal:  #c9c9c9;
   --text-dim:     #9e9e9e;
@@ -99,6 +106,17 @@
   --accent-soft:    rgba(255,69,0,0.08);
   --accent-glow:    rgba(255,69,0,0.22);
   --accent-border:  rgba(255,69,0,0.3);
+
+  /* Status/badge hues re-tuned for a light background — the dark-mode values
+     above read fine on #080808 but drop under ~2:1 contrast on white. */
+  --status-working: #a16207;
+  --status-idle:    #15803d;
+  --accent-amber:   #a16207;
+  --red:            #dc2626;
+  --badge-purple:   #9333ea;
+  --badge-blue:     #2563eb;
+  --badge-teal:     #0f766e;
+  --badge-orange:   #c2410c;
 
   --text-bright:  #17140f;
   --text-normal:  #3c382f;
@@ -1662,7 +1680,7 @@ html, body, #root {
 .joca-item-icon { font-size:10px; flex-shrink:0; opacity:0.5; }
 .joca-item--command .joca-item-icon { color:var(--accent); opacity:0.7; }
 .joca-item--skill .joca-item-icon { color:var(--accent-amber); opacity:0.6; }
-.joca-item--agent .joca-item-icon { color:#60a8c8; opacity:0.6; }
+.joca-item--agent .joca-item-icon { color:var(--badge-teal); opacity:0.6; }
 
 .joca-item-name { font-size:11.5px; font-family:var(--font-mono); color:var(--text-normal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .joca-item--command .joca-item-name::before { content:'/'; color:var(--accent); opacity:0.7; margin-right:1px; }
@@ -1704,7 +1722,7 @@ html, body, #root {
 }
 .titlebar-btn:hover { background:color-mix(in srgb, var(--on-surface) 8%, transparent); color:var(--text-normal); border-color:var(--border-default); }
 .titlebar-btn--save:hover { color:var(--status-idle); border-color:rgba(61,186,122,0.3); background:rgba(61,186,122,0.07); }
-.titlebar-btn--compact:hover { color:#9080c0; border-color:rgba(144,128,192,0.3); background:rgba(144,128,192,0.07); }
+.titlebar-btn--compact:hover { color:var(--badge-purple); border-color:rgba(144,128,192,0.3); background:rgba(144,128,192,0.07); }
 .titlebar-btn--create:hover { color:var(--accent-amber); border-color:rgba(245,147,50,0.3); background:rgba(245,147,50,0.07); }
 
 /* Unread state is handled by notifications. Sidebar rows stay visually quiet. */
@@ -3798,7 +3816,7 @@ background:var(--surface-main);
   color:var(--accent);
 }
 
-.db-stat-icon--terminal { color:#60a5fa; }
+.db-stat-icon--terminal { color:var(--badge-blue); }
 .db-stat-card > div:last-child {
   min-width:0;
 }
@@ -4690,7 +4708,7 @@ background:var(--bg-input);
 }
 
 .titlebar-btn--interrupt {
-  color:#ff9d8d;
+  color:color-mix(in srgb, var(--red) 70%, transparent);
   border-color:rgba(255,84,36,0.20);
 }
 
@@ -4959,7 +4977,7 @@ background:var(--bg-input);
 }
 
 .toolkit-item--commands {
-  --toolkit-color: #ff5a24;
+  --toolkit-color: var(--badge-orange);
   --toolkit-color-rgb: 255, 90, 36;
   --toolkit-bg: rgba(255, 90, 36, 0.04);
   --toolkit-border: rgba(255, 90, 36, 0.2);
@@ -4967,7 +4985,7 @@ background:var(--bg-input);
 }
 
 .toolkit-item--skills {
-  --toolkit-color: #a78bfa;
+  --toolkit-color: var(--badge-purple);
   --toolkit-color-rgb: 167, 139, 250;
   --toolkit-bg: rgba(167, 139, 250, 0.05);
   --toolkit-border: rgba(167, 139, 250, 0.2);
@@ -4975,7 +4993,7 @@ background:var(--bg-input);
 }
 
 .toolkit-item--agents {
-  --toolkit-color: #25c2a0;
+  --toolkit-color: var(--badge-teal);
   --toolkit-color-rgb: 37, 194, 160;
   --toolkit-bg: rgba(37, 194, 160, 0.05);
   --toolkit-border: rgba(37, 194, 160, 0.2);
@@ -5269,17 +5287,17 @@ background:var(--bg-input);
 }
 
 .toolkit-open-kind--commands {
-  color:#ff8a54;
+  color:var(--badge-orange);
   background:rgba(255,90,36,0.10);
 }
 
 .toolkit-open-kind--skills {
-  color:#c4b5fd;
+  color:var(--badge-purple);
   background:rgba(167,139,250,0.11);
 }
 
 .toolkit-open-kind--agents {
-  color:#63e6be;
+  color:var(--badge-teal);
   background:rgba(37,194,160,0.10);
 }
 
@@ -5311,7 +5329,7 @@ background:var(--bg-input);
   border:1px solid rgba(251,191,36,0.24);
   border-radius:999px;
   background:rgba(251,191,36,0.08);
-  color:#f8d57a;
+  color:var(--status-working);
   font:900 9px var(--font-ui);
   letter-spacing:0.08em;
   text-transform:uppercase;
@@ -5426,7 +5444,7 @@ background:var(--bg-input);
 }
 
 .toolkit-danger {
-  color:#ff9d8d !important;
+  color:var(--red) !important;
   border-color:rgba(255,84,36,0.22) !important;
 }
 
@@ -5468,7 +5486,7 @@ background:var(--bg-input);
 }
 
 .fb-action--danger:hover {
-  color:#ff9d8d;
+  color:var(--red);
   border-color:rgba(255,84,36,0.22);
 }
 
