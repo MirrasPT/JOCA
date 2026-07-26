@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
-import type { MainView, SessionInfo, TerminalRef } from '../types';
+import type { AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
@@ -19,7 +19,8 @@ export type ServerMessage =
   | { type: 'automation_message'; id: string; text: string; ts: number }
   | { type: 'automations_changed' }
   | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
-  | { type: 'tasks_changed' };
+  | { type: 'tasks_changed' }
+  | { type: 'notification'; notification: AppNotification };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
@@ -35,6 +36,7 @@ export interface SessionSocketDeps {
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   setTasksRefresh: Dispatch<SetStateAction<number>>;
+  setNotificationsRefresh: Dispatch<SetStateAction<number>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -183,6 +185,15 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           break;
         case 'tasks_changed':
           d.setTasksRefresh((n) => n + 1);
+          break;
+
+        // Nova entrada no inbox persistente → refetch do NotificationsInbox. OS notification só
+        // para heartbeat/system: automation_message e task_question já notificam nos cases acima.
+        case 'notification':
+          d.setNotificationsRefresh((n) => n + 1);
+          if (msg.notification.kind === 'heartbeat' || msg.notification.kind === 'system') {
+            notify(msg.notification.title, msg.notification.text.replace(/\s+/g, ' ').trim().slice(0, 120));
+          }
           break;
 
         default:

@@ -11,6 +11,7 @@ import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
+import NotificationsInbox from './components/NotificationsInbox';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { ensureNotificationPermission, notify } from './lib/notify';
 import type { JocaItems, JocaLogicInfo, MainView, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
@@ -50,6 +51,7 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
   const [tasksRefresh, setTasksRefresh] = useState(0);
+  const [notificationsRefresh, setNotificationsRefresh] = useState(0);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -223,13 +225,20 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setUnreadIds, setAutomationsRefresh, setTasksRefresh,
+    setUnreadIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
     activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
   });
 
   const handleNewSession = useCallback(() => {
     send({ type: 'create_session' });
+  }, [send]);
+
+  // Nova sessão num CLI alternativo (codex/agy/opencode) — usado pelo dropdown do TerminalView.
+  const handleNewSessionWithCli = useCallback((cli: string) => {
+    if (!cli || cli === 'claude') send({ type: 'create_session' });
+    else send({ type: 'create_session', cli });
+    setMainView('session');
   }, [send]);
 
   const handleCreateProjectPrompt = useCallback(() => {
@@ -594,11 +603,14 @@ export default function App() {
             }}
             termRefs={termRefs}
             onNewSession={handleNewSession}
+            onNewSessionWithCli={handleNewSessionWithCli}
             jocaItems={jocaItems}
             onLoadJocaItems={loadCommandPalette}
           />
         )}
       </div>
+
+      <NotificationsInbox refreshKey={notificationsRefresh} />
 
       <RightWorkspace
         panel={rightPanel}

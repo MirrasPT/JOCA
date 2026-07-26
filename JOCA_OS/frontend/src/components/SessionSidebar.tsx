@@ -156,6 +156,7 @@ function SessionItem({
           title={`${session.name} — double-click to rename`}
         >
           <span className="session-item-name">{session.name}</span>
+          {session.cli && session.cli !== 'claude' && <span className="session-cli-badge">{session.cli}</span>}
         </button>
       )}
       {!editing && !confirming && (

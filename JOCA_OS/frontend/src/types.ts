@@ -5,6 +5,7 @@ export interface SessionInfo {
   projectId?: string;
   origin?: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
   status: 'working' | 'idle';
+  cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
 }
 
 
@@ -44,7 +45,7 @@ export interface RuntimeInfo {
 }
 
 export interface CliToolStatus {
-  id: 'claude' | 'codex' | 'agy';
+  id: 'claude' | 'codex' | 'agy' | 'opencode';
   name: string;
   provider: string;
   binary: string;
@@ -89,6 +90,67 @@ export interface JocaLogicInfo {
   hasMemoryIndex: boolean;
   hasGraph: boolean;
   hasSoul: boolean;
+}
+
+// ── v3: inbox / runs / heartbeat / multi-CLI (mirrors backend stores) ─────────
+
+export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system';
+
+export interface AppNotification {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  text: string;
+  ts: number;
+  read: boolean;
+  meta?: { sessionId?: string; taskId?: string; automationId?: string };
+}
+
+export type RunKind = 'automation' | 'task' | 'heartbeat';
+export type RunStatus = 'ok' | 'error' | 'timeout' | 'skipped';
+
+export interface RunRecord {
+  id: string;
+  kind: RunKind;
+  refId: string;
+  name: string;
+  projectId?: string;
+  startedAt: number;
+  endedAt: number;
+  ms: number;
+  status: RunStatus;
+  summary: string;
+  costUsd?: number;
+  cli?: string;
+  model?: string;
+  retry?: number;
+}
+
+export interface RunStats {
+  total: number;
+  ok: number;
+  error: number;
+  costUsd: number;
+  byKind: Partial<Record<RunKind, { total: number; ok: number; error: number; costUsd: number }>>;
+}
+
+export interface HeartbeatConfig {
+  enabled: boolean;
+  everyMinutes: number;                                 // >= 5
+  activeHours?: { start: string; end: string } | null;  // "HH:MM" local; null = sempre activo
+  model: string;
+  scratch: string;
+  lastRunAt?: number | null;
+  lastDecision?: 'ok' | 'alert' | 'skipped' | 'error' | null;
+  lastText?: string;
+}
+
+export interface CliProfileInfo {
+  id: 'claude' | 'codex' | 'agy' | 'opencode';
+  label: string;
+  bin: string;
+  available: boolean;
+  startupSequence: boolean;
 }
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';

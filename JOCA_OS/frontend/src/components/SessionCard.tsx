@@ -115,6 +115,7 @@ export default function SessionCard({
 
       <div className="card-footer">
         {projectName && <span className="card-project-chip">{projectName}</span>}
+        {session.cli && session.cli !== 'claude' && <span className="session-cli-badge">{session.cli}</span>}
         <span className="card-cwd">{shortPath(session.cwd)}</span>
       </div>
     </article>

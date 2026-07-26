@@ -4,7 +4,7 @@
 // reorder it inside a column (PUT /tasks/reorder). Mirrors AutomationsView's fetch/icon/pt-PT style.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import type { Project } from '../types';
+import type { CliProfileInfo, Project } from '../types';
 import { uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
 import './TasksView.css';
 
@@ -71,6 +71,9 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   const [requireConfirm, setRequireConfirm] = useState(false);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
+  const [cli, setCli] = useState('claude');
+  const [model, setModel] = useState('');
 
   // Um só <input type=file> reutilizado: o alvo (form de criação vs cartão) fica no ref.
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,6 +91,10 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       const agents = (o.agents ?? []).map((a: { name: string; description?: string }) => ({ ...a, kind: 'agent' as const }));
       setJocaItems([...skills, ...agents]);
     }).catch(() => setJocaItems([]));
+  }, []);
+  // CLIs disponíveis para o worker da tarefa (claude default; os outros só se instalados).
+  useEffect(() => {
+    fetch('/cli-profiles').then((r) => r.json()).then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : [])).catch(() => setCliProfiles([]));
   }, []);
   const knownNames = useMemo(() => new Set(jocaItems.map((i) => i.name)), [jocaItems]);
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
@@ -113,11 +120,13 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
       attachments: attachments.length ? attachments : undefined,
+      cli: cli !== 'claude' ? cli : undefined,
+      model: model.trim() || undefined,
     };
     await fetch('/tasks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setTitle(''); setDescription(''); setProjectId(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCreating(false);
+    setTitle(''); setDescription(''); setProjectId(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCli('claude'); setModel(''); setCreating(false);
     reload();
-  }, [title, description, projectId, selectedSkills, requireConfirm, attachments, reload]);
+  }, [title, description, projectId, selectedSkills, requireConfirm, attachments, cli, model, reload]);
 
   // Persistir os anexos de uma tarefa existente (PATCH). Reversível → sem confirmação.
   const patchAttachments = useCallback(async (id: string, next: string[]) => {
@@ -248,6 +257,21 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                 <option value="">— sem projecto —</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
+            </label>
+            <label className="tk-field tk-inline">
+              <span>CLI</span>
+              <select value={cli} onChange={(e) => setCli(e.target.value)}>
+                {cliProfiles.length === 0 && <option value="claude">Claude Code</option>}
+                {cliProfiles.map((p) => (
+                  <option key={p.id} value={p.id} disabled={!p.available}>
+                    {p.label}{p.available ? '' : ' (não instalado)'}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="tk-field tk-inline">
+              <span>Modelo (opcional)</span>
+              <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
             </label>
           </div>
           <div className="tk-row">

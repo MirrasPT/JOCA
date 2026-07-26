@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
-import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems } from '../types';
+import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems, CliProfileInfo } from '../types';
 import TerminalPane from './TerminalPane';
 import { shortPath, basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
@@ -28,6 +28,7 @@ interface Props {
   onOpenCommandPalette: () => void;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   onNewSession: () => void;
+  onNewSessionWithCli: (cli: string) => void;
   jocaItems: JocaItems | null;
   onLoadJocaItems: () => void;
 }
@@ -138,7 +139,7 @@ export default function TerminalView({
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
   onSaveSession, onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
-  jocaItems, onLoadJocaItems
+  onNewSessionWithCli, jocaItems, onLoadJocaItems
 }: Props) {
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId) ?? null,
@@ -175,6 +176,28 @@ export default function TerminalView({
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [modelMenuOpen]);
+
+  // Split-button do empty state: "+ New Session" abre no claude; o "▾" ao lado deixa escolher o CLI
+  // (codex/agy/opencode). Perfis são carregados lazy na primeira abertura do menu.
+  const [cliMenuOpen, setCliMenuOpen] = useState(false);
+  const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[] | null>(null);
+  const cliWrapRef = useRef<HTMLDivElement>(null);
+  const openCliMenu = useCallback(() => {
+    setCliMenuOpen((o) => !o);
+    if (cliProfiles === null) {
+      fetch('/cli-profiles').then((r) => r.json())
+        .then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : []))
+        .catch(() => setCliProfiles([]));
+    }
+  }, [cliProfiles]);
+  useEffect(() => {
+    if (!cliMenuOpen) return;
+    const onDoc = (ev: MouseEvent) => {
+      if (cliWrapRef.current && !cliWrapRef.current.contains(ev.target as Node)) setCliMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [cliMenuOpen]);
 
   // Non-blocking hint shown when a drop carried files but the OS hid the real path (Explorer sandbox).
   const [dropHint, setDropHint] = useState(false);
@@ -372,7 +395,38 @@ export default function TerminalView({
               </svg>
             </div>
             <p>No active sessions</p>
-            <button className="btn-new-large" type="button" onClick={onNewSession}>+ New Session</button>
+            <div className="cli-split" ref={cliWrapRef}>
+              <button className="btn-new-large cli-split-main" type="button" onClick={onNewSession}>+ New Session</button>
+              <button
+                className="btn-new-large cli-split-caret"
+                type="button"
+                onClick={openCliMenu}
+                aria-haspopup="menu"
+                aria-expanded={cliMenuOpen}
+                aria-label="Escolher CLI para a nova sessão"
+                data-tooltip="Escolher CLI"
+              >
+                ▾
+              </button>
+              {cliMenuOpen && (
+                <div className="cli-split-menu" role="menu" aria-label="CLIs disponíveis">
+                  {(cliProfiles ?? []).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="menuitem"
+                      className="cli-split-item"
+                      disabled={!p.available}
+                      onClick={() => { setCliMenuOpen(false); onNewSessionWithCli(p.id); }}
+                    >
+                      {p.label}{p.available ? '' : ' (não instalado)'}
+                    </button>
+                  ))}
+                  {cliProfiles === null && <div className="cli-split-item cli-split-item--loading">A carregar…</div>}
+                  {cliProfiles?.length === 0 && <div className="cli-split-item cli-split-item--loading">Sem perfis CLI.</div>}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           sessions.map((s) => (

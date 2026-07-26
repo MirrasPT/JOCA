@@ -1,0 +1,13 @@
+{
+  "name": "JOCA",
+  "short_name": "JOCA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "description": "Joint Orchestrator of Cognitive Agents — terminais multi-sessão, automações e tarefas.",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

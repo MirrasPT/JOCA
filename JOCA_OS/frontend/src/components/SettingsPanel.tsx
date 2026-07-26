@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { CliToolStatus, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CliToolStatus, HeartbeatConfig, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 
 interface ServiceConnection {
@@ -72,6 +72,54 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
     setSkipPermissions(next);
     fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skipPermissions: next }) }).catch(() => {});
   }, [skipPermissions]);
+
+  // ── Heartbeat (proactividade) ────────────────────────────────────────────────
+  const [heartbeat, setHeartbeat] = useState<HeartbeatConfig | null>(null);
+  const [beatTesting, setBeatTesting] = useState(false);
+  const [beatResult, setBeatResult] = useState<{ decision: string; text: string } | null>(null);
+  const hbTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    fetch('/heartbeat').then((r) => r.json()).then(setHeartbeat).catch(() => {});
+    return () => { if (hbTimer.current) window.clearTimeout(hbTimer.current); };
+  }, []);
+
+  // Actualiza o estado local já e envia o PATCH com um debounce simples (evita um pedido por tecla
+  // no scratch/model; toggles também passam por aqui — 400ms é imperceptível).
+  const patchHeartbeat = useCallback((patch: Partial<HeartbeatConfig>) => {
+    setHeartbeat((cur) => (cur ? { ...cur, ...patch } : cur));
+    if (hbTimer.current) window.clearTimeout(hbTimer.current);
+    hbTimer.current = window.setTimeout(() => {
+      fetch('/heartbeat', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((cfg: HeartbeatConfig | null) => { if (cfg) setHeartbeat(cfg); })
+        .catch(() => {});
+    }, 400);
+  }, []);
+
+  const testHeartbeat = useCallback(() => {
+    setBeatTesting(true);
+    setBeatResult(null);
+    fetch('/heartbeat/run', { method: 'POST' })
+      .then((r) => r.json())
+      .then((d: { decision?: string; text?: string; error?: string }) => {
+        setBeatResult({ decision: d.decision ?? 'error', text: d.text ?? d.error ?? '' });
+        // O beat manual actualiza lastRunAt/lastDecision server-side — re-sincroniza.
+        return fetch('/heartbeat').then((r) => r.json()).then(setHeartbeat);
+      })
+      .catch(() => setBeatResult({ decision: 'error', text: 'Falhou a chamada ao servidor.' }))
+      .finally(() => setBeatTesting(false));
+  }, []);
+
+  // Tempo relativo curto para o último beat.
+  const relTime = (ts: number) => {
+    const m = Math.round((Date.now() - ts) / 60000);
+    if (m < 1) return 'agora';
+    if (m < 60) return `há ${m} min`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `há ${h} h`;
+    return `há ${Math.round(h / 24)} d`;
+  };
 
   const reloadCliTools = useCallback(() => {
     setCliLoading(true);
@@ -201,6 +249,92 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em', fontFamily: 'var(--font-mono)' }}
             />
           </label>
+        </div>
+        <div className="settings-service-card settings-service-card--heartbeat">
+          <div className="settings-service-head">
+            <span className={`status-pill status-pill--${heartbeat?.enabled ? 'connected' : 'offline'}`}>
+              {heartbeat?.enabled ? 'activo' : 'parado'}
+            </span>
+            <span>💓 Heartbeat</span>
+          </div>
+          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
+            Proactividade: a cada intervalo o JOCA lê a checklist e o estado do sistema e avisa-te só quando algo merece atenção.
+          </p>
+          {heartbeat ? (
+            <div className="hb-body">
+              <label className="hb-check">
+                <input type="checkbox" checked={heartbeat.enabled} onChange={(e) => patchHeartbeat({ enabled: e.target.checked })} />
+                <span>Ligado</span>
+              </label>
+              <label className="hb-field hb-field--inline">
+                <span>A cada (min, ≥5)</span>
+                <input
+                  type="number" min={5} value={heartbeat.everyMinutes}
+                  onChange={(e) => patchHeartbeat({ everyMinutes: Math.max(5, Number(e.target.value) || 5) })}
+                />
+              </label>
+              <label className="hb-check">
+                <input
+                  type="checkbox"
+                  checked={!heartbeat.activeHours}
+                  onChange={(e) => patchHeartbeat({ activeHours: e.target.checked ? null : { start: '09:00', end: '22:00' } })}
+                />
+                <span>Sempre activo (sem janela horária)</span>
+              </label>
+              {heartbeat.activeHours && (
+                <div className="hb-hours">
+                  <label className="hb-field hb-field--inline">
+                    <span>Início</span>
+                    <input type="time" value={heartbeat.activeHours.start}
+                      onChange={(e) => patchHeartbeat({ activeHours: { start: e.target.value, end: heartbeat.activeHours!.end } })} />
+                  </label>
+                  <label className="hb-field hb-field--inline">
+                    <span>Fim</span>
+                    <input type="time" value={heartbeat.activeHours.end}
+                      onChange={(e) => patchHeartbeat({ activeHours: { start: heartbeat.activeHours!.start, end: e.target.value } })} />
+                  </label>
+                </div>
+              )}
+              <label className="hb-field">
+                <span>Modelo</span>
+                <input
+                  type="text" value={heartbeat.model} placeholder="haiku"
+                  onChange={(e) => setHeartbeat((cur) => (cur ? { ...cur, model: e.target.value } : cur))}
+                  onBlur={(e) => patchHeartbeat({ model: e.target.value.trim() })}
+                />
+              </label>
+              <label className="hb-field">
+                <span>Checklist (scratch — o que vigiar em cada beat)</span>
+                <textarea
+                  rows={4} value={heartbeat.scratch}
+                  placeholder={'- verificar se há tarefas bloqueadas\n- lembrar-me do backup semanal'}
+                  onChange={(e) => setHeartbeat((cur) => (cur ? { ...cur, scratch: e.target.value } : cur))}
+                  onBlur={(e) => patchHeartbeat({ scratch: e.target.value })}
+                />
+              </label>
+              <div className="hb-last">
+                <strong>Último beat:</strong>{' '}
+                {heartbeat.lastRunAt
+                  ? <>
+                      <span className={`hb-decision hb-decision--${heartbeat.lastDecision ?? 'ok'}`}>{heartbeat.lastDecision ?? '—'}</span>
+                      {' '}· {relTime(heartbeat.lastRunAt)}
+                      {heartbeat.lastText ? <span className="hb-last-text">{heartbeat.lastText.slice(0, 200)}</span> : null}
+                    </>
+                  : 'nunca correu'}
+              </div>
+              <button className="db-project-card-btn" type="button" onClick={testHeartbeat} disabled={beatTesting}>
+                {beatTesting ? 'A testar…' : 'Testar agora'}
+              </button>
+              {beatResult && (
+                <div className="hb-last">
+                  <span className={`hb-decision hb-decision--${beatResult.decision}`}>{beatResult.decision}</span>
+                  {beatResult.text ? <span className="hb-last-text">{beatResult.text.slice(0, 300)}</span> : null}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p>A carregar…</p>
+          )}
         </div>
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">

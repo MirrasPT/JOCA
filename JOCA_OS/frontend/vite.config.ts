@@ -33,6 +33,11 @@ export default defineConfig({
       '/rate-limits': { target: http },
       '/joca-logic': { target: http },
       '/knowledge-graph': { target: http },
+      '/auth': { target: http },
+      '/notifications': { target: http },
+      '/runs': { target: http },
+      '/heartbeat': { target: http },
+      '/cli-profiles': { target: http },
     },
   },
 });

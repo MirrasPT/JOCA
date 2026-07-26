@@ -4,6 +4,8 @@
 // more node types; the visual node editor (n8n-style canvas) comes next — this form generates the
 // 80% case.
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import RunsHistory from './RunsHistory';
+import type { CliProfileInfo } from '../types';
 import './AutomationsView.css';
 
 // Minimal inline-SVG icons (the project has no shared icon module / lucide-react dep).
@@ -25,6 +27,7 @@ interface Automation {
   id: string; name: string; enabled: boolean;
   model?: string; skills?: string[]; requireConfirm?: boolean;
   trigger: { type: 'schedule' | 'manual'; schedule?: Schedule };
+  cli?: string; retries?: number; catchUp?: boolean;
   nodes: AutomationNode[];
   nextRunAt?: number | null; lastRunAt?: number | null;
   lastStatus?: 'ok' | 'error' | 'running' | null; lastResult?: string;
@@ -32,6 +35,28 @@ interface Automation {
 interface JocaItem { name: string; description?: string; kind: 'skill' | 'agent' }
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+// Templates que pré-preenchem o formulário de criação (o utilizador ajusta e cria).
+interface AutomationTemplate {
+  id: string; label: string; name: string; objective: string;
+  kind: ScheduleKind; time: string; weekday?: number;
+}
+const TEMPLATES: AutomationTemplate[] = [
+  {
+    id: 'upgrade-joca',
+    label: '🔄 Auto-upgrade semanal do JOCA',
+    name: 'Auto-upgrade semanal do JOCA',
+    objective: 'Corre /upgrade-joca --auto: processa o feedback acumulado em memory/feedback/, melhora skills com score < 8.0 e aplica só melhorias seguras (IMPROVE_SKILL/FIX_TRIGGER). Termina com um resumo do que foi alterado.',
+    kind: 'weekly', time: '09:00', weekday: 0,
+  },
+  {
+    id: 'morning-brief',
+    label: '☀️ Morning brief',
+    name: 'Morning brief',
+    objective: 'Prepara um briefing matinal curto: estado dos projectos JOCA (git status dos que têm alterações), tarefas no quadro por coluna, automações com erros, e 3 prioridades sugeridas para hoje.',
+    kind: 'daily', time: '08:30',
+  },
+];
 const fmtTs = (ts?: number | null) => (ts ? new Date(ts).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
 
 function describeTrigger(a: Automation): string {
@@ -63,6 +88,22 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
   const [time, setTime] = useState('08:00');
   const [weekday, setWeekday] = useState(6);
   const [everyMinutes, setEveryMinutes] = useState(60);
+  const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
+  const [cli, setCli] = useState('claude');
+  const [retries, setRetries] = useState(0);
+  const [catchUp, setCatchUp] = useState(false);
+
+  // Pré-preenche o formulário com um preset (o utilizador pode ajustar antes de criar).
+  const applyTemplate = useCallback((id: string) => {
+    const t = TEMPLATES.find((x) => x.id === id);
+    if (!t) return;
+    setName(t.name);
+    setObjective(t.objective);
+    setTriggerType('schedule');
+    setKind(t.kind);
+    setTime(t.time);
+    if (t.weekday !== undefined) setWeekday(t.weekday);
+  }, []);
 
   const reload = useCallback(() => {
     fetch('/automations').then((r) => r.json()).then(setItems).catch(() => setItems([]));
@@ -87,6 +128,10 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
       setJocaItems([...skills, ...agents]);
     }).catch(() => setJocaItems([]));
   }, []);
+  // CLIs disponíveis para o worker (claude default; os outros só se instalados).
+  useEffect(() => {
+    fetch('/cli-profiles').then((r) => r.json()).then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : [])).catch(() => setCliProfiles([]));
+  }, []);
   const knownNames = useMemo(() => new Set(jocaItems.map((i) => i.name)), [jocaItems]);
   const addSkill = useCallback((raw: string) => {
     const v = raw.trim();
@@ -106,6 +151,9 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
       model: model.trim() ? model.trim() : undefined,
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
+      cli: cli !== 'claude' ? cli : undefined,
+      retries: retries > 0 ? retries : undefined,
+      catchUp: catchUp || undefined,
       trigger: { type: triggerType, schedule },
       nodes: [
         { type: 'worker', objective: objective.trim() },
@@ -113,9 +161,9 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
       ],
     };
     await fetch('/automations', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setName(''); setObjective(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setCreating(false);
+    setName(''); setObjective(''); setModel(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setCli('claude'); setRetries(0); setCatchUp(false); setCreating(false);
     reload();
-  }, [name, objective, model, selectedSkills, requireConfirm, triggerType, kind, time, weekday, everyMinutes, reload]);
+  }, [name, objective, model, selectedSkills, requireConfirm, cli, retries, catchUp, triggerType, kind, time, weekday, everyMinutes, reload]);
 
   const toggle = useCallback(async (a: Automation) => {
     await fetch(`/automations/${a.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ enabled: !a.enabled }) });
@@ -149,8 +197,17 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
         </button>
       </header>
 
+      <RunsHistory refreshKey={refreshKey} />
+
       {creating && (
         <div className="av-form">
+          <label className="av-field">
+            <span>Template (opcional)</span>
+            <select value="" onChange={(e) => { if (e.target.value) applyTemplate(e.target.value); }}>
+              <option value="">— começar do zero —</option>
+              {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </label>
           <label className="av-field">
             <span>Nome</span>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Resumo Matinal" />
@@ -169,6 +226,26 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
             <label className="av-field av-inline">
               <span>Modelo dos nós llm (opcional)</span>
               <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
+            </label>
+            <label className="av-field av-inline">
+              <span>CLI</span>
+              <select value={cli} onChange={(e) => setCli(e.target.value)}>
+                {cliProfiles.length === 0 && <option value="claude">Claude Code</option>}
+                {cliProfiles.map((p) => (
+                  <option key={p.id} value={p.id} disabled={!p.available}>
+                    {p.label}{p.available ? '' : ' (não instalado)'}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="av-field av-inline">
+              <span>Retries (0-5)</span>
+              <input type="number" min={0} max={5} value={retries}
+                onChange={(e) => setRetries(Math.max(0, Math.min(5, Number(e.target.value) || 0)))} />
+            </label>
+            <label className="av-field av-inline av-check">
+              <input type="checkbox" checked={catchUp} onChange={(e) => setCatchUp(e.target.checked)} />
+              <span>Recuperar runs perdidas no arranque</span>
             </label>
           </div>
           <div className="av-trigger-row">
