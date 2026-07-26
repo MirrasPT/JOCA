@@ -88,6 +88,26 @@ O `JOCA_OS` corre apenas em `127.0.0.1` e implementa hardening defense-in-depth 
 
 > Modelo de ameaca: machine compromise = jogo over (qualquer ferramenta dev cai). Mas em uso solo normal + tabs random no mesmo browser, o JOCA_OS esta hardened a um nivel equivalente ao Vite dev server / Storybook.
 
+### Modo remoto (VPS) — opt-in com auth obrigatoria
+
+Para correr o JOCA numa VPS e aceder do telemovel (PWA instalavel):
+
+```bash
+JOCA_PASSWORD='uma-password-forte' JOCA_HOST=0.0.0.0 npm start
+```
+
+- **Auth obrigatoria:** `JOCA_HOST` fora de loopback recusa arrancar sem password (env `JOCA_PASSWORD` ou definida na UI local antes do deploy). Login emite token de 30 dias (cookie httpOnly + Bearer); 5 falhas = lockout 30s
+- **TLS:** termina no reverse proxy (Caddy/nginx) ou usa rede privada (Tailscale/WireGuard) — nunca expor http puro a internet
+- **Origens:** same-origin verificado por default; origens extra via `JOCA_ALLOWED_ORIGINS=https://joca.exemplo.com`
+- **PWA:** abre o link no telemovel e "Adicionar ao ecra principal" — o JOCA instala como app
+
+### Heartbeat, inbox e historico de runs
+
+- **Heartbeat** (Settings → 💓): a cada N minutos, dentro do horario activo, o JOCA le a tua checklist (scratch) + o estado do sistema (tarefas bloqueadas, erros, fila) e decide se te avisa. Sem nada a reportar responde `HEARTBEAT_OK` e fica calado; sem checklist e sem anomalias nem gasta tokens
+- **Inbox persistente:** todas as notificacoes (automacoes, perguntas de tarefas, heartbeat, erros) ficam guardadas — fechar a tab ja nao perde nada
+- **Historico de runs:** cada execucao de automacao/tarefa/heartbeat fica em `data/runs.jsonl` com duracao, estado e custo SDK; totais em Automacoes → Historico
+- **Multi-CLI:** sessoes, tarefas e automacoes podem correr Claude Code (default), Codex CLI, Antigravity ou OpenCode — com modelo configuravel por execucao
+
 ---
 
 ## Inicio rapido

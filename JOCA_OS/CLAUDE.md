@@ -55,5 +55,17 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 
 - `node-pty` para PTY real (suporte ANSI, resize)
 - WebSocket raw (`ws`) — avaliar Socket.io se reconexão necessária
-- Estado em memória no servidor (sem DB)
-- Local only — sem auth, bind apenas em localhost
+- Estado em ficheiros JSON/JSONL em `data/` (sem DB); runs em `data/runs.jsonl`
+- Local-first: bind default em `127.0.0.1` sem auth. Modo remoto (VPS) é opt-in:
+  `JOCA_HOST=0.0.0.0` só arranca com auth configurada (`JOCA_PASSWORD` ou password
+  definida na UI) — password scrypt + tokens em cookie httpOnly/Bearer
+- Multi-CLI: sessões/tarefas/automações podem correr `claude` (default), `codex`,
+  `agy` ou `opencode` — perfis em `src/cli-profiles.ts`, override em `data/cli-profiles.json`
+- Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
+- Heartbeat (proactividade) em `src/heartbeat/` — config em `data/heartbeat.json`
+
+## Testes
+
+```bash
+cd backend && npm test   # vitest — unidades puras (schedule math, heartbeat, cli-profiles)
+```
