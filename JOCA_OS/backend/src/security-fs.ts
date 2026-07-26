@@ -104,16 +104,31 @@ export function assertHomePath(targetPath: string) {
   return safePath(targetPath);
 }
 
-export function isAllowedOrigin(origin: string | undefined): boolean {
+// Remote (VPS) mode: additionally accept (a) same-origin requests — the Origin's host equals the
+// request's Host header, which a cross-site attacker page cannot forge — and (b) origins listed in
+// JOCA_ALLOWED_ORIGINS (comma-separated full origins, e.g. "https://joca.example.com"). Auth
+// (auth.ts) remains the primary gate; this stays as the CSRF layer on top.
+const EXTRA_ORIGINS = new Set(
+  (process.env.JOCA_ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+);
+
+function originHost(origin: string): string | null {
+  try { return new URL(origin).host; } catch { return null; }
+}
+
+export function isAllowedOrigin(origin: string | undefined, requestHost?: string): boolean {
   if (!origin) return true; // direct calls (curl, server-side) have no Origin header
-  // Only loopback origins on http (any port — vite dev + prod served origin both qualify).
+  // Loopback origins on http (any port — vite dev + prod served origin both qualify).
   // External attackers cannot forge a loopback origin from a remote browser tab.
-  return /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin)) return true;
+  if (EXTRA_ORIGINS.has(origin)) return true;
+  if (requestHost && originHost(origin) === requestHost) return true; // same-origin (VPS mode)
+  return false;
 }
 
 export function requireSafeOrigin(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
-  if (!isAllowedOrigin(req.headers.origin as string | undefined)) {
+  if (!isAllowedOrigin(req.headers.origin as string | undefined, req.headers.host)) {
     return res.status(403).json({ error: 'Forbidden origin' });
   }
   next();

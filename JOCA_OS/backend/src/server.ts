@@ -16,8 +16,12 @@ import { filesRouter } from './http/files-routes';
 import { llmRouter } from './http/llm-routes';
 import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
+import { systemRouter } from './http/system-routes';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
+import { setNotificationsBroadcaster } from './notifications/store';
+import { startHeartbeat } from './heartbeat';
+import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
 // ('done' is consumed by the automations runner / tasks engine; it is NOT broadcast.)
@@ -38,22 +42,32 @@ sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
 });
 
+// New persistent notifications reach connected clients live; offline clients pick them up from the
+// inbox (GET /notifications) on reconnect.
+setNotificationsBroadcaster((n) => broadcast({ type: 'notification', notification: n }));
+
 const app = express();
 app.use(requireSafeOrigin);
 const server = createServer(app);
 const wss = new WebSocketServer({
   server,
   path: '/ws',
-  verifyClient: (info: { origin?: string }) => isAllowedOrigin(info.origin),
+  // Auth + origin, both pre-handshake: a WS from a non-allowed origin OR without a valid session
+  // token (when auth is on; the httpOnly cookie rides the upgrade request) is rejected with 401.
+  verifyClient: (info: { origin?: string; req: { headers: import('http').IncomingMessage['headers'] } }) =>
+    isAllowedOrigin(info.origin, info.req.headers.host) && isAuthenticated(info.req),
 });
 
-// HTTP routes, grouped by domain (see backend/src/http/*).
-app.use(projectsRouter());
-app.use(toolkitRouter());
-app.use(llmRouter());
-app.use(automationsRouter());
-app.use(tasksRouter());
-app.use(filesRouter());
+// Auth first (public: /auth/login, /auth/status, /auth/set-password handles its own gate), then the
+// API routers behind requireAuth. The static SPA shell stays public — it contains no data.
+app.use(authRouter());
+app.use(requireAuth, projectsRouter());
+app.use(requireAuth, toolkitRouter());
+app.use(requireAuth, llmRouter());
+app.use(requireAuth, automationsRouter());
+app.use(requireAuth, tasksRouter());
+app.use(requireAuth, systemRouter());
+app.use(requireAuth, filesRouter());
 
 // Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
 setTasksBroadcaster(() => broadcast({ type: 'tasks_changed' }));
@@ -76,9 +90,20 @@ app.get('*', (_req, res) => {
 attachConnectionHandler(wss);
 
 const PORT = Number(process.env.PORT || 7491);
-server.listen(PORT, '127.0.0.1', () => {
+// Remote (VPS) binding is opt-in via JOCA_HOST and HARD-GATED on auth being configured — never
+// expose an unauthenticated JOCA_OS beyond loopback (the OpenClaw lesson: 30k+ exposed instances).
+const HOST = process.env.JOCA_HOST || '127.0.0.1';
+const isLoopback = HOST === '127.0.0.1' || HOST === 'localhost' || HOST === '::1';
+if (!isLoopback && !authEnabled()) {
+  console.error(`✗ JOCA_HOST=${HOST} requer autenticação configurada.`);
+  console.error('  Define JOCA_PASSWORD=<password forte> (ou configura a password na UI local antes do deploy).');
+  console.error('  Em VPS, recomenda-se ainda TLS via reverse proxy (Caddy/nginx) ou rede privada (Tailscale).');
+  process.exit(1);
+}
+
+server.listen(PORT, HOST, () => {
   const logicConnected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
-  console.log(`JOCA_OS → http://localhost:${PORT}`);
+  console.log(`JOCA_OS → http://${isLoopback ? 'localhost' : HOST}:${PORT}${authEnabled() ? ' (auth ON)' : ''}`);
   console.log(`JOCA_Brain → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);
   if (logicConnected) {
     const items = collectToolkitItems();
@@ -86,4 +111,5 @@ server.listen(PORT, '127.0.0.1', () => {
   }
   startScheduler(automationDeps);
   startTasksEngine();
+  startHeartbeat();
 });

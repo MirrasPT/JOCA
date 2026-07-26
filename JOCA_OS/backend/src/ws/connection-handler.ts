@@ -14,6 +14,8 @@ interface ClientMessage {
   sessionName?: string;
   projectId?: string;
   initialInput?: string;
+  cli?: string;
+  model?: string;
   data?: string;
   name?: string;
   cols?: number;
@@ -70,6 +72,8 @@ export function attachConnectionHandler(wss: WebSocketServer) {
               sessionName: msg.sessionName,
               projectId: msg.projectId,
               initialInput: msg.initialInput,
+              cli: typeof msg.cli === 'string' ? msg.cli : undefined,
+              model: typeof msg.model === 'string' ? msg.model : undefined,
             });
             // Broadcast is emitted by the SessionManager 'spawn' event subscriber in server.ts.
             break;

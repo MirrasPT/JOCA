@@ -13,7 +13,7 @@ const SHELL = IS_WINDOWS
   : (process.env.SHELL || '/bin/zsh');
 
 export interface CliToolStatus {
-  id: 'claude' | 'codex' | 'agy';
+  id: 'claude' | 'codex' | 'agy' | 'opencode';
   name: string;
   provider: string;
   binary: string;
@@ -79,6 +79,15 @@ export function getCliTools(): CliToolStatus[] {
       installCommand: 'curl -fsSL https://antigravity.google/cli/install.sh | bash',
       loginCommand: 'agy',
       updateCommand: 'agy update',
+    },
+    {
+      id: 'opencode',
+      name: 'OpenCode',
+      provider: 'SST (open source)',
+      binary: 'opencode',
+      installCommand: 'npm install -g opencode-ai',
+      loginCommand: 'opencode auth login',
+      updateCommand: 'opencode upgrade',
     },
   ];
 

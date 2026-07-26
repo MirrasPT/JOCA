@@ -22,6 +22,8 @@ import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { claudeProvider } from '../providers/provider';
 import { loadProjects } from '../project-store';
 import { broadcast } from '../ws/broadcast';
+import { pushNotification } from '../notifications/store';
+import { recordRun } from '../runs/store';
 import {
   loadTasks, getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, type Task,
 } from './store';
@@ -62,12 +64,10 @@ function buildBrief(task: Task): string {
 }
 
 // ── SDK judge — silent supervision layer (no chat, no tools) ────────────────
-interface Verdict { state: 'ok' | 'error' | 'question'; summary: string }
+interface Verdict { state: 'ok' | 'error' | 'question'; summary: string; costUsd: number; fallback?: boolean }
 
-// Classify the worker's terminal output once it settles. Direct LLM call with tools disabled — it
-// can only READ the transcript and answer JSON; it cannot execute anything. Falls back to 'ok' with
-// the raw tail if the SDK call or the JSON parse fails (never blocks the queue on judge failure).
-async function judge(task: Task, tail: string): Promise<Verdict> {
+// One judge attempt: returns null when the SDK call or the JSON parse fails.
+async function judgeOnce(task: Task, tail: string): Promise<Verdict | null> {
   const systemPrompt = [
     'És um supervisor SILENCIOSO de tarefas num terminal Claude Code. Recebes o output final do terminal após o agente parar.',
     'Classifica o estado e responde APENAS com JSON válido, sem markdown, no formato:',
@@ -76,24 +76,35 @@ async function judge(task: Task, tail: string): Promise<Verdict> {
     'Em caso de dúvida entre ok e error, escolhe pelo que o resumo final do agente disser.',
   ].join(' ');
   const prompt = `Tarefa em execução: "${task.title}"\n\nOutput do terminal (final):\n"""\n${tail}\n"""`;
-  try {
-    let acc = '', result = '';
-    for await (const ev of claudeProvider.run(prompt, { systemPrompt, model: 'haiku', noTools: true })) {
-      if (ev.type === 'text' && ev.text) acc += ev.text;
-      else if (ev.type === 'result') result = ev.text;
-    }
-    const raw = (result || acc).trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (match) {
-      const parsed = JSON.parse(match[0]) as { state?: string; summary?: string };
-      if (parsed.state === 'ok' || parsed.state === 'error' || parsed.state === 'question') {
-        return { state: parsed.state, summary: (parsed.summary ?? '').slice(0, 500) };
-      }
-    }
-  } catch (e) {
-    console.error('[tasks] judge error (fallback ok):', e instanceof Error ? e.message : e);
+  let acc = '', result = '', costUsd = 0;
+  for await (const ev of claudeProvider.run(prompt, { systemPrompt, model: 'haiku', noTools: true })) {
+    if (ev.type === 'text' && ev.text) acc += ev.text;
+    else if (ev.type === 'result') { result = ev.text; costUsd = ev.costUsd; }
   }
-  return { state: 'ok', summary: tail.slice(-300).trim() };
+  const raw = (result || acc).trim();
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  const parsed = JSON.parse(match[0]) as { state?: string; summary?: string };
+  if (parsed.state === 'ok' || parsed.state === 'error' || parsed.state === 'question') {
+    return { state: parsed.state, summary: (parsed.summary ?? '').slice(0, 500), costUsd };
+  }
+  return null;
+}
+
+// Classify the worker's terminal output once it settles. Direct LLM call with tools disabled — it
+// can only READ the transcript and answer JSON; it cannot execute anything. Retries once on
+// failure; the final fallback is 'ok' with the raw tail (never blocks the queue on judge failure)
+// but is FLAGGED (fallback:true + ⚠ prefix) so a judge outage is visible instead of a silent pass.
+async function judge(task: Task, tail: string): Promise<Verdict> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const v = await judgeOnce(task, tail);
+      if (v) return v;
+    } catch (e) {
+      console.error(`[tasks] judge error (tentativa ${attempt + 1}/2):`, e instanceof Error ? e.message : e);
+    }
+  }
+  return { state: 'ok', summary: `⚠ juiz indisponível — assumido ok. ${tail.slice(-300).trim()}`.slice(0, 500), costUsd: 0, fallback: true };
 }
 
 // Wait for the user to answer a blocked worker: resolves when the worker completes its NEXT real
@@ -131,19 +142,24 @@ async function fire(key: string, id: string): Promise<void> {
   patchTask(id, { lastStatus: 'running', sessionId: w.sessionId || undefined });
   notifyTasksChanged();
 
+  const startedAt = Date.now();
+  let judgeCostUsd = 0;
   let verdict: Verdict;
   try {
     let sessionId = w.sessionId;
     if (!sessionId) {
       // First task of this project → spawn ITS single task worker. resumePath makes the worker run
       // `/resume "<pasta do projecto>"` on boot (loads project context) and only then receive the
-      // task brief — the "/resume + pasta + tarefa" startup.
+      // task brief — the "/resume + pasta + tarefa" startup. The FIRST task's cli/model decide the
+      // project worker's CLI; later tasks reuse whatever worker is already open.
       const proj = task.projectId ? loadProjects().find((p) => p.id === task.projectId) : undefined;
       const session = sessionManager.spawn({
         resumePath: proj?.path,
         projectId: task.projectId,
         sessionName: (proj ? `Tarefas: ${proj.name}` : 'Tarefas').slice(0, 80),
         origin: 'auto',
+        cli: task.cli,
+        model: task.model,
         initialInput: buildBrief(task),
       });
       sessionId = session.id;
@@ -159,24 +175,45 @@ async function fire(key: string, id: string): Promise<void> {
     // Await completion; re-judge after every user answer while the worker is blocked on questions.
     let outcome = await sessionManager.waitForDone(sessionId, TASK_TIMEOUT_MS);
     for (;;) {
-      if (outcome === 'closed') { verdict = { state: 'error', summary: 'O worker foi fechado antes de a tarefa terminar.' }; break; }
-      if (outcome === 'timeout') { verdict = { state: 'error', summary: `Sem resposta do worker dentro do limite — vê o terminal.` }; break; }
+      if (outcome === 'closed') { verdict = { state: 'error', summary: 'O worker foi fechado antes de a tarefa terminar.', costUsd: 0 }; break; }
+      if (outcome === 'timeout') { verdict = { state: 'error', summary: `Sem resposta do worker dentro do limite — vê o terminal.`, costUsd: 0 }; break; }
       const tail = (sessionManager.readBuffer(sessionId, { strip: true }) ?? '').slice(-6000);
       verdict = await judge(task, tail);
+      judgeCostUsd += verdict.costUsd;
       if (verdict.state !== 'question') break;
-      // Blocked on the user: notify, keep the task 'em-execucao', wait for the answer in the terminal.
+      // Blocked on the user: notify (persistent inbox + WS), keep the task 'em-execucao', wait for
+      // the answer in the terminal. The inbox entry survives a closed browser tab.
+      pushNotification({
+        kind: 'task_question', title: `⏸ ${task.title}`,
+        text: verdict.summary || 'O worker está à espera de uma resposta tua no terminal.',
+        meta: { taskId: task.id, sessionId },
+      });
       broadcast({ type: 'task_question', taskId: task.id, sessionId, title: task.title, summary: verdict.summary });
       patchTask(id, { result: `⏸ À espera de resposta no terminal: ${verdict.summary}` });
       notifyTasksChanged();
       outcome = await waitForUserAnswer(sessionId);
     }
   } catch (e) {
-    verdict = { state: 'error', summary: e instanceof Error ? e.message : String(e) };
+    verdict = { state: 'error', summary: e instanceof Error ? e.message : String(e), costUsd: 0 };
   }
 
   // Conclude. The worker stays open (never killed here) — the user can inspect/continue in the terminal.
   moveTask(id, 'concluida');
   patchTask(id, { lastStatus: verdict.state === 'ok' ? 'ok' : 'error', result: verdict.summary });
+  recordRun({
+    kind: 'task', refId: task.id, name: task.title, projectId: task.projectId,
+    startedAt, endedAt: Date.now(),
+    status: verdict.state === 'ok' ? 'ok' : 'error',
+    summary: verdict.summary, costUsd: judgeCostUsd,
+    cli: task.cli, model: task.model,
+  });
+  if (verdict.state !== 'ok') {
+    // Failures land in the persistent inbox — success is visible on the board itself.
+    pushNotification({
+      kind: 'system', title: `✗ Tarefa falhou: ${task.title}`,
+      text: verdict.summary, meta: { taskId: task.id, sessionId: w.sessionId || undefined },
+    });
+  }
   const cur = workers.get(key);
   if (cur) {
     if (!sessionManager.get(cur.sessionId)) workers.delete(key); // user closed the worker meanwhile

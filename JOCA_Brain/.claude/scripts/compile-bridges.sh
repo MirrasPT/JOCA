@@ -85,8 +85,10 @@ compile_codex_agents() {
     local body=""
     local in_frontmatter=false
     local past_frontmatter=false
+    local in_desc_block=false
 
     while IFS= read -r line; do
+      line="${line%$'\r'}"  # CRLF safety — com \r o "---" nunca casa e o frontmatter inteiro vaza para o body
       if [[ "$line" == "---" && "$past_frontmatter" == false ]]; then
         if $in_frontmatter; then
           past_frontmatter=true
@@ -97,7 +99,23 @@ compile_codex_agents() {
       fi
 
       if $in_frontmatter && ! $past_frontmatter; then
-        if [[ "$line" =~ ^description:\ *(.+)$ ]]; then
+        if $in_desc_block; then
+          if [[ "$line" =~ ^[[:space:]]+(.*)$ ]]; then
+            # continuação do block scalar (description: | / >) — juntar com espaço
+            local cont="${BASH_REMATCH[1]}"
+            if [[ -n "$cont" ]]; then
+              [[ -n "$description" ]] && description+=" "
+              description+="$cont"
+            fi
+            continue
+          fi
+          in_desc_block=false  # linha sem indentação = chave nova; processar abaixo
+        fi
+        if [[ "$line" =~ ^description:[[:space:]]*([\|\>][+-]?)[[:space:]]*$ ]]; then
+          # YAML block scalar (description: | ou >) — valor vem nas linhas indentadas seguintes
+          in_desc_block=true
+          description=""
+        elif [[ "$line" =~ ^description:\ *(.+)$ ]]; then
           description="${BASH_REMATCH[1]}"
           description="${description#\"}"
           description="${description%\"}"

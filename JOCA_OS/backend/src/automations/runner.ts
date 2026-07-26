@@ -17,10 +17,10 @@ import { claudeProvider } from '../providers/provider';
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 
 // Per-automation extras applied to the agentic (worker) step.
-interface AutoCtx { model?: string; skills?: string[]; requireConfirm?: boolean }
+interface AutoCtx { model?: string; cli?: string; skills?: string[]; requireConfirm?: boolean; costUsd: number }
 
 export interface NodeLog { nodeId: string; type: string; ok: boolean; output: string }
-export interface RunResult { ok: boolean; finalOutput: string; log: NodeLog[] }
+export interface RunResult { ok: boolean; finalOutput: string; log: NodeLog[]; costUsd?: number }
 
 export interface RunnerDeps {
   // message node output channel — server.ts injects (WS broadcast → UI notification). Keeps the
@@ -33,15 +33,17 @@ const TRUNC = 8000;
 const tr = (s: string) => (s.length > TRUNC ? s.slice(0, TRUNC) + `\n…[truncado ${s.length - TRUNC} chars]` : s);
 const render = (tpl: string, input: string) => (tpl ?? '').replace(/\{\{\s*input\s*\}\}/g, input);
 
-function collectProviderText(events: AsyncGenerator<{ type: string; text?: string }>): Promise<string> {
+// Drain a provider stream: final text + the SDK-measured cost of the call (result event).
+function collectProviderText(events: AsyncGenerator<{ type: string; text?: string; costUsd?: number }>): Promise<{ text: string; costUsd: number }> {
   return (async () => {
     let result = '';
     let acc = '';
-    for await (const ev of events as AsyncGenerator<{ type: string; text?: string }>) {
+    let costUsd = 0;
+    for await (const ev of events) {
       if (ev.type === 'text' && ev.text) acc += ev.text;
-      else if (ev.type === 'result') result = ev.text ?? '';
+      else if (ev.type === 'result') { result = ev.text ?? ''; costUsd = ev.costUsd ?? 0; }
     }
-    return (result || acc).trim();
+    return { text: (result || acc).trim(), costUsd };
   })();
 }
 
@@ -71,6 +73,8 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
       const session = sessionManager.spawn({
         sessionName: `Automação: ${automationName}`.slice(0, 80),
         origin: 'auto',
+        cli: auto.cli,
+        model: auto.model,
         initialInput: brief,
       });
       const outcome = await sessionManager.waitForDone(session.id, WORKER_TIMEOUT_MS);
@@ -83,8 +87,9 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
       const prompt = render(node.prompt ?? '', input);
       if (!prompt.trim()) throw new Error('llm node sem prompt');
       // Direct brain call, no tools/terminal — cheap summarise/transform.
-      const events = claudeProvider.run(prompt, { model: auto.model ?? 'sonnet' }) as unknown as AsyncGenerator<{ type: string; text?: string }>;
-      return await collectProviderText(events);
+      const { text, costUsd } = await collectProviderText(claudeProvider.run(prompt, { model: auto.model ?? 'sonnet' }));
+      auto.costUsd += costUsd;
+      return text;
     }
     case 'shell': {
       const cmd = render(node.command ?? '', input);
@@ -117,7 +122,7 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
 // scheduled automations / actions without input.
 export async function runAutomation(a: Automation, deps: RunnerDeps, seedInput = ''): Promise<RunResult> {
   const log: NodeLog[] = [];
-  const auto: AutoCtx = { model: a.model, skills: a.skills, requireConfirm: a.requireConfirm };
+  const auto: AutoCtx = { model: a.model, cli: a.cli, skills: a.skills, requireConfirm: a.requireConfirm, costUsd: 0 };
   let input = seedInput;
   for (const node of a.nodes) {
     try {
@@ -127,8 +132,8 @@ export async function runAutomation(a: Automation, deps: RunnerDeps, seedInput =
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       log.push({ nodeId: node.id, type: node.type, ok: false, output: msg });
-      return { ok: false, finalOutput: msg, log };
+      return { ok: false, finalOutput: msg, log, costUsd: auto.costUsd };
     }
   }
-  return { ok: true, finalOutput: input, log };
+  return { ok: true, finalOutput: input, log, costUsd: auto.costUsd };
 }

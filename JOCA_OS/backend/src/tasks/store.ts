@@ -24,6 +24,8 @@ export interface Task {
   skills?: string[];           // skills/agentes do JOCA_Brain a usar
   requireConfirm?: boolean;    // PÁRA antes de acções irreversíveis e pede OK
   attachments?: string[];      // caminhos de ficheiros anexados (contexto para o worker)
+  cli?: string;                // CLI do worker: 'claude' (default) | 'codex' | 'agy' | 'opencode'
+  model?: string;              // modelo passado ao CLI do worker (flag de modelo do perfil)
   sessionId?: string;          // worker que executa/executou a tarefa
   result?: string;             // veredicto/resumo do juiz sobre a execução
   testerResult?: string;       // (reservado) output de um passo de verificação
@@ -72,6 +74,8 @@ export function makeTask(partial: {
   skills?: string[];
   requireConfirm?: boolean;
   attachments?: string[];
+  cli?: string;
+  model?: string;
 }): Task {
   const status: TaskStatus = TASK_STATUSES.includes(partial.status as TaskStatus) ? (partial.status as TaskStatus) : 'a-definir';
   const list = loadTasks();
@@ -91,6 +95,8 @@ export function makeTask(partial: {
     attachments: Array.isArray(partial.attachments)
       ? partial.attachments.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 50)
       : undefined,
+    cli: typeof partial.cli === 'string' && partial.cli.trim() ? partial.cli.trim() : undefined,
+    model: typeof partial.model === 'string' && partial.model.trim() ? partial.model.trim().slice(0, 120) : undefined,
     sessionId: undefined,
     result: undefined,
     testerResult: undefined,

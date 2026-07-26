@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (/feedback-joca)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 26 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── commands/        <- 27 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
 │       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 127 skills flat — triggers declarativos, on-demand loading
+│       ├── skills/          <- 131 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
 │       ├── reference/       <- referencia densa, carregada on-demand (nao vive em contexto)
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**189 componentes:** 127 skills + 36 agents + 26 commands.
+**194 componentes:** 131 skills + 36 agents + 27 commands.
 
 ---
 
@@ -65,7 +65,7 @@ dedicados, sem precisares de estar a olhar.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 189 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos 194 componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Sidebars colapsaveis:** left rail (62px) e right rail (54px) com animacoes suaves (280ms ease-out-quart)
@@ -146,9 +146,9 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (127)
+## Skills (131)
 
-Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%.
+Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
 ### Base
 `caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `browser-automate`
@@ -182,9 +182,9 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 
 ---
 
-## Agents (26)
+## Agents (36)
 
-Agentes correm em sub-processos isolados, em paralelo.
+Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — inventario completo em `JOCA_Brain/.claude/agents/`.)
 
 ### Review & Testing
 `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api` · `tester-ratelimit` · `codex-review` · `prd-reviewer` · `design-system-audit`
@@ -206,7 +206,9 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (18)
+## Commands (27)
+
+Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 
 | Command | Funcao |
 |---------|--------|

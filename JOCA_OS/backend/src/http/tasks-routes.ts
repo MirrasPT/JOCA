@@ -40,6 +40,8 @@ export function tasksRouter(): Router {
       skills: sanitizeSkills(b.skills),
       requireConfirm: b.requireConfirm === true || undefined,
       attachments: sanitizeAttachments(b.attachments),
+      cli: typeof b.cli === 'string' ? b.cli : undefined,
+      model: typeof b.model === 'string' ? b.model : undefined,
     });
     upsertTask(t);
     broadcast({ type: 'tasks_changed' });
@@ -57,6 +59,8 @@ export function tasksRouter(): Router {
     if ('skills' in b) updated.skills = sanitizeSkills(b.skills);
     if ('requireConfirm' in b) updated.requireConfirm = b.requireConfirm === true || undefined;
     if ('attachments' in b) updated.attachments = sanitizeAttachments(b.attachments);
+    if ('cli' in b) updated.cli = typeof b.cli === 'string' && b.cli.trim() ? b.cli.trim() : undefined;
+    if ('model' in b) updated.model = typeof b.model === 'string' && b.model.trim() ? b.model.trim().slice(0, 120) : undefined;
     upsertTask(updated);
     broadcast({ type: 'tasks_changed' });
     res.json(updated);

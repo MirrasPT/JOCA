@@ -40,7 +40,18 @@ try {
     }
   } catch (_) { /* sem brain/recall — segue */ }
 
-  const finalCtx = recall ? `${ctx}\n\n${recall}` : ctx;
+  // Skill loop — nudge quando há feedback acumulado por processar (fecha o ciclo /feedback-joca →
+  // /upgrade-joca sem depender de o user se lembrar). Threshold 3 evita spam com 1-2 ficheiros.
+  let feedbackNudge = '';
+  try {
+    const fbDir = path.join(repoRoot, 'memory', 'feedback');
+    const pending = fs.readdirSync(fbDir).filter((f) => f.endsWith('.md') && !f.startsWith('processed-')).length;
+    if (pending >= 3) {
+      feedbackNudge = `## Skill Loop\n${pending} ficheiros de feedback acumulados em memory/feedback/ por processar — quando houver folga, sugere ao user correr /upgrade-joca (ou corre /upgrade-joca --auto se ele já o pediu como rotina).`;
+    }
+  } catch (_) { /* sem pasta feedback — segue */ }
+
+  const finalCtx = [ctx, recall, feedbackNudge].filter(Boolean).join('\n\n');
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: finalCtx },

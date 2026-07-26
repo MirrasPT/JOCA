@@ -20,6 +20,12 @@
  *   joca-brain active  [--slug X] [--json]
  *   joca-brain recall  [--slug X] [--limit 5]      # active decisions + learnings recentes (p/ hook)
  *   joca-brain search  <query> [--limit 5] [--slug X]
+ *   joca-brain reindex                              # força rebuild do índice FTS5
+ *
+ * Search: tenta FTS5 (node:sqlite via joca-memory-index.mjs; rebuild lazy por mtime,
+ * inclui checkpoints, ranking bm25) e cai para substring se node:sqlite indisponível
+ * (node <22.5), FTS5 ausente, ou erro. JOCA_BRAIN_NO_FTS=1 força o fallback.
+ * Escritas (decide/learn/supersede/redact) NÃO indexam — indexação é lazy no search.
  */
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -208,11 +214,30 @@ function cmdRecall(a) {
   }
   console.log(lines.join('\n'));
 }
-function cmdSearch(a) {
+async function cmdSearch(a) {
   const slug = currentSlug(a.slug);
-  const q = (a._[0] || '').toLowerCase();
-  if (!q) fail('search: <query> obrigatório');
+  const qRaw = a._[0] || '';
+  if (!qRaw) fail('search: <query> obrigatório');
   const limit = parseInt(a.limit, 10) || 5;
+
+  // 1) FTS5 (bm25 + snippets + checkpoints) — rebuild lazy se db inexistente/stale.
+  try {
+    const idx = await import('./joca-memory-index.mjs');
+    if (idx.ftsAvailable()) {
+      if (idx.isStale(MEM)) idx.rebuildIndex(MEM);
+      const rows = idx.searchIndex(MEM, qRaw, { limit, slug });
+      const lines = rows.map((r) => {
+        if (r.kind === 'decision') return `[decisão] ${datamark(r.title)}`;
+        if (r.kind === 'learning') return `[aprendizagem] ${datamark(r.title)}`;
+        return `[checkpoint ${basename(r.source_path)}] ${datamark(r.title)} — ${datamark(r.snippet)}`;
+      });
+      console.log(lines.join('\n') || `(nada para "${qRaw}" em ${slug})`);
+      return;
+    }
+  } catch (_) { /* node:sqlite indisponível ou índice partido → substring */ }
+
+  // 2) fallback substring (comportamento original, sem checkpoints)
+  const q = qRaw.toLowerCase();
   const hits = [];
   for (const d of computeActive(readJsonl(decisionsLog(slug)))) {
     const hay = `${d.decision} ${d.rationale || ''}`.toLowerCase();
@@ -223,6 +248,16 @@ function cmdSearch(a) {
     if (hay.includes(q)) hits.push(`[aprendizagem] ${datamark(l.text)}`);
   }
   console.log(hits.slice(0, limit).join('\n') || `(nada para "${q}" em ${slug})`);
+}
+async function cmdReindex() {
+  let idx;
+  try { idx = await import('./joca-memory-index.mjs'); }
+  catch (e) { fail(`reindex: joca-memory-index indisponível (${e.message})`); }
+  if (!idx.ftsAvailable()) fail('reindex: node:sqlite/FTS5 indisponível (precisa node >= 22.5; JOCA_BRAIN_NO_FTS desliga)');
+  try {
+    const c = idx.rebuildIndex(MEM);
+    console.log(`[brain] índice FTS5 reconstruído: ${c.decisions} decisões, ${c.learnings} aprendizagens, ${c.checkpoints} checkpoints → memory/.index/memory.db`);
+  } catch (e) { fail(`reindex falhou: ${e.message}`); }
 }
 
 function fail(msg) { console.error(msg); process.exit(1); }
@@ -238,8 +273,9 @@ switch (cmd) {
   case 'learn': cmdLearn(a); break;
   case 'active': cmdActive(a); break;
   case 'recall': cmdRecall(a); break;
-  case 'search': cmdSearch(a); break;
+  case 'search': await cmdSearch(a); break;
+  case 'reindex': await cmdReindex(); break;
   default:
-    console.log('joca-brain — uso: decide|supersede|redact|learn|active|recall|search (ver cabeçalho do ficheiro)');
+    console.log('joca-brain — uso: decide|supersede|redact|learn|active|recall|search|reindex (ver cabeçalho do ficheiro)');
     process.exit(cmd ? 1 : 0);
 }

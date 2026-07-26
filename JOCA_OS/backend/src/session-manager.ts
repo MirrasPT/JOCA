@@ -23,6 +23,7 @@ import { execSync } from 'child_process';
 import { PATH_SAFE, safePath } from './security-fs';
 import { JOCA_LOGIC_ROOT } from './toolkit-registry';
 import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-store';
+import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
 
 export interface Session {
   id: string;
@@ -30,6 +31,7 @@ export interface Session {
   cwd: string;
   projectId?: string;
   origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
+  cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
   pty: pty.IPty;
   buffer: string;
   status: 'working' | 'idle';
@@ -47,6 +49,7 @@ export interface SessionInfo {
   cwd: string;
   projectId?: string;
   origin: 'user' | 'auto';
+  cli: CliId;
   status: 'working' | 'idle';
 }
 
@@ -57,6 +60,8 @@ export interface SpawnOptions {
   projectId?: string;
   initialInput?: string;
   origin?: 'user' | 'auto';   // default 'user'
+  cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
+  model?: string;             // passed to the CLI's model flag when the profile has one
 }
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -81,10 +86,16 @@ function ensureNodePtyHelpersExecutable() {
   }
 }
 
-function findClaude(): string {
-  const cmd = IS_WINDOWS ? 'where.exe claude' : 'which claude';
-  try { return execSync(cmd, { encoding: 'utf8' }).trim().split(/\r?\n/)[0]; }
-  catch { return 'claude'; }
+// PATH lookup with cache — one execSync per distinct binary, reused across spawns.
+const binCache = new Map<string, string>();
+function findBin(bin: string): string {
+  const cached = binCache.get(bin);
+  if (cached) return cached;
+  const cmd = IS_WINDOWS ? `where.exe ${bin}` : `which ${bin}`;
+  let resolved = bin;
+  try { resolved = execSync(cmd, { encoding: 'utf8' }).trim().split(/\r?\n/)[0] || bin; } catch { /* keep name */ }
+  binCache.set(bin, resolved);
+  return resolved;
 }
 
 // CSI/OSC/SGR escape stripper for readBuffer({ strip: true }) — leaves plain text for programmatic readers.
@@ -111,7 +122,7 @@ export class SessionManager extends EventEmitter {
   constructor() {
     super();
     ensureNodePtyHelpersExecutable();
-    this.claudeBin = findClaude();
+    this.claudeBin = findBin('claude');
   }
 
   get size() { return this.sessions.size; }
@@ -121,15 +132,27 @@ export class SessionManager extends EventEmitter {
   get(id: string): Session | undefined { return this.sessions.get(id); }
 
   info(s: Session): SessionInfo {
-    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, status: s.status };
+    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, status: s.status };
   }
 
   listInfo(): SessionInfo[] { return this.list().map((s) => this.info(s)); }
 
   spawn(opts: SpawnOptions = {}): Session {
-    const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
     const { resumePath, sessionName, projectId, initialInput } = opts;
     const origin = opts.origin ?? 'user';
+    const profile = getCliProfile(opts.cli);
+
+    // Resolve the resume folder once — Claude Code consumes it as /resume|/init-project (see
+    // runStartupSequence); the other CLIs have no such commands, so project context is provided by
+    // simply STARTING the CLI inside the project folder (cwd).
+    let resumeResolved: string | null = null;
+    if (resumePath) {
+      try {
+        const r = safePath(resumePath);
+        if (PATH_SAFE.test(r) && fs.existsSync(r)) resumeResolved = r;
+      } catch { /* invalid resume path → ignored */ }
+    }
+    const cwd = opts.cwd ?? (!profile.startupSequence && resumeResolved ? resumeResolved : JOCA_LOGIC_ROOT);
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
@@ -145,6 +168,7 @@ export class SessionManager extends EventEmitter {
 
     const session: Session = {
       id, name, cwd, projectId, origin,
+      cli: profile.id,
       pty: ptyProcess,
       buffer: '',
       status: 'idle',
@@ -176,22 +200,23 @@ export class SessionManager extends EventEmitter {
       saveProjectMemory(memory);
     }
 
-    const claudeArgs = loadUiSettings().skipPermissions ? ' --dangerously-skip-permissions' : '';
-    setTimeout(() => ptyProcess.write(`${this.claudeBin}${claudeArgs}\r`), 100);
+    // Launch the selected CLI. The autonomous toggle maps to each profile's own flags
+    // (claude → --dangerously-skip-permissions, codex → --full-auto, …).
+    const launchLine = buildLaunchLine(profile, findBin(profile.bin), {
+      model: opts.model,
+      autonomous: loadUiSettings().skipPermissions,
+    });
+    setTimeout(() => ptyProcess.write(`${launchLine}\r`), 100);
 
     // Resolve the /resume|/init-project command synchronously (cheap fs checks). It is SENT only once
     // the Claude TUI is actually ready (see runStartupSequence). Fixed timers were the bug behind
     // "sometimes it doesn't send /resume": on a slow boot or a "trust this folder?" prompt the command
-    // landed before the CLI could receive it and was lost.
+    // landed before the CLI could receive it and was lost. Claude Code only — the other CLIs get
+    // project context via cwd (resolved above) instead.
     let startupCmd: string | null = null;
-    if (resumePath) {
-      let resolved: string | null = null;
-      try { resolved = safePath(resumePath); } catch {}
-      const safe = resolved && PATH_SAFE.test(resolved) && fs.existsSync(resolved);
-      if (safe && resolved) {
-        const hasClaudeMd = fs.existsSync(path.join(resolved, 'CLAUDE.md'));
-        startupCmd = hasClaudeMd ? `/resume "${resolved}"` : `/init-project "${resolved}"`;
-      }
+    if (profile.startupSequence && resumeResolved) {
+      const hasClaudeMd = fs.existsSync(path.join(resumeResolved, 'CLAUDE.md'));
+      startupCmd = hasClaudeMd ? `/resume "${resumeResolved}"` : `/init-project "${resumeResolved}"`;
     }
 
     if (startupCmd || initialInput) {

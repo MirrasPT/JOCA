@@ -37,16 +37,20 @@ export interface Automation {
   id: string;
   name: string;
   enabled: boolean;
-  model?: string;                 // model for the `llm` nodes (e.g. 'sonnet'|'opus'|'haiku'); undefined = default
+  model?: string;                 // model for `llm` nodes AND the worker CLI's model flag; undefined = default
+  cli?: string;                   // CLI dos worker nodes: 'claude' (default) | 'codex' | 'agy' | 'opencode'
   // Acção/automação extras (uma Acção = automação de trigger manual + input em runtime):
   skills?: string[];              // skills/agentes do JOCA_Brain a usar (injectados como directiva ao agente)
   requireConfirm?: boolean;       // PÁRA antes de acções irreversíveis (envio/apagar/deploy) e pede OK
+  retries?: number;               // re-tentativas após falha (backoff exponencial 1m/2m/4m…); 0/undefined = sem retry
+  catchUp?: boolean;              // run perdida com o backend desligado → dispara uma vez no arranque
   trigger: { type: 'schedule' | 'manual'; schedule?: Schedule };
   nodes: AutomationNode[];
   nextRunAt?: number | null;
   lastRunAt?: number | null;
   lastStatus?: 'ok' | 'error' | 'running' | null;
   lastResult?: string;
+  retryCount?: number;            // tentativa actual (interno; reset a 0 após sucesso/esgotar retries)
   createdAt: number;
 }
 
@@ -118,8 +122,11 @@ export function makeAutomation(spec: Partial<Automation> & { name: string; nodes
     name: spec.name.trim().slice(0, 120) || 'Automação',
     enabled: spec.enabled ?? true,
     model: spec.model,
+    cli: spec.cli,
     skills: Array.isArray(spec.skills) ? spec.skills.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim()).slice(0, 20) : undefined,
     requireConfirm: spec.requireConfirm ?? undefined,
+    retries: typeof spec.retries === 'number' ? Math.max(0, Math.min(5, Math.floor(spec.retries))) : undefined,
+    catchUp: spec.catchUp === true || undefined,
     trigger,
     nodes: spec.nodes.map((n) => ({ ...n, id: n.id || randomUUID() })),
     nextRunAt: null,

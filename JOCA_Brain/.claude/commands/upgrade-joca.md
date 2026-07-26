@@ -393,3 +393,26 @@ Next steps:
 - Preserve existing patterns: read 2-3 similar files before creating new ones
 - Archive processed feedback, never delete it
 - If no feedback exists: inform user and stop (do not invent improvements)
+
+---
+
+## Modo `--auto` (headless — skill loop à Hermes)
+
+`/upgrade-joca --auto` corre o ciclo SEM interacção — pensado para a automação semanal do JOCA_OS (worker dedicado) ou para sessões em que o user pediu explicitamente rotina autónoma. O gate humano da Phase 3.2 é substituído por um perímetro conservador:
+
+**Pode aplicar sozinho (allowlist):**
+- `IMPROVE_SKILL` — melhorar skill existente (loop improver/evaluator, threshold 8.0/10 mantém-se)
+- `FIX_TRIGGER` — corrigir triggers/description de skill que não disparou quando devia
+- Regenerar `SKILL_INDEX.json` + bridges + marcar/arquivar feedback processado
+
+**NUNCA aplica sozinho (fica em proposta):**
+- `NEW_SKILL` / `NEW_AGENT` — escreve o draft em `memory/feedback/proposals/<nome>.md` com o rationale e pára
+- `FIX_AGENT` em agentes de orquestração (master-orchestrator, task-router, self-improver)
+- `CONFIG_CHANGE` (CLAUDE.md, soul.md, rules/, settings.json, hooks)
+- Qualquer coisa fora de `.claude/skills/` + índices
+
+**Regras extra do modo auto:**
+- Sem feedback pendente (≥1 ficheiro) → termina imediatamente com "nada a processar" (não inventa melhorias)
+- Máximo 5 melhorias aplicadas por run (as restantes ficam para o próximo ciclo, por ordem de severidade)
+- No fim, escreve um resumo em `memory/feedback/auto-upgrade-log.md` (append): data, itens aplicados, itens em proposta, itens falhados
+- Termina SEMPRE com um resumo claro (o worker do JOCA_OS captura-o e o juiz classifica) — listar: aplicado / proposto / falhado / adiado
