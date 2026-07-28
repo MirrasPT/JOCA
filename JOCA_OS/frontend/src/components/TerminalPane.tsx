@@ -5,6 +5,12 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import type { TerminalRef } from '../types';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, quotePath } from '../lib/fileDrop';
 
+// Scrollback lines kept in memory PER TERMINAL. Every session's pane stays mounted (TerminalView
+// hides inactive ones with display:none), so this cost is paid N times over — a huge value made the
+// app slow down and eventually crash after hours of use. 8k lines is plenty of history; the full
+// output still lives server-side and is re-sent on `get_buffer`.
+const TERMINAL_SCROLLBACK_LINES = 8000;
+
 interface Props {
   sessionId: string;
   isActive: boolean;
@@ -96,7 +102,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       cursorBlink: true,
       cursorStyle: 'bar',
       cursorWidth: 2,
-      scrollback: 2000000,
+      scrollback: TERMINAL_SCROLLBACK_LINES,
       allowTransparency: false,
       // Apps que imprimem branco truecolor/ANSI cru (fora da palette do theme) ficam
       // invisíveis num fundo claro — xterm ajusta o foreground por célula para manter
@@ -176,6 +182,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
       ro.disconnect();
       themeObserver.disconnect();
       term.dispose();
@@ -262,10 +269,10 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
         }
       } catch {}
     };
-    requestAnimationFrame(doFit);
+    const raf = requestAnimationFrame(doFit);
     const t1 = setTimeout(doFit, 100);
     const t2 = setTimeout(doFit, 400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
   }, [isActive, sessionId, onResize]);
 
   return (

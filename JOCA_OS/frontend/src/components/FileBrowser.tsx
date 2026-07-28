@@ -6,6 +6,10 @@ interface FileEntry {
   name: string;
   path: string;
   isDir: boolean;
+  /** Opcionais: GET /files ainda não os devolve. Quando o backend os acrescentar,
+   *  as ordenações por data/tamanho activam-se sozinhas (ver `caps` abaixo). */
+  mtimeMs?: number;
+  size?: number;
 }
 
 interface DirListing {
@@ -22,6 +26,42 @@ interface Props {
   /** Project-scoped embed: drops terminal-oriented chrome (path/cd insert,
    *  favorites/drives strips, home) that has no target in the dashboard. */
   embedded?: boolean;
+}
+
+// ── Ordenação de ficheiros ─────────────────────────────────────────
+// Pastas ficam sempre antes de ficheiros, seja qual for o critério.
+// As opções por data/tamanho dependem de campos que GET /files ainda não devolve:
+// ficam desactivadas até aparecerem nos dados (detecção automática, sem alterar código).
+
+type FileSort = 'name-asc' | 'name-desc' | 'mtime-desc' | 'mtime-asc' | 'size-desc';
+
+const FILE_SORT_KEY = 'joca:file-sort';
+
+const FILE_SORT_OPTIONS: { value: FileSort; label: string; needs?: 'mtime' | 'size' }[] = [
+  { value: 'name-asc', label: 'Nome A→Z' },
+  { value: 'name-desc', label: 'Nome Z→A' },
+  { value: 'mtime-desc', label: 'Modificado (recente primeiro)', needs: 'mtime' },
+  { value: 'mtime-asc', label: 'Modificado (antigo primeiro)', needs: 'mtime' },
+  { value: 'size-desc', label: 'Tamanho (maior primeiro)', needs: 'size' },
+];
+
+function readFileSort(): FileSort {
+  try {
+    const raw = localStorage.getItem(FILE_SORT_KEY);
+    return FILE_SORT_OPTIONS.some((o) => o.value === raw) ? (raw as FileSort) : 'name-asc';
+  } catch { return 'name-asc'; }
+}
+
+function compareEntries(a: FileEntry, b: FileEntry, sort: FileSort): number {
+  if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+  const byName = a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' });
+  switch (sort) {
+    case 'name-desc':  return -byName;
+    case 'mtime-desc': return ((b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)) || byName;
+    case 'mtime-asc':  return ((a.mtimeMs ?? 0) - (b.mtimeMs ?? 0)) || byName;
+    case 'size-desc':  return ((b.size ?? 0) - (a.size ?? 0)) || byName;
+    default:           return byName;
+  }
 }
 
 function quotePath(p: string) {
@@ -125,6 +165,9 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [fileSort, setFileSort] = useState<FileSort>(readFileSort);
+  // Latch: fica `true` assim que o backend devolver o campo pelo menos uma vez.
+  const [caps, setCaps] = useState<{ mtime: boolean; size: boolean }>({ mtime: false, size: false });
   const [favorites, setFavorites] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('joca:file-favorites') || '[]'); } catch { return []; }
   });
@@ -145,6 +188,11 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
       if (!res.ok) throw new Error('Cannot read directory');
       const data: DirListing = await res.json();
       setListing(data);
+      const hasMtime = data.entries.some((e) => typeof e.mtimeMs === 'number');
+      const hasSize = data.entries.some((e) => typeof e.size === 'number');
+      setCaps((c) => (c.mtime === (c.mtime || hasMtime) && c.size === (c.size || hasSize)
+        ? c
+        : { mtime: c.mtime || hasMtime, size: c.size || hasSize }));
       currentPathRef.current = data.path;
       setRecentFolders((current) => {
         const next = [data.path, ...current.filter((item) => item !== data.path)].slice(0, 6);
@@ -202,10 +250,22 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
 
   const entries = listing?.entries ?? [];
   const normalizedQuery = query.trim().toLowerCase();
-  const visibleEntries = normalizedQuery
+  const sortAvailable = (o: (typeof FILE_SORT_OPTIONS)[number]) =>
+    !o.needs || (o.needs === 'mtime' ? caps.mtime : caps.size);
+  // Se a preferência guardada depender de um campo que o servidor não devolve, cai para Nome A→Z.
+  const activeSort: FileSort = FILE_SORT_OPTIONS.some((o) => o.value === fileSort && sortAvailable(o))
+    ? fileSort
+    : 'name-asc';
+  const filteredEntries = normalizedQuery
     ? entries.filter((entry) => entry.name.toLowerCase().includes(normalizedQuery) || entry.path.toLowerCase().includes(normalizedQuery))
     : entries;
+  const visibleEntries = [...filteredEntries].sort((a, b) => compareEntries(a, b, activeSort));
   const count = entries.length;
+
+  const changeFileSort = (value: FileSort) => {
+    setFileSort(value);
+    try { localStorage.setItem(FILE_SORT_KEY, value); } catch { /* ignore */ }
+  };
   const currentPath = listing?.path ?? '';
   const currentIsFavorite = currentPath ? favorites.includes(currentPath) : false;
 
@@ -351,6 +411,25 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
           placeholder="Search current folder"
           aria-label="Search current folder"
         />
+        <select
+          className="fb-sort-select"
+          value={activeSort}
+          onChange={(event) => changeFileSort(event.target.value as FileSort)}
+          aria-label="Ordenar ficheiros"
+          title={
+            'Ordenar a pasta actual (pastas ficam sempre primeiro).'
+            + (caps.mtime && caps.size ? '' : ' As opções por data/tamanho ficam disponíveis quando o servidor devolver esses campos.')
+          }
+        >
+          {FILE_SORT_OPTIONS.map((option) => {
+            const available = sortAvailable(option);
+            return (
+              <option key={option.value} value={option.value} disabled={!available}>
+                {available ? option.label : `${option.label} (indisponível)`}
+              </option>
+            );
+          })}
+        </select>
         {!embedded && (
           <button
             className={`fb-favorite-btn ${currentIsFavorite ? 'active' : ''}`}

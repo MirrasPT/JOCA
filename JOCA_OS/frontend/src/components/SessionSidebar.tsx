@@ -66,6 +66,45 @@ function LucideIcon({ name }: { name: LucideName }) {
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
 
+// ── Ordenação de projectos ─────────────────────────────────────────
+// Os projectos não têm data de criação — usamos a posição no array (a ordem `order`
+// devolvida por GET /projects) como proxy: o último da lista é o mais recente.
+// As ordenações não-manuais são só uma VISTA (não gravam nada no servidor); há um
+// botão "Fixar ordem" que persiste explicitamente via onReorderProjects → PUT /projects/order.
+
+type ProjectSort = 'manual' | 'name-asc' | 'name-desc' | 'recent' | 'oldest';
+
+const PROJECT_SORT_KEY = 'joca:project-sort';
+
+const PROJECT_SORT_OPTIONS: { value: ProjectSort; label: string }[] = [
+  { value: 'manual', label: 'Manual (arrastar)' },
+  { value: 'name-asc', label: 'Nome A→Z' },
+  { value: 'name-desc', label: 'Nome Z→A' },
+  { value: 'recent', label: 'Mais recentes' },
+  { value: 'oldest', label: 'Mais antigos' },
+];
+
+const PROJECT_SORT_HINT =
+  'Ordenação da lista de projectos. "Mais recentes"/"Mais antigos" usam a posição na lista como '
+  + 'aproximação da data (os projectos não guardam data de criação — o último adicionado fica no fim). '
+  + 'Só "Manual (arrastar)" permite reordenar por drag; as outras são apenas uma vista, até carregares em "Fixar ordem".';
+
+function readProjectSort(): ProjectSort {
+  try {
+    const raw = localStorage.getItem(PROJECT_SORT_KEY);
+    return PROJECT_SORT_OPTIONS.some((o) => o.value === raw) ? (raw as ProjectSort) : 'manual';
+  } catch { return 'manual'; }
+}
+
+function sortProjects(list: Project[], sort: ProjectSort): Project[] {
+  // 'manual' e 'oldest' são a ordem tal como vem do servidor (mais antigo primeiro).
+  if (sort === 'manual' || sort === 'oldest') return list;
+  const out = [...list];
+  if (sort === 'recent') return out.reverse();
+  const dir = sort === 'name-desc' ? -1 : 1;
+  return out.sort((a, b) => dir * a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
+}
+
 // ── Session item ───────────────────────────────────────────────────
 
 function SessionItem({
@@ -378,18 +417,34 @@ export default function SessionSidebar({
   const [showArchived, setShowArchived] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [projectSort, setProjectSort] = useState<ProjectSort>(readProjectSort);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
 
   const filteredUngrouped = sessions.filter(s => !s.projectId);
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
-  const filteredProjects = activeProjects.map(project => ({
+  const sortedProjects = sortProjects(activeProjects, projectSort);
+  const filteredProjects = sortedProjects.map(project => ({
     project,
     sessions: sessions.filter(s => s.projectId === project.id),
   }));
 
-  const dragEnabled = !!onReorderProjects && activeProjects.length > 1;
+  // Arrastar só faz sentido na vista manual — noutra ordenação a posição largada seria descartada.
+  const dragEnabled = !!onReorderProjects && activeProjects.length > 1 && projectSort === 'manual';
+  const canPinOrder = !!onReorderProjects && activeProjects.length > 1 && projectSort !== 'manual';
+
+  const changeProjectSort = (value: ProjectSort) => {
+    setProjectSort(value);
+    try { localStorage.setItem(PROJECT_SORT_KEY, value); } catch { /* ignore */ }
+  };
+
+  // "Fixar ordem": grava a ordem actualmente visível e volta ao modo manual.
+  const pinCurrentOrder = () => {
+    if (!onReorderProjects) return;
+    onReorderProjects(sortedProjects.map(p => p.id));
+    changeProjectSort('manual');
+  };
 
   const commitReorder = (targetId: string) => {
     if (!dragId || dragId === targetId || !onReorderProjects) { setDragId(null); setOverId(null); return; }
@@ -496,6 +551,34 @@ export default function SessionSidebar({
             ><LucideIcon name="plus" /></button>
           </div>
         </div>
+
+        {activeProjects.length > 1 && (
+          <div className="sidebar-sort-row">
+            <span className="sidebar-sort-icon" aria-hidden><LucideIcon name="grip" /></span>
+            <select
+              className="sidebar-sort-select"
+              value={projectSort}
+              onChange={(e) => changeProjectSort(e.target.value as ProjectSort)}
+              title={PROJECT_SORT_HINT}
+              aria-label="Ordenar projetos"
+            >
+              {PROJECT_SORT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            {canPinOrder && (
+              <button
+                className="sidebar-sort-pin"
+                type="button"
+                onClick={pinCurrentOrder}
+                data-tooltip="Gravar esta ordem como ordem manual"
+                data-tooltip-position="bottom"
+              >
+                Fixar
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="session-sidebar-list">
           {filteredUngrouped.map(s => (

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CliToolStatus, HeartbeatConfig, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
+import type { CliProfileInfo, CliToolStatus, HeartbeatConfig, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 
 interface ServiceConnection {
@@ -37,10 +37,25 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [optimizeProvider, setOptimizeProvider] = useState('claude');
   const [optimizeModel, setOptimizeModel] = useState('');
   const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
+  // CLI por defeito para novas sessões (PATCH /ui-settings { defaultCli }).
+  const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
+  const [defaultCli, setDefaultCli] = useState<CliProfileInfo['id']>('claude');
+  const [defaultCliSaved, setDefaultCliSaved] = useState(false);
+  const savedTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    fetch('/cli-profiles').then(r => r.json()).then((list: CliProfileInfo[]) => {
+      if (Array.isArray(list)) setCliProfiles(list);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch('/ui-settings').then(r => r.json()).then(s => {
       setSkipPermissions(s.skipPermissions ?? false);
+      // `defaultCli` pode ainda não existir no backend — undefined = claude.
+      if (s.defaultCli === 'claude' || s.defaultCli === 'codex' || s.defaultCli === 'agy' || s.defaultCli === 'opencode') {
+        setDefaultCli(s.defaultCli);
+      }
       if (s.theme === 'light' || s.theme === 'dark') {
         setTheme(s.theme);
         if (s.theme === 'light') document.documentElement.dataset.theme = 'light';
@@ -57,6 +72,20 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
     fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }).catch(() => {});
   }, []);
   const selectOptimizeProvider = useCallback((id: string) => { setOptimizeProvider(id); patchSettings({ optimizeProvider: id }); }, [patchSettings]);
+
+  const selectDefaultCli = useCallback((id: CliProfileInfo['id']) => {
+    setDefaultCli(id);
+    setDefaultCliSaved(false);
+    fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ defaultCli: id }) })
+      .then((r) => { if (!r.ok) throw new Error(String(r.status)); setDefaultCliSaved(true); })
+      .catch(() => {})
+      .finally(() => {
+        if (savedTimer.current) window.clearTimeout(savedTimer.current);
+        savedTimer.current = window.setTimeout(() => setDefaultCliSaved(false), 2200);
+      });
+  }, []);
+
+  useEffect(() => () => { if (savedTimer.current) window.clearTimeout(savedTimer.current); }, []);
 
   const toggleTheme = useCallback(() => {
     const next = theme === 'light' ? 'dark' : 'light';
@@ -78,22 +107,36 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [beatTesting, setBeatTesting] = useState(false);
   const [beatResult, setBeatResult] = useState<{ decision: string; text: string } | null>(null);
   const hbTimer = useRef<number | null>(null);
+  // Feedback de gravação: o PATCH é debounced, sem isto o utilizador não sabe se ficou guardado.
+  const [hbStatus, setHbStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const hbStatusTimer = useRef<number | null>(null);
 
   useEffect(() => {
     fetch('/heartbeat').then((r) => r.json()).then(setHeartbeat).catch(() => {});
-    return () => { if (hbTimer.current) window.clearTimeout(hbTimer.current); };
+    return () => {
+      if (hbTimer.current) window.clearTimeout(hbTimer.current);
+      if (hbStatusTimer.current) window.clearTimeout(hbStatusTimer.current);
+    };
   }, []);
 
   // Actualiza o estado local já e envia o PATCH com um debounce simples (evita um pedido por tecla
   // no scratch/model; toggles também passam por aqui — 400ms é imperceptível).
   const patchHeartbeat = useCallback((patch: Partial<HeartbeatConfig>) => {
     setHeartbeat((cur) => (cur ? { ...cur, ...patch } : cur));
+    setHbStatus('saving');
+    if (hbStatusTimer.current) window.clearTimeout(hbStatusTimer.current);
     if (hbTimer.current) window.clearTimeout(hbTimer.current);
     hbTimer.current = window.setTimeout(() => {
       fetch('/heartbeat', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
         .then((r) => (r.ok ? r.json() : null))
-        .then((cfg: HeartbeatConfig | null) => { if (cfg) setHeartbeat(cfg); })
-        .catch(() => {});
+        .then((cfg: HeartbeatConfig | null) => {
+          if (cfg) setHeartbeat(cfg);
+          setHbStatus(cfg ? 'saved' : 'error');
+        })
+        .catch(() => setHbStatus('error'))
+        .finally(() => {
+          hbStatusTimer.current = window.setTimeout(() => setHbStatus('idle'), 2200);
+        });
     }, 400);
   }, []);
 
@@ -256,6 +299,11 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               {heartbeat?.enabled ? 'activo' : 'parado'}
             </span>
             <span>💓 Heartbeat</span>
+            {hbStatus !== 'idle' && (
+              <span className={`settings-save-flag settings-save-flag--${hbStatus}`} role="status">
+                {hbStatus === 'saving' ? 'a guardar…' : hbStatus === 'saved' ? 'guardado ✓' : 'falhou ao guardar'}
+              </span>
+            )}
           </div>
           <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
             Proactividade: a cada intervalo o JOCA lê a checklist e o estado do sistema e avisa-te só quando algo merece atenção.
@@ -264,10 +312,10 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             <div className="hb-body">
               <label className="hb-check">
                 <input type="checkbox" checked={heartbeat.enabled} onChange={(e) => patchHeartbeat({ enabled: e.target.checked })} />
-                <span>Ligado</span>
+                <span>Heartbeat ligado (corre automaticamente)</span>
               </label>
-              <label className="hb-field hb-field--inline">
-                <span>A cada (min, ≥5)</span>
+              <label className="hb-field hb-field--inline" title="Intervalo entre beats. O mínimo é 5 minutos.">
+                <span>Intervalo entre beats (minutos, mín. 5)</span>
                 <input
                   type="number" min={5} value={heartbeat.everyMinutes}
                   onChange={(e) => patchHeartbeat({ everyMinutes: Math.max(5, Number(e.target.value) || 5) })}
@@ -279,7 +327,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
                   checked={!heartbeat.activeHours}
                   onChange={(e) => patchHeartbeat({ activeHours: e.target.checked ? null : { start: '09:00', end: '22:00' } })}
                 />
-                <span>Sempre activo (sem janela horária)</span>
+                <span>Correr a qualquer hora (sem janela horária)</span>
               </label>
               {heartbeat.activeHours && (
                 <div className="hb-hours">
@@ -295,16 +343,16 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
                   </label>
                 </div>
               )}
-              <label className="hb-field">
-                <span>Modelo</span>
+              <label className="hb-field" title="Modelo usado em cada beat. Vazio = haiku (mais barato e rápido). Grava ao sair do campo.">
+                <span>Modelo (vazio = haiku)</span>
                 <input
                   type="text" value={heartbeat.model} placeholder="haiku"
                   onChange={(e) => setHeartbeat((cur) => (cur ? { ...cur, model: e.target.value } : cur))}
                   onBlur={(e) => patchHeartbeat({ model: e.target.value.trim() })}
                 />
               </label>
-              <label className="hb-field">
-                <span>Checklist (scratch — o que vigiar em cada beat)</span>
+              <label className="hb-field" title="Uma linha por item. É isto que o JOCA verifica em cada beat. Grava ao sair do campo.">
+                <span>Checklist — o que vigiar em cada beat (grava ao sair do campo)</span>
                 <textarea
                   rows={4} value={heartbeat.scratch}
                   placeholder={'- verificar se há tarefas bloqueadas\n- lembrar-me do backup semanal'}
@@ -342,6 +390,36 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             <span>AI CLIs</span>
           </div>
           <p>Instalação, login e verificação rápida dos CLIs usados pelo JOCA.</p>
+          <div className="settings-default-cli">
+            <div className="settings-default-cli-row">
+              <label className="settings-default-cli-label" htmlFor="default-cli-select">CLI por defeito</label>
+              <select
+                id="default-cli-select"
+                className="settings-default-cli-select"
+                value={defaultCli}
+                disabled={cliProfiles.length === 0}
+                onChange={(e) => selectDefaultCli(e.target.value as CliProfileInfo['id'])}
+                title="CLI usado ao abrir novas sessões e terminais quando não escolhes outro."
+              >
+                {cliProfiles.length === 0 ? (
+                  <option value={defaultCli}>A carregar…</option>
+                ) : cliProfiles.map((profile) => (
+                  <option
+                    key={profile.id}
+                    value={profile.id}
+                    disabled={!profile.available && profile.id !== defaultCli}
+                  >
+                    {profile.label}{profile.available ? '' : ' (não instalado)'}
+                  </option>
+                ))}
+              </select>
+              {defaultCliSaved && <span className="settings-save-flag settings-save-flag--saved" role="status">guardado ✓</span>}
+            </div>
+            <p className="settings-default-cli-hint">
+              Usado ao abrir novas sessões e terminais. Sessões já abertas não são afectadas.
+              {cliProfiles.some((p) => !p.available) && ' Os CLIs marcados como "não instalado" podem ser instalados nos cartões abaixo.'}
+            </p>
+          </div>
           <div className="settings-cli-list">
             {cliTools.map((tool) => (
               <article key={tool.id} className={`settings-cli-card settings-cli-card--${tool.installed ? 'installed' : 'missing'}`}>

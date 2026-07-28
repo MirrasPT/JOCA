@@ -7,6 +7,32 @@ import { notify } from '../lib/notify';
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
 
+// Returns a new Set without `id`, or the SAME Set when `id` isn't there (no re-render).
+function withoutId(set: Set<string>, id: string): Set<string> {
+  if (!set.has(id)) return set;
+  const next = new Set(set);
+  next.delete(id);
+  return next;
+}
+
+// Keeps only the ids still alive server-side; returns the same Set when nothing was removed.
+function pruneIds(set: Set<string>, alive: Set<string>): Set<string> {
+  const stale = [...set].filter((id) => !alive.has(id));
+  if (stale.length === 0) return set;
+  const next = new Set(set);
+  stale.forEach((id) => next.delete(id));
+  return next;
+}
+
+// Deletes dead session entries from a ref-held Map in place; true when something was removed.
+function pruneMap<T>(map: Map<string, T>, alive: Set<string>): boolean {
+  let removed = false;
+  for (const id of [...map.keys()]) {
+    if (!alive.has(id)) { map.delete(id); removed = true; }
+  }
+  return removed;
+}
+
 export type ServerMessage =
   | { type: 'sessions_list'; sessions: SessionInfo[] }
   | { type: 'session_created'; session: SessionInfo }
@@ -20,9 +46,15 @@ export type ServerMessage =
   | { type: 'automations_changed' }
   | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
   | { type: 'tasks_changed' }
-  | { type: 'notification'; notification: AppNotification };
+  | { type: 'notification'; notification: AppNotification }
+  | { type: 'error'; error: string };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+
+// Reconnect backoff: doubles on every failed attempt up to RECONNECT_MAX_DELAY, with jitter so N
+// tabs don't all retry on the same tick. Reset to RECONNECT_BASE_DELAY once a socket opens.
+const RECONNECT_BASE_DELAY = 2000;
+const RECONNECT_MAX_DELAY = 30_000;
 
 // Everything the message router needs from the parent. Stable refs are passed directly; React state
 // is mutated via the setters. Mirrored in a ref inside the hook so the socket is created ONCE on
@@ -34,6 +66,7 @@ export interface SessionSocketDeps {
   setMainView: Dispatch<SetStateAction<MainView>>;
   setWorkflowStates: Dispatch<SetStateAction<Map<string, WorkflowState>>>;
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
+  setActivatedIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   setTasksRefresh: Dispatch<SetStateAction<number>>;
   setNotificationsRefresh: Dispatch<SetStateAction<number>>;
@@ -55,6 +88,7 @@ export interface SessionSocketDeps {
 export function useSessionSocket(deps: SessionSocketDeps) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectDelay = useRef(RECONNECT_BASE_DELAY);
   const unmountedRef = useRef(false);
   const depsRef = useRef(deps);
   useEffect(() => { depsRef.current = deps; });
@@ -77,13 +111,28 @@ export function useSessionSocket(deps: SessionSocketDeps) {
       catch { return; }
 
       switch (msg.type) {
-        case 'sessions_list':
+        case 'sessions_list': {
           d.setSessions(msg.sessions);
+          const alive = new Set(msg.sessions.map((s) => s.id));
           msg.sessions.forEach((s) => d.activateSession(s.id));
           if (msg.sessions.length > 0) {
             d.setActiveId((prev) => prev ?? msg.sessions[0].id);
           }
+          // This message also arrives after a RECONNECT. Any terminal already mounted has been
+          // deaf while the socket was down (mobile suspends it on every background switch), so
+          // re-pull the server-side buffer to recover the output emitted meanwhile.
+          d.termRefs.current.forEach((_ref, sessionId) => {
+            if (alive.has(sessionId)) send({ type: 'get_buffer', sessionId });
+          });
+          // `sessions_list` is the server's authoritative snapshot: drop every ref/id belonging to
+          // a session it no longer knows about (e.g. closed while we were disconnected).
+          pruneMap(d.termRefs.current, alive);
+          pruneMap(d.outputBuffers.current, alive);
+          if (pruneMap(d.workflowRef.current, alive)) d.setWorkflowStates(new Map(d.workflowRef.current));
+          d.setUnreadIds((prev) => pruneIds(prev, alive));
+          d.setActivatedIds((prev) => pruneIds(prev, alive));
           break;
+        }
 
         case 'session_created':
           d.setSessions((prev) => {
@@ -116,6 +165,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           d.outputBuffers.current.delete(msg.sessionId);
           d.workflowRef.current.delete(msg.sessionId);
           d.setWorkflowStates(new Map(d.workflowRef.current));
+          // These Sets used to keep every id ever seen — a slow leak across a long-running app.
+          d.setUnreadIds((prev) => withoutId(prev, msg.sessionId));
+          d.setActivatedIds((prev) => withoutId(prev, msg.sessionId));
           d.setActivityEvents((prev) => [
             { id: crypto.randomUUID(), title: 'Session closed', detail: msg.sessionId, timestamp: Date.now() },
             ...prev,
@@ -196,27 +248,57 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           }
           break;
 
+        // Server-side refusal (session cap reached, invalid cwd, …). Without this the request just
+        // silently did nothing and the user had no idea why.
+        case 'error':
+          d.setActivityEvents((prev) => [
+            { id: crypto.randomUUID(), title: 'Erro do servidor', detail: msg.error, timestamp: Date.now() },
+            ...prev,
+          ].slice(0, 80));
+          notify('JOCA — Erro', msg.error.replace(/\s+/g, ' ').trim().slice(0, 120));
+          break;
+
         default:
           if (import.meta.env.DEV) console.warn('Unknown WS message type', (msg as { type?: string }).type);
           break;
       }
     };
 
+    ws.onopen = () => { reconnectDelay.current = RECONNECT_BASE_DELAY; };
+
     ws.onclose = () => {
-      if (!unmountedRef.current) {
-        reconnectTimer.current = setTimeout(() => { reconnectTimer.current = null; connect(); }, 2000);
-      }
+      if (unmountedRef.current) return;
+      // Exponential backoff + jitter: a dead/restarting backend no longer gets hammered every 2s.
+      const delay = reconnectDelay.current;
+      reconnectDelay.current = Math.min(delay * 2, RECONNECT_MAX_DELAY);
+      const jittered = delay + Math.random() * (delay * 0.25);
+      reconnectTimer.current = setTimeout(() => { reconnectTimer.current = null; connect(); }, jittered);
     };
 
     ws.onerror = () => ws.close();
     // Handlers are read via depsRef; the socket is intentionally created once.
-  }, []);
+  }, [send]);
 
   useEffect(() => {
     unmountedRef.current = false;
+    reconnectDelay.current = RECONNECT_BASE_DELAY;
     connect();
+
+    // Coming back from the background (mobile suspends the socket every time) must not wait out
+    // the backoff — retry at once if the socket is already gone.
+    const onVisibilityChange = () => {
+      if (document.hidden || unmountedRef.current) return;
+      const state = wsRef.current?.readyState;
+      if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
+      if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
+      reconnectDelay.current = RECONNECT_BASE_DELAY;
+      connect();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     return () => {
       unmountedRef.current = true;
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       wsRef.current?.close();
     };

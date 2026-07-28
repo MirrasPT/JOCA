@@ -6228,3 +6228,183 @@ background: var(--surface-panel);
   border:1px solid color-mix(in srgb, var(--badge-teal) 35%, transparent);
   background:color-mix(in srgb, var(--badge-teal) 10%, transparent);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ORDENAÇÃO (projectos + ficheiros) & CLI POR DEFEITO
+   Controlos compactos acrescentados a SessionSidebar, FileBrowser e
+   SettingsPanel. Mantêm a linguagem visual das barras existentes.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar: ordenar projectos ──────────────────────────────────── */
+
+.sidebar-sort-row {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px var(--sp-3) 8px;
+  flex-shrink:0;
+}
+
+.sidebar-sort-icon {
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-ghost);
+}
+
+.sidebar-sort-icon svg { width:13px; height:13px; }
+
+.sidebar-sort-select {
+  flex:1;
+  min-width:0;
+  height:24px;
+  padding:0 4px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-sm);
+  background:var(--surface-soft);
+  color:var(--text-dim);
+  font:600 10px var(--font-ui);
+  letter-spacing:0.02em;
+  cursor:pointer;
+  outline:none;
+  transition:color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+
+.sidebar-sort-select:hover,
+.sidebar-sort-select:focus-visible {
+  color:var(--text-bright);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+}
+
+.sidebar-sort-pin {
+  flex:0 0 auto;
+  height:24px;
+  padding:0 8px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-sm);
+  background:transparent;
+  color:var(--text-ghost);
+  font:700 9px var(--font-ui);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all var(--t-fast);
+}
+
+.sidebar-sort-pin:hover {
+  color:var(--accent);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+}
+
+/* Colapsada não tem largura para o controlo — a preferência mantém-se guardada. */
+.session-sidebar--collapsed .sidebar-sort-row { display:none; }
+
+/* ── File browser: ordenar ficheiros ─────────────────────────────── */
+
+/* A linha de pesquisa passa a ter 3 colunas (pesquisa · ordenação · favorito).
+   No modo embedded o botão de favorito não existe e a coluna extra fica vazia. */
+.fb-search-row {
+  grid-template-columns:minmax(0, 1fr) auto auto;
+}
+
+.fb-sort-select {
+  height:34px;
+  max-width:150px;
+  padding:0 8px;
+  border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius:12px;
+  background:rgba(0,0,0,0.22);
+  color:var(--text-dim);
+  font:600 10px var(--font-ui);
+  cursor:pointer;
+  outline:none;
+  transition:color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+
+.fb-sort-select:hover,
+.fb-sort-select:focus {
+  color:var(--text-bright);
+  border-color:rgba(255,84,36,0.28);
+  background:rgba(255,84,36,0.075);
+}
+
+.fb-sort-select option:disabled { opacity:0.45; }
+
+/* ── Settings: CLI por defeito + feedback de gravação ────────────── */
+
+.settings-default-cli {
+  margin:12px 0 4px;
+  padding:10px 11px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-md);
+  background:var(--surface-soft);
+}
+
+.settings-default-cli-row {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.settings-default-cli-label {
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+
+.settings-default-cli-select {
+  flex:1;
+  min-width:130px;
+  height:30px;
+  padding:0 8px;
+  border:1px solid var(--border-default);
+  border-radius:var(--r-sm);
+  background:var(--bg-input);
+  color:var(--text-bright);
+  font:600 12px var(--font-ui);
+  cursor:pointer;
+  outline:none;
+}
+
+.settings-default-cli-select:disabled { opacity:0.5; cursor:progress; }
+
+.settings-default-cli-select:focus-visible {
+  border-color:var(--accent-border);
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+.settings-default-cli-hint {
+  margin:8px 0 0 !important;
+  font-size:0.74em;
+  line-height:1.5;
+  opacity:0.55;
+}
+
+.settings-save-flag {
+  flex:0 0 auto;
+  padding:2px 7px;
+  border-radius:999px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.05em;
+  text-transform:lowercase;
+  white-space:nowrap;
+  border:1px solid transparent;
+}
+
+.settings-save-flag--saving { color:var(--text-ghost); border-color:var(--border-subtle); }
+.settings-save-flag--saved  { color:var(--badge-teal); border-color:color-mix(in srgb, var(--badge-teal) 35%, transparent); background:color-mix(in srgb, var(--badge-teal) 10%, transparent); }
+.settings-save-flag--error  { color:#ff6b5e; border-color:rgba(255,107,94,0.35); background:rgba(255,107,94,0.10); }
+
+/* Sem space-between o rótulo fica junto ao pill e o flag encosta à direita,
+   evitando que o título salte quando o estado de gravação aparece. */
+.settings-service-card--heartbeat .settings-service-head { justify-content:flex-start; }
+.settings-service-card--heartbeat .settings-service-head .settings-save-flag { margin-left:auto; }

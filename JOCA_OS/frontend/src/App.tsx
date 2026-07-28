@@ -33,6 +33,12 @@ interface ServiceConnection {
   scope: string;
 }
 
+// Hard cap for the per-session line-assembly buffer. Output that never emits '\n' (spinners and
+// progress bars that only rewrite the line with '\r') would otherwise grow forever and leak memory
+// for as long as the session lives. When the cap is hit we drop the PREFIX and keep the tail — the
+// tail is what completes the next line.
+const OUTPUT_BUFFER_MAX = 64 * 1024;
+
 const SERVICE_CONNECTIONS: ServiceConnection[] = [
   { id: 'filesystem', name: 'Local Files', status: 'connected', scope: 'Leitura real, preview e drag para terminal' },
   { id: 'terminal', name: 'Terminal Sessions', status: 'connected', scope: 'PTY real por sessão' },
@@ -103,9 +109,14 @@ export default function App() {
   const processOutput = useCallback((sessionId: string, data: string) => {
     const buf = (outputBuffers.current.get(sessionId) ?? '') + data;
     const newlineIdx = buf.lastIndexOf('\n');
-    if (newlineIdx === -1) { outputBuffers.current.set(sessionId, buf); return; }
+    if (newlineIdx === -1) {
+      // No newline yet: keep only the tail so a '\r'-only stream can't grow the buffer unbounded.
+      outputBuffers.current.set(sessionId, buf.length > OUTPUT_BUFFER_MAX ? buf.slice(-OUTPUT_BUFFER_MAX) : buf);
+      return;
+    }
     const toProcess = buf.slice(0, newlineIdx);
-    outputBuffers.current.set(sessionId, buf.slice(newlineIdx + 1));
+    const rest = buf.slice(newlineIdx + 1);
+    outputBuffers.current.set(sessionId, rest.length > OUTPUT_BUFFER_MAX ? rest.slice(-OUTPUT_BUFFER_MAX) : rest);
     const lines = toProcess.split('\n');
     const prev = workflowRef.current.get(sessionId) ?? emptyWorkflow;
     let current = prev;
@@ -192,8 +203,32 @@ export default function App() {
     reloadProjectMemory();
     reloadJocaLogic();
     reloadRateLimits();
-    const timer = window.setInterval(() => { reloadRuntime(); reloadRateLimits(); }, 10_000);
-    return () => window.clearInterval(timer);
+
+    // Poll /runtime + /rate-limits only while the tab is VISIBLE. In a background tab (or a PWA
+    // sent to the background on mobile) the timer would keep burning battery and data on results
+    // nobody can see. On becoming visible again we refetch immediately so the UI is never stale.
+    let timer: number | null = null;
+    const poll = () => { reloadRuntime(); reloadRateLimits(); };
+    const startPolling = () => {
+      if (timer !== null) return;
+      timer = window.setInterval(poll, 10_000);
+    };
+    const stopPolling = () => {
+      if (timer === null) return;
+      window.clearInterval(timer);
+      timer = null;
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) { stopPolling(); return; }
+      poll();
+      startPolling();
+    };
+    if (!document.hidden) startPolling();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [reloadProjectMemory, reloadProjects, reloadRuntime, reloadJocaLogic, reloadRateLimits]);
 
   useEffect(() => {
@@ -225,7 +260,7 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setUnreadIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
+    setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
     activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
   });
