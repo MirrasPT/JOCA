@@ -6,10 +6,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { CliProfileInfo, Project } from '../types';
 import { uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
+import { TaskDetail, COLUMNS, isFailed, nextColumn } from './TaskDetail';
+import type { JocaItem, Task, TaskStatus } from './TaskDetail';
 import './TasksView.css';
 
 // Minimal inline-SVG icons (the project has no shared icon module / lucide-react dep).
-type IconName = 'plus' | 'x' | 'play' | 'loader' | 'trash-2' | 'archive' | 'rotate' | 'paperclip';
+type IconName = 'plus' | 'x' | 'play' | 'loader' | 'trash-2' | 'archive' | 'rotate' | 'paperclip' | 'arrow-right' | 'check-square' | 'merge';
 function LucideIcon({ name }: { name: IconName }) {
   const c = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
   if (name === 'plus') return <svg {...c}><path d="M12 5v14M5 12h14" /></svg>;
@@ -19,40 +21,14 @@ function LucideIcon({ name }: { name: IconName }) {
   if (name === 'archive') return <svg {...c}><path d="M3 5h18v4H3zM5 9v10h14V9M9 13h6" /></svg>;
   if (name === 'rotate') return <svg {...c}><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" /></svg>;
   if (name === 'paperclip') return <svg {...c}><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" /></svg>;
+  if (name === 'arrow-right') return <svg {...c}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+  if (name === 'check-square') return <svg {...c}><path d="M20 11v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h10M9 11l3 3 8-8" /></svg>;
+  if (name === 'merge') return <svg {...c}><path d="M8 3v6a4 4 0 0 0 4 4h8M16 3v6a4 4 0 0 1-4 4H4M12 13v8" /></svg>;
   return <svg {...c}><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>; // trash-2
 }
 
 // Basename de um caminho absoluto (Windows \ ou POSIX /), para o chip do anexo.
 const baseName = (p: string) => p.split(/[\\/]/).filter(Boolean).pop() ?? p;
-
-// ── Schema (mirrors backend/src/tasks/store.ts) ───────────────────────────────
-type TaskStatus = 'a-definir' | 'a-executar' | 'em-execucao' | 'concluida' | 'arquivada';
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  projectId?: string;
-  order: number;
-  skills?: string[];
-  requireConfirm?: boolean;
-  attachments?: string[];
-  sessionId?: string;
-  result?: string;
-  testerResult?: string;
-  lastStatus?: 'ok' | 'error' | 'running' | null;
-  createdAt: number;
-  updatedAt: number;
-}
-interface JocaItem { name: string; description?: string; kind: 'skill' | 'agent' }
-
-const COLUMNS: { status: TaskStatus; label: string }[] = [
-  { status: 'a-definir', label: 'A Definir' },
-  { status: 'a-executar', label: 'A Executar' },
-  { status: 'em-execucao', label: 'Em Execução' },
-  { status: 'concluida', label: 'Concluída' },
-  { status: 'arquivada', label: 'Arquivada' },
-];
 
 export function TasksView({ refreshKey, projects }: { refreshKey: number; projects: Project[] }) {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -60,6 +36,21 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   const [creating, setCreating] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null);
+
+  // Detalhe (drawer), selecção múltipla + merge, confirmações inline por coluna.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeKeepId, setMergeKeepId] = useState('');
+  const [mergeTitle, setMergeTitle] = useState('');
+  const [mergeError, setMergeError] = useState('');
+  const [merging, setMerging] = useState(false);
+  const [confirmCol, setConfirmCol] = useState<TaskStatus | null>(null);
+  const [boardError, setBoardError] = useState('');
+  // Um drag nativo pode disparar um click no fim — o flag (limpo em cada mousedown, ligado em
+  // dragstart) evita abrir o detalhe só por se ter arrastado o cartão.
+  const draggedRef = useRef(false);
 
   // form state
   const [title, setTitle] = useState('');
@@ -83,6 +74,14 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
     fetch('/tasks').then((r) => r.json()).then((d: Task[]) => setTasks(Array.isArray(d) ? d : [])).catch(() => setTasks([]));
   }, []);
   useEffect(() => { reload(); }, [reload, refreshKey]);
+
+  // Uma tarefa pode desaparecer (apagada/fundida) enquanto está seleccionada — limpa os ids órfãos.
+  useEffect(() => {
+    setSelected((s) => {
+      const alive = s.filter((id) => tasks.some((t) => t.id === id));
+      return alive.length === s.length ? s : alive;
+    });
+  }, [tasks]);
 
   // JOCA_Brain skills + agents, for the "skills a usar" picker (don't make the user memorise names).
   useEffect(() => {
@@ -201,8 +200,116 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
 
   const remove = useCallback(async (t: Task) => {
     await fetch(`/tasks/${t.id}`, { method: 'DELETE' });
+    if (openId === t.id) setOpenId(null);
+    setSelected((s) => s.filter((id) => id !== t.id));
+    reload();
+  }, [reload, openId]);
+
+  // ── Detalhe / selecção / avanço / merge ─────────────────────────────────────
+  // Patch local optimista: o backend faz broadcast `tasks_changed`, mas não dependemos só disso.
+  const patchLocal = useCallback((id: string, patch: Partial<Task>) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  }, []);
+
+  const openTask = useMemo(() => tasks.find((t) => t.id === openId) ?? null, [tasks, openId]);
+
+  const toggleSelected = useCallback((id: string) => {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }, []);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelected([]);
+    setMergeOpen(false);
+    setMergeError('');
+  }, []);
+
+  // Avança uma tarefa uma coluna para a direita.
+  const advance = useCallback(async (t: Task) => {
+    const next = nextColumn(t.status);
+    if (!next) return;
+    setBoardError('');
+    patchLocal(t.id, { status: next.status });
+    const res = await fetch(`/tasks/${t.id}/advance`, { method: 'POST' });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setBoardError((d as { error?: string }).error || 'Não foi possível avançar a tarefa.');
+    }
+    reload();
+  }, [patchLocal, reload]);
+
+  // Move a coluna inteira um passo para a direita.
+  const advanceColumn = useCallback(async (status: TaskStatus) => {
+    setConfirmCol(null);
+    setBoardError('');
+    const res = await fetch('/tasks/advance-column', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setBoardError((d as { error?: string }).error || 'Não foi possível mover a coluna.');
+    }
     reload();
   }, [reload]);
+
+  const retry = useCallback(async (t: Task) => {
+    setBoardError('');
+    const res = await fetch(`/tasks/${t.id}/retry`, { method: 'POST' });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setBoardError((d as { error?: string }).error || 'Não foi possível re-executar a tarefa.');
+    } else {
+      patchLocal(t.id, { status: 'a-executar', lastStatus: null, result: undefined });
+    }
+    reload();
+  }, [patchLocal, reload]);
+
+  const doMerge = useCallback(async () => {
+    if (selected.length < 2) return;
+    setMerging(true);
+    setMergeError('');
+    try {
+      const res = await fetch('/tasks/merge', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ids: selected,
+          keepId: mergeKeepId || undefined,
+          title: mergeTitle.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        setMergeError(res.status === 409
+          ? 'Não é possível fundir tarefas em execução. Espera que terminem ou tira-as da selecção.'
+          : ((await res.json().catch(() => ({}))) as { error?: string }).error || `Não foi possível fundir (HTTP ${res.status}).`);
+        return;
+      }
+      const merged = (await res.json().catch(() => null)) as Task | null;
+      if (merged?.id) setOpenId(merged.id);
+      exitSelectMode();
+      reload();
+    } catch {
+      setMergeError('Erro de rede ao fundir as tarefas.');
+    } finally { setMerging(false); }
+  }, [selected, mergeKeepId, mergeTitle, exitSelectMode, reload]);
+
+  // Escape fecha o diálogo de merge (o drawer de detalhe trata do seu próprio Escape).
+  useEffect(() => {
+    if (!mergeOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMergeOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mergeOpen]);
+
+  // Abrir o diálogo de merge: por omissão fica a primeira seleccionada como principal.
+  const openMergeDialog = useCallback(() => {
+    setMergeKeepId(selected[0] ?? '');
+    setMergeTitle('');
+    setMergeError('');
+    setMergeOpen(true);
+  }, [selected]);
 
   // ── Drag & drop (native HTML5) ──────────────────────────────────────────────
   // Compute the drop into `status` at `index` (index = target slot, or end of column when omitted).
@@ -233,10 +340,27 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
           <h1>Tarefas</h1>
           <p>Quadro Kanban. Cada tarefa corre num worker Claude Code do projecto — um worker por projecto, tarefas em sequência. Arrasta entre colunas.</p>
         </div>
-        <button className="tk-btn-primary" type="button" onClick={() => setCreating((v) => !v)}>
-          <LucideIcon name={creating ? 'x' : 'plus'} /> {creating ? 'Cancelar' : 'Nova tarefa'}
-        </button>
+        <div className="tk-header-actions">
+          <button
+            className={`tk-select-toggle ${selectMode ? 'is-on' : ''}`}
+            type="button"
+            aria-pressed={selectMode}
+            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+          >
+            <LucideIcon name={selectMode ? 'x' : 'check-square'} /> {selectMode ? 'Sair da selecção' : 'Seleccionar'}
+          </button>
+          <button className="tk-btn-primary" type="button" onClick={() => setCreating((v) => !v)}>
+            <LucideIcon name={creating ? 'x' : 'plus'} /> {creating ? 'Cancelar' : 'Nova tarefa'}
+          </button>
+        </div>
       </header>
+
+      {boardError && (
+        <div className="tk-board-error" role="alert">
+          {boardError}
+          <button type="button" onClick={() => setBoardError('')} aria-label="Dispensar aviso"><LucideIcon name="x" /></button>
+        </div>
+      )}
 
       {creating && (
         <div className="tk-form">
@@ -331,6 +455,9 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       <div className="tk-board">
         {COLUMNS.map((col) => {
           const cards = columnTasks(col.status);
+          const colNext = nextColumn(col.status);
+          // 'arquivada' é a última coluna; 'em-execucao' pertence ao worker → sem "Mover tudo".
+          const canAdvanceAll = Boolean(colNext) && col.status !== 'em-execucao';
           return (
             <section
               key={col.status}
@@ -342,30 +469,83 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
               <div className="tk-col-head">
                 <span className="tk-col-title">{col.label}</span>
                 <span className="tk-col-count">{cards.length}</span>
+                {canAdvanceAll && colNext && (
+                  <button
+                    type="button"
+                    className="tk-col-advance"
+                    onClick={() => setConfirmCol((c) => (c === col.status ? null : col.status))}
+                    disabled={cards.length === 0}
+                    title={`Mover todas as tarefas para ${colNext.label}`}
+                    aria-label={`Mover todas as tarefas de ${col.label} para ${colNext.label}`}
+                  >
+                    Mover tudo <LucideIcon name="arrow-right" />
+                  </button>
+                )}
               </div>
+              {confirmCol === col.status && colNext && (
+                <div className="tk-col-confirm" role="alert">
+                  <span>Mover {cards.length} {cards.length === 1 ? 'tarefa' : 'tarefas'} para {colNext.label}?</span>
+                  <div className="tk-col-confirm-actions">
+                    <button type="button" className="tk-confirm-yes" onClick={() => advanceColumn(col.status)}>Mover</button>
+                    <button type="button" onClick={() => setConfirmCol(null)}>Cancelar</button>
+                  </div>
+                </div>
+              )}
               <div className="tk-col-body">
                 {cards.length === 0 && <div className="tk-col-empty">Vazio</div>}
                 {cards.map((t, i) => {
                   const proj = t.projectId ? projectsById.get(t.projectId) : undefined;
+                  const failed = isFailed(t);
+                  const cardNext = nextColumn(t.status);
+                  const noteCount = t.comments?.length ?? 0;
+                  const isSelected = selected.includes(t.id);
                   return (
                     <article
                       key={t.id}
-                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''}`}
+                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''} ${failed ? 'tk-card--failed' : ''} ${isSelected ? 'tk-card--selected' : ''}`}
                       draggable
-                      onDragStart={() => setDraggingId(t.id)}
+                      tabIndex={0}
+                      aria-label={`Abrir detalhe da tarefa ${t.title}`}
+                      onClick={() => {
+                        if (draggedRef.current) return;
+                        if (selectMode) toggleSelected(t.id); else setOpenId(t.id);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          if (selectMode) toggleSelected(t.id); else setOpenId(t.id);
+                        }
+                      }}
+                      onMouseDown={() => { draggedRef.current = false; }}
+                      onDragStart={() => { draggedRef.current = true; setDraggingId(t.id); }}
                       onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
                       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOverCol(col.status); }}
                       onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleDrop(col.status, i); }}
                     >
                       <div className="tk-card-top">
+                        {selectMode && (
+                          <input
+                            type="checkbox"
+                            className="tk-card-check"
+                            checked={isSelected}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleSelected(t.id)}
+                            aria-label={`Seleccionar ${t.title}`}
+                          />
+                        )}
                         <span className="tk-card-title">{t.title}</span>
-                        {t.lastStatus && <span className={`tk-status tk-status-${t.lastStatus}`}>{t.lastStatus}</span>}
+                        {failed && <span className="tk-card-fail-flag" title="Concluída mas com erro">⚠ erro</span>}
+                        {!failed && t.lastStatus && <span className={`tk-status tk-status-${t.lastStatus}`}>{t.lastStatus}</span>}
                       </div>
                       {t.description && <p className="tk-card-desc">{t.description}</p>}
                       <div className="tk-card-meta">
                         {proj && <span className="tk-tag" style={proj.color ? { borderColor: proj.color, color: proj.color } : undefined}>{proj.name}</span>}
                         {t.skills?.length ? <span className="tk-tag">skills: {t.skills.join(', ')}</span> : null}
                         {t.requireConfirm ? <span className="tk-tag">✋ confirma</span> : null}
+                        {noteCount > 0 && (
+                          <span className="tk-tag tk-note-badge" title={`${noteCount} ${noteCount === 1 ? 'nota' : 'notas'}`}>💬 {noteCount}</span>
+                        )}
                       </div>
                       {t.attachments?.length ? (
                         <div className="tk-attach-chips">
@@ -375,7 +555,7 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                               key={p}
                               className="tk-attach-chip"
                               title={p}
-                              onClick={() => patchAttachments(t.id, (t.attachments ?? []).filter((x) => x !== p))}
+                              onClick={(e) => { e.stopPropagation(); patchAttachments(t.id, (t.attachments ?? []).filter((x) => x !== p)); }}
                             >
                               <LucideIcon name="paperclip" /><span className="tk-attach-name">{baseName(p)}</span> ✕
                             </button>
@@ -385,10 +565,26 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                       {(t.result || t.testerResult) && (
                         <div className="tk-card-result">{(t.result ?? t.testerResult ?? '').slice(0, 220)}</div>
                       )}
-                      <div className="tk-card-actions">
+                      <div className="tk-card-actions" onClick={(e) => e.stopPropagation()}>
                         {t.status === 'a-executar' && (
                           <button type="button" className="tk-run" onClick={() => run(t)} disabled={busy === t.id} data-tooltip="Correr agora">
                             <LucideIcon name={busy === t.id ? 'loader' : 'play'} /> Correr
+                          </button>
+                        )}
+                        {failed && (
+                          <button type="button" className="tk-retry" onClick={() => retry(t)} data-tooltip="Re-executar esta tarefa">
+                            <LucideIcon name="rotate" /> Re-executar
+                          </button>
+                        )}
+                        {cardNext && (
+                          <button
+                            type="button"
+                            onClick={() => advance(t)}
+                            data-tooltip={`Mover para ${cardNext.label}`}
+                            title={`Mover para ${cardNext.label}`}
+                            aria-label={`Mover para ${cardNext.label}`}
+                          >
+                            <LucideIcon name="arrow-right" />
                           </button>
                         )}
                         <button type="button" onClick={() => openPicker({ kind: 'task', id: t.id })} disabled={uploading} data-tooltip="Anexar ficheiro">
@@ -415,6 +611,83 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
           );
         })}
       </div>
+
+      {/* ── Barra de acção da selecção múltipla ─────────────────────────────── */}
+      {selectMode && selected.length >= 2 && (
+        <div className="tk-merge-bar" role="region" aria-label="Acções sobre a selecção">
+          <span className="tk-merge-bar-count">{selected.length} tarefas seleccionadas</span>
+          <button type="button" className="tk-btn-primary" onClick={openMergeDialog}>
+            <LucideIcon name="merge" /> Fundir {selected.length} tarefas
+          </button>
+          <button type="button" className="tk-merge-bar-clear" onClick={() => setSelected([])}>Limpar selecção</button>
+        </div>
+      )}
+
+      {/* ── Diálogo de merge ────────────────────────────────────────────────── */}
+      {mergeOpen && (
+        <div className="tk-merge-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setMergeOpen(false); }}>
+          <div
+            className="tk-merge-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tk-merge-title"
+            onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setMergeOpen(false); } }}
+          >
+            <h2 id="tk-merge-title">Fundir {selected.length} tarefas</h2>
+            <p className="tk-merge-hint">
+              As notas e anexos das outras tarefas passam para a principal; as restantes são removidas.
+            </p>
+            <fieldset className="tk-merge-keep">
+              <legend>Qual fica como principal?</legend>
+              {selected.map((id) => {
+                const t = tasks.find((x) => x.id === id);
+                if (!t) return null;
+                return (
+                  <label key={id} className="tk-merge-option">
+                    <input
+                      type="radio"
+                      name="tk-merge-keep"
+                      value={id}
+                      checked={mergeKeepId === id}
+                      onChange={() => setMergeKeepId(id)}
+                    />
+                    <span>{t.title}</span>
+                  </label>
+                );
+              })}
+            </fieldset>
+            <label className="tk-field">
+              <span>Título final (opcional)</span>
+              <input
+                value={mergeTitle}
+                onChange={(e) => setMergeTitle(e.target.value)}
+                placeholder="deixa vazio para manter o título da principal"
+              />
+            </label>
+            {mergeError && <div className="tk-drawer-error" role="alert">{mergeError}</div>}
+            <div className="tk-merge-actions">
+              <button type="button" className="tk-btn-primary" onClick={doMerge} disabled={merging || selected.length < 2}>
+                {merging ? 'A fundir…' : 'Fundir'}
+              </button>
+              <button type="button" className="tk-drawer-btn" onClick={() => setMergeOpen(false)} disabled={merging}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Drawer de detalhe ───────────────────────────────────────────────── */}
+      {openTask && (
+        <TaskDetail
+          key={openTask.id}
+          task={openTask}
+          projects={projects}
+          cliProfiles={cliProfiles}
+          jocaItems={jocaItems}
+          onClose={() => setOpenId(null)}
+          onRefresh={reload}
+          onPatchLocal={patchLocal}
+        />
+      )}
     </div>
   );
 }
