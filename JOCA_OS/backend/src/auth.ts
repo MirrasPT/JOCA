@@ -88,6 +88,12 @@ function tokenValid(token: string | undefined): boolean {
   return Boolean(meta && meta.expiresAt > Date.now());
 }
 
+// Token handed to an agent running inside a PTY (see agent-bridge). Same lifetime rules as a login
+// token — the terminal already has full shell access, so this is convenience, not privilege.
+export function mintAgentToken(): string {
+  return issueToken();
+}
+
 function revokeToken(token: string): void {
   const tokens = loadTokens();
   if (tokens[token]) { delete tokens[token]; writeJsonFile(TOKENS_FILE, tokens); }

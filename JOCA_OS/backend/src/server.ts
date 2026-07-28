@@ -17,6 +17,8 @@ import { llmRouter } from './http/llm-routes';
 import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
 import { systemRouter } from './http/system-routes';
+import { sessionsRouter } from './http/sessions-routes';
+import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
 import { setNotificationsBroadcaster } from './notifications/store';
@@ -67,6 +69,7 @@ app.use(requireAuth, llmRouter());
 app.use(requireAuth, automationsRouter());
 app.use(requireAuth, tasksRouter());
 app.use(requireAuth, systemRouter());
+app.use(requireAuth, sessionsRouter());
 app.use(requireAuth, filesRouter());
 
 // Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
@@ -103,7 +106,10 @@ if (!isLoopback && !authEnabled()) {
 
 server.listen(PORT, HOST, () => {
   const logicConnected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
+  // Terminals reach the API on the port we actually bound to (PORT may be overridden).
+  setApiPort(PORT);
   console.log(`JOCA_OS → http://${isLoopback ? 'localhost' : HOST}:${PORT}${authEnabled() ? ' (auth ON)' : ''}`);
+  console.log(`Ponte de agentes → ${fs.existsSync(JOCA_CLI_PATH) ? 'node "$JOCA_CLI" help' : 'cli/joca.mjs em falta'}`);
   console.log(`JOCA_Brain → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);
   if (logicConnected) {
     const items = collectToolkitItems();

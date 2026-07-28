@@ -34,6 +34,7 @@ export interface UiSettings {
   optimizeProvider?: LlmProvider;  // SDK used by "Optimizar" (text rewrite); default claude
   optimizeModel?: string;          // model used by the "Optimizar" feature (text rewrite); default sonnet
   theme?: 'dark' | 'light';        // UI theme; default dark (undefined = dark)
+  defaultCli?: string;             // CLI used by new terminals: claude (default) | codex | agy | opencode
 }
 
 export const DATA_DIR = path.join(__dirname, '../../data');

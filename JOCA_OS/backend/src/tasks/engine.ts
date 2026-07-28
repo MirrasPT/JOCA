@@ -25,7 +25,7 @@ import { broadcast } from '../ws/broadcast';
 import { pushNotification } from '../notifications/store';
 import { recordRun } from '../runs/store';
 import {
-  loadTasks, getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, type Task,
+  loadTasks, getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, addTaskComment, type Task,
 } from './store';
 
 const TICK_MS = 5_000;
@@ -51,6 +51,21 @@ function buildBrief(task: Task): string {
   const base = (task.description ?? '').trim() || task.title;
   const directives: string[] = [];
   directives.push('Isto é uma TAREFA gerida pelo JOCA_OS neste worker dedicado. Executa-a de forma autónoma e, no fim, termina com um resumo claro do que foi feito e do resultado.');
+  // The worker can write back into JOCA itself (agent bridge). The task id travels in the brief
+  // rather than the environment because one worker serves many tasks in sequence.
+  directives.push(
+    `Podes falar com o JOCA a partir deste terminal: \`node "$JOCA_CLI" <comando>\` (corre \`help\` para veres tudo).`
+    + ` Esta tarefa é a ${task.id}.`
+    + ` Quando acabares, deixa uma nota do que fizeste na tarefa: \`node "$JOCA_CLI" comment ${task.id} "resumo do que fiz"\`.`
+    + ` Se a tarefa ficou mesmo concluída, podes fechá-la com \`node "$JOCA_CLI" done ${task.id} --note "..."\`.`
+    + ` Se descobrires trabalho novo, cria uma tarefa: \`node "$JOCA_CLI" new-task "..."\`.`,
+  );
+  if (task.comments?.length) {
+    const thread = task.comments.slice(-8)
+      .map((c) => `- [${c.author}${c.authorName ? `/${c.authorName}` : ''}] ${c.text}`)
+      .join('\n');
+    directives.push(`Notas já existentes nesta tarefa (contexto — lê antes de agir):\n${thread}`);
+  }
   if (task.skills?.length) {
     directives.push(`Usa estas skills/agentes do JOCA (faz Read da skill ANTES de agir): ${task.skills.join(', ')}.`);
   }
@@ -198,8 +213,15 @@ async function fire(key: string, id: string): Promise<void> {
   }
 
   // Conclude. The worker stays open (never killed here) — the user can inspect/continue in the terminal.
-  moveTask(id, 'concluida');
+  // Only pull the task back to 'concluida' if it is still the one we dispatched: the user (or the
+  // worker itself, via the joca CLI) may have moved/archived it meanwhile.
+  if (getTask(id)?.status === 'em-execucao') moveTask(id, 'concluida');
   patchTask(id, { lastStatus: verdict.state === 'ok' ? 'ok' : 'error', result: verdict.summary });
+  // The judge's verdict joins the task thread, so the board keeps a readable history of every run.
+  addTaskComment(id, {
+    author: 'judge',
+    text: `${verdict.state === 'ok' ? '✓' : '✗'} ${verdict.summary}`,
+  });
   recordRun({
     kind: 'task', refId: task.id, name: task.title, projectId: task.projectId,
     startedAt, endedAt: Date.now(),

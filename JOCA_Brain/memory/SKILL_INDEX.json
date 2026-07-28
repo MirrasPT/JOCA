@@ -842,6 +842,14 @@
   },
   {
     "type": "skill",
+    "name": "joca-terminal",
+    "category": "general",
+    "path": ".claude/skills/joca-terminal.md",
+    "description": "Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais, ver automações e enviar notificações,",
+    "triggers": []
+  },
+  {
+    "type": "skill",
     "name": "karpathy-guidelines",
     "category": "general",
     "path": ".claude/skills/karpathy-guidelines.md",

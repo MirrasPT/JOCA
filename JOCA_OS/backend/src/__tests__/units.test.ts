@@ -3,6 +3,7 @@
 // tests pin the decision logic that is easy to regress silently.
 import { describe, it, expect } from 'vitest';
 import { computeNextRun } from '../automations/store';
+import { chunkText, submitCrDelay } from '../session-manager';
 import { withinActiveHours, isOkResponse, DEFAULT_HEARTBEAT, type HeartbeatConfig } from '../heartbeat';
 import { loadCliProfiles, getCliProfile, buildLaunchLine } from '../cli-profiles';
 
@@ -97,6 +98,49 @@ describe('isOkResponse', () => {
 
   it('empty → suppressed (nothing to deliver)', () => {
     expect(isOkResponse('  ')).toBe(true);
+  });
+});
+
+// ── paced PTY writes (the "long message gets truncated" fix) ─────────────────
+describe('chunkText', () => {
+  it('short text stays a single write', () => {
+    expect(chunkText('olá', 800)).toEqual(['olá']);
+  });
+
+  it('splits long text and loses nothing', () => {
+    const text = 'x'.repeat(5000);
+    const chunks = chunkText(text, 800);
+    expect(chunks.length).toBe(7);
+    expect(chunks.join('')).toBe(text);
+    expect(Math.max(...chunks.map((c) => c.length))).toBeLessThanOrEqual(800);
+  });
+
+  it('never splits a surrogate pair (emoji survives chunking)', () => {
+    // Boundary lands exactly between the two halves of the emoji unless we back off.
+    const text = 'a'.repeat(9) + '😀' + 'b'.repeat(20);
+    const chunks = chunkText(text, 10);
+    expect(chunks.join('')).toBe(text);
+    for (const c of chunks) {
+      const last = c.charCodeAt(c.length - 1);
+      expect(last >= 0xd800 && last <= 0xdbff).toBe(false); // no orphan high surrogate
+    }
+  });
+
+  it('handles a payload with newlines (bracketed-paste body)', () => {
+    const body = Array.from({ length: 200 }, (_, i) => `linha ${i}`).join('\n');
+    expect(chunkText(body, 100).join('')).toBe(body);
+  });
+});
+
+describe('submitCrDelay', () => {
+  it('short messages keep the original 200ms floor', () => {
+    expect(submitCrDelay(50)).toBe(200);
+    expect(submitCrDelay(1023)).toBe(200);
+  });
+
+  it('scales with size so a big paste is fully absorbed before the CR', () => {
+    expect(submitCrDelay(10 * 1024)).toBeGreaterThan(submitCrDelay(1024));
+    expect(submitCrDelay(200 * 1024)).toBe(4000); // capped
   });
 });
 

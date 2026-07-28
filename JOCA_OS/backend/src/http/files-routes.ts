@@ -104,7 +104,20 @@ export function filesRouter(): Router {
         .filter((e) => showHidden || !e.name.startsWith('.'))
         // Hide sensitive subdirs even when showHidden=true (e.g. .ssh, .aws).
         .filter((e) => !isSensitivePath(path.join(resolved, e.name)))
-        .map((e) => ({ name: e.name, path: path.join(resolved, e.name), isDir: e.isDirectory() }))
+        // mtimeMs/size feed the browser's sort-by-date/size. readdir doesn't stat, so this costs one
+        // lstat per entry; broken symlinks just come back without the extra fields.
+        .map((e) => {
+          const full = path.join(resolved, e.name);
+          const entry: { name: string; path: string; isDir: boolean; mtimeMs?: number; size?: number } = {
+            name: e.name, path: full, isDir: e.isDirectory(),
+          };
+          try {
+            const st = fs.lstatSync(full);
+            entry.mtimeMs = st.mtimeMs;
+            if (!entry.isDir) entry.size = st.size;
+          } catch { /* unreadable entry — listed without metadata */ }
+          return entry;
+        })
         .sort((a, b) => {
           if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
           return a.name.localeCompare(b.name);

@@ -14,6 +14,20 @@ export type TaskStatus = 'a-definir' | 'a-executar' | 'em-execucao' | 'concluida
 // Columns in board order. Reused by the engine/UI to validate moves and to compute end-of-column order.
 export const TASK_STATUSES: TaskStatus[] = ['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada'];
 
+// A note on a task — the task's chat thread. Written by the user (UI), by the worker itself
+// (`joca task comment`, via the agent bridge), by the judge when a run settles, and by the system
+// for structural events (merge, retry). Kept inline on the task: the volume is small and it keeps
+// a task self-contained (one atomic write, no join).
+export interface TaskComment {
+  id: string;
+  author: 'user' | 'worker' | 'judge' | 'system';
+  authorName?: string;   // session name / worker label, when known
+  text: string;
+  ts: number;
+}
+
+export const MAX_COMMENTS_PER_TASK = 200;
+
 export interface Task {
   id: string;
   title: string;
@@ -27,6 +41,7 @@ export interface Task {
   cli?: string;                // CLI do worker: 'claude' (default) | 'codex' | 'agy' | 'opencode'
   model?: string;              // modelo passado ao CLI do worker (flag de modelo do perfil)
   sessionId?: string;          // worker que executa/executou a tarefa
+  comments?: TaskComment[];    // thread de notas (utilizador, worker, juiz, sistema)
   result?: string;             // veredicto/resumo do juiz sobre a execução
   testerResult?: string;       // (reservado) output de um passo de verificação
   lastStatus?: 'ok' | 'error' | 'running' | null;
@@ -131,6 +146,11 @@ export function moveTask(id: string, status: TaskStatus, order?: number): Task |
   const task = list.find((t) => t.id === id);
   if (!task) return null;
 
+  // Capture the source column BEFORE mutating status — re-packing it afterwards used to read the
+  // already-updated status and therefore never re-packed anything, leaving holes (and, with
+  // makeTask deriving order from a column count, duplicate orders).
+  const fromStatus = task.status;
+
   // Remaining tasks in the destination column, ordered, excluding the moved one.
   const dest = list
     .filter((t) => t.status === status && t.id !== id)
@@ -143,13 +163,121 @@ export function moveTask(id: string, status: TaskStatus, order?: number): Task |
   task.status = status;
   dest.forEach((t, idx) => { t.order = idx; t.updatedAt = now; });
 
-  // Re-pack the source column (the one the task left), if different.
-  const srcOrdered = list.filter((t) => t.status === task.status && !dest.includes(t)).sort((a, b) => a.order - b.order);
-  // Note: srcOrdered above only matters when status changed; harmless when it didn't.
-  srcOrdered.forEach((t, idx) => { t.order = idx; });
+  if (fromStatus !== status) {
+    list
+      .filter((t) => t.status === fromStatus)
+      .sort((a, b) => a.order - b.order)
+      .forEach((t, idx) => { t.order = idx; });
+  }
 
   saveTasks(list);
   return task;
+}
+
+// ── Comments (task thread) ────────────────────────────────────────────────────
+export function addTaskComment(
+  taskId: string,
+  spec: { text: string; author?: TaskComment['author']; authorName?: string },
+): TaskComment | null {
+  const list = loadTasks();
+  const task = list.find((t) => t.id === taskId);
+  if (!task) return null;
+  const text = (spec.text ?? '').trim();
+  if (!text) return null;
+  const comment: TaskComment = {
+    id: randomUUID(),
+    author: spec.author ?? 'user',
+    authorName: spec.authorName?.slice(0, 80),
+    text: text.slice(0, 8000),
+    ts: Date.now(),
+  };
+  task.comments = [...(task.comments ?? []), comment].slice(-MAX_COMMENTS_PER_TASK);
+  task.updatedAt = Date.now();
+  saveTasks(list);
+  return comment;
+}
+
+export function deleteTaskComment(taskId: string, commentId: string): boolean {
+  const list = loadTasks();
+  const task = list.find((t) => t.id === taskId);
+  if (!task?.comments) return false;
+  const next = task.comments.filter((c) => c.id !== commentId);
+  if (next.length === task.comments.length) return false;
+  task.comments = next;
+  task.updatedAt = Date.now();
+  saveTasks(list);
+  return true;
+}
+
+// ── Merge ─────────────────────────────────────────────────────────────────────
+// Fold N tasks into one. The first id (or `keepId`) is the survivor: it keeps its column and
+// position, and absorbs the others' descriptions, skills, attachments and comment threads. The
+// absorbed tasks are deleted, and the survivor gets a system comment recording what was merged —
+// so the history of a merge is never lost.
+export function mergeTasks(ids: string[], opts: { keepId?: string; title?: string } = {}): Task | null {
+  const list = loadTasks();
+  const picked = ids.map((id) => list.find((t) => t.id === id)).filter((t): t is Task => Boolean(t));
+  if (picked.length < 2) return null;
+  // No task in the merge may be running: a worker is holding the survivor's brief, and an absorbed
+  // task would be deleted from under its own worker.
+  if (picked.some((t) => t.status === 'em-execucao')) return null;
+  const survivor = picked.find((t) => t.id === opts.keepId) ?? picked[0];
+  const absorbed = picked.filter((t) => t.id !== survivor.id);
+
+  const sections = [survivor, ...absorbed]
+    .map((t) => {
+      const body = (t.description ?? '').trim();
+      return body ? `### ${t.title}\n${body}` : `### ${t.title}`;
+    })
+    .join('\n\n');
+
+  const uniq = (values: (string[] | undefined)[]) =>
+    [...new Set(values.flatMap((v) => v ?? []))];
+
+  const merged: Task = {
+    ...survivor,
+    title: (opts.title ?? survivor.title).trim().slice(0, 200) || survivor.title,
+    description: sections,
+    skills: uniq([survivor.skills, ...absorbed.map((t) => t.skills)]).slice(0, 20),
+    attachments: uniq([survivor.attachments, ...absorbed.map((t) => t.attachments)]).slice(0, 50),
+    requireConfirm: [survivor, ...absorbed].some((t) => t.requireConfirm) || undefined,
+    comments: [...(survivor.comments ?? []), ...absorbed.flatMap((t) => t.comments ?? [])]
+      .sort((a, b) => a.ts - b.ts)
+      .slice(-MAX_COMMENTS_PER_TASK),
+    updatedAt: Date.now(),
+  };
+  if (!merged.skills?.length) merged.skills = undefined;
+  if (!merged.attachments?.length) merged.attachments = undefined;
+
+  const absorbedIds = new Set(absorbed.map((t) => t.id));
+  const next = list.filter((t) => !absorbedIds.has(t.id)).map((t) => (t.id === merged.id ? merged : t));
+  saveTasks(next);
+  addTaskComment(merged.id, {
+    author: 'system',
+    text: `Fundida com: ${absorbed.map((t) => `"${t.title}"`).join(', ')}.`,
+  });
+  return getTask(merged.id) ?? merged;
+}
+
+// ── Column advance ────────────────────────────────────────────────────────────
+// Move a task one column to the right ('arquivada' is the end of the line). Returns null when the
+// task is missing or already at the end.
+export function advanceTask(id: string): Task | null {
+  const task = getTask(id);
+  if (!task) return null;
+  const i = TASK_STATUSES.indexOf(task.status);
+  if (i < 0 || i >= TASK_STATUSES.length - 1) return null;
+  return moveTask(id, TASK_STATUSES[i + 1]);
+}
+
+// Move EVERY task of a column one step to the right, preserving their relative order. Skips
+// 'em-execucao' (a running worker owns those). Returns how many moved.
+export function advanceColumn(status: TaskStatus): number {
+  const i = TASK_STATUSES.indexOf(status);
+  if (i < 0 || i >= TASK_STATUSES.length - 1 || status === 'em-execucao') return 0;
+  const ordered = loadTasks().filter((t) => t.status === status).sort((a, b) => a.order - b.order);
+  for (const t of ordered) moveTask(t.id, TASK_STATUSES[i + 1]);
+  return ordered.length;
 }
 
 // Apply an explicit ordering within a single column (frontend drag-reorder). ids = the desired order;

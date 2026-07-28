@@ -1,9 +1,11 @@
 import express, { Router } from 'express';
 import {
   loadTasks, getTask, makeTask, upsertTask, deleteTask, moveTask, reorderTasks,
-  setTasksBroadcaster, TASK_STATUSES, type Task, type TaskStatus,
+  addTaskComment, deleteTaskComment, mergeTasks, advanceTask, advanceColumn,
+  setTasksBroadcaster, TASK_STATUSES, type Task, type TaskStatus, type TaskComment,
 } from '../tasks/store';
 import { runTaskNow } from '../tasks/engine';
+import { sessionManager } from '../session-manager';
 import { broadcast } from '../ws/broadcast';
 
 // ── Tasks / Kanban (v1) ────────────────────────────────────────────────────────
@@ -101,6 +103,74 @@ export function tasksRouter(): Router {
     if (!getTask(req.params.id)) return res.status(404).json({ error: 'not found' });
     runTaskNow(req.params.id).catch((e) => console.error('[tasks] run error:', e));
     res.json({ ok: true, started: true });
+  });
+
+  // Re-run a task that finished with an error: clears the previous verdict and re-queues it.
+  r.post('/tasks/:id/retry', (req, res) => {
+    const task = getTask(req.params.id);
+    if (!task) return res.status(404).json({ error: 'not found' });
+    if (task.status === 'em-execucao') return res.status(409).json({ error: 'já está em execução' });
+    addTaskComment(task.id, { author: 'system', text: `Re-execução pedida (estado anterior: ${task.lastStatus ?? 'sem estado'}).` });
+    upsertTask({ ...getTask(task.id)!, lastStatus: null, result: undefined });
+    moveTask(task.id, 'a-executar', 0);
+    runTaskNow(task.id).catch((e) => console.error('[tasks] retry error:', e));
+    broadcast({ type: 'tasks_changed' });
+    res.json({ ok: true, started: true });
+  });
+
+  // ── Comments (task thread) ─────────────────────────────────────────────────
+  // author defaults to 'user' (the UI). Agents inside a terminal post as 'worker' through the
+  // joca CLI, passing their session id so the thread shows WHICH terminal spoke.
+  r.post('/tasks/:id/comments', express.json({ limit: '1mb' }), (req, res) => {
+    const b = (req.body ?? {}) as { text?: unknown; author?: unknown; sessionId?: unknown };
+    if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text obrigatorio' });
+    const author: TaskComment['author'] =
+      b.author === 'worker' || b.author === 'judge' || b.author === 'system' ? b.author : 'user';
+    const authorName = typeof b.sessionId === 'string'
+      ? sessionManager.get(b.sessionId)?.name
+      : undefined;
+    const comment = addTaskComment(req.params.id, { text: b.text, author, authorName });
+    if (!comment) return res.status(404).json({ error: 'not found' });
+    broadcast({ type: 'tasks_changed' });
+    res.json(comment);
+  });
+
+  r.delete('/tasks/:id/comments/:commentId', (req, res) => {
+    const ok = deleteTaskComment(req.params.id, req.params.commentId);
+    if (ok) broadcast({ type: 'tasks_changed' });
+    res.json({ ok });
+  });
+
+  // ── Merge ──────────────────────────────────────────────────────────────────
+  r.post('/tasks/merge', express.json(), (req, res) => {
+    const b = (req.body ?? {}) as { ids?: unknown; keepId?: unknown; title?: unknown };
+    if (!Array.isArray(b.ids) || b.ids.length < 2 || b.ids.some((x) => typeof x !== 'string')) {
+      return res.status(400).json({ error: 'ids[] com pelo menos 2 tarefas' });
+    }
+    const merged = mergeTasks(b.ids as string[], {
+      keepId: typeof b.keepId === 'string' ? b.keepId : undefined,
+      title: typeof b.title === 'string' ? b.title : undefined,
+    });
+    if (!merged) return res.status(409).json({ error: 'não foi possível fundir (tarefas inexistentes ou uma delas está em execução)' });
+    broadcast({ type: 'tasks_changed' });
+    res.json(merged);
+  });
+
+  // ── Advance (next column) ──────────────────────────────────────────────────
+  r.post('/tasks/:id/advance', (req, res) => {
+    const task = advanceTask(req.params.id);
+    if (!task) return res.status(409).json({ error: 'tarefa inexistente ou já na última coluna' });
+    broadcast({ type: 'tasks_changed' });
+    res.json(task);
+  });
+
+  // Move an entire column one step to the right (skips 'em-execucao').
+  r.post('/tasks/advance-column', express.json(), (req, res) => {
+    const b = (req.body ?? {}) as { status?: unknown };
+    if (!isStatus(b.status)) return res.status(400).json({ error: 'status invalido' });
+    const moved = advanceColumn(b.status);
+    if (moved > 0) broadcast({ type: 'tasks_changed' });
+    res.json({ ok: true, moved });
   });
 
   return r;

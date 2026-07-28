@@ -6,6 +6,7 @@
 import express, { Router } from 'express';
 import {
   loadNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, unreadCount,
+  pushNotification,
 } from '../notifications/store';
 import { listRuns, runStats, type RunKind } from '../runs/store';
 import {
@@ -25,6 +26,19 @@ export function systemRouter(): Router {
       unread: unreadCount(),
       notifications: (onlyUnread ? list.filter((n) => !n.read) : list).slice(-200).reverse(),
     });
+  });
+
+  // Push a notification into the inbox. Used by agents inside terminals (joca notify) to reach the
+  // user when they finish something long-running.
+  r.post('/notifications', express.json({ limit: '256kb' }), (req, res) => {
+    const b = (req.body ?? {}) as { text?: unknown; title?: unknown; kind?: unknown };
+    if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text obrigatorio' });
+    const kind = b.kind === 'automation' || b.kind === 'task_question' || b.kind === 'heartbeat' ? b.kind : 'system';
+    res.json(pushNotification({
+      kind,
+      title: typeof b.title === 'string' && b.title.trim() ? b.title : '🖥 Terminal',
+      text: b.text,
+    }));
   });
 
   r.patch('/notifications/:id', express.json(), (req, res) => {

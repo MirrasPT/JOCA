@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { HttpError, realPathSafe } from '../security-fs';
 import { getCliTools } from '../cli-capabilities';
+import { CLI_IDS, type CliId } from '../cli-profiles';
 import { getRateLimits } from '../rate-limits';
 import {
   JOCA_LOGIC_ROOT, CLAUDE_DIR, MEMORY_INDEX_FILE,
@@ -64,6 +65,10 @@ export function toolkitRouter(): Router {
     }
     if ('theme' in body) {
       updated.theme = body.theme === 'light' ? 'light' : 'dark';
+    }
+    // CLI used by new terminals when none is specified (Settings → CLI por defeito).
+    if ('defaultCli' in body) {
+      updated.defaultCli = CLI_IDS.includes(body.defaultCli as CliId) ? (body.defaultCli as CliId) : undefined;
     }
     saveUiSettings(updated);
     res.json(updated);

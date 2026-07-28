@@ -24,6 +24,7 @@ import { PATH_SAFE, safePath } from './security-fs';
 import { JOCA_LOGIC_ROOT } from './toolkit-registry';
 import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-store';
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
+import { jocaAgentEnv } from './agent-bridge';
 
 export interface Session {
   id: string;
@@ -41,7 +42,12 @@ export interface Session {
   notifyOnIdle: boolean;    // any work burst was initiated (user OR programmatic) → drives isDone (toast/unread)
   awaitingDone: boolean;    // a PROGRAMMATIC dispatch (submitMessage / initial brief) → drives 'done' (wakes
                             // the awaiting runner). User keystrokes set notifyOnIdle but NOT this.
+  writeQueue: WriteJob[];   // paced-write queue (see chunkText) — serialises concurrent submits
+  writeTimer: ReturnType<typeof setTimeout> | null;
+  writing: boolean;
 }
+
+interface WriteJob { payload: string; submit: boolean }
 
 export interface SessionInfo {
   id: string;
@@ -68,7 +74,10 @@ const IS_WINDOWS = process.platform === 'win32';
 const SHELL = IS_WINDOWS
   ? 'powershell.exe'
   : (process.env.SHELL || '/bin/zsh');
-const BUFFER_MAX = 5_000_000;
+// Rolling per-session output buffer. 5 MB × 30 sessions was 150 MB of live strings and a real
+// cause of the "JOCA gets slow after a while" reports; 1.5 MB still covers a long scrollback for
+// the judge/tail readers (which only ever look at the last few KB).
+const BUFFER_MAX = 1_500_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
 export const MAX_SESSIONS = 30;
@@ -101,16 +110,41 @@ function findBin(bin: string): string {
 // CSI/OSC/SGR escape stripper for readBuffer({ strip: true }) — leaves plain text for programmatic readers.
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
 
-// Reliable programmatic submit into a Claude Code TUI over a PTY. The problem: a multi-line
-// message written raw makes the TUI submit early on the first embedded '\n' (only the first line
-// lands), and a CR sent too soon after a paste is dropped. Fix: wrap multi-line bodies in
-// bracketed-paste (ESC[200~ … ESC[201~) so newlines are literal, then send ONE CR after a delay
-// long enough for the TUI to absorb the paste. Single-line bodies skip the wrapper.
-function writeSubmit(p: pty.IPty, text: string, crDelay = 200): void {
-  const body = text.endsWith('\r') ? text.slice(0, -1) : text;
-  const payload = body.includes('\n') ? `\x1b[200~${body}\x1b[201~` : body;
-  p.write(payload);
-  setTimeout(() => p.write('\r'), crDelay);
+// Paced writes into a CLI TUI over a PTY. Three separate problems, one mechanism:
+//   1. A multi-line message written raw makes the TUI submit early on the first embedded '\n'
+//      (only the first line lands) → wrap multi-line bodies in bracketed-paste (ESC[200~ … ESC[201~)
+//      so newlines are literal.
+//   2. A single big write OVERFLOWS the pty line-discipline buffer (a few KB) and the excess is
+//      dropped SILENTLY — this is the "long message arrives truncated" bug → write in small chunks
+//      with a gap so the TUI's reader drains between them.
+//   3. A CR sent too soon after a paste is swallowed → delay the submit CR, scaled with payload size.
+// Writes are queued per session so two rapid messages can never interleave their chunks.
+const CHUNK_SIZE = 800;        // chars per write — comfortably under the line-discipline buffer
+const CHUNK_DELAY_MS = 12;     // gap between chunks
+const CR_BASE_DELAY_MS = 200;  // floor for the submit CR (unchanged for short messages)
+const CR_PER_KB_MS = 70;       // extra settle time per KB pasted
+const CR_MAX_DELAY_MS = 4000;
+
+// Split without ever cutting a surrogate pair in half — an emoji written as two separate writes
+// reaches the TUI as two invalid code units.
+export function chunkText(text: string, size = CHUNK_SIZE): string[] {
+  if (text.length <= size) return [text];
+  const out: string[] = [];
+  let i = 0;
+  while (i < text.length) {
+    let end = Math.min(i + size, text.length);
+    if (end < text.length) {
+      const code = text.charCodeAt(end - 1);
+      if (code >= 0xd800 && code <= 0xdbff) end--; // high surrogate would be orphaned
+    }
+    out.push(text.slice(i, end));
+    i = end;
+  }
+  return out;
+}
+
+export function submitCrDelay(payloadLength: number): number {
+  return Math.min(CR_MAX_DELAY_MS, CR_BASE_DELAY_MS + Math.floor(payloadLength / 1024) * CR_PER_KB_MS);
 }
 
 export class SessionManager extends EventEmitter {
@@ -140,7 +174,8 @@ export class SessionManager extends EventEmitter {
   spawn(opts: SpawnOptions = {}): Session {
     const { resumePath, sessionName, projectId, initialInput } = opts;
     const origin = opts.origin ?? 'user';
-    const profile = getCliProfile(opts.cli);
+    // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
+    const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
     // Resolve the resume folder once — Claude Code consumes it as /resume|/init-project (see
     // runStartupSequence); the other CLIs have no such commands, so project context is provided by
@@ -163,7 +198,10 @@ export class SessionManager extends EventEmitter {
       cols: 120,
       rows: 30,
       cwd,
-      env: { ...process.env } as Record<string, string>,
+      // Every session is born knowing how to talk back to JOCA: the agent inside can list/comment/
+      // move tasks, open and message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
+      // JOCA_SESSION_ID lets it identify itself; the tasks engine adds JOCA_TASK_ID per dispatch.
+      env: { ...process.env, ...jocaAgentEnv(id) } as Record<string, string>,
     });
 
     const session: Session = {
@@ -177,6 +215,9 @@ export class SessionManager extends EventEmitter {
       workingSince: null,
       notifyOnIdle: false,
       awaitingDone: false,
+      writeQueue: [],
+      writeTimer: null,
+      writing: false,
     };
     this.sessions.set(id, session);
 
@@ -267,6 +308,8 @@ export class SessionManager extends EventEmitter {
 
     ptyProcess.onExit(() => {
       if (session.idleTimer) clearTimeout(session.idleTimer);
+      if (session.writeTimer) clearTimeout(session.writeTimer);
+      session.writeQueue.length = 0;
       this.sessions.delete(id);
       this.emit('closed', { sessionId: id });
     });
@@ -276,6 +319,52 @@ export class SessionManager extends EventEmitter {
     // become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session });
     return session;
+  }
+
+  // Queue a paced write. `submit` appends the CR that makes the TUI send the message. Queued per
+  // session so two rapid messages never interleave their chunks (see CHUNK_SIZE notes above).
+  private enqueueWrite(session: Session, body: string, submit: boolean): void {
+    const payload = body.includes('\n') ? `\x1b[200~${body}\x1b[201~` : body;
+    session.writeQueue.push({ payload, submit });
+    if (!session.writing) this.drainWrites(session);
+  }
+
+  // Drain one job at a time: chunk → gap → chunk … → (optional) CR → next job. Every step re-checks
+  // that the session is alive, so a PTY killed mid-paste never gets written to (which would throw
+  // inside a timer and take the process down).
+  private drainWrites(session: Session): void {
+    const job = session.writeQueue.shift();
+    if (!job) { session.writing = false; return; }
+    session.writing = true;
+
+    const chunks = chunkText(job.payload);
+    const crDelay = submitCrDelay(job.payload.length);
+    let i = 0;
+
+    const abort = () => { session.writing = false; session.writeQueue.length = 0; session.writeTimer = null; };
+    const write = (data: string): boolean => {
+      if (!this.sessions.has(session.id)) { abort(); return false; }
+      try { session.pty.write(data); return true; }
+      catch { abort(); return false; }
+    };
+
+    const step = (): void => {
+      session.writeTimer = null;
+      if (i < chunks.length) {
+        if (!write(chunks[i++])) return;
+        // More chunks pending → gap. Last chunk written → wait crDelay before the submit CR.
+        const done = i >= chunks.length;
+        if (!done) { session.writeTimer = setTimeout(step, CHUNK_DELAY_MS); return; }
+        if (job.submit) { session.writeTimer = setTimeout(step, crDelay); return; }
+        this.drainWrites(session);
+        return;
+      }
+      // Chunks exhausted and a CR is still owed.
+      if (job.submit && !write('\r')) return;
+      this.drainWrites(session);
+    };
+
+    step(); // first chunk goes out immediately
   }
 
   // Resolve once the PTY has produced output and then gone quiet for `quietMs` (the Claude TUI
@@ -320,8 +409,8 @@ export class SessionManager extends EventEmitter {
       session.notifyOnIdle = true;
       session.awaitingDone = true;
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
-      // into the Claude TUI. writeSubmit enters the whole body then one CR submits.
-      writeSubmit(p, initialInput);
+      // into the Claude TUI. Paced+chunked so a long brief isn't truncated by the pty buffer.
+      this.enqueueWrite(session, initialInput, true);
     }
   }
 
@@ -333,10 +422,14 @@ export class SessionManager extends EventEmitter {
     if (!session || data === undefined) return false;
     if (data.trim().length > 0) session.notifyOnIdle = true;
     if (data.length > 1 && data.endsWith('\r')) {
-      session.pty.write(data.slice(0, -1));
-      setTimeout(() => session.pty.write('\r'), 80);
+      // A submitted line (typed message or a paste from the UI composer): queue it paced+chunked,
+      // otherwise a long body overflows the pty buffer and arrives truncated.
+      this.enqueueWrite(session, data.slice(0, -1), true);
+    } else if (data.length > CHUNK_SIZE) {
+      this.enqueueWrite(session, data, false); // large paste straight into the terminal, no submit
     } else {
-      session.pty.write(data);
+      // Single keystrokes / control chars: write through, no queueing (latency matters here).
+      try { session.pty.write(data); } catch { return false; }
     }
     return true;
   }
@@ -350,7 +443,7 @@ export class SessionManager extends EventEmitter {
     // Programmatic dispatch → arm BOTH: notifyOnIdle (toast) and awaitingDone (so the completion
     // fires 'done' and wakes the awaiting runner).
     if (text.trim().length > 0) { session.notifyOnIdle = true; session.awaitingDone = true; }
-    writeSubmit(session.pty, text);
+    this.enqueueWrite(session, text.endsWith('\r') ? text.slice(0, -1) : text, true);
     return true;
   }
 
@@ -377,6 +470,8 @@ export class SessionManager extends EventEmitter {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
     if (session.idleTimer) clearTimeout(session.idleTimer);
+    if (session.writeTimer) clearTimeout(session.writeTimer);
+    session.writeQueue.length = 0;
     try { session.pty.kill(); } catch {}
     this.sessions.delete(sessionId);
     this.emit('closed', { sessionId });
