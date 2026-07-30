@@ -319,13 +319,27 @@ Media & content
 [ ] markitdown     — converte ficheiros/URL (PDF/Office/img/audio/YouTube) -> Markdown; motor do /know (skill knowledge-ingest). pip install markitdown-mcp + registar MCP markitdown
 [ ] zmail-cli      — Zoho Mail terminal (envio/leitura) — requer Java 11+
 
+Plataformas & CMS
+[ ] wp-cli         — WordPress/WooCommerce (skills wordpress-router, wp-*, woocommerce-elementor)
+[ ] shopify        — Shopify apps e temas (skills shopify-app, shopify-theme)
+[ ] wix            — Wix/Velo (skill wix-cli)
+[ ] ntn            — Notion (skill notion) — requer Node >= 22
+
 Dev & observability
 [ ] sentry-cli         — error tracking, releases, source maps
 [ ] stripe-cli         — webhooks listen, payment testing local
 [ ] cli-printing-press — gera CLIs/MCP servers a partir de APIs (requer Go 1.26+)
+[ ] graphify           — mapa de codigo/conhecimento; usado por /map-joca e /resume (pip install <path-do-pacote>)
+[ ] poppler            — pdftoppm/pdfinfo: verificar PDFs gerados (skill html-to-pdf)
+[ ] supabase           — Supabase local/remote
+[ ] railway            — deploy Railway
 
 [ ] Nenhum
 ```
+
+> Inventario completo (com comandos por plataforma e metodo de auth) em `memory/tools/clis.md`;
+> MCP servers em `memory/tools/mcps.md`. Este formulario e um subconjunto — se acrescentares um CLI
+> a um dos inventarios, acrescenta-o tambem aqui, senao fica indisponivel em maquinas novas.
 
 ### Google Connectors *(multi-select)*
 ```
