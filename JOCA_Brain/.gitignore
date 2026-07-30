@@ -4,9 +4,27 @@ node_modules/
 .DS_Store
 *.pyc
 __pycache__/
+# Memoria de trabalho — ESTE REPO E PUBLICO (github.com/MirrasPT/JOCA).
+# decisions/learnings/checkpoints ja estavam cobertos; faltavam knowledge/projects/feedback,
+# que sao exactamente onde o /know e o /save escrevem. Um PDF de cliente ingerido pelo /know, ou
+# um /init-project num projecto privado, ia parar ao repo publico sem nada a travar.
 memory/decisions/
 memory/learnings/
 memory/checkpoints/
 memory/.index/
+memory/knowledge/
+memory/projects/*
+memory/feedback/*
+
+# Excepcoes: memoria sobre o PROPRIO JOCA — o toolkit documenta-se a si mesmo e isso e publico.
+# Qualquer memoria de OUTRO projecto fica de fora por omissao; para partilhar uma, e preciso
+# acrescenta-la aqui de proposito.
+!memory/projects/.gitkeep
+!memory/projects/JOCA.md
+!memory/feedback/.gitkeep
+# Nota: o git continua a seguir ficheiros JA rastreados, mesmo cobertos por estas regras — e o caso
+# de feedback/archive/session-2026-07-30-20-31.md, que e sobre o proprio JOCA. Se um dia arquivares
+# feedback de um projecto de cliente e ele aparecer no `git status`, e porque ja estava rastreado:
+# `git rm --cached <ficheiro>` tira-o do repo sem o apagar do disco.
 .playwright-mcp/
 /*.png
