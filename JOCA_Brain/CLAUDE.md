@@ -46,6 +46,13 @@ Sub-agents isolate context, not divide roles. Real cost ~15x tokens. Cap supervi
 ## Skills
 Flat in `.claude/skills/`. Activate via `Read(".claude/skills/<name>.md")`. Lazy: `SKILL_INDEX.json` holds the light index (name/path/triggers); skills load on-demand, never pre-loaded. Regenerate: `python .claude/scripts/build-skill-index.py` (Windows: `python`, não `python3`).
 
+### Skill inline OU agente de execução
+Cada skill de **execução** tem um agente gémeo em `.claude/agents/<skill>-agent.md` (65). O agente lê a skill como Step 0 — mesma doutrina, contexto próprio. Para o mesmo trabalho:
+- **1 parte** → `Read()` a skill, faz inline (barato, imediato).
+- **≥2 partes independentes** → despacha `<skill>-agent` para cada, **no mesmo turno** (paralelo real, ~15x tokens cada, principal fica livre).
+
+Escolher de propósito: serializar trabalho paralelizável custa tempo em cada pedido; despachar um agente para mudar uma cor custa 15x por nada. Gate de valor + armadilhas em `rules/task-intake.md`. Regenerar agentes: `node .claude/scripts/skill-agents.mjs` (a lista curada de skills de execução vive no topo do script).
+
 ### Activation Rule
 Relevance ≥ 60% → **Read() the skill BEFORE writing code**. Mandatory, not optional.
 Notify: `[skill: <name>]`. No match → respond directly.

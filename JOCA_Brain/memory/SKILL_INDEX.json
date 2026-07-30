@@ -2526,6 +2526,36 @@
   },
   {
     "type": "agent",
+    "name": "anima-agent",
+    "category": "agents",
+    "path": ".claude/agents/anima-agent.md",
+    "description": "design · Adding motion to websites, animating UI elements, creating scroll-based animations, or building. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "animacao",
+      "animation",
+      "gsap",
+      "lottie",
+      "scroll animation",
+      "page transition"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "auth-agent",
+    "category": "agents",
+    "path": ".claude/agents/auth-agent.md",
+    "description": "código · Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "auth",
+      "authentication",
+      "login",
+      "logout",
+      "register",
+      "sanctum"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "automation-builder",
     "category": "agents",
     "path": ".claude/agents/automation-builder.md",
@@ -2543,6 +2573,66 @@
   },
   {
     "type": "agent",
+    "name": "automations-agent",
+    "category": "agents",
+    "path": ".claude/agents/automations-agent.md",
+    "description": "código · Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "automacao",
+      "automatizar",
+      "cron",
+      "agendar tarefa",
+      "todos os dias as",
+      "a cada X horas"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "browser-automate-agent",
+    "category": "agents",
+    "path": ".claude/agents/browser-automate-agent.md",
+    "description": "código · Automate a local canvas/litegraph web app via Playwright headless — load a workflow template. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Playwright canvas",
+      "automate ComfyUI",
+      "drive litegraph",
+      "page.evaluate workflow",
+      "headless browser automation",
+      "POST to prompt API"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "caching-agent",
+    "category": "agents",
+    "path": ".claude/agents/caching-agent.md",
+    "description": "código · Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "cache",
+      "caching",
+      "Redis",
+      "Cache::remember",
+      "cache invalidation",
+      "CDN"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "cloudflare-dns-agent",
+    "category": "agents",
+    "path": ".claude/agents/cloudflare-dns-agent.md",
+    "description": "deploy · Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "cloudflare dns",
+      "cloudflare-dns",
+      "email routing",
+      "registo dns",
+      "spf merge",
+      "mx cloudflare"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "codex-review",
     "category": "agents",
     "path": ".claude/agents/codex-review.md",
@@ -2552,6 +2642,66 @@
       "segunda opiniao",
       "codex review",
       "revisao cruzada"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "component-system-agent",
+    "category": "agents",
+    "path": ".claude/agents/component-system-agent.md",
+    "description": "código · Component inventory and per-component specification documents. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "component system",
+      "sistema de componentes",
+      "component inventory",
+      "inventario de componentes",
+      "component spec",
+      "component states"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "content-calendar-agent",
+    "category": "agents",
+    "path": ".claude/agents/content-calendar-agent.md",
+    "description": "conteúdo · Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "plano de publicacao",
+      "calendario social",
+      "rollout de lancamento",
+      "captions por plataforma",
+      "content schedule",
+      "posting schedule"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "copywriting-agent",
+    "category": "agents",
+    "path": ".claude/agents/copywriting-agent.md",
+    "description": "conteúdo · Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "write copy for",
+      "improve this copy",
+      "rewrite this page",
+      "marketing copy",
+      "headline help",
+      "CTA copy"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "cpanel-agent",
+    "category": "agents",
+    "path": ".claude/agents/cpanel-agent.md",
+    "description": "deploy · Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "cpanel",
+      "uapi",
+      "addon domain",
+      "gerir hosting",
+      "conta de email cpanel",
+      "zona dns cpanel"
     ]
   },
   {
@@ -2594,6 +2744,36 @@
   },
   {
     "type": "agent",
+    "name": "deploy-cpanel-agent",
+    "category": "agents",
+    "path": ".claude/agents/deploy-cpanel-agent.md",
+    "description": "deploy · Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "shared hosting",
+      "hosting partilhado",
+      "public_html",
+      "FTP",
+      "phpMyAdmin",
+      ".htaccess"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "deploy-docker-agent",
+    "category": "agents",
+    "path": ".claude/agents/deploy-docker-agent.md",
+    "description": "deploy · Containerizing applications, writing Dockerfiles, docker-compose, or setting up container. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "docker",
+      "container",
+      "docker compose",
+      "docker-compose",
+      "Dockerfile",
+      "VPS"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "deploy-executor",
     "category": "agents",
     "path": ".claude/agents/deploy-executor.md",
@@ -2603,6 +2783,81 @@
       "publicar site",
       "correr pipeline de deploy",
       "fazer deploy para producao"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "deploy-ploi-agent",
+    "category": "agents",
+    "path": ".claude/agents/deploy-ploi-agent.md",
+    "description": "deploy · Deploying via Ploi.io, managing servers, or configuring Ploi deployments. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "ploi",
+      "deploy",
+      "deploy to ploi",
+      "ploi.io",
+      "deployment",
+      "servidor"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "deploy-vps-agent",
+    "category": "agents",
+    "path": ".claude/agents/deploy-vps-agent.md",
+    "description": "deploy · Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "deploy VPS",
+      "VPS setup",
+      "Caddy",
+      "Caddy server",
+      "SSH key VPS",
+      "Cloudflare DNS API"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "design-html-agent",
+    "category": "agents",
+    "path": ".claude/agents/design-html-agent.md",
+    "description": "design · Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "codificar design",
+      "transformar em HTML",
+      "construir página",
+      "implementar design",
+      "fazer mockup real",
+      "finalizar design"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "design-shotgun-agent",
+    "category": "agents",
+    "path": ".claude/agents/design-shotgun-agent.md",
+    "description": "design · Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "explorar variantes",
+      "variantes de design",
+      "opções de design",
+      "design shotgun",
+      "mostra hipóteses",
+      "mostra opções"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "design-system-agent",
+    "category": "agents",
+    "path": ".claude/agents/design-system-agent.md",
+    "description": "design · Building or auditing design systems, managing design tokens, component libraries, or style guides. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "design system",
+      "sistema de design",
+      "tokens",
+      "design tokens",
+      "component system",
+      "sistema de componentes"
     ]
   },
   {
@@ -2620,6 +2875,51 @@
   },
   {
     "type": "agent",
+    "name": "design-tokens-agent",
+    "category": "agents",
+    "path": ".claude/agents/design-tokens-agent.md",
+    "description": "design · Defining or managing design tokens (colors, spacing, typography) in DTCG format. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "design tokens",
+      "tokens",
+      "CSS variables",
+      "custom properties",
+      "global tokens",
+      "semantic tokens"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "email-sequence-agent",
+    "category": "agents",
+    "path": ".claude/agents/email-sequence-agent.md",
+    "description": "conteúdo · Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "email sequence",
+      "drip campaign",
+      "nurture sequence",
+      "onboarding emails",
+      "welcome sequence",
+      "re-engagement emails"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "filament-agent",
+    "category": "agents",
+    "path": ".claude/agents/filament-agent.md",
+    "description": "código · Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Filament",
+      "admin panel",
+      "admin",
+      "backoffice",
+      "Resource",
+      "Panel"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "filament-builder",
     "category": "agents",
     "path": ".claude/agents/filament-builder.md",
@@ -2632,6 +2932,35 @@
       "\\\"make filament resource\\",
       "\\\"admin panel for this model\\",
       "\\\"filament resource from model\\"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "file-storage-agent",
+    "category": "agents",
+    "path": ".claude/agents/file-storage-agent.md",
+    "description": "código · Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "file upload",
+      "S3",
+      "R2",
+      "presigned URL",
+      "ClamAV"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "frontend-agent",
+    "category": "agents",
+    "path": ".claude/agents/frontend-agent.md",
+    "description": "código · Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "website",
+      "landing page",
+      "site",
+      "webapp",
+      "web app",
+      "frontend"
     ]
   },
   {
@@ -2656,6 +2985,36 @@
       "perguntar ao gemini",
       "gemini",
       "contexto grande gemini"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "graphic-design-agent",
+    "category": "agents",
+    "path": ".claude/agents/graphic-design-agent.md",
+    "description": "design · Print and graphic design in HTML/CSS → PDF. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "roll-up",
+      "flyer",
+      "trifold",
+      "bifold",
+      "poster",
+      "brochure"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "img-gen-agent",
+    "category": "agents",
+    "path": ".claude/agents/img-gen-agent.md",
+    "description": "design · Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "generate image",
+      "create image",
+      "illustration",
+      "product shot",
+      "mockup",
+      "hero image"
     ]
   },
   {
@@ -2702,6 +3061,36 @@
   },
   {
     "type": "agent",
+    "name": "landing-page-agent",
+    "category": "agents",
+    "path": ".claude/agents/landing-page-agent.md",
+    "description": "design · End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "landing page",
+      "create landing page",
+      "build landing page",
+      "lead gen page",
+      "squeeze page",
+      "opt-in page"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "laravel-react-agent",
+    "category": "agents",
+    "path": ".claude/agents/laravel-react-agent.md",
+    "description": "código · Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "laravel react",
+      "connect admin to frontend",
+      "ligar admin ao frontend",
+      "inertia",
+      "inertiajs",
+      "sanctum spa"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "laravel-refactor",
     "category": "agents",
     "path": ".claude/agents/laravel-refactor.md",
@@ -2720,6 +3109,21 @@
       "\\\"laravel scalability\\",
       "\\\"remove unused\\",
       "\\\"tech debt\\"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "laravel-specialist-agent",
+    "category": "agents",
+    "path": ".claude/agents/laravel-specialist-agent.md",
+    "description": "código · Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Laravel",
+      "Eloquent",
+      "Artisan",
+      "composer.json",
+      "migration",
+      "model"
     ]
   },
   {
@@ -2748,6 +3152,21 @@
   },
   {
     "type": "agent",
+    "name": "lottie-animator-agent",
+    "category": "agents",
+    "path": ".claude/agents/lottie-animator-agent.md",
+    "description": "design · Generates professional Lottie animations from static SVGs. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "animate logo",
+      "create lottie",
+      "svg animation",
+      "motion graphics",
+      "lottie",
+      "icon animation"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "master-orchestrator",
     "category": "agents",
     "path": ".claude/agents/master-orchestrator.md",
@@ -2758,6 +3177,50 @@
       "multi-agente",
       "decompor tarefa",
       "workstreams paralelos"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "mobile-agent",
+    "category": "agents",
+    "path": ".claude/agents/mobile-agent.md",
+    "description": "código · Mobile apps, responsive design, PWA, mobile-specific UI patterns. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "responsivo",
+      "responsive",
+      "mobile",
+      "mobile-first",
+      "touch",
+      "swipe"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "mysql-agent",
+    "category": "agents",
+    "path": ".claude/agents/mysql-agent.md",
+    "description": "código · MySQL query writing, performance optimization, schema design, SQL debugging. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "MySQL",
+      "query lenta",
+      "slow query",
+      "EXPLAIN",
+      "index",
+      "indice"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "notion-agent",
+    "category": "agents",
+    "path": ".claude/agents/notion-agent.md",
+    "description": "plataformas · Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "notion",
+      "ntn",
+      "tarefa notion",
+      "base de dados notion",
+      "data source notion"
     ]
   },
   {
@@ -2802,6 +3265,36 @@
   },
   {
     "type": "agent",
+    "name": "portugal-invoicing-agent",
+    "category": "agents",
+    "path": ".claude/agents/portugal-invoicing-agent.md",
+    "description": "portugal · Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Moloni",
+      "faturação",
+      "fatura",
+      "fatura-recibo",
+      "invoice Portugal",
+      "nota de crédito"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "portugal-payments-agent",
+    "category": "agents",
+    "path": ".claude/agents/portugal-payments-agent.md",
+    "description": "portugal · Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "ifthenpay",
+      "Multibanco",
+      "MB WAY",
+      "MBWay",
+      "pagamento Portugal",
+      "referencia multibanco"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "pr-repair",
     "category": "agents",
     "path": ".claude/agents/pr-repair.md",
@@ -2836,6 +3329,18 @@
   },
   {
     "type": "agent",
+    "name": "pt-pt-translator-agent",
+    "category": "agents",
+    "path": ".claude/agents/pt-pt-translator-agent.md",
+    "description": "conteúdo · Translate/localize content into European Portuguese with register control (tu/você/senhor). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "traduzir para PT-PT",
+      "localizar UI",
+      "rever português"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "query-debugger",
     "category": "agents",
     "path": ".claude/agents/query-debugger.md",
@@ -2856,6 +3361,126 @@
       "\\\"DB::listen\\",
       "\\\"query log\\",
       "\\\"timeout in query\\"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "queues-agent",
+    "category": "agents",
+    "path": ".claude/agents/queues-agent.md",
+    "description": "código · Router skill for job queues and background processing. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "queue",
+      "bullmq",
+      "background jobs",
+      "worker",
+      "job processing",
+      "task queue"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "react-composition-agent",
+    "category": "agents",
+    "path": ".claude/agents/react-composition-agent.md",
+    "description": "código · Designing React component APIs that scale — compound components, context, slots/children, React 19. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "compound component",
+      "component api",
+      "boolean props",
+      "prop proliferation",
+      "slots",
+      "slot pattern"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "react-email-agent",
+    "category": "agents",
+    "path": ".claude/agents/react-email-agent.md",
+    "description": "código · Authoring responsive, client-safe email templates with React Email components. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "react email",
+      "react-email",
+      "email template",
+      "build email",
+      "transactional email template",
+      "@react-email"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "react-patterns-agent",
+    "category": "agents",
+    "path": ".claude/agents/react-patterns-agent.md",
+    "description": "código · Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "react performance",
+      "re-render",
+      "rerender",
+      "useEffect",
+      "useMemo",
+      "useCallback"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "remotion-agent",
+    "category": "agents",
+    "path": ".claude/agents/remotion-agent.md",
+    "description": "design · Create programmatic videos with React and Remotion. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "remotion",
+      "react video",
+      "programmatic video",
+      "vídeo react",
+      "vídeo programático",
+      "useCurrentFrame"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "rest-api-agent",
+    "category": "agents",
+    "path": ".claude/agents/rest-api-agent.md",
+    "description": "código · REST API design specialist. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "API design",
+      "REST API",
+      "endpoint",
+      "OpenAPI",
+      "Swagger",
+      "API spec"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "saas-patterns-agent",
+    "category": "agents",
+    "path": ".claude/agents/saas-patterns-agent.md",
+    "description": "código · SaaS architecture patterns for Laravel 11 multi-tenant platforms. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "multi-tenancy Laravel",
+      "tenant isolation",
+      "feature flags SaaS",
+      "subscription tiers gate",
+      "tenant onboarding workflow",
+      "queue tenant context"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "search-agent",
+    "category": "agents",
+    "path": ".claude/agents/search-agent.md",
+    "description": "código · Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "search",
+      "meilisearch",
+      "typesense",
+      "algolia",
+      "full-text search",
+      "faceted search"
     ]
   },
   {
@@ -2884,6 +3509,36 @@
   },
   {
     "type": "agent",
+    "name": "selfhosted-arr-agent",
+    "category": "agents",
+    "path": ".claude/agents/selfhosted-arr-agent.md",
+    "description": "deploy · Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "media stack",
+      "arr stack",
+      "*arr",
+      "selfhosted",
+      "self-hosted media",
+      "jellyfin"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "seo-agent",
+    "category": "agents",
+    "path": ".claude/agents/seo-agent.md",
+    "description": "conteúdo · Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "SEO audit",
+      "technical SEO",
+      "why am I not ranking",
+      "traffic dropped",
+      "lost rankings",
+      "crawl errors"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "seo-analyst",
     "category": "agents",
     "path": ".claude/agents/seo-analyst.md",
@@ -2900,6 +3555,74 @@
       "\\\"crawlability\\",
       "\\\"sitemap check\\",
       "\\\"robots"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "seo-local-agent",
+    "category": "agents",
+    "path": ".claude/agents/seo-local-agent.md",
+    "description": "conteúdo · Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "local SEO",
+      "Google Business Profile",
+      "GBP",
+      "map pack",
+      "local pack",
+      "citations"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "shadcn-agent",
+    "category": "agents",
+    "path": ".claude/agents/shadcn-agent.md",
+    "description": "código · Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "shadcn",
+      "shadcn/ui",
+      "shadcn ui",
+      "components.json",
+      "npx shadcn",
+      "shadcn add"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "shopify-app-agent",
+    "category": "agents",
+    "path": ".claude/agents/shopify-app-agent.md",
+    "description": "plataformas · Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "shopify app init",
+      "checkout extension",
+      "admin extension"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "shopify-store-fixer-agent",
+    "category": "agents",
+    "path": ".claude/agents/shopify-store-fixer-agent.md",
+    "description": "plataformas · Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "fix shopify store",
+      "bulk update products",
+      "apply audit fixes"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "shopify-theme-agent",
+    "category": "agents",
+    "path": ".claude/agents/shopify-theme-agent.md",
+    "description": "plataformas · Building or customising a Shopify theme: Liquid templating, theme architecture. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Shopify",
+      "Liquid",
+      "Dawn",
+      "Theme Check",
+      "CLI"
     ]
   },
   {
@@ -2925,6 +3648,81 @@
       "melhorar skill",
       "optimizar skill",
       "reescrever skill"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "slides-agent",
+    "category": "agents",
+    "path": ".claude/agents/slides-agent.md",
+    "description": "design · Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "slides",
+      "apresentação",
+      "presentation",
+      "pitch deck",
+      "deck",
+      "powerpoint"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "social-content-agent",
+    "category": "agents",
+    "path": ".claude/agents/social-content-agent.md",
+    "description": "conteúdo · Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "LinkedIn post",
+      "Twitter thread",
+      "social media",
+      "content calendar",
+      "social scheduling",
+      "engagement"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "social-scheduler-agent",
+    "category": "agents",
+    "path": ".claude/agents/social-scheduler-agent.md",
+    "description": "conteúdo · Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "agendar post",
+      "publicar nas redes",
+      "schedule social post",
+      "trypost",
+      "carrossel instagram",
+      "publicar tiktok"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "stop-slop-agent",
+    "category": "agents",
+    "path": ".claude/agents/stop-slop-agent.md",
+    "description": "conteúdo · Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "stop slop",
+      "AI slop",
+      "soa a AI",
+      "parece AI",
+      "escrito por AI",
+      "tells de AI"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "tailwind-agent",
+    "category": "agents",
+    "path": ".claude/agents/tailwind-agent.md",
+    "description": "código · Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "tailwind",
+      "tailwindcss",
+      "tailwind 4",
+      "utility classes",
+      "utility-first",
+      "@theme"
     ]
   },
   {
@@ -3072,6 +3870,21 @@
   },
   {
     "type": "agent",
+    "name": "transactional-email-agent",
+    "category": "agents",
+    "path": ".claude/agents/transactional-email-agent.md",
+    "description": "código · Router skill for transactional email. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "transactional email",
+      "email sending",
+      "postmark",
+      "resend",
+      "email api",
+      "bounce"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "video-gen",
     "category": "agents",
     "path": ".claude/agents/video-gen.md",
@@ -3094,6 +3907,132 @@
       "vigiar",
       "monitorizar ficheiros",
       "watch mode"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "webhooks-agent",
+    "category": "agents",
+    "path": ".claude/agents/webhooks-agent.md",
+    "description": "código · Implement webhook receivers with signature verification, idempotent processing, retry handling, and. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "webhook",
+      "webhook receiver",
+      "signature verification",
+      "idempotency",
+      "stripe webhook",
+      "github webhook"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wix-cli-agent",
+    "category": "agents",
+    "path": ".claude/agents/wix-cli-agent.md",
+    "description": "plataformas · Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "Wix",
+      "Wix CLI",
+      "Wix app",
+      "dashboard extension",
+      "wix.config.json",
+      "Velo"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "woocommerce-elementor-agent",
+    "category": "agents",
+    "path": ".claude/agents/woocommerce-elementor-agent.md",
+    "description": "wordpress · Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "elementor",
+      "_elementor_data",
+      "hello elementor",
+      "elementor free",
+      "woocommerce",
+      "woocommerce storefront"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-block-development-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-block-development-agent.md",
+    "description": "wordpress · Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "block invalid",
+      "block.json",
+      "create-block"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-block-themes-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-block-themes-agent.md",
+    "description": "wordpress · Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "theme.json",
+      "block theme",
+      "styles not applying"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-interactivity-api-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-interactivity-api-agent.md",
+    "description": "wordpress · Building or debugging WordPress Interactivity API features (data-wp-* directives. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "WordPress Interactivity API"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-plugin-development-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-plugin-development-agent.md",
+    "description": "wordpress · WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "criar plugin WP",
+      "settings page",
+      "nonces/capabilities"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-rest-api-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-rest-api-agent.md",
+    "description": "wordpress · Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "WordPress REST API",
+      "CPTs"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wp-wpcli-and-ops-agent",
+    "category": "agents",
+    "path": ".claude/agents/wp-wpcli-and-ops-agent.md",
+    "description": "wordpress · WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "wp search-replace",
+      "migração de domínio",
+      "wp db"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "wpds-agent",
+    "category": "agents",
+    "path": ".claude/agents/wpds-agent.md",
+    "description": "wordpress · Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "WPDS",
+      "@wordpress/components",
+      "Gutenberg UI"
     ]
   }
 ]

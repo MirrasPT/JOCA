@@ -3,22 +3,76 @@
 Decision tree corrido ANTES do Decision Filter. Classifica QUALQUER tarefa recebida em 4 vias.
 Carregado em todas as sessões. Determinístico por thresholds — "decidir sozinho" não é vibes.
 
+## A pergunta que vem primeiro: isto parte-se?
+
+**Antes de escolher a via, conta as partes independentes do pedido.** Duas partes que não dependem
+uma da outra são duas coisas que podiam estar a acontecer ao mesmo tempo — e fazê-las em série é
+tempo deitado fora, não prudência.
+
+> **Regra de paralelismo (calibrada): ≥2 partes independentes → despachar em paralelo.**
+
+Isto não precisa de o utilizador pedir. Ele não tem de dizer "usa agentes", "/goal" nem "em
+paralelo" — a avaliação é feita em todos os turnos, e o hook `prompt-triage.js` já entrega o
+sinal (partes, domínios, escala) antes de tu responderes.
+
+**O que conta como parte independente:**
+- pedidos ligados por "e também", "depois", "além disso", ou em lista/bullets;
+- domínios diferentes **com acções diferentes** (criar API + criar componente + fazer deploy);
+- o mesmo trabalho repetido em N sítios (todas as páginas, cada ficheiro, um por um) — o caso mais
+  rentável: um agente por sítio.
+
+**O que NÃO conta** (armadilha comum): uma frase que menciona vocabulário de vários domínios mas
+pede **uma** coisa. "Refactoriza o componente de login em react" toca frontend e backend no léxico e
+é **uma** tarefa. O teste é o número de acções pedidas, não o de palavras técnicas.
+
 ## As 4 vias
 
 | Via | Quando | Acção |
 |---|---|---|
 | A — Directa | 0 ficheiros · pergunta/decisão/conversa | Responder inline |
-| B — 1 Skill | 1 domínio · 1-2 ficheiros · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
-| C — 1 Agente | 1 domínio especialista · trabalho isolável (review/debug/research/deploy) · beneficia de contexto próprio | `Agent(subagent_type="<x>")` com brief obrigatório |
-| D — Workflow | ≥2 domínios em paralelo · OU ≥3 ficheiros · OU feature completa · OU cross-stack | `/goal` → master-orchestrator com GOAL + loop até concluir. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo (lê a skill de cada passo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:`). |
+| B — 1 Skill | 1 parte · 1 domínio · 1-2 ficheiros · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
+| C — 1 Agente | 1 parte, mas isolável e longa (review/debug/research/deploy/build) · beneficia de contexto próprio | `Agent(subagent_type="<x>")` com brief obrigatório |
+| D — Fan-out | **≥2 partes independentes** · OU escala (mesmo trabalho em N sítios) · OU feature completa cross-stack | Despachar N agentes **no mesmo turno**. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo. |
+
+## Agentes de execução por domínio
+
+Cada skill de execução tem um agente correspondente em `.claude/agents/<skill>-agent.md` (65 deles:
+frontend, tailwind, laravel-specialist, copywriting, deploy-vps, wp-*, shopify-*, …). O agente lê a
+skill como Step 0, portanto **tem a mesma doutrina** — a diferença é onde corre.
+
+Para o mesmo trabalho tens duas vias legítimas:
+
+| | Ler a skill e fazer inline | Despachar `<skill>-agent` |
+|---|---|---|
+| **Quando** | 1 parte; queres o resultado no fio da conversa | ≥2 partes; ou trabalho longo que ocuparia o principal |
+| **Custo** | Barato — sem contexto novo | ~15x tokens |
+| **Ganho** | Imediato, sem coordenação | Paralelo; o principal fica livre |
+
+**Escolhe de propósito.** Fazer inline trabalho que se partia em três não é ser cuidadoso — é
+serializar sem motivo. Despachar um agente para mudar uma cor também não é ser rápido — é pagar
+15x por nada.
 
 ## Thresholds
 
+- Partes independentes: 1=A/B/C · **≥2=D**
 - Ficheiros: 0=A · 1-2=B · 1-3 isolado=C · ≥3 ou paralelizável=D
-- Domínios: 0=A · 1=B · 1 especialista=C · ≥2 concorrentes=D
-- Contexto isolado ajuda → C ou D
+- Domínios **com acção própria**: 0=A · 1=B/C · ≥2=D
+- Escala (N sítios, mesmo trabalho) → D, um agente por sítio
 - Skill match ≥60% → preferir B sobre A
 - `orchestration_threshold` e `loop_max_iterations` calibráveis em `soul.md`
+
+## Quando NÃO escalar (o gate de valor)
+
+Fan-out custa ~15x tokens por agente e coordenação. Não vale quando:
+- é **pergunta, decisão ou conversa** — responde;
+- é **uma** edição pequena (mudar um valor, corrigir um typo, renomear);
+- as partes **dependem umas das outras** (o passo 2 precisa do output do passo 1) → sequencial, e
+  aí é uma pipeline, não fan-out;
+- as partes **tocam nos mesmos ficheiros** → dois agentes a escrever no mesmo sítio pisam-se.
+  Reagrupa: um agente por ficheiro/área, não por tarefa.
+
+Em caso de dúvida entre inline e fan-out num trabalho de 2 partes: **despacha**. O custo de
+serializar trabalho paralelizável é maior, e repete-se em cada pedido.
 
 ## Segurança (não negociável)
 
@@ -42,5 +96,8 @@ O campo `skills:` no frontmatter de um agente NÃO carrega a skill — a garanti
 ## Ancoragem
 
 Referenciado do `CLAUDE.md` Decision Filter (passo 0 e 2). Injectado a cada prompt pelo
-`UserPromptSubmit` hook. Sobrevive ao recall loss por estar também nos hooks.
+`UserPromptSubmit` hook — que já **não** é um nudge genérico: o `prompt-triage.js` lê o pedido,
+conta partes/domínios/escala e entrega a via recomendada com o motivo. O hook não obriga; decide o
+modelo. Mas decide com o sinal à frente, não de memória.
 Padrões de orquestração detalhados em `rules/orchestration-patterns.md`.
+Agentes de execução gerados por `node .claude/scripts/skill-agents.mjs` (fonte: as próprias skills).
