@@ -19,6 +19,10 @@ interface ProjectDraft {
   name: string;
   path: string;
   color: string;
+  /** O que o projecto é, por palavras do utilizador — é a memória permanente do gestor. */
+  description: string;
+  /** A pasta já tem código, ou o projecto começa do zero? Muda a forma como o gestor arranca. */
+  hasCode: boolean;
 }
 
 interface Props {
@@ -59,7 +63,7 @@ function XIcon() {
 }
 
 export default function CreateProjectModal({ open, project, onClose, onSaved }: Props) {
-  const [draft, setDraft] = useState<ProjectDraft>({ name: '', path: '', color: PROJECT_COLORS[0] });
+  const [draft, setDraft] = useState<ProjectDraft>({ name: '', path: '', color: PROJECT_COLORS[0], description: '', hasCode: false });
   const [browserPath, setBrowserPath] = useState('');
   const [fileList, setFileList] = useState<FileListResponse | null>(null);
   const [showHidden, setShowHidden] = useState(false);
@@ -81,6 +85,8 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
       name: project?.name ?? '',
       path: project?.path ?? '',
       color: project?.color || PROJECT_COLORS[0],
+      description: project?.description ?? '',
+      hasCode: Boolean(project?.hasCode),
     });
     setBrowserPath(project?.path ?? '');
     setFileList(null);
@@ -129,6 +135,9 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
         name: draft.name.trim() || undefined,
         path: draft.path.trim(),
         color: normalizeColor(draft.color),
+        // Vai sempre (mesmo vazia): no PATCH é assim que se apaga uma descrição que já não serve.
+        description: draft.description.trim(),
+        hasCode: draft.hasCode,
       }),
     });
 
@@ -182,6 +191,51 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
                 placeholder="~/projects/..."
               />
             </label>
+
+            <label className="project-field">
+              <span>Descrição — é isto que o gestor vai saber sobre o projecto</span>
+              <textarea
+                className="project-desc-input"
+                rows={4}
+                value={draft.description}
+                onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))}
+                placeholder="Ex.: site da pastelaria, WordPress + WooCommerce. Falta a página de encomendas e melhorar os textos. Público: clientes locais."
+              />
+              <small className="project-field-hint">
+                Opcional, mas vale a pena: quanto melhor explicares o que é e o que queres,
+                menos perguntas o gestor te faz depois.
+              </small>
+            </label>
+
+            <div className="project-field">
+              <span>Já tem código?</span>
+              <div className="project-hascode-row">
+                <label className={`project-hascode-option ${!draft.hasCode ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="project-has-code"
+                    checked={!draft.hasCode}
+                    onChange={() => setDraft((current) => ({ ...current, hasCode: false }))}
+                  />
+                  <span>
+                    <strong>Começa do zero</strong>
+                    <small>A pasta está vazia ou só tem notas e materiais.</small>
+                  </span>
+                </label>
+                <label className={`project-hascode-option ${draft.hasCode ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="project-has-code"
+                    checked={draft.hasCode}
+                    onChange={() => setDraft((current) => ({ ...current, hasCode: true }))}
+                  />
+                  <span>
+                    <strong>Já tem código</strong>
+                    <small>Existe um projecto a correr — os workers começam por o ler.</small>
+                  </span>
+                </label>
+              </div>
+            </div>
 
             <div className="project-field">
               <span>Project color</span>

@@ -7,6 +7,7 @@ import ToastNotification, { type ToastItem } from './components/ToastNotificatio
 import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './components/WorkflowPanel';
 import RightWorkspace from './components/RightWorkspace';
 import DashboardView, { type RateLimits } from './components/DashboardView';
+import ProjectWorkspace from './components/ProjectWorkspace';
 import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
@@ -58,6 +59,8 @@ export default function App() {
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
   const [tasksRefresh, setTasksRefresh] = useState(0);
   const [notificationsRefresh, setNotificationsRefresh] = useState(0);
+  // Sobe a cada evento do gestor no WebSocket — o ManagerChat aberto refaz o GET do chat.
+  const [managerRefresh, setManagerRefresh] = useState(0);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -261,6 +264,7 @@ export default function App() {
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
     setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
+    setManagerRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
     activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
   });
@@ -585,7 +589,28 @@ export default function App() {
           <AutomationsView refreshKey={automationsRefresh} />
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
-        ) : mainView === 'dashboard' || mainView === 'project' ? (
+        ) : mainView === 'project' ? (
+          // A vista de projecto é agora o workspace do gestor (chat > tarefas > terminais); o
+          // DashboardView continua a tratar só do panorama global de projectos.
+          <ProjectWorkspace
+            project={projects.find((p) => p.id === contextProjectId) ?? null}
+            projects={projects}
+            sessions={sessions}
+            managerRefresh={managerRefresh}
+            tasksRefresh={tasksRefresh}
+            onEditProject={handleEditProject}
+            onOpenProject={handleOpenProject}
+            onSwitchSession={handleSwitchSession}
+            onPreviewFile={(path) => {
+              setPreviewPath(path);
+              setSelectedPath(path);
+            }}
+            onRenameProject={handleRenameProject}
+            onUpdateProject={handleUpdateProject}
+            onRenameSession={handleRenameSession}
+            onCreateProjectSkill={handleCreateProjectSkill}
+          />
+        ) : mainView === 'dashboard' ? (
           <DashboardView
             mainView={mainView}
             projects={projects}

@@ -1,5 +1,4 @@
 import type { JocaLogicInfo, Project, SessionInfo, ProjectMemory } from '../types';
-import ProjectDetailView from './dashboard/ProjectDetailView';
 import ProjectsOverview from './dashboard/ProjectsOverview';
 import type { RateLimits } from './dashboard/RateBar';
 import './DashboardView.css';
@@ -30,26 +29,10 @@ interface Props {
   rateLimits: RateLimits | null;
 }
 
-// Thin router: the project dashboard and the global dashboard are two independent views (never
-// mounted together), each owning its own state — see ./dashboard/ProjectDetailView + ProjectsOverview.
+// O panorama global de projectos. A vista de UM projecto deixou de passar por aqui: vive no
+// ProjectWorkspace (chat do gestor em destaque), montado directamente pelo App em mainView
+// === 'project'. As props que só serviam esse ramo ficam na interface por o App as passar na mesma.
 export default function DashboardView(props: Props) {
-  if (props.mainView === 'project') {
-    const project = props.projects.find((p) => p.id === props.activeProjectId) ?? null;
-    return (
-      <ProjectDetailView
-        project={project}
-        sessions={props.sessions}
-        onEditProject={props.onEditProject}
-        onOpenProject={props.onOpenProject}
-        onSwitchSession={props.onSwitchSession}
-        onPreviewFile={props.onPreviewFile}
-        onRenameProject={props.onRenameProject}
-        onUpdateProject={props.onUpdateProject}
-        onRenameSession={props.onRenameSession}
-        onCreateProjectSkill={props.onCreateProjectSkill}
-      />
-    );
-  }
   return (
     <ProjectsOverview
       projects={props.projects}

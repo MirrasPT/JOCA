@@ -18,6 +18,37 @@ export interface Project {
   githubRepo?: string;
   archived?: boolean;
   order?: number;
+  /** O que o projecto é, por palavras do utilizador — é isto que o gestor sabe sobre ele. */
+  description?: string;
+  /** `true` = já existe código na pasta; `false`/undefined = projecto a começar do zero. */
+  hasCode?: boolean;
+}
+
+// ── v4: gestor de projecto (chat + pool de workers) ───────────────────────────
+
+export type ManagerRole = 'user' | 'manager' | 'system';
+
+/** Uma mensagem da conversa com o gestor do projecto (espelha backend/src/manager/store.ts). */
+export interface ManagerMessage {
+  id: string;
+  role: ManagerRole;
+  text: string;
+  ts: number;
+  author?: string;
+  costUsd?: number;
+  /** Traço curto do que o gestor fez neste turno ("abriu worker de design", "criou a tarefa X"). */
+  actions?: string[];
+}
+
+/** Um terminal real reutilizado pelo gestor para uma área do projecto (design, backend, …). */
+export interface PooledWorker {
+  sessionId: string;
+  projectId: string;
+  area: string;
+  busy: boolean;
+  lastUsedAt: number;
+  currentJob?: string;
+  status: 'working' | 'idle' | 'closed';
 }
 
 export interface ProjectMemory {

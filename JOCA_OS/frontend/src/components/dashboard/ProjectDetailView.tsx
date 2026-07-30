@@ -16,14 +16,20 @@ interface Props {
   onUpdateProject?: (id: string, patch: Partial<Project>) => Promise<void>;
   onRenameSession?: (id: string, name: string) => void;
   onCreateProjectSkill?: (project: Project, skillName: string) => void;
+  /**
+   * Embebido no ProjectWorkspace: o cabeçalho, os números e a lista de sessões já são mostrados lá
+   * (com o chat do gestor no lugar nobre), por isso aqui ficam SÓ os detalhes de segundo plano —
+   * toolkit exclusivo, git/GitHub e a pasta do projecto.
+   */
+  embedded?: boolean;
 }
 
-// The per-project dashboard (mainView === 'project'): header + stats + sessions + exclusive toolkit
-// + GitHub connection + folder browser. All git/toolkit/github state is owned here since it is
-// exclusive to this view.
+// The per-project dashboard: header + stats + sessions + exclusive toolkit + GitHub connection +
+// folder browser. All git/toolkit/github state is owned here since it is exclusive to this view.
+// Com `embedded` serve de bloco secundário dentro do ProjectWorkspace (ver a prop acima).
 export default function ProjectDetailView({
   project, sessions, onEditProject, onOpenProject, onSwitchSession, onPreviewFile,
-  onRenameProject, onUpdateProject, onRenameSession, onCreateProjectSkill,
+  onRenameProject, onUpdateProject, onRenameSession, onCreateProjectSkill, embedded = false,
 }: Props) {
   const activateOnKeyboard = (event: KeyboardEvent<HTMLElement>, action: () => void) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -92,7 +98,8 @@ export default function ProjectDetailView({
   };
 
   return (
-    <div className="dashboard-view">
+    <div className={embedded ? 'project-detail-embedded' : 'dashboard-view'}>
+      {!embedded && (
       <div className="vp-header">
         <div>
           {project && editingProjectId === project.id ? (
@@ -149,7 +156,9 @@ export default function ProjectDetailView({
           )}
         </div>
       </div>
+      )}
 
+      {!embedded && (
       <div className="db-stats-grid">
         <div className="db-stat-card">
           <div className="db-stat-icon"><TerminalIcon /></div>
@@ -173,9 +182,11 @@ export default function ProjectDetailView({
           </div>
         </div>
       </div>
+      )}
 
       <div className="project-dashboard-layout">
         <div className="project-dashboard-main">
+          {!embedded && (
           <div className="project-dashboard-block">
             <div className="section-title">Project Sessions</div>
             <div className="db-project-sessions-list">
@@ -241,6 +252,7 @@ export default function ProjectDetailView({
               )}
             </div>
           </div>
+          )}
 
           {/* Project Exclusive Toolkit */}
           <div className="project-dashboard-block">

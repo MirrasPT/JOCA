@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
-import type { AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
+import type { AppNotification, MainView, ManagerMessage, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
@@ -47,6 +47,8 @@ export type ServerMessage =
   | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
   | { type: 'tasks_changed' }
   | { type: 'notification'; notification: AppNotification }
+  | { type: 'manager_message'; projectId: string; message: ManagerMessage }
+  | { type: 'manager_busy'; projectId: string; busy: boolean }
   | { type: 'error'; error: string };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
@@ -70,6 +72,7 @@ export interface SessionSocketDeps {
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   setTasksRefresh: Dispatch<SetStateAction<number>>;
   setNotificationsRefresh: Dispatch<SetStateAction<number>>;
+  setManagerRefresh: Dispatch<SetStateAction<number>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -237,6 +240,20 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           break;
         case 'tasks_changed':
           d.setTasksRefresh((n) => n + 1);
+          break;
+
+        // O gestor de um projecto falou. Não trazemos a mensagem para dentro do estado global: um
+        // contador chega para o ManagerChat aberto refazer o GET (fonte única, sem risco de a lista
+        // divergir). O gestor volta a falar sozinho minutos depois — se a janela não estiver à
+        // frente, isso tem de chegar ao utilizador como notificação do sistema.
+        case 'manager_message':
+          d.setManagerRefresh((n) => n + 1);
+          if (msg.message.role === 'manager' && !document.hasFocus()) {
+            notify('JOCA — Gestor do projecto', msg.message.text.replace(/\s+/g, ' ').trim().slice(0, 120));
+          }
+          break;
+        case 'manager_busy':
+          d.setManagerRefresh((n) => n + 1);
           break;
 
         // Nova entrada no inbox persistente → refetch do NotificationsInbox. OS notification só

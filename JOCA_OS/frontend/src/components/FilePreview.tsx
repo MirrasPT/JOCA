@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import hljs from 'highlight.js/lib/common';
-import { marked } from 'marked';
+import { renderMarkdown } from '../lib/markdown';
 
 interface Props {
   filePath: string;
@@ -44,34 +44,6 @@ function CloseIcon() {
       <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   );
-}
-
-marked.setOptions({ async: false });
-
-const ALLOWED_URL_ATTRS = new Set(['href', 'src']);
-const BLOCKED_TAGS = new Set(['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'input', 'button']);
-
-function sanitizeHtml(html: string) {
-  const template = document.createElement('template');
-  template.innerHTML = html;
-
-  template.content.querySelectorAll('*').forEach((el) => {
-    if (BLOCKED_TAGS.has(el.tagName.toLowerCase())) {
-      el.remove();
-      return;
-    }
-
-    Array.from(el.attributes).forEach((attr) => {
-      const name = attr.name.toLowerCase();
-      const value = attr.value.trim().toLowerCase();
-      if (name.startsWith('on')) el.removeAttribute(attr.name);
-      if (ALLOWED_URL_ATTRS.has(name) && (value.startsWith('javascript:') || value.startsWith('data:text/html'))) {
-        el.removeAttribute(attr.name);
-      }
-    });
-  });
-
-  return template.innerHTML;
 }
 
 export default function FilePreview({ filePath, onClose }: Props) {
@@ -288,8 +260,7 @@ export default function FilePreview({ filePath, onClose }: Props) {
     if (err) return <div className="pv-err">{err}</div>;
     if (text === null) return <div className="pv-loading">Loading…</div>;
     if (kind === 'markdown') {
-      const html = sanitizeHtml(marked(text) as string);
-      return <div className="pv-markdown" dangerouslySetInnerHTML={{ __html: html }} />;
+      return <div className="pv-markdown" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />;
     }
     const lang = getLang(fileName);
     let highlighted = text;

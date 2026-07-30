@@ -30,7 +30,18 @@ function LucideIcon({ name }: { name: IconName }) {
 // Basename de um caminho absoluto (Windows \ ou POSIX /), para o chip do anexo.
 const baseName = (p: string) => p.split(/[\\/]/).filter(Boolean).pop() ?? p;
 
-export function TasksView({ refreshKey, projects }: { refreshKey: number; projects: Project[] }) {
+// O gestor prefixa com "[para ti]" as tarefas que decidiu NÃO despachar para um worker — é trabalho
+// que ele te passou a ti. Merecem destaque no quadro, senão perdem-se entre as dos workers.
+const isForUser = (title: string) => /^\s*\[para ti\]/i.test(title);
+
+interface TasksViewProps {
+  refreshKey: number;
+  projects: Project[];
+  /** Definido = quadro de UM projecto (embebido na vista de projecto): filtra e pré-selecciona. */
+  projectId?: string;
+}
+
+export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -55,7 +66,7 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   // form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [projectId, setProjectId] = useState('');
+  const [formProjectId, setFormProjectId] = useState(projectId ?? '');
   const [jocaItems, setJocaItems] = useState<JocaItem[]>([]);
   const [skillQuery, setSkillQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -74,6 +85,9 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
     fetch('/tasks').then((r) => r.json()).then((d: Task[]) => setTasks(Array.isArray(d) ? d : [])).catch(() => setTasks([]));
   }, []);
   useEffect(() => { reload(); }, [reload, refreshKey]);
+
+  // Embebido num projecto: o projecto do formulário segue o projecto da vista (e não o contrário).
+  useEffect(() => { if (projectId) setFormProjectId(projectId); }, [projectId]);
 
   // Uma tarefa pode desaparecer (apagada/fundida) enquanto está seleccionada — limpa os ids órfãos.
   useEffect(() => {
@@ -104,10 +118,17 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
     setSkillQuery('');
   }, []);
 
+  // Com `projectId` o quadro mostra só as tarefas desse projecto (o `tasks` completo continua a ser
+  // a fonte para procurar por id — arrastar/mover não precisa de saber deste filtro).
+  const visibleTasks = useMemo(
+    () => (projectId ? tasks.filter((t) => t.projectId === projectId) : tasks),
+    [tasks, projectId]
+  );
+
   // Tasks of one column, ordered. Pure derivation from the single `tasks` array.
   const columnTasks = useCallback((status: TaskStatus) => (
-    tasks.filter((t) => t.status === status).sort((a, b) => a.order - b.order)
-  ), [tasks]);
+    visibleTasks.filter((t) => t.status === status).sort((a, b) => a.order - b.order)
+  ), [visibleTasks]);
 
   const create = useCallback(async () => {
     if (!title.trim()) return;
@@ -115,7 +136,7 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       title: title.trim(),
       description: description.trim() || undefined,
       status: 'a-definir' as TaskStatus,
-      projectId: projectId || undefined,
+      projectId: formProjectId || undefined,
       skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
       attachments: attachments.length ? attachments : undefined,
@@ -123,9 +144,9 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
       model: model.trim() || undefined,
     };
     await fetch('/tasks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setTitle(''); setDescription(''); setProjectId(''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCli('claude'); setModel(''); setCreating(false);
+    setTitle(''); setDescription(''); setFormProjectId(projectId ?? ''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCli('claude'); setModel(''); setCreating(false);
     reload();
-  }, [title, description, projectId, selectedSkills, requireConfirm, attachments, cli, model, reload]);
+  }, [title, description, formProjectId, projectId, selectedSkills, requireConfirm, attachments, cli, model, reload]);
 
   // Persistir os anexos de uma tarefa existente (PATCH). Reversível → sem confirmação.
   const patchAttachments = useCallback(async (id: string, next: string[]) => {
@@ -334,12 +355,14 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
   }, [draggingId, tasks, columnTasks, reorder, move]);
 
   return (
-    <div className="tasks-view">
+    <div className={`tasks-view${projectId ? ' tasks-view--embedded' : ''}`}>
       <header className="tk-header">
-        <div>
-          <h1>Tarefas</h1>
-          <p>Quadro Kanban. Cada tarefa corre num worker Claude Code do projecto — um worker por projecto, tarefas em sequência. Arrasta entre colunas.</p>
-        </div>
+        {!projectId && (
+          <div>
+            <h1>Tarefas</h1>
+            <p>Quadro Kanban. Cada tarefa corre num worker Claude Code do projecto — um worker por projecto, tarefas em sequência. Arrasta entre colunas.</p>
+          </div>
+        )}
         <div className="tk-header-actions">
           <button
             className={`tk-select-toggle ${selectMode ? 'is-on' : ''}`}
@@ -375,13 +398,24 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
               placeholder="Revê o formulário de contacto, valida campos e melhora o CTA. (Ctrl+V cola imagens como anexo)" />
           </label>
           <div className="tk-row">
-            <label className="tk-field tk-inline">
-              <span>Projecto</span>
-              <select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                <option value="">— sem projecto —</option>
-                {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </label>
+            {projectId ? (
+              // Quadro de um projecto: a tarefa é dele, ponto — mostrar um selector só convidava a
+              // criar tarefas que desapareciam da vista logo a seguir.
+              <div className="tk-field tk-inline">
+                <span>Projecto</span>
+                <div className="tk-card-meta">
+                  <span className="tk-tag">{projectsById.get(projectId)?.name ?? 'este projecto'}</span>
+                </div>
+              </div>
+            ) : (
+              <label className="tk-field tk-inline">
+                <span>Projecto</span>
+                <select value={formProjectId} onChange={(e) => setFormProjectId(e.target.value)}>
+                  <option value="">— sem projecto —</option>
+                  {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </label>
+            )}
             <label className="tk-field tk-inline">
               <span>CLI</span>
               <select value={cli} onChange={(e) => setCli(e.target.value)}>
@@ -499,10 +533,11 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                   const cardNext = nextColumn(t.status);
                   const noteCount = t.comments?.length ?? 0;
                   const isSelected = selected.includes(t.id);
+                  const forUser = isForUser(t.title);
                   return (
                     <article
                       key={t.id}
-                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''} ${failed ? 'tk-card--failed' : ''} ${isSelected ? 'tk-card--selected' : ''}`}
+                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''} ${failed ? 'tk-card--failed' : ''} ${isSelected ? 'tk-card--selected' : ''} ${forUser ? 'tk-card--mine' : ''}`}
                       draggable
                       tabIndex={0}
                       aria-label={`Abrir detalhe da tarefa ${t.title}`}
@@ -535,12 +570,13 @@ export function TasksView({ refreshKey, projects }: { refreshKey: number; projec
                           />
                         )}
                         <span className="tk-card-title">{t.title}</span>
+                        {forUser && <span className="tk-card-mine-flag" title="O gestor passou-te esta tarefa a ti">👤 para ti</span>}
                         {failed && <span className="tk-card-fail-flag" title="Concluída mas com erro">⚠ erro</span>}
                         {!failed && t.lastStatus && <span className={`tk-status tk-status-${t.lastStatus}`}>{t.lastStatus}</span>}
                       </div>
                       {t.description && <p className="tk-card-desc">{t.description}</p>}
                       <div className="tk-card-meta">
-                        {proj && <span className="tk-tag" style={proj.color ? { borderColor: proj.color, color: proj.color } : undefined}>{proj.name}</span>}
+                        {!projectId && proj && <span className="tk-tag" style={proj.color ? { borderColor: proj.color, color: proj.color } : undefined}>{proj.name}</span>}
                         {t.skills?.length ? <span className="tk-tag">skills: {t.skills.join(', ')}</span> : null}
                         {t.requireConfirm ? <span className="tk-tag">✋ confirma</span> : null}
                         {noteCount > 0 && (
