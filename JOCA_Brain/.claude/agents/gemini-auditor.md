@@ -9,6 +9,7 @@ description: >
   usam o mesmo `agy` CLI, a distinção é o use-case (auditor = verificação/audit de componentes JOCA).
 tools: Bash, Read
 model: sonnet
+triggers: auditoria gemini, segunda opiniao gemini, auditar com gemini
 ---
 
 # Gemini Auditor Agent

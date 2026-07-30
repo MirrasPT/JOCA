@@ -7,7 +7,7 @@
  * projects.json, project-memory.json. Qualquer outro ficheiro em conflito é
  * reportado e deixado por resolver (nunca adivinha fora deste conjunto).
  *
- * Uso (a partir da raiz do repo JOCA, DEPOIS de `git merge origin/master --no-commit --no-ff`
+ * Uso (a partir da raiz do repo JOCA, DEPOIS de `git merge origin/<default> --no-commit --no-ff`
  * ter parado em conflito):
  *   node .claude/scripts/sync-brain-resolve.mjs
  *

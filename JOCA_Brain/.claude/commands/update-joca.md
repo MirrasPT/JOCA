@@ -64,10 +64,24 @@ git fetch origin
 
 If fetch fails (no network, auth error): report the error and stop.
 
+**Resolve the default branch — never assume `master`.** The repo's default is `main`, and a
+hardcoded `origin/master` makes every step below compare against a ref that does not exist, so the
+command silently reports "up to date" while updates pile up:
+
+```
+BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+[ -z "$BASE" ] && BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+[ -z "$BASE" ] && BASE=main
+echo "branch upstream: origin/$BASE"
+```
+
+If `refs/remotes/origin/HEAD` is missing (a fresh clone with `--single-branch`), the second line
+asks the remote directly. Use `origin/$BASE` everywhere below.
+
 ### 5. Check for updates
 
 ```
-git log HEAD..origin/master --oneline
+git log HEAD..origin/$BASE --oneline
 ```
 
 If output is empty:
@@ -82,7 +96,7 @@ Stop here.
 ### 6. Identify changed files
 
 ```
-git diff --name-status HEAD..origin/master
+git diff --name-status HEAD..origin/$BASE
 ```
 
 Categorize every changed file:

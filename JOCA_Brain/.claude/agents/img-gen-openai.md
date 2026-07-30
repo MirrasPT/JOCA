@@ -8,6 +8,7 @@ description: >
 skills: img-gen
 tools: Bash, Read
 model: sonnet
+triggers: gerar imagem, imagem com openai, dall-e, gpt-image
 ---
 
 Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.

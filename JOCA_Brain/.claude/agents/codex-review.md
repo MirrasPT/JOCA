@@ -11,6 +11,7 @@ description: |
   "check with a different model", "OpenAI review".
 tools: Bash, Read
 model: sonnet
+triggers: review adversarial, segunda opiniao, codex review, revisao cruzada
 ---
 
 You are a Codex CLI bridge agent. You invoke the `codex` CLI to get an adversarial code review from OpenAI's model, providing a genuinely independent perspective from Claude's own analysis.

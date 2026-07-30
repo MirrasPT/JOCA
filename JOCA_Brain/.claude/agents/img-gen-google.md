@@ -7,6 +7,7 @@ description: >
   Spawned by img-gen skill or directly for Gemini-specific tasks.
 tools: Bash, Read
 model: sonnet
+triggers: gerar imagem, imagem com google, imagen, nano banana
 ---
 
 Image generation agent using Google's Gemini via the **Antigravity CLI (agy)**.

@@ -2,6 +2,7 @@
 name: wordpress-router
 description: "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
+triggers: WordPress, WP, wp-content, plugin WP, tema WP, que tipo de projecto WordPress
 ---
 
 # WordPress Router

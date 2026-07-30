@@ -3,7 +3,7 @@ import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import path from 'path';
 import fs from 'fs';
-import { isAllowedOrigin, requireSafeOrigin } from './security-fs';
+import { isAllowedOrigin, isAllowedHost, requireSafeHost, requireSafeOrigin } from './security-fs';
 import { JOCA_LOGIC_ROOT, collectToolkitItems } from './toolkit-registry';
 import { sessionManager } from './session-manager';
 import type { Session } from './session-manager';
@@ -57,6 +57,7 @@ setManagerBroadcaster((projectId, message) => broadcast({ type: 'manager_message
 setManagerBusyBroadcaster((projectId, busy) => broadcast({ type: 'manager_busy', projectId, busy }));
 
 const app = express();
+app.use(requireSafeHost);     // before everything: blocks DNS rebinding, on reads as well as writes
 app.use(requireSafeOrigin);
 const server = createServer(app);
 const wss = new WebSocketServer({
@@ -65,7 +66,9 @@ const wss = new WebSocketServer({
   // Auth + origin, both pre-handshake: a WS from a non-allowed origin OR without a valid session
   // token (when auth is on; the httpOnly cookie rides the upgrade request) is rejected with 401.
   verifyClient: (info: { origin?: string; req: { headers: import('http').IncomingMessage['headers'] } }) =>
-    isAllowedOrigin(info.origin, info.req.headers.host) && isAuthenticated(info.req),
+    isAllowedHost(info.req.headers.host)
+    && isAllowedOrigin(info.origin, info.req.headers.host)
+    && isAuthenticated(info.req),
 });
 
 // Auth first (public: /auth/login, /auth/status, /auth/set-password handles its own gate), then the

@@ -5,6 +5,7 @@ skills: security, auth
 chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write
 model: sonnet
+triggers: auditoria de seguranca, scan de seguranca, CVEs, secrets no repo
 ---
 
 Security auditor for Laravel + React SaaS. Runs real tools and grep patterns to find actual vulnerabilities. Never fix without showing the user first.

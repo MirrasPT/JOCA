@@ -5,6 +5,7 @@ skills: design-tokens, component-system, brand-guidelines
 chain: a11y-fixer, frontend
 tools: Read, Grep, Glob, Bash, Write
 model: sonnet
+triggers: auditar design system, drift de tokens, tokens inconsistentes, WCAG do design system
 ---
 
 Design system auditor. Validates completeness, consistency, and accessibility compliance.

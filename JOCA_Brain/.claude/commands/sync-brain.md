@@ -26,13 +26,17 @@ Verificar se o backend/frontend do JOCA_OS estão a responder nas portas configu
 
 ```bash
 git fetch origin
-git rev-list --left-right --count HEAD...origin/master   # "<ahead>\t<behind>"
+# Nunca assumir 'master' — o repo usa 'main'. Um ref inexistente faz o rev-list falhar (ou mentir).
+BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+[ -z "$BASE" ] && BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+[ -z "$BASE" ] && BASE=main
+git rev-list --left-right --count HEAD...origin/$BASE   # "<ahead>\t<behind>"
 ```
 
 | ahead | behind | Caso |
 |---|---|---|
 | 0 | 0 | **Já sincronizado.** Saltar para FASE 5 (ainda regista no log, se houver pasta-ponte). |
-| 0 | >0 | **Atrás só.** `git status --porcelain` — se sujo, commitar primeiro (mensagem curta); depois `git pull --ff-only origin master`. Sem conflitos possíveis (fast-forward). |
+| 0 | >0 | **Atrás só.** `git status --porcelain` — se sujo, commitar primeiro (mensagem curta); depois `git pull --ff-only origin "$BASE"`. Sem conflitos possíveis (fast-forward). |
 | >0 | 0 | **À frente só.** Nada para trazer — ir directo ao gate de push (FASE 4). |
 | >0 | >0 | **Divergiu — caso real.** Continuar FASE 3. |
 
@@ -41,7 +45,7 @@ git rev-list --left-right --count HEAD...origin/master   # "<ahead>\t<behind>"
 ## FASE 3 — Resolver divergência real
 
 1. `git status --porcelain` — se houver alterações não commitadas, commitar primeiro (mensagem curta, ex.: `chore: estado JOCA_OS <máquina> <data> (pré-merge)`). Working tree tem de ficar limpo antes do merge.
-2. `git merge origin/master --no-commit --no-ff` — se `JOCA_OS/data/*.json` estiver marcado `merge=binary` no `.gitattributes`, vai parar em conflito nesses ficheiros (esperado). Ficheiros `.md` novos de um só lado entram sem conflito.
+2. `git merge origin/$BASE --no-commit --no-ff` (com o `BASE` da FASE 2) — se `JOCA_OS/data/*.json` estiver marcado `merge=binary` no `.gitattributes`, vai parar em conflito nesses ficheiros (esperado). Ficheiros `.md` novos de um só lado entram sem conflito.
 3. `node .claude/scripts/sync-brain-resolve.mjs` — resolve `automacoes.json`, `master-chat.json` (se existir), `projects.json`, `project-memory.json` pelas regras da skill (evento mais recente/completo vence; união dedupe onde aplicável; per-projecto `updatedAt` mais recente).
    - Se o script reportar **conflito genuíno** (ids que mudaram nos dois lados de forma diferente, sem tiebreak seguro) ou **ficheiros fora do conjunto conhecido**: parar, mostrar ao utilizador os ids/ficheiros exactos, não adivinhar.
 4. Validar JSON de cada ficheiro resolvido (`JSON.parse`) → deve correr sem erro.

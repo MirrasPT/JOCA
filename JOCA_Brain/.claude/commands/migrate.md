@@ -145,8 +145,12 @@ ls -la
 
 ```bash
 # Opção A: se o remote já aponta para MirrasPT/JOCA
-git fetch origin master
-git checkout origin/master -- .claude/ JOCA_OS/ CLAUDE.md README.md
+# (o branch default é 'main' — resolver em vez de assumir)
+BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+[ -z "$BASE" ] && BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+[ -z "$BASE" ] && BASE=main
+git fetch origin "$BASE"
+git checkout "origin/$BASE" -- .claude/ JOCA_OS/ CLAUDE.md README.md
 
 # Opção B: clone fresco (se preferir)
 cd ..

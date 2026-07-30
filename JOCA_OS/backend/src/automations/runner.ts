@@ -87,7 +87,14 @@ async function runNode(node: AutomationNode, input: string, automationName: stri
       const prompt = render(node.prompt ?? '', input);
       if (!prompt.trim()) throw new Error('llm node sem prompt');
       // Direct brain call, no tools/terminal — cheap summarise/transform.
-      const { text, costUsd } = await collectProviderText(claudeProvider.run(prompt, { model: auto.model ?? 'sonnet' }));
+      //
+      // noTools is what MAKES that true. Without it this node inherits the provider's default
+      // (every built-in tool, bypassPermissions), so an 'llm' node asked to "summarise the log"
+      // could run Bash or rewrite files — the exact opposite of what its name promises. Anything
+      // that should touch the machine belongs in a 'worker' or 'shell' node, where that is visible.
+      const { text, costUsd } = await collectProviderText(
+        claudeProvider.run(prompt, { model: auto.model ?? 'sonnet', noTools: true }),
+      );
       auto.costUsd += costUsd;
       return text;
     }

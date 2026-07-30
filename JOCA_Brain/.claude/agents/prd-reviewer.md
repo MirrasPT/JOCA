@@ -11,6 +11,7 @@ tools:
   - Read
   - Bash
   - Glob
+triggers: rever PRD, avaliar requisitos, PRD esta bom
 ---
 
 # Agent: prd-reviewer

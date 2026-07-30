@@ -16,6 +16,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+triggers: orquestrar, fan-out, multi-agente, decompor tarefa, workstreams paralelos
 ---
 
 # Master Orchestrator Agent
