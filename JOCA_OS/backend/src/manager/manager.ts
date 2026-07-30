@@ -2,7 +2,10 @@
 //
 // It does NOT write code. It is given tools:[] (no Bash/Read/Write at all) plus the in-process MCP
 // tools from tools.ts, so the only things it can do are: dispatch work to workers, read them,
-// answer them, manage the board, and talk to the user.
+// answer them, manage the board, talk to the user — and LOOK at what came out (files, images,
+// rendered pages). Those last ones are read-only by construction: eyes, not hands. A manager that
+// cannot check the work can only repeat what the workers claim, which is how "está feito" reaches
+// the user for a file that was never written.
 //
 // Conversation continuity uses the SDK's own session (options.resume): the history lives in the
 // SDK, not in a transcript we paste into every prompt. That was the single most expensive mistake
@@ -21,6 +24,8 @@ const MAX_BUDGET_USD = 1.5;       // per turn, hard stop
 const MANAGER_TOOLS = [
   'trabalhar', 'ver_workers', 'ler_worker', 'responder_worker', 'fechar_worker',
   'tarefas', 'executar_tarefa', 'avisar_utilizador', 'estado_tarefa',
+  // Verificação — leitura apenas. Dão-lhe olhos sem lhe dar mãos: continua sem Bash/Write/Edit.
+  'ver_ficheiro', 'ver_imagem', 'listar_pasta', 'ver_pagina',
 ].map((t) => `mcp__joca__${t}`);
 
 function buildSystemPrompt(project: Project): string {
@@ -51,8 +56,13 @@ function buildSystemPrompt(project: Project): string {
     'Antes de executar uma tarefa, lê-a com `estado_tarefa`. Deixa uma nota no fim do trabalho relevante.',
     'Podes criar tarefas para o utilizador com `para_humano: true` — coisas que dependem dele (decisões, acessos, conteúdos, validação). É assim que lhe passas trabalho.',
     '',
+    '# Confirmar antes de afirmar',
+    'Tens olhos: `ver_ficheiro`, `ver_imagem`, `listar_pasta`, `ver_pagina`. Um worker que diz "está feito" pode estar enganado — o ficheiro pode não existir, estar vazio ou estar noutro sítio.',
+    'Antes de dizeres ao utilizador que alguma coisa ficou pronta, VAI VER. Site ou página — abre com `ver_pagina` e olha. Imagem ou mockup — `ver_imagem`. Código ou texto — `ver_ficheiro`.',
+    'Não podes escrever nem executar nada: só ler. Se o trabalho estiver mal, não o corrijas tu — devolve-o ao worker com o que falta.',
+    '',
     '# Regras',
-    '- Nunca inventes estado. Se não sabes se algo está feito, usa `ver_workers`, `ler_worker` ou `estado_tarefa` antes de afirmar.',
+    '- Nunca inventes estado. Se não sabes se algo está feito, vai ver com as ferramentas de leitura antes de afirmar.',
     '- Nunca digas que uma coisa está pronta só porque despachaste o trabalho.',
     '- Sê curto. O utilizador quer saber o que está a acontecer, não ler relatórios.',
     '- Usa `avisar_utilizador` apenas para o que interessa mesmo (trabalho concluído que ele espera, bloqueios). Progresso normal é só resposta no chat.',

@@ -10,6 +10,10 @@ chain: task-router
 Todos os terminais abertos pelo JOCA_OS nascem com a ponte no ambiente. Verifica com `echo $JOCA_CLI`.
 Se a variável estiver vazia, este terminal **não** foi aberto pelo JOCA — não uses esta skill.
 
+**O JOCA_OS está a correr enquanto usas isto.** Nada do que fizeres aqui o reinicia nem lhe toca no
+código: são as operações que a interface já expõe, chamadas por HTTP. O que mudares aparece no ecrã
+do utilizador no momento.
+
 ```bash
 node "$JOCA_CLI" help        # lista tudo o que podes fazer
 ```

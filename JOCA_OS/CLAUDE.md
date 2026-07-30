@@ -63,6 +63,15 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
   `agy` ou `opencode` — perfis em `src/cli-profiles.ts`, override em `data/cli-profiles.json`
 - Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
 - Heartbeat (proactividade) em `src/heartbeat/` — config em `data/heartbeat.json`
+- **Gestor de projecto** (`src/manager/`): um agente conversacional por projecto. NÃO é um terminal
+  — é in-process (SDK), por isso responde já e não ocupa nenhuma das 30 sessões. Corre com
+  `tools: []` (sem Bash/Write/Edit) + ferramentas MCP próprias: despachar workers por área, ler/
+  responder-lhes, gerir o quadro, e VERIFICAR o resultado (`ver_ficheiro`/`ver_imagem`/
+  `listar_pasta`/`ver_pagina` — leitura apenas: olhos, não mãos). Continuidade via `options.resume`.
+- **Ponte de agentes** (`cli/joca.mjs` + `src/agent-bridge.ts`): cada PTY nasce com `JOCA_CLI`,
+  `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
+  o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — cria tarefas, abre terminais,
+  fala com outros. Uma implementação por acção, sem reinícios.
 
 ## Testes
 

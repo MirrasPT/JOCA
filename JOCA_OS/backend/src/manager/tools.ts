@@ -7,9 +7,15 @@
 //     pain we are removing. Dispatch returns immediately; completion arrives later as a wake.
 //   • The manager never touches the filesystem: the SDK is configured with tools:[] so it has no
 //     Bash/Read/Write at all. Everything it can do is in this file.
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { execFile } from 'child_process';
 import { z } from 'zod';
 import { createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
 import { sessionManager } from '../session-manager';
+import { safePathForRead } from '../security-fs';
+import { loadProjects } from '../project-store';
 import { pushNotification } from '../notifications/store';
 import {
   loadTasks, makeTask, upsertTask, moveTask, addTaskComment, getTask,
@@ -20,6 +26,28 @@ import { dispatchToArea, listWorkers, getWorker, closeWorker } from './worker-po
 
 const ok = (text: string) => ({ content: [{ type: 'text' as const, text }] });
 const fail = (text: string) => ({ content: [{ type: 'text' as const, text: `ERRO: ${text}` }], isError: true });
+
+// ── Verificação (leitura) ─────────────────────────────────────────────────────
+// O gestor precisa de CONFERIR o que os workers produziram — senão só sabe o que eles dizem que
+// fizeram, e um agente que reporta sucesso sem produzir nada passa despercebido.
+//
+// Estas ferramentas são deliberadamente só de LEITURA. O gestor continua a correr com tools:[]
+// (sem Bash/Write/Edit), portanto continua a não poder escrever código — que é a garantia que dá
+// sentido à separação gestor/worker. Ver != alterar.
+const IMAGE_TYPES: Record<string, string> = {
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif', '.webp': 'image/webp',
+};
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;   // acima disto o custo em tokens não compensa
+
+// Resolve um path relativo contra a pasta do projecto e valida-o com as mesmas regras do resto do
+// backend (dentro de HOME, fora de pastas sensíveis). O gestor nunca escolhe onde lê.
+function resolveInProject(projectId: string, target: string): string {
+  const project = loadProjects().find((p) => p.id === projectId);
+  if (!project) throw new Error('projecto não encontrado');
+  const abs = path.isAbsolute(target) ? target : path.join(project.path, target);
+  return safePathForRead(abs);
+}
 
 // Keys a TUI menu understands. Recovered from the Master's select_in_worker — interactive menus are
 // still a real failure mode and the manager must be able to unblock a worker.
@@ -230,6 +258,123 @@ export function buildManagerTools(projectId: string, actions: string[]) {
           pushNotification({ kind: 'system', title: titulo?.slice(0, 120) || '📋 Gestor de projecto', text: texto });
           note('avisou o utilizador');
           return ok('Notificação enviada.');
+        },
+      ),
+
+      // ── Verificar o trabalho ─────────────────────────────────────────────
+      tool(
+        'ver_ficheiro',
+        'Lê um ficheiro do projecto para CONFERIRES o que um worker produziu. Usa depois de um worker dizer que terminou — não acredites só na palavra dele. Caminho relativo à pasta do projecto.',
+        {
+          caminho: z.string().describe('Ex.: "src/App.tsx" ou "v1/header.html"'),
+          linhas: z.number().optional().describe('Máximo de caracteres (por omissão 6000).'),
+        },
+        async ({ caminho, linhas }) => {
+          try {
+            const abs = resolveInProject(projectId, caminho);
+            const stat = fs.statSync(abs);
+            if (stat.isDirectory()) return fail(`"${caminho}" é uma pasta — usa listar_pasta`);
+            const limit = Math.max(200, Math.min(linhas ?? 6000, 20_000));
+            const text = fs.readFileSync(abs, 'utf8');
+            note(`leu ${caminho}`);
+            return ok(text.length > limit
+              ? `${text.slice(0, limit)}\n\n[…truncado, ${text.length} caracteres no total]`
+              : text || '(ficheiro vazio)');
+          } catch (e) {
+            return fail(e instanceof Error ? e.message : 'não foi possível ler');
+          }
+        },
+      ),
+
+      tool(
+        'ver_imagem',
+        'Abre uma imagem do projecto para a VERES — screenshot, mockup, logo, gráfico. Usa para validares trabalho visual em vez de perguntares ao utilizador se está bom.',
+        { caminho: z.string() },
+        async ({ caminho }) => {
+          try {
+            const abs = resolveInProject(projectId, caminho);
+            const ext = path.extname(abs).toLowerCase();
+            const mime = IMAGE_TYPES[ext];
+            if (!mime) return fail(`"${ext}" não é uma imagem que eu consiga abrir (${Object.keys(IMAGE_TYPES).join(', ')})`);
+            const buf = fs.readFileSync(abs);
+            if (buf.length > MAX_IMAGE_BYTES) {
+              return fail(`imagem demasiado grande (${Math.round(buf.length / 1024)}KB, máximo ${MAX_IMAGE_BYTES / 1024 / 1024}MB)`);
+            }
+            note(`viu ${path.basename(abs)}`);
+            return {
+              content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: mime }],
+            };
+          } catch (e) {
+            return fail(e instanceof Error ? e.message : 'não foi possível abrir a imagem');
+          }
+        },
+      ),
+
+      tool(
+        'listar_pasta',
+        'Lista o que existe numa pasta do projecto. Usa para veres se os ficheiros que pediste foram mesmo criados, e onde.',
+        { caminho: z.string().optional().describe('Por omissão, a raiz do projecto.') },
+        async ({ caminho }) => {
+          try {
+            const abs = resolveInProject(projectId, caminho || '.');
+            const entries = fs.readdirSync(abs, { withFileTypes: true })
+              .filter((e) => !e.name.startsWith('.') || e.name === '.env.example')
+              .slice(0, 200)
+              .map((e) => {
+                if (e.isDirectory()) return `${e.name}/`;
+                try {
+                  const s = fs.statSync(path.join(abs, e.name));
+                  const mins = Math.round((Date.now() - s.mtimeMs) / 60000);
+                  // A idade é o que distingue "o worker acabou de criar isto" de "já cá estava".
+                  const when = mins < 1 ? 'agora' : mins < 60 ? `há ${mins}min` : `há ${Math.round(mins / 60)}h`;
+                  return `${e.name}  (${s.size} bytes, ${when})`;
+                } catch { return e.name; }
+              });
+            note(`listou ${caminho || 'a raiz'}`);
+            return ok(entries.length ? entries.join('\n') : '(pasta vazia)');
+          } catch (e) {
+            return fail(e instanceof Error ? e.message : 'não foi possível listar');
+          }
+        },
+      ),
+
+      tool(
+        'ver_pagina',
+        'Abre uma página no browser e devolve-te o que aparece no ecrã. Usa para validares trabalho web (um site local, uma página que um worker mexeu). Se não houver browser instalado, diz-te como obter a imagem à mesma.',
+        {
+          url: z.string().describe('http://localhost:3000, https://exemplo.pt, …'),
+          largura: z.number().optional().describe('Largura da janela (por omissão 1280). Usa 390 para ver como fica no telemóvel.'),
+        },
+        async ({ url, largura }) => {
+          if (!/^https?:\/\//i.test(url)) return fail('o url tem de começar por http:// ou https://');
+          const shot = path.join(os.tmpdir(), `joca-shot-${Date.now()}.png`);
+          const width = Math.max(320, Math.min(largura ?? 1280, 2560));
+          try {
+            // execFile (não shell) com argumentos separados: o url nunca é interpretado por uma
+            // shell, portanto não há injecção possível através dele.
+            await new Promise<void>((resolve, reject) => {
+              const child = execFile(
+                'npx',
+                ['--yes', 'playwright', 'screenshot', `--viewport-size=${width},900`, '--wait-for-timeout=2000', url, shot],
+                { timeout: 60_000 },
+                (err) => (err ? reject(err) : resolve()),
+              );
+              child.on('error', reject);
+            });
+            const buf = fs.readFileSync(shot);
+            fs.rmSync(shot, { force: true });
+            note(`viu a página ${url}`);
+            return { content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: 'image/png' }] };
+          } catch (e) {
+            fs.rmSync(shot, { force: true });
+            // Sem browser na máquina o caminho não fica fechado: o worker tem shell e pode tirar o
+            // screenshot, e depois o gestor abre-o com ver_imagem.
+            return fail(
+              `não consegui abrir o browser (${e instanceof Error ? e.message.slice(0, 120) : 'erro'}).\n`
+              + `Alternativa: manda um worker tirar o screenshot — trabalhar(area: "testes", instrucao: `
+              + `"tira um screenshot de ${url} para screenshot.png na raiz do projecto") — e depois usa ver_imagem("screenshot.png").`,
+            );
+          }
         },
       ),
 
