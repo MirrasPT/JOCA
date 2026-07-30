@@ -1,0 +1,159 @@
+// Worker pool — one long-lived terminal per AREA of a project.
+//
+// The manager does not open a terminal per job. It asks for the worker of an area ("design",
+// "backend", "conteúdo", …) and that terminal is reused for every job in that area. Two reasons:
+//   • it is the natural guard against two agents editing the same files — different areas touch
+//     different parts of the project, and the same area is serialised by construction;
+//   • a reused worker keeps its context (it already ran /resume and knows the project), so the
+//     second job in an area starts far cheaper than the first.
+//
+// The pool lives in memory: sessions themselves are already in-memory in the SessionManager, so
+// persisting the mapping would only create a source of stale ids. It is rebuilt lazily from the
+// session names (see adopt()) if the backend restarts while terminals are alive.
+import { sessionManager, MAX_SESSIONS } from '../session-manager';
+import type { Session } from '../session-manager';
+import { loadProjects } from '../project-store';
+
+export interface PooledWorker {
+  sessionId: string;
+  projectId: string;
+  area: string;                 // free-form, chosen by the manager ('design', 'backend', …)
+  busy: boolean;                // a job is dispatched and not yet reported done
+  lastUsedAt: number;
+  currentJob?: string;          // short description of what it is doing (for the UI / manager)
+}
+
+// projectId → area → worker
+const pool = new Map<string, Map<string, PooledWorker>>();
+
+// Session name carries the area so the pool can be rebuilt after a backend restart.
+const NAME_PREFIX = 'Worker';
+export const workerName = (area: string) => `${NAME_PREFIX} ${area}`.slice(0, 80);
+
+function areaMap(projectId: string): Map<string, PooledWorker> {
+  let m = pool.get(projectId);
+  if (!m) { m = new Map(); pool.set(projectId, m); }
+  return m;
+}
+
+// Drop entries whose PTY is gone (user closed the terminal, process exited).
+function prune(projectId: string): void {
+  const m = pool.get(projectId);
+  if (!m) return;
+  for (const [area, w] of m) if (!sessionManager.get(w.sessionId)) m.delete(area);
+}
+
+// Re-attach to terminals that already exist for this project (backend restarted, or the user
+// reopened one). Matches on the "Worker <area>" naming convention.
+function adopt(projectId: string): void {
+  const m = areaMap(projectId);
+  for (const s of sessionManager.list()) {
+    if (s.projectId !== projectId || s.origin !== 'auto') continue;
+    if (!s.name.startsWith(`${NAME_PREFIX} `)) continue;
+    const area = s.name.slice(NAME_PREFIX.length + 1).trim();
+    if (!area || m.has(area)) continue;
+    m.set(area, { sessionId: s.id, projectId, area, busy: false, lastUsedAt: Date.now() });
+  }
+}
+
+export function listWorkers(projectId: string): PooledWorker[] {
+  prune(projectId);
+  adopt(projectId);
+  return [...areaMap(projectId).values()].sort((a, b) => a.area.localeCompare(b.area));
+}
+
+export function getWorker(projectId: string, area: string): PooledWorker | undefined {
+  prune(projectId);
+  adopt(projectId);
+  return areaMap(projectId).get(area.trim());
+}
+
+export function findBySession(sessionId: string): PooledWorker | undefined {
+  for (const m of pool.values()) for (const w of m.values()) if (w.sessionId === sessionId) return w;
+  return undefined;
+}
+
+export interface DispatchResult {
+  ok: boolean;
+  worker?: PooledWorker;
+  reused?: boolean;
+  error?: string;
+}
+
+// Send a job to an area's worker, creating the terminal on first use.
+//
+// The first message of a brand-new worker is `/resume "<pasta>"` followed by the instruction — the
+// SessionManager already does exactly that when given resumePath + initialInput, waiting for the
+// TUI to settle between the two. Subsequent jobs are submitMessage() into the same terminal.
+export function dispatchToArea(
+  projectId: string,
+  area: string,
+  instruction: string,
+  opts: { cli?: string; model?: string } = {},
+): DispatchResult {
+  const cleanArea = area.trim().slice(0, 40) || 'geral';
+  const project = loadProjects().find((p) => p.id === projectId);
+  if (!project) return { ok: false, error: 'projecto não encontrado' };
+
+  prune(projectId);
+  adopt(projectId);
+  const m = areaMap(projectId);
+  const existing = m.get(cleanArea);
+
+  if (existing) {
+    if (existing.busy) {
+      return { ok: false, error: `o worker de "${cleanArea}" ainda está a trabalhar em: ${existing.currentJob ?? 'trabalho anterior'}. Espera que termine, ou usa outra área.` };
+    }
+    if (!sessionManager.submitMessage(existing.sessionId, instruction)) {
+      m.delete(cleanArea);
+      return { ok: false, error: 'o terminal desse worker desapareceu — tenta outra vez para abrir um novo' };
+    }
+    existing.busy = true;
+    existing.lastUsedAt = Date.now();
+    existing.currentJob = instruction.slice(0, 200);
+    return { ok: true, worker: existing, reused: true };
+  }
+
+  if (sessionManager.size >= MAX_SESSIONS) {
+    return { ok: false, error: `limite de ${MAX_SESSIONS} terminais atingido — fecha algum worker antes de abrir outro` };
+  }
+
+  const session: Session = sessionManager.spawn({
+    resumePath: project.path,
+    projectId,
+    sessionName: workerName(cleanArea),
+    origin: 'auto',
+    cli: opts.cli,
+    model: opts.model,
+    initialInput: instruction,
+  });
+  const worker: PooledWorker = {
+    sessionId: session.id, projectId, area: cleanArea,
+    busy: true, lastUsedAt: Date.now(), currentJob: instruction.slice(0, 200),
+  };
+  m.set(cleanArea, worker);
+  return { ok: true, worker, reused: false };
+}
+
+export function markIdle(sessionId: string): PooledWorker | undefined {
+  const w = findBySession(sessionId);
+  if (!w) return undefined;
+  w.busy = false;
+  w.currentJob = undefined;
+  w.lastUsedAt = Date.now();
+  return w;
+}
+
+export function closeWorker(projectId: string, area: string): boolean {
+  const w = areaMap(projectId).get(area.trim());
+  if (!w) return false;
+  sessionManager.kill(w.sessionId);
+  areaMap(projectId).delete(area.trim());
+  return true;
+}
+
+export function forgetSession(sessionId: string): void {
+  for (const m of pool.values()) {
+    for (const [area, w] of m) if (w.sessionId === sessionId) m.delete(area);
+  }
+}

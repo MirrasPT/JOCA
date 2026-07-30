@@ -18,7 +18,10 @@ import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
+import { managerRouter } from './http/manager-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
+import { setManagerBroadcaster, setManagerBusyBroadcaster, clearAllBusy } from './manager/store';
+import { startManagerWatch } from './manager/wake';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
 import { setNotificationsBroadcaster } from './notifications/store';
@@ -48,6 +51,11 @@ sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
 // inbox (GET /notifications) on reconnect.
 setNotificationsBroadcaster((n) => broadcast({ type: 'notification', notification: n }));
 
+// Project manager: every message it writes (answers AND the later "the worker finished" updates)
+// reaches open clients live; the chat is also persisted, so a closed tab loses nothing.
+setManagerBroadcaster((projectId, message) => broadcast({ type: 'manager_message', projectId, message }));
+setManagerBusyBroadcaster((projectId, busy) => broadcast({ type: 'manager_busy', projectId, busy }));
+
 const app = express();
 app.use(requireSafeOrigin);
 const server = createServer(app);
@@ -70,6 +78,7 @@ app.use(requireAuth, automationsRouter());
 app.use(requireAuth, tasksRouter());
 app.use(requireAuth, systemRouter());
 app.use(requireAuth, sessionsRouter());
+app.use(requireAuth, managerRouter());
 app.use(requireAuth, filesRouter());
 
 // Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
@@ -118,4 +127,6 @@ server.listen(PORT, HOST, () => {
   startScheduler(automationDeps);
   startTasksEngine();
   startHeartbeat();
+  clearAllBusy();       // a crash mid-turn would otherwise leave a manager stuck as "a pensar…"
+  startManagerWatch();
 });

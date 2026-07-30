@@ -13,13 +13,34 @@ import type { LlmProvider as LlmProviderId } from '../project-store';
 export type ProviderEvent =
   | { type: 'text'; text: string }
   | { type: 'tool_use'; name: string; input: unknown }
-  | { type: 'result'; text: string; isError: boolean; costUsd: number };
+  | { type: 'result'; text: string; isError: boolean; costUsd: number; sessionId?: string };
 
 export interface BrainRunOptions {
   systemPrompt?: string;
   model?: string;                                  // 'opus' | 'sonnet' | 'haiku' | full id
   cwd?: string;
   noTools?: boolean;                               // disable ALL built-in tools → pure text completion
+  // ── Multi-turn + tools (used by the project manager) ──────────────────────
+  // resume: SDK session id from a previous run's result event. The SDK reloads that conversation's
+  // history, so we never rebuild context by pasting a transcript into the prompt (the mistake that
+  // made the old Master expensive and fragile).
+  resume?: string;
+  // In-process MCP servers built with createSdkMcpServer(). Their tools reach the model as
+  // mcp__<server>__<tool>.
+  mcpServers?: Record<string, unknown>;
+  // Hard tool boundary. `tools: []` disables EVERY built-in (Bash/Edit/Write/Read) — this, not
+  // allowedTools, is what guarantees an agent cannot touch the filesystem.
+  disallowedTools?: string[];
+  // Auto-approved tool names (e.g. our mcp__joca__* set). This does NOT widen what exists — the
+  // `tools` option decides that — it only skips the permission prompt for these.
+  allowedTools?: string[];
+  // Defaults to 'bypassPermissions' (needed by anything touching the filesystem). An agent with
+  // tools:[] has no filesystem access at all, so it should run on 'default': bypass is both
+  // unnecessary and refused outright by the CLI when running as root.
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+  maxTurns?: number;
+  maxBudgetUsd?: number;
+  abortSignal?: AbortSignal;
 }
 
 // Build an env that forces SUBSCRIPTION auth: copy process.env, drop the API-key vars.
@@ -35,18 +56,30 @@ export class ClaudeProvider {
   readonly name = 'claude';
 
   async *run(prompt: string, opts: BrainRunOptions = {}): AsyncGenerator<ProviderEvent, void> {
+    const controller = new AbortController();
+    if (opts.abortSignal) opts.abortSignal.addEventListener('abort', () => controller.abort(), { once: true });
+
     const q = query({
       prompt,
       options: {
         env: subscriptionEnv(),
-        permissionMode: 'bypassPermissions',
+        permissionMode: opts.permissionMode ?? 'bypassPermissions',
         model: opts.model,
         systemPrompt: opts.systemPrompt,
         cwd: opts.cwd,
+        abortController: controller,
         // noTools → pure text completion (no Bash/Read/etc). Used by /optimize-objective so the brain
         // REWRITES the instruction instead of EXECUTING it. tools:[] disables all built-ins; maxTurns:1
         // is belt-and-suspenders against any tool/continue loop.
         ...(opts.noTools ? { tools: [] as string[], maxTurns: 1 } : {}),
+        // Manager mode: no built-ins at all, only the in-process MCP tools we hand it. Same tools:[]
+        // switch as noTools, but the conversation keeps running across turns via `resume`.
+        ...(opts.mcpServers ? { tools: [] as string[], mcpServers: opts.mcpServers as never } : {}),
+        ...(opts.disallowedTools ? { disallowedTools: opts.disallowedTools } : {}),
+        ...(opts.allowedTools ? { allowedTools: opts.allowedTools } : {}),
+        ...(opts.resume ? { resume: opts.resume } : {}),
+        ...(opts.maxTurns !== undefined ? { maxTurns: opts.maxTurns } : {}),
+        ...(opts.maxBudgetUsd !== undefined ? { maxBudgetUsd: opts.maxBudgetUsd } : {}),
       },
     });
 
@@ -66,7 +99,9 @@ export class ClaudeProvider {
         const isError = msg.is_error;
         const text = msg.subtype === 'success' ? msg.result : '';
         const costUsd = (msg as { total_cost_usd?: number }).total_cost_usd ?? 0;
-        yield { type: 'result', text, isError, costUsd };
+        // session_id is what lets the next turn resume this conversation.
+        const sessionId = (msg as { session_id?: string }).session_id;
+        yield { type: 'result', text, isError, costUsd, sessionId };
       }
     }
   }

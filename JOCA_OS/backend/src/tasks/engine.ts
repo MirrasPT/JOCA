@@ -25,10 +25,10 @@ import { broadcast } from '../ws/broadcast';
 import { pushNotification } from '../notifications/store';
 import { recordRun } from '../runs/store';
 import {
-  loadTasks, getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, addTaskComment, type Task,
+  getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, addTaskComment, type Task,
 } from './store';
 
-const TICK_MS = 5_000;
+// No polling constant any more — execution is always explicitly requested (user button or manager).
 const TASK_TIMEOUT_MS = 60 * 60_000;        // hard cap per dispatch (1h); the judge sees whatever is there
 const ANSWER_TIMEOUT_MS = 24 * 60 * 60_000; // how long we wait for the user to answer a question (24h)
 const NO_PROJECT_KEY = '';                  // queue key for tasks without a project
@@ -36,7 +36,7 @@ const NO_PROJECT_KEY = '';                  // queue key for tasks without a pro
 // One task worker per project. `busy` = a task is currently dispatched into it (the sequential lock).
 interface ProjectWorker { sessionId: string; busy: boolean }
 const workers = new Map<string, ProjectWorker>();
-let timer: ReturnType<typeof setInterval> | null = null;
+let started = false;
 
 // Re-read the latest task, merge a patch, persist (atomic full-file rewrite via upsertTask). Re-reading
 // first means a concurrent edit (title/skills) during a long run isn't clobbered. No-op if task gone.
@@ -120,6 +120,12 @@ async function judge(task: Task, tail: string): Promise<Verdict> {
     }
   }
   return { state: 'ok', summary: `⚠ juiz indisponível — assumido ok. ${tail.slice(-300).trim()}`.slice(0, 500), costUsd: 0, fallback: true };
+}
+
+// Same judge, exposed for any worker (not just a board task) — the project manager uses it to find
+// out how its own workers ended, instead of re-reading raw terminal buffers.
+export function judgeWorkerOutput(label: string, tail: string): Promise<Verdict> {
+  return judge({ title: label } as Task, tail);
 }
 
 // Wait for the user to answer a blocked worker: resolves when the worker completes its NEXT real
@@ -244,45 +250,43 @@ async function fire(key: string, id: string): Promise<void> {
   notifyTasksChanged();
 }
 
-// Drain the 'a-executar' column: group by project, dispatch AT MOST one task per project worker
-// (sequential within a project; different projects run in parallel, each in its own worker).
-function tick(): void {
-  const queue = loadTasks()
-    .filter((t) => t.status === 'a-executar')
-    .sort((a, b) => a.order - b.order);
-  if (queue.length === 0) return;
-
-  const dispatched = new Set<string>();
-  for (const t of queue) {
-    const key = t.projectId ?? NO_PROJECT_KEY;
-    if (dispatched.has(key)) continue;                 // one dispatch per project per tick
-    let w = workers.get(key);
-    if (w && !sessionManager.get(w.sessionId)) { workers.delete(key); w = undefined; } // worker was closed
-    if (w?.busy) continue;                             // project worker occupied → wait
-    if (!w && sessionManager.size >= MAX_SESSIONS) continue; // session cap → retry next tick
-    if (!w) { w = { sessionId: '', busy: true }; workers.set(key, w); }
-    else w.busy = true;
-    dispatched.add(key);
-    void fire(key, t.id);
-  }
-}
-
-export function startTasksEngine(): void {
-  if (timer) return;
-  timer = setInterval(() => { try { tick(); } catch (e) { console.error('[tasks] tick error:', e); } }, TICK_MS);
-  console.log(`[tasks] engine on (tick ${TICK_MS / 1000}s, 1 worker sequencial por projecto)`);
-}
-
-// Manual "run now" — queue one task immediately at the FRONT of its project's queue. The sequential
-// invariant still holds (it runs as soon as the project's worker is free); anti-double-fire is the
-// column state itself ('em-execucao' tasks are never re-dispatched).
-export async function runTaskNow(id: string): Promise<void> {
+// Start ONE task in its project's worker, applying the invariant guards. This is the single
+// entry point for execution — tasks NEVER start on their own any more: either the user presses
+// "correr" or the project manager decides it is time (manager/tools.ts → executar_tarefa).
+//
+// Returns a reason instead of throwing so the manager can tell the user *why* nothing happened.
+export function dispatchTask(id: string): { ok: boolean; reason?: string } {
   const task = getTask(id);
-  if (!task) return;
-  if (task.status === 'em-execucao' || task.status === 'arquivada') return;
-  moveTask(id, 'a-executar', 0);
-  notifyTasksChanged();
-  tick(); // dispatch immediately if the project's worker is free
+  if (!task) return { ok: false, reason: 'tarefa não encontrada' };
+  if (task.status === 'em-execucao') return { ok: false, reason: 'já está a executar' };
+  if (task.status === 'arquivada') return { ok: false, reason: 'está arquivada' };
+
+  const key = task.projectId ?? NO_PROJECT_KEY;
+  let w = workers.get(key);
+  if (w && !sessionManager.get(w.sessionId)) { workers.delete(key); w = undefined; } // worker was closed
+  if (w?.busy) return { ok: false, reason: 'o worker de tarefas deste projecto ainda está ocupado' };
+  if (!w && sessionManager.size >= MAX_SESSIONS) {
+    return { ok: false, reason: `limite de ${MAX_SESSIONS} terminais atingido` };
+  }
+  if (!w) { w = { sessionId: '', busy: true }; workers.set(key, w); }
+  else w.busy = true;
+
+  if (task.status !== 'a-executar') { moveTask(id, 'a-executar', 0); notifyTasksChanged(); }
+  void fire(key, id);
+  return { ok: true };
+}
+
+// The engine no longer polls: there is no automatic drain of 'a-executar'. Kept as a no-op-ish
+// entry point so server.ts wiring (and any future opt-in auto mode) has a place to live.
+export function startTasksEngine(): void {
+  if (started) return;
+  started = true;
+  console.log('[tasks] engine on (arranque manual — as tarefas só correm por ordem tua ou do gestor)');
+}
+
+// Manual "run now" — the button on a card. Same path as the manager's.
+export async function runTaskNow(id: string): Promise<void> {
+  dispatchTask(id);
 }
 
 // Wire the store's injectable runner so the HTTP route can trigger execution without importing this

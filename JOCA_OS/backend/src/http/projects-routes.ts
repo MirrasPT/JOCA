@@ -40,7 +40,9 @@ export function projectsRouter(): Router {
   });
 
   r.post('/projects', express.json(), (req, res) => {
-    const { name, path: p, color } = req.body as { name?: string; path: string; color?: string };
+    const { name, path: p, color, description, hasCode } = req.body as {
+      name?: string; path: string; color?: string; description?: string; hasCode?: boolean;
+    };
     if (!p) return res.status(400).json({ error: 'Missing path' });
     let resolvedP: string;
     try { resolvedP = safePath(p); }
@@ -55,6 +57,10 @@ export function projectsRouter(): Router {
       name: cleanName,
       path: resolvedP,
       color: cleanColor,
+      // Becomes the project manager's permanent context (manager/manager.ts buildSystemPrompt).
+      description: typeof description === 'string' && description.trim()
+        ? description.trim().slice(0, 2000) : undefined,
+      hasCode: typeof hasCode === 'boolean' ? hasCode : undefined,
     };
     projects.push(project);
     saveProjects(projects);
@@ -96,6 +102,11 @@ export function projectsRouter(): Router {
     }
     if (typeof req.body.color === 'string') p.color = (req.body.color.trim().slice(0, 50)) || undefined;
     if (typeof req.body.archived === 'boolean') p.archived = req.body.archived;
+    if (req.body.description !== undefined) {
+      const d = String(req.body.description).trim().slice(0, 2000);
+      p.description = d || undefined;
+    }
+    if (typeof req.body.hasCode === 'boolean') p.hasCode = req.body.hasCode;
     if (req.body.githubRepo !== undefined) {
       const repo = req.body.githubRepo ? String(req.body.githubRepo).trim().slice(0, 500) : '';
       p.githubRepo = repo || undefined;

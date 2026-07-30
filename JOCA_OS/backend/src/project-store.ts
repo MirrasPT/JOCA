@@ -12,6 +12,12 @@ export interface Project {
   githubRepo?: string;
   archived?: boolean;
   order?: number;
+  // Short description written when the project is created. It is the manager's permanent context —
+  // the closest thing it has to "what is this project and what are we trying to do".
+  description?: string;
+  // false = greenfield (no code yet), so the manager proposes structure instead of assuming there
+  // is something to read.
+  hasCode?: boolean;
 }
 
 export interface ProjectMemory {
