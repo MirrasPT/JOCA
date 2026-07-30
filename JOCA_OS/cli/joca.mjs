@@ -12,9 +12,14 @@
 //   node "$JOCA_CLI" sessions                   lista os terminais abertos
 //   node "$JOCA_CLI" send <id> "texto"          fala com outro terminal
 //   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro terminal escreveu
+//   node "$JOCA_CLI" chat <projecto> "texto"    fala com o gestor de um projecto
+//   node "$JOCA_CLI" workers                    vê os workers do gestor e o que fazem
+//   node "$JOCA_CLI" ls|cat <path>              vê o que os outros terminais produziram
 //
 // Sem dependências. Saída pensada para ser lida por um agente: curta e determinística.
 import process from 'node:process';
+import path from 'node:path';
+import os from 'node:os';
 
 const API = (process.env.JOCA_API_URL || 'http://127.0.0.1:7491').replace(/\/$/, '');
 const TOKEN = process.env.JOCA_API_TOKEN || '';
@@ -28,21 +33,40 @@ function die(msg, code = 1) {
   process.exit(code);
 }
 
-async function api(method, path, body) {
+// Um único ponto de entrada HTTP: `raw` devolve o corpo tal e qual (o /file-content serve o
+// ficheiro, não JSON) e `forbiddenHint` explica um 403 — a única resposta cujo texto do backend
+// ("Forbidden") não diz ao agente o que fazer a seguir.
+async function request(method, route, { body, raw = false, forbiddenHint = '' } = {}) {
   const headers = { 'Content-Type': 'application/json', Origin: API };
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
   let res;
   try {
-    res = await fetch(`${API}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    res = await fetch(`${API}${route}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   } catch (e) {
-    die(`não consegui falar com o JOCA_OS em ${API} (${e.message}). O JOCA está a correr?`);
+    die(`não consegui falar com o JOCA_OS em ${API} (${e.message}).
+  O JOCA_OS pode não estar a correr, ou estar noutra porta. Confirma que a app está aberta e
+  que JOCA_API_URL aponta para ela (agora: ${process.env.JOCA_API_URL ? `JOCA_API_URL=${process.env.JOCA_API_URL}` : 'JOCA_API_URL não definida — usei o default'}).`);
   }
   const text = await res.text();
   let data;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  if (!res.ok) die(`${res.status} — ${(data && data.error) || text || 'erro'}`);
-  return data;
+  if (!res.ok) {
+    // 401 é sempre o mesmo problema visto de dois lados: token em falta ou token já morto.
+    if (res.status === 401) {
+      die(TOKEN
+        ? `o JOCA_OS recusou o JOCA_API_TOKEN deste terminal (expirado ou revogado por mudança de password).
+  Abre um terminal novo a partir do JOCA_OS — cada PTY nasce com um token fresco.`
+        : `o JOCA_OS tem auth ligada e falta JOCA_API_TOKEN neste ambiente.
+  Os terminais abertos pelo JOCA_OS recebem-no automaticamente; se estás a correr isto à mão,
+  exporta JOCA_API_TOKEN=<token> (o mesmo que a UI usa) antes de repetir.`);
+    }
+    const hint = res.status === 403 && forbiddenHint ? `\n  ${forbiddenHint}` : '';
+    die(`${res.status} — ${(data && data.error) || text || 'erro'}${hint}`);
+  }
+  return raw ? text : data;
 }
+
+const api = (method, route, body) => request(method, route, { body });
 
 // ── args ──────────────────────────────────────────────────────────────────────
 // Suporta `--flag valor` e `--flag=valor`; o resto são posicionais.
@@ -83,6 +107,36 @@ function resolveId(items, ref, label) {
   if (matches.length > 1) die(`prefixo "${ref}" é ambíguo (${matches.length} ${label}s)`);
   die(`${label} "${ref}" não encontrada`);
 }
+
+// Um projecto é referido por id, prefixo de id ou nome — um agente que leu "Site da Ana" numa
+// mensagem não tem o uuid à mão. Ambiguidade nunca adivinha: lista as hipóteses e sai.
+async function resolveProject(ref) {
+  const all = (await api('GET', '/projects')).filter((p) => !p.archived);
+  if (!all.length) die('não há projectos no JOCA_OS. Cria um na UI (barra lateral → Projectos).');
+  if (!ref) die('falta o projecto. Vê a lista com: joca projects');
+  const lower = String(ref).toLowerCase();
+  const exact = all.find((p) => p.id === ref) || all.find((p) => p.name.toLowerCase() === lower);
+  if (exact) return exact;
+  let matches = all.filter((p) => p.id.startsWith(ref));
+  if (!matches.length) matches = all.filter((p) => p.name.toLowerCase().includes(lower));
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1) {
+    console.error(`joca: "${ref}" corresponde a ${matches.length} projectos — escolhe um:`);
+    for (const p of matches) console.error(`  ${short(p.id)}  ${p.name}`);
+    process.exit(1);
+  }
+  die(`projecto "${ref}" não encontrado. Vê a lista com: joca projects`);
+}
+
+// Caminhos são resolvidos DO LADO DO AGENTE (~ e relativos contam a partir do cwd deste terminal);
+// o backend recebe sempre um absoluto, senão resolveria relativamente ao cwd do servidor.
+function absPath(p) {
+  const raw = String(p).trim();
+  if (raw === '~' || raw.startsWith('~/') || raw.startsWith('~\\')) return path.join(os.homedir(), raw.slice(1));
+  return path.resolve(raw);
+}
+
+const FILES_HINT = 'O JOCA_OS só serve ficheiros dentro da tua home (e nunca pastas sensíveis como .ssh/.aws).';
 
 // ── comandos ──────────────────────────────────────────────────────────────────
 const commands = {
@@ -230,6 +284,91 @@ const commands = {
     for (const p of list.filter((x) => !x.archived)) console.log(`${short(p.id)}  ${p.name}  ${p.path}`);
   },
 
+  // Gestor de projecto: com texto envia, sem texto lê. O POST responde 202 e a resposta do gestor
+  // chega minutos depois (ele pode abrir workers pelo caminho) — daí o aviso explícito na saída.
+  async chat(flags, [ref, ...rest]) {
+    const text = rest.join(' ') || (typeof flags.text === 'string' ? flags.text : '');
+    const p = await resolveProject(ref);
+
+    if (text) {
+      await api('POST', `/projects/${p.id}/chat`, { text });
+      console.log(`mensagem entregue ao gestor de "${p.name}" (${short(p.id)})`);
+      console.log('a resposta é ASSÍNCRONA — não vem neste comando. O gestor pode demorar (pode abrir workers).');
+      console.log(`lê-a daqui a pouco com:  joca chat ${short(p.id)}`);
+      return;
+    }
+
+    const limit = Math.max(1, Number(flags.limit) || 20);
+    const out = await api('GET', `/projects/${p.id}/chat?limit=${limit}`);
+    const roles = { user: 'tu    ', manager: 'gestor', system: 'sistema' };
+    console.log(`# Gestor de ${p.name} (${short(p.id)})`);
+    console.log(`estado: ${out.busy ? 'a trabalhar (ocupado)' : 'livre'}  ·  custo acumulado: $${(out.totalCostUsd || 0).toFixed(4)}  ·  workers: ${out.workers?.length || 0}`);
+    if (!out.messages?.length) {
+      console.log('\n(conversa vazia — começa com: joca chat ' + short(p.id) + ' "o que precisas")');
+      return;
+    }
+    console.log(`\n## Últimas ${out.messages.length} mensagens`);
+    for (const m of out.messages) {
+      const cost = m.costUsd ? `  ($${m.costUsd.toFixed(4)})` : '';
+      console.log(`\n[${roles[m.role] || m.role} ${rel(m.ts)}]${cost}`);
+      console.log((m.text || '').split('\n').map((l) => `  ${l}`).join('\n'));
+      if (m.actions?.length) console.log(`  ↳ acções: ${m.actions.join(' · ')}`);
+    }
+    if (out.busy) console.log('\n(o gestor está a trabalhar agora — volta a correr este comando para ver a resposta)');
+  },
+
+  // Sem projecto: usa o do terminal actual, e se não houver mostra todos — um agente perdido
+  // prefere ver o panorama a levar com um erro.
+  async workers(flags, [ref]) {
+    let projects;
+    if (ref) {
+      projects = [await resolveProject(ref)];
+    } else {
+      const all = (await api('GET', '/projects')).filter((p) => !p.archived);
+      const mine = SESSION_ID
+        ? (await api('GET', '/sessions')).find((s) => s.id === SESSION_ID)?.projectId
+        : undefined;
+      projects = mine ? all.filter((p) => p.id === mine) : all;
+      if (!projects.length) return console.log('(sem projectos)');
+    }
+    for (const p of projects) {
+      const out = await api('GET', `/projects/${p.id}/chat?limit=1`);
+      console.log(`\n## ${p.name} (${short(p.id)})${out.busy ? '  · gestor a trabalhar' : ''}`);
+      if (!out.workers?.length) { console.log('  (sem workers abertos)'); continue; }
+      for (const w of out.workers) {
+        const job = w.currentJob ? `  ${oneLine(w.currentJob, 60)}` : '';
+        console.log(`  ${(w.area || '?').padEnd(14)} ${(w.busy ? 'ocupado' : 'livre').padEnd(8)} ${String(w.status).padEnd(7)} ${short(w.sessionId)}${job}`);
+      }
+      console.log(`  (lê um worker com: joca read <id-sessão>)`);
+    }
+  },
+
+  async ls(flags, [target]) {
+    if (!target) die('falta o caminho: joca ls <path>');
+    const dir = absPath(target);
+    const out = await request('GET', `/files?path=${encodeURIComponent(dir)}&showHidden=${flags.all ? 'true' : 'false'}`, { forbiddenHint: FILES_HINT });
+    console.log(out.path);
+    if (!out.entries.length) return console.log('  (vazio)');
+    for (const e of out.entries) {
+      const size = e.isDir ? '' : `${String(e.size ?? 0).padStart(9)}  `;
+      console.log(`  ${e.isDir ? 'd' : '-'} ${e.isDir ? ' '.repeat(11) : size}${e.name}`);
+    }
+  },
+
+  async cat(flags, [target]) {
+    if (!target) die('falta o caminho: joca cat <path> [--tail N]');
+    const file = absPath(target);
+    // O backend serve o ficheiro inteiro; o corte por linhas é feito aqui (não há rota de tail).
+    const body = await request('GET', `/file-content?path=${encodeURIComponent(file)}`, { raw: true, forbiddenHint: FILES_HINT });
+    const tail = Number(flags.tail);
+    if (tail > 0) {
+      const lines = body.split('\n');
+      // O \n final não é uma linha — sem isto, `--tail 2` devolvia a última linha e um vazio.
+      if (lines.length && lines[lines.length - 1] === '') lines.pop();
+      console.log(lines.slice(Math.max(0, lines.length - tail)).join('\n'));
+    } else process.stdout.write(body);   // sem \n extra: o ficheiro sai byte a byte como está
+  },
+
   async notify(flags, [...parts]) {
     const text = parts.join(' ') || flags.text;
     if (!text) die('falta o texto: joca notify "mensagem"');
@@ -264,6 +403,16 @@ TERMINAIS
   send <id> "<texto>"                          fala com outro terminal
   read <id> [--tail 4000]                      lê o output de outro terminal
 
+GESTOR DE PROJECTO
+  chat <projecto> "<texto>"                    fala com o gestor (resposta ASSÍNCRONA — lê depois)
+  chat <projecto> [--limit 20]                 lê a conversa com o gestor (+ acções de cada turno)
+  workers [<projecto>]                         workers por área e o que cada um está a fazer
+  (<projecto> aceita id, prefixo de id ou nome)
+
+FICHEIROS (leitura)
+  ls <path> [--all]                            lista uma pasta (--all inclui ocultos)
+  cat <path> [--tail N]                        lê um ficheiro (--tail N = últimas N linhas)
+
 OUTROS
   automations · projects · runs [--limit N] · notify "<texto>"
 
@@ -273,6 +422,9 @@ Contexto deste terminal: sessão ${SESSION_ID ? short(SESSION_ID) : '(desconheci
 
 const [, , cmd = 'help', ...rest] = process.argv;
 const { flags, positional } = parseArgs(rest);
-const handler = commands[cmd] ?? (cmd === '--help' || cmd === '-h' ? commands.help : null);
+// Object.hasOwn: `joca toString` não pode cair no Object.prototype.
+const isCommand = (name) => Object.hasOwn(commands, name);
+const handler = isCommand(cmd) ? commands[cmd] : (cmd === '--help' || cmd === '-h' ? commands.help : null);
 if (!handler) die(`comando desconhecido "${cmd}". Corre: joca help`);
-handler(flags, positional).catch((e) => die(e.message));
+// Promise.resolve: `help` é síncrono e devolve undefined — chamar .catch() nele rebentava.
+Promise.resolve(handler(flags, positional)).catch((e) => die(e.message));
