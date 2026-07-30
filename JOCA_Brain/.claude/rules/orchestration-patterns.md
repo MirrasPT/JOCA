@@ -79,6 +79,7 @@ Sequência determinística não-paralelizável + git destrutivo → **script ver
 | Loop sem travão (iterações infinitas) | max iterações + 3x-nada-para |
 | Workers despachados em mensagens separadas (serial) | Todas as chamadas `Agent()` num só turno |
 | Worker devolve dump completo ao supervisor | Escreve `.joca/intermediate/` + resumo + path |
+| Agir sobre o relatório de um agente sem verificar | Relatório = **pista**, não conclusão. Confirmar o achado antes de corrigir (`grep`/`ls`/teste). Um diagnóstico errado custa mais do que o comando que o confirmava |
 | >5 workers concorrentes | Cap 3-5; merge de streams finos |
 | Fan-out sem fase de fundação | Componentes partilhados primeiro; workers importam |
 | Router que também executa | Router devolve JSON e pára; caller executa |

@@ -7076,3 +7076,31 @@ background: var(--surface-panel);
   .mgr-chat-thread { max-height:none; }
   .pw-section-hint { flex-basis:100%; }
 }
+
+/* ── v5: notificações com prioridade e agrupamento ── */
+/* Uma notificação que espera decisão tua não pode ler-se igual a uma que só informa. */
+.inbox-item--action {
+  border-left: 3px solid var(--warn, #f59e0b);
+  background: color-mix(in srgb, var(--warn, #f59e0b) 7%, transparent);
+}
+.inbox-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.inbox-badge--action {
+  background: var(--warn, #f59e0b);
+  color: #1a1205;
+}
+/* ×N = o mesmo evento repetiu-se; discreto, é contexto e não alarme. */
+.inbox-badge--count {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  color: inherit;
+  opacity: 0.75;
+}

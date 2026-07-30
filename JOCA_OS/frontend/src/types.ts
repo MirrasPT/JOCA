@@ -125,7 +125,10 @@ export interface JocaLogicInfo {
 
 // ── v3: inbox / runs / heartbeat / multi-CLI (mirrors backend stores) ─────────
 
-export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system';
+export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system' | 'manager';
+
+// 'action' = nada avança sem tu decidires; 'info' = aconteceu, não precisa de ti.
+export type NotificationPriority = 'action' | 'info';
 
 export interface AppNotification {
   id: string;
@@ -134,7 +137,12 @@ export interface AppNotification {
   text: string;
   ts: number;
   read: boolean;
-  meta?: { sessionId?: string; taskId?: string; automationId?: string };
+  priority?: NotificationPriority;
+  count?: number;      // >1 → repetições do mesmo evento, agrupadas
+  meta?: {
+    sessionId?: string; taskId?: string; automationId?: string;
+    projectId?: string; area?: string; groupKey?: string;
+  };
 }
 
 export type RunKind = 'automation' | 'task' | 'heartbeat';

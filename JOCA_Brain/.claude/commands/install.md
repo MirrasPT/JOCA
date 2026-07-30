@@ -214,7 +214,7 @@ OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
 
 ## FASE 2 — Areas de Trabalho
 
-Areas globais que determinam quais skills ficam activas. O JOCA tem **127 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
+Areas globais que determinam quais skills ficam activas. O JOCA tem **132 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
 
 `AskUserQuestion`:
 ```

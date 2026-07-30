@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 26 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 127 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 27 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 132 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**189 componentes:** 127 skills + 36 agents + 26 commands.
+**260 componentes:** 132 skills + 101 agents + 27 commands.
 
 ---
 

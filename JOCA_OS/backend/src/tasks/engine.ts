@@ -207,7 +207,9 @@ async function fire(key: string, id: string): Promise<void> {
       pushNotification({
         kind: 'task_question', title: `⏸ ${task.title}`,
         text: verdict.summary || 'O worker está à espera de uma resposta tua no terminal.',
-        meta: { taskId: task.id, sessionId },
+        // Nada avança até responderes — nunca agrupar nem enterrar entre os avisos informativos.
+        priority: 'action',
+        meta: { taskId: task.id, sessionId, projectId: task.projectId },
       });
       broadcast({ type: 'task_question', taskId: task.id, sessionId, title: task.title, summary: verdict.summary });
       patchTask(id, { result: `⏸ À espera de resposta no terminal: ${verdict.summary}` });
@@ -239,7 +241,13 @@ async function fire(key: string, id: string): Promise<void> {
     // Failures land in the persistent inbox — success is visible on the board itself.
     pushNotification({
       kind: 'system', title: `✗ Tarefa falhou: ${task.title}`,
-      text: verdict.summary, meta: { taskId: task.id, sessionId: w.sessionId || undefined },
+      text: verdict.summary,
+      priority: 'action',        // uma falha fica parada até decidires o que fazer com ela
+      meta: { taskId: task.id, sessionId: w.sessionId || undefined, projectId: task.projectId },
+      // Uma fila de tarefas que falha toda pelo MESMO motivo (CLI em baixo, projecto partido) é um
+      // problema, não N. O motivo entra na chave: falhas diferentes continuam a ser notificações
+      // diferentes, senão o agrupamento escondia a que era distinta.
+      groupKey: `task-fail:${task.projectId ?? 'sem-projecto'}:${verdict.summary.slice(0, 40)}`,
     });
   }
   const cur = workers.get(key);

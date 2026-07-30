@@ -10,6 +10,7 @@ const KIND_ICON: Record<NotificationKind, string> = {
   session_done: '✅',
   heartbeat: '💓',
   system: '⚠',
+  manager: '📋',
 };
 
 // Tempo relativo curto em pt-PT ("agora", "5 min", "3 h", "2 d").
@@ -100,12 +101,33 @@ export default function NotificationsInbox({ refreshKey }: { refreshKey: number 
           </div>
           <div className="inbox-list">
             {items.length === 0 && <div className="inbox-empty">Sem notificações.</div>}
-            {items.map((n) => (
-              <div key={n.id} className={`inbox-item ${n.read ? '' : 'inbox-item--unread'}`}>
+            {/* Por responder primeiro. Uma pergunta bloqueada não pode afundar sob avisos
+                informativos mais recentes — é a única categoria em que o tempo custa alguma coisa. */}
+            {[...items]
+              .sort((a, b) => {
+                const act = (n: AppNotification) => (!n.read && n.priority === 'action' ? 1 : 0);
+                return act(b) - act(a) || b.ts - a.ts;
+              })
+              .map((n) => (
+              <div
+                key={n.id}
+                className={`inbox-item ${n.read ? '' : 'inbox-item--unread'} ${
+                  !n.read && n.priority === 'action' ? 'inbox-item--action' : ''
+                }`}
+              >
                 <span className="inbox-item-icon" aria-hidden>{KIND_ICON[n.kind] ?? '⚠'}</span>
                 <div className="inbox-item-body">
                   <div className="inbox-item-top">
-                    <span className="inbox-item-title">{n.title}</span>
+                    <span className="inbox-item-title">
+                      {n.title}
+                      {/* Um bloqueio por responder não pode ler-se igual a "está feito". */}
+                      {!n.read && n.priority === 'action' && (
+                        <span className="inbox-badge inbox-badge--action">precisa de ti</span>
+                      )}
+                      {(n.count ?? 1) > 1 && (
+                        <span className="inbox-badge inbox-badge--count">×{n.count}</span>
+                      )}
+                    </span>
                     <span className="inbox-item-time">{relTime(n.ts)}</span>
                   </div>
                   <button
@@ -128,7 +150,7 @@ export default function NotificationsInbox({ refreshKey }: { refreshKey: number 
                   </button>
                 </div>
               </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

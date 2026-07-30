@@ -1,6 +1,7 @@
 ---
 name: agent-context
 description: "Base principles for agent orchestration and context management (briefs, fan-out caps, compression). Invoke when orchestrating sub-agents or debugging context loss."
+triggers: orquestrar sub-agentes, brief de agente, fan-out, contexto perdido, compressao de contexto, quantos workers
 ---
 
 # Agent Context Engineering — Base Principles

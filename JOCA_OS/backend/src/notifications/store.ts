@@ -7,7 +7,14 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 
-export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system';
+export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system' | 'manager';
+
+// What the notification wants from you. The inbox used to treat "a worker is blocked waiting for
+// your answer" exactly like "a job finished" — with the project manager dispatching several workers
+// at once, that flattening is what turns an inbox into noise you stop reading.
+//   action → nothing moves until you decide
+//   info   → happened, no decision needed
+export type NotificationPriority = 'action' | 'info';
 
 export interface AppNotification {
   id: string;
@@ -16,12 +23,23 @@ export interface AppNotification {
   text: string;
   ts: number;
   read: boolean;
-  // optional deep-link context (sessionId/taskId/automationId) so the UI can jump to the source
-  meta?: { sessionId?: string; taskId?: string; automationId?: string };
+  priority?: NotificationPriority;      // default 'info'
+  // How many events this entry stands for. >1 means later events were folded in (see groupKey).
+  count?: number;
+  // optional deep-link context so the UI can jump to the source
+  meta?: {
+    sessionId?: string; taskId?: string; automationId?: string;
+    projectId?: string; area?: string; groupKey?: string;
+  };
 }
 
 const NOTIFICATIONS_FILE = path.join(DATA_DIR, 'notifications.json');
 const MAX_NOTIFICATIONS = 500;
+
+// Window in which repeated events from the SAME source collapse into one entry. Three workers of
+// the same project finishing within a minute is one thing that happened, not three; before the
+// manager existed this was rare, now it is the normal case.
+const GROUP_WINDOW_MS = 90_000;
 
 // Decoupled broadcaster: server.ts injects a fn that pushes the new notification over WS.
 let notificationsBroadcaster: ((n: AppNotification) => void) | null = null;
@@ -42,22 +60,54 @@ export function pushNotification(spec: {
   kind: NotificationKind;
   title: string;
   text: string;
+  priority?: NotificationPriority;
   meta?: AppNotification['meta'];
+  // Same key + inside GROUP_WINDOW_MS + still unread → folds into the existing entry instead of
+  // adding a new one. Callers that omit it always get a separate notification.
+  //
+  // The key must identify the same THING repeating, not merely the same source: ten tasks failing
+  // because the CLI is down is one problem (group on project+reason), but two workers blocked on
+  // different questions are two decisions, and folding those hides one. When in doubt, omit it.
+  groupKey?: string;
 }): AppNotification {
+  const list = loadNotifications();
+  const now = Date.now();
+  const priority = spec.priority ?? 'info';
+
+  if (spec.groupKey) {
+    const prev = [...list].reverse().find((n) =>
+      n.meta?.groupKey === spec.groupKey && !n.read && now - n.ts < GROUP_WINDOW_MS);
+    if (prev) {
+      prev.count = (prev.count ?? 1) + 1;
+      prev.ts = now;                                     // reordena para o topo
+      prev.title = spec.title.slice(0, 200);
+      prev.text = `${spec.text}\n\n(+${prev.count - 1} antes disto, do mesmo sítio)`.slice(0, 8000);
+      saveNotifications(list);
+      try { notificationsBroadcaster?.(prev); } catch { /* inbox already persisted */ }
+      return prev;
+    }
+  }
+
   const n: AppNotification = {
     id: randomUUID(),
     kind: spec.kind,
     title: spec.title.slice(0, 200),
     text: spec.text.slice(0, 8000),
-    ts: Date.now(),
+    ts: now,
     read: false,
-    meta: spec.meta,
+    priority,
+    ...(spec.groupKey ? { meta: { ...spec.meta, groupKey: spec.groupKey } } : { meta: spec.meta }),
   };
-  const list = loadNotifications();
   list.push(n);
   saveNotifications(list);
   try { notificationsBroadcaster?.(n); } catch { /* inbox already persisted */ }
   return n;
+}
+
+// Anything still waiting on a decision. The UI surfaces these above the rest — an unanswered
+// blocker is worth more than ten "finished" lines.
+export function pendingActions(): AppNotification[] {
+  return loadNotifications().filter((n) => !n.read && n.priority === 'action');
 }
 
 export function markNotificationRead(id: string, read: boolean): AppNotification | null {

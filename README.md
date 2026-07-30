@@ -21,12 +21,12 @@ JOCA/
 │   │   ├── soul.md          <- personalidade calibravel
 │   │   ├── SKILL_INDEX.json <- indice lazy-loading
 │   │   ├── projects/        <- estado por projecto (/save)
-│   │   ├── feedback/        <- sessoes de feedback (/feedback-joca)
+│   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
 │       ├── commands/        <- 27 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
-│       ├── agents/          <- 36 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 131 skills flat — triggers declarativos, on-demand loading
+│       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 132 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
 │       ├── reference/       <- referencia densa, carregada on-demand (nao vive em contexto)
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**194 componentes:** 131 skills + 36 agents + 27 commands.
+**260 componentes:** 132 skills + 101 agents + 27 commands.
 
 ---
 
@@ -65,7 +65,7 @@ dedicados, sem precisares de estar a olhar.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 194 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos 260 componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Sidebars colapsaveis:** left rail (62px) e right rail (54px) com animacoes suaves (280ms ease-out-quart)
@@ -166,12 +166,12 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (131)
+## Skills (132)
 
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
 ### Base
-`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `feedback-joca` · `pt-pt-translator` · `browser-automate`
+`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `pt-pt-translator` · `browser-automate` · `joca-terminal`
 
 ### Design
 `frontend` · `mobile` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-system` · `design-tokens` · `component-system` · `html-review`
@@ -180,7 +180,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 `laravel-specialist` · `filament` · `mysql` · `rest-api` · `saas-patterns` · `file-storage` · `reverb-realtime` · `auth` · `transactional-email` · `postmark` · `error-tracking-dev` · `error-tracking-prod` · `search` · `queues` · `bullmq` · `webhooks` · `caching` · `availability` · `security` · `horizon`
 
 ### DevOps
-`deploy-cpanel` · `deploy-docker` · `deploy-ploi` · `github`
+`deploy-cpanel` · `deploy-docker` · `deploy-ploi` · `deploy-vps` · `cloudflare-dns` · `cpanel` · `selfhosted-arr` · `github`
 
 ### Marketing
 `paid-ads` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `content-calendar` · `social-content` · `copywriting` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `lead-capture` · `competitor-profiling` · `landing-page` · `marketing`
@@ -189,7 +189,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 `google-analytics` · `microsoft-clarity`
 
 ### Video & Media
-`video` · `hyperframes` · `remotion` · `lyric-align`
+`video` · `hyperframes` · `remotion` · `lyric-align` · `site-capture` · `html-to-pdf`
 
 ### WordPress
 `wordpress-router` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `wp-interactivity-api` · `wp-abilities-api` · `wpds` · `blueprint`
@@ -202,7 +202,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 
 ---
 
-## Agents (36)
+## Agents (101)
 
 Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — inventario completo em `JOCA_Brain/.claude/agents/`.)
 
@@ -224,6 +224,18 @@ Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — invent
 ### Specialists
 `payment-integration` · `skill-evaluator` · `skill-improver` · `security-review`
 
+### Execucao (65, gerados das skills)
+Cada skill que **produz artefactos** tem um agente gemeo `<skill>-agent` que le a skill como Step 0
+— mesma doutrina, contexto proprio. Existem para poder correr varios trabalhos ao mesmo tempo sem
+ocupar a conversa principal: `tailwind-agent`, `laravel-specialist-agent`, `copywriting-agent`,
+`deploy-vps-agent`, `wp-block-development-agent`, `shopify-app-agent`, ...
+
+Nao sao copias: a skill continua a ser a fonte de verdade e edita-la actualiza os dois.
+Regenerar: `node JOCA_Brain/.claude/scripts/skill-agents.mjs` (lista curada no topo do script).
+
+**Quando despachar em vez de ler a skill inline:** a partir de **2 partes independentes** no pedido.
+Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-intake.md`.
+
 ---
 
 ## Commands (27)
@@ -243,7 +255,6 @@ Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 | `/one-shot` | Dev autonomo: PRD -> orchestrator -> parallel -> tests |
 | `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
 | `/create-skill` | Pipeline: research -> draft -> evaluate -> iterate |
-| `/feedback-joca` | Captura gaps no toolkit (7 categorias + severidade) |
 | `/upgrade-joca` | Self-improvement: research -> plan -> execute -> validate |
 | `/update-joca` | Sync com GitHub (protege local, rebuild UI) |
 | `/migrate` | Migracao v1-legacy -> v2.0 |
@@ -265,7 +276,7 @@ Sequencias pre-definidas activadas automaticamente:
 | Frontend | `frontend` -> `tester-ui-ux` -> `tester-performance` |
 | One-shot | `master-orchestrator` -> parallel agents -> `tester-*` (auto) |
 | Debug | `log-debugger` -> `query-debugger` (se SQL) |
-| Self-improvement | `/feedback-joca` -> `/upgrade-joca` -> `deep-research` + `skill-evaluator` loop |
+| Self-improvement | `/save` (captura gaps) -> `/upgrade-joca` -> `deep-research` + `skill-evaluator` loop |
 | Nova skill | `deep-research` -> `skill-improver` -> `skill-evaluator` (8.0/10 threshold) |
 
 ---

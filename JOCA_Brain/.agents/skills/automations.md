@@ -1,57 +1,60 @@
 ---
 name: automations
-description: "Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e gerir automacoes.json. Invocar quando o utilizador disser: automacao, automatizar, cron, agendar tarefa, todos os dias as, a cada X horas, resumo automatico, agenda recorrente, tarefa repetitiva. Skill do agente automation-builder (FUTUROS Fase 3)."
-compatibility: "JOCA_Brain. Define contrato de dados — NAO implementa o daemon/scheduler (Fase 3 pendente)."
+description: "Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e gerir automacoes.json. Invocar quando o utilizador disser: automacao, automatizar, cron, agendar tarefa, todos os dias as, a cada X horas, resumo automatico, agenda recorrente, tarefa repetitiva. Skill do agente automation-builder."
+compatibility: "JOCA_Brain. Documenta o schema REAL do motor de automacoes do JOCA_OS (backend/src/automations/). Motor implementado — nao editar automacoes.json a mao com o JOCA_OS aberto."
 ---
 
-# Automacoes — JOCA Fase 3
+# Automacoes — motor JOCA_OS
 
-Traduzir um pedido NL numa automacao estruturada e gerir o ficheiro `automacoes.json`.
-Skill do agente `automation-builder`. Estilo cron simples — nao e n8n/Zapier.
+Traduzir um pedido NL numa automacao estruturada do motor real do JOCA_OS.
+Skill do agente `automation-builder`. Estilo cron simples — nao e n8n/Zapier completo, mas o modelo e o mesmo: pipeline linear de nodes com um trigger.
 
-**Escopo desta skill:** definir o CONTRATO (schema, gestao, falhas) + traduzir NL → JSON.
-**Fora de escopo:** o motor/daemon que dispara no horario nao existe ainda (FUTUROS Fase 3, pendente). Esta skill nao o implementa nem assume que existe.
+**Motor real:** `JOCA_OS/backend/src/automations/` (source of truth do schema: `store.ts`).
+**Ficheiro:** `JOCA_OS/data/automacoes.json` (DATA_DIR do backend; escrita atomica; nunca commitado).
+**Regra:** criar/editar automacoes de preferencia via UI/API do JOCA_OS — o backend faz upsert atomico e re-agenda (`nextRunAt`). Edicao manual do JSON so com o JOCA_OS parado.
 
 ## Anatomia de uma automacao — 3 partes
 
-Toda a automacao decompoe-se em tres campos. Extrair sempre os tres do pedido NL.
+Todo o pedido NL decompoe-se em tres partes. Extrair sempre as tres antes de construir o objecto.
 
-1. **QUANDO** — horario/trigger. Cron OU intervalo. Opcionalmente uma **condicao** ("se X entao reporta").
-2. **O-QUE** — a tarefa, em linguagem natural. Passada a um worker dedicado para executar.
-3. **REPORTAR** — canal de entrega do resultado (`whatsapp`, `joca_os`, `email`, `sms`, `push`).
+1. **QUANDO** → `trigger`. Agendada (`schedule`: diaria/semanal/intervalo) ou manual (disparada pelo utilizador — uma "Accao").
+2. **O-QUE** → `nodes`. Pipeline linear de passos; o output de cada node passa ao seguinte como `{{input}}`.
+3. **REPORTAR** → node final `message` — entrega o resultado como notificacao na UI do JOCA_OS.
 
 ### Exemplo de traducao NL → estrutura
 
-Pedido: *"Todos os dias as 9h verifica os meus emails e manda-me um resumo por WhatsApp"*
+Pedido: *"Todos os dias as 9h verifica os meus emails e manda-me um resumo"*
 
-| Parte | Valor extraido |
+| Parte | Valor |
 |---|---|
-| QUANDO | `0 9 * * *` |
-| O-QUE | "Verificar emails nao lidos de todas as contas, fazer resumo" |
-| REPORTAR | `whatsapp` |
+| QUANDO | `trigger: { type: "schedule", schedule: { kind: "daily", time: "09:00" } }` |
+| O-QUE | node `worker` com `objective: "Verificar emails nao lidos de todas as contas, fazer resumo"` |
+| REPORTAR | node `message` com `text: "{{input}}"`, `title: "Resumo de emails"` |
 
-Confirmar sempre os 3 campos ao utilizador antes de gravar.
+Confirmar sempre as 3 partes com o utilizador antes de gravar.
 
-## Schema — `automacoes.json`
+## Schema — `Automation`
 
-Lista de objectos. Cada automacao:
+Lista de objectos em `automacoes.json`. Cada automacao:
 
 ```json
 {
-  "id": "auto_resumo_emails",
-  "nome": "Resumo de emails diario",
-  "schedule": "0 9 * * *",
-  "intervalo_min": null,
-  "condicao": null,
-  "tarefa": "Verificar emails nao lidos de todas as contas, fazer resumo",
-  "canal": "whatsapp",
+  "id": "uuid",
+  "name": "Resumo de emails diario",
   "enabled": true,
-  "report_policy": "sempre",
-  "retries": { "max": 2, "backoff_min": 5 },
-  "on_failure": "notify",
-  "criado_em": "2026-06-21T09:00:00Z",
-  "ultima_execucao": null,
-  "historico": []
+  "model": "haiku",
+  "skills": ["personal-comms"],
+  "requireConfirm": false,
+  "trigger": { "type": "schedule", "schedule": { "kind": "daily", "time": "09:00" } },
+  "nodes": [
+    { "id": "uuid", "type": "worker", "objective": "Verificar emails nao lidos, fazer resumo" },
+    { "id": "uuid", "type": "message", "title": "Emails", "text": "{{input}}" }
+  ],
+  "nextRunAt": null,
+  "lastRunAt": null,
+  "lastStatus": null,
+  "lastResult": "",
+  "createdAt": 1750000000000
 }
 ```
 
@@ -59,190 +62,92 @@ Lista de objectos. Cada automacao:
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |---|---|---|---|
-| `id` | string | sim | identificador unico, slug (`auto_<assunto>`). Estavel — nao muda em edicoes |
-| `nome` | string | sim | nome legivel para a UI |
-| `schedule` | string\|null | sim* | expressao cron 5 campos (`min hora dom mes dow`). `null` se usar intervalo |
-| `intervalo_min` | int\|null | sim* | intervalo em minutos (ex: `240` = a cada 4h). `null` se usar cron |
-| `condicao` | string\|null | nao | logica condicional NL ("verificar Y; se Z entao..."). `null` = sem condicao |
-| `tarefa` | string | sim | a tarefa NL (parte O-QUE) |
-| `canal` | enum | sim | `whatsapp` \| `joca_os` \| `email` \| `sms` \| `push` |
-| `enabled` | bool | sim | `false` = desactivada (nao apagada) |
-| `report_policy` | enum | sim | `sempre` \| `so_se_problema` \| `so_se_mudou` |
-| `retries` | object | sim | `{ max: int, backoff_min: int }` |
-| `on_failure` | enum | sim | `notify` \| `silent` \| `disable` (ver Falhas) |
-| `criado_em` | ISO8601 | sim | timestamp UTC de criacao |
-| `ultima_execucao` | ISO8601\|null | sim | timestamp UTC da ultima corrida; `null` se nunca correu |
-| `historico` | array | sim | entradas de execucao (ver abaixo) |
+| `id` | string | sim | UUID gerado pelo backend (`randomUUID`). Estavel — nao muda em edicoes |
+| `name` | string | sim | nome legivel para a UI (max 120 chars) |
+| `enabled` | bool | sim | `false` = desactivada (nao apagada; nao agenda `nextRunAt`) |
+| `model` | string | nao | modelo dos nodes `llm` (ex: `sonnet` \| `opus` \| `haiku`); omitido = default |
+| `skills` | string[] | nao | skills/agentes do JOCA_Brain a usar (injectados como directiva ao agente; max 20) |
+| `requireConfirm` | bool | nao | PARA antes de accoes irreversiveis (envio/apagar/deploy) e pede OK |
+| `trigger` | object | sim | `{ type: "schedule" \| "manual", schedule? }` — ver Trigger |
+| `nodes` | array | sim | pipeline linear de nodes — ver Nodes |
+| `nextRunAt` | number\|null | motor | epoch ms da proxima corrida (calculado pelo backend — nao preencher a mao) |
+| `lastRunAt` | number\|null | motor | epoch ms da ultima corrida |
+| `lastStatus` | enum\|null | motor | `ok` \| `error` \| `running` \| `null` (nunca correu) |
+| `lastResult` | string | motor | resumo/output da ultima corrida |
+| `createdAt` | number | sim | epoch ms de criacao |
 
-\* **Exactamente um** de `schedule` / `intervalo_min` deve estar preenchido; o outro `null`. Validar — nunca ambos, nunca nenhum.
+**Accao** = automacao com `trigger.type: "manual"` + input em runtime — dispara-se da UI quando se quer, nao por horario.
 
-### Entrada de `historico`
+### Trigger / Schedule
 
-```json
-{
-  "ts": "2026-06-21T09:00:12Z",
-  "estado": "ok",
-  "duracao_s": 8,
-  "resumo": "12 emails nao lidos, resumo enviado por WhatsApp",
-  "erro": null,
-  "tentativa": 1
-}
-```
+`trigger.type: "schedule"` exige `trigger.schedule`:
 
-| Campo | Valores |
-|---|---|
-| `estado` | `ok` \| `falha` \| `saltada` (condicao nao cumprida → nao reportou) |
-| `erro` | mensagem de erro ou `null` |
-| `tentativa` | numero da tentativa (1 = primeira; >1 = retry) |
-
-Guardar resultado de cada execucao para consulta. Logs longos NAO vao para `historico` (so o `resumo`) — o output completo vai para um log a parte (path a definir pelo motor; nao inventar aqui).
-
-## Cron — convencao
-
-5 campos: `minuto hora dia-do-mes mes dia-da-semana`.
+| Campo | Tipo | Usado em | Descricao |
+|---|---|---|---|
+| `kind` | enum | sempre | `daily` \| `weekly` \| `interval` |
+| `time` | string | daily/weekly | `"HH:MM"` hora LOCAL (default `09:00`) |
+| `weekday` | int | weekly | `0`=Dom … `6`=Sab (default `1`=Seg) |
+| `everyMinutes` | int | interval | intervalo em minutos (ex: `240` = a cada 4h; min 1) |
 
 | NL | schedule |
 |---|---|
-| Todos os dias as 9h | `0 9 * * *` |
-| Todos os dias as 8h | `0 8 * * *` |
-| Todos os dias as 18h | `0 18 * * *` |
-| Segunda as 8h | `0 8 * * 1` |
-| Sexta as 17h | `0 17 * * 5` |
-| Inicio de cada mes | `0 9 1 * *` |
+| Todos os dias as 9h | `{ "kind": "daily", "time": "09:00" }` |
+| Segunda as 8h | `{ "kind": "weekly", "weekday": 1, "time": "08:00" }` |
+| Sexta as 17h | `{ "kind": "weekly", "weekday": 5, "time": "17:00" }` |
+| A cada 4 horas | `{ "kind": "interval", "everyMinutes": 240 }` |
 
-Intervalos curtos/regulares → preferir `intervalo_min` (ex: a cada 4h → `intervalo_min: 240`, `schedule: null`).
+Nao ha expressao cron nem agenda mensal — pedido de "inicio do mes" nao e representavel hoje; dizer isso ao utilizador em vez de aproximar em silencio.
+
+### Nodes
+
+Pipeline LINEAR — corre por ordem; `{{input}}` referencia o output do node anterior.
+
+| `type` | Campos | O que faz |
+|---|---|---|
+| `worker` | `objective` | passo agentico — abre um worker Claude Code dedicado (terminal real, sem projecto) com este objectivo |
+| `llm` | `prompt` | passo de texto barato — prompt directo ao brain (sem terminal); pode usar `{{input}}` |
+| `shell` | `command`, `cwd?` | corre comando local, captura stdout (local-first, maquina do utilizador) |
+| `http` | `url` | GET ao URL, captura o body (truncado) |
+| `message` | `text`, `title?` | OUTPUT — entrega texto como notificacao na UI; pode usar `{{input}}` |
+
+Cada node tem `id` proprio (UUID; o backend gera se faltar).
+
+Escolha de node para O-QUE: tarefa agentica/multi-passo → `worker` · transformacao/resumo de texto → `llm` · comando conhecido → `shell` · verificar endpoint → `http`. REPORTAR → terminar com `message`.
 
 ## Gestao
 
-Operacoes sobre `automacoes.json`. Edicao surgical — tocar so o objecto certo, preservar o resto.
+Preferir a UI/API do JOCA_OS (upsert atomico + re-agendamento + broadcast WS `automations_changed`).
 
 | Operacao | Accao |
 |---|---|
-| **Listar** | ler todas; mostrar `nome`, `schedule`/`intervalo_min`, `canal`, `enabled`, `ultima_execucao` |
-| **Activar** | set `enabled: true` no objecto por `id` |
-| **Desactivar** | set `enabled: false` (para temporariamente sem apagar) |
-| **Editar** | alterar `schedule`/`intervalo_min`/`condicao`/`tarefa`/`canal`/`report_policy`. Manter `id` e `historico` |
-| **Historico** | ler `historico` do objecto por `id`; quando correu, o que fez, erros |
-| **Criar** | extrair 3 partes do NL → construir objecto → confirmar → append a lista |
-| **Apagar** | remover objecto por `id` (accao destrutiva — confirmar 1 linha) |
-
-## Retries e tratamento de falha
-
-Quando a tarefa falha (erro do worker, timeout, ferramenta indisponivel):
-
-1. **Retry** — repetir ate `retries.max`, com espera `retries.backoff_min` minutos entre tentativas. Registar cada tentativa no `historico` (`tentativa: N`).
-2. **Apos esgotar retries** — aplicar `on_failure`:
-   - `notify` — registar `estado: falha` + alertar o utilizador pelo `canal` (default).
-   - `silent` — registar `estado: falha` no historico, sem alertar.
-   - `disable` — registar falha + set `enabled: false` (parar uma automacao que falha em loop).
-3. **Condicao nao cumprida** ≠ falha → `estado: saltada`, sem retry, sem alerta.
-
-`report_policy` controla o reporte em SUCESSO:
-- `sempre` — entrega o resultado todas as vezes.
-- `so_se_problema` — so reporta se detectar problema (ex: site offline). Sucesso silencioso.
-- `so_se_mudou` — so reporta se houver mudanca face a corrida anterior.
-
-## Exemplos completos (FUTUROS Fase 3)
-
-### Resumo de emails — todos os dias as 9h, WhatsApp
-
-```json
-{
-  "id": "auto_resumo_emails",
-  "nome": "Resumo de emails diario",
-  "schedule": "0 9 * * *",
-  "intervalo_min": null,
-  "condicao": null,
-  "tarefa": "Verificar emails nao lidos de todas as contas, fazer resumo",
-  "canal": "whatsapp",
-  "enabled": true,
-  "report_policy": "sempre",
-  "retries": { "max": 2, "backoff_min": 5 },
-  "on_failure": "notify",
-  "criado_em": "2026-06-21T09:00:00Z",
-  "ultima_execucao": null,
-  "historico": []
-}
-```
-
-### Uptime de sites — a cada 4h, WhatsApp so se houver problema
-
-```json
-{
-  "id": "auto_uptime_sites",
-  "nome": "Verificar sites online",
-  "schedule": null,
-  "intervalo_min": 240,
-  "condicao": "Verificar se os sites configurados respondem 200. Reportar so se algum estiver offline.",
-  "tarefa": "Fazer pedido HTTP a cada site monitorizado e validar uptime",
-  "canal": "whatsapp",
-  "enabled": true,
-  "report_policy": "so_se_problema",
-  "retries": { "max": 3, "backoff_min": 2 },
-  "on_failure": "notify",
-  "criado_em": "2026-06-21T09:00:00Z",
-  "ultima_execucao": null,
-  "historico": []
-}
-```
-
-### Resumo do dia — todos os dias as 18h, JOCA_OS
-
-```json
-{
-  "id": "auto_resumo_dia",
-  "nome": "Resumo do que foi feito hoje",
-  "schedule": "0 18 * * *",
-  "intervalo_min": null,
-  "condicao": null,
-  "tarefa": "Resumir o que foi feito hoje nos terminais",
-  "canal": "joca_os",
-  "enabled": true,
-  "report_policy": "sempre",
-  "retries": { "max": 1, "backoff_min": 5 },
-  "on_failure": "silent",
-  "criado_em": "2026-06-21T09:00:00Z",
-  "ultima_execucao": null,
-  "historico": []
-}
-```
-
-### Cabeleireiro — inicio do mes, condicional, WhatsApp
-
-```json
-{
-  "id": "auto_cabeleireiro",
-  "nome": "Lembrete de corte de cabelo",
-  "schedule": "0 9 1 * *",
-  "intervalo_min": null,
-  "condicao": "Consultar calendario. Se nao ha marcacao de cabeleireiro E o ultimo corte foi ha >=60 dias, perguntar se quer marcar.",
-  "tarefa": "Verificar calendario e historico de cortes; sugerir marcacao se aplicavel",
-  "canal": "whatsapp",
-  "enabled": true,
-  "report_policy": "so_se_problema",
-  "retries": { "max": 1, "backoff_min": 5 },
-  "on_failure": "silent",
-  "criado_em": "2026-06-21T09:00:00Z",
-  "ultima_execucao": null,
-  "historico": []
-}
-```
+| **Listar** | mostrar `name`, trigger (kind/time/intervalo), `enabled`, `lastStatus`, `lastRunAt` |
+| **Activar/Desactivar** | toggle `enabled` (desactivar para temporariamente sem apagar) |
+| **Editar** | alterar trigger/nodes/skills/model/requireConfirm. Manter `id` |
+| **Executar ja** | trigger manual da UI (qualquer automacao pode ser disparada a mao) |
+| **Criar** | extrair 3 partes do NL → construir objecto → confirmar → POST /automations |
+| **Apagar** | remover por `id` (destrutivo — confirmar 1 linha) |
 
 ## Validacao antes de gravar
 
-- [ ] `id` unico e em formato slug (`auto_*`)
-- [ ] Exactamente um de `schedule` / `intervalo_min` preenchido (o outro `null`)
-- [ ] `schedule` valido (5 campos cron) se usado
-- [ ] `canal` num valor do enum
-- [ ] `tarefa` nao vazia
-- [ ] `retries.max >= 0`, `backoff_min >= 0`
+- [ ] `name` nao vazio
+- [ ] `trigger.type: "schedule"` → `schedule.kind` valido + campos do kind (`time` HH:MM / `weekday` 0-6 / `everyMinutes` >= 1)
+- [ ] `nodes` nao vazio; cada node tem o campo do seu `type` (`objective`/`prompt`/`command`/`url`/`text`)
+- [ ] REPORTAR coberto — em regra o ultimo node e `message`
+- [ ] Accao irreversivel na tarefa (envios, deletes, deploy) → `requireConfirm: true`
 - [ ] 3 partes (QUANDO/O-QUE/REPORTAR) confirmadas com o utilizador
+- [ ] Campos do motor (`nextRunAt`, `lastRunAt`, `lastStatus`, `lastResult`) — nao preencher a mao
 
-## Limites e incertezas (nao fabricar)
+## Em desenvolvimento (nao assumir que existe)
 
-- **Path de `automacoes.json`** — nao definido na FUTUROS. Confirmar com o utilizador / motor antes de assumir um path. Nao inventar.
-- **Daemon/scheduler** — corre em background com JOCA_OS fechado? Servico? PENDENTE na FUTUROS Fase 3. Esta skill nao decide isso.
-- **Limites de execucao paralela** (saturacao da quota Claude) — PENDENTE. Nao assumir um valor.
-- **Path do log completo** de cada execucao — definido pelo motor, nao por esta skill.
+O motor esta a ganhar `retries`/`catchUp` por automacao e um heartbeat do scheduler. Ate estarem no `store.ts`, nao gerar esses campos nem prometer o comportamento — confirmar primeiro no codigo.
 
-Quando qualquer destes for relevante e nao estiver resolvido: dize-lo explicitamente, nao assumir.
+## Futuro (nao implementado)
+
+Ideias da fase de design antigo que NAO existem no motor — nao gerar, nao prometer:
+
+- **Canais externos** de reporte (`whatsapp`, `email`, `sms`, `push`) — hoje o output e so notificacao na UI (`message`).
+- **Cron 5 campos** e agendas mensais — hoje so `daily`/`weekly`/`interval`.
+- **`condicao` NL + `report_policy`** (`sempre`/`so_se_problema`/`so_se_mudou`) — logica condicional de reporte.
+- **`historico[]` de execucoes** — hoje guarda-se apenas a ultima corrida (`lastRunAt`/`lastStatus`/`lastResult`).
+
+Se o utilizador pedir um destes: dizer que nao existe ainda e propor o equivalente real (ex: condicao dentro do `objective` do worker + `message` final).

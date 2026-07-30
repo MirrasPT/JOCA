@@ -18,7 +18,9 @@ npm install @anthropic-ai/claude-agent-sdk
 **After install:** read `.d.ts` files as source of truth. Never trust online docs alone — the SDK ships types that reflect actual runtime behaviour. Online docs lag or are incomplete.
 
 ```bash
-cat node_modules/@anthropic-ai/claude-agent-sdk/dist/*.d.ts
+# Os tipos vivem na RAIZ do pacote, nao em dist/ (sdk.d.ts tem ~7000 linhas)
+ls node_modules/@anthropic-ai/claude-agent-sdk/*.d.ts   # sdk.d.ts, sdk-tools.d.ts, bridge.d.ts
+grep -n "resume\|mcpServers\|createSdkMcpServer" node_modules/@anthropic-ai/claude-agent-sdk/sdk.d.ts
 ```
 
 ---
@@ -125,14 +127,28 @@ const server = createSdkMcpServer({
     tool(
       'tool_name',
       'Tool description for Claude',
-      { input: z.string() },          // zod shape
-      async ({ input }) => {           // handler
-        return { result: input };
-      }
+      { input: z.string() },          // zod raw shape (nao z.object(...))
+      async ({ input }) => ({          // handler — devolve CallToolResult
+        content: [{ type: 'text', text: `resultado: ${input}` }],
+      }),
+      // 5o parametro opcional: { annotations?, searchHint?, alwaysLoad? }
     ),
   ],
 });
 ```
+
+**Ligar ao modelo** — as tools chegam como `mcp__<server>__<tool>`:
+
+```ts
+query({ prompt, options: {
+  tools: [],                              // desliga TODOS os built-ins (Bash/Read/Write)
+  mcpServers: { joca: server },           // so as tuas tools existem
+  allowedTools: ['mcp__joca__tool_name'], // auto-aprova (NAO restringe — quem restringe e `tools`)
+  permissionMode: 'default',              // sem ferramentas de FS nao precisas de bypassPermissions
+}});
+```
+
+⚠ **`permissionMode: 'bypassPermissions'` = `--dangerously-skip-permissions`**, que o CLI **recusa** quando corre como root. Um agente com `tools: []` nao precisa dele — usa `'default'` + `allowedTools`.
 
 ---
 
@@ -155,19 +171,40 @@ function submitToPty(pty: IPty, text: string, delayMs = 80): void {
 
 ---
 
-## Session spawn pattern (UI broadcast)
+## Conversa multi-turno (chat persistente)
 
-When spawning programmatic sessions, emit `session_created` so the UI can register the new terminal:
+O SDK **nao aceita** um array de mensagens. O historico vem de uma sessao dele:
 
 ```ts
-emitter.emit('session_created', {
-  sessionId,
-  projectPath,
-  createdAt: Date.now(),
-});
+// turno 1 — guarda o session_id que vem no evento result
+let sessionId: string | undefined;
+for await (const msg of query({ prompt: 'ola', options })) {
+  if (msg.type === 'result') sessionId = msg.session_id;   // sdk.d.ts: SDKResultSuccess.session_id
+}
+
+// turno 2 — o SDK recarrega o historico daquela conversa
+query({ prompt: 'e antes disso?', options: { ...options, resume: sessionId } });
 ```
 
-Without this event, the session exists in the backend but is invisible to the UI — no terminal pane opens.
+- `resume: string` — retoma uma sessao. `continue: true` retoma a mais recente do cwd (**exclusivo** com resume).
+- `sessionId` — forca um UUID teu; `forkSession` ramifica; `resumeSessionAt` retoma ate um uuid de mensagem.
+- **Nunca** reconstruas o historico colando o transcript no prompt: custa tokens em cada turno e degrada-se.
+
+### Streaming input (injectar sem forcar turno)
+
+`prompt` tambem aceita `AsyncIterable<SDKUserMessage>`. Cada mensagem pode trazer:
+- `priority: 'now' | 'next' | 'later'` — prioridade da injeccao
+- **`shouldQuery: false`** — anexa ao transcript **sem** disparar um turno do assistente (funde na proxima)
+
+Util para "o worker produziu output novo, mete no contexto mas nao acordes o agente ainda".
+Em streaming mode o objecto `Query` expoe ainda `interrupt()`, `setModel()`, `setPermissionMode()`,
+`setMcpServers()`, `getContextUsage()` e `close()`.
+
+## Session spawn pattern (UI broadcast) — JOCA
+
+No JOCA_OS o `SessionManager` emite `'spawn'` com `{ session }`; e o `server.ts` que traduz isso para
+o broadcast WS `{ type: 'session_created', session: SessionInfo }`. Sem esse broadcast a sessao existe
+no backend mas nao aparece na UI.
 
 ---
 

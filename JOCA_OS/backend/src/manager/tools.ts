@@ -252,11 +252,24 @@ export function buildManagerTools(projectId: string, actions: string[]) {
       // ── Utilizador ───────────────────────────────────────────────────────
       tool(
         'avisar_utilizador',
-        'Envia uma notificação que chega ao utilizador mesmo com o JOCA fechado (inbox/telemóvel). Usa só para o que importa: trabalho concluído que ele espera, bloqueios, decisões que precisam dele. NÃO uses para progresso trivial — para isso basta responderes no chat.',
-        { texto: z.string(), titulo: z.string().optional() },
-        async ({ texto, titulo }) => {
-          pushNotification({ kind: 'system', title: titulo?.slice(0, 120) || '📋 Gestor de projecto', text: texto });
-          note('avisou o utilizador');
+        'Envia uma notificação que chega ao utilizador mesmo com o JOCA fechado (inbox/telemóvel). Usa só para o que importa. Marca precisa_de_resposta quando NADA avança sem ele decidir — essas não são agrupadas nem silenciadas.',
+        {
+          texto: z.string(),
+          titulo: z.string().optional(),
+          precisa_de_resposta: z.boolean().optional().describe('true = estás bloqueado à espera dele; false (por omissão) = é só para ele saber.'),
+        },
+        async ({ texto, titulo, precisa_de_resposta }) => {
+          const project = loadProjects().find((p) => p.id === projectId);
+          pushNotification({
+            kind: 'manager',
+            title: titulo?.slice(0, 120) || `📋 ${project?.name ?? 'Gestor de projecto'}`,
+            text: texto,
+            priority: precisa_de_resposta ? 'action' : 'info',
+            meta: { projectId },
+            // Só o informativo agrupa: dois bloqueios são duas decisões, e juntá-los escondia uma.
+            ...(precisa_de_resposta ? {} : { groupKey: `manager:${projectId}` }),
+          });
+          note(precisa_de_resposta ? 'pediu resposta ao utilizador' : 'avisou o utilizador');
           return ok('Notificação enviada.');
         },
       ),
