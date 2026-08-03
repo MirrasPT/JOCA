@@ -11,6 +11,7 @@ import { startScheduler } from './automations/scheduler';
 import { broadcast } from './ws/broadcast';
 import { attachConnectionHandler } from './ws/connection-handler';
 import { projectsRouter } from './http/projects-routes';
+import { projectGroupsRouter } from './http/project-groups-routes';
 import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
 import { llmRouter } from './http/llm-routes';
@@ -75,6 +76,7 @@ const wss = new WebSocketServer({
 // API routers behind requireAuth. The static SPA shell stays public — it contains no data.
 app.use(authRouter());
 app.use(requireAuth, projectsRouter());
+app.use(requireAuth, projectGroupsRouter());
 app.use(requireAuth, toolkitRouter());
 app.use(requireAuth, llmRouter());
 app.use(requireAuth, automationsRouter());

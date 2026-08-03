@@ -13,9 +13,14 @@
 import { sessionManager } from '../session-manager';
 import { loadProjects } from '../project-store';
 import { judgeWorkerOutput } from '../tasks/engine';
-import { runManagerTurn } from './manager';
+import { runManagerTurn, runGlobalManagerTurn, GLOBAL_MANAGER_ID } from './manager';
 import { getState, patchState, appendMessage } from './store';
 import { markIdle, findBySession, forgetSession } from './worker-pool';
+
+// Fila/serialização (queues, running, debounce, orçamento de auto-wake) são genéricas por chave —
+// funcionam tal-e-qual para GLOBAL_MANAGER_ID, só o turno em si (qual runXTurn chamar) difere.
+const runTurn = (id: string, text: string, kind: 'user' | 'system') =>
+  id === GLOBAL_MANAGER_ID ? runGlobalManagerTurn(text, kind) : runManagerTurn(id, text, kind);
 
 const DEBOUNCE_MS = 1500;
 const MAX_AUTO_WAKES = 6;     // consecutive system wakes without the user saying anything
@@ -58,7 +63,7 @@ async function drain(projectId: string): Promise<void> {
   running.add(projectId);
   patchState(projectId, { autoWakeCount: state.autoWakeCount + 1 });
   try {
-    await runManagerTurn(projectId, batch, 'system');
+    await runTurn(projectId, batch, 'system');
   } catch (e) {
     console.error('[manager/wake] turno falhou:', e instanceof Error ? e.message : e);
   } finally {
@@ -120,7 +125,7 @@ export async function handleUserMessage(projectId: string, text: string): Promis
   }
   running.add(projectId);
   try {
-    await runManagerTurn(projectId, text, 'user');
+    await runTurn(projectId, text, 'user');
   } finally {
     running.delete(projectId);
   }

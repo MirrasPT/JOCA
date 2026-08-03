@@ -7,7 +7,8 @@ import ToastNotification, { type ToastItem } from './components/ToastNotificatio
 import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './components/WorkflowPanel';
 import RightWorkspace from './components/RightWorkspace';
 import DashboardView, { type RateLimits } from './components/DashboardView';
-import ProjectWorkspace from './components/ProjectWorkspace';
+import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
+import GlobalManagerView from './components/GlobalManagerView';
 import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
@@ -15,7 +16,7 @@ import CommandPalette from './components/CommandPalette';
 import NotificationsInbox from './components/NotificationsInbox';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { ensureNotificationPermission, notify } from './lib/notify';
-import type { JocaItems, JocaLogicInfo, MainView, Project, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import type { JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
 // output parseado produz um estado idêntico ao anterior (ex.: mesmo marcador repetido).
@@ -48,6 +49,7 @@ const SERVICE_CONNECTIONS: ServiceConnection[] = [
 export default function App() {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectGroups, setProjectGroups] = useState<ProjectGroup[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
   const [previewPath, setPreviewPath] = useState<string | null>(null);
@@ -138,6 +140,10 @@ export default function App() {
     fetch('/projects').then((r) => r.json()).then(setProjects).catch(() => {});
   }, []);
 
+  const reloadProjectGroups = useCallback(() => {
+    fetch('/project-groups').then((r) => r.json()).then(setProjectGroups).catch(() => {});
+  }, []);
+
   const reloadRuntime = useCallback(() => {
     fetch('/runtime').then((r) => r.json()).then(setRuntimeInfo).catch(() => {});
   }, []);
@@ -202,6 +208,7 @@ export default function App() {
   useEffect(() => {
     ensureNotificationPermission(); // ask once for OS desktop-notification permission
     reloadProjects();
+    reloadProjectGroups();
     reloadRuntime();
     reloadProjectMemory();
     reloadJocaLogic();
@@ -232,7 +239,7 @@ export default function App() {
       stopPolling();
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [reloadProjectMemory, reloadProjects, reloadRuntime, reloadJocaLogic, reloadRateLimits]);
+  }, [reloadProjectMemory, reloadProjects, reloadProjectGroups, reloadRuntime, reloadJocaLogic, reloadRateLimits]);
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -389,6 +396,23 @@ export default function App() {
       .catch(() => setProjects(snapshot)); // rollback on failure
   }, [handleProjectSaved]);
 
+  // Espelha o removeProject que vivia só na SessionSidebar: fecha primeiro as sessões do
+  // projecto (evita PTYs órfãos), só depois apaga. Se o projecto removido é o que estava aberto
+  // no workspace, volta ao dashboard global em vez de deixar o ProjectWorkspace num estado preso.
+  const handleRemoveProject = useCallback((id: string) => {
+    sessions.filter((s) => s.projectId === id).forEach((s) => handleCloseSession(s.id));
+    fetch(`/projects/${id}`, { method: 'DELETE' })
+      .then(() => {
+        reloadProjects();
+        setActiveProjectId((current) => {
+          if (current !== id) return current;
+          setMainView('dashboard');
+          return null;
+        });
+      })
+      .catch(() => {});
+  }, [sessions, handleCloseSession, reloadProjects]);
+
   const handleReorderProjects = useCallback((orderedIds: string[]) => {
     let snapshot: Project[] = [];
     setProjects((current) => {
@@ -406,6 +430,55 @@ export default function App() {
       .then((res) => { if (!res.ok) throw new Error(String(res.status)); reloadProjects(); })
       .catch(() => setProjects(snapshot)); // rollback on failure
   }, [reloadProjects]);
+
+  // Largar a bolinha de um projecto sobre a de outro: se um dos dois já tem grupo, o outro
+  // junta-se a esse grupo; senão cria-se um grupo novo com os dois. Puramente visual (ver
+  // project-groups-store.ts no backend).
+  const handleGroupProjects = useCallback((draggedId: string, targetId: string) => {
+    if (draggedId === targetId) return;
+    const dragged = projects.find((p) => p.id === draggedId);
+    const target = projects.find((p) => p.id === targetId);
+    if (!dragged || !target) return;
+    const existingGroupId = target.groupId || dragged.groupId;
+    const joiningId = target.groupId ? draggedId : targetId;
+    const request = existingGroupId
+      ? fetch(`/project-groups/${existingGroupId}/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: joiningId }),
+      })
+      : fetch('/project-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectIds: [draggedId, targetId] }),
+      });
+    request
+      .then((res) => { if (!res.ok) throw new Error(String(res.status)); })
+      .then(() => { reloadProjects(); reloadProjectGroups(); })
+      .catch(() => {});
+  }, [projects, reloadProjects, reloadProjectGroups]);
+
+  const handleUngroupProject = useCallback((id: string) => {
+    fetch(`/projects/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId: null }),
+    })
+      .then((res) => { if (!res.ok) throw new Error(String(res.status)); })
+      .then(() => { reloadProjects(); reloadProjectGroups(); })
+      .catch(() => {});
+  }, [reloadProjects, reloadProjectGroups]);
+
+  const handleUpdateProjectGroup = useCallback((id: string, patch: Partial<ProjectGroup>) => {
+    fetch(`/project-groups/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+      .then((res) => { if (!res.ok) throw new Error(String(res.status)); })
+      .then(() => reloadProjectGroups())
+      .catch(() => {});
+  }, [reloadProjectGroups]);
 
   const handleOpenProject = useCallback((project: Project) => {
     setMainView('session');
@@ -562,30 +635,33 @@ export default function App() {
       <SessionSidebar
         sessions={sessions}
         projects={projects}
-        activeId={activeId}
-        unreadIds={unreadIds}
+        projectGroups={projectGroups}
         mainView={mainView}
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
         onShowDashboard={() => setMainView('dashboard')}
         onShowAutomations={() => setMainView('automations')}
         onShowTasks={() => setMainView('tasks')}
+        onShowJoca={() => setMainView('joca')}
         onShowProject={handleShowProject}
-        onSelect={handleSwitchSession}
         onClose={handleCloseSession}
-        onRename={handleRenameSession}
         onNew={handleNewSession}
         onOpenProject={handleOpenProject}
-        onProjectsChange={reloadProjects}
         onCreateProject={handleCreateProjectPrompt}
         onInput={handleInput}
         onRenameProject={handleRenameProject}
         onArchiveProject={handleArchiveProject}
         onReorderProjects={handleReorderProjects}
+        onGroupProjects={handleGroupProjects}
+        onUngroupProject={handleUngroupProject}
+        onRenameGroup={(id, name) => handleUpdateProjectGroup(id, { name })}
+        onToggleGroupCollapsed={(id, collapsed) => handleUpdateProjectGroup(id, { collapsed })}
       />
 
       <div className="main-area">
-        {mainView === 'automations' ? (
+        {mainView === 'joca' ? (
+          <GlobalManagerView managerRefresh={managerRefresh} />
+        ) : mainView === 'automations' ? (
           <AutomationsView refreshKey={automationsRefresh} />
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
@@ -606,9 +682,9 @@ export default function App() {
               setSelectedPath(path);
             }}
             onRenameProject={handleRenameProject}
-            onUpdateProject={handleUpdateProject}
-            onRenameSession={handleRenameSession}
-            onCreateProjectSkill={handleCreateProjectSkill}
+            onInput={handleInput}
+            onResize={handleResize}
+            onReady={handleTermReady}
           />
         ) : mainView === 'dashboard' ? (
           <DashboardView
@@ -741,6 +817,10 @@ export default function App() {
           setEditingProject(null);
         }}
         onSaved={handleProjectSaved}
+        onUpdateProject={handleUpdateProject}
+        onCreateProjectSkill={handleCreateProjectSkill}
+        onArchiveProject={handleArchiveProject}
+        onRemoveProject={handleRemoveProject}
       />
     </div>
   );

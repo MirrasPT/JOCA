@@ -1,0 +1,173 @@
+/* ─── Project workspace — channel switcher ──────────────────────────
+   Canais do projecto (Chat/Workers/Tarefas/Ficheiros/Git/Overview): barra horizontal com
+   sublinhado no activo — os canais são navegação primária (label sempre visível), ao contrário
+   do right-tab-rail (utilitário secundário, ícone-só, fixo à borda). */
+
+.pw-channel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--border-faint);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pw-channel-tabs::-webkit-scrollbar { display: none; }
+
+.pw-channel-tab {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px 11px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  font: 600 12.5px var(--font-ui);
+  white-space: nowrap;
+  transition: color var(--t-fast, 110ms ease);
+}
+
+.pw-channel-tab svg {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+}
+
+.pw-channel-tab:hover { color: var(--text-normal); }
+
+.pw-channel-tab.is-active { color: var(--text-bright); }
+.pw-channel-tab.is-active svg { color: var(--accent); }
+
+.pw-channel-tab::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition: opacity var(--t-fast, 110ms ease), transform var(--t-fast, 110ms ease);
+}
+.pw-channel-tab.is-active::after { opacity: 1; transform: scaleX(1); }
+
+.pw-channel-tab-badge {
+  padding: 0 6px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+.pw-channel-tab.is-active .pw-channel-tab-badge { color: var(--accent); background: var(--accent-soft); }
+
+.pw-channel-body { min-width: 0; }
+
+/* ─── Canal Chat: gestor à esquerda, quem trabalha à direita ────────
+   Não é "chat + 2 canais escondidos" — é uma vista só: o gestor (esquerda, espaço nobre) e,
+   ao lado, os workers (estado de cada um) em cima + a pasta do projecto em baixo. É o que o
+   utilizador quer ver enquanto fala com ele, não uma navegação à parte. */
+.pw-chat-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  align-items: start;
+  gap: 20px;
+}
+
+.pw-chat-main { min-width: 0; }
+
+.pw-chat-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.pw-chat-side-block--workers .pw-workers {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.pw-chat-side-block--folder .project-folder-browser {
+  margin-top: 10px;
+  height: 360px;
+}
+
+@media (max-width: 1100px) {
+  .pw-chat-layout { grid-template-columns: 1fr 300px; }
+}
+
+@media (max-width: 860px) {
+  .pw-chat-layout { grid-template-columns: 1fr; }
+  .pw-chat-side-block--folder .project-folder-browser { height: 320px; }
+}
+
+/* ─── Agente inline no painel de chat (troca sem sair do projecto) ──────────────────────────── */
+.pw-chat-agent-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px; padding: 8px 12px;
+  background: var(--surface-panel); border: 1px solid var(--border-bento);
+  border-radius: 10px;
+}
+.pw-chat-back-btn {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  font: 600 12px var(--font-ui); padding: 2px 0;
+}
+.pw-chat-back-btn:hover { text-decoration: underline; }
+.pw-chat-agent-label { flex: 1; min-width: 0; color: var(--text-dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pw-chat-expand-btn {
+  background: none; border: 1px solid var(--border-bento); color: var(--text-dim);
+  border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+}
+.pw-chat-expand-btn:hover { color: var(--text-bright); border-color: var(--accent-border); }
+
+.pw-chat-terminal-wrap {
+  display: flex; flex-direction: column;
+  height: min(65vh, 680px);
+  border: 1px solid var(--border-bento); border-radius: var(--radius-bento);
+  overflow: hidden;
+}
+
+.pw-worker-expand {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 4px; margin: -4px; border-radius: 6px; cursor: pointer;
+  background: none; border: none; color: inherit; font: inherit;
+}
+.pw-worker-expand:hover, .pw-worker-expand:focus-visible { background: rgba(255,255,255,0.08); }
+
+.pw-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 860px) {
+  .pw-channel-tab span { display: none; }
+  .pw-channel-tab {
+    /* 44px de alto (alvo de toque mínimo) — 16px ícone + 14px de cada lado. */
+    padding: 14px 13px;
+    gap: 0;
+  }
+  .pw-channel-tab-badge { position: absolute; top: 6px; right: 6px; }
+}
+
+/* .vp-header é partilhado com o Dashboard/Joca global — o overlap só acontece aqui, onde o
+   cabeçalho ganhou os chips de estado + botão de settings esta sessão, por isso o fix fica
+   scoped a `.project-workspace` em vez de mexer na regra genérica. Abaixo de ~600px o título+
+   caminho (`.pw-head-main`, já min-width:0) era espremido a 0px pelos vizinhos que não encolhiam
+   — texto e chips ficavam sobrepostos. Empilhar em vez de espremer. */
+@media (max-width: 600px) {
+  .project-workspace .vp-header { flex-wrap: wrap; }
+  .project-workspace .pw-head-main { flex: 1 1 100%; }
+  .project-workspace .pw-head-stats { flex-wrap: wrap; }
+}

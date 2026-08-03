@@ -10,6 +10,7 @@ import {
   loadProjects, saveProjects, loadProjectMemory, saveProjectMemory,
 } from '../project-store';
 import { sanitizeToolkitName, sanitizeToolkitCategory } from './helpers';
+import { loadProjectGroups, pruneEmptyGroups } from '../project-groups-store';
 
 // Projects CRUD + per-project git status + per-project toolkit scaffolding.
 export function projectsRouter(): Router {
@@ -111,7 +112,22 @@ export function projectsRouter(): Router {
       const repo = req.body.githubRepo ? String(req.body.githubRepo).trim().slice(0, 500) : '';
       p.githubRepo = repo || undefined;
     }
+    // groupId: string joins/moves into that group; null/'' leaves it (drag-to-group UI —
+    // see project-groups-routes.ts for how a group itself is created/joined).
+    let groupChanged = false;
+    if (req.body.groupId !== undefined) {
+      const next = req.body.groupId ? String(req.body.groupId).trim() : '';
+      if (next && !loadProjectGroups().some((g) => g.id === next)) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      // Muda de grupo directamente (não só "sai para nenhum") também deixa o grupo antigo por
+      // podar — sem isto ficava um "grupo de 1" fantasma quando se arrastava um projecto já
+      // agrupado directamente para outro grupo.
+      if (p.groupId && p.groupId !== (next || undefined)) groupChanged = true;
+      p.groupId = next || undefined;
+    }
     saveProjects(projects);
+    if (groupChanged) pruneEmptyGroups();
     const memory = loadProjectMemory();
     const current = memory[p.id];
     if (current) {
@@ -126,6 +142,7 @@ export function projectsRouter(): Router {
     const memory = loadProjectMemory();
     delete memory[req.params.id];
     saveProjectMemory(memory);
+    pruneEmptyGroups();
     res.json({ ok: true });
   });
 

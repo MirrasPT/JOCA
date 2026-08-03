@@ -72,17 +72,17 @@
   border-color: color-mix(in srgb, var(--on-surface) 12%, transparent);
 }
 
-.db-stat-card:nth-child(1):hover {
+.db-stat-card:nth-child(1):hover,
+.db-stat-card:nth-child(3):hover {
   box-shadow: 0 10px 24px rgba(251, 191, 36, 0.05), inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
 }
 
-.db-stat-card:nth-child(2):hover,
-.db-stat-card:nth-child(3):hover {
+.db-stat-card:nth-child(2):hover {
   box-shadow: 0 10px 24px rgba(255, 69, 0, 0.05), inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
 }
 
 .db-stat-card:nth-child(4):hover {
-  box-shadow: 0 10px 24px rgba(251, 191, 36, 0.05), inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
+  box-shadow: 0 10px 24px rgba(167, 139, 250, 0.05), inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
 }
 
 .db-stat-icon {
@@ -111,6 +111,14 @@
 
 .db-stat-icon--terminal {
   color: var(--accent);
+}
+
+.db-stat-icon--activity {
+  color: var(--status-working);
+}
+
+.db-stat-icon--loose {
+  color: var(--badge-purple);
 }
 
 .db-stat-value {
@@ -248,6 +256,42 @@
 .db-project-card-btn--ghost:hover {
   background: color-mix(in srgb, var(--on-surface) 4%, transparent);
   color: var(--text-bright);
+}
+
+.db-project-body {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.db-project-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.db-project-description--empty {
+  background: transparent;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text-dim);
+  font-style: italic;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all var(--t-fast);
+}
+
+.db-project-description--empty:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
 }
 
 .db-project-sessions-list {

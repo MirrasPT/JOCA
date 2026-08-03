@@ -1,32 +1,34 @@
 import { useState, useRef, useEffect } from 'react';
-import type { CSSProperties } from 'react';
-import type { SessionInfo, Project } from '../types';
+import type { CSSProperties, ReactNode } from 'react';
+import type { SessionInfo, Project, ProjectGroup as ProjectGroupData } from '../types';
+import { projectColor } from '../lib/projectColor';
 
 
 
 interface Props {
   sessions: SessionInfo[];
   projects: Project[];
-  activeId: string | null;
-  unreadIds: Set<string>;
-  mainView: 'dashboard' | 'project' | 'session' | 'automations' | 'tasks';
+  projectGroups: ProjectGroupData[];
+  mainView: 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca';
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
   onShowAutomations: () => void;
   onShowTasks: () => void;
+  onShowJoca: () => void;
   onShowProject: (projectId: string) => void;
-  onSelect: (id: string) => void;
   onClose: (id: string) => void;
-  onRename: (id: string, name: string) => void;
   onNew: () => void;
   onOpenProject: (p: Project) => void;
-  onProjectsChange: () => void;
   onCreateProject: () => void;
   onInput: (sessionId: string, data: string) => void;
   onRenameProject?: (id: string, name: string) => void;
   onArchiveProject?: (id: string, archived: boolean) => void;
   onReorderProjects?: (orderedIds: string[]) => void;
+  onGroupProjects?: (draggedId: string, targetId: string) => void;
+  onUngroupProject?: (id: string) => void;
+  onRenameGroup?: (id: string, name: string) => void;
+  onToggleGroupCollapsed?: (id: string, collapsed: boolean) => void;
 }
 
 type LucideName =
@@ -34,7 +36,7 @@ type LucideName =
   | 'terminal' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
-  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks';
+  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks' | 'arrow-up-down' | 'link';
 
 function LucideIcon({ name }: { name: LucideName }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
@@ -63,6 +65,8 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'archive-restore') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h4" /><path d="M19 8v3" /><path d="m15 18 4-4 4 4" /><path d="M19 22v-8" /></svg>;
   if (name === 'cpu') return <svg {...common}><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" /><rect x="9.5" y="9.5" width="5" height="5" rx="1" /></svg>;
   if (name === 'list-checks') return <svg {...common}><path d="m3 7 2 2 4-4M3 17l2 2 4-4M13 6h8M13 12h8M13 18h8" /></svg>;
+  if (name === 'arrow-up-down') return <svg {...common}><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>;
+  if (name === 'link') return <svg {...common}><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /><line x1="8" y1="12" x2="16" y2="12" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
 
@@ -105,138 +109,29 @@ function sortProjects(list: Project[], sort: ProjectSort): Project[] {
   return out.sort((a, b) => dir * a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
 }
 
-// ── Session item ───────────────────────────────────────────────────
+// ── Project row ────────────────────────────────────────────────────
+// Um projecto é um item de rail (estilo lista de servidores) — dot de cor, nome, badge de
+// "a trabalhar", acções reveladas a hover. As sessões do projecto já não aparecem aqui: vivem no
+// canal Workers do ProjectWorkspace, que é para onde `onDashboard` leva. Remover projecto já não
+// vive aqui (era redundante com a "Zona perigosa" do Overview) — só Nova sessão + Arquivar.
+//
+// Largar a bolinha de cor de OUTRO projecto sobre esta agrupa os dois (onGroupDrop) — distinto de
+// largar no resto da linha, que reordena (onDrop). A bolinha intercepta o próprio evento
+// (stopPropagation) para as duas acções nunca dispararem ao mesmo tempo.
 
-function SessionItem({
-  session, isActive, indented, isUnread,
-  onSelect, onClose, onRename,
-}: {
-  session: SessionInfo;
-  isActive: boolean;
-  indented?: boolean;
-  isUnread?: boolean;
-  onSelect: () => void;
-  onClose: () => void;
-  onRename: (name: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [draft, setDraft] = useState(session.name);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const prevStatus = useRef(session.status);
-  const [doneFlash, setDoneFlash] = useState(false);
-  const iconName: LucideName = session.name.toLowerCase().includes('debug') || session.name.toLowerCase().includes('schema')
-    ? 'terminal'
-    : 'message-square';
-
-  useEffect(() => {
-    if (prevStatus.current === 'working' && session.status === 'idle') {
-      setDoneFlash(true);
-      const t = setTimeout(() => setDoneFlash(false), 700);
-      return () => clearTimeout(t);
-    }
-    prevStatus.current = session.status;
-  }, [session.status]);
-
-  useEffect(() => {
-    if (editing) {
-      setDraft(session.name);
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [editing, session.name]);
-
-  const commit = () => {
-    const t = draft.trim();
-    if (t && t !== session.name) onRename(t);
-    setEditing(false);
-  };
-
-  return (
-    <div
-      className={[
-        'session-item',
-        isActive ? 'session-item--active' : '',
-        `session-item--${session.status}`,
-        indented ? 'session-item--indented' : '',
-      ].filter(Boolean).join(' ')}
-      onMouseLeave={() => setConfirming(false)}
-    >
-      <span className="session-item-icon"><LucideIcon name={iconName} /></span>
-      {editing ? (
-        <input
-          ref={inputRef}
-          className="session-item-name-input"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); commit(); }
-            if (e.key === 'Escape') { setDraft(session.name); setEditing(false); }
-            e.stopPropagation();
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ) : (
-        <button
-          type="button"
-          className="session-item-select"
-          // Select on press: the active xterm swallows the first click via its
-          // document-level focus/selection handlers, so onClick was intermittently
-          // lost (needed 2+ clicks). pointerdown fires before that. detail===0
-          // keeps keyboard (Enter/Space) working without double-firing.
-          onPointerDown={(e) => { if (e.button === 0 && !confirming) onSelect(); }}
-          onClick={(e) => { if (e.detail === 0 && !confirming) onSelect(); }}
-          onKeyDown={(e) => {
-            if ((e.key === 'Delete' || e.key === 'Backspace') && !confirming) { e.preventDefault(); setConfirming(true); }
-          }}
-          onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-          aria-current={isActive ? 'page' : undefined}
-          title={`${session.name} — double-click to rename`}
-        >
-          <span className="session-item-name">{session.name}</span>
-          {session.cli && session.cli !== 'claude' && <span className="session-cli-badge">{session.cli}</span>}
-        </button>
-      )}
-      {!editing && !confirming && (
-        <button
-          className="session-item-close"
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
-          aria-label="Close session"
-        >
-          <LucideIcon name="x" />
-        </button>
-      )}
-      {confirming && (
-        <div className="session-item-confirm" onClick={(e) => e.stopPropagation()}>
-          <span className="session-item-confirm-label">Close?</span>
-          <button className="confirm-yes" type="button" onClick={(e) => { e.stopPropagation(); onClose(); }}><LucideIcon name="check" /></button>
-          <button className="confirm-no" type="button" onClick={(e) => { e.stopPropagation(); setConfirming(false); }}><LucideIcon name="x" /></button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Project group ──────────────────────────────────────────────────
-
-function ProjectGroup({
-  project, sessions, activeId, unreadIds, onSelect, onClose, onRename, onOpen, onDashboard, onRemove, onRenameProject,
-  onArchive, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
+function ProjectRow({
+  project, sessions, onOpen, onDashboard, onRenameProject,
+  onArchive, onUngroup, indented, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
+  dotDragOver, onDotDragEnter, onDotDragLeave, onGroupDrop, groupCandidates, onGroupWith,
 }: {
   project: Project;
   sessions: SessionInfo[];
-  activeId: string | null;
-  unreadIds: Set<string>;
-  onSelect: (id: string) => void;
-  onClose: (id: string) => void;
-  onRename: (id: string, name: string) => void;
   onOpen: () => void;
   onDashboard: () => void;
-  onRemove: () => void;
   onRenameProject?: (id: string, name: string) => void;
   onArchive?: () => void;
+  onUngroup?: () => void;
+  indented?: boolean;
   isDragOver?: boolean;
   dragEnabled?: boolean;
   onDragStart?: () => void;
@@ -245,14 +140,26 @@ function ProjectGroup({
   onDrop?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  dotDragOver?: boolean;
+  onDotDragEnter?: () => void;
+  onDotDragLeave?: () => void;
+  onGroupDrop?: () => void;
+  /** Alternativa por teclado ao arrastar-a-bolinha (WCAG 2.1.1 — o drag nativo não é operável por
+   *  teclado/toque). Outros projectos activos, para escolher com quem agrupar este. */
+  groupCandidates?: { id: string; name: string; groupName?: string }[];
+  onGroupWith?: (targetId: string) => void;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(false);
   const [editing, setEditing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [draft, setDraft] = useState(project.name);
+  const [grouping, setGrouping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const groupSelectRef = useRef<HTMLSelectElement>(null);
   const workingCount = sessions.filter(s => s.status === 'working').length;
+
+  useEffect(() => {
+    if (grouping) groupSelectRef.current?.focus();
+  }, [grouping]);
 
   useEffect(() => {
     if (editing) {
@@ -272,10 +179,11 @@ function ProjectGroup({
     <div
       className={[
         'project-group',
+        indented ? 'project-group--indented' : '',
         isDragOver ? 'project-group--dragover' : '',
         dragging ? 'project-group--dragging' : '',
       ].filter(Boolean).join(' ')}
-      style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+      style={{ '--project-color': projectColor(project) } as CSSProperties}
       onDragOver={dragEnabled ? (e) => { e.preventDefault(); onDragEnter?.(); } : undefined}
       onDrop={dragEnabled ? (e) => { e.preventDefault(); onDrop?.(); } : undefined}
     >
@@ -299,20 +207,12 @@ function ProjectGroup({
             <LucideIcon name="grip" />
           </span>
         )}
-        <button
-          className="project-group-arrow-btn"
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setCollapsed(c => !c); }}
-          aria-label={collapsed ? 'Expand project' : 'Collapse project'}
-        >
-          <LucideIcon name={collapsed ? 'chevron-right' : 'chevron-down'} />
-        </button>
         {editing ? (
           <>
-            <span className="project-group-icon"><LucideIcon name={collapsed ? 'folder' : 'folder-open'} /></span>
+            <span className="project-group-icon"><LucideIcon name="folder" /></span>
             <span
               className="project-group-color"
-              style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+              style={{ '--project-color': projectColor(project) } as CSSProperties}
               aria-hidden
             />
             <input
@@ -334,70 +234,159 @@ function ProjectGroup({
           <button
             type="button"
             className="project-group-label"
-            onClick={() => { if (!confirmRemove) onDashboard(); }}
+            onClick={onDashboard}
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            title={`${project.name} — abrir dashboard (duplo-clique renomeia)`}
+            title={`${project.name} — abrir workspace (duplo-clique renomeia)`}
+            aria-label={`Abrir workspace de ${project.name}`}
           >
-            <span className="project-group-icon"><LucideIcon name={collapsed ? 'folder' : 'folder-open'} /></span>
+            <span className="project-group-icon"><LucideIcon name="folder" /></span>
             <span
-              className="project-group-color"
-              style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}
+              className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
+              style={{ '--project-color': projectColor(project) } as CSSProperties}
               aria-hidden
+              onDragOver={onGroupDrop ? (e) => { e.preventDefault(); e.stopPropagation(); onDotDragEnter?.(); } : undefined}
+              onDragLeave={onGroupDrop ? (e) => { e.stopPropagation(); onDotDragLeave?.(); } : undefined}
+              onDrop={onGroupDrop ? (e) => { e.preventDefault(); e.stopPropagation(); onGroupDrop(); } : undefined}
             />
             <span className="project-group-name">{project.name}</span>
           </button>
         )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
-        {confirmRemove ? (
-          <div className="project-confirm" onClick={(e) => e.stopPropagation()}>
-            <span className="session-item-confirm-label">Remove?</span>
-            <button className="confirm-yes" type="button" onClick={(e) => { e.stopPropagation(); onRemove(); }}><LucideIcon name="check" /></button>
-            <button className="confirm-no" type="button" onClick={(e) => { e.stopPropagation(); setConfirmRemove(false); }}><LucideIcon name="x" /></button>
-          </div>
-        ) : (
-          <div className="project-group-actions">
-            <button className="project-group-action" type="button" aria-label={`Nova sessão em ${project.name}`} onClick={(e) => { e.stopPropagation(); onOpen(); }} data-tooltip="Nova sessão no projeto" data-tooltip-position="bottom"><LucideIcon name="plus" /></button>
-            {onArchive && <button className="project-group-action" type="button" aria-label={`Arquivar projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Arquivar projeto" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
-            <button className="project-group-action project-group-action--remove" type="button" aria-label={`Remover projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); setConfirmRemove(true); }} data-tooltip="Remover projeto" data-tooltip-position="bottom"><LucideIcon name="x" /></button>
-          </div>
-        )}
-      </div>
-      {!collapsed && (
-        <div className="project-group-sessions">
-          {sessions.length === 0 ? (
-            <div className="project-no-sessions">
-              <button className="btn-project-open-sm" type="button" onClick={onOpen}>
-                {project.initialized ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                    Open
-                  </span>
-                ) : (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
-                    </svg>
-                    Init
-                  </span>
-                )}
-              </button>
-            </div>
-          ) : (
-            sessions.map(s => (
-              <SessionItem
-                key={s.id}
-                session={s}
-                isActive={s.id === activeId}
-                isUnread={unreadIds.has(s.id)}
-                indented
-                onSelect={() => onSelect(s.id)}
-                onClose={() => onClose(s.id)}
-                onRename={(name) => onRename(s.id, name)}
-              />
-            ))
+        <div className="project-group-actions">
+          <button className="project-group-action" type="button" aria-label={`Nova sessão em ${project.name}`} onClick={(e) => { e.stopPropagation(); onOpen(); }} data-tooltip="Nova sessão no projeto" data-tooltip-position="bottom"><LucideIcon name="plus" /></button>
+          {groupCandidates && groupCandidates.length > 0 && onGroupWith && (
+            <button className="project-group-action" type="button" aria-label={`Agrupar ${project.name} com outro projecto`} onClick={(e) => { e.stopPropagation(); setGrouping(true); }} data-tooltip="Agrupar com…" data-tooltip-position="bottom"><LucideIcon name="link" /></button>
           )}
+          {onUngroup && <button className="project-group-action" type="button" aria-label={`Retirar ${project.name} do grupo`} onClick={(e) => { e.stopPropagation(); onUngroup(); }} data-tooltip="Retirar do grupo" data-tooltip-position="bottom"><LucideIcon name="x" /></button>}
+          {onArchive && <button className="project-group-action" type="button" aria-label={`Arquivar projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Arquivar projeto" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
+        </div>
+      </div>
+      {grouping && groupCandidates && onGroupWith && (
+        <div className="project-group-picker" onClick={(e) => e.stopPropagation()}>
+          <select
+            ref={groupSelectRef}
+            aria-label={`Agrupar ${project.name} com…`}
+            defaultValue=""
+            onChange={(e) => {
+              const id = e.target.value;
+              setGrouping(false);
+              if (id) onGroupWith(id);
+            }}
+            onBlur={() => setGrouping(false)}
+            onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); setGrouping(false); } }}
+          >
+            <option value="" disabled>Agrupar com…</option>
+            {groupCandidates.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}{c.groupName ? ` (grupo: ${c.groupName})` : ''}</option>
+            ))}
+          </select>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Project folder (grupo) ──────────────────────────────────────────
+// Linha colapsável que representa um grupo de projectos (agrupamento puramente visual — largar a
+// bolinha de um projecto sobre a de outro cria/junta a este). Expandida, mostra os projectos-membro
+// indentados por baixo, cada um como uma ProjectRow normal.
+
+function ProjectFolder({
+  group, members, sessions, expanded, onToggle, onRenameGroup, renderMember,
+  dotDragOver, onDotDragEnter, onDotDragLeave, onGroupDrop,
+}: {
+  group: ProjectGroupData;
+  members: Project[];
+  sessions: SessionInfo[];
+  expanded: boolean;
+  onToggle: () => void;
+  onRenameGroup?: (name: string) => void;
+  /** Mesma wiring (drag/agrupar/arquivar/…) que uma ProjectRow solta — construído pelo caller
+   *  (SessionSidebar) para nunca divergir entre linha solta e linha aninhada. */
+  renderMember: (project: Project) => ReactNode;
+  dotDragOver?: boolean;
+  onDotDragEnter?: () => void;
+  onDotDragLeave?: () => void;
+  onGroupDrop?: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(group.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const workingCount = members.reduce(
+    (n, p) => n + sessions.filter((s) => s.projectId === p.id && s.status === 'working').length,
+    0,
+  );
+
+  useEffect(() => {
+    if (editing) { setDraft(group.name); inputRef.current?.focus(); inputRef.current?.select(); }
+  }, [editing, group.name]);
+
+  const commit = () => {
+    const t = draft.trim();
+    if (t && t !== group.name && onRenameGroup) onRenameGroup(t);
+    setEditing(false);
+  };
+
+  return (
+    <div className="project-folder">
+      <div className="project-group-header project-folder-header">
+        <button
+          type="button"
+          className="project-group-grip project-folder-chevron"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-label={`${expanded ? 'Colapsar' : 'Expandir'} grupo ${group.name}`}
+        >
+          <LucideIcon name={expanded ? 'chevron-down' : 'chevron-right'} />
+        </button>
+        {editing ? (
+          <>
+            <span
+              className="project-group-color"
+              style={{ '--project-color': projectColor(group) } as CSSProperties}
+              aria-hidden
+            />
+            <input
+              ref={inputRef}
+              className="session-item-name-input"
+              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); commit(); }
+                if (e.key === 'Escape') { setDraft(group.name); setEditing(false); }
+                e.stopPropagation();
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            className="project-group-label"
+            onClick={onToggle}
+            onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
+            title={`${group.name} — ${members.length} projectos (duplo-clique renomeia)`}
+            aria-label={`Grupo ${group.name}, ${members.length} projectos`}
+          >
+            <span
+              className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
+              style={{ '--project-color': projectColor(group) } as CSSProperties}
+              aria-hidden
+              onDragOver={onGroupDrop ? (e) => { e.preventDefault(); e.stopPropagation(); onDotDragEnter?.(); } : undefined}
+              onDragLeave={onGroupDrop ? (e) => { e.stopPropagation(); onDotDragLeave?.(); } : undefined}
+              onDrop={onGroupDrop ? (e) => { e.preventDefault(); e.stopPropagation(); onGroupDrop(); } : undefined}
+            />
+            <span className="project-group-name">{group.name}</span>
+            <span className="project-folder-count">{members.length}</span>
+          </button>
+        )}
+        {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
+      </div>
+      {expanded && (
+        <div className="project-folder-members">
+          {members.map((project) => renderMember(project))}
         </div>
       )}
     </div>
@@ -409,30 +398,67 @@ function ProjectGroup({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, activeId, unreadIds, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowProject,
-  onSelect, onClose, onRename, onNew, onOpenProject, onProjectsChange, onCreateProject, onInput, onRenameProject,
-  onArchiveProject, onReorderProjects,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowProject,
+  onClose, onNew, onOpenProject, onCreateProject, onInput, onRenameProject,
+  onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onToggleGroupCollapsed,
 }: Props) {
   const [confirmCloseIdle, setConfirmCloseIdle] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [dotOverId, setDotOverId] = useState<string | null>(null);
   const [projectSort, setProjectSort] = useState<ProjectSort>(readProjectSort);
+  const sortRowRef = useRef<HTMLDivElement>(null);
+
+  // Na tira mobile (38dvh, já perto do limite antes disto) abrir a barra empurra a lista de
+  // projectos toda para fora do fold, sem pista nenhuma de que há mais para baixo — traz a barra
+  // para a vista assim que abre.
+  useEffect(() => {
+    if (sortMenuOpen) sortRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [sortMenuOpen]);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
 
-  const filteredUngrouped = sessions.filter(s => !s.projectId);
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
   const sortedProjects = sortProjects(activeProjects, projectSort);
-  const filteredProjects = sortedProjects.map(project => ({
-    project,
-    sessions: sessions.filter(s => s.projectId === project.id),
-  }));
+  const sortedArchivedProjects = sortProjects(archivedProjects, projectSort);
+
+  // Top-level items da lista: projectos soltos tal-qual, e um item único por grupo (na posição do
+  // seu primeiro membro na ordenação corrente) — o agrupamento é só visual, não altera `order`.
+  type SidebarItem =
+    | { kind: 'project'; project: Project }
+    | { kind: 'group'; group: ProjectGroupData; members: Project[] };
+  const emittedGroups = new Set<string>();
+  const sidebarItems: SidebarItem[] = [];
+  for (const project of sortedProjects) {
+    if (project.groupId) {
+      if (emittedGroups.has(project.groupId)) continue;
+      const group = projectGroups.find(g => g.id === project.groupId);
+      if (!group) { sidebarItems.push({ kind: 'project', project }); continue; }
+      emittedGroups.add(project.groupId);
+      sidebarItems.push({
+        kind: 'group',
+        group,
+        members: sortedProjects.filter(p => p.groupId === project.groupId),
+      });
+    } else {
+      sidebarItems.push({ kind: 'project', project });
+    }
+  }
+
+  const handleGroupDrop = (targetId: string) => {
+    if (dragId && onGroupProjects) onGroupProjects(dragId, targetId);
+    setDragId(null);
+    setOverId(null);
+    setDotOverId(null);
+  };
 
   // Arrastar só faz sentido na vista manual — noutra ordenação a posição largada seria descartada.
   const dragEnabled = !!onReorderProjects && activeProjects.length > 1 && projectSort === 'manual';
   const canPinOrder = !!onReorderProjects && activeProjects.length > 1 && projectSort !== 'manual';
+  const canSort = activeProjects.length > 1 || archivedProjects.length > 1;
 
   const changeProjectSort = (value: ProjectSort) => {
     setProjectSort(value);
@@ -474,14 +500,42 @@ export default function SessionSidebar({
     setConfirmCloseIdle(false);
   };
 
-  const removeProject = async (id: string) => {
-    sessions.filter(s => s.projectId === id).forEach(s => onClose(s.id));
-    await fetch(`/projects/${id}`, { method: 'DELETE' });
-    onProjectsChange();
-  };
+  // Props partilhadas por uma ProjectRow, quer esteja solta na lista quer aninhada dentro de uma
+  // ProjectFolder — extraído para não haver 2 sítios a wire-ar drag/agrupamento de forma divergente
+  // (bug apanhado ao testar: as linhas aninhadas não tinham handler de "largar na bolinha" nenhum).
+  const projectRowProps = (project: Project) => ({
+    project,
+    sessions: sessions.filter(s => s.projectId === project.id),
+    onOpen: () => onOpenProject(project),
+    onDashboard: () => onShowProject(project.id),
+    onRenameProject,
+    onArchive: onArchiveProject ? () => onArchiveProject(project.id, true) : undefined,
+    onUngroup: project.groupId && onUngroupProject ? () => onUngroupProject(project.id) : undefined,
+    dragEnabled,
+    isDragOver: overId === project.id && dragId !== project.id,
+    onDragStart: () => setDragId(project.id),
+    onDragEnter: () => setOverId(project.id),
+    onDragEnd: () => { setDragId(null); setOverId(null); },
+    onDrop: () => commitReorder(project.id),
+    onMoveUp: () => moveProject(project.id, 'up'),
+    onMoveDown: () => moveProject(project.id, 'down'),
+    dotDragOver: dotOverId === project.id,
+    onDotDragEnter: () => setDotOverId(project.id),
+    onDotDragLeave: () => setDotOverId((v: string | null) => v === project.id ? null : v),
+    onGroupDrop: onGroupProjects ? () => handleGroupDrop(project.id) : undefined,
+    // Alternativa por teclado ao arrastar-a-bolinha (drag nativo não é operável por teclado/toque).
+    groupCandidates: onGroupProjects
+      ? activeProjects.filter((p) => p.id !== project.id).map((p) => ({
+        id: p.id,
+        name: p.name,
+        groupName: p.groupId ? projectGroups.find((g) => g.id === p.groupId)?.name : undefined,
+      }))
+      : undefined,
+    onGroupWith: onGroupProjects ? (targetId: string) => onGroupProjects(project.id, targetId) : undefined,
+  });
 
   return (
-    <aside className={`session-sidebar ${collapsed ? 'session-sidebar--collapsed' : ''}`} aria-label="Sessions">
+    <aside className={`session-sidebar ${collapsed ? 'session-sidebar--collapsed' : ''}`} aria-label="Projects">
       <div className="sidebar-main-bento">
         <div className="sb-header">
           <div className="sb-brand">
@@ -508,53 +562,64 @@ export default function SessionSidebar({
             className={`nav-btn ${mainView === 'dashboard' ? 'active' : ''}`}
             type="button"
             onClick={onShowDashboard}
+            aria-label="Dashboard"
+            aria-current={mainView === 'dashboard' ? 'page' : undefined}
           >
             <span className="nav-icon"><LucideIcon name="layout-dashboard" /></span>
             <span>Dashboard</span>
           </button>
           <button
+            className={`nav-btn ${mainView === 'tasks' ? 'active' : ''}`}
+            type="button"
+            onClick={onShowTasks}
+            aria-label="Tarefas Globais"
+            aria-current={mainView === 'tasks' ? 'page' : undefined}
+          >
+            <span className="nav-icon"><LucideIcon name="list-checks" /></span>
+            <span>Tarefas Globais</span>
+          </button>
+          <button
             className={`nav-btn ${mainView === 'automations' ? 'active' : ''}`}
             type="button"
             onClick={onShowAutomations}
+            aria-label="Automações"
+            aria-current={mainView === 'automations' ? 'page' : undefined}
           >
             <span className="nav-icon"><LucideIcon name="zap" /></span>
             <span>Automações</span>
           </button>
           <button
-            className={`nav-btn ${mainView === 'tasks' ? 'active' : ''}`}
+            className={`nav-btn ${mainView === 'joca' ? 'active' : ''}`}
             type="button"
-            onClick={onShowTasks}
+            onClick={onShowJoca}
+            aria-label="Joca"
+            aria-current={mainView === 'joca' ? 'page' : undefined}
           >
-            <span className="nav-icon"><LucideIcon name="list-checks" /></span>
-            <span>Tarefas</span>
+            <span className="nav-icon"><LucideIcon name="sparkles" /></span>
+            <span>Joca</span>
           </button>
         </div>
 
         <div className="session-sidebar-header">
-          <span className="sidebar-title">Sessions</span>
+          <span className="sidebar-title">Projects</span>
           <div className="sidebar-header-actions">
-            <button
-              className="sidebar-btn-add-project"
-              type="button"
-              onClick={onCreateProject}
-              data-tooltip="Adicionar projeto"
-              data-tooltip-position="bottom"
-              aria-label="Add project"
-            ><LucideIcon name="folder-plus" /></button>
-            <button
-              className="sidebar-btn-new"
-              type="button"
-              onClick={onNew}
-              data-tooltip="Nova sessão"
-              data-tooltip-position="bottom"
-              aria-label="New session"
-            ><LucideIcon name="plus" /></button>
+            {canSort && (
+              <button
+                className={`sidebar-btn-sort${sortMenuOpen ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setSortMenuOpen((v) => !v)}
+                data-tooltip="Ordenar projectos"
+                data-tooltip-position="bottom"
+                aria-label="Ordenar projectos"
+                aria-expanded={sortMenuOpen}
+                aria-controls="sidebar-sort-row"
+              ><LucideIcon name="arrow-up-down" /></button>
+            )}
           </div>
         </div>
 
-        {activeProjects.length > 1 && (
-          <div className="sidebar-sort-row">
-            <span className="sidebar-sort-icon" aria-hidden><LucideIcon name="grip" /></span>
+        {sortMenuOpen && canSort && (
+          <div className="sidebar-sort-row" id="sidebar-sort-row" ref={sortRowRef}>
             <select
               className="sidebar-sort-select"
               value={projectSort}
@@ -581,45 +646,30 @@ export default function SessionSidebar({
         )}
 
         <div className="session-sidebar-list">
-          {filteredUngrouped.map(s => (
-            <SessionItem
-              key={s.id}
-              session={s}
-              isActive={s.id === activeId}
-              isUnread={unreadIds.has(s.id)}
-              onSelect={() => onSelect(s.id)}
-              onClose={() => onClose(s.id)}
-              onRename={(name) => onRename(s.id, name)}
+          {sidebarItems.map((item) => item.kind === 'project' ? (
+            <ProjectRow key={item.project.id} {...projectRowProps(item.project)} />
+          ) : (
+            <ProjectFolder
+              key={item.group.id}
+              group={item.group}
+              members={item.members}
+              sessions={sessions}
+              expanded={!item.group.collapsed}
+              onToggle={() => onToggleGroupCollapsed?.(item.group.id, !item.group.collapsed)}
+              onRenameGroup={onRenameGroup ? (name) => onRenameGroup(item.group.id, name) : undefined}
+              renderMember={(p) => <ProjectRow key={p.id} indented {...projectRowProps(p)} />}
+              dotDragOver={dotOverId === item.group.id}
+              onDotDragEnter={() => setDotOverId(item.group.id)}
+              onDotDragLeave={() => setDotOverId((v) => v === item.group.id ? null : v)}
+              onGroupDrop={onGroupProjects ? () => handleGroupDrop(item.members[0]?.id ?? '') : undefined}
             />
           ))}
 
-          {filteredUngrouped.length > 0 && filteredProjects.length > 0 && <div className="sidebar-divider" />}
-
-          {filteredProjects.map(({ project, sessions: projectSessions }) => (
-            <ProjectGroup
-              key={project.id}
-              project={project}
-              sessions={projectSessions}
-              activeId={activeId}
-              unreadIds={unreadIds}
-              onSelect={onSelect}
-              onClose={onClose}
-              onRename={onRename}
-              onOpen={() => onOpenProject(project)}
-              onDashboard={() => onShowProject(project.id)}
-              onRemove={() => removeProject(project.id)}
-              onRenameProject={onRenameProject}
-              onArchive={onArchiveProject ? () => onArchiveProject(project.id, true) : undefined}
-              dragEnabled={dragEnabled}
-              isDragOver={overId === project.id && dragId !== project.id}
-              onDragStart={() => setDragId(project.id)}
-              onDragEnter={() => setOverId(project.id)}
-              onDragEnd={() => { setDragId(null); setOverId(null); }}
-              onDrop={() => commitReorder(project.id)}
-              onMoveUp={() => moveProject(project.id, 'up')}
-              onMoveDown={() => moveProject(project.id, 'down')}
-            />
-          ))}
+          {projects.length > 0 && (
+            <button type="button" className="sidebar-add-project-row" onClick={onCreateProject}>
+              <LucideIcon name="folder-plus" /> Novo projecto
+            </button>
+          )}
 
           {archivedProjects.length > 0 && (
             <div className="sidebar-archived">
@@ -636,8 +686,8 @@ export default function SessionSidebar({
               </button>
               {showArchived && (
                 <div className="sidebar-archived-list">
-                  {archivedProjects.map(project => (
-                    <div key={project.id} className="archived-item" style={{ '--project-color': project.color || '#ff4500' } as CSSProperties}>
+                  {sortedArchivedProjects.map(project => (
+                    <div key={project.id} className="archived-item" style={{ '--project-color': projectColor(project) } as CSSProperties}>
                       <span className="archived-item-color" aria-hidden />
                       <button
                         className="archived-item-name"
@@ -666,14 +716,24 @@ export default function SessionSidebar({
             </div>
           )}
 
-          {sessions.length === 0 && projects.length === 0 && (
+          {projects.length === 0 && (
             <div className="sidebar-empty">
               <div className="sidebar-empty-icon"><LucideIcon name="info" /></div>
-              <p>No sessions</p>
-              <button className="sidebar-btn-new-large" onClick={onNew}>+ New Session</button>
+              <p>Sem projectos</p>
+              <button className="sidebar-btn-new-large" onClick={onCreateProject}>+ Criar projecto</button>
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          className="sidebar-quick-session-btn"
+          onClick={onNew}
+          data-tooltip="Sessão rápida — agente sem projecto"
+          data-tooltip-position="top"
+        >
+          <LucideIcon name="terminal" /> Sessão rápida
+        </button>
 
         <div className="session-bulk-actions">
           {confirmCloseIdle ? (

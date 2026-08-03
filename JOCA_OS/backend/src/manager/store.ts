@@ -25,6 +25,10 @@ export interface ManagerMessage {
   // manager) does not need a data migration. Undefined = the single local user.
   author?: string;
   costUsd?: number;
+  // Absolute paths attached to this message (image, video, file) — uploaded via /upload same as
+  // task/terminal attachments (lib/fileDrop.ts). The manager doesn't see them automatically; the
+  // prompt text carries a note listing them (see manager.ts) so it can decide to look.
+  attachments?: string[];
   // Short trace of what the manager did during this turn ("abriu Worker Design", "leu o terminal").
   actions?: string[];
 }
@@ -74,7 +78,7 @@ export function loadChat(projectId: string, limit = 200): ManagerMessage[] {
 
 export function appendMessage(
   projectId: string,
-  spec: { role: ManagerRole; text: string; author?: string; costUsd?: number; actions?: string[] },
+  spec: { role: ManagerRole; text: string; author?: string; costUsd?: number; actions?: string[]; attachments?: string[] },
 ): ManagerMessage {
   const msg: ManagerMessage = {
     id: randomUUID(),
@@ -83,6 +87,7 @@ export function appendMessage(
     ts: Date.now(),
     author: spec.author,
     costUsd: spec.costUsd,
+    attachments: spec.attachments?.length ? spec.attachments.slice(0, 20) : undefined,
     actions: spec.actions?.length ? spec.actions.slice(0, 40) : undefined,
   };
   try {
@@ -100,7 +105,9 @@ export function clearChat(projectId: string): void {
   const all = loadAllState();
   if (all[projectId]) {
     // Dropping the SDK session id is what makes the next turn start a fresh conversation.
-    all[projectId] = { ...all[projectId], sdkSessionId: undefined, autoWakeCount: 0 };
+    // totalCostUsd zera também — sem isto o frontend mostrava $0 optimista e via-o saltar de
+    // volta ao valor antigo assim que o próximo GET carregava o estado real.
+    all[projectId] = { ...all[projectId], sdkSessionId: undefined, autoWakeCount: 0, totalCostUsd: 0 };
     writeJsonFile(STATE_FILE, all);
   }
 }

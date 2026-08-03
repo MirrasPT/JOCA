@@ -1,7 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import type { Project } from '../types';
 import { shortPath, basename } from '../lib/paths';
+import { PROJECT_COLORS } from '../lib/projectColor';
+import { GithubIcon } from './dashboard/icons';
+import ProjectToolkitModal from './ProjectToolkitModal';
+
+interface GitInfo {
+  isRepository: boolean;
+  remoteUrl?: string;
+  branch?: string;
+  statusSummary?: string;
+  lastCommit?: string;
+}
+
+function parseGithubRepo(url?: string): string {
+  if (!url) return '';
+  const clean = url.trim().replace(/\.git$/, '');
+  const match = clean.match(/(?:github\.com[:/])([^/]+\/[^/]+)$/);
+  return match ? match[1] : '';
+}
 
 interface FileEntry {
   name: string;
@@ -30,15 +48,11 @@ interface Props {
   project?: Project | null;
   onClose: () => void;
   onSaved: (project: Project) => void;
+  onUpdateProject?: (id: string, patch: Partial<Project>) => Promise<void>;
+  onCreateProjectSkill?: (project: Project, skillName: string) => void;
+  onArchiveProject?: (id: string, archived: boolean) => void;
+  onRemoveProject?: (id: string) => void;
 }
-
-const PROJECT_COLORS = [
-  '#ff4500', '#ff7a1a', '#f2c94c', '#58d879',
-  '#25c2a0', '#6da8ff', '#3a7cff', '#a98cff',
-  '#d779ff', '#ff6b9a', '#ef4444', '#94a3b8',
-  '#f97316', '#84cc16', '#14b8a6', '#0ea5e9',
-  '#8b5cf6', '#ec4899',
-];
 
 function normalizeColor(color: string) {
   const trimmed = color.trim();
@@ -62,14 +76,51 @@ function XIcon() {
   );
 }
 
-export default function CreateProjectModal({ open, project, onClose, onSaved }: Props) {
+export default function CreateProjectModal({
+  open, project, onClose, onSaved, onUpdateProject, onCreateProjectSkill, onArchiveProject, onRemoveProject,
+}: Props) {
   const [draft, setDraft] = useState<ProjectDraft>({ name: '', path: '', color: PROJECT_COLORS[0], description: '', hasCode: false });
+  // Só true depois do utilizador tocar mesmo num swatch/input — sem isto TODOS os projectos
+  // novos enviavam o mesmo laranja por omissão (draft.color já nasce com PROJECT_COLORS[0]),
+  // e o fallback de cor por hash em `projectColor()` nunca chegava a disparar via UI.
+  const [colorTouched, setColorTouched] = useState(false);
   const [browserPath, setBrowserPath] = useState('');
   const [fileList, setFileList] = useState<FileListResponse | null>(null);
   const [showHidden, setShowHidden] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // ── Secções extra do modo edição (Git / Skills / Zona perigosa) ──────────────────────────
+  const [gitInfo, setGitInfo] = useState<GitInfo | null>(null);
+  const [githubRepoDraft, setGithubRepoDraft] = useState('');
+  const [editingGithub, setEditingGithub] = useState(false);
+  const [toolkitCounts, setToolkitCounts] = useState<{ skills: number; agents: number } | null>(null);
+  const [toolkitModalOpen, setToolkitModalOpen] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const cancelRemoveRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (confirmRemove) cancelRemoveRef.current?.focus();
+  }, [confirmRemove]);
+
+  useEffect(() => {
+    if (!open || !project) { setGitInfo(null); setToolkitCounts(null); return; }
+    fetch(`/projects/${project.id}/git`).then((r) => r.json()).then(setGitInfo).catch(() => setGitInfo(null));
+    fetch(`/projects/${project.id}/toolkit`).then((r) => r.json())
+      .then((d) => setToolkitCounts({ skills: d?.skills?.length || 0, agents: d?.agents?.length || 0 }))
+      .catch(() => setToolkitCounts(null));
+    setGithubRepoDraft(project.githubRepo || '');
+    setEditingGithub(false);
+    setConfirmRemove(false);
+  }, [open, project]);
+
+  const saveGithubRepo = useCallback(async () => {
+    if (project && onUpdateProject) {
+      await onUpdateProject(project.id, { githubRepo: githubRepoDraft.trim() || undefined });
+      setEditingGithub(false);
+    }
+  }, [project, onUpdateProject, githubRepoDraft]);
 
   const visibleDirs = useMemo(() => fileList?.entries.filter((entry) => entry.isDir) ?? [], [fileList]);
   const isEditing = Boolean(project);
@@ -91,6 +142,7 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
     setBrowserPath(project?.path ?? '');
     setFileList(null);
     setError('');
+    setColorTouched(Boolean(project?.color));
   }, [open, project]);
 
   useEffect(() => {
@@ -122,6 +174,61 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
     return () => controller.abort();
   }, [browserPath, open, showHidden]);
 
+  // Focus-trap real: `aria-modal="true"` promete que o resto do documento fica inerte, mas sem
+  // isto o Tab continuava a percorrer a sidebar por trás do overlay (mesmo padrão já usado no
+  // CommandPalette em App.tsx — reaproveitado aqui, não reinventado).
+  // Usa uma ref própria (não `document.querySelector('.project-modal')`) — com o modal de Skills
+  // aninhado aberto por cima, os DOIS elementos partilham essa classe e o querySelector apanhava
+  // sempre o primeiro (este, o de baixo), prendendo o Tab aqui mesmo com o modal de cima activo.
+  const modalRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  // Ref, não dependência do efeito: `onClose` chega como arrow inline do caller (identidade nova a
+  // cada render) — pô-la nas deps fazia o efeito re-executar em CADA render enquanto aberto.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Capturar o opener + focar o 1º campo só na transição REAL open:false→true — separado do efeito
+  // do trap (que também depende de `toolkitModalOpen`) para essa dependência extra nunca reescrever
+  // `openerRef.current` a meio (senão, ao fechar o modal de Skills aninhado, este efeito repetia e
+  // gravava o que estava focado NAQUELE instante — um botão lá dentro — em vez do opener original).
+  useEffect(() => {
+    if (!open) return;
+    openerRef.current = document.activeElement as HTMLElement;
+    requestAnimationFrame(() => {
+      const modal = modalRef.current;
+      if (!modal) return;
+      const first = modal.querySelector<HTMLElement>('button, [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      first?.focus();
+    });
+    return () => {
+      if (openerRef.current) { openerRef.current.focus(); openerRef.current = null; }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // O modal de Skills aninhado tem o seu próprio trap/Escape — enquanto está aberto, este
+      // (o de baixo) tem de ficar em silêncio, senão os dois disputam o mesmo Tab/Escape.
+      if (toolkitModalOpen) return;
+      if (e.key === 'Escape') { e.preventDefault(); onCloseRef.current(); return; }
+      if (e.key !== 'Tab') return;
+      const modal = modalRef.current;
+      if (!modal) return;
+      const focusables = Array.from(modal.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter((el) => el.getClientRects().length > 0);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement;
+      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, toolkitModalOpen]);
+
   const canCreate = draft.path.trim().length > 0 && !saving;
 
   const submit = async () => {
@@ -134,7 +241,10 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
       body: JSON.stringify({
         name: draft.name.trim() || undefined,
         path: draft.path.trim(),
-        color: normalizeColor(draft.color),
+        // Sem toque no picker: não manda cor nenhuma — o fallback por hash (projectColor()) trata
+        // de dar uma cor distinta ao projecto assim que tiver `id`, em vez de todos caírem no
+        // mesmo laranja por omissão.
+        color: colorTouched ? normalizeColor(draft.color) : undefined,
         // Vai sempre (mesmo vazia): no PATCH é assim que se apaga uma descrição que já não serve.
         description: draft.description.trim(),
         hasCode: draft.hasCode,
@@ -158,7 +268,7 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
 
   return (
     <div className="project-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="project-modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+      <div ref={modalRef} className="project-modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
         <div className="project-modal-header">
           <div>
             <span className="project-modal-kicker">{isEditing ? 'Workspace settings' : 'New workspace'}</span>
@@ -172,7 +282,6 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
             <label className="project-field">
               <span>Name</span>
               <input
-                autoFocus
                 value={draft.name}
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
                 placeholder={draft.path ? basename(draft.path) : 'My Project'}
@@ -243,19 +352,19 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
                 {colorOptions.map((color) => (
                   <button
                     key={color}
-                    className={`project-color-dot ${draft.color === color ? 'active' : ''}`}
+                    className={`project-color-dot ${colorTouched && draft.color === color ? 'active' : ''}`}
                     type="button"
                     style={{ '--project-color': color } as CSSProperties}
-                    onClick={() => setDraft((current) => ({ ...current, color }))}
+                    onClick={() => { setColorTouched(true); setDraft((current) => ({ ...current, color })); }}
                     aria-label={`Use color ${color}`}
                   />
                 ))}
               </div>
               <input
                 className="project-color-custom"
-                value={draft.color}
-                onChange={(event) => setDraft((current) => ({ ...current, color: event.target.value }))}
-                placeholder="#ff4500"
+                value={colorTouched ? draft.color : ''}
+                onChange={(event) => { setColorTouched(true); setDraft((current) => ({ ...current, color: event.target.value })); }}
+                placeholder={colorTouched ? '#ff4500' : 'Automática (por projecto)'}
                 aria-label="Custom project color"
               />
             </div>
@@ -305,6 +414,103 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
           </section>
         </div>
 
+        {isEditing && project && (
+          <div className="project-modal-extra">
+            <section className="project-field" aria-label="GitHub">
+              <span>Git</span>
+              {editingGithub ? (
+                <div className="github-edit-row">
+                  <input
+                    type="text"
+                    className="github-input"
+                    value={githubRepoDraft}
+                    onChange={(e) => setGithubRepoDraft(e.target.value)}
+                    placeholder="username/repo"
+                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="f-btn f-btn--sm" type="button" onClick={saveGithubRepo}>Guardar</button>
+                    <button className="f-btn f-btn--sm f-btn--secondary" type="button" onClick={() => setEditingGithub(false)}>Cancelar</button>
+                  </div>
+                </div>
+              ) : project.githubRepo ? (
+                <div className="github-repo-link-wrap">
+                  <a href={`https://github.com/${project.githubRepo}`} target="_blank" rel="noopener noreferrer" className="github-link">
+                    <GithubIcon />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.githubRepo}</span>
+                  </a>
+                  <button className="db-project-card-btn db-project-card-btn--ghost" style={{ padding: '2px 8px', height: '22px', fontSize: '11px', marginTop: '6px' }} onClick={() => setEditingGithub(true)}>Edit Link</button>
+                </div>
+              ) : (
+                <div className="github-no-link">
+                  <p className="memory-empty-text">Sem repositório GitHub associado.</p>
+                  {gitInfo?.isRepository && gitInfo.remoteUrl && parseGithubRepo(gitInfo.remoteUrl) && (
+                    <button
+                      className="db-project-card-btn"
+                      style={{ margin: '8px 0', fontSize: '11px', padding: '6px 10px', width: '100%' }}
+                      onClick={async () => {
+                        const autoRepo = parseGithubRepo(gitInfo.remoteUrl);
+                        if (autoRepo && onUpdateProject) await onUpdateProject(project.id, { githubRepo: autoRepo });
+                      }}
+                    >
+                      Connect: {parseGithubRepo(gitInfo.remoteUrl)}
+                    </button>
+                  )}
+                  <button className="db-project-card-btn db-project-card-btn--ghost" style={{ fontSize: '11px', padding: '4px 8px', width: '100%', marginTop: '4px' }} onClick={() => setEditingGithub(true)}>Add GitHub Link</button>
+                </div>
+              )}
+              {gitInfo?.isRepository && (
+                <div className="git-local-info">
+                  <div className="git-local-title">Local Git Status</div>
+                  <dl className="settings-cli-meta" style={{ margin: 0, fontSize: '11px' }}>
+                    <dt style={{ color: 'var(--text-muted)' }}>Branch</dt>
+                    <dd style={{ color: 'var(--text-bright)' }}>{gitInfo.branch || '...'}</dd>
+                    <dt style={{ color: 'var(--text-muted)' }}>Commit</dt>
+                    <dd style={{ color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={gitInfo.lastCommit}>{gitInfo.lastCommit || '...'}</dd>
+                    <dt style={{ color: 'var(--text-muted)' }}>Status</dt>
+                    <dd style={{ color: gitInfo.statusSummary ? 'var(--yellow)' : 'var(--green)' }}>
+                      {gitInfo.statusSummary ? `${gitInfo.statusSummary.split('\n').length} files modified` : 'Clean'}
+                    </dd>
+                  </dl>
+                </div>
+              )}
+            </section>
+
+            <section className="project-field" aria-label="Skills e agentes exclusivos">
+              <span>Kit exclusivo</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="memory-empty-text" style={{ margin: 0 }}>
+                  {toolkitCounts ? `${toolkitCounts.skills} skill${toolkitCounts.skills === 1 ? '' : 's'} · ${toolkitCounts.agents} agente${toolkitCounts.agents === 1 ? '' : 's'}` : '...'}
+                </span>
+                <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setToolkitModalOpen(true)}>Gerir Skills →</button>
+              </div>
+            </section>
+
+            {(onArchiveProject || onRemoveProject) && (
+              <section className="project-field" aria-label="Zona perigosa">
+                <span>Zona perigosa</span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {onArchiveProject && (
+                    <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => onArchiveProject(project.id, !project.archived)}>
+                      {project.archived ? 'Restaurar projecto' : 'Arquivar projecto'}
+                    </button>
+                  )}
+                  {onRemoveProject && (
+                    confirmRemove ? (
+                      <div role="alert" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Remover definitivamente?</span>
+                        <button className="f-btn f-btn--sm" type="button" style={{ background: 'var(--red)', borderColor: 'var(--red)', color: '#fff' }} onClick={() => { onRemoveProject(project.id); onClose(); }}>Confirmar</button>
+                        <button ref={cancelRemoveRef} className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setConfirmRemove(false)}>Cancelar</button>
+                      </div>
+                    ) : (
+                      <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setConfirmRemove(true)}>Remover projecto</button>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
         {error && <div className="project-modal-error">{error}</div>}
 
         <div className="project-modal-actions">
@@ -314,6 +520,15 @@ export default function CreateProjectModal({ open, project, onClose, onSaved }: 
           </button>
         </div>
       </div>
+
+      {isEditing && project && (
+        <ProjectToolkitModal
+          open={toolkitModalOpen}
+          project={project}
+          onClose={() => setToolkitModalOpen(false)}
+          onCreateProjectSkill={onCreateProjectSkill}
+        />
+      )}
     </div>
   );
 }

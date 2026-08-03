@@ -18,10 +18,21 @@ export interface Project {
   githubRepo?: string;
   archived?: boolean;
   order?: number;
+  /** Agrupamento visual na sidebar (categorias estilo Discord) — sem efeito no projecto em si. */
+  groupId?: string;
   /** O que o projecto é, por palavras do utilizador — é isto que o gestor sabe sobre ele. */
   description?: string;
   /** `true` = já existe código na pasta; `false`/undefined = projecto a começar do zero. */
   hasCode?: boolean;
+}
+
+/** Um grupo/pasta de projectos na sidebar (espelha backend/src/project-groups-store.ts). */
+export interface ProjectGroup {
+  id: string;
+  name: string;
+  color?: string;
+  order?: number;
+  collapsed?: boolean;
 }
 
 // ── v4: gestor de projecto (chat + pool de workers) ───────────────────────────
@@ -36,6 +47,8 @@ export interface ManagerMessage {
   ts: number;
   author?: string;
   costUsd?: number;
+  /** Paths absolutos anexados a esta mensagem (imagem, vídeo, ficheiro). */
+  attachments?: string[];
   /** Traço curto do que o gestor fez neste turno ("abriu worker de design", "criou a tarefa X"). */
   actions?: string[];
 }
@@ -194,5 +207,5 @@ export interface CliProfileInfo {
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
-export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks';
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca';
 export type RightPanel = 'files' | 'toolkit' | 'settings' | null;

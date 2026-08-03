@@ -9,13 +9,25 @@
 // Reaproveita as bolhas do thread de notas das tarefas (.tk-note*) — é a mesma ideia visual
 // (conversa entre humano e agentes) e não vale a pena um segundo sistema de estilos.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, ClipboardEvent, DragEvent } from 'react';
 import type { ManagerMessage, ManagerRole, PooledWorker } from '../types';
 import { renderMarkdown } from '../lib/markdown';
+import { basename } from '../lib/paths';
+import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, uploadPickedFiles } from '../lib/fileDrop';
 import { fullDate, relTime } from './TaskDetail';
 
+function PaperclipIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="m21.44 11.05-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" />
+    </svg>
+  );
+}
+
 interface Props {
-  projectId: string;
-  projectName: string;
+  /** Omitido = modo global (Joca): fala com todos os projectos, não um só. */
+  projectId?: string;
+  projectName?: string;
   /** Incrementa a cada evento WS do gestor (mensagem nova ou mudança de "a pensar"). */
   refreshKey: number;
   /** O GET do chat traz também a pool de workers — quem os mostra é o ProjectWorkspace. */
@@ -50,6 +62,8 @@ function ManagerText({ text }: { text: string }) {
 }
 
 export default function ManagerChat({ projectId, projectName, refreshKey, onWorkersChange }: Props) {
+  const isGlobal = !projectId;
+  const chatBase = isGlobal ? '/manager/global/chat' : `/projects/${projectId}/chat`;
   const [messages, setMessages] = useState<ManagerMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [totalCost, setTotalCost] = useState(0);
@@ -61,13 +75,21 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
   const [actionError, setActionError] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
 
+  // Anexos do próximo envio — imagens/vídeo/ficheiros. O gestor não os "vê" automaticamente: o
+  // texto enviado leva os paths (o backend acrescenta uma nota clara), e ele decide chamar
+  // `ver_imagem`/`ver_ficheiro`, ou delegar a um agente (ex.: agy para vídeo) via `trabalhar`.
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const threadEndRef = useRef<HTMLDivElement>(null);
   // Callback lida por ref: assim o `load` não muda de identidade a cada render do pai.
   const workersCbRef = useRef(onWorkersChange);
   useEffect(() => { workersCbRef.current = onWorkersChange; }, [onWorkersChange]);
 
   const load = useCallback(() => {
-    fetch(`/projects/${projectId}/chat?limit=200`)
+    fetch(`${chatBase}?limit=200`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d: ChatResponse) => {
         setMessages(Array.isArray(d.messages) ? d.messages : []);
@@ -78,12 +100,12 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
       })
       .catch(() => setLoadError('Não foi possível carregar a conversa com o gestor.'))
       .finally(() => setLoading(false));
-  }, [projectId]);
+  }, [chatBase]);
 
   useEffect(() => {
     setLoading(true);
     setConfirmClear(false);
-  }, [projectId]);
+  }, [chatBase]);
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
@@ -92,16 +114,58 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
     threadEndRef.current?.scrollIntoView({ block: 'nearest' });
   }, [messages.length, busy]);
 
+  const openPicker = useCallback(() => fileInputRef.current?.click(), []);
+
+  const onFilesPicked = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ''; // permite re-escolher o mesmo ficheiro
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const paths = await uploadPickedFiles(files);
+      if (paths.length) setAttachments((a) => [...a, ...paths]);
+    } finally { setUploading(false); }
+  }, []);
+
+  // Ctrl+V de uma imagem (screenshot) directo no compose — sobe para JOCA_Drops e fica como anexo.
+  const onComposePaste = useCallback(async (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const imgs = Array.from(e.clipboardData?.items ?? [])
+      .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+      .map((it) => it.getAsFile())
+      .filter((f): f is File => f !== null);
+    if (imgs.length === 0) return; // deixa o paste de texto passar
+    e.preventDefault();
+    setUploading(true);
+    try {
+      const paths = await uploadPastedImages(imgs, Date.now());
+      if (paths.length) setAttachments((a) => [...a, ...paths]);
+    } finally { setUploading(false); }
+  }, []);
+
+  const onComposeDrop = useCallback(async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const cap = captureDrop(e.nativeEvent);
+    const real = dragRealPaths(cap);
+    if (real.length) { setAttachments((a) => [...a, ...real]); return; }
+    if (!dropHadFilesWithoutPath(cap)) return;
+    setUploading(true);
+    try {
+      const { paths } = await resolveDrop(cap);
+      if (paths.length) setAttachments((a) => [...a, ...paths]);
+    } finally { setUploading(false); }
+  }, []);
+
   const send = useCallback(async () => {
     const text = draft.trim();
-    if (!text || sending) return;
+    if ((!text && attachments.length === 0) || sending) return;
     setSending(true);
     setActionError('');
     try {
-      const res = await fetch(`/projects/${projectId}/chat`, {
+      const res = await fetch(chatBase, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, attachments: attachments.length ? attachments : undefined }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -114,19 +178,20 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
         setMessages((prev) => (prev.some((m) => m.id === d.message!.id) ? prev : [...prev, d.message!]));
       }
       setDraft('');
+      setAttachments([]);
       setBusy(true); // ele está a pensar; o `manager_busy` confirma logo a seguir
     } catch {
       setActionError('Erro de rede ao falar com o gestor.');
     } finally {
       setSending(false);
     }
-  }, [draft, sending, projectId]);
+  }, [draft, attachments, sending, chatBase]);
 
   const clearChat = useCallback(async () => {
     setConfirmClear(false);
     setActionError('');
     try {
-      const res = await fetch(`/projects/${projectId}/chat`, { method: 'DELETE' });
+      const res = await fetch(chatBase, { method: 'DELETE' });
       if (!res.ok) { setActionError('Não foi possível limpar a conversa.'); return; }
       setMessages([]);
       setTotalCost(0);
@@ -134,14 +199,18 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
     } catch {
       setActionError('Erro de rede ao limpar a conversa.');
     }
-  }, [projectId, load]);
+  }, [chatBase, load]);
 
   return (
-    <section className="mgr-chat" aria-label={`Gestor do projecto ${projectName}`}>
+    <section className="mgr-chat" aria-label={isGlobal ? 'Joca — gestor global' : `Gestor do projecto ${projectName}`}>
       <header className="mgr-chat-head">
         <div className="mgr-chat-head-main">
-          <h2>Gestor do projecto</h2>
-          <p>Fala só com ele. Ele trata dos workers, das tarefas e volta a falar quando houver novidades.</p>
+          <h2>{isGlobal ? 'Joca' : 'Gestor do projecto'}</h2>
+          <p>
+            {isGlobal
+              ? 'Fala com ele sobre qualquer projecto — pontos de situação, tarefas cross-project, coordenação. Para mexer em ficheiros de um projecto específico, entra nesse projecto.'
+              : 'Fala só com ele. Ele trata dos workers, das tarefas e volta a falar quando houver novidades.'}
+          </p>
         </div>
         <div className="mgr-chat-head-side">
           {totalCost > 0 && (
@@ -177,14 +246,29 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
         {!loading && messages.length === 0 && !loadError && (
           <div className="mgr-empty">
             <strong>Ainda não falaram.</strong>
-            <p>
-              O gestor conhece o {projectName}, não escreve código e não mexe nos ficheiros: ouve o que queres,
-              abre workers (terminais reais) e cria tarefas para eles. Depois volta aqui a dizer o que ficou feito.
-            </p>
-            <p className="mgr-empty-hints">
-              Experimenta: <em>“arruma a página inicial e diz-me o que mudaste”</em> ·{' '}
-              <em>“o que falta para lançar isto?”</em> · <em>“cria uma tarefa para eu rever os textos”</em>
-            </p>
+            {isGlobal ? (
+              <>
+                <p>
+                  O Joca não escreve código nem mexe em ficheiros: vê os teus projectos todos, abre workers
+                  em qualquer um deles, e gere tarefas cross-project. Depois volta aqui a dizer o que ficou feito.
+                </p>
+                <p className="mgr-empty-hints">
+                  Experimenta: <em>“como estão os projectos todos?”</em> ·{' '}
+                  <em>“cria uma tarefa no Bigorna para rever preços”</em> · <em>“que tarefas estão paradas?”</em>
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  O gestor conhece o {projectName}, não escreve código e não mexe nos ficheiros: ouve o que queres,
+                  abre workers (terminais reais) e cria tarefas para eles. Depois volta aqui a dizer o que ficou feito.
+                </p>
+                <p className="mgr-empty-hints">
+                  Experimenta: <em>“arruma a página inicial e diz-me o que mudaste”</em> ·{' '}
+                  <em>“o que falta para lançar isto?”</em> · <em>“cria uma tarefa para eu rever os textos”</em>
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -207,6 +291,15 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
                 {m.role === 'manager'
                   ? <ManagerText text={m.text} />
                   : <p className="tk-note-text">{m.text}</p>}
+                {m.attachments?.length ? (
+                  <div className="tk-attach-chips">
+                    {m.attachments.map((p) => (
+                      <span key={p} className="tk-attach-chip" title={p}>
+                        <PaperclipIcon /><span className="tk-attach-name">{basename(p)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 {m.actions?.length ? (
                   <div className="mgr-note-actions">
                     {m.actions.map((a, i) => <span key={`${m.id}-${i}`}>· {a}</span>)}
@@ -229,19 +322,41 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
 
       {actionError && <div className="tk-drawer-error" role="alert">{actionError}</div>}
 
-      <div className="tk-note-compose mgr-compose">
+      {attachments.length > 0 && (
+        <div className="tk-attach-chips mgr-compose-attachments">
+          {attachments.map((p) => (
+            <button type="button" key={p} className="tk-attach-chip" title={p} aria-label={`Remover anexo ${basename(p)}`} onClick={() => setAttachments((a) => a.filter((x) => x !== p))}>
+              <PaperclipIcon /><span className="tk-attach-name">{basename(p)}</span> ✕
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={`tk-note-compose mgr-compose${dragOver ? ' mgr-compose--dragover' : ''}`}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onComposeDrop}
+      >
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
+          onPaste={onComposePaste}
           rows={3}
-          placeholder="Diz o que queres feito… (Enter envia, Shift+Enter nova linha)"
-          aria-label="Falar com o gestor do projecto"
+          placeholder="Diz o que queres feito… (Enter envia, Shift+Enter nova linha, Ctrl+V cola imagens)"
+          aria-label={isGlobal ? 'Falar com o Joca' : 'Falar com o gestor do projecto'}
         />
-        <button type="button" className="tk-btn-primary" onClick={send} disabled={sending || !draft.trim()}>
-          <SendIcon /> {sending ? 'A enviar…' : 'Enviar'}
-        </button>
+        <div className="mgr-compose-actions">
+          <button type="button" className="mgr-attach-btn" onClick={openPicker} disabled={uploading} title="Anexar ficheiro, imagem ou vídeo">
+            <PaperclipIcon /> {uploading ? 'A carregar…' : 'Anexar'}
+          </button>
+          <button type="button" className="tk-btn-primary" onClick={send} disabled={sending || (!draft.trim() && attachments.length === 0)}>
+            <SendIcon /> {sending ? 'A enviar…' : 'Enviar'}
+          </button>
+        </div>
       </div>
+      <input ref={fileInputRef} type="file" multiple hidden onChange={onFilesPicked} />
     </section>
   );
 }

@@ -17,6 +17,7 @@ export default defineConfig({
       '/file-content': { target: http },
       '/open': { target: http },
       '/projects': { target: http },
+      '/project-groups': { target: http },
       '/runtime': { target: http },
       '/cli-tools': { target: http },
       '/joca-items': { target: http },
@@ -38,6 +39,7 @@ export default defineConfig({
       '/runs': { target: http },
       '/heartbeat': { target: http },
       '/cli-profiles': { target: http },
+      '/manager': { target: http },
     },
   },
 });

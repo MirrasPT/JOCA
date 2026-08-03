@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import type { JocaLogicInfo, Project, SessionInfo } from '../../types';
 import { shortPath } from '../../lib/paths';
-import { FolderIcon, TerminalIcon, BrainIcon } from './icons';
+import { projectColor } from '../../lib/projectColor';
+import { FolderIcon, TerminalIcon, ActivityIcon, ShuffleIcon, BrainIcon } from './icons';
 import { RateBar, type RateLimits } from './RateBar';
 
 interface Props {
@@ -75,14 +76,14 @@ export default function ProjectsOverview({
           </div>
         </div>
         <div className="db-stat-card">
-          <div className="db-stat-icon db-stat-icon--terminal"><TerminalIcon /></div>
+          <div className="db-stat-icon db-stat-icon--activity"><ActivityIcon /></div>
           <div>
             <div className="db-stat-value">{workingSessions.length}</div>
             <div className="db-stat-label">Working Now</div>
           </div>
         </div>
         <div className="db-stat-card">
-          <div className="db-stat-icon db-stat-icon--folder"><FolderIcon /></div>
+          <div className="db-stat-icon db-stat-icon--loose"><ShuffleIcon /></div>
           <div>
             <div className="db-stat-value">{ungroupedSessions.length}</div>
             <div className="db-stat-label">Loose Sessions</div>
@@ -171,7 +172,7 @@ export default function ProjectsOverview({
 
         {visibleProjects.map((project) => {
           const projectSessions = sessions.filter((s) => s.projectId === project.id);
-          const colorTheme = project.color || '#ff4500';
+          const colorTheme = projectColor(project);
           return (
             <div
               key={project.id}
@@ -230,6 +231,21 @@ export default function ProjectsOverview({
                   </button>
                 </div>
               </div>
+              {projectSessions.length === 0 && (
+                <div className="db-project-body">
+                  {project.description ? (
+                    <p className="db-project-description" title={project.description}>{project.description}</p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="db-project-description db-project-description--empty"
+                      onClick={(e) => { e.stopPropagation(); onEditProject(project); }}
+                    >
+                      + Add a description so the manager knows what this is
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="db-project-sessions-list">
                 {projectSessions.length === 0 ? (
                   <button className="db-project-session-item db-project-session-empty" type="button" onClick={() => onOpenProject(project)}>

@@ -49,6 +49,27 @@ function resolveInProject(projectId: string, target: string): string {
   return safePathForRead(abs);
 }
 
+// Resolve um projecto por id (completo ou prefixo) ou nome (case-insensitive, substring) — o Joca
+// global recebe o projecto por NOME em cada chamada (não tem um só fixo), tal como o CLI
+// `joca.mjs` já resolve projectos por prefixo/nome em vez de exigir o id completo.
+// Ambiguidade é sempre `undefined`, nunca "o primeiro que calhar" — um prefixo curto/vazio a
+// apanhar 2+ projectos, ou um nome que bate em vários, falha em vez de escolher por adivinhação
+// (silenciosamente despachar trabalho no projecto errado é pior do que a ferramenta falhar).
+function resolveProjectRef(ref: string) {
+  const trimmed = ref.trim();
+  if (trimmed.length < 3) return undefined;
+  const all = loadProjects();
+  const exactId = all.find((p) => p.id === trimmed);
+  if (exactId) return exactId;
+  const idMatches = all.filter((p) => p.id.startsWith(trimmed));
+  if (idMatches.length === 1) return idMatches[0];
+  const lower = trimmed.toLowerCase();
+  const exactName = all.find((p) => p.name.toLowerCase() === lower);
+  if (exactName) return exactName;
+  const nameMatches = all.filter((p) => p.name.toLowerCase().includes(lower));
+  return nameMatches.length === 1 ? nameMatches[0] : undefined;
+}
+
 // Keys a TUI menu understands. Recovered from the Master's select_in_worker — interactive menus are
 // still a real failure mode and the manager must be able to unblock a worker.
 const KEY_MAP: Record<string, string> = {
@@ -72,10 +93,10 @@ export function buildManagerTools(projectId: string, actions: string[]) {
     version: '1.0.0',
     instructions: 'Ferramentas de orquestração do JOCA para o projecto actual.',
     tools: [
-      // ── Workers ──────────────────────────────────────────────────────────
+      // ── Agentes ──────────────────────────────────────────────────────────
       tool(
         'trabalhar',
-        'Manda um worker fazer trabalho. Cada ÁREA (design, backend, frontend, conteúdo, testes…) tem o seu terminal, que é reutilizado. Devolve imediatamente — o worker trabalha em segundo plano e serás avisado quando terminar. Escreve a instrução completa e auto-suficiente, como se falasses com um programador que acabou de chegar.',
+        'Manda um agente fazer trabalho. Cada ÁREA (design, backend, frontend, conteúdo, testes…) tem o seu terminal, que é reutilizado. Devolve imediatamente — o agente trabalha em segundo plano e serás avisado quando terminar. Escreve a instrução completa e auto-suficiente, como se falasses com um programador que acabou de chegar.',
         {
           area: z.string().describe('Área do trabalho: design, backend, frontend, conteúdo, testes, geral…'),
           instrucao: z.string().describe('O trabalho a fazer, completo e específico (ficheiros, objectivo, critério de pronto).'),
@@ -85,18 +106,18 @@ export function buildManagerTools(projectId: string, actions: string[]) {
         async ({ area, instrucao, cli, modelo }) => {
           const r = dispatchToArea(projectId, area, instrucao, { cli, model: modelo });
           if (!r.ok || !r.worker) return fail(r.error ?? 'não foi possível despachar');
-          note(`${r.reused ? 'enviou trabalho ao' : 'abriu'} worker de ${r.worker.area}`);
-          return ok(`Trabalho entregue ao worker de "${r.worker.area}" (${r.reused ? 'reutilizado' : 'terminal novo'}). Vais ser avisado quando terminar. NÃO esperes nem perguntes se acabou — continua a conversa.`);
+          note(`${r.reused ? 'enviou trabalho ao' : 'abriu'} agente de ${r.worker.area}`);
+          return ok(`Trabalho entregue ao agente de "${r.worker.area}" (${r.reused ? 'reutilizado' : 'terminal novo'}). Vais ser avisado quando terminar. NÃO esperes nem perguntes se acabou — continua a conversa.`);
         },
       ),
 
       tool(
         'ver_workers',
-        'Lista os workers deste projecto e o que cada um está a fazer. Usa ANTES de mandar trabalho, para saber o que já está ocupado.',
+        'Lista os agentes deste projecto e o que cada um está a fazer. Usa ANTES de mandar trabalho, para saber o que já está ocupado.',
         {},
         async () => {
           const list = listWorkers(projectId);
-          if (!list.length) return ok('Nenhum worker aberto neste projecto.');
+          if (!list.length) return ok('Nenhum agente aberto neste projecto.');
           return ok(list.map((w) => {
             const s = sessionManager.get(w.sessionId);
             return `- ${w.area}: ${w.busy ? 'a trabalhar' : 'livre'}${s ? ` (terminal ${s.status})` : ' (terminal fechado)'}${w.currentJob ? ` — ${w.currentJob}` : ''}`;
@@ -106,24 +127,24 @@ export function buildManagerTools(projectId: string, actions: string[]) {
 
       tool(
         'ler_worker',
-        'Lê o que um worker escreveu no terminal. Usa para confirmares um resultado ou perceberes onde ele está preso. Devolve só o fim do output.',
+        'Lê o que um agente escreveu no terminal. Usa para confirmares um resultado ou perceberes onde ele está preso. Devolve só o fim do output.',
         {
           area: z.string(),
           linhas: z.number().optional().describe('Quantos caracteres do fim (por omissão 3000, máximo 12000).'),
         },
         async ({ area, linhas }) => {
           const w = getWorker(projectId, area);
-          if (!w) return fail(`não há worker na área "${area}"`);
+          if (!w) return fail(`não há agente na área "${area}"`);
           const buf = sessionManager.readBuffer(w.sessionId, { strip: true });
-          if (buf === undefined) return fail('o terminal desse worker já não existe');
-          note(`leu o worker de ${w.area}`);
+          if (buf === undefined) return fail('o terminal desse agente já não existe');
+          note(`leu o agente de ${w.area}`);
           return ok(buf.slice(-Math.max(200, Math.min(linhas ?? 3000, 12_000))));
         },
       ),
 
       tool(
         'responder_worker',
-        'Responde a um worker que está à espera: texto livre, ou teclas para menus de escolha (1-9, enter, up, down, y, n, esc). Decide TU quando a escolha é reversível e sem risco; se for irreversível ou importante, pergunta primeiro ao utilizador no chat.',
+        'Responde a um agente que está à espera: texto livre, ou teclas para menus de escolha (1-9, enter, up, down, y, n, esc). Decide TU quando a escolha é reversível e sem risco; se for irreversível ou importante, pergunta primeiro ao utilizador no chat.',
         {
           area: z.string(),
           texto: z.string().optional().describe('Resposta em texto.'),
@@ -131,7 +152,7 @@ export function buildManagerTools(projectId: string, actions: string[]) {
         },
         async ({ area, texto, teclas }) => {
           const w = getWorker(projectId, area);
-          if (!w) return fail(`não há worker na área "${area}"`);
+          if (!w) return fail(`não há agente na área "${area}"`);
           if (teclas?.length) {
             const mapped = teclas.map(mapKey);
             const bad = teclas.filter((_, i) => mapped[i] === null);
@@ -141,13 +162,13 @@ export function buildManagerTools(projectId: string, actions: string[]) {
               sessionManager.input(w.sessionId, k as string);
               await new Promise((r) => setTimeout(r, 80));
             }
-            note(`respondeu ao menu do worker de ${w.area}`);
-            return ok(`Teclas enviadas ao worker de "${w.area}".`);
+            note(`respondeu ao menu do agente de ${w.area}`);
+            return ok(`Teclas enviadas ao agente de "${w.area}".`);
           }
           if (!texto?.trim()) return fail('dá texto ou teclas');
           if (!sessionManager.submitMessage(w.sessionId, texto)) return fail('o terminal já não existe');
-          note(`respondeu ao worker de ${w.area}`);
-          return ok(`Resposta enviada ao worker de "${w.area}". Serás avisado quando ele terminar.`);
+          note(`respondeu ao agente de ${w.area}`);
+          return ok(`Resposta enviada ao agente de "${w.area}". Serás avisado quando ele terminar.`);
         },
       ),
 
@@ -156,9 +177,9 @@ export function buildManagerTools(projectId: string, actions: string[]) {
         'Fecha o terminal de uma área. Usa quando o trabalho dessa área terminou e não é preciso tão cedo, ou quando precisas de espaço para abrir outro.',
         { area: z.string() },
         async ({ area }) => {
-          if (!closeWorker(projectId, area)) return fail(`não há worker na área "${area}"`);
-          note(`fechou o worker de ${area}`);
-          return ok(`Worker de "${area}" fechado.`);
+          if (!closeWorker(projectId, area)) return fail(`não há agente na área "${area}"`);
+          note(`fechou o agente de ${area}`);
+          return ok(`Agente de "${area}" fechado.`);
         },
       ),
 
@@ -413,6 +434,354 @@ export function buildManagerTools(projectId: string, actions: string[]) {
             }
           }
           return ok(lines.filter(Boolean).join('\n'));
+        },
+      ),
+    ],
+  });
+}
+
+// ── Joca global — o mesmo gestor, mas sem UM projecto fixo ────────────────────
+// Reaproveita as mesmas funções de baixo nível (dispatchToArea, loadTasks, etc.) que
+// buildManagerTools — a diferença é que cada ferramenta de workers recebe o projecto por NOME em
+// cada chamada (não há um `projectId` de closure), e as ferramentas de ficheiros (ver_ficheiro/
+// ver_imagem/listar_pasta) ficam de fora: sem uma pasta única, "ver um ficheiro" exigiria escolher
+// projecto primeiro — decisão tomada: o Joca global fica focado em tarefas/coordenação, não em
+// inspeccionar código. Para isso, entra-se no projecto.
+export function buildGlobalManagerTools(actions: string[]) {
+  const note = (s: string) => { actions.push(s); };
+
+  const findProjectOrFail = (ref: string) => {
+    const p = resolveProjectRef(ref);
+    if (!p) throw new Error(`projecto "${ref}" não encontrado (nem por id nem por nome)`);
+    return p;
+  };
+
+  return createSdkMcpServer({
+    name: 'joca',
+    version: '1.0.0',
+    instructions: 'Ferramentas de orquestração do JOCA a nível global — todos os projectos.',
+    tools: [
+      tool(
+        'projectos',
+        'Lista todos os projectos do JOCA (nome, pasta, descrição, se está arquivado). Usa para saberes o que existe antes de apontares trabalho a um.',
+        {},
+        async () => {
+          const all = loadProjects();
+          if (!all.length) return ok('Ainda não há nenhum projecto criado.');
+          return ok(all.map((p) => (
+            `- ${p.name}${p.archived ? ' (arquivado)' : ''} — ${p.path}${p.description ? `\n  ${p.description}` : ''}`
+          )).join('\n'));
+        },
+      ),
+
+      // ── Agentes ──────────────────────────────────────────────────────────
+      tool(
+        'trabalhar',
+        'Manda um agente de um projecto fazer trabalho. Cada ÁREA (design, backend, frontend, conteúdo, testes…) tem o seu terminal, reutilizado. Devolve imediatamente — avisa depois quando terminar (ao projecto, não a ti — ver nota em avisar_utilizador).',
+        {
+          projecto: z.string().describe('Nome (ou id) do projecto onde despachar o trabalho.'),
+          area: z.string().describe('Área do trabalho: design, backend, frontend, conteúdo, testes, geral…'),
+          instrucao: z.string().describe('O trabalho a fazer, completo e específico (ficheiros, objectivo, critério de pronto).'),
+          cli: z.enum(['claude', 'codex', 'agy', 'opencode']).optional(),
+          modelo: z.string().optional(),
+        },
+        async ({ projecto, area, instrucao, cli, modelo }) => {
+          let project;
+          try { project = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          const r = dispatchToArea(project.id, area, instrucao, { cli, model: modelo });
+          if (!r.ok || !r.worker) return fail(r.error ?? 'não foi possível despachar');
+          note(`${r.reused ? 'enviou trabalho ao' : 'abriu'} agente de ${r.worker.area} em ${project.name}`);
+          return ok(`Trabalho entregue ao agente de "${r.worker.area}" em "${project.name}" (${r.reused ? 'reutilizado' : 'terminal novo'}). O aviso de conclusão chega ao gestor DESSE projecto, não a ti — usa ver_workers/ler_worker para acompanhar aqui.`);
+        },
+      ),
+
+      tool(
+        'ver_workers',
+        'Lista agentes activos. Sem "projecto", lista de TODOS os projectos (visão global). Com "projecto", só desse.',
+        { projecto: z.string().optional() },
+        async ({ projecto }) => {
+          let projects = loadProjects();
+          if (projecto) {
+            let p;
+            try { p = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+            projects = [p];
+          }
+          const lines: string[] = [];
+          for (const p of projects) {
+            const list = listWorkers(p.id);
+            for (const w of list) {
+              const s = sessionManager.get(w.sessionId);
+              lines.push(`- [${p.name}] ${w.area}: ${w.busy ? 'a trabalhar' : 'livre'}${s ? ` (terminal ${s.status})` : ' (terminal fechado)'}${w.currentJob ? ` — ${w.currentJob}` : ''}`);
+            }
+          }
+          if (!lines.length) return ok(projecto ? `Nenhum agente aberto em "${projecto}".` : 'Nenhum agente aberto em projecto nenhum.');
+          return ok(lines.join('\n'));
+        },
+      ),
+
+      tool(
+        'ler_worker',
+        'Lê o que um agente de um projecto escreveu no terminal. Devolve só o fim do output.',
+        {
+          projecto: z.string(),
+          area: z.string(),
+          linhas: z.number().optional().describe('Quantos caracteres do fim (por omissão 3000, máximo 12000).'),
+        },
+        async ({ projecto, area, linhas }) => {
+          let project;
+          try { project = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          const w = getWorker(project.id, area);
+          if (!w) return fail(`não há agente na área "${area}" em "${project.name}"`);
+          const buf = sessionManager.readBuffer(w.sessionId, { strip: true });
+          if (buf === undefined) return fail('o terminal desse agente já não existe');
+          note(`leu o agente de ${w.area} em ${project.name}`);
+          return ok(buf.slice(-Math.max(200, Math.min(linhas ?? 3000, 12_000))));
+        },
+      ),
+
+      tool(
+        'responder_worker',
+        'Responde a um agente de um projecto que está à espera: texto livre, ou teclas para menus (1-9, enter, up, down, y, n, esc).',
+        {
+          projecto: z.string(),
+          area: z.string(),
+          texto: z.string().optional(),
+          teclas: z.array(z.string()).optional().describe('Teclas por ordem. Ex.: ["2","enter"]'),
+        },
+        async ({ projecto, area, texto, teclas }) => {
+          let project;
+          try { project = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          const w = getWorker(project.id, area);
+          if (!w) return fail(`não há agente na área "${area}" em "${project.name}"`);
+          if (teclas?.length) {
+            const mapped = teclas.map(mapKey);
+            const bad = teclas.filter((_, i) => mapped[i] === null);
+            if (bad.length) return fail(`teclas não reconhecidas: ${bad.join(', ')}`);
+            for (const k of mapped) {
+              sessionManager.input(w.sessionId, k as string);
+              await new Promise((r) => setTimeout(r, 80));
+            }
+            note(`respondeu ao menu do agente de ${w.area} em ${project.name}`);
+            return ok(`Teclas enviadas ao agente de "${w.area}" em "${project.name}".`);
+          }
+          if (!texto?.trim()) return fail('dá texto ou teclas');
+          if (!sessionManager.submitMessage(w.sessionId, texto)) return fail('o terminal já não existe');
+          note(`respondeu ao agente de ${w.area} em ${project.name}`);
+          return ok(`Resposta enviada ao agente de "${w.area}" em "${project.name}".`);
+        },
+      ),
+
+      tool(
+        'fechar_worker',
+        'Fecha o terminal de uma área de um projecto.',
+        { projecto: z.string(), area: z.string() },
+        async ({ projecto, area }) => {
+          let project;
+          try { project = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          if (!closeWorker(project.id, area)) return fail(`não há agente na área "${area}" em "${project.name}"`);
+          note(`fechou o agente de ${area} em ${project.name}`);
+          return ok(`Agente de "${area}" em "${project.name}" fechado.`);
+        },
+      ),
+
+      // ── Tarefas (todos os projectos) ────────────────────────────────────
+      tool(
+        'tarefas',
+        'Consulta e gere tarefas em TODOS os projectos. Acções: listar | criar | mover | comentar. Sem "projecto" em listar, mostra tarefas de todos. As tarefas NÃO arrancam sozinhas — usa "executar_tarefa".',
+        {
+          accao: z.enum(['listar', 'criar', 'mover', 'comentar']),
+          projecto: z.string().optional().describe('Filtra por este projecto (listar), ou associa a tarefa a ele (criar). Omitido em "criar" = tarefa geral, sem projecto.'),
+          id: z.string().optional().describe('Id da tarefa (aceita prefixo curto).'),
+          titulo: z.string().optional(),
+          descricao: z.string().optional(),
+          coluna: z.enum(['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada']).optional(),
+          para_humano: z.boolean().optional(),
+          nota: z.string().optional(),
+        },
+        async ({ accao, projecto, id, titulo, descricao, coluna, para_humano, nota }) => {
+          let scopedProject;
+          if (projecto) {
+            try { scopedProject = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          }
+          const all = loadTasks();
+          const projectName = (pid?: string) => pid ? (loadProjects().find((p) => p.id === pid)?.name ?? '?') : '—';
+
+          if (accao === 'listar') {
+            const scoped = scopedProject ? all.filter((t) => t.projectId === scopedProject.id) : all;
+            if (!scoped.length) return ok(scopedProject ? `Sem tarefas em "${scopedProject.name}".` : 'Sem tarefas em projecto nenhum.');
+            const byCol = TASK_STATUSES.map((c) => {
+              const inCol = scoped.filter((t) => t.status === c).sort((a, b) => a.order - b.order);
+              if (!inCol.length) return '';
+              return `## ${c}\n` + inCol.map((t) => {
+                const marks = [
+                  t.lastStatus === 'error' ? '✗ erro' : '',
+                  /\[para ti\]/i.test(t.title) ? '👤 humano' : '',
+                  t.comments?.length ? `${t.comments.length} notas` : '',
+                ].filter(Boolean).join(' · ');
+                return `- ${t.id.slice(0, 8)} [${projectName(t.projectId)}] ${t.title}${marks ? `  (${marks})` : ''}`;
+              }).join('\n');
+            }).filter(Boolean).join('\n');
+            return ok(byCol);
+          }
+
+          if (accao === 'criar') {
+            if (!titulo?.trim()) return fail('titulo obrigatório');
+            const finalTitle = para_humano ? `[para ti] ${titulo.trim()}` : titulo.trim();
+            const t = makeTask({
+              title: finalTitle,
+              description: descricao,
+              status: coluna ?? 'a-definir',
+              projectId: scopedProject?.id,
+            });
+            upsertTask(t);
+            note(`criou a tarefa "${t.title}"${scopedProject ? ` em ${scopedProject.name}` : ''}`);
+            return ok(`Tarefa criada: ${t.id.slice(0, 8)} — "${t.title}" (${t.status})${scopedProject ? ` em "${scopedProject.name}"` : ', sem projecto'}.`);
+          }
+
+          const task = all.find((t) => t.id === id) ?? all.find((t) => id && t.id.startsWith(id));
+          if (!task) return fail('tarefa não encontrada');
+
+          if (accao === 'mover') {
+            if (!coluna) return fail('coluna obrigatória');
+            if (task.status === 'em-execucao') return fail('essa tarefa está a ser executada — espera que termine');
+            moveTask(task.id, coluna as TaskStatus);
+            note(`moveu "${task.title}" para ${coluna}`);
+            return ok(`"${task.title}" → ${coluna}.`);
+          }
+
+          if (!nota?.trim()) return fail('nota obrigatória');
+          addTaskComment(task.id, { author: 'system', authorName: 'Joca', text: nota });
+          note(`comentou em "${task.title}"`);
+          return ok('Nota adicionada.');
+        },
+      ),
+
+      tool(
+        'executar_tarefa',
+        'Põe uma tarefa (de qualquer projecto) a executar num worker.',
+        { id: z.string().describe('Id da tarefa (aceita prefixo curto).') },
+        async ({ id }) => {
+          const all = loadTasks();
+          const task = all.find((t) => t.id === id) ?? all.find((t) => t.id.startsWith(id));
+          if (!task) return fail('tarefa não encontrada');
+          if (/^\[para ti\]/i.test(task.title)) return fail('essa tarefa é para o utilizador fazer — não a despaches para um worker');
+          const r = dispatchTask(task.id);
+          if (!r.ok) return fail(r.reason ?? 'não foi possível arrancar');
+          note(`pôs a tarefa "${task.title}" a executar`);
+          return ok(`Tarefa "${task.title}" a executar. Serás avisado quando terminar.`);
+        },
+      ),
+
+      tool(
+        'estado_tarefa',
+        'Vê uma tarefa (de qualquer projecto) em detalhe: descrição, estado da última execução e notas.',
+        { id: z.string() },
+        async ({ id }) => {
+          const all = loadTasks();
+          const task = all.find((t) => t.id === id) ?? all.find((t) => t.id.startsWith(id));
+          if (!task) return fail('tarefa não encontrada');
+          const full = getTask(task.id)!;
+          const lines = [
+            `# ${full.title}`,
+            `coluna: ${full.status}${full.lastStatus ? ` · última execução: ${full.lastStatus}` : ''}`,
+            full.description ? `\n${full.description}` : '',
+            full.result ? `\n[veredicto] ${full.result}` : '',
+          ];
+          if (full.comments?.length) {
+            lines.push('\n## Notas');
+            for (const c of full.comments.slice(-15)) {
+              lines.push(`- [${c.author}${c.authorName ? `/${c.authorName}` : ''}] ${c.text}`);
+            }
+          }
+          return ok(lines.filter(Boolean).join('\n'));
+        },
+      ),
+
+      // ── Utilizador ───────────────────────────────────────────────────────
+      tool(
+        'avisar_utilizador',
+        'Envia uma notificação que chega ao utilizador mesmo com o JOCA fechado. Usa só para o que importa. Marca precisa_de_resposta quando nada avança sem ele decidir.',
+        {
+          texto: z.string(),
+          titulo: z.string().optional(),
+          precisa_de_resposta: z.boolean().optional(),
+        },
+        async ({ texto, titulo, precisa_de_resposta }) => {
+          pushNotification({
+            kind: 'manager',
+            title: titulo?.slice(0, 120) || '📋 Joca',
+            text: texto,
+            priority: precisa_de_resposta ? 'action' : 'info',
+            meta: {},
+            // Sem groupKey (ao contrário do gestor por-projecto): uma chave fixa aqui juntaria
+            // avisos de PROJECTOS DIFERENTES na mesma janela de 90s, e o fold substitui o
+            // título/texto anterior — perderia-se o aviso de um projecto A quando chegasse o de B.
+          });
+          note(precisa_de_resposta ? 'pediu resposta ao utilizador' : 'avisou o utilizador');
+          return ok('Notificação enviada.');
+        },
+      ),
+
+      // ── Verificar ────────────────────────────────────────────────────────
+      // Sem ficheiros de PROJECTO (ver nota no topo do bloco — exigiria escolher um primeiro).
+      // ver_imagem fica de fora dessa regra: um anexo do chat já vem com path ABSOLUTO (upload
+      // para ~/JOCA_Drops), não precisa de nenhum projecto para se validar — só a mesma verificação
+      // de segurança (dentro de HOME, fora de pastas sensíveis) que todo o resto do backend usa.
+      tool(
+        'ver_imagem',
+        'Abre uma imagem anexada ao chat (screenshot, mockup) para a VERES. Recebe o path ABSOLUTO tal como aparece na nota "[Anexos: ...]" da mensagem do utilizador.',
+        { caminho: z.string().describe('Path absoluto do anexo, ex.: "C:\\Users\\...\\JOCA_Drops\\colado-123-1.png"') },
+        async ({ caminho }) => {
+          try {
+            const abs = safePathForRead(caminho);
+            const ext = path.extname(abs).toLowerCase();
+            const mime = IMAGE_TYPES[ext];
+            if (!mime) return fail(`"${ext}" não é uma imagem que eu consiga abrir (${Object.keys(IMAGE_TYPES).join(', ')})`);
+            const buf = fs.readFileSync(abs);
+            if (buf.length > MAX_IMAGE_BYTES) {
+              return fail(`imagem demasiado grande (${Math.round(buf.length / 1024)}KB, máximo ${MAX_IMAGE_BYTES / 1024 / 1024}MB)`);
+            }
+            note(`viu ${path.basename(abs)}`);
+            return { content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: mime }] };
+          } catch (e) {
+            return fail(e instanceof Error ? e.message : 'não foi possível abrir a imagem');
+          }
+        },
+      ),
+
+      tool(
+        'ver_pagina',
+        'Abre uma página no browser e devolve-te o que aparece no ecrã. Usa para validares trabalho web de qualquer projecto.',
+        {
+          url: z.string().describe('http://localhost:3000, https://exemplo.pt, …'),
+          largura: z.number().optional().describe('Largura da janela (por omissão 1280). Usa 390 para telemóvel.'),
+        },
+        async ({ url, largura }) => {
+          if (!/^https?:\/\//i.test(url)) return fail('o url tem de começar por http:// ou https://');
+          const shot = path.join(os.tmpdir(), `joca-shot-${Date.now()}.png`);
+          const width = Math.max(320, Math.min(largura ?? 1280, 2560));
+          try {
+            await new Promise<void>((resolve, reject) => {
+              const child = execFile(
+                'npx',
+                ['--yes', 'playwright', 'screenshot', `--viewport-size=${width},900`, '--wait-for-timeout=2000', url, shot],
+                { timeout: 60_000 },
+                (err) => (err ? reject(err) : resolve()),
+              );
+              child.on('error', reject);
+            });
+            const buf = fs.readFileSync(shot);
+            fs.rmSync(shot, { force: true });
+            note(`viu a página ${url}`);
+            return { content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: 'image/png' }] };
+          } catch (e) {
+            fs.rmSync(shot, { force: true });
+            return fail(
+              `não consegui abrir o browser (${e instanceof Error ? e.message.slice(0, 120) : 'erro'}).\n`
+              + `Alternativa: manda um worker tirar o screenshot — trabalhar(projecto: "X", area: "testes", instrucao: `
+              + `"tira um screenshot de ${url} para screenshot.png na raiz do projecto") — e depois pede a esse projecto para o ver.`,
+            );
+          }
         },
       ),
     ],

@@ -12,6 +12,9 @@ export interface Project {
   githubRepo?: string;
   archived?: boolean;
   order?: number;
+  // Visual-only bundling in the sidebar (see project-groups-store.ts) — has no effect on the
+  // project itself. undefined = not in any group.
+  groupId?: string;
   // Short description written when the project is created. It is the manager's permanent context —
   // the closest thing it has to "what is this project and what are we trying to do".
   description?: string;
