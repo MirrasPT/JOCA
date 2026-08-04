@@ -23,6 +23,8 @@ interface Props {
   onReady: (sessionId: string, ref: TerminalRef) => void;
   path: string;
   onPreviewFile: (path: string) => void;
+  /** Renomear um agente do projecto (duplo-clique no nome). */
+  onRenameAgent?: (id: string, name: string) => void;
   /** Abrir um agente novo neste projecto (o "+" da secção Agentes). */
   onNewAgent: () => void;
 }
@@ -37,7 +39,7 @@ type LeftView = { kind: 'manager' } | { kind: 'agent'; sessionId: string; label:
 export default function ChatChannel({
   projectId, projectName, project, refreshKey, onWorkersChange,
   projectSessions, workers, onExpandSession, onCloseSession, onInput, onResize, onReady,
-  path, onPreviewFile, onNewAgent,
+  path, onPreviewFile, onNewAgent, onRenameAgent,
 }: Props) {
   const [view, setView] = useState<LeftView>({ kind: 'manager' });
 
@@ -103,6 +105,7 @@ export default function ChatChannel({
             >+</button>
           </div>
           <WorkersChannel
+            onRenameAgent={onRenameAgent}
             projectSessions={projectSessions}
             workers={workers}
             onSelectAgent={(id, label) => setView({ kind: 'agent', sessionId: id, label })}

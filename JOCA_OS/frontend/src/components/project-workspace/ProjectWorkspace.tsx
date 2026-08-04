@@ -23,6 +23,8 @@ interface Props {
   managerRefresh: number;
   tasksRefresh: number;
   onEditProject: (project: Project) => void;
+  /** Renomear um agente do projecto. */
+  onRenameSession?: (id: string, name: string) => void;
   /** Escape hatch explícito (ícone de expandir num agente) — ecrã cheio, como antes. */
   onSwitchSession: (id: string) => void;
   onPreviewFile: (path: string) => void;
@@ -38,7 +40,7 @@ interface Props {
 
 export default function ProjectWorkspace({
   project, projects, sessions, managerRefresh, tasksRefresh,
-  onEditProject, onSwitchSession, onPreviewFile,
+  onEditProject, onRenameSession, onSwitchSession, onPreviewFile,
   onRenameProject, onCloseSession, onAddAgent, onInput, onResize, onReady,
 }: Props) {
   const [workers, setWorkers] = useState<PooledWorker[]>([]);
@@ -169,6 +171,7 @@ export default function ProjectWorkspace({
               onExpandSession={onSwitchSession}
               onCloseSession={handleCloseAgent}
               onNewAgent={() => onAddAgent(project)}
+              onRenameAgent={onRenameSession}
               onInput={onInput}
               onResize={onResize}
               onReady={onReady}

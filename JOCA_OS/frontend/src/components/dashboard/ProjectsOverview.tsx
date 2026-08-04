@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { JocaLogicInfo, Project, SessionInfo } from '../../types';
 import { shortPath } from '../../lib/paths';
 import { projectColor } from '../../lib/projectColor';
 import { FolderIcon, TerminalIcon, ActivityIcon, ShuffleIcon, BrainIcon } from './icons';
+import InlineName from '../InlineName';
 import type { RateLimits } from './RateBar';
 
 interface Props {
@@ -20,63 +20,6 @@ interface Props {
   onNewSession: () => void;
   onRenameProject?: (id: string, name: string) => void;
   onRenameSession?: (id: string, name: string) => void;
-}
-
-/**
- * Nome com renome inline por duplo-clique. UM componente com estado próprio, montado por linha —
- * a versão anterior partilhava um único `editingSessionId` + ref entre TODOS os inputs da grelha,
- * e no cartão de sessão solta o mesmo id montava dois inputs em simultâneo (título e linha), com
- * o ref agarrado ao último e o blur de um a fechar o outro. Estado local por instância elimina a
- * classe inteira de bugs, e o JSX de edição deixa de estar copiado quatro vezes.
- */
-function InlineName({ value, onRename, className, inputStyle }: {
-  value: string;
-  onRename?: (name: string) => void;
-  className: string;
-  inputStyle?: CSSProperties;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editing) { setDraft(value); inputRef.current?.focus(); inputRef.current?.select(); }
-  }, [editing, value]);
-
-  if (!editing || !onRename) {
-    return (
-      <span
-        className={className}
-        onDoubleClick={onRename ? (e) => { e.stopPropagation(); setEditing(true); } : undefined}
-        title={onRename ? `${value} — duplo-clique renomeia` : value}
-        style={onRename ? { cursor: 'pointer' } : undefined}
-      >
-        {value}
-      </span>
-    );
-  }
-
-  const commit = () => {
-    const t = draft.trim();
-    if (t && t !== value) onRename(t);
-    setEditing(false);
-  };
-  return (
-    <input
-      ref={inputRef}
-      className="card-name-input"
-      style={inputStyle}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(); }
-        if (e.key === 'Escape') setEditing(false);
-        e.stopPropagation();
-      }}
-      onClick={(e) => e.stopPropagation()}
-    />
-  );
 }
 
 // O panorama global: contadores, estado do Brain e a grelha de projectos + agentes rápidos.

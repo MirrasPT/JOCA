@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PooledWorker, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
+import InlineName from './InlineName';
 import './agents-view.css';
 
 interface Props {
@@ -23,6 +24,8 @@ interface Props {
   onNewSession: (cli: string) => void;
   /** Salta para o workspace do projecto (contexto completo: gestor, tarefas, pasta). */
   onOpenProject: (project: Project) => void;
+  /** Renomear um agente (duplo-clique no nome). */
+  onRenameSession?: (id: string, name: string) => void;
   /** Muda a cada evento de sessão/gestor — dispara o refetch da pool. */
   refreshKey: number;
 }
@@ -50,7 +53,7 @@ function CloseIcon() {
   );
 }
 
-export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, refreshKey }: Props) {
+export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession, refreshKey }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cli, setCli] = useState('claude');
   // O que cada agente está a fazer vive na pool do gestor, não na lista de sessões (que só sabe
@@ -104,7 +107,12 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
           title="Abrir este agente"
         >
           <span className={`pw-worker-dot pw-worker-dot--${s.status}`} aria-hidden />
-          <span className="pw-worker-area">{s.name}</span>
+          <InlineName
+            value={s.name}
+            onRename={onRenameSession ? (name) => onRenameSession(s.id, name) : undefined}
+            className="pw-worker-area"
+            inputClassName="pw-worker-name-input"
+          />
           {confirming ? (
             <span className="pw-worker-confirm" onClick={(e) => e.stopPropagation()}>
               <span className="pw-worker-confirm-q">Fechar?</span>

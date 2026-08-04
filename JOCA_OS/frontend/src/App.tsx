@@ -785,6 +785,7 @@ export default function App() {
             onCloseSession={handleCloseSession}
             onNewSession={handleNewLooseAgent}
             onOpenProject={(project) => handleShowProject(project.id)}
+            onRenameSession={handleRenameSession}
             refreshKey={managerRefresh}
           />
         ) : mainView === 'project' ? (
@@ -797,6 +798,7 @@ export default function App() {
             managerRefresh={managerRefresh}
             tasksRefresh={tasksRefresh}
             onEditProject={handleEditProject}
+            onRenameSession={handleRenameSession}
             onSwitchSession={handleSwitchSession}
             onCloseSession={handleCloseSession}
             onAddAgent={handleAddProjectAgent}

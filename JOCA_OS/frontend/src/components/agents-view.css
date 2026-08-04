@@ -236,3 +236,18 @@
   .agents-view .vp-header { flex-wrap: wrap; }
   .agents-view .ag-new { flex: 1 1 100%; }
 }
+
+/* Renome inline do agente: mesma altura e tipo da linha, para a lista não saltar ao entrar em
+   edição. Herda a largura do slot do nome — um input de largura fixa desalinhava as colunas. */
+.pw-worker-name-input {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--accent-border);
+  border-radius: 5px;
+  background: var(--bg-input);
+  color: var(--text-bright);
+  font: 600 12px var(--font-ui);
+  outline: none;
+}

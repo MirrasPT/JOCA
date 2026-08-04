@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { PooledWorker, SessionInfo } from '../../types';
 import { relTime } from '../TaskDetail';
+import InlineName from '../InlineName';
 import '../agents-view.css';
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   onExpandAgent: (id: string) => void;
   /** Fecha o terminal do agente (mata a sessão). Passa por confirmação na própria linha. */
   onCloseAgent: (id: string) => void;
+  /** Renomear o agente (duplo-clique no nome). Ausente = nome não editável. */
+  onRenameAgent?: (id: string, name: string) => void;
 }
 
 function OpenIcon() {
@@ -33,7 +36,7 @@ function CloseIcon() {
 // Quem está a fazer o trabalho deste projecto: agentes da pool (têm área e trabalho actual) +
 // terminais abertos à mão que não pertencem a nenhuma área. Clicar na linha troca o painel do chat
 // para este agente, inline; os ícones no fim são expandir (ecrã cheio) e fechar (mata a sessão).
-export default function WorkersChannel({ projectSessions, workers, onSelectAgent, onExpandAgent, onCloseAgent }: Props) {
+export default function WorkersChannel({ projectSessions, workers, onSelectAgent, onExpandAgent, onCloseAgent, onRenameAgent }: Props) {
   // Fechar mata trabalho a meio — não é reversível como trocar de vista. Confirma-se na linha,
   // como no resto da app, em vez de um modal.
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -67,7 +70,12 @@ export default function WorkersChannel({ projectSessions, workers, onSelectAgent
           title="Ver este agente aqui"
         >
           <span className={`pw-worker-dot pw-worker-dot--${dotClass}`} aria-hidden />
-          <span className="pw-worker-area">{label}</span>
+          <InlineName
+            value={label}
+            onRename={onRenameAgent ? (name) => onRenameAgent(sessionId, name) : undefined}
+            className="pw-worker-area"
+            inputClassName="pw-worker-name-input"
+          />
           {confirming ? (
             <span className="pw-worker-confirm" onClick={(e) => e.stopPropagation()}>
               <span className="pw-worker-confirm-q">Fechar?</span>
