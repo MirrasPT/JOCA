@@ -1,530 +1,156 @@
-# /install — Setup e Configuracao do JOCA
+# /install — Setup e configuracao do JOCA
 
-Assistente interactivo de instalacao e reconfiguracao. Pode correr em qualquer altura — reconfigura sem apagar o que ja existe.
+Assistente de instalacao e reconfiguracao. Pode correr a qualquer momento — reconfigura sem apagar o que ja existe.
 
 **Repositorio:** https://github.com/MirrasPT/JOCA.git
+
+**A regra que manda neste comando:** *detectar primeiro, perguntar so o que falta.* O sistema
+operativo, o que ja esta instalado, o que ja esta configurado — nada disso se pergunta, ve-se.
+As perguntas que sobram sao sobre **preferencias** e **intencao**, que nenhum comando adivinha.
+
+> Isto substitui o questionario de multi-select que este comando era (mapa de areas->skills, listas
+> de CLIs a marcar um a um). Esse formulario tinha de ser mantido alinhado com o inventario real de
+> skills — era esse o trabalho do antigo `/sync-questionnaires`, agora removido — e mesmo assim
+> perguntava coisas que um `command -v` responde melhor.
 
 **Dados protegidos (NUNCA sobrescrever em reinstalacao):**
 - `memory/projects/` — dados de projectos do utilizador
 - `memory/feedback/` — sessoes de feedback
 - `memory/soul.md` — calibracao de personalidade
-- `JOCA_OS/data/` — projectos, sessoes, settings do UI (projects.json, project-memory.json, session-snapshots.json, ui-settings.json)
+- `JOCA_OS/data/` — projectos, sessoes, settings do UI
 - Ficheiros com `origin: local` no frontmatter — skills/agents criados localmente
 
-**Modo de apresentacao:**
-- Perguntas com <=4 opcoes exclusivas -> usar a ferramenta `AskUserQuestion` (selector visual com setas)
-- Perguntas com mais de 4 opcoes ou multi-select -> apresentar lista numerada/com checkboxes e aguardar input de texto
-- Uma fase de cada vez. Aguardar resposta antes de avancar.
-
 ---
 
-## FASE 0 — Identidade
+## FASE 0 — Levantamento (zero perguntas)
 
-Verificar se ja existe perfil em `~/CLAUDE.md`. Se existir, extrair nome e papel e perguntar via `AskUserQuestion`:
-
-```
-question: "Encontrei o teu perfil: [Nome], [papel]. O que queres fazer?"
-header: "Perfil"
-options:
-  - "Manter como esta" -> saltar para FASE 1
-  - "Actualizar perfil" -> continuar abaixo
-```
-
-Se nao existir perfil, ou se escolheu actualizar:
-
-**Q1 — Nome**
-Pergunta de texto livre: "Como te chamas?"
-
-**Q2 — Papel**
-Lista numerada (>4 opcoes):
-```
-Qual e o teu papel principal?
-[1] Designer
-[2] Desenvolvedor
-[3] Full-stack
-[4] Marketer / Growth
-[5] Product Manager
-[6] Outro: ___
-```
-
-**Q3 — Localizacao** *(opcional)*
-`AskUserQuestion`:
-```
-question: "Onde estas localizado? (opcional)"
-header: "Localizacao"
-options:
-  - "Portugal"
-  - "Brasil"
-  - "Outro pais"
-  - "Prefiro nao dizer"
-```
-
-**Q4 — Sistema Operativo**
-
-Detectar automaticamente via ambiente de execucao (verificar `process.platform` ou `$env:OS` / `uname`). Apresentar o resultado e perguntar via `AskUserQuestion`:
-
-```
-question: "Detectei [OS]. Confirmas?"
-header: "Sistema"
-options:
-  - "Sim, correcto"
-  - "Nao — macOS"
-  - "Nao — Windows"
-  - "Nao — Linux"
-```
-
-Guardar o OS confirmado — sera usado ao longo de toda a instalacao para escolher comandos cross-platform:
-- **Windows** -> PowerShell (`powershell` / `pwsh`) para todos os comandos
-- **macOS / Linux** -> `bash` para todos os comandos
-
----
-
-## FASE SOUL — Calibracao de Personalidade
-
-Configura os parametros core do `memory/soul.md`. Estes valores moldam o comportamento de todo o JOCA em todas as sessoes.
-
-**Q-SOUL-1 — Nivel de Autonomia**
-`AskUserQuestion`:
-```
-question: "Quanto autonomo queres que o JOCA seja?"
-header: "Autonomia"
-options:
-  - "Maxima — executa tudo sem perguntar, so para em irreversiveis (Recomendado)"
-  - "Alta — executa a maioria, pede em decisoes de arquitectura"
-  - "Moderada — pede confirmacao em alteracoes multi-ficheiro"
-  - "Baixa — pede sempre antes de alterar codigo"
-```
-
-Mapear para `autonomy_level`: Maxima=0.95, Alta=0.80, Moderada=0.60, Baixa=0.30
-
-**Q-SOUL-2 — Estilo de Comunicacao**
-`AskUserQuestion`:
-```
-question: "Como preferes que o JOCA comunique?"
-header: "Comunicacao"
-options:
-  - "Caveman Full — fragmentos, zero filler, maxima compressao (Recomendado)"
-  - "Caveman Lite — sem filler mas frases completas"
-  - "Normal — profissional e conciso, sem compressao extrema"
-```
-
-Mapear para `communication_mode`: full, lite, normal (se normal: desactivar caveman default)
-
-**Q-SOUL-3 — Comportamento em Erros**
-`AskUserQuestion`:
-```
-question: "Quando encontra um erro no teu codigo, o JOCA deve:"
-header: "Erros"
-options:
-  - "Corrigir imediatamente sem perguntar (Recomendado)"
-  - "Mostrar o problema e a correccao, aplicar apos confirmacao"
-  - "Reportar o problema sem corrigir — eu decido"
-```
-
-Mapear para `error_tolerance`: fail-fast, balanced, permissive
-
-**Q-SOUL-4 — Testes Automaticos**
-`AskUserQuestion`:
-```
-question: "Queres que o JOCA corra testes automaticamente apos alteracoes?"
-header: "Auto-test"
-options:
-  - "Sim — trigger automatico apos codigo implementado (Recomendado)"
-  - "Nao — so quando eu pedir"
-```
-
-Mapear para `auto_test`: true, false
-
-**Q-SOUL-5 — Pontos Fortes** *(multi-select — lista com checkboxes)*
-```
-Quais sao as tuas areas fortes? (selecciona todas as que se aplicam)
-[ ] Design / UX
-[ ] Frontend (HTML, CSS, JS, React, Vue...)
-[ ] Backend (PHP, Python, Node, Ruby...)
-[ ] DevOps / Infra
-[ ] Marketing / Growth
-[ ] Gestao de produto
-[ ] Outro: ___
-```
-
-**Q-SOUL-6 — Areas de Aprendizagem** *(multi-select — lista com checkboxes)*
-```
-Em que areas estas a aprender ou tens menos experiencia? (selecciona todas as que se aplicam)
-[ ] Design / UX
-[ ] Frontend
-[ ] Backend / Arquitectura
-[ ] DevOps / Infra
-[ ] Marketing / Growth
-[ ] Gestao de produto
-[ ] Outro: ___
-```
-
-**Q-SOUL-7 — O que te irrita** *(multi-select — lista com checkboxes)*
-```
-O que te faz perder a paciencia com um assistente? (selecciona todas as que se aplicam)
-[ ] Verbosidade / respostas longas de mais
-[ ] Repetir o que ja foi dito
-[ ] Pedir confirmacao a toda a hora
-[ ] Hedging ("talvez", "pode ser que")
-[ ] Mudar codigo que nao foi pedido
-[ ] Outro: ___
-```
-
-### Aplicar Calibracao
-
-Apos as respostas, ler `memory/soul.md` e substituir os placeholders da seccao
-**User Alignment**. Os nomes abaixo sao os que existem literalmente no ficheiro —
-confirmar com `grep -o '<[A-Z_]*>' memory/soul.md` antes de substituir:
-
-| Placeholder | Valor |
-|-------------|-------|
-| `<YOUR_NAME>` | Q1 (Nome) |
-| `<YOUR_ROLE>` | Q2 (Papel) |
-| `<YOUR_STRENGTHS>` | Q-SOUL-5 (lista separada por virgula) |
-| `<YOUR_LEARNING_AREAS>` | Q-SOUL-6 (lista separada por virgula) |
-| `<STRONG_DOMAIN>` | Primeiro item de Q-SOUL-5 |
-| `<LEARNING_DOMAIN>` | Primeiro item de Q-SOUL-6 |
-| `<YOUR_FRUSTRATION_TRIGGERS>` | Q-SOUL-7 (lista separada por virgula) |
-
-Substituir tambem o titulo `## User Alignment — <template, fill on first run>` por
-`## User Alignment — <nome do utilizador>` e apagar o comentario HTML de instrucoes
-que fica logo abaixo (ja cumpriu a funcao).
-
-O modo de comunicacao (Q-SOUL-2) **nao** e um placeholder — vai no bloco
-`Calibration Parameters` abaixo, no campo `communication_mode`.
-
-Actualizar seccao Calibration Parameters:
-
-```yaml
-autonomy_level: [Q-SOUL-1]
-communication_mode: [Q-SOUL-2]
-assertiveness: [inferido: maxima autonomia -> 0.85, alta -> 0.75, moderada -> 0.60, baixa -> 0.50]
-error_tolerance: [Q-SOUL-3]
-explanation_depth: on-demand
-auto_test: [Q-SOUL-4]
-```
-
-Confirmar inline:
-```
-OK Soul calibrado — autonomia [X], comunicacao [Y], erros [Z]
-  Fortes: [lista] · A aprender: [lista]
-```
-
----
-
-## FASE 2 — Areas de Trabalho
-
-Areas globais que determinam quais skills ficam activas. O JOCA tem **132 skills** com sistema de triggers RFC 2119 (MUST/SHOULD/MAY) — activacao automatica quando relevancia >= 60%.
-
-`AskUserQuestion`:
-```
-question: "Que areas de trabalho usas?"
-header: "Areas"
-multiSelect: true
-options:
-  - "Design (UI/UX, branding, print, ilustracao)"
-  - "Desenvolvimento web (frontend + backend)"
-  - "Marketing (SEO, ads, email, conteudo)"
-  - "Media (video, animacao, 3D)"
-```
-
-Opcao "Outro" (automatica) permite especificar: WordPress, Shopify, Research, Analytics, DevOps, ou combinacoes especificas.
-
-### Mapeamento areas -> skills
-
-| Area               | Skills activadas                                                               |
-|--------------------|--------------------------------------------------------------------------------|
-| UI/UX              | frontend, mobile, design-system, design-tokens, component-system, tailwind, shadcn, react-composition, react-patterns, design-review, landing-page |
-| Branding           | brand-guidelines, brand-positioning                                            |
-| Print              | graphic-design, brand-guidelines                                               |
-| Animacao           | anima (GSAP router), lottie-animator                                           |
-| Video              | video, hyperframes, remotion, lyric-align (+ agent `watch`)                      |
-| Marketing/SEO      | marketing, paid-ads, seo, seo-local, email-sequence, content-strategy, content-calendar, social-content, copywriting, page-cro, lead-capture, launch-strategy, ab-test-setup, competitor-profiling, analytics-tracking |
-| Dev web (Laravel)  | laravel-specialist, filament, laravel-react, rest-api, mysql, auth, security, saas-patterns, file-storage, caching, queues, bullmq, horizon, reverb-realtime, search, webhooks, availability, error-tracking-dev, error-tracking-prod, github |
-| Email              | react-email, transactional-email, postmark                                     |
-| Deploy / DevOps    | deploy-docker, deploy-ploi, deploy-cpanel, deploy-vps                          |
-| Portugal           | portugal-payments (ifthenpay/MB WAY), portugal-invoicing (Moloni)              |
-| WordPress          | wordpress-router, wp-project-triage, wp-block-development, wp-block-themes, wp-plugin-development, wp-plugin-directory-guidelines, wp-rest-api, wp-abilities-api, wp-interactivity-api, wp-performance, wp-performance-review, wp-phpstan, wp-playground, wp-wpcli-and-ops, wpds |
-| Shopify            | shopify-router, shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer |
-| Wix                | wix-cli                                                                        |
-| Automacao          | browser-automate (conduzir apps web locais / litegraph via Playwright)          |
-| JOCA / SDK         | agent-sdk (Agent SDK orquestrador), comfy-mcp-workarounds (ComfyUI MCP)        |
-| Analytics          | google-analytics, microsoft-clarity                                            |
-| Research           | deep-research (agent)                                                          |
-| Specs / Planning   | plan, planning, prd, tech-spec, task-breakdown, adr, rfc, c4-diagram, blueprint, html-review |
-| Base (sempre)      | caveman, karpathy-guidelines, agent-context, create-skill, pt-pt-translator, yagni |
-| Autonomia (sempre) | auto-orquestracao via `rules/task-intake.md` (4 vias) + agentes `task-router`, `master-orchestrator` (loop) + comando `/goal`; padroes em `rules/orchestration-patterns.md` |
-| Knowledge & Pessoal | knowledge-ingest (`/know`, requer markitdown), automations, personal-comms (+ agentes `knowledge-ingest`, `automation-builder`, `personal-comms`) — FUTUROS Fases 2/3/5 |
-| Windows (auto)     | `joca-os-windows` — activa automaticamente quando o OS (Q4) e Windows (ver FASE EXECUCAO 8) |
-
-### Deteccao de gaps
-
-Para cada area seleccionada sem cobertura directa nas skills existentes:
-1. Identificar o gap
-2. `WebSearch` em GitHub e awesome-lists (procurar skill ou CLI relevante)
-3. Apresentar resultado:
-
-```
-Para "[caso]": sem cobertura nativa.
-
-[Se encontrou]
--> repo/skill — descricao
-Instalo? [S/N]
-
-[Se nao encontrou]
-Nao encontrei nada relevante.
-Crio via /create-skill? [S/N/Mais tarde]
-
-[Se cobertura parcial]
-[skill-x] cobre A OK — falta B
-[1] Procurar online  [2] Criar  [3] Ignorar
-```
-
----
-
-## FASE 3 — Integracoes e Ferramentas
-
-### Browser Automation *(multi-select)*
-`AskUserQuestion`:
-```
-question: "Que ferramentas de browser automation queres instalar?"
-header: "Browser"
-options:
-  - "browser-use CLI (scraping, screenshots, automacao com AI)"
-  - "Playwright Agent CLI (browser control para coding agents)"
-  - "Ambos (recomendado)"
-  - "Nenhum"
-```
-
-Se seleccionado: instalar via comandos na FASE EXECUCAO.
-
-### CLIs Externos *(multi-select, agrupados)*
-
-```
-Source control & cloud
-[ ] gh             — GitHub (repos, PRs, issues, code search)
-[ ] gws            — Google Workspace CLI `@googleworkspace/cli` (Drive, Gmail, Calendar, Sheets) — requer gcloud; auth com `--scopes` explícito + publicar app (senão token expira ~7d)
-[ ] gcloud         — Google Cloud (prereq para gws auth setup)
-[ ] aws-cli        — AWS S3, deploy, file-storage skill
-
-AI assistants (cross-CLI bridge)
-[ ] Antigravity (agy)    — Gemini multimodal (video, PDF, 1M ctx)
-[ ] Codex                — OpenAI code review adversarial (ChatGPT Plus ou OPENAI_API_KEY)
-[ ] huggingface-cli      — modelos, datasets, spaces
-
-Media & content
-[ ] ffmpeg         — video/audio processing, encoding, thumbnails
-[ ] yt-dlp         — download de video (usado pelo agent `watch`)
-[ ] whisperx       — transcricao local STT (usado pelo agent `watch`)
-[ ] markitdown     — converte ficheiros/URL (PDF/Office/img/audio/YouTube) -> Markdown; motor do /know (skill knowledge-ingest). pip install markitdown-mcp + registar MCP markitdown
-[ ] zmail-cli      — Zoho Mail terminal (envio/leitura) — requer Java 11+
-
-Plataformas & CMS
-[ ] wp-cli         — WordPress/WooCommerce (skills wordpress-router, wp-*, woocommerce-elementor)
-[ ] shopify        — Shopify apps e temas (skills shopify-app, shopify-theme)
-[ ] wix            — Wix/Velo (skill wix-cli)
-[ ] ntn            — Notion (skill notion) — requer Node >= 22
-
-Dev & observability
-[ ] sentry-cli         — error tracking, releases, source maps
-[ ] stripe-cli         — webhooks listen, payment testing local
-[ ] cli-printing-press — gera CLIs/MCP servers a partir de APIs (requer Go 1.26+)
-[ ] graphify           — mapa de codigo/conhecimento; usado por /map-joca e /resume (pip install <path-do-pacote>)
-[ ] poppler            — pdftoppm/pdfinfo: verificar PDFs gerados (skill html-to-pdf)
-[ ] supabase           — Supabase local/remote
-[ ] railway            — deploy Railway
-
-[ ] Nenhum
-```
-
-> Inventario completo (com comandos por plataforma e metodo de auth) em `memory/tools/clis.md`;
-> MCP servers em `memory/tools/mcps.md`. Este formulario e um subconjunto — se acrescentares um CLI
-> a um dos inventarios, acrescenta-o tambem aqui, senao fica indisponivel em maquinas novas.
-
-### Google Connectors *(multi-select)*
-```
-[ ] Gmail   [ ] Google Calendar   [ ] Google Drive/Docs   [ ] Google Analytics (GA4)   [ ] Nenhuma
-```
-Nota: Google connectors sao activados em claude.ai/settings (OAuth nativo) — nao precisam de MCP.
-
-### Geracao de imagens
-`AskUserQuestion`:
-```
-question: "Que motor de geracao de imagens queres usar?"
-header: "Img Gen"
-options:
-  - "Google Gemini (recomendado — geral, drafts, aspect ratios)"
-  - "OpenAI gpt-image-2 (texto em imagens, produto, inpainting)"
-  - "Ambos"
-  - "Nao preciso"
-```
-
----
-
-## FASE APIs — Chaves de API
-
-Com base nas seleccoes, determinar quais chaves sao necessarias. Apenas duas chaves de agente:
-
-| Ferramenta                    | Variavel                        | Quando e necessaria                       |
-|-------------------------------|----------------------------------|-------------------------------------------|
-| OpenAI (img-gen + Codex)      | `OPENAI_API_KEY`                | img-gen OpenAI ou Codex CLI               |
-| Google Gemini (img-gen + agy) | `GEMINI_API_KEY`                | img-gen Gemini ou Antigravity CLI         |
-
-**Nota:** GitHub usa `gh auth login` (OAuth interactivo) — nao precisa de token manual. HuggingFace usa `huggingface-cli login`. Sentry/Stripe usam tokens proprios (`SENTRY_AUTH_TOKEN`, `STRIPE_API_KEY`) ou login interactivo.
-
-Para cada chave necessaria, perguntar via `AskUserQuestion`:
-```
-question: "[Ferramenta] precisa de [NOME_CHAVE]. Estado actual: [detectado / nao encontrado]"
-header: "API Key"
-options:
-  - "Introduzir agora"
-  - "Ja esta configurada no sistema"
-  - "Configurar mais tarde"
-```
-
-- "Introduzir agora" -> receber o valor (nao mostrar em claro depois de confirmar)
-- "Ja esta configurada" -> assumir OK
-- "Mais tarde" -> marcar como PENDENTE no relatorio final
-
-**Onde ficam guardadas:**
-- `OPENAI_API_KEY`, `GEMINI_API_KEY` -> `env` global em `~/.claude.json`
-- Se preferir nao escrever em ficheiros: instruir comando de export para o shell
-
----
-
-## FASE DEP — Dependencias
-
-Detectar OS (guardado em Q4) e correr os comandos apropriados:
-
-**Windows (PowerShell):**
-```powershell
-try { python --version } catch { "python_unavailable" }
-try { node --version } catch { "node_unavailable" }
-try { npm --version } catch { "npm_unavailable" }
-try { bun --version } catch { "bun_unavailable" }
-try { docker --version } catch { "docker_unavailable" }
-try { gh --version } catch { "gh_unavailable" }
-try { jq --version } catch { "jq_unavailable" }
-try { git --version } catch { "git_unavailable" }
-```
-
-**macOS / Linux (bash):**
 ```bash
-python3 --version 2>/dev/null || python --version 2>/dev/null || echo "python_unavailable"
-node --version 2>/dev/null || echo "node_unavailable"
-npm --version 2>/dev/null || echo "npm_unavailable"
-bun --version 2>/dev/null || echo "bun_unavailable"
-docker --version 2>/dev/null || echo "docker_unavailable"
-gh --version 2>/dev/null || echo "gh_unavailable"
-jq --version 2>/dev/null || echo "jq_unavailable"
-git --version 2>/dev/null || echo "git_unavailable"
+node -e "console.log(process.platform, process.version)"     # OS + Node (Node e obrigatorio)
+cat ~/CLAUDE.md 2>/dev/null | head -30                        # perfil ja existe?
+ls memory/soul.md memory/projects memory/feedback JOCA_OS/data 2>/dev/null
+grep -n "autonomy_level\|communication_mode" memory/soul.md 2>/dev/null
+grep -c "JOCA_ROOT" .claude/settings.json 2>/dev/null         # >0 = placeholder por substituir
+# que CLIs ja existem (nao perguntar por estes):
+for c in gh gws gcloud aws agy codex ffmpeg yt-dlp markitdown wp shopify wix ntn \
+         sentry-cli stripe graphify python python3; do
+  command -v "$c" >/dev/null 2>&1 && echo "TEM $c"
+done
 ```
 
-Dependencias obrigatorias: `node`, `npm`, `git`.
-Dependencias recomendadas: `gh` (GitHub CLI), `jq` (JSON processing para scripts).
+**O que isto decide sozinho:**
 
-Para cada ferramenta em falta que foi seleccionada, instruir instalacao com comandos especificos ao OS:
+| Sinal | Conclusao — nao perguntar |
+|---|---|
+| `process.platform` | OS: `win32` -> PowerShell em tudo; `darwin`/`linux` -> bash |
+| `~/CLAUDE.md` com perfil | nome e papel do utilizador ja existem |
+| `memory/soul.md` com `autonomy_level` preenchido | ja foi calibrado — isto e **reconfiguracao**, nao instalacao |
+| `TEM <cli>` | esse CLI ja esta instalado; so entra na lista se faltar |
+| `JOCA_OS/data/` existe | o JOCA_OS ja esta a ser usado; nao reinstalar por cima |
+| `<JOCA_ROOT>` no `settings.json` | placeholder por substituir — **com ele la, nenhum hook corre** |
 
-| Ferramenta | Windows | macOS | Linux |
-|------------|---------|-------|-------|
-| `node` | `winget install OpenJS.NodeJS.LTS` | `brew install node` | `curl -fsSL https://deb.nodesource.com/setup_lts.x \| sudo bash -` |
-| `gh` | `winget install GitHub.cli` | `brew install gh` | `sudo apt install gh` ou `brew install gh` |
-| `jq` | `winget install jqlang.jq` | `brew install jq` | `sudo apt install jq` |
-| `bun` | `powershell -c "irm bun.sh/install.ps1 \| iex"` | `curl -fsSL https://bun.sh/install \| bash` | `curl -fsSL https://bun.sh/install \| bash` |
-| `docker` | Docker Desktop via docker.com | `brew install --cask docker` | docs.docker.com/engine/install |
+Se `node` nao existir: parar e dizer que e obrigatorio.
+
+Se ja houver perfil **e** soul calibrado, mostra o que esta configurado e pergunta uma so coisa:
+*manter tudo* · *mudar preferencias* · *so acrescentar ferramentas*. Manter -> saltar para FASE 3.
 
 ---
 
-## FASE STATUSLINE — StatusLine + Rate Limits Tracking (silencioso)
+## FASE 1 — Quem es tu (so o que falta)
 
-Copiar o script Node.js cross-platform para `~/.claude/`:
+Se o `~/CLAUDE.md` ja der nome e papel, **confirma numa linha** em vez de perguntar de novo.
+Caso contrario: nome, papel (designer · dev · full-stack · marketing · PM · outro) e, opcional, pais
+(so importa para `portugal-payments`/`portugal-invoicing` e idioma).
 
-**Windows (PowerShell):**
-```powershell
-Copy-Item "<caminho_joca>\.claude\scripts\statusline-command.js" "$env:USERPROFILE\.claude\statusline-command.js"
-```
-
-**macOS / Linux (bash):**
-```bash
-cp "<caminho_joca>/.claude/scripts/statusline-command.js" ~/.claude/statusline-command.js
-```
-
-Configurar `~/.claude/settings.json` — merge com existente (preservar o que ja existe):
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "node ~/.claude/statusline-command.js"
-  },
-  "hooks": {
-    "UserPromptSubmit": [{
-      "hooks": [{
-        "type": "command",
-        "command": "node -e \"require('fs').writeFileSync(require('path').join(require('os').tmpdir(),'joca-ui','last-msg.txt'),new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}))\""
-      }]
-    }]
-  }
-}
-```
-
-O script `statusline-command.js`:
-- Recebe JSON do Claude Code via stdin com dados de modelo, contexto, e rate limits
-- Produz output ANSI colorido para o terminal (modelo, tokens, ctx%, 5h%, 7d%)
-- Guarda `rate-limits.json` em `%TEMP%/joca-ui/` (Windows) ou `/tmp/joca-ui/` (macOS/Linux)
-- O JOCA_OS le este ficheiro via `GET /rate-limits` e mostra os limites na barra do terminal
-- Actualiza automaticamente a cada mensagem enviada ao Claude Code
-
-**Nota:** usa Node.js em vez de bash — funciona em Windows, macOS e Linux sem dependencias extra. Todos os hooks usam `node` como runtime.
+O OS **nao se pergunta** — ja foi detectado na FASE 0. Diz qual e e segue.
 
 ---
 
-## FASE 4 — Confirmacao
+## FASE 2 — Como queres que o JOCA se comporte
 
-Apresentar resumo completo:
+Tres perguntas. Sao preferencias: nenhuma se deduz do disco. Usa `AskUserQuestion`.
+
+**1. Autonomia** — quanto pode agir sem perguntar?
+Maxima (recomendado) `0.95` · Alta `0.80` · Moderada `0.60` · Baixa `0.30` -> `autonomy_level`.
+Em qualquer nivel, accoes **irreversiveis** (deploy, push, migrations, deletes, pagamentos) pedem
+sempre confirmacao — isso nao e calibravel.
+
+**2. Comunicacao** — `lite` (terso, recomendado) · `full` (explica) · `ultra` (fragmentos) -> `communication_mode`.
+
+**3. Testes automaticos** — correr testes sozinho depois de mudar codigo? -> `auto_test`.
+
+Os restantes parametros (`assertiveness`, `error_tolerance`, `explanation_depth`,
+`orchestration_threshold`, `loop_max_iterations`) ficam nos defaults do `soul.md` e ajustam-se depois
+editando o ficheiro. Perguntar oito parametros a alguem que ainda nao usou o sistema nao produz
+melhores respostas — produz respostas inventadas.
+
+### Areas de trabalho — **nao se perguntam**
+
+O JOCA traz **131 skills** que activam por relevancia >= 60% via `SKILL_INDEX.json` + Trigger Map do
+`CLAUDE.md`. Nao ha nada para ligar ou desligar: uma skill de WordPress nunca dispara num projecto
+Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria para **esconder**
+skills que o utilizador viria a precisar.
+
+O que e especifico de um projecto (stack, plataforma, CLIs desse projecto) e decidido pelo
+`/init-project`, que ve a pasta. Aqui trata-se so da maquina.
+
+---
+
+## FASE 3 — Ferramentas (so as que faltam)
+
+A FASE 0 ja disse o que existe. Apresenta **so o que falta**, agrupado, com uma nota de para que
+serve — e deixa escolher em bloco, nao um a um:
 
 ```
-IDENTIDADE
-  [Nome] — [papel][, localizacao] — [OS]
+Ja tens: gh, ffmpeg, python, graphify
 
-SOUL
-  Autonomia: [nivel] · Comunicacao: [modo] · Erros: [comportamento] · Auto-test: [sim/nao]
-  Fortes: [lista] · A aprender: [lista]
-
-SKILLS (127 — trigger system RFC 2119)
-  Base:  caveman, karpathy-guidelines, agent-context, create-skill
-  [categoria]: [lista]
-
-INTEGRACOES
-  Browser: [browser-use CLI / playwright-cli / ambos / nenhum]
-  CLIs:    [seleccionados — agrupar por categoria: source/AI/media/dev]
-  Google:  [lista — se algum connector]
-  Img Gen: [motor(es)]
-
-SKILLS NOVAS:   [lista — se gaps detectados]
-
-API KEYS
-  OK [NOME_CHAVE] — configurada
-  PENDENTE [NOME_CHAVE] — pendente (instrucoes no final)
-  SISTEMA [NOME_CHAVE] — assumida do sistema
-
-DEPENDENCIAS
-  [OK/FALTA] node / npm / git / gh / jq / bun / docker
-
-FICHEIROS
-  ~/CLAUDE.md           actualizar
-  memory/soul.md        preencher placeholders
-  memory/               criar estrutura (se nao existir)
+Faltam (escolhe os grupos que queres):
+  [core]      markitdown   -> motor do /know (ingerir PDF/Office/YouTube)
+              graphify     -> mapa de codigo; usado por /map-joca e /resume
+  [git/cloud] gws, gcloud, aws
+  [ai]        agy (Gemini, multimodal) · codex (review adversarial) · huggingface-cli
+  [media]     yt-dlp, whisperx        -> usados pelo agente `watch`
+  [cms]       wp-cli · shopify · wix · ntn (Notion, Node >= 22)
+  [dev]       sentry-cli · stripe-cli · cli-printing-press (Go 1.26+)
+  [browser]   browser-use · Playwright Agent CLI
 ```
 
-`AskUserQuestion`:
+Recomendar `[core]` sempre; o resto so se o papel (FASE 1) o justificar — um designer nao precisa de
+`stripe-cli` por defeito. **Instalar CLIs que nao se usam custa tempo e falha em silencio.**
+
+Inventario completo com comandos de instalacao por OS e notas de autenticacao:
+`memory/tools/clis.md`. Os comandos concretos correm na FASE EXECUCAO.
+
+### Chaves de API
+
+Perguntar **so** pelas que as ferramentas escolhidas exigem — e nunca as escrever em ficheiros
+versionados. Se uma chave nao for dada, a ferramenta fica registada como **PENDENTE** no relatorio,
+com o passo manual. Nunca inventar uma chave nem um endpoint para "destrancar" um passo.
+
+---
+
+## FASE 4 — Proposta e gate unico
+
 ```
-question: "Confirmas a configuracao acima?"
-header: "Confirmar"
-options:
-  - "Sim, aplicar"
-  - "Voltar atras para ajustar"
+UTILIZADOR: <nome> — <papel> [· <pais>]
+SISTEMA:    <OS detectado> · Node <versao>
+MODO:       autonomia <x> · comunicacao <y> · auto-test <s/n>
+
+JA INSTALADO:  <lista detectada>            <- nao se toca
+VOU INSTALAR:  <lista>                      <- so o que falta e foi escolhido
+CHAVES:        <as que foram dadas> | PENDENTE: <as que faltam>
+
+VOU CRIAR/ACTUALIZAR
+  memory/soul.md                 <- parametros + alinhamento com o utilizador
+  ~/CLAUDE.md                    <- perfil + comandos + tabela de projectos
+  .claude/settings.json          <- paths reais (substitui <JOCA_ROOT>)
+  JOCA_OS                        <- dependencias + build do frontend
+  <launcher>                     <- atalho de arranque
 ```
+
+`AskUserQuestion`: "Confirmas?" -> *Sim, instalar* · *Deixa-me corrigir*.
+
+Este e o **unico** gate do comando. A partir daqui corre tudo seguido, e o que falhar vai para o
+relatorio final como PENDENTE com o comando manual — uma falha de CLI nunca aborta a instalacao.
 
 ---
 
@@ -532,7 +158,7 @@ options:
 
 ### 1. Preencher soul.md
 
-Ler `memory/soul.md`, substituir todos os placeholders `<...>` com os valores recolhidos nas FASE 0 e FASE SOUL. Actualizar Calibration Parameters.
+Ler `memory/soul.md`, substituir todos os placeholders `<...>` com os valores recolhidos nas FASE 1 (identidade) e FASE 2 (comportamento). Actualizar Calibration Parameters.
 
 ### 2. ~/CLAUDE.md
 
@@ -545,7 +171,7 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 ## JOCA
 Toolkit instalado em: [caminho_joca]
 Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /init-project, /resume, /save, /create-skill, /sync-questionnaires, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
+Comandos: /install, /init-project, /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_OS
@@ -865,7 +491,7 @@ clonado (a pasta que contem `JOCA_Brain/`), sem barra final:
 
 ```bash
 # macOS / Linux
-JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # ou o caminho escolhido na FASE 0
+JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # raiz resolvida na FASE 0
 sed -i '' "s|<JOCA_ROOT>|$JOCA_ROOT|g" JOCA_Brain/.claude/settings.json
 ```
 ```powershell
@@ -953,9 +579,9 @@ Notas:
 
 ### 8. JOCA_OS (instala por defeito)
 
-O JOCA_OS corre em **porta 7371** (backend) e **porta 7372** (frontend). A interface detecta automaticamente o JOCA_Brain como directorio irmao — zero configuracao.
+O JOCA_OS corre em **porta 7491** (backend) e **porta 7492** (frontend). A interface detecta automaticamente o JOCA_Brain como directorio irmao — zero configuracao.
 
-> **macOS e a plataforma de referencia** — o JOCA_OS foi desenvolvido e validado em macOS. Se o OS confirmado (Q4) for **Windows**, ler e activar a skill `.claude/skills/joca-os-windows.md` ANTES de correr `npm install`/`npm run build`: ela conduz build do node-pty (requer VS Build Tools + Python), PTY PowerShell, paths, statusline/Keychain e launchers, testando e corrigindo numa so passagem. Notificar: `[skill: joca-os-windows]`.
+> **macOS e a plataforma de referencia** — o JOCA_OS foi desenvolvido e validado em macOS. Se o OS detectado na FASE 0 for **Windows** (`process.platform === 'win32'`), ler e activar a skill `.claude/skills/joca-os-windows.md` ANTES de correr `npm install`/`npm run build`: ela conduz build do node-pty (requer VS Build Tools + Python), PTY PowerShell, paths, statusline/Keychain e launchers, testando e corrigindo numa so passagem. Notificar: `[skill: joca-os-windows]`.
 
 **Windows (PowerShell):**
 
@@ -1019,7 +645,7 @@ Copy-Item "<caminho_joca>\..\JOCA_OS\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
 
 ### 10. Skills novas (se confirmado)
 
-Executar `/create-skill [nome]` para cada skill nova aprovada na FASE 2.
+Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamente aprovada. Nao ha deteccao de gaps na instalacao: um gap real aparece a trabalhar num projecto (e o `/init-project` ou o `/upgrade-joca` levantam-no), nao a responder a um formulario.
 
 ### 11. Relatorio final
 
@@ -1029,7 +655,7 @@ OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
 OK Skills: 127 configuradas (RFC 2119 trigger system)
 OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
-OK JOCA_OS: instalado (backend :7371, frontend :7372)[ · Windows: skill joca-os-windows aplicada]
+OK JOCA_OS: instalado (backend :7491, frontend :7492)[ · Windows: skill joca-os-windows aplicada]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
 

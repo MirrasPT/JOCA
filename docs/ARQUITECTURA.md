@@ -1,7 +1,7 @@
 # Arquitectura de desenvolvimento do JOCA
 
 > Referência para quem — humano ou agente — vai mexer no sistema. Descreve **como o JOCA está construído** e **como se desenvolve nele**.
-> Estado verificado no código a 2026-07-28. Tudo o que não foi confirmado em ficheiro está marcado como *em desenvolvimento* ou omitido.
+> Estado verificado no código a 2026-08-05 (base: 2026-07-28; §2.5 e as notas de §7 reverificadas contra o código actual). Tudo o que não foi confirmado em ficheiro está marcado como *em desenvolvimento* ou omitido.
 > Complementos: [`AUDITORIA-2026-07-26.md`](AUDITORIA-2026-07-26.md) (dívida), `README.md` (features), `install.md` / `update.md` (ciclo de vida).
 
 ---
@@ -112,6 +112,37 @@ Duas flags distintas, de propósito: `notifyOnIdle` arma-se com **qualquer** inp
 - **Enter puro não conta como resposta** (`session-manager.ts:334`, `data.trim().length > 0`): responder a um menu só com Enter não arma `notifyOnIdle`, e `waitForUserAnswer` fica à espera até ao timeout de 24 h.
 - **`pty.write` em callbacks de timer sem guarda**: se a sessão morrer entre o agendamento e o disparo, a excepção é não-capturada.
 - **Estado zombie após crash**: tarefas em `em-execucao` e automações em `running` não são varridas no boot.
+
+### 2.5 A camada do gestor de projecto
+
+O JOCA_OS deixou de ser uma grelha de terminais: cada projecto tem um **gestor**, um agente
+conversacional com quem o utilizador fala. O gestor parte o pedido em trabalho e entrega-o a
+*workers* (PTYs reais). A hierarquia é **cliente → Joca (global) → gestor de projecto → agente**.
+
+| Decisão | Porquê | Onde vive |
+|---|---|---|
+| **O gestor é in-process (Agent SDK), não um PTY.** | Responde de imediato e não consome nenhuma das 30 sessões. Dar-lhe capacidades = dar-lhe ferramentas, não abrir-lhe um terminal. | `manager/manager.ts` |
+| **Um worker por ÁREA** (design, backend, conteúdo…), reutilizado entre trabalhos. | Áreas diferentes tocam ficheiros diferentes → guarda natural contra dois agentes a escrever no mesmo sítio; e o worker reutilizado já correu `/resume`, portanto o 2.º trabalho da área arranca muito mais barato. | `manager/worker-pool.ts` |
+| **Continuidade por `options.resume` do SDK**, nunca por transcript colado no prompt. | Foi o erro que tornou o "Master" anterior caro e frágil. | `manager/manager.ts` |
+| **O gestor tem terminal completo** — built-ins do Claude Code (`Read/Write/Edit/Glob/Grep/Bash/Web*`) mais as ferramentas MCP in-process. | O limite deixou de ser técnico e passou a ser **de papel**, escrito no system prompt. Contrapartida assumida: injecção de prompt → RCE fica mitigada só textualmente (output de agente marcado como dados não-confiáveis). Um gate de aprovação (`canUseTool`) para o Bash continua em aberto. | `manager.ts` — `BUILTIN_TOOLS`, `permissionMode: 'default'` |
+| **As tarefas nunca arrancam sozinhas.** | O engine não drena a coluna; só corre por ordem do utilizador ou do gestor (`dispatchTask`). | `tasks/engine.ts` |
+| **Fila de despertares serializada por projecto**, com dois travões. | Orçamento `maxAutoWakes` (default 12, cap 40) — configurável, nunca removível, porque o "Master" anterior morreu de loops. Mais um **fingerprint de progresso** (que agentes existem, em que estão, carimbo das tarefas): 3 despertares sem mudança param a fila e emitem notificação. Contar turnos às cegas não chega. | `manager/wake.ts`, `heartbeat/index.ts` |
+| **Fronteira de projecto imposta no backend** (header `X-Joca-Session`), não no CLI. | O CLI é contornável; a fronteira entre agentes de projectos diferentes tem de ser verificada do lado que manda. | rotas do backend |
+
+**Memória do gestor, em 3 camadas** (`manager/store.ts`) — desenhada porque a sessão SDK se perde:
+
+1. **Dossiê** (`actualizar_dossie`) — entra no system prompt, sobrevive à perda da sessão.
+2. **Arquivo** — `rotateChat` deixou de destruir histórico; roda-o.
+3. **Pesquisa** (`procurar_no_historico`) — grep sobre o chat vivo + arquivos, em pull.
+
+**A Sala** (`manager/room.ts`) — chat de grupo entre o dono, o Joca e os gestores, em `data/room.jsonl`.
+Debate encadeado por `@etiqueta` até `RESOLVIDO:` ou aos travões (16 turnos totais, 5 por gestor).
+Armadilha já paga: a Sala contaminava os chats privados dos gestores por duas vias independentes
+(`appendMessage` **e** o `resume` da sessão SDK) — qualquer canal partilhado novo tem de ser
+verificado nas duas.
+
+**Delegação:** o Joca global (`GLOBAL_MANAGER_ID`, sem `projectId`) fala com um gestor por
+`falar_com_gestor` em vez de saltar por cima com `trabalhar`. Doutrina sem mecanismo não é doutrina.
 
 ---
 
@@ -267,7 +298,7 @@ Detalhe completo (com `ficheiro:linha` e plano em 5 fases) em [`AUDITORIA-2026-0
 
 1. **A camada de ligação é o ponto fraco, não a doutrina.** O veredicto da auditoria: *o sistema sabe o que devia fazer; frequentemente não consegue chegar aos ficheiros que o dizem* — paths que não resolvem (`rules/` vs `.claude/rules/`), índices que truncam, hooks inertes com o placeholder `<JOCA_ROOT>` por substituir. **Implicação:** qualquer feature nova que dependa de um path ou índice precisa de um check no `joca-doctor`, ou nasce silenciosamente morta.
 2. **Segurança do OS assenta em duas premissas frágeis.** O guard de origem compara `Origin` com um `Host` que o atacante controla (DNS rebinding), e o nó `llm` das automações corre sem `noTools` com `bypassPermissions` — conteúdo web injectado pode virar execução. **Implicação:** a fronteira de confiança não pode continuar a ser "é local, logo é seguro"; validar Host contra allowlist e passar `noTools` em todos os caminhos não-terminal.
-3. **`/update-joca` aponta para `origin/master` numa repo cuja branch é `main`.** O caminho de actualização está funcionalmente parado; o install produz setups incompletos (portas 7371/7381 na documentação vs 7491/7492 reais, frontend nunca compilado). **Implicação:** não desenhar features que dependam de "o utilizador tem a última versão".
+3. **Caminho de actualização/instalação — parcialmente resolvido.** ✅ O `origin/master` fixo já foi corrigido (`/update-joca` e `update.md` resolvem o ramo por defeito e o frontend passou a ser compilado). ✅ As portas do `/install` foram corrigidas para **7491/7492** (eram 7371/7372), e as skills/comandos que ainda mandavam o utilizador para as antigas foram alinhados. ✅ E o `/update-joca` ganhou uma **Fase 0** que distingue um clone do público de uma instalação com história própria (origin privado, público como `upstream`): sem ancestral comum não tenta pull, manda fazer checkout selectivo e lista o que há a repor a seguir. **Implicação:** não desenhar features que dependam de "o utilizador tem a última versão".
 4. **Leak de PTYs nas automações:** cada run de nó `worker` abre uma sessão que nunca fecha → uma automação horária esgota o cap de 30 em ~30 runs e o sistema deixa de conseguir criar workers. **Implicação:** o cap de sessões é um recurso global partilhado entre UI, tarefas e automações; qualquer produtor novo de sessões tem de ter política de reutilização/fecho.
 5. **Índice de skills cego a ~43% do inventário** (só lê `triggers:`, trunca a 10 triggers e 200 chars, categoria sempre `general`). **Implicação:** o matching automático ≥60% é hoje menos fiável do que a doutrina assume; até estar corrigido, o Trigger Map do `CLAUDE.md` é a rede de segurança.
 6. **Frontend não sobrevive a um 401 nem a uma reconnect.** Os fetches não verificam `r.ok` antes de `r.json()`, e o output emitido durante uma desconexão não é re-sincronizado no xterm — o caso normal em telemóvel. (O backoff de reconnect **já existe** hoje em `useSessionSocket.ts`; o `fetchJson` central continua por fazer.) **Implicação:** o modo remoto/PWA ainda não é de confiança para trabalho longo.

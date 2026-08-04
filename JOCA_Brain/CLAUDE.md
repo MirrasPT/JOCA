@@ -172,7 +172,6 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | `/review-code` | tester-code + codex adversarial |
 | `/review-design` | UI/UX + accessibility |
 | `/create-skill [desc]` | new skill via research pipeline |
-| `/sync-questionnaires` | audit + realign questionnaires/counters with real skill/agent inventory |
 | `/help-joca` | quick reference |
 | `/migrate` | v1-legacy → v2.0 migration guide |
 | `/upgrade-joca` | feedback → self-improvement → apply |

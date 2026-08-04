@@ -303,9 +303,19 @@ If the script fails or does not exist: skip and note in report.
 
 For each new skill or agent created, add an entry to `memory/INDEX.md` in the appropriate section.
 
-### 5.6 Sync questionnaires (if skills/agents added or removed)
+### 5.6 Realign the derived inventory (if skills/agents/commands were added or removed)
 
-If this upgrade created, renamed, or removed any skill or agent, run `/sync-questionnaires` (or apply its Phase 4 logic) so the questionnaires and counters stay aligned with the real inventory: `.claude/commands/install.md` (FASE 2 map, counts), `.claude/commands/init-project.md`, root `install.md`, `README.md`, `CLAUDE.md` (Trigger Map / Pipelines), `memory/INDEX.md`. A new skill that no questionnaire surfaces is effectively invisible.
+A component that no index surfaces is effectively invisible — relevance matching never reaches it. So when this upgrade creates, renames or removes anything, realign the three derived surfaces in the same run:
+
+```
+python .claude/scripts/build-skill-index.py    # macOS/Linux: python3 — regenerates memory/SKILL_INDEX.json
+bash   .claude/scripts/compile-bridges.sh      # regenerates AGENTS.md / GEMINI.md / .agents / .codex
+node   .claude/scripts/joca-doctor.mjs         # gate: exit 1 on dead paths/indexes
+```
+
+Then edit by hand, surgically: the counts and the component's line in `memory/INDEX.md`, the Trigger Map / `## Commands` table in `JOCA_Brain/CLAUDE.md`, and `README.md`.
+
+> There used to be a `/sync-questionnaires` command here, whose job was keeping form-style questionnaires in `/install` and `/init-project` aligned with the inventory. Those questionnaires are gone — onboarding is a conversation now (see `/init-project`), so nothing has to be kept in sync with a hardcoded list. Only the derived indexes above remain.
 
 ---
 
@@ -371,7 +381,7 @@ For `joca-patterns.md`: do NOT move -- only mark individual entries as processed
 ```
 Next steps:
   - Run /update-joca if upstream changes are available
-  - Run /sync-questionnaires if skills/agents changed (realign questionnaires + counters)
+  - Realign the derived inventory if skills/agents/commands changed (step 5.6)
   - Run /save in your next session to auto-capture new feedback patterns
   - Review failed items manually: <list of failed items>
 ```

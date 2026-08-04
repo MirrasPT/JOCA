@@ -90,16 +90,16 @@ Keep macOS Keychain path untouched. Verify `node statusline-command.js` produces
 
 ## Phase 5 — Launchers (start.bat / stop.bat)
 
-- `start.bat` creates **temp batch launchers in `%TEMP%\joca-ui\`** to avoid quoting issues when paths contain spaces. Verify both backend and frontend launch and that ports **7371 (backend) / 7372 (frontend)** come up.
+- `start.bat` creates **temp batch launchers in `%TEMP%\joca-ui\`** to avoid quoting issues when paths contain spaces. Verify both backend and frontend launch and that ports **7491 (backend) / 7492 (frontend)** come up.
 - `stop.bat` must stop the processes by port using `netstat -ano` + `taskkill /PID` (Windows has no `lsof`/`kill`). Verify it does not kill unrelated processes.
-- Confirm `JOCA UI.vbs` launcher (one-click) opens the UI and the browser at `http://localhost:7372`.
+- Confirm `JOCA UI.vbs` launcher (one-click) opens the UI and the browser at `http://localhost:7492`.
 
 ---
 
 ## Phase 6 — Smoke test
 
 1. `start.bat` → both ports listening.
-2. Browser opens `http://localhost:7372`.
+2. Browser opens `http://localhost:7492`.
 3. Create a session → PowerShell PTY interactive → run `claude`.
 4. Dashboard shows JOCA_Brain connected (sibling-dir detection works with Windows paths).
 5. FileBrowser lists drives, previews a file, drag-to-terminal inserts a `file:///` path.

@@ -3,9 +3,12 @@
 // by the end-to-end smoke run documented in docs/ARQUITECTURA.md.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { DATA_DIR } from '../project-store';
 import { appendMessage, loadChat, clearChat, getState, patchState, clearAllBusy, rotateChat, searchChat } from '../manager/store';
+import { onboardingSection } from '../manager/manager';
+import { JOCA_LOGIC_ROOT } from '../toolkit-registry';
 
 const PROJECT = 'test-project-0000';
 const chatFile = path.join(DATA_DIR, 'manager-chats', `${PROJECT}.jsonl`);
@@ -138,5 +141,59 @@ describe('manager memory (dossier + archive + search)', () => {
   it('dossier persists via patchState and survives state reload', () => {
     patchState(PROJECT, { dossier: 'Cliente prefere PT-PT. Deploy só à sexta.' });
     expect(getState(PROJECT).dossier).toContain('Deploy só à sexta');
+  });
+});
+
+// Onboarding: a secção só existe enquanto o projecto não está montado, e some sozinha quando fica.
+// É o que substitui o questionário do /init-project — se aparecer sempre, o gestor volta a fazer o
+// levantamento a um projecto já montado; se nunca aparecer, um projecto novo arranca às cegas.
+describe('onboardingSection', () => {
+  let dir: string;
+  beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 'joca-onboard-')); });
+  afterEach(() => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* ok */ } });
+
+  const proj = (p: string) => ({ id: 'p1', name: 'Teste', path: p } as Parameters<typeof onboardingSection>[0]);
+
+  it('aparece numa pasta por montar, e diz o que falta', () => {
+    fs.writeFileSync(path.join(dir, 'package.json'), '{}');
+    const s = onboardingSection(proj(dir));
+    expect(s).toContain('AINDA NÃO ESTÁ MONTADO');
+    expect(s).toContain('CLAUDE.md na pasta');
+  });
+
+  it('distingue pasta vazia (projecto novo) de pasta com código', () => {
+    const vazia = onboardingSection(proj(dir));
+    expect(vazia).toContain('A pasta está VAZIA');
+    fs.writeFileSync(path.join(dir, 'go.mod'), 'module x');
+    const comCodigo = onboardingSection(proj(dir));
+    expect(comCodigo).not.toContain('A pasta está VAZIA');
+    expect(comCodigo).toContain('git remote -v');
+  });
+
+  it('.git sozinho continua a contar como pasta vazia (clone acabado de fazer)', () => {
+    fs.mkdirSync(path.join(dir, '.git'));
+    expect(onboardingSection(proj(dir))).toContain('A pasta está VAZIA');
+  });
+
+  it('desaparece assim que o CLAUDE.md e a memória existem', () => {
+    fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# projecto');
+    const memDir = path.join(JOCA_LOGIC_ROOT, 'memory', 'projects');
+    const marca = path.join(memDir, '__test-onboarding.md');
+    fs.mkdirSync(memDir, { recursive: true });
+    fs.writeFileSync(marca, `---\ndirectorio: ${dir}\n---\n`);
+    try {
+      expect(onboardingSection(proj(dir))).toBe('');
+    } finally { fs.rmSync(marca, { force: true }); }
+  });
+
+  it('com CLAUDE.md mas sem memória, ainda pede a entrada de memória', () => {
+    fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# projecto');
+    const s = onboardingSection(proj(dir));
+    expect(s).toContain('entrada de memória no Brain');
+    expect(s).not.toContain('CLAUDE.md na pasta');
+  });
+
+  it('pasta inexistente não rebenta a construção do prompt', () => {
+    expect(onboardingSection(proj(path.join(dir, 'nao-existe')))).toBe('');
   });
 });

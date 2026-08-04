@@ -91,7 +91,6 @@ for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "impor
 ### 3b. Se o projecto actual É o toolkit JOCA
 
 Quando a pasta de trabalho é o próprio repo JOCA (contém `JOCA_Brain/CLAUDE.md`), surgir no resumo as workflows de manutenção disponíveis:
-- `/sync-questionnaires` — realinha questionários/contadores (`/install`, `/init-project`, `README`, `INDEX`) com o inventário real de skills/agents
 - `/upgrade-joca` — processa feedback acumulado em `memory/feedback/`
 - Nota Windows: o JOCA_OS é desenvolvido em macOS; em Windows a skill `joca-os-windows` adapta/testa/corrige o UI.
 

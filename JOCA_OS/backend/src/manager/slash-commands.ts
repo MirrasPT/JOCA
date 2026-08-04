@@ -35,8 +35,9 @@ export type ResolucaoSlash =
 
 // ── Classificação dos comandos do toolkit ────────────────────────────────────
 // PESADOS: trabalho longo, multi-ficheiro, multi-passo ou irreversível. Vão SEMPRE para um agente
-// terminal — o gestor não tem Bash/Read/Write, e mesmo que tivesse, um destes dentro do turno do
-// gestor bloqueava o chat durante minutos.
+// terminal. O gestor até TEM terminal completo (Read/Write/Edit/Bash — ver manager.ts), mas um
+// destes dentro do turno do gestor bloqueava o chat durante minutos: a razão é de latência e de
+// papel, não de capacidade.
 const COMANDOS_PESADOS = new Set([
   'one-shot',           // desenvolvimento autónomo end-to-end
   'goal',               // auto-orquestração com fan-out de agentes
@@ -49,7 +50,6 @@ const COMANDOS_PESADOS = new Set([
   'install',            // setup de máquina
   'migrate',            // migração de versão
   'init-project',       // cria estrutura de projecto em disco
-  'sync-questionnaires',// audita e reescreve os questionários
   'map-joca',           // corre scripts + graphify sobre todo o toolkit
   'plan',               // arquitectura: leitura extensa da codebase
   'debug',              // triage com stack trace + skills do domínio

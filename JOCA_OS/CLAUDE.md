@@ -28,11 +28,11 @@ JOCA_OS/
 cd JOCA_OS
 npm run setup
 
-# Dev (backend :7381 + frontend :7382)
+# Dev (backend :7491 + frontend :7492)
 bash start.sh        # macOS/Linux
 # start.bat          # Windows
 
-# Aceder em: http://localhost:7382
+# Aceder em: http://localhost:7492
 ```
 
 **Nota:** Se `posix_spawnp failed` aparecer, correr:
@@ -64,10 +64,13 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 - Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
 - Heartbeat (proactividade) em `src/heartbeat/` — config em `data/heartbeat.json`
 - **Gestor de projecto** (`src/manager/`): um agente conversacional por projecto. NÃO é um terminal
-  — é in-process (SDK), por isso responde já e não ocupa nenhuma das 30 sessões. Corre com
-  `tools: []` (sem Bash/Write/Edit) + ferramentas MCP próprias: despachar workers por área, ler/
-  responder-lhes, gerir o quadro, e VERIFICAR o resultado (`ver_ficheiro`/`ver_imagem`/
-  `listar_pasta`/`ver_pagina` — leitura apenas: olhos, não mãos). Continuidade via `options.resume`.
+  — é in-process (SDK), por isso responde já e não ocupa nenhuma das 30 sessões. Tem **terminal
+  completo** (built-ins `Read/Write/Edit/Glob/Grep/Bash/Web*`, `permissionMode: 'default'`) MAIS as
+  ferramentas MCP próprias: despachar workers por área, ler/responder-lhes, gerir o quadro, e
+  VERIFICAR o resultado (`ver_ficheiro`/`ver_imagem`/`listar_pasta`/`ver_pagina`). O limite é de
+  **papel**, escrito no system prompt, não técnico. Continuidade via `options.resume`.
+  Memória em 3 camadas (dossiê no prompt · arquivo · `procurar_no_historico`) e delegação
+  Joca→gestor por `falar_com_gestor`. Detalhe: `docs/ARQUITECTURA.md` §2.5.
 - **Ponte de agentes** (`cli/joca.mjs` + `src/agent-bridge.ts`): cada PTY nasce com `JOCA_CLI`,
   `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
   o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — cria tarefas, abre terminais,

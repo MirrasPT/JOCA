@@ -46,7 +46,6 @@ FEEDBACK & MANUTENÇÃO
 (feedback do projecto + JOCA é auto-capturado pelo /save)
 /upgrade-joca        Lê feedback acumulado → implementa melhorias ao JOCA
 /update-joca         Verifica e aplica updates do repositório oficial GitHub
-/sync-questionnaires Realinha questionários/contadores com o inventário real
 /status              Mostra rate limits, modelo e contexto actual
 
 WORDPRESS

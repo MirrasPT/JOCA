@@ -7,6 +7,58 @@ Pull updates from the official repository and apply them safely.
 
 ---
 
+## Phase 0 -- Which kind of installation is this? (GATE)
+
+Run this **before** anything else. There are two shapes of JOCA install, and only one of them can be
+updated with a pull. Getting this wrong is the failure mode this phase exists to prevent: a `merge`
+between two histories that never shared a commit either refuses outright or, if forced, drags the
+public template's `<JOCA_ROOT>` placeholders and depersonalised `soul.md` over a live installation.
+
+```
+cd <JOCA_DIR>
+git remote -v                       # who is origin? is there an upstream?
+git fetch --all --quiet
+# is the public repo an ancestor at all?
+PUB=$(git remote -v | grep -m1 'MirrasPT/JOCA\.git' | awk '{print $1}')   # origin | upstream | (empty)
+[ -n "$PUB" ] && git merge-base HEAD "$PUB/main" >/dev/null 2>&1 && echo "ANCESTOR: yes" || echo "ANCESTOR: no"
+```
+
+| Shape | How to recognise it | What to do |
+|---|---|---|
+| **A — clone of the public repo** | `origin` is `MirrasPT/JOCA`, and `ANCESTOR: yes` | Continue to Phase 1. This is the normal path. |
+| **B — a working install with its own history** | `origin` is some *other* repo (a private fork/working repo), the public one is `upstream` or absent, and/or `ANCESTOR: no` | **STOP. Do not pull, do not merge.** Report and offer the selective-checkout path below. |
+
+**Why B cannot be pulled.** A working install carries files the public repo will never have — real
+memory, per-project state, `JOCA_OS/data/`, personal skills. The two histories have no common
+ancestor, so git has no basis to merge them; and the public branch is a *template*, not an
+installation, so importing it wholesale also imports things that must not land on a live machine.
+
+**The selective-checkout path for shape B** (only writes, never deletes — local-only files survive
+untouched by construction):
+
+```
+git branch backup/pre-update-$(git rev-parse --short HEAD)      # 1. make it reversible FIRST
+git fetch upstream
+git checkout upstream/main -- JOCA_Brain/.claude/skills JOCA_Brain/.claude/agents \
+                              JOCA_Brain/.claude/commands JOCA_Brain/.claude/rules \
+                              JOCA_OS/backend/src JOCA_OS/frontend/src               # 2. code paths ONLY
+```
+
+Never checkout `memory/`, `JOCA_OS/data/`, `.claude/settings.json` or `soul.md` this way — those are
+the installation, not the toolkit.
+
+**After ANY import from the public branch, three things must be put back** (the template ships them
+neutralised, and each one fails *silently* if forgotten):
+
+1. **Real paths** — `.claude/settings.json` ships with the literal `<JOCA_ROOT>` placeholder, and
+   **with it in place no hook runs at all**.
+2. **User alignment** — `memory/soul.md` ships depersonalised (`<YOUR_NAME>` template block).
+3. **The executable bit** — launchers arrive mode 644 (`chmod +x JOCA_OS/start.sh`).
+
+Then run `node .claude/scripts/joca-doctor.mjs` — it is the check that catches 1 and 3.
+
+---
+
 ## Phase 1 -- Locate JOCA and detect platform
 
 ### 1. Detect OS
@@ -49,7 +101,7 @@ git remote add origin https://github.com/MirrasPT/JOCA.git
 
 Inform the user and continue.
 
-**If remote URL differs from `https://github.com/MirrasPT/JOCA.git`:** warn the user, ask confirmation before proceeding.
+**If remote URL differs from `https://github.com/MirrasPT/JOCA.git`:** that is shape **B** — go back to Phase 0 and take the selective-checkout path. Do not "warn and proceed": proceeding is the bug.
 
 ---
 

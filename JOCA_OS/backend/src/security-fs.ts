@@ -119,8 +119,8 @@ function originHost(origin: string): string | null {
 // Hostnames we answer to. Anything else is refused BEFORE the same-origin comparison below,
 // which is what closes DNS rebinding:
 //
-//   An attacker points evil.com at 127.0.0.1 (short TTL), gets you to open http://evil.com:7381,
-//   and the page then calls the API on its OWN origin. Origin and Host are both "evil.com:7381",
+//   An attacker points evil.com at 127.0.0.1 (short TTL), gets you to open http://evil.com:7491,
+//   and the page then calls the API on its OWN origin. Origin and Host are both "evil.com:7491",
 //   so any same-origin check passes — the attacker is reading your files through your own browser.
 //
 // The fix is that rebinding needs a NAME: a request whose Host is a literal IP cannot be rebound,
@@ -142,7 +142,7 @@ const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 export function isAllowedHost(host: string | undefined): boolean {
   if (!host) return true;                       // HTTP/1.0 and server-side calls send no Host
   const lower = host.toLowerCase();
-  if (EXTRA_HOSTS.has(lower)) return true;      // declared with port (e.g. joca.example.com:7381)
+  if (EXTRA_HOSTS.has(lower)) return true;      // declared with port (e.g. joca.example.com:7491)
   const name = lower.replace(/:\d+$/, '');      // strip port
   if (name === 'localhost' || name === '127.0.0.1' || name === '[::1]' || name === '::1') return true;
   if (IPV4.test(name)) return true;             // literal IPv4 — not rebindable

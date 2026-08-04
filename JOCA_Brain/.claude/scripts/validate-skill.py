@@ -119,7 +119,7 @@ def validate(path):
 
     # (d) name vs nome do ficheiro -- WARN, nao FAIL.
     # Convencao JOCA: o `name:` descritivo manda (ex.: horizon.md -> horizon-queues);
-    # o sistema refere as skills pelo `name:`, nao pelo ficheiro (ver sync-questionnaires.md).
+    # o sistema refere as skills pelo `name:`, nao pelo ficheiro (ver docs/ARQUITECTURA.md).
     stem = p.stem
     if name and name != stem:
         warns.append("`name` (%r) != nome do ficheiro (%r) -- ok se intencional (convencao JOCA)" % (name, stem))

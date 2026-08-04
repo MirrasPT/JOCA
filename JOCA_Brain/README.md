@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 27 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── commands/        <- 25 comandos (/install, /resume, /save, /plan, /goal, ...)
 │       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 132 skills flat (.md) — on-demand loading
+│       ├── skills/          <- 131 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**260 componentes:** 132 skills + 101 agents + 27 commands.
+**257 componentes:** 131 skills + 101 agents + 25 commands.
 
 ---
 
@@ -193,7 +193,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (26)
+## Commands (25)
 
 | Command | Funcao |
 |---------|--------|
@@ -210,7 +210,6 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/know` | Ingerir conteudo na Knowledge Base (markitdown -> resumo -> tags) |
 | `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
 | `/create-skill` | Pipeline self-improving para criar skills |
-| `/sync-questionnaires` | Audita e actualiza os questionarios/listas contra o inventario real |
 | `/upgrade-joca` | Le feedback e implementa melhorias |
 | `/update-joca` | Sync com repositorio GitHub |
 | `/migrate` | Guia de migracao v1-legacy -> v2.0 |
@@ -235,7 +234,6 @@ Sequencias pre-definidas activadas automaticamente:
 | Debug | `log-debugger` -> `query-debugger` (se SQL) |
 | Deploy | `deploy-docker`/`deploy-ploi`/`deploy-cpanel` -> `tester-security` |
 | Nova skill | `deep-research` -> `create-skill` |
-| Manutencao questionarios | `/sync-questionnaires` (drift inventario↔questionarios) |
 | Self-improvement | `self-improver` -> `gemini-auditor` -> apply |
 
 ---

@@ -425,9 +425,9 @@ echo "=== JOCA_OS ===" && ls JOCA_OS/
 ```bash
 cd JOCA_OS && npm run dev &
 sleep 3
-# Portas reais: backend 7371 · frontend 7372
-curl -s http://localhost:7371/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend falhou"
-curl -s http://localhost:7371/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detectado" || echo "✗ JOCA_Logic não encontrado"
+# Portas reais: backend 7491 · frontend 7492
+curl -s http://localhost:7491/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend falhou"
+curl -s http://localhost:7491/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detectado" || echo "✗ JOCA_Logic não encontrado"
 kill %1 2>/dev/null
 cd ..
 ```

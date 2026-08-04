@@ -11,10 +11,12 @@
 // SDK, not in a transcript we paste into every prompt. That was the single most expensive mistake
 // of the Master that came before this.
 import os from 'os';
+import fs from 'fs';
+import path from 'path';
 import { claudeProvider } from '../providers/provider';
 import { loadProjects, loadUiSettings, type Project } from '../project-store';
 import { buildManagerTools, buildGlobalManagerTools } from './tools';
-import { collectToolkitItems } from '../toolkit-registry';
+import { collectToolkitItems, JOCA_LOGIC_ROOT } from '../toolkit-registry';
 import { appendMessage, getState, patchState, rotateChat, type ManagerMessage } from './store';
 
 // Modelo por omissão dos dois cérebros. A env continua a valer como override de máquina; as
@@ -195,6 +197,71 @@ function dossierSection(managerId: string): string {
   ].join('\n');
 }
 
+/**
+ * Onboarding do projecto — só aparece enquanto o projecto NÃO está inicializado.
+ *
+ * O sinal é o mesmo que o resto do sistema usa (`projects-routes.ts`: existe `CLAUDE.md`?), mais a
+ * memória do Brain. Enquanto faltarem, o gestor conduz o levantamento por CONVERSA em vez de o
+ * cliente ter de correr um comando com questionário — que era o que o `/init-project` fazia antes.
+ *
+ * Porque vive no system prompt e não numa mensagem injectada: uma mensagem injectada gasta-se no
+ * primeiro turno e perde-se se a sessão SDK cair; isto está no prefixo estável, e DESAPARECE
+ * sozinho assim que o `CLAUDE.md` passa a existir — sem estado novo para gerir.
+ *
+ * Fail-silent: se a pasta não for legível, devolve vazio (a secção não aparece) em vez de rebentar
+ * a construção do prompt — o gestor tem de arrancar mesmo com um path inválido.
+ */
+export function onboardingSection(project: Project): string {
+  let temClaudeMd = false;
+  let temMemoria = false;
+  let pastaVazia = false;
+  try {
+    temClaudeMd = fs.existsSync(path.join(project.path, 'CLAUDE.md'))
+      || fs.existsSync(path.join(project.path, 'claude.md'));
+    const entradas = fs.readdirSync(project.path).filter((f) => f !== '.git' && f !== '.DS_Store');
+    pastaVazia = entradas.length === 0;
+  } catch {
+    return '';
+  }
+  try {
+    const dir = path.join(JOCA_LOGIC_ROOT, 'memory', 'projects');
+    const alvo = path.resolve(project.path).toLowerCase();
+    temMemoria = fs.readdirSync(dir).some((f) => {
+      if (!f.endsWith('.md')) return false;
+      const txt = fs.readFileSync(path.join(dir, f), 'utf8').slice(0, 2000).toLowerCase();
+      return txt.includes(alvo);
+    });
+  } catch { /* Brain ausente ou ilegível — trata como sem memória */ }
+
+  if (temClaudeMd && temMemoria) return '';
+
+  return [
+    '',
+    '# ESTE PROJECTO AINDA NÃO ESTÁ MONTADO (trata disto primeiro)',
+    `Falta: ${[!temClaudeMd && 'CLAUDE.md na pasta', !temMemoria && 'entrada de memória no Brain'].filter(Boolean).join(' e ')}.`,
+    'Sem isso, cada agente que despachares começa às cegas e o trabalho não fica registado.',
+    '',
+    'Na PRIMEIRA mensagem do cliente, antes de responderes ao que ele pediu, faz o levantamento tu',
+    'mesmo — tens Read/Glob/Grep/Bash e `listar_pasta`. **Não lhe perguntes nada que a pasta responda:**',
+    pastaVazia
+      ? '- A pasta está VAZIA. É um projecto novo: aqui as perguntas são inevitáveis (o que é, que stack, qual o objectivo). Mesmo assim, poucas e de uma vez.'
+      : '- `ls` / `listar_pasta`, `README.md`, `package.json` / `composer.json` / `pyproject.toml` / `go.mod`, `git remote -v`, `git log --oneline -5`.',
+    '- Daí sai a stack, o framework, o repositório e se o projecto está vivo. Isso NÃO se pergunta.',
+    '',
+    'O que o disco não diz e por isso perguntas — **agrupado numa só mensagem**, nunca uma de cada vez:',
+    'para que serve o projecto (1-2 frases), o que ele quer de ti aqui, e restrições que não se vêem',
+    'no código (prazos, decisões fechadas, o que não se pode tocar). Se o `README` já responder à',
+    'primeira, confirma-a em vez de a perguntares.',
+    '',
+    'Com as respostas, despacha UM agente com `trabalhar` para correr `/init-project` (é trabalho de',
+    'ficheiros: cria o `CLAUDE.md`, a entrada de memória e corre o graphify). Passa-lhe no brief o que',
+    'apuraste — ele não vê esta conversa. Não faças tu os ficheiros à mão.',
+    '',
+    '⚠ Nunca sobrescrevas um `CLAUDE.md` ou memória que já existam: acrescenta o que falta.',
+    'E o pedido original do cliente não se perde — ou o mesmo agente o faz a seguir, ou despachas outro.',
+  ].join('\n');
+}
+
 function buildSystemPrompt(project: Project): string {
   return [
     `És o gestor do projecto "${project.name}" no JOCA. Falas português de Portugal, de forma directa e curta.`,
@@ -282,6 +349,7 @@ function buildSystemPrompt(project: Project): string {
     'Proactivo NÃO é atrevido: despachar trabalho e pedir testes por tua iniciativa, sim; apagar, fazer deploy, publicar, pagar, `git push` ou mexer em credenciais sem confirmação explícita do cliente, nunca.',
     '',
     toolInventory(MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
+    onboardingSection(project),
     dossierSection(project.id),
     brainInventory(),
     toolInventory(GLOBAL_MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),

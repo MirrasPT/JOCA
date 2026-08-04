@@ -24,7 +24,7 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 26 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── commands/        <- 25 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
 │       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
 │       ├── skills/          <- 131 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**258 componentes:** 131 skills + 101 agents + 26 commands.
+**257 componentes:** 131 skills + 101 agents + 25 commands.
 
 ---
 
@@ -97,7 +97,7 @@ toda a interface.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 258 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos 257 componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Agentes rapidos na barra:** as sessoes sem projecto aparecem no topo da barra lateral, com
@@ -294,7 +294,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (26)
+## Commands (25)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 

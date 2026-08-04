@@ -124,15 +124,24 @@ Nota: o scan exclui `vendor/`, `node_modules/`, `storage/`, `out/`, `public/` po
 
 ---
 
-## PASSO 6 — Recompilar bridges (se JOCA alterado)
+## PASSO 6 — Reindexar o toolkit (se o JOCA foi alterado)
 
-Se ficheiros em `.claude/skills/`, `.claude/agents/`, ou `.claude/commands/` foram modificados nesta sessao:
+Só corre se ficheiros em `.claude/skills/`, `.claude/agents/` ou `.claude/commands/` foram modificados nesta sessao.
 
 ```bash
 bash .claude/scripts/compile-bridges.sh 2>/dev/null || true
 ```
 
-Se foram **adicionadas, renomeadas ou removidas** skills/agents nesta sessao, sugerir (nao executar) `/sync-questionnaires` para realinhar os questionarios e contadores (`/install`, `/init-project`, `README.md`, `INDEX.md`) com o inventario real.
+Se foram **adicionadas, renomeadas ou removidas** skills/agents/comandos, o inventario derivado fica a mentir. Realinhar **agora**, nao noutro comando:
+
+```bash
+python .claude/scripts/build-skill-index.py    # macOS/Linux: python3 — regenera memory/SKILL_INDEX.json
+node   .claude/scripts/joca-doctor.mjs         # apanha paths/indices mortos (exit 1 se houver ✗)
+```
+
+Depois, edicao cirurgica em `memory/INDEX.md` (contagens + a linha do componente novo) e, se for um comando novo, na tabela `## Commands` do `JOCA_Brain/CLAUDE.md`. **Um componente que nenhum indice expoe e um componente invisivel** — o matching por relevancia nunca lhe chega.
+
+> Nota historica: isto era o antigo `/sync-questionnaires`, que auditava questionarios de formulario. Os questionarios deixaram de existir (o levantamento passou a ser conversa — ver `/init-project`), portanto o que sobra e reindexar, e o sitio certo e aqui.
 
 ---
 
@@ -165,6 +174,7 @@ Feedback JOCA:
 Extras:
   [✓ Graphs actualizados]
   [✓ Bridges recompilados]
+  [✓ SKILL_INDEX + INDEX.md realinhados | joca-doctor limpo]
   [✓ ~/CLAUDE.md actualizado]
 
 Sessao guardada.
