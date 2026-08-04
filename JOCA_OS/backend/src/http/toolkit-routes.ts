@@ -16,7 +16,7 @@ import {
 } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
-  HOME, STARTED_AT, LLM_PROVIDERS,
+  HOME, STARTED_AT, LLM_PROVIDERS, MANAGER_MODEL_IDS,
   assertClaudePath, validateToolkitContent, sanitizeToolkitName, sanitizeToolkitCategory,
 } from './helpers';
 
@@ -78,6 +78,19 @@ export function toolkitRouter(): Router {
       if (m && Number(m[1]) <= 23 && Number(m[2]) <= 59) {
         updated[key] = `${m[1].padStart(2, '0')}:${m[2]}`;
       }
+    }
+    // Tema de marca. Guardado como texto simples (o catálogo vive no cliente), mas sanitizado —
+    // este valor acaba num atributo do `<html>`.
+    if ('brandTheme' in body) {
+      const v = typeof body.brandTheme === 'string' ? body.brandTheme.trim().slice(0, 40) : '';
+      updated.brandTheme = /^[a-z0-9-]+$/.test(v) ? v : undefined;
+    }
+    // Modelo do cérebro do Joca e dos gestores de projecto. Lista fechada: um valor livre chegaria
+    // ao SDK e rebentava o turno do gestor em runtime, não aqui. Vazio = default do backend.
+    for (const key of ['jocaModel', 'managerModel'] as const) {
+      if (!(key in body)) continue;
+      const v = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
+      updated[key] = MANAGER_MODEL_IDS.includes(v) ? v : undefined;
     }
     // CLI used by new terminals when none is specified (Settings → CLI por defeito).
     if ('defaultCli' in body) {

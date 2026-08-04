@@ -12,11 +12,24 @@
 // of the Master that came before this.
 import os from 'os';
 import { claudeProvider } from '../providers/provider';
-import { loadProjects, type Project } from '../project-store';
+import { loadProjects, loadUiSettings, type Project } from '../project-store';
 import { buildManagerTools, buildGlobalManagerTools } from './tools';
 import { appendMessage, getState, patchState, rotateChat, type ManagerMessage } from './store';
 
-const MODEL = process.env.JOCA_MANAGER_MODEL || 'sonnet';
+// Modelo por omissão dos dois cérebros. A env continua a valer como override de máquina; as
+// definições da UI ganham-lhe, porque são a escolha explícita do dono.
+export const MANAGER_MODEL_DEFAULT = process.env.JOCA_MANAGER_MODEL || 'sonnet';
+
+/**
+ * Modelo do cérebro de um gestor. `__global__` = Joca; qualquer outra chave = gestor de projecto.
+ * Lido a cada turno de propósito: mudar o modelo nas Definições aplica-se ao turno seguinte, sem
+ * reiniciar o backend (que mataria os agentes vivos).
+ */
+function modelFor(managerId: string): string {
+  const s = loadUiSettings();
+  const chosen = managerId === GLOBAL_MANAGER_ID ? s.jocaModel : s.managerModel;
+  return chosen?.trim() || MANAGER_MODEL_DEFAULT;
+}
 const MAX_TURNS = 24;             // tool calls within ONE reply
 const MAX_BUDGET_USD = 1.5;       // per turn, hard stop
 
@@ -291,7 +304,7 @@ export async function runManagerTurn(
   try {
     for await (const ev of claudeProvider.run(prompt, {
       systemPrompt: buildSystemPrompt(project),
-      model: MODEL,
+      model: modelFor(projectId),
       cwd: project.path,
       resume: state.sdkSessionId,
       mcpServers: { joca: buildManagerTools(projectId, actions) },
@@ -371,7 +384,7 @@ export async function runGlobalManagerTurn(
   try {
     for await (const ev of claudeProvider.run(prompt, {
       systemPrompt: buildGlobalSystemPrompt(loadProjects()),
-      model: MODEL,
+      model: modelFor(GLOBAL_MANAGER_ID),
       resume: state.sdkSessionId,
       mcpServers: { joca: buildGlobalManagerTools(actions) },
       // O Joca não tem pasta própria (é cross-project), mas agora tem Bash — e sem `cwd` os

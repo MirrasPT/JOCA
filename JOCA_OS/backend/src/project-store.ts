@@ -59,6 +59,17 @@ export interface UiSettings {
   themeDayStart?: string;          // "HH:MM" a que passa a claro (só conta em 'auto')
   themeNightStart?: string;        // "HH:MM" a que passa a escuro (só conta em 'auto')
   defaultCli?: string;             // CLI used by new terminals: claude (default) | codex | agy | opencode
+  // ── Modelo do cérebro dos gestores ────────────────────────────────────────
+  // Separados de propósito: o Joca é cross-project e decide (vale-lhe um modelo mais forte); um
+  // gestor de projecto despacha e verifica muitas vezes (vale-lhe um mais barato). Vazio = default.
+  // ⚠ Só modelos do Agent SDK. Trocar isto NUNCA pode custar ferramentas ao gestor — um provider
+  // que não carregue o contrato de tools (mcpServers + resume) não entra aqui. Ver providers/.
+  // Tema de marca ("Custom Temas"): só nome + logo + cores no cliente. O backend guarda-o para a
+  // escolha seguir o utilizador para outra máquina — nada no servidor muda de comportamento por
+  // causa dele, e o gestor global continua a ser `__global__`/Joca do lado de cá.
+  brandTheme?: string;
+  jocaModel?: string;              // modelo do gestor global (Joca); default MANAGER_MODEL_DEFAULT
+  managerModel?: string;           // modelo dos gestores de projecto; default MANAGER_MODEL_DEFAULT
 }
 
 // Sobreponível por `JOCA_DATA_DIR`. Existe por causa dos testes: `notifications.test.ts` e

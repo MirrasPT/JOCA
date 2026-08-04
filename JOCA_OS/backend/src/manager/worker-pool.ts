@@ -12,7 +12,7 @@
 // session names (see adopt()) if the backend restarts while terminals are alive.
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import type { Session } from '../session-manager';
-import { loadProjects } from '../project-store';
+import { loadProjects, loadUiSettings } from '../project-store';
 
 export interface PooledWorker {
   sessionId: string;
@@ -100,7 +100,15 @@ export function dispatchToArea(
   instruction: string,
   opts: { cli?: string; model?: string } = {},
 ): DispatchResult {
-  const cleanArea = area.trim().slice(0, 40) || 'geral';
+  const baseArea = area.trim().slice(0, 40) || 'geral';
+  // O CLI faz parte da identidade da área. Sem isto, pedir `cli:"agy"` numa área que já tinha um
+  // worker Claude reutilizava o terminal Claude e o pedido do gestor era ignorado em SILÊNCIO —
+  // ele julgava-se a falar com o Gemini. Um CLI diferente é um worker diferente.
+  // Comparado contra o CLI POR DEFEITO, não contra 'claude': com o default em codex, pedir
+  // `cli:"claude"` também tem de abrir um worker próprio.
+  const defaultCli = loadUiSettings().defaultCli?.trim() || 'claude';
+  const requestedCli = opts.cli?.trim();
+  const cleanArea = requestedCli && requestedCli !== defaultCli ? `${baseArea} (${requestedCli})` : baseArea;
   const project = loadProjects().find((p) => p.id === projectId);
   if (!project) return { ok: false, error: 'projecto não encontrado' };
 

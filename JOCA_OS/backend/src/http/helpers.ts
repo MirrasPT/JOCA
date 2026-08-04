@@ -14,6 +14,10 @@ export const STARTED_AT = Date.now();
 export const LLM_PROVIDERS = ['claude', 'ollama'] as const;
 export type LlmProvider = typeof LLM_PROVIDERS[number];
 
+// Modelos aceites para o cérebro do Joca / gestores de projecto. Fechada de propósito: o valor vai
+// direito ao Agent SDK, e um modelo inventado só rebentaria no turno seguinte do gestor.
+export const MANAGER_MODEL_IDS: string[] = ['haiku', 'sonnet', 'opus'];
+
 // All drops land in a dedicated folder (not the Desktop) so the worker gets a real, stable path
 // without cluttering common dirs. Folders preserve their relative structure under here.
 export const DROP_DIR = path.join(os.homedir(), 'JOCA_Drops');
