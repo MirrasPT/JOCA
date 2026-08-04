@@ -4,11 +4,22 @@
 import path from 'path';
 import fs from 'fs';
 
+// Ícone opcional de um projecto ou de um grupo. Duas formas só, porque são as duas que a UI sabe
+// desenhar; sem ícone a UI cai nas 2 primeiras letras do nome (não há default a persistir).
+//   'image' → `value` é o NOME do ficheiro em data/icons, sempre gerado pelo servidor (um UUID +
+//             extensão). Nunca o nome que o cliente enviou — seria path traversal directo.
+//   'emoji' → `value` é o próprio emoji (um único grapheme cluster).
+export interface ProjectIcon {
+  type: 'image' | 'emoji';
+  value: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   path: string;
   color?: string;
+  icon?: ProjectIcon;
   githubRepo?: string;
   archived?: boolean;
   order?: number;
@@ -32,7 +43,8 @@ export interface ProjectMemory {
   favoriteAgents: string[];
   quickCommands: string[];
   openFiles: string[];
-  rightPanel: 'files' | 'toolkit' | 'settings' | null;
+  /** Painel activo do rail direito. `inbox` = notificações (4º painel, irmão dos outros). */
+  rightPanel: 'files' | 'toolkit' | 'settings' | 'inbox' | null;
   updatedAt: string;
 }
 
@@ -42,11 +54,18 @@ export interface UiSettings {
   skipPermissions: boolean;
   optimizeProvider?: LlmProvider;  // SDK used by "Optimizar" (text rewrite); default claude
   optimizeModel?: string;          // model used by the "Optimizar" feature (text rewrite); default sonnet
-  theme?: 'dark' | 'light';        // UI theme; default dark (undefined = dark)
+  theme?: 'dark' | 'light';        // tema JÁ resolvido (legado + leitura rápida); default dark
+  themeMode?: 'dark' | 'light' | 'auto';  // escolha do utilizador; 'auto' = troca pela hora
+  themeDayStart?: string;          // "HH:MM" a que passa a claro (só conta em 'auto')
+  themeNightStart?: string;        // "HH:MM" a que passa a escuro (só conta em 'auto')
   defaultCli?: string;             // CLI used by new terminals: claude (default) | codex | agy | opencode
 }
 
-export const DATA_DIR = path.join(__dirname, '../../data');
+// Sobreponível por `JOCA_DATA_DIR`. Existe por causa dos testes: `notifications.test.ts` e
+// `manager.test.ts` fazem `fs.rmSync` sobre ficheiros DESTA pasta — apontados aos dados reais,
+// correr `npm test` apagava as notificações e o chat do gestor do utilizador. Com o override, o
+// vitest escreve numa pasta temporária e os testes deixam de poder tocar em dados a sério.
+export const DATA_DIR = process.env.JOCA_DATA_DIR || path.join(__dirname, '../../data');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
 const PROJECT_MEMORY_FILE = path.join(DATA_DIR, 'project-memory.json');
 const UI_SETTINGS_FILE = path.join(DATA_DIR, 'ui-settings.json');

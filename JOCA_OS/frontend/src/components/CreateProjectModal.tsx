@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { CSSProperties } from 'react';
-import type { Project } from '../types';
+import type { Project, ProjectIcon } from '../types';
 import { shortPath, basename } from '../lib/paths';
 import { PROJECT_COLORS } from '../lib/projectColor';
 import { GithubIcon } from './dashboard/icons';
 import ProjectToolkitModal from './ProjectToolkitModal';
+import { ProjectIconField } from './SessionSidebar';
+import './project-modal.css';
 
 interface GitInfo {
   isRepository: boolean;
@@ -37,6 +39,8 @@ interface ProjectDraft {
   name: string;
   path: string;
   color: string;
+  /** Logótipo/emoji do projecto; `null` = sem ícone (a barra lateral cai nas 2 primeiras letras). */
+  icon: ProjectIcon | null;
   /** O que o projecto é, por palavras do utilizador — é a memória permanente do gestor. */
   description: string;
   /** A pasta já tem código, ou o projecto começa do zero? Muda a forma como o gestor arranca. */
@@ -79,7 +83,7 @@ function XIcon() {
 export default function CreateProjectModal({
   open, project, onClose, onSaved, onUpdateProject, onCreateProjectSkill, onArchiveProject, onRemoveProject,
 }: Props) {
-  const [draft, setDraft] = useState<ProjectDraft>({ name: '', path: '', color: PROJECT_COLORS[0], description: '', hasCode: false });
+  const [draft, setDraft] = useState<ProjectDraft>({ name: '', path: '', color: PROJECT_COLORS[0], icon: null, description: '', hasCode: false });
   // Só true depois do utilizador tocar mesmo num swatch/input — sem isto TODOS os projectos
   // novos enviavam o mesmo laranja por omissão (draft.color já nasce com PROJECT_COLORS[0]),
   // e o fallback de cor por hash em `projectColor()` nunca chegava a disparar via UI.
@@ -87,9 +91,15 @@ export default function CreateProjectModal({
   const [browserPath, setBrowserPath] = useState('');
   const [fileList, setFileList] = useState<FileListResponse | null>(null);
   const [showHidden, setShowHidden] = useState(false);
+  // A criar, escolher a pasta É a tarefa (browser aberto); a editar é raro — fica atrás de um
+  // botão, senão metade do diálogo era uma lista de pastas que ninguém ia usar.
+  const [showBrowser, setShowBrowser] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // Logótipos carregados nesta sessão do modal. Se o utilizador fechar sem gravar, nenhum projecto
+  // os aponta e ficariam órfãos no servidor — apagam-se via `DELETE /icons/{nome}`.
+  const pendingUploadsRef = useRef<string[]>([]);
 
   // ── Secções extra do modo edição (Git / Skills / Zona perigosa) ──────────────────────────
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null);
@@ -132,13 +142,16 @@ export default function CreateProjectModal({
 
   useEffect(() => {
     if (!open) return;
+    setShowBrowser(!project);
     setDraft({
       name: project?.name ?? '',
       path: project?.path ?? '',
       color: project?.color || PROJECT_COLORS[0],
+      icon: project?.icon ?? null,
       description: project?.description ?? '',
       hasCode: Boolean(project?.hasCode),
     });
+    pendingUploadsRef.current = [];
     setBrowserPath(project?.path ?? '');
     setFileList(null);
     setError('');
@@ -158,7 +171,7 @@ export default function CreateProjectModal({
     fetch(`/files?${params.toString()}`, { signal: controller.signal })
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Could not read folder');
+        if (!res.ok) throw new Error(data.error || 'Não foi possível ler a pasta');
         return data as FileListResponse;
       })
       .then((data) => {
@@ -184,8 +197,17 @@ export default function CreateProjectModal({
   const openerRef = useRef<HTMLElement | null>(null);
   // Ref, não dependência do efeito: `onClose` chega como arrow inline do caller (identidade nova a
   // cada render) — pô-la nas deps fazia o efeito re-executar em CADA render enquanto aberto.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  const handleClose = useCallback(() => {
+    const applied = project?.icon?.type === 'image' ? project.icon.value : '';
+    for (const filename of pendingUploadsRef.current) {
+      if (filename !== applied) fetch(`/icons/${filename}`, { method: 'DELETE' }).catch(() => {});
+    }
+    pendingUploadsRef.current = [];
+    onClose();
+  }, [project, onClose]);
+
+  const onCloseRef = useRef(handleClose);
+  onCloseRef.current = handleClose;
 
   // Capturar o opener + focar o 1º campo só na transição REAL open:false→true — separado do efeito
   // do trap (que também depende de `toolkitModalOpen`) para essa dependência extra nunca reescrever
@@ -245,6 +267,8 @@ export default function CreateProjectModal({
         // de dar uma cor distinta ao projecto assim que tiver `id`, em vez de todos caírem no
         // mesmo laranja por omissão.
         color: colorTouched ? normalizeColor(draft.color) : undefined,
+        // No PATCH, `null` é o que limpa o ícone. Na criação não se manda nada quando não há.
+        icon: draft.icon ?? (project ? null : undefined),
         // Vai sempre (mesmo vazia): no PATCH é assim que se apaga uma descrição que já não serve.
         description: draft.description.trim(),
         hasCode: draft.hasCode,
@@ -260,6 +284,8 @@ export default function CreateProjectModal({
     }
 
     setSaving(false);
+    // Gravado: o logótipo passou a estar em uso — já não é um upload por aplicar.
+    pendingUploadsRef.current = [];
     onSaved(data as Project);
     onClose();
   };
@@ -267,29 +293,33 @@ export default function CreateProjectModal({
   if (!open) return null;
 
   return (
-    <div className="project-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="project-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) handleClose(); }}>
       <div ref={modalRef} className="project-modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
         <div className="project-modal-header">
           <div>
-            <span className="project-modal-kicker">{isEditing ? 'Workspace settings' : 'New workspace'}</span>
-            <h2 id="project-modal-title">{isEditing ? 'Edit Project' : 'Create Project'}</h2>
+            <span className="project-modal-kicker">{isEditing ? 'Definições' : 'Novo'}</span>
+            <h2 id="project-modal-title">{isEditing ? 'Editar projecto' : 'Criar projecto'}</h2>
           </div>
-          <button className="project-modal-close" type="button" onClick={onClose} aria-label="Close"><XIcon /></button>
+          <button className="project-modal-close" type="button" onClick={handleClose} aria-label="Fechar"><XIcon /></button>
         </div>
 
+        {/* Um scroll só. Antes a grelha tinha `overflow:auto` própria e o bloco de edição (Git,
+            Kit, Zona perigosa) ficava FORA dela — duas áreas de scroll empilhadas, a de cima a
+            cortar a descrição a meio com espaço de sobra no diálogo. */}
+        <div className="project-modal-body">
         <div className="project-modal-grid">
-          <section className="project-modal-form" aria-label="Project details">
+          <section className="project-modal-form" aria-label="Detalhes do projecto">
             <label className="project-field">
-              <span>Name</span>
+              <span>Nome</span>
               <input
                 value={draft.name}
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-                placeholder={draft.path ? basename(draft.path) : 'My Project'}
+                placeholder={draft.path ? basename(draft.path) : 'O meu projecto'}
               />
             </label>
 
             <label className="project-field">
-              <span>Folder</span>
+              <span>Pasta</span>
               <input
                 value={draft.path}
                 onChange={(event) => {
@@ -347,7 +377,7 @@ export default function CreateProjectModal({
             </div>
 
             <div className="project-field">
-              <span>Project color</span>
+              <span>Cor</span>
               <div className="project-color-row">
                 {colorOptions.map((color) => (
                   <button
@@ -356,7 +386,7 @@ export default function CreateProjectModal({
                     type="button"
                     style={{ '--project-color': color } as CSSProperties}
                     onClick={() => { setColorTouched(true); setDraft((current) => ({ ...current, color })); }}
-                    aria-label={`Use color ${color}`}
+                    aria-label={`Usar a cor ${color}`}
                   />
                 ))}
               </div>
@@ -365,36 +395,53 @@ export default function CreateProjectModal({
                 value={colorTouched ? draft.color : ''}
                 onChange={(event) => { setColorTouched(true); setDraft((current) => ({ ...current, color: event.target.value })); }}
                 placeholder={colorTouched ? '#ff4500' : 'Automática (por projecto)'}
-                aria-label="Custom project color"
+                aria-label="Cor personalizada"
               />
+            </div>
+
+            <div className="project-field project-field--icon">
+              <span>Ícone do projecto</span>
+              <ProjectIconField
+                icon={draft.icon ?? undefined}
+                name={draft.name.trim() || basename(draft.path) || 'Projecto'}
+                label="projecto"
+                onChange={(icon) => {
+                  if (icon?.type === 'image') pendingUploadsRef.current.push(icon.value);
+                  setDraft((current) => ({ ...current, icon }));
+                }}
+              />
+              <small className="project-field-hint">
+                É isto que aparece na barra lateral quando está fechada.
+              </small>
             </div>
 
             <div className="project-modal-preview" style={{ '--project-color': draft.color } as CSSProperties}>
               <span className="project-preview-dot" />
               <div>
-                <strong>{draft.name.trim() || basename(draft.path) || 'New Project'}</strong>
-                <small>{draft.path ? shortPath(draft.path) : 'Choose a folder to attach real files and sessions.'}</small>
+                <strong>{draft.name.trim() || basename(draft.path) || 'Projecto novo'}</strong>
+                <small>{draft.path ? shortPath(draft.path) : 'Escolhe a pasta — é onde os agentes vão trabalhar.'}</small>
               </div>
             </div>
           </section>
 
-          <section className="project-folder-browser" aria-label="Folder browser">
+          {showBrowser ? (
+          <section className="project-folder-browser" aria-label="Escolher pasta">
             <div className="project-browser-toolbar">
-              <button type="button" onClick={() => fileList?.parent && setBrowserPath(fileList.parent)}>Up</button>
-              <button type="button" onClick={() => setBrowserPath('')}>Home</button>
+              <button type="button" onClick={() => fileList?.parent && setBrowserPath(fileList.parent)}>Subir</button>
+              <button type="button" onClick={() => setBrowserPath('')}>Início</button>
               <button type="button" onClick={() => fileList && setDraft((current) => ({ ...current, path: fileList.path }))}>
-                Use current
+                Usar esta
               </button>
               <label className="project-hidden-toggle">
                 <input type="checkbox" checked={showHidden} onChange={(event) => setShowHidden(event.target.checked)} />
-                dotfiles
+                ocultos
               </label>
             </div>
 
-            <div className="project-browser-path">{fileList ? shortPath(fileList.path) : 'Loading home...'}</div>
+            <div className="project-browser-path">{fileList ? shortPath(fileList.path) : 'A carregar…'}</div>
 
             <div className="project-browser-list">
-              {loading && <div className="project-browser-empty">Loading folders...</div>}
+              {loading && <div className="project-browser-empty">A carregar pastas…</div>}
               {!loading && visibleDirs.map((entry) => (
                 <button
                   key={entry.path}
@@ -409,9 +456,15 @@ export default function CreateProjectModal({
                   <strong>{entry.name}</strong>
                 </button>
               ))}
-              {!loading && visibleDirs.length === 0 && <div className="project-browser-empty">No folders here</div>}
+              {!loading && visibleDirs.length === 0 && <div className="project-browser-empty">Sem pastas aqui</div>}
             </div>
           </section>
+          ) : (
+            // Em edição a pasta raramente muda. Fica atrás de um botão; a criar, continua aberto.
+            <button type="button" className="project-browse-toggle" onClick={() => setShowBrowser(true)}>
+              Escolher outra pasta
+            </button>
+          )}
         </div>
 
         {isEditing && project && (
@@ -438,37 +491,42 @@ export default function CreateProjectModal({
                     <GithubIcon />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.githubRepo}</span>
                   </a>
-                  <button className="db-project-card-btn db-project-card-btn--ghost" style={{ padding: '2px 8px', height: '22px', fontSize: '11px', marginTop: '6px' }} onClick={() => setEditingGithub(true)}>Edit Link</button>
+                  <button className="db-project-card-btn db-project-card-btn--ghost" style={{ padding: '2px 8px', height: '22px', fontSize: '11px', marginTop: '6px' }} onClick={() => setEditingGithub(true)}>Mudar</button>
                 </div>
               ) : (
-                <div className="github-no-link">
-                  <p className="memory-empty-text">Sem repositório GitHub associado.</p>
-                  {gitInfo?.isRepository && gitInfo.remoteUrl && parseGithubRepo(gitInfo.remoteUrl) && (
-                    <button
-                      className="db-project-card-btn"
-                      style={{ margin: '8px 0', fontSize: '11px', padding: '6px 10px', width: '100%' }}
-                      onClick={async () => {
-                        const autoRepo = parseGithubRepo(gitInfo.remoteUrl);
-                        if (autoRepo && onUpdateProject) await onUpdateProject(project.id, { githubRepo: autoRepo });
-                      }}
-                    >
-                      Connect: {parseGithubRepo(gitInfo.remoteUrl)}
-                    </button>
-                  )}
-                  <button className="db-project-card-btn db-project-card-btn--ghost" style={{ fontSize: '11px', padding: '4px 8px', width: '100%', marginTop: '4px' }} onClick={() => setEditingGithub(true)}>Add GitHub Link</button>
+                <div className="project-row-item">
+                  <div>
+                    <strong>Sem repositório associado</strong>
+                    <small>Ligar um repo dá ao gestor o contexto de ramos e commits.</small>
+                  </div>
+                  <div className="project-row-actions">
+                    {gitInfo?.isRepository && gitInfo.remoteUrl && parseGithubRepo(gitInfo.remoteUrl) && (
+                      <button
+                        className="f-btn f-btn--sm"
+                        type="button"
+                        onClick={async () => {
+                          const autoRepo = parseGithubRepo(gitInfo.remoteUrl);
+                          if (autoRepo && onUpdateProject) await onUpdateProject(project.id, { githubRepo: autoRepo });
+                        }}
+                      >
+                        Ligar {parseGithubRepo(gitInfo.remoteUrl)}
+                      </button>
+                    )}
+                    <button className="f-btn f-btn--sm f-btn--secondary" type="button" onClick={() => setEditingGithub(true)}>Ligar à mão</button>
+                  </div>
                 </div>
               )}
               {gitInfo?.isRepository && (
                 <div className="git-local-info">
-                  <div className="git-local-title">Local Git Status</div>
+                  <div className="git-local-title">Git local</div>
                   <dl className="settings-cli-meta" style={{ margin: 0, fontSize: '11px' }}>
-                    <dt style={{ color: 'var(--text-muted)' }}>Branch</dt>
-                    <dd style={{ color: 'var(--text-bright)' }}>{gitInfo.branch || '...'}</dd>
+                    <dt style={{ color: 'var(--text-muted)' }}>Ramo</dt>
+                    <dd style={{ color: 'var(--text-bright)' }}>{gitInfo.branch || '…'}</dd>
                     <dt style={{ color: 'var(--text-muted)' }}>Commit</dt>
-                    <dd style={{ color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={gitInfo.lastCommit}>{gitInfo.lastCommit || '...'}</dd>
-                    <dt style={{ color: 'var(--text-muted)' }}>Status</dt>
+                    <dd style={{ color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={gitInfo.lastCommit}>{gitInfo.lastCommit || '…'}</dd>
+                    <dt style={{ color: 'var(--text-muted)' }}>Estado</dt>
                     <dd style={{ color: gitInfo.statusSummary ? 'var(--yellow)' : 'var(--green)' }}>
-                      {gitInfo.statusSummary ? `${gitInfo.statusSummary.split('\n').length} files modified` : 'Clean'}
+                      {gitInfo.statusSummary ? `${gitInfo.statusSummary.split('\n').length} ficheiros por commitar` : 'Limpo'}
                     </dd>
                   </dl>
                 </div>
@@ -477,46 +535,67 @@ export default function CreateProjectModal({
 
             <section className="project-field" aria-label="Skills e agentes exclusivos">
               <span>Kit exclusivo</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="memory-empty-text" style={{ margin: 0 }}>
-                  {toolkitCounts ? `${toolkitCounts.skills} skill${toolkitCounts.skills === 1 ? '' : 's'} · ${toolkitCounts.agents} agente${toolkitCounts.agents === 1 ? '' : 's'}` : '...'}
-                </span>
-                <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setToolkitModalOpen(true)}>Gerir Skills →</button>
+              <div className="project-row-item">
+                <div>
+                  <strong>
+                    {toolkitCounts ? `${toolkitCounts.skills} skill${toolkitCounts.skills === 1 ? '' : 's'} · ${toolkitCounts.agents} agente${toolkitCounts.agents === 1 ? '' : 's'}` : '…'}
+                  </strong>
+                  <small>Skills e agentes que só existem neste projecto.</small>
+                </div>
+                <div className="project-row-actions">
+                  <button className="f-btn f-btn--sm f-btn--secondary" type="button" onClick={() => setToolkitModalOpen(true)}>Gerir</button>
+                </div>
               </div>
             </section>
 
             {(onArchiveProject || onRemoveProject) && (
-              <section className="project-field" aria-label="Zona perigosa">
-                <span>Zona perigosa</span>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              // Arquivar e remover liam-se como qualquer outro botão do diálogo. Aqui ganham bloco
+              // próprio, tom vermelho e uma linha a dizer o que cada um faz — a diferença tem de
+              // ser visível ANTES do clique, não depois.
+              <section className="project-danger" aria-label="Zona perigosa">
+                <span className="project-danger-title">Zona perigosa</span>
+                <div className="project-danger-row">
                   {onArchiveProject && (
-                    <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => onArchiveProject(project.id, !project.archived)}>
-                      {project.archived ? 'Restaurar projecto' : 'Arquivar projecto'}
-                    </button>
+                    <div className="project-danger-item">
+                      <div>
+                        <strong>{project.archived ? 'Restaurar projecto' : 'Arquivar projecto'}</strong>
+                        <small>{project.archived ? 'Volta a aparecer na barra lateral.' : 'Sai da barra lateral. Nada se perde — dá para restaurar.'}</small>
+                      </div>
+                      <button className="project-danger-btn" type="button" onClick={() => onArchiveProject(project.id, !project.archived)}>
+                        {project.archived ? 'Restaurar' : 'Arquivar'}
+                      </button>
+                    </div>
                   )}
                   {onRemoveProject && (
-                    confirmRemove ? (
-                      <div role="alert" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Remover definitivamente?</span>
-                        <button className="f-btn f-btn--sm" type="button" style={{ background: 'var(--red)', borderColor: 'var(--red)', color: '#fff' }} onClick={() => { onRemoveProject(project.id); onClose(); }}>Confirmar</button>
-                        <button ref={cancelRemoveRef} className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setConfirmRemove(false)}>Cancelar</button>
+                    <div className="project-danger-item">
+                      <div>
+                        <strong>Remover projecto</strong>
+                        <small>Apaga-o do JOCA (conversa e tarefas incluídas). Os ficheiros na pasta ficam.</small>
                       </div>
-                    ) : (
-                      <button className="f-btn f-btn--secondary f-btn--sm" type="button" onClick={() => setConfirmRemove(true)}>Remover projecto</button>
-                    )
+                      {confirmRemove ? (
+                        <div role="alert" className="project-danger-confirm">
+                          <span>De certeza?</span>
+                          <button className="project-danger-btn project-danger-btn--go" type="button" onClick={() => { onRemoveProject(project.id); handleClose(); }}>Remover</button>
+                          <button ref={cancelRemoveRef} className="project-danger-btn" type="button" onClick={() => setConfirmRemove(false)}>Cancelar</button>
+                        </div>
+                      ) : (
+                        <button className="project-danger-btn" type="button" onClick={() => setConfirmRemove(true)}>Remover</button>
+                      )}
+                    </div>
                   )}
                 </div>
               </section>
             )}
           </div>
         )}
+        </div>
 
         {error && <div className="project-modal-error">{error}</div>}
 
         <div className="project-modal-actions">
-          <button type="button" className="project-modal-secondary" onClick={onClose}>Cancel</button>
+          <button type="button" className="project-modal-secondary" onClick={handleClose}>Cancelar</button>
           <button type="button" className="project-modal-primary" onClick={submit} disabled={!canCreate}>
-            {saving ? 'Saving...' : isEditing ? 'Save Project' : 'Create Project'}
+            {saving ? 'A guardar…' : isEditing ? 'Guardar' : 'Criar projecto'}
           </button>
         </div>
       </div>

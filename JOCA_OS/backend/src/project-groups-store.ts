@@ -2,11 +2,13 @@
 // projects themselves beyond the `groupId` pointer stored on each Project (see project-store.ts).
 import path from 'path';
 import { DATA_DIR, readJsonFile, writeJsonFile, loadProjects, saveProjects } from './project-store';
+import type { ProjectIcon } from './project-store';
 
 export interface ProjectGroup {
   id: string;
   name: string;
   color?: string;
+  icon?: ProjectIcon;
   order?: number;
   collapsed?: boolean;
 }

@@ -43,7 +43,15 @@ if [ $? -ne 0 ]; then
   echo "ERROR: Backend build failed. See /tmp/joca-backend-v2-build.log"
   exit 1
 fi
-nohup env PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
+# O backend abre processos `claude` (o SDK do gestor e os terminais dos agentes). Se o JOCA for
+# arrancado de DENTRO de uma sessão Claude Code (terminal do próprio Claude Code, ou o .command
+# lançado a partir dela), estas variáveis são herdadas e cada `claude` filho julga-se uma
+# sub-sessão dessa: herda o orçamento dela ("Reached maximum budget") e acaba a recusar arrancar,
+# com uma mensagem enganadora sobre libc/musl que nada tem a ver com macOS.
+# Limpar aqui, no arranque, é o único sítio que cobre os dois lançadores.
+nohup env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_CHILD_SESSION \
+  -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_EXECPATH -u CLAUDE_PID -u CLAUDE_EFFORT \
+  PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
   >> /tmp/joca-backend-v2.log 2>&1 < /dev/null &
 BACKEND_PID=$!
 disown $BACKEND_PID

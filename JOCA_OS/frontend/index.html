@@ -15,8 +15,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <script>
-      // Apply the saved theme before first paint — avoids a dark flash when light mode is on.
-      try { if (localStorage.getItem('joca-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) { /* ignore */ }
+      // Tema aplicado antes do primeiro paint — evita o flash do tema errado.
+      // Esta lógica é um espelho mínimo de `src/lib/theme.ts`: aqui não há módulos ainda (o bundle
+      // só corre depois), e esperar por ele custaria exactamente o flash que isto evita.
+      try {
+        var LS = localStorage;
+        var mode = LS.getItem('joca-theme-mode');
+        if (mode !== 'dark' && mode !== 'light' && mode !== 'auto') {
+          mode = LS.getItem('joca-theme') === 'light' ? 'light' : 'dark';
+        }
+        var light = mode === 'light';
+        if (mode === 'auto') {
+          var hm = function (v) {
+            var m = /^(\d{1,2}):(\d{2})$/.exec(String(v || '').trim());
+            if (!m) return null;
+            var h = +m[1], mi = +m[2];
+            return h > 23 || mi > 59 ? null : h * 60 + mi;
+          };
+          var day = hm(LS.getItem('joca-theme-day')) ?? hm('08:00');
+          var night = hm(LS.getItem('joca-theme-night')) ?? hm('20:00');
+          var now = new Date();
+          var t = now.getHours() * 60 + now.getMinutes();
+          // A janela do dia pode atravessar a meia-noite, daí os dois ramos.
+          light = day === night ? false : (day < night ? (t >= day && t < night) : (t >= day || t < night));
+        }
+        if (light) document.documentElement.dataset.theme = 'light';
+        LS.setItem('joca-theme', light ? 'light' : 'dark');
+      } catch (e) { /* ignore */ }
     </script>
   </head>
   <body>

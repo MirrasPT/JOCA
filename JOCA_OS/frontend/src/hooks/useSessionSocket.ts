@@ -73,14 +73,22 @@ export interface SessionSocketDeps {
   setTasksRefresh: Dispatch<SetStateAction<number>>;
   setNotificationsRefresh: Dispatch<SetStateAction<number>>;
   setManagerRefresh: Dispatch<SetStateAction<number>>;
+  /** Gestores a meio de um turno (`__global__` = o Joca) — alimenta o indicador do rodapé. */
+  setBusyManagerIds: Dispatch<SetStateAction<string[]>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
   sessionsRef: React.MutableRefObject<SessionInfo[]>;
   activeIdRef: React.MutableRefObject<string | null>;
   pinOutputRef: React.MutableRefObject<boolean>;
+  /** `false` = a próxima sessão criada NÃO rouba o ecrã (o "+" da lista de agentes cria o agente e
+   *  fica onde se está). Volta a `true` sozinho depois de consumido — é uma excepção pontual, não
+   *  um modo: numa lista lateral, ser atirado para ecrã cheio a cada agente novo é agressivo. */
+  focusNewSessionRef: React.MutableRefObject<boolean>;
   activateSession: (id: string) => void;
   addToast: (session: SessionInfo) => void;
+  /** Toast persistente para uma notificação `priority:'action'` (bloqueio à espera de resposta). */
+  addNotificationToast: (notification: AppNotification) => void;
   processOutput: (sessionId: string, data: string) => void;
   reloadProjects: () => void;
   reloadProjectMemory: () => void;
@@ -149,10 +157,11 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           d.activateSession(msg.session.id);
           // Workers spawned by automations/tasks (origin 'auto') stay in the BACKGROUND — they must
           // not yank focus to the terminal. Only user-created sessions switch the view.
-          if (msg.session.origin !== 'auto') {
+          if (msg.session.origin !== 'auto' && d.focusNewSessionRef.current) {
             d.setActiveId(msg.session.id);
             d.setMainView('session');
           }
+          d.focusNewSessionRef.current = true;
           break;
 
         case 'session_closed':
@@ -175,6 +184,11 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             { id: crypto.randomUUID(), title: 'Session closed', detail: msg.sessionId, timestamp: Date.now() },
             ...prev,
           ].slice(0, 80));
+          // A pool de workers do gestor não vive no estado global — vem do GET do chat. Sem este
+          // refetch, um agente fechado à mão continuava na lista de Agentes até o gestor falar, e
+          // clicar nele abria um terminal que já não existe. O backend já o tirou da pool
+          // (worker-pool.forgetSession no evento 'closed'); faltava o cliente ir buscar.
+          d.setManagerRefresh((n) => n + 1);
           break;
 
         case 'session_renamed':
@@ -214,7 +228,7 @@ export function useSessionSocket(deps: SessionSocketDeps) {
               // in the background, so the user must be alerted that the result is ready to inspect.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
               if (session.origin === 'auto') {
-                notify('JOCA — Terminado', session.name);
+                notify('JOCA — Terminado', session.name, { sessionId: session.id });
               }
             }
           }
@@ -229,11 +243,15 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         // An automation delivered a message-node result → OS notification (the worker terminal and
         // the automation's lastResult hold the full output).
         case 'automation_message':
-          notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120));
+          notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120), { automationId: msg.id });
           break;
         // A task worker is blocked waiting for the user (question/confirmation in the terminal).
         case 'task_question':
-          notify('JOCA — Tarefa precisa de ti', `${msg.title}: ${(msg.summary ?? 'responde no terminal').slice(0, 100)}`);
+          notify(
+            'JOCA — Tarefa precisa de ti',
+            `${msg.title}: ${(msg.summary ?? 'responde no terminal').slice(0, 100)}`,
+            { taskId: msg.taskId, sessionId: msg.sessionId },
+          );
           break;
         case 'automations_changed':
           d.setAutomationsRefresh((n) => n + 1);
@@ -249,11 +267,22 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         case 'manager_message':
           d.setManagerRefresh((n) => n + 1);
           if (msg.message.role === 'manager' && !document.hasFocus()) {
-            notify('JOCA — Gestor do projecto', msg.message.text.replace(/\s+/g, ' ').trim().slice(0, 120));
+            notify(
+              'JOCA — Gestor do projecto',
+              msg.message.text.replace(/\s+/g, ' ').trim().slice(0, 120),
+              { projectId: msg.projectId },
+            );
           }
           break;
         case 'manager_busy':
           d.setManagerRefresh((n) => n + 1);
+          // Conjunto (via array) de quem está a pensar — o rodapé mostra a contagem. Guardado por
+          // chave de gestor, que pode ser um projectId ou `__global__` (o Joca).
+          d.setBusyManagerIds((prev) => {
+            const tem = prev.includes(msg.projectId);
+            if (msg.busy === tem) return prev; // sem mudança → sem re-render
+            return msg.busy ? [...prev, msg.projectId] : prev.filter((id) => id !== msg.projectId);
+          });
           break;
 
         // Nova entrada no inbox persistente → refetch do NotificationsInbox. OS notification só
@@ -261,8 +290,15 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         case 'notification':
           d.setNotificationsRefresh((n) => n + 1);
           if (msg.notification.kind === 'heartbeat' || msg.notification.kind === 'system') {
-            notify(msg.notification.title, msg.notification.text.replace(/\s+/g, ' ').trim().slice(0, 120));
+            notify(
+              msg.notification.title,
+              msg.notification.text.replace(/\s+/g, ' ').trim().slice(0, 120),
+              msg.notification.meta,
+            );
           }
+          // Um bloqueio à espera de resposta tem de aparecer mesmo com a inbox fechada — e o toast
+          // de `action` não se auto-fecha, ao contrário do aviso de sessão terminada.
+          if (msg.notification.priority === 'action') d.addNotificationToast(msg.notification);
           break;
 
         // Server-side refusal (session cap reached, invalid cwd, …). Without this the request just

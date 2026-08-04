@@ -42,7 +42,17 @@ if !errorlevel! neq 0 (
 
 :: Start backend (write launcher to avoid nested quoting)
 set "BACKEND_LAUNCHER=%LOG_DIR%\run-backend.bat"
-> "!BACKEND_LAUNCHER!" echo @set PORT=%BACKEND_PORT%
+rem O backend abre processos `claude`. Arrancado de dentro de uma sessao Claude Code, estas
+rem variaveis herdadas fazem cada `claude` filho julgar-se sub-sessao dessa: herda o orcamento
+rem dela e acaba a recusar arrancar. Limpar antes de o lancar (ver o mesmo bloco no start.sh).
+> "!BACKEND_LAUNCHER!" echo @set "CLAUDECODE="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_ENTRYPOINT="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_CHILD_SESSION="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_SESSION_ID="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_EXECPATH="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_PID="
+>>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_EFFORT="
+>>"!BACKEND_LAUNCHER!" echo @set PORT=%BACKEND_PORT%
 >>"!BACKEND_LAUNCHER!" echo @set JOCA_LOGIC_PATH=!JOCA_LOGIC_PATH!
 >>"!BACKEND_LAUNCHER!" echo @cd /d "%DIR%backend"
 >>"!BACKEND_LAUNCHER!" echo @node dist/server.js ^>^>"!LOG_DIR!\backend.log" 2^>^&1

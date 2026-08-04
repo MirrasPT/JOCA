@@ -1,6 +1,6 @@
 {
   "name": "joca-os-frontend",
-  "version": "1.0.0",
+  "version": "0.9.1",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

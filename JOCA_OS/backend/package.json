@@ -1,6 +1,6 @@
 {
   "name": "joca-os-backend",
-  "version": "1.0.0",
+  "version": "0.9.1",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",

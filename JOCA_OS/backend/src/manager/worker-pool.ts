@@ -28,6 +28,15 @@ const pool = new Map<string, Map<string, PooledWorker>>();
 
 // Session name carries the area so the pool can be rebuilt after a backend restart.
 const NAME_PREFIX = 'Worker';
+
+// Um agente novo não sabe que tem colegas — sem isto, tudo o que cruza duas áreas volta ao gestor.
+const PEER_NOTE = [
+  '[Contexto do JOCA] Não estás sozinho neste projecto: há outros agentes, um por área.',
+  'Vê quem está aberto com `joca sessions`, lê o que outro anda a fazer com `joca read <id>` e fala com ele com `joca send <id> "..."`.',
+  'Usa isso quando o teu trabalho cruza com o dele (mesmos ficheiros, mesmo contrato, mesma decisão) — é mais rápido do que passar tudo pelo gestor.',
+  '',
+  '',
+].join('\n');
 export const workerName = (area: string) => `${NAME_PREFIX} ${area}`.slice(0, 80);
 
 function areaMap(projectId: string): Map<string, PooledWorker> {
@@ -125,7 +134,8 @@ export function dispatchToArea(
     origin: 'auto',
     cli: opts.cli,
     model: opts.model,
-    initialInput: instruction,
+    // Só no terminal NOVO: num reutilizado o agente já viu esta nota na primeira mensagem.
+    initialInput: PEER_NOTE + instruction,
   });
   const worker: PooledWorker = {
     sessionId: session.id, projectId, area: cleanArea,

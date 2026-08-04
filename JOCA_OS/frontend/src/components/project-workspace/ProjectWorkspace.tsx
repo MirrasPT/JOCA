@@ -27,6 +27,10 @@ interface Props {
   /** Escape hatch explícito (ícone de expandir num agente) — ecrã cheio, como antes. */
   onSwitchSession: (id: string) => void;
   onPreviewFile: (path: string) => void;
+  /** Fecha a sessão de um agente (mesmo handler da barra lateral). */
+  onCloseSession: (id: string) => void;
+  /** Abre um agente novo SEM sair do projecto (o "+" da secção Agentes). */
+  onAddAgent: (project: Project) => void;
   onRenameProject?: (id: string, name: string) => void;
   onInput: (sessionId: string, data: string) => void;
   onResize: (sessionId: string, cols: number, rows: number) => void;
@@ -36,7 +40,7 @@ interface Props {
 export default function ProjectWorkspace({
   project, projects, sessions, managerRefresh, tasksRefresh,
   onEditProject, onOpenProject, onSwitchSession, onPreviewFile,
-  onRenameProject, onInput, onResize, onReady,
+  onRenameProject, onCloseSession, onAddAgent, onInput, onResize, onReady,
 }: Props) {
   const [workers, setWorkers] = useState<PooledWorker[]>([]);
   const [activeChannel, setActiveChannel] = useState<ProjectChannel>('chat');
@@ -47,6 +51,13 @@ export default function ProjectWorkspace({
 
   // A pool só é conhecida pelo GET do chat — o ManagerChat entrega-a a quem a mostra (aqui).
   const handleWorkers = useCallback((list: PooledWorker[]) => setWorkers(list), []);
+
+  // Fechar um agente: tira-o da lista já, sem esperar pelo refetch do chat que confirma. O WS
+  // 'session_closed' faz o refetch logo a seguir — isto é só para o clique ter resposta imediata.
+  const handleCloseAgent = useCallback((sessionId: string) => {
+    setWorkers((prev) => prev.filter((w) => w.sessionId !== sessionId));
+    onCloseSession(sessionId);
+  }, [onCloseSession]);
 
   // Chip de tarefas no cabeçalho — glance sem abrir a aba Tarefas. Recarrega quando alguma tarefa
   // muda de estado noutro sítio (mesmo `tasksRefresh` que já alimenta o TasksView).
@@ -136,9 +147,13 @@ export default function ProjectWorkspace({
           <button className="f-btn f-btn--secondary pw-settings-btn" type="button" onClick={() => onEditProject(project)} aria-label="Configurações do projecto" data-tooltip="Settings" data-tooltip-position="bottom">
             <SettingsIcon />
           </button>
-          <button className="f-btn" type="button" onClick={() => onOpenProject(project)}>
-            <PlusIcon /> {project.initialized ? 'Nova sessão' : 'Inicializar projecto'}
-          </button>
+          {/* Projecto já inicializado: abrir agentes faz-se no "+" da secção Agentes, onde eles
+              estão. Aqui só fica o passo que ainda não tem sítio próprio — inicializar. */}
+          {!project.initialized && (
+            <button className="f-btn" type="button" onClick={() => onOpenProject(project)}>
+              <PlusIcon /> Inicializar projecto
+            </button>
+          )}
         </div>
       </div>
 
@@ -159,6 +174,8 @@ export default function ProjectWorkspace({
               projectSessions={projectSessions}
               workers={workers}
               onExpandSession={onSwitchSession}
+              onCloseSession={handleCloseAgent}
+              onNewAgent={() => onAddAgent(project)}
               onInput={onInput}
               onResize={onResize}
               onReady={onReady}

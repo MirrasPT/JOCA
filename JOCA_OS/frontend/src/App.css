@@ -17,6 +17,10 @@
   --border-strong:  color-mix(in srgb, var(--on-surface) 16%, transparent);
 
   --accent:         #ff4500;
+  /* Accent quando é TEXTO sobre um fundo accent-soft. O #ff4500 tem luminância alta demais para
+     ler em claro (≈2.8:1 sobre creme); no escuro é o próprio accent (≈4.7:1). Ver o override no
+     bloco do tema claro — mesma razão por que --red/--badge-* já lá são re-afinados. */
+  --accent-text:    #ff4500;
   --accent-amber:   #fbbf24;
   --accent-soft:    rgba(255,69,0,0.08);
   --accent-glow:    rgba(255,69,0,0.3);
@@ -106,6 +110,7 @@
   --accent-soft:    rgba(255,69,0,0.08);
   --accent-glow:    rgba(255,69,0,0.22);
   --accent-border:  rgba(255,69,0,0.3);
+  --accent-text:    #9a3412;  /* laranja escurecido: 5.9:1 sobre accent-soft no claro (AA) */
 
   /* Status/badge hues re-tuned for a light background — the dark-mode values
      above read fine on #080808 but drop under ~2:1 contrast on white. */
@@ -450,7 +455,7 @@ html, body, #root {
   align-items:center;
   gap:2px;
   overflow:hidden;
-  background:rgba(0,0,0,0.12);
+  background:var(--surface-soft);
 }
 
 .fb-crumb {
@@ -3636,7 +3641,7 @@ background:var(--surface-main);
   padding:11px 13px;
   border:1px solid color-mix(in srgb, var(--on-surface) 7.5%, transparent);
   border-radius:13px;
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
   color:var(--text-muted);
   font-family:var(--font-mono);
   font-size:11px;
@@ -4229,6 +4234,78 @@ background:var(--surface-panel);
   line-height:1.45;
 }
 
+/* ── Tema: claro · escuro · dinâmico ─────────────────────────────────────────
+   Três estados exclusivos = segmented control, não uma checkbox (era o que havia quando só
+   existiam dois). Os horários só aparecem no dinâmico — noutro modo não fazem nada. */
+.theme-mode-row {
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:4px;
+  margin-top:12px;
+  padding:3px;
+  border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius:11px;
+  background:var(--bg-input);
+}
+
+.theme-mode-btn {
+  min-height:44px;  /* alvo de toque */
+  padding:7px 4px;
+  border:none;
+  border-radius:8px;
+  background:none;
+  color:var(--text-dim);
+  font:700 11.5px var(--font-ui);
+  cursor:pointer;
+  transition:color var(--t-fast), background var(--t-fast);
+}
+.theme-mode-btn:hover { color:var(--text-bright); }
+.theme-mode-btn.is-active {
+  background:color-mix(in srgb, var(--accent) 16%, transparent);
+  color:var(--accent-text);
+}
+
+.theme-schedule {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+
+.theme-schedule-field {
+  flex:1 1 130px;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.theme-schedule-field span {
+  color:var(--text-dim);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+}
+.theme-schedule-field input {
+  height:44px;
+  padding:0 10px;
+  border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius:10px;
+  background:var(--bg-input);
+  color:var(--text-normal);
+  font:600 12.5px var(--font-ui);
+  outline:none;
+}
+.theme-schedule-field input:focus-visible { border-color:var(--accent); }
+
+.theme-schedule-hint {
+  flex:1 1 100%;
+  margin:0 !important;
+  color:var(--text-ghost) !important;
+  font-size:11.5px !important;
+}
+.theme-schedule-hint strong { color:var(--text-secondary); }
+
 .settings-cli-list {
   display:flex;
   flex-direction:column;
@@ -4382,6 +4459,19 @@ background:var(--bg-input);
   background:transparent;
   font:inherit;
 }
+
+/* Os crumbs não encolhem. Sendo flex items com `white-space:nowrap`, encolher a caixa não encolhe
+   o texto — as etiquetas montavam-se umas nas outras ("homeprojectos my-project"). Quando não
+   cabem, a barra desliza na horizontal e mostra o fim, que é a pasta onde se está. */
+/* `> *` e não `.fb-crumb`: cada segmento vem dentro de um wrapper sem classe, e era esse que
+   encolhia (min-width:0 + overflow visível) enquanto o texto mantinha o tamanho original — daí as
+   etiquetas montarem-se umas nas outras ("homeprojectos my-project"). Agora o que não couber
+   corta-se: os segmentos do meio cedem espaço, o "~" (home) e a pasta actual nunca encolhem. */
+.fb-breadcrumb { overflow-x:auto; scrollbar-width:none; }
+.fb-breadcrumb::-webkit-scrollbar { display:none; }
+.fb-breadcrumb > * { flex:0 1 auto; min-width:0; overflow:hidden; }
+.fb-breadcrumb > :first-child,
+.fb-breadcrumb > :last-child { flex:0 0 auto; }
 
 .fb-list {
   padding:2px 0 8px;
@@ -4726,7 +4816,7 @@ background:var(--bg-input);
   height:34px;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
   border-radius:12px;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   color:var(--text-normal);
   padding:0 12px;
   font:600 11px var(--font-ui);
@@ -5805,81 +5895,15 @@ background: var(--surface-panel);
 .login-submit:hover:not(:disabled) { opacity:0.88; }
 .login-submit:disabled { opacity:0.45; cursor:not-allowed; }
 
-/* ─── Notifications inbox (floating bell, left of the right tab rail) ─── */
+/* ─── Notifications inbox (4º separador do rail direito) ───
+   O sino flutuante e o seu popover (.inbox-wrap/.inbox-bell/.inbox-panel*) foram removidos: as
+   notificações passaram a abrir na mesma coluna dos outros painéis. O contentor e as correcções
+   que a mudança obriga vivem em `components/notifications-inbox.css`; aqui ficam só as regras de
+   item, que se mantiveram intactas. */
 
-.inbox-wrap {
-  position:fixed;
-  top:10px;
-  right:66px; /* à esquerda do rail direito (54px) sem o tapar */
-  z-index:900;
-}
-
-.inbox-bell {
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  background:var(--surface-raised);
-  border:1px solid var(--border-bento);
-  color:var(--text-dim);
-  cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,0.25);
-  transition:color var(--t-fast), border-color var(--t-fast);
-}
-
-.inbox-bell:hover { color:var(--text-bright); border-color:var(--border-bento-strong); }
-.inbox-bell--unread { color:var(--accent); border-color:var(--accent-border); }
-
-.inbox-badge {
-  position:absolute;
-  top:-5px;
-  right:-6px;
-  min-width:16px;
-  height:16px;
-  padding:0 4px;
-  border-radius:999px;
-  background:var(--accent);
-  color:#fff;
-  font-size:9.5px;
-  font-weight:700;
-  line-height:16px;
-  text-align:center;
-}
-
-.inbox-panel {
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
-  width:min(360px, calc(100vw - 90px));
-  max-height:min(480px, calc(100dvh - 80px));
-  display:flex;
-  flex-direction:column;
-  background:var(--surface-panel);
-  border:1px solid var(--border-bento-strong);
-  border-radius:var(--r-md);
-  box-shadow:0 18px 48px rgba(0,0,0,0.45);
-  overflow:hidden;
-}
-
-:root[data-theme="light"] .inbox-panel { box-shadow:0 18px 48px rgba(0,0,0,0.16); }
-
-.inbox-panel-head {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  padding:10px 12px;
-  border-bottom:1px solid var(--border-subtle);
-}
-
-.inbox-panel-title {
-  font-size:12px;
-  font-weight:700;
-  color:var(--text-bright);
-}
+/* O `.inbox-badge` redondo do contador do sino desapareceu com ele. Os badges que restam são os
+   rótulos em linha do título ("precisa de ti", "×N"), definidos no bloco v5 mais abaixo — em
+   forma de pastilha com padding, não de círculo de altura fixa. */
 
 .inbox-mark-all {
   background:none;
@@ -5915,8 +5939,6 @@ background: var(--surface-panel);
 .inbox-item--unread { background:var(--accent-soft); }
 
 .inbox-item-icon { font-size:14px; line-height:1.4; flex:0 0 auto; }
-
-.inbox-item-body { flex:1; min-width:0; }
 
 .inbox-item-top {
   display:flex;
@@ -6320,7 +6342,7 @@ background: var(--surface-panel);
   padding:0 8px;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
   border-radius:12px;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   color:var(--text-dim);
   font:600 10px var(--font-ui);
   cursor:pointer;
@@ -6848,7 +6870,8 @@ background: var(--surface-panel);
   font-family:var(--font-serif); font-weight:400; font-size:22px; line-height:1.2;
   color:var(--text-bright);
 }
-.mgr-chat-head p { margin:0; max-width:62ch; font-size:12.5px; line-height:1.5; color:var(--text-dim); }
+/* O parágrafo descritivo do cabeçalho saiu com o redesenho do chat em bolhas — o texto que
+   explicava o gestor passou para o estado vazio da conversa, que é onde ele é mesmo lido. */
 .mgr-chat-head-side { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .mgr-cost {
   padding:2px 9px; border-radius:999px;
@@ -6883,8 +6906,8 @@ background: var(--surface-panel);
 .mgr-chat-thread::-webkit-scrollbar { width:6px; }
 .mgr-chat-thread::-webkit-scrollbar-thumb { background:var(--text-ghost); border-radius:3px; }
 
-.tk-note--manager { border-left-color:var(--accent); }
-.tk-note--manager .tk-note-author { color:var(--accent); }
+/* As `.tk-note--manager` (o chat quando reaproveitava as notas das tarefas) saíram: o chat do
+   gestor tem folha própria em `components/manager-chat.css` desde que passou a bolhas. */
 .mgr-note-cost { font-family:var(--font-mono); font-size:10.5px; color:var(--text-ghost); }
 
 /* Traço do que ele fez neste turno — informação de rodapé, nunca protagonista. */
@@ -7238,7 +7261,6 @@ background: var(--surface-panel);
 /* ─── Chat do gestor: anexos (attach/paste/drag-drop) ───────────────────────────────────────── */
 .mgr-compose { position: relative; border-radius: 10px; transition: box-shadow var(--t-fast); }
 .mgr-compose--dragover { box-shadow: 0 0 0 2px var(--accent); }
-.mgr-compose-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mgr-attach-btn {
   display: inline-flex; align-items: center; gap: 6px;
   background: none; border: 1px solid var(--border-bento); color: var(--text-dim);
@@ -7248,3 +7270,29 @@ background: var(--surface-panel);
 .mgr-attach-btn:disabled { opacity: 0.6; cursor: default; }
 .mgr-attach-btn svg { width: 13px; height: 13px; }
 .mgr-compose-attachments { margin-bottom: 8px; }
+
+/* ─── Casca da app: coluna com o rodapé permanente (StatusBar) por baixo do layout ─────────── */
+/* O `.app` mantém-se a linha sidebar/conteúdo/painel; deixa de fixar a altura à viewport para
+   ceder os 28px do rodapé. Sem `overflow:hidden` aqui — o popover da StatusBar sobe para fora. */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-void);
+}
+/* Especificidade maior do que o `.app { height:100dvh }` do breakpoint móvel — de propósito: a
+   altura passa a ser do `.app-shell` e o `.app` só ocupa o que sobra do rodapé. */
+.app-shell > .app {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+@media (max-width: 860px) {
+  .app-shell { height: 100dvh; }
+}
+
+/* Os dois flutuantes ancorados em baixo passam a contar com os 28px do rodapé — sem isto ficavam
+   por cima dele. */
+.toast-container { bottom: calc(24px + 28px); }
+.tk-merge-bar { bottom: calc(26px + 28px); }

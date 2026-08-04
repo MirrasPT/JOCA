@@ -9,12 +9,16 @@
 //   node "$JOCA_CLI" task <id>                  vê uma tarefa (com a thread de notas)
 //   node "$JOCA_CLI" comment <id> "texto"       escreve uma nota na tarefa
 //   node "$JOCA_CLI" done [<id>] --note "..."   comenta, conclui e move para 'concluida'
-//   node "$JOCA_CLI" sessions                   lista os terminais abertos
-//   node "$JOCA_CLI" send <id> "texto"          fala com outro terminal
-//   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro terminal escreveu
+//   node "$JOCA_CLI" sessions                   terminais do teu projecto (área + trabalho actual)
+//   node "$JOCA_CLI" send <id> "texto"          fala com outro agente do mesmo projecto
+//   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro agente escreveu
 //   node "$JOCA_CLI" chat <projecto> "texto"    fala com o gestor de um projecto
 //   node "$JOCA_CLI" workers                    vê os workers do gestor e o que fazem
 //   node "$JOCA_CLI" ls|cat <path>              vê o que os outros terminais produziram
+//
+// Os comandos de terminais são LIMITADOS AO PROJECTO de quem os corre: dois agentes do mesmo
+// projecto falam e verificam-se um ao outro sem passar pelo gestor, mas não vêem os de outro
+// projecto. Quem corre o CLI à mão (sem JOCA_SESSION_ID) continua a ver tudo.
 //
 // Sem dependências. Saída pensada para ser lida por um agente: curta e determinística.
 import process from 'node:process';
@@ -39,6 +43,9 @@ function die(msg, code = 1) {
 async function request(method, route, { body, raw = false, forbiddenHint = '' } = {}) {
   const headers = { 'Content-Type': 'application/json', Origin: API };
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
+  // Diz ao JOCA_OS QUEM está a chamar: é assim que o backend limita um agente aos terminais do
+  // projecto dele. Quem corre isto à mão (sem JOCA_SESSION_ID) não se identifica e vê tudo.
+  if (SESSION_ID) headers['X-Joca-Session'] = SESSION_ID;
   let res;
   try {
     res = await fetch(`${API}${route}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -98,14 +105,14 @@ const short = (id) => (id || '').slice(0, 8);
 const oneLine = (s, n = 90) => (s || '').replace(/\s+/g, ' ').trim().slice(0, n);
 
 // Aceita um id completo ou um prefixo (os agentes copiam ids curtos da listagem).
-function resolveId(items, ref, label) {
+function resolveId(items, ref, label, notFoundHint = '') {
   if (!ref) die(`falta o id da ${label}`);
   const exact = items.find((t) => t.id === ref);
   if (exact) return exact;
   const matches = items.filter((t) => t.id.startsWith(ref));
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) die(`prefixo "${ref}" é ambíguo (${matches.length} ${label}s)`);
-  die(`${label} "${ref}" não encontrada`);
+  die(`${label} "${ref}" não encontrada${notFoundHint ? `\n  ${notFoundHint}` : ''}`);
 }
 
 // Um projecto é referido por id, prefixo de id ou nome — um agente que leu "Site da Ana" numa
@@ -137,6 +144,7 @@ function absPath(p) {
 }
 
 const FILES_HINT = 'O JOCA_OS só serve ficheiros dentro da tua home (e nunca pastas sensíveis como .ssh/.aws).';
+const SCOPE_HINT = 'Um agente só fala com terminais do MESMO projecto — vê quais com: joca sessions';
 
 // ── comandos ──────────────────────────────────────────────────────────────────
 const commands = {
@@ -232,13 +240,20 @@ const commands = {
     console.log(`fundidas ${ids.length} tarefas em "${out.title}" (${short(out.id)})`);
   },
 
+  // Dentro de um agente esta lista já vem limitada ao projecto dele (o backend filtra pelo
+  // X-Joca-Session). Mostra a ÁREA e o trabalho actual: é o que decide com quem vale a pena falar.
   async sessions() {
     const list = await api('GET', '/sessions');
     if (!list.length) return console.log('(sem terminais abertos)');
+    const self = list.find((s) => s.id === SESSION_ID);
+    if (self?.projectName) console.log(`# terminais de "${self.projectName}" (só vês os do teu projecto)\n`);
     for (const s of list) {
       const me = s.id === SESSION_ID ? '  ← este terminal' : '';
-      console.log(`${short(s.id)}  [${s.cli}] ${s.status.padEnd(7)} ${oneLine(s.name, 40)}${me}`);
+      const area = s.area ? `${s.area}${s.busy ? '*' : ''}` : '—';
+      const job = s.currentJob ? `  · ${oneLine(s.currentJob, 60)}` : '';
+      console.log(`${short(s.id)}  [${s.cli}] ${s.status.padEnd(7)} ${oneLine(s.name, 28).padEnd(30)} ${area.padEnd(16)}${job}${me}`);
     }
+    console.log('\n(área com * = ocupado a trabalhar · lê o que faz com: joca read <id>)');
   },
 
   async 'new-session'(flags, [...nameParts]) {
@@ -257,16 +272,16 @@ const commands = {
     const text = rest.join(' ') || flags.text;
     if (!text) die('falta o texto: joca send <id-sessão> "mensagem"');
     const list = await api('GET', '/sessions');
-    const s = resolveId(list, ref, 'sessão');
+    const s = resolveId(list, ref, 'sessão', SCOPE_HINT);
     if (s.id === SESSION_ID) die('não podes enviar uma mensagem para ti próprio');
-    await api('POST', `/sessions/${s.id}/input`, { text });
+    await request('POST', `/sessions/${s.id}/input`, { body: { text }, forbiddenHint: SCOPE_HINT });
     console.log(`enviado para "${s.name}" (${short(s.id)})`);
   },
 
   async read(flags, [ref]) {
     const list = await api('GET', '/sessions');
-    const s = resolveId(list, ref, 'sessão');
-    const out = await api('GET', `/sessions/${s.id}/buffer?tail=${Number(flags.tail) || 4000}`);
+    const s = resolveId(list, ref, 'sessão', SCOPE_HINT);
+    const out = await request('GET', `/sessions/${s.id}/buffer?tail=${Number(flags.tail) || 4000}`, { forbiddenHint: SCOPE_HINT });
     console.log(out.text);
   },
 
@@ -397,11 +412,13 @@ TAREFAS
   advance [<id>]                               empurra para a coluna seguinte
   merge <id1> <id2> [...] [--title "..."]      funde tarefas numa só
 
-TERMINAIS
-  sessions                                     lista os terminais abertos
+TERMINAIS (agentes falam entre si — só dentro do MESMO projecto)
+  sessions                                     terminais do teu projecto, com área e trabalho actual
   new-session "<nome>" [--cli claude|codex|agy|opencode] [--project <id>] [--prompt "..."]
-  send <id> "<texto>"                          fala com outro terminal
-  read <id> [--tail 4000]                      lê o output de outro terminal
+  send <id> "<texto>"                          fala com outro agente (verifica-lhe o trabalho, pede algo)
+  read <id> [--tail 4000]                      lê o output de outro agente
+  (dentro de um agente vês SÓ os terminais do projecto dele; falar com um de outro projecto é
+   recusado pelo JOCA_OS. Não precisas do gestor no meio: trata directamente com o colega.)
 
 GESTOR DE PROJECTO
   chat <projecto> "<texto>"                    fala com o gestor (resposta ASSÍNCRONA — lê depois)

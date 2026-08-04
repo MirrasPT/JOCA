@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { loadProjects, saveProjects } from '../project-store';
 import { loadProjectGroups, saveProjectGroups, pruneEmptyGroups } from '../project-groups-store';
+import { parseIconInput, collectIconIfUnused } from './icons-routes';
 
 // Visual grouping of projects in the sidebar ("Discord categories"). Two entry points:
 //   POST /project-groups        — first merge (drag project A's dot onto project B's dot), neither
@@ -26,11 +27,15 @@ export function projectGroupsRouter(): Router {
     const targets = uniqueIds.map((id) => projects.find((p) => p.id === id));
     if (targets.some((p) => !p)) return res.status(404).json({ error: 'Um ou mais projectos não existem' });
 
+    const parsedIcon = req.body.icon === undefined ? { ok: true as const, icon: undefined } : parseIconInput(req.body.icon);
+    if (!parsedIcon.ok) return res.status(400).json({ error: parsedIcon.error });
+
     const groups = loadProjectGroups();
     const group = {
       id: randomUUID(),
       name: (name?.trim().slice(0, 80)) || 'Grupo',
       color: targets[0]?.color,
+      icon: parsedIcon.icon,
       order: groups.length,
     };
     groups.push(group);
@@ -70,17 +75,30 @@ export function projectGroupsRouter(): Router {
       if (trimmed) group.name = trimmed;
     }
     if (typeof req.body.color === 'string') group.color = req.body.color.trim().slice(0, 50) || undefined;
+    // Mesma semântica do PATCH de projecto: objecto define, null/'' limpa.
+    const previousIcon = group.icon;
+    let iconChanged = false;
+    if (req.body.icon !== undefined) {
+      const parsed = parseIconInput(req.body.icon);
+      if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+      group.icon = parsed.icon;
+      iconChanged = true;
+    }
     if (typeof req.body.collapsed === 'boolean') group.collapsed = req.body.collapsed;
     if (typeof req.body.order === 'number') group.order = req.body.order;
     saveProjectGroups(groups);
+    if (iconChanged) collectIconIfUnused(previousIcon, group.icon);
     res.json(group);
   });
 
   // Dissolve explicitly (rare — normally groups auto-dissolve once <2 members remain via
   // pruneEmptyGroups). Members just lose their groupId, nothing else changes.
   r.delete('/project-groups/:id', (req, res) => {
-    const groups = loadProjectGroups().filter((g) => g.id !== req.params.id);
+    const all = loadProjectGroups();
+    const removedIcon = all.find((g) => g.id === req.params.id)?.icon;
+    const groups = all.filter((g) => g.id !== req.params.id);
     saveProjectGroups(groups);
+    collectIconIfUnused(removedIcon, undefined);
     const projects = loadProjects();
     let changed = false;
     projects.forEach((p) => { if (p.groupId === req.params.id) { p.groupId = undefined; changed = true; } });

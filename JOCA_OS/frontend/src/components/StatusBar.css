@@ -1,0 +1,305 @@
+/* ─── Rodapé de estado: consumo das CLIs + hora ───────────────────
+   Fica sempre visível, por isso é deliberadamente silencioso: alturas pequenas, cinzentos, e
+   cor só quando o consumo está alto. O detalhe vive num popover (hover / foco / clique). */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  height: 28px;
+  flex: 0 0 auto;
+  padding: 0 var(--sp-3);
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border-faint);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 1;
+  user-select: none;
+}
+
+.sb-providers {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  /* sem overflow:hidden — cortaria o popover, que sobe para fora do rodapé */
+  flex-wrap: nowrap;
+}
+
+.sb-provider {
+  position: relative;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.sb-provider-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 20px;
+  padding: 0 6px;
+  margin: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.sb-provider-btn:hover { background: var(--surface-soft); }
+.sb-provider-btn:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+.sb-provider.is-pinned .sb-provider-btn { border-color: var(--border-default); }
+
+.sb-provider-name {
+  color: var(--text-dim);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Provedor sem dados: presente mas apagado — não se esconde nem se finge 0%. */
+.sb-provider--empty .sb-provider-name,
+.sb-provider--empty .sb-pct { color: var(--text-ghost); }
+.sb-provider--empty .sb-track { opacity: 0.4; }
+
+.sb-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sb-slot-label {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.sb-track {
+  width: 34px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--on-surface) 12%, transparent);
+  overflow: hidden;
+}
+
+.sb-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--on-surface) 45%, transparent);
+  transition: width var(--t-base);
+}
+
+.sb-slot[data-level='mid'] .sb-fill { background: var(--accent-amber); }
+.sb-slot[data-level='high'] .sb-fill { background: var(--accent); }
+
+.sb-pct {
+  min-width: 30px;
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+}
+
+/* Consumo alto passa a ter cor no texto — --accent-text porque o --accent não lê no tema claro. */
+.sb-slot[data-level='high'] .sb-pct { color: var(--accent-text); }
+
+/* ─── Popover de detalhe ─────────────────────────────────────────── */
+
+.sb-pop {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  min-width: 190px;
+  padding: var(--sp-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--t-fast), visibility var(--t-fast);
+}
+
+/* Alcançável por teclado (o botão apanha o foco), não só por rato. */
+.sb-provider:hover .sb-pop,
+.sb-provider:focus-within .sb-pop,
+.sb-provider.is-pinned .sb-pop {
+  visibility: visible;
+  opacity: 1;
+}
+
+.sb-pop-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+
+.sb-pop-title {
+  color: var(--text-bright);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sb-pop-meta {
+  color: var(--text-dim);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-pop-empty,
+.sb-pop-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sb-pop-empty { color: var(--text-dim); font-size: 11px; }
+
+.sb-pop-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px var(--sp-3);
+  padding: 3px 0;
+  font-size: 11px;
+}
+
+.sb-pop-label { color: var(--text-normal); }
+
+.sb-pop-value {
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sb-pop-row[data-level='high'] .sb-pop-value { color: var(--accent-text); }
+
+.sb-pop-reset {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+/* ─── Actividade (quem está a trabalhar) ─────────────────────────────
+   Vive à direita, encostada ao relógio. Mesma linguagem do resto do rodapé — 11px, cinzento,
+   sem caixas nem cor — porque foi pedido explicitamente que não chamasse a atenção. O único
+   sinal de vida é um ponto de 5px a pulsar, e mesmo esse desliga com reduced-motion. */
+
+.sb-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 0 0 auto;
+}
+
+.sb-activity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sb-act-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.sb-act-chip--btn {
+  height: 20px;
+  padding: 0 5px;
+  margin: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.sb-act-chip--btn:hover { background: var(--surface-soft); color: var(--text-bright); }
+.sb-act-chip--btn:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+
+.sb-act-num {
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+/* O total fica um tom abaixo: o número que interessa é quantos estão a trabalhar AGORA. */
+.sb-act-of { color: var(--text-dim); }
+
+.sb-act-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--on-surface) 25%, transparent);
+  flex: 0 0 auto;
+}
+
+.sb-act-dot[data-on='true'] {
+  background: var(--status-idle);
+  animation: sb-act-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sb-act-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-act-dot[data-on='true'] { animation: none; }
+}
+
+/* ─── Relógio ────────────────────────────────────────────────────── */
+
+.sb-clock {
+  flex: 0 0 auto;
+  color: var(--text-normal);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Ecrãs estreitos ────────────────────────────────────────────────
+   Degrada por camadas em vez de quebrar a linha: primeiro caem as percentagens em texto,
+   depois a janela semanal, depois o nome do provedor. A hora nunca cai — é o pedido central. */
+
+@media (max-width: 900px) {
+  .sb-providers { gap: var(--sp-2); }
+  .sb-track { width: 26px; }
+}
+
+@media (max-width: 720px) {
+  .sb-slot .sb-pct { display: none; }
+}
+
+@media (max-width: 560px) {
+  .sb-slot[data-window='7d'] { display: none; }
+}
+
+/* Aqui cai a etiqueta da janela, não o nome do provedor: sem nome, três barras iguais deixariam
+   de se distinguir umas das outras. */
+@media (max-width: 560px) {
+  /* O total de agentes cai antes do número de activos: "2" diz mais do que "de 5". */
+  .sb-act-of { display: none; }
+}
+
+@media (max-width: 420px) {
+  .sb-slot-label { display: none; }
+  .sb-track { width: 20px; }
+  /* Fica o ponto e os números; os ícones eram o que ainda dava para perder sem perder sentido. */
+  .sb-act-chip svg { display: none; }
+}

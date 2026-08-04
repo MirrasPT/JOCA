@@ -5,8 +5,9 @@
 //     a function that already exists elsewhere in the backend.
 //   • NOTHING blocks. A tool that waits for a worker would freeze the chat — which is the exact
 //     pain we are removing. Dispatch returns immediately; completion arrives later as a wake.
-//   • The manager never touches the filesystem: the SDK is configured with tools:[] so it has no
-//     Bash/Read/Write at all. Everything it can do is in this file.
+//   • Estas ferramentas são a ORQUESTRAÇÃO (agentes, tarefas, avisos) mais atalhos de verificação.
+//     O gestor tem também os built-ins do Claude Code (ver manager.ts) — o que o impede de fazer o
+//     trabalho dos agentes é o papel escrito no system prompt, não a falta de ferramentas.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -443,10 +444,9 @@ export function buildManagerTools(projectId: string, actions: string[]) {
 // ── Joca global — o mesmo gestor, mas sem UM projecto fixo ────────────────────
 // Reaproveita as mesmas funções de baixo nível (dispatchToArea, loadTasks, etc.) que
 // buildManagerTools — a diferença é que cada ferramenta de workers recebe o projecto por NOME em
-// cada chamada (não há um `projectId` de closure), e as ferramentas de ficheiros (ver_ficheiro/
-// ver_imagem/listar_pasta) ficam de fora: sem uma pasta única, "ver um ficheiro" exigiria escolher
-// projecto primeiro — decisão tomada: o Joca global fica focado em tarefas/coordenação, não em
-// inspeccionar código. Para isso, entra-se no projecto.
+// cada chamada (não há um `projectId` de closure), e as ferramentas de ficheiros por-projecto
+// (ver_ficheiro/listar_pasta) ficam de fora: os caminhos delas são relativos a UMA pasta, que o
+// Joca não tem. Para espreitar ficheiros ele usa os built-ins com caminho absoluto.
 export function buildGlobalManagerTools(actions: string[]) {
   const note = (s: string) => { actions.push(s); };
 
@@ -474,10 +474,30 @@ export function buildGlobalManagerTools(actions: string[]) {
         },
       ),
 
+      // ── Cadeia de comando: Joca → gestor de projecto → agentes ───────────
+      tool(
+        'falar_com_gestor',
+        'Fala com o gestor de um projecto — a via NORMAL de mandar fazer seja o que for. Ele conhece o projecto, escolhe as áreas, comanda os agentes dele e responde no chat desse projecto. Devolve assim que a mensagem é entregue: não esperes pela resposta dele aqui.',
+        {
+          projecto: z.string().describe('Nome (ou id) do projecto cujo gestor queres contactar.'),
+          mensagem: z.string().describe('O que lhe queres pedir ou perguntar, com o contexto todo — ele não vê esta conversa.'),
+        },
+        async ({ projecto, mensagem }) => {
+          let project;
+          try { project = findProjectOrFail(projecto); } catch (e) { return fail((e as Error).message); }
+          // Import dinâmico: wake.ts importa manager.ts, que importa este ficheiro. Carregar em
+          // cima fecharia o ciclo no arranque; aqui só corre quando a ferramenta é usada.
+          const { handleUserMessage } = await import('./wake');
+          void handleUserMessage(project.id, `[DO JOCA — gestor da empresa, em nome do cliente]\n${mensagem}`);
+          note(`falou com o gestor de ${project.name}`);
+          return ok(`Mensagem entregue ao gestor de "${project.name}". Ele trata disso com os agentes dele e responde no chat DESSE projecto — se for coisa que o cliente espera de ti, usa avisar_utilizador quando souberes o resultado.`);
+        },
+      ),
+
       // ── Agentes ──────────────────────────────────────────────────────────
       tool(
         'trabalhar',
-        'Manda um agente de um projecto fazer trabalho. Cada ÁREA (design, backend, frontend, conteúdo, testes…) tem o seu terminal, reutilizado. Devolve imediatamente — avisa depois quando terminar (ao projecto, não a ti — ver nota em avisar_utilizador).',
+        'ATALHO, fora da cadeia normal: manda um agente de um projecto fazer trabalho, saltando o gestor desse projecto. Usa só quando o cliente pediu explicitamente para ires directo, ou para uma coisa mínima e isolada. Por omissão usa `falar_com_gestor`. Cada ÁREA (design, backend, frontend, conteúdo, testes…) tem o seu terminal, reutilizado. Devolve imediatamente — avisa depois quando terminar (ao projecto, não a ti — ver nota em avisar_utilizador).',
         {
           projecto: z.string().describe('Nome (ou id) do projecto onde despachar o trabalho.'),
           area: z.string().describe('Área do trabalho: design, backend, frontend, conteúdo, testes, geral…'),
@@ -723,8 +743,8 @@ export function buildGlobalManagerTools(actions: string[]) {
       ),
 
       // ── Verificar ────────────────────────────────────────────────────────
-      // Sem ficheiros de PROJECTO (ver nota no topo do bloco — exigiria escolher um primeiro).
-      // ver_imagem fica de fora dessa regra: um anexo do chat já vem com path ABSOLUTO (upload
+      // Sem ficheiros de PROJECTO (ver nota no topo do bloco — os caminhos seriam relativos a uma
+      // pasta que não existe aqui). ver_imagem fica: um anexo do chat já vem com path ABSOLUTO (upload
       // para ~/JOCA_Drops), não precisa de nenhum projecto para se validar — só a mesma verificação
       // de segurança (dentro de HOME, fora de pastas sensíveis) que todo o resto do backend usa.
       tool(

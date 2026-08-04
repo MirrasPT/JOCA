@@ -1,0 +1,138 @@
+/* ── Notificações: painel do rail direito ────────────────────────────────────────────────────
+   Era um sino flutuante com um popover por cima do conteúdo — um elemento solto, fora do sistema
+   de painéis. Passou a ser o 4º separador do rail (irmão de Files/Toolkit/Settings): abre na mesma
+   coluna, com o mesmo cabeçalho (.files-view-header) e o mesmo gesto de fechar. O badge de por-ler
+   vive no separador do rail, para a contagem sobreviver ao painel fechado.
+
+   As regras de item (.inbox-item*, .inbox-badge*) continuam no App.css; aqui ficam só as do
+   contentor novo e as correcções que a mudança de sino → painel obriga. As correcções são
+   escritas com o prefixo `.inbox-view` de propósito: ganham por especificidade, sem depender da
+   ordem de importação das folhas.
+
+   Por remover do App.css (já não existe nada que as use): .inbox-wrap, .inbox-bell,
+   .inbox-bell--unread, .inbox-panel, .inbox-panel-head, .inbox-panel-title. */
+
+.inbox-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--surface-panel);
+}
+
+.inbox-view .files-view-header { flex: 0 0 auto; }
+
+.inbox-view-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* O popover tinha altura própria; o painel herda a da coluna — a lista é que rola. */
+.inbox-view .inbox-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* O ícone de tipo passou de emoji (font-size) a SVG. */
+.inbox-view .inbox-item-icon {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--text-dim);
+}
+
+/* Os badges "precisa de ti"/"×N" vivem dentro do título, em linha. O App.css ainda lhes deixa o
+   `position:absolute` que servia o contador do sino — sem isto saltam para fora do item. */
+.inbox-view .inbox-badge {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
+/* Corpo clicável: abre o sítio de onde a notificação veio. É <button> para responder a
+   Enter/Espaço; a altura mínima dá-lhe um alvo confortável sem inchar a lista. */
+.inbox-view .inbox-item-nav {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--r-sm, 6px);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.inbox-view .inbox-item-nav:hover .inbox-item-title { color: var(--accent-text, var(--text-bright)); }
+
+.inbox-view .inbox-item-nav:focus-visible {
+  outline: 2px solid var(--accent-border, currentColor);
+  outline-offset: 2px;
+}
+
+.inbox-view .inbox-item-nav .inbox-item-top { width: 100%; }
+
+/* O texto deixou de ser botão (o clique agora navega) — sem cursor próprio nem largura forçada. */
+.inbox-view .inbox-item-nav .inbox-item-text {
+  cursor: inherit;
+  width: auto;
+}
+
+/* Alvos de toque: o ícone continua pequeno (lista densa), a área de clique é que cresce até 44px
+   com um ::after. O passo vertical (32 + 12 de espaço) é maior que a área, por isso os alvos de
+   dois botões vizinhos nunca se sobrepõem. */
+.inbox-view .inbox-item-actions {
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.inbox-view .inbox-item-actions button {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.inbox-view .inbox-item-actions button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.inbox-view .inbox-item-actions button:focus-visible {
+  outline: 2px solid var(--accent-border, currentColor);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inbox-view .inbox-item-actions svg { transition: none; }
+}
+
+/* ── Badge de por-ler no separador do rail ───────────────────────────────────────────────────
+   Com o painel fechado é o único sinal de que há coisas à espera; por isso não vive no painel. */
+.right-tab-btn { position: relative; }
+
+.right-tab-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 700 9px/15px var(--font-ui);
+  text-align: center;
+}

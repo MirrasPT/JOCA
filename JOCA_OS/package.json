@@ -1,6 +1,6 @@
 {
   "name": "joca-os",
-  "version": "1.0.0",
+  "version": "0.9.1",
   "scripts": {
     "setup": "cd backend && npm install && cd node_modules/node-pty && npx node-gyp rebuild && cd ../../../frontend && npm install",
     "dev": "concurrently --names \"backend,frontend\" --prefix-colors \"blue,green\" \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",

@@ -10,7 +10,7 @@ import {
 } from '../notifications/store';
 import { listRuns, runStats, type RunKind } from '../runs/store';
 import {
-  loadHeartbeatConfig, saveHeartbeatConfig, runHeartbeat, DEFAULT_HEARTBEAT, type HeartbeatConfig,
+  loadHeartbeatConfig, saveHeartbeatConfig, runHeartbeat, clampMaxAutoWakes, DEFAULT_HEARTBEAT, type HeartbeatConfig,
 } from '../heartbeat';
 import { loadCliProfiles, CLI_IDS, type CliId } from '../cli-profiles';
 import { binExists } from '../providers/provider';
@@ -86,6 +86,10 @@ export function systemRouter(): Router {
         : null;
     }
     if (typeof b.model === 'string') next.model = b.model.trim().slice(0, 80) || DEFAULT_HEARTBEAT.model;
+    // Orçamento de wakes automáticos por gestor. Sem esta linha só se mudava editando
+    // `data/heartbeat.json` à mão. O clamp vive no módulo do heartbeat (chão 1, nunca 0: o travão
+    // configura-se, não se desliga).
+    if (b.maxAutoWakes !== undefined) next.maxAutoWakes = clampMaxAutoWakes(b.maxAutoWakes);
     if (typeof b.scratch === 'string') next.scratch = b.scratch;
     saveHeartbeatConfig(next);
     res.json(loadHeartbeatConfig());

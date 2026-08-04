@@ -1,0 +1,242 @@
+/* ─── Modal de criar/editar projecto — layout ────────────────────────────────────────────────
+ * Antes havia DUAS áreas de scroll empilhadas: a grelha tinha `overflow:auto` própria e o bloco
+ * de edição (Git, Kit, Zona perigosa) ficava fora dela. Resultado: a grelha scrollava sozinha e
+ * cortava a descrição a meio enquanto sobrava espaço no diálogo. Agora o scroll é um só, o do
+ * `.project-modal-body`.
+ *
+ * As regras abaixo levam `.project-modal` à frente porque este ficheiro entra no bundle ANTES do
+ * `App.css` (é importado por um componente, e o App.css é importado no `main.tsx`) — sem o
+ * prefixo, empatavam em especificidade e o App.css ganhava. Pela mesma razão as media queries
+ * daqui repetem o prefixo: têm de bater as do App.css, que também mexem na grelha.
+ */
+
+.project-modal .project-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 30px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--on-surface) 18%, transparent) transparent;
+}
+
+.project-modal .project-modal-body::-webkit-scrollbar { width: 8px; }
+.project-modal .project-modal-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--on-surface) 16%, transparent);
+}
+
+.project-modal .project-modal-body .project-modal-grid {
+  grid-template-columns: minmax(280px, 1fr) minmax(300px, 1fr);
+  align-items: start;
+  overflow: visible;
+  padding: 0;
+}
+
+/* Sem browser de pastas não faz sentido deixar meia caixa vazia — a coluna única dá todo o
+   espaço ao formulário, que é o que interessa em modo de edição. */
+.project-modal .project-modal-body .project-modal-grid:has(> .project-browse-toggle) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 860px) {
+  .project-modal .project-modal-body .project-modal-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .project-modal .project-modal-body { padding: 0 20px 16px; }
+}
+
+/* ─── Botão que traz o browser de volta (modo edição) ───────────────────────────────────────── */
+.project-modal .project-browse-toggle {
+  align-self: start;
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px dashed color-mix(in srgb, var(--on-surface) 16%, transparent);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--on-surface) 2.6%, transparent);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.project-modal .project-browse-toggle:hover {
+  color: var(--accent-text);
+  border-color: var(--accent-border, color-mix(in srgb, var(--accent) 40%, transparent));
+}
+
+/* ─── Selector de ícone dentro do formulário ────────────────────────────────────────────────── */
+/* O `.project-field input` do App.css impõe altura 42px e tipo mono a QUALQUER input do campo —
+   incluindo a caixa do emoji, que precisa de ser quadrada e grande. */
+.project-modal .project-field--icon .icon-field-emoji-input input {
+  width: 62px;
+  height: auto;
+  min-height: 44px;
+  padding: 0 6px;
+  font-family: var(--font-ui);
+  font-size: 18px;
+  text-align: center;
+}
+
+.project-modal .project-field--icon .icon-field {
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--on-surface) 2.6%, transparent);
+}
+
+/* ─── Bloco extra (Git / Kit / Zona perigosa) ───────────────────────────────────────────────── */
+/* Vive dentro do `-body`, que já tem o padding lateral — daí margens/paddings a zero na horizontal
+   (antes tinha `padding:18px 30px; margin:0 30px 6px`, do tempo em que estava fora da área de
+   scroll e tinha de repor o recuo do diálogo). */
+.project-modal .project-modal-extra {
+  padding: 18px 0 0;
+  margin: 18px 0 0;
+}
+
+/* Linha "o que é / o que faz / acção à direita" — o padrão do bloco de edição. */
+.project-modal .project-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--on-surface) 2.6%, transparent);
+}
+
+.project-modal .project-row-item > div:first-child { min-width: 0; }
+.project-modal .project-row-item strong {
+  display: block;
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 700;
+}
+.project-modal .project-row-item small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.project-modal .project-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ─── Zona perigosa ─────────────────────────────────────────────────────────────────────────── */
+.project-modal .project-danger {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--red) 32%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--red) 7%, transparent);
+}
+
+.project-modal .project-danger-title {
+  color: var(--red);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.project-modal .project-danger-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-modal .project-danger-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
+  border-radius: 13px;
+  background: var(--surface-panel);
+}
+
+.project-modal .project-danger-item > div:first-child { min-width: 0; }
+.project-modal .project-danger-item strong {
+  display: block;
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 700;
+}
+.project-modal .project-danger-item small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.project-modal .project-danger-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.project-modal .project-danger-confirm > span {
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-modal .project-danger-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--red) 42%, transparent);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.project-modal .project-danger-btn:hover {
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
+
+/* O passo que apaga mesmo — preenchido, para não se confundir com o "Cancelar" ao lado.
+   Vermelho fixo (não `--red`): o vermelho do tema escuro é claro de mais e branco por cima
+   ficava abaixo de 4.5:1. Este passa AA nos dois temas. */
+.project-modal .project-danger-btn--go {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.project-modal .project-danger-btn--go:hover {
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+.project-modal .project-danger-btn:focus-visible,
+.project-modal .project-browse-toggle:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.project-modal .project-browse-toggle:focus-visible {
+  outline-color: var(--accent-text);
+}

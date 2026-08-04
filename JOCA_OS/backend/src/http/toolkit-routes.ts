@@ -66,6 +66,19 @@ export function toolkitRouter(): Router {
     if ('theme' in body) {
       updated.theme = body.theme === 'light' ? 'light' : 'dark';
     }
+    if ('themeMode' in body) {
+      updated.themeMode = body.themeMode === 'light' || body.themeMode === 'auto' ? body.themeMode : 'dark';
+    }
+    // Horários do modo dinâmico. Só se guarda "HH:MM" válido — uma hora inválida vinda do cliente
+    // deixaria o tema preso no escuro sem o utilizador perceber porquê.
+    for (const key of ['themeDayStart', 'themeNightStart'] as const) {
+      if (!(key in body)) continue;
+      const v = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
+      const m = /^(\d{1,2}):(\d{2})$/.exec(v);
+      if (m && Number(m[1]) <= 23 && Number(m[2]) <= 59) {
+        updated[key] = `${m[1].padStart(2, '0')}:${m[2]}`;
+      }
+    }
     // CLI used by new terminals when none is specified (Settings → CLI por defeito).
     if ('defaultCli' in body) {
       updated.defaultCli = CLI_IDS.includes(body.defaultCli as CliId) ? (body.defaultCli as CliId) : undefined;
@@ -98,7 +111,9 @@ export function toolkitRouter(): Router {
     };
     const body = (req.body ?? {}) as Record<string, unknown>;
     const rightPanelValue = body.rightPanel;
-    const validRightPanel = rightPanelValue === 'files' || rightPanelValue === 'toolkit' || rightPanelValue === 'settings' || rightPanelValue === null;
+    // Sem `'inbox'` aqui a escolha do painel de notificações era silenciosamente descartada
+    // e voltava sempre a Files ao recarregar — manter em sincronia com `ProjectMemory['rightPanel']`.
+    const validRightPanel = rightPanelValue === 'files' || rightPanelValue === 'toolkit' || rightPanelValue === 'settings' || rightPanelValue === 'inbox' || rightPanelValue === null;
     // `path` is authoritative on the project record itself, not client-writable via project-memory.
     memory[projectId] = {
       ...current,

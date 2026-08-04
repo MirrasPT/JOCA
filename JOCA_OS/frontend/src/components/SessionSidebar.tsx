@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import type { SessionInfo, Project, ProjectGroup as ProjectGroupData } from '../types';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import type { CSSProperties, ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as ProjectGroupData } from '../types';
+import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
 
 
@@ -9,13 +10,17 @@ interface Props {
   sessions: SessionInfo[];
   projects: Project[];
   projectGroups: ProjectGroupData[];
-  mainView: 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca';
+  /** O tipo vem de `types.ts` — repetir a união aqui fazia-a divergir (foi assim que `'agents'`
+   *  passou a existir em todo o lado menos na barra que o tem de marcar como activo). */
+  mainView: MainView;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
   onShowAutomations: () => void;
   onShowTasks: () => void;
   onShowJoca: () => void;
+  /** Vista global de agentes (todos os projectos num sítio só). */
+  onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
@@ -28,6 +33,8 @@ interface Props {
   onGroupProjects?: (draggedId: string, targetId: string) => void;
   onUngroupProject?: (id: string) => void;
   onRenameGroup?: (id: string, name: string) => void;
+  /** `null` limpa o ícone do grupo (o backend recolhe o ficheiro se mais ninguém o apontar). */
+  onSetGroupIcon?: (id: string, icon: ProjectIcon | null) => void;
   onToggleGroupCollapsed?: (id: string, collapsed: boolean) => void;
 }
 
@@ -68,6 +75,147 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'arrow-up-down') return <svg {...common}><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>;
   if (name === 'link') return <svg {...common}><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /><line x1="8" y1="12" x2="16" y2="12" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
+}
+
+// ── Identidade visual (logótipo · emoji · monograma) ───────────────
+// Cascata única para projectos E grupos: logótipo carregado → emoji escolhido → 2 primeiras letras
+// do nome. Com a barra fechada o nome está escondido, por isso nenhum dos ramos pode cair num
+// quadrado vazio — era isso que acontecia aos grupos, que nem sequer tinham elemento de ícone.
+// O monograma vem em `data-mono` e só o CSS o troca pelo svg quando a barra está fechada (o ícone
+// de pasta continua no DOM para a barra aberta).
+
+function ProjectAvatar({ icon, name }: { icon?: ProjectIcon; name: string }) {
+  if (icon?.type === 'image') {
+    return (
+      <span className="project-group-icon project-icon--image">
+        {/* Decorativa: o nome acessível já vem do botão que a envolve. */}
+        <img src={projectIconUrl(icon)} alt="" />
+      </span>
+    );
+  }
+  if (icon?.type === 'emoji') {
+    return <span className="project-group-icon project-icon--emoji" aria-hidden>{icon.value}</span>;
+  }
+  return (
+    <span className="project-group-icon" data-mono={iconInitials(name)}>
+      <LucideIcon name="folder" />
+    </span>
+  );
+}
+
+/**
+ * Campo de escolha de ícone (carregar logótipo · emoji · remover), partilhado pela linha de grupo
+ * na barra lateral e pelo modal de projecto. Vive aqui, e não num ficheiro próprio, porque os dois
+ * únicos consumidores são estes dois módulos — a alternativa era criar um terceiro ficheiro só para
+ * uma função de ~60 linhas.
+ *
+ * O upload segue o contrato de `POST /icons`: bytes crus no corpo, extensão só como pista. O
+ * servidor é a autoridade sobre formato/tamanho — aqui só se traduz o erro para PT-PT.
+ */
+export function ProjectIconField({ icon, name, label, onChange }: {
+  icon?: ProjectIcon;
+  /** Nome do projecto/grupo — alimenta o monograma da pré-visualização. */
+  name: string;
+  /** Como o alvo se chama nos rótulos acessíveis (ex.: "grupo Marketing"). */
+  label: string;
+  onChange: (icon: ProjectIcon | null) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [emojiDraft, setEmojiDraft] = useState(icon?.type === 'emoji' ? icon.value : '');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    setError('');
+    try {
+      const ext = file.name.includes('.') ? file.name.split('.').pop() ?? '' : '';
+      const res = await fetch('/icons', {
+        method: 'POST',
+        headers: ext ? { 'x-file-ext': ext } : undefined,
+        body: file,
+      });
+      const data = await res.json().catch(() => ({} as { error?: string; icon?: ProjectIcon }));
+      if (!res.ok || !data.icon) {
+        setError(data.error || (res.status === 413 ? 'Imagem demasiado grande (máximo 2 MB).' : 'Não foi possível carregar a imagem.'));
+        return;
+      }
+      onChange(data.icon);
+      setEmojiDraft('');
+    } catch {
+      setError('Não foi possível carregar a imagem.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const applyEmoji = () => {
+    const value = emojiDraft.trim();
+    if (!value) return;
+    // Validação leve — quem decide mesmo é o servidor (1 grapheme pictográfico).
+    if (!/\p{Extended_Pictographic}/u.test(value)) { setError('Escreve um único emoji.'); return; }
+    setError('');
+    onChange({ type: 'emoji', value });
+  };
+
+  return (
+    <div className="icon-field">
+      <span className="icon-field-preview" aria-hidden>
+        {icon?.type === 'image' ? <img src={projectIconUrl(icon)} alt="" />
+          : icon?.type === 'emoji' ? <span className="icon-field-emoji">{icon.value}</span>
+            : <span className="icon-field-mono">{iconInitials(name)}</span>}
+      </span>
+      <div className="icon-field-controls">
+        <input
+          ref={fileRef}
+          type="file"
+          className="icon-field-file"
+          accept="image/png,image/jpeg,image/webp"
+          tabIndex={-1}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) void upload(file);
+          }}
+        />
+        <button
+          type="button"
+          className="icon-field-btn"
+          disabled={busy}
+          onClick={() => fileRef.current?.click()}
+        >
+          {busy ? 'A carregar…' : 'Carregar logótipo'}
+        </button>
+        <label className="icon-field-emoji-input">
+          <span>Emoji</span>
+          <input
+            value={emojiDraft}
+            maxLength={8}
+            aria-label={`Emoji do ${label}`}
+            onChange={(e) => setEmojiDraft(e.target.value)}
+            onBlur={applyEmoji}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); applyEmoji(); }
+              // Escape segue caminho: é quem fecha o modal/flyout que envolve o campo.
+              if (e.key !== 'Escape') e.stopPropagation();
+            }}
+          />
+        </label>
+        {icon && (
+          <button
+            type="button"
+            className="icon-field-btn icon-field-btn--ghost"
+            onClick={() => { setEmojiDraft(''); setError(''); onChange(null); }}
+          >
+            Remover ícone
+          </button>
+        )}
+      </div>
+      <p className={`icon-field-hint${error ? ' icon-field-hint--error' : ''}`} role="status">
+        {error || 'PNG, JPEG ou WEBP até 2 MB. Sem ícone, ficam as duas primeiras letras do nome.'}
+      </p>
+    </div>
+  );
 }
 
 // ── Ordenação de projectos ─────────────────────────────────────────
@@ -209,7 +357,7 @@ function ProjectRow({
         )}
         {editing ? (
           <>
-            <span className="project-group-icon"><LucideIcon name="folder" /></span>
+            <ProjectAvatar icon={project.icon} name={project.name} />
             <span
               className="project-group-color"
               style={{ '--project-color': projectColor(project) } as CSSProperties}
@@ -239,7 +387,7 @@ function ProjectRow({
             title={`${project.name} — abrir workspace (duplo-clique renomeia)`}
             aria-label={`Abrir workspace de ${project.name}`}
           >
-            <span className="project-group-icon"><LucideIcon name="folder" /></span>
+            <ProjectAvatar icon={project.icon} name={project.name} />
             <span
               className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
               style={{ '--project-color': projectColor(project) } as CSSProperties}
@@ -292,15 +440,20 @@ function ProjectRow({
 // indentados por baixo, cada um como uma ProjectRow normal.
 
 function ProjectFolder({
-  group, members, sessions, expanded, onToggle, onRenameGroup, renderMember,
+  group, members, sessions, expanded, collapsed, onToggle, onRenameGroup, onSetIcon, onOpenMember, renderMember,
   dotDragOver, onDotDragEnter, onDotDragLeave, onGroupDrop,
 }: {
   group: ProjectGroupData;
   members: Project[];
   sessions: SessionInfo[];
   expanded: boolean;
+  /** Barra lateral fechada — a linha vira um quadrado e o clique abre o flyout em vez de colapsar. */
+  collapsed: boolean;
   onToggle: () => void;
   onRenameGroup?: (name: string) => void;
+  onSetIcon?: (icon: ProjectIcon | null) => void;
+  /** Abrir um projecto do grupo a partir do flyout. */
+  onOpenMember: (project: Project) => void;
   /** Mesma wiring (drag/agrupar/arquivar/…) que uma ProjectRow solta — construído pelo caller
    *  (SessionSidebar) para nunca divergir entre linha solta e linha aninhada. */
   renderMember: (project: Project) => ReactNode;
@@ -311,7 +464,13 @@ function ProjectFolder({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(group.name);
+  const [iconPanel, setIconPanel] = useState(false);
+  const [flyoutOpen, setFlyoutOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const labelRef = useRef<HTMLButtonElement>(null);
+  // Ref própria, não `document.querySelector('.group-flyout')`: com dois grupos na barra o selector
+  // por classe apanharia sempre o primeiro painel e o Tab ficaria preso no flyout errado.
+  const flyoutRef = useRef<HTMLDivElement>(null);
   const workingCount = members.reduce(
     (n, p) => n + sessions.filter((s) => s.projectId === p.id && s.status === 'working').length,
     0,
@@ -327,8 +486,45 @@ function ProjectFolder({
     setEditing(false);
   };
 
+  const closeFlyout = useCallback(() => {
+    setFlyoutOpen(false);
+    labelRef.current?.focus();
+  }, []);
+
+  // Abrir a barra deixa o flyout sem sítio (a lista do grupo passa a estar inline).
+  useEffect(() => { if (!collapsed) setFlyoutOpen(false); }, [collapsed]);
+
+  useEffect(() => {
+    if (!flyoutOpen) return;
+    flyoutRef.current?.querySelector<HTMLElement>('.group-flyout-item')?.focus();
+    const onPointerDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (flyoutRef.current?.contains(target) || labelRef.current?.contains(target)) return;
+      // Clique fora só fecha — devolver o foco aqui roubá-lo-ia a quem o utilizador acabou de clicar.
+      setFlyoutOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [flyoutOpen]);
+
+  const onFlyoutKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeFlyout(); return; }
+    if (e.key !== 'Tab' && e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
+    const items = Array.from(flyoutRef.current?.querySelectorAll<HTMLElement>('.group-flyout-item') ?? []);
+    if (items.length === 0) return;
+    e.preventDefault();
+    const current = items.indexOf(document.activeElement as HTMLElement);
+    const back = e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey);
+    let next: number;
+    if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = items.length - 1;
+    else if (back) next = current <= 0 ? items.length - 1 : current - 1;
+    else next = current < 0 || current === items.length - 1 ? 0 : current + 1;
+    items[next].focus();
+  };
+
   return (
-    <div className="project-folder">
+    <div className={`project-folder${flyoutOpen ? ' project-folder--flyout-open' : ''}`}>
       <div className="project-group-header project-folder-header">
         <button
           type="button"
@@ -341,6 +537,7 @@ function ProjectFolder({
         </button>
         {editing ? (
           <>
+            <ProjectAvatar icon={group.icon} name={group.name} />
             <span
               className="project-group-color"
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -363,13 +560,23 @@ function ProjectFolder({
           </>
         ) : (
           <button
+            ref={labelRef}
             type="button"
             className="project-group-label"
-            onClick={onToggle}
+            // Fechada, a lista de membros não cabe inline — o clique (e o Enter/Espaço, que num
+            // <button> disparam o mesmo onClick) abre o flyout em vez de colapsar/expandir.
+            onClick={collapsed ? () => setFlyoutOpen((v) => !v) : onToggle}
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            title={`${group.name} — ${members.length} projectos (duplo-clique renomeia)`}
-            aria-label={`Grupo ${group.name}, ${members.length} projectos`}
+            title={collapsed
+              ? `${group.name} — ${members.length} projectos (abrir lista)`
+              : `${group.name} — ${members.length} projectos (duplo-clique renomeia)`}
+            aria-label={collapsed
+              ? `Grupo ${group.name}, ${members.length} projectos — abrir lista`
+              : `Grupo ${group.name}, ${members.length} projectos`}
+            aria-haspopup={collapsed ? 'dialog' : undefined}
+            aria-expanded={collapsed ? flyoutOpen : expanded}
           >
+            <ProjectAvatar icon={group.icon} name={group.name} />
             <span
               className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -383,10 +590,64 @@ function ProjectFolder({
           </button>
         )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
+        {onSetIcon && (
+          <div className="project-group-actions">
+            <button
+              className="project-group-action"
+              type="button"
+              aria-label={`Ícone do grupo ${group.name}`}
+              aria-expanded={iconPanel}
+              onClick={(e) => { e.stopPropagation(); setIconPanel((v) => !v); }}
+              data-tooltip="Ícone do grupo"
+              data-tooltip-position="bottom"
+            >
+              <LucideIcon name="sparkles" />
+            </button>
+          </div>
+        )}
       </div>
-      {expanded && (
+      {/* Painel próprio em vez de o meter no modo de renome: o input de nome grava em `onBlur`,
+          e tocar nos botões do ícone fechava a edição por baixo dos pés do utilizador. */}
+      {iconPanel && onSetIcon && (
+        <div className="project-folder-icon-panel">
+          <ProjectIconField
+            icon={group.icon}
+            name={group.name}
+            label={`grupo ${group.name}`}
+            onChange={onSetIcon}
+          />
+        </div>
+      )}
+      {expanded && !collapsed && (
         <div className="project-folder-members">
           {members.map((project) => renderMember(project))}
+        </div>
+      )}
+      {collapsed && flyoutOpen && (
+        <div
+          ref={flyoutRef}
+          className="group-flyout"
+          role="dialog"
+          aria-label={`Projectos do grupo ${group.name}`}
+          onKeyDown={onFlyoutKeyDown}
+        >
+          <p className="group-flyout-title">{group.name}</p>
+          <ul className="group-flyout-list">
+            {members.map((project) => (
+              <li key={project.id}>
+                <button
+                  type="button"
+                  className="group-flyout-item"
+                  style={{ '--project-color': projectColor(project) } as CSSProperties}
+                  onClick={() => { setFlyoutOpen(false); onOpenMember(project); }}
+                >
+                  <ProjectAvatar icon={project.icon} name={project.name} />
+                  <span className="group-flyout-item-name">{project.name}</span>
+                </button>
+              </li>
+            ))}
+            {members.length === 0 && <li className="group-flyout-empty">Grupo sem projectos</li>}
+          </ul>
         </div>
       )}
     </div>
@@ -398,9 +659,9 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowProject,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowAgents, onShowProject,
   onClose, onNew, onOpenProject, onCreateProject, onInput, onRenameProject,
-  onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onToggleGroupCollapsed,
+  onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
   const [confirmCloseIdle, setConfirmCloseIdle] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -589,6 +850,16 @@ export default function SessionSidebar({
             <span>Automações</span>
           </button>
           <button
+            className={`nav-btn ${mainView === 'agents' ? 'active' : ''}`}
+            type="button"
+            onClick={onShowAgents}
+            aria-label="Agentes"
+            aria-current={mainView === 'agents' ? 'page' : undefined}
+          >
+            <span className="nav-icon"><LucideIcon name="terminal" /></span>
+            <span>Agentes</span>
+          </button>
+          <button
             className={`nav-btn ${mainView === 'joca' ? 'active' : ''}`}
             type="button"
             onClick={onShowJoca}
@@ -655,8 +926,11 @@ export default function SessionSidebar({
               members={item.members}
               sessions={sessions}
               expanded={!item.group.collapsed}
+              collapsed={collapsed}
               onToggle={() => onToggleGroupCollapsed?.(item.group.id, !item.group.collapsed)}
               onRenameGroup={onRenameGroup ? (name) => onRenameGroup(item.group.id, name) : undefined}
+              onSetIcon={onSetGroupIcon ? (icon) => onSetGroupIcon(item.group.id, icon) : undefined}
+              onOpenMember={(p) => onShowProject(p.id)}
               renderMember={(p) => <ProjectRow key={p.id} indented {...projectRowProps(p)} />}
               dotDragOver={dotOverId === item.group.id}
               onDotDragEnter={() => setDotOverId(item.group.id)}

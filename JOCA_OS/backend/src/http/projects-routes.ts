@@ -11,10 +11,15 @@ import {
 } from '../project-store';
 import { sanitizeToolkitName, sanitizeToolkitCategory } from './helpers';
 import { loadProjectGroups, pruneEmptyGroups } from '../project-groups-store';
+import { iconsRouter, parseIconInput, collectIconIfUnused } from './icons-routes';
 
 // Projects CRUD + per-project git status + per-project toolkit scaffolding.
 export function projectsRouter(): Router {
   const r = Router();
+
+  // Os ícones (projecto E grupo) vivem num router próprio mas entram por aqui — assim herdam o
+  // mesmo requireAuth do server.ts sem precisar de mais um app.use().
+  r.use(iconsRouter());
 
   r.get('/projects', (_req, res) => {
     const projects = loadProjects()
@@ -45,6 +50,8 @@ export function projectsRouter(): Router {
       name?: string; path: string; color?: string; description?: string; hasCode?: boolean;
     };
     if (!p) return res.status(400).json({ error: 'Missing path' });
+    const parsedIcon = req.body.icon === undefined ? { ok: true as const, icon: undefined } : parseIconInput(req.body.icon);
+    if (!parsedIcon.ok) return res.status(400).json({ error: parsedIcon.error });
     let resolvedP: string;
     try { resolvedP = safePath(p); }
     catch { return res.status(400).json({ error: 'Path must be inside home directory (and not a sensitive subdir)' }); }
@@ -58,6 +65,7 @@ export function projectsRouter(): Router {
       name: cleanName,
       path: resolvedP,
       color: cleanColor,
+      icon: parsedIcon.icon,
       // Becomes the project manager's permanent context (manager/manager.ts buildSystemPrompt).
       description: typeof description === 'string' && description.trim()
         ? description.trim().slice(0, 2000) : undefined,
@@ -102,6 +110,16 @@ export function projectsRouter(): Router {
       p.path = resolvedNext;
     }
     if (typeof req.body.color === 'string') p.color = (req.body.color.trim().slice(0, 50)) || undefined;
+    // icon: objecto {type,value} define; null/'' limpa. O ficheiro antigo é recolhido no fim, já
+    // depois do saveProjects — antes disso ele ainda conta como referência a si próprio.
+    const previousIcon = p.icon;
+    let iconChanged = false;
+    if (req.body.icon !== undefined) {
+      const parsed = parseIconInput(req.body.icon);
+      if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+      p.icon = parsed.icon;
+      iconChanged = true;
+    }
     if (typeof req.body.archived === 'boolean') p.archived = req.body.archived;
     if (req.body.description !== undefined) {
       const d = String(req.body.description).trim().slice(0, 2000);
@@ -127,6 +145,7 @@ export function projectsRouter(): Router {
       p.groupId = next || undefined;
     }
     saveProjects(projects);
+    if (iconChanged) collectIconIfUnused(previousIcon, p.icon);
     if (groupChanged) pruneEmptyGroups();
     const memory = loadProjectMemory();
     const current = memory[p.id];
@@ -138,7 +157,10 @@ export function projectsRouter(): Router {
   });
 
   r.delete('/projects/:id', (req, res) => {
-    saveProjects(loadProjects().filter((p) => p.id !== req.params.id));
+    const all = loadProjects();
+    const removedIcon = all.find((p) => p.id === req.params.id)?.icon;
+    saveProjects(all.filter((p) => p.id !== req.params.id));
+    collectIconIfUnused(removedIcon, undefined);
     const memory = loadProjectMemory();
     delete memory[req.params.id];
     saveProjectMemory(memory);

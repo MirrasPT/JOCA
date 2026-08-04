@@ -13,10 +13,13 @@ import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
-import NotificationsInbox from './components/NotificationsInbox';
+import AgentsView from './components/AgentsView';
 import { useSessionSocket } from './hooks/useSessionSocket';
-import { ensureNotificationPermission, notify } from './lib/notify';
-import type { JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import { useAutoTheme } from './hooks/useAutoTheme';
+import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
+import StatusBar from './components/StatusBar';
+import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import './components/sidebar-icons.css';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
 // output parseado produz um estado idêntico ao anterior (ex.: mesmo marcador repetido).
@@ -61,8 +64,14 @@ export default function App() {
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
   const [tasksRefresh, setTasksRefresh] = useState(0);
   const [notificationsRefresh, setNotificationsRefresh] = useState(0);
+  // A contagem por ler vive AQUI e não dentro do painel: o badge do separador do rail (e o do
+  // rodapé) têm de existir com o painel fechado, e nesse caso o componente está desmontado.
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   // Sobe a cada evento do gestor no WebSocket — o ManagerChat aberto refaz o GET do chat.
   const [managerRefresh, setManagerRefresh] = useState(0);
+  // Chaves de gestor a meio de um turno (`__global__` = o Joca), alimentadas pelo WS `manager_busy`.
+  // É a única fonte global deste estado — não há endpoint que o devolva de uma vez.
+  const [busyManagerIds, setBusyManagerIds] = useState<string[]>([]);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -106,10 +115,18 @@ export default function App() {
   const activeIdRef = useRef<string | null>(null);
 
   const projectMemoryRef = useRef(projectMemory);
+  // Lista de projectos lida pelo resolvedor de notificações. Por ref e não pela closure do render
+  // para o handler ficar estável — ele é registado uma vez no módulo `lib/notify`.
+  const projectsRef = useRef(projects);
+
+  // `false` = a próxima sessão criada não rouba o ecrã. Vive aqui porque quem o consome é o router
+  // de mensagens do WebSocket, e quem o baixa é o "+" da lista de agentes.
+  const focusNewSessionRef = useRef(true);
 
   useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
   useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   useEffect(() => { projectMemoryRef.current = projectMemory; }, [projectMemory]);
+  useEffect(() => { projectsRef.current = projects; }, [projects]);
 
   const processOutput = useCallback((sessionId: string, data: string) => {
     const buf = (outputBuffers.current.get(sessionId) ?? '') + data;
@@ -262,7 +279,27 @@ export default function App() {
       ...prev,
     ].slice(0, 80));
     // Sound + OS notification (Windows/macOS), so the user is alerted even off-window.
-    notify('JOCA — Terminado', session.name);
+    // Com o destino: clicar na notificação do SO traz a janela para a frente E abre este terminal.
+    notify('JOCA — Terminado', session.name, { sessionId: session.id });
+  }, []);
+
+  // Toast a partir de uma notificação persistente marcada `priority:'action'` — alguém está
+  // bloqueado à espera de resposta. Até aqui só sessões terminadas geravam toast, e um pedido de
+  // decisão só aparecia se a inbox estivesse aberta.
+  const addNotificationToast = useCallback((n: AppNotification) => {
+    setToasts((prev) => {
+      if (prev.some((t) => t.id === n.id)) return prev; // o mesmo evento não vale dois toasts
+      return [...prev, {
+        id: n.id,
+        title: n.title,
+        sessionName: n.text.replace(/\s+/g, ' ').trim().slice(0, 120),
+        // Pode não haver sessão (ex.: gestor preso): o destino real vai em `target`.
+        sessionId: n.meta?.sessionId ?? '',
+        timestamp: n.ts,
+        priority: 'action',
+        target: n.meta,
+      }];
+    });
   }, []);
 
   // WebSocket lifecycle (connect / reconnect / message routing) lives in the hook; it returns a
@@ -271,10 +308,24 @@ export default function App() {
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
     setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
-    setManagerRefresh,
-    termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef,
-    activateSession, addToast, processOutput, reloadProjects, reloadProjectMemory,
+    setManagerRefresh, setBusyManagerIds,
+    termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef, focusNewSessionRef,
+    activateSession, addToast, addNotificationToast, processOutput, reloadProjects, reloadProjectMemory,
   });
+
+  // Claro/escuro/dinâmico: no modo dinâmico troca sozinho à hora marcada, com a app aberta.
+  useAutoTheme();
+
+  // A contagem por ler tem de ser buscada AQUI, não pelo painel. Com o painel fechado o
+  // `NotificationsInbox` está desmontado, portanto ninguém fazia este GET: o badge só aparecia
+  // depois de se abrir o painel uma vez — exactamente quando já não era preciso. Verificado a
+  // correr: 3 por ler e nenhum badge até ao primeiro clique.
+  useEffect(() => {
+    fetch('/notifications')
+      .then((r) => r.json())
+      .then((d) => setUnreadNotifications(typeof d?.unread === 'number' ? d.unread : 0))
+      .catch(() => {});
+  }, [notificationsRefresh]);
 
   const handleNewSession = useCallback(() => {
     send({ type: 'create_session' });
@@ -469,7 +520,9 @@ export default function App() {
       .catch(() => {});
   }, [reloadProjects, reloadProjectGroups]);
 
-  const handleUpdateProjectGroup = useCallback((id: string, patch: Partial<ProjectGroup>) => {
+  // `icon: null` é o que LIMPA o ícone no backend — `Partial<ProjectGroup>` sozinho só permitiria
+  // `undefined`, que o JSON.stringify omite e deixaria o ícone intacto.
+  const handleUpdateProjectGroup = useCallback((id: string, patch: Partial<Omit<ProjectGroup, 'icon'>> & { icon?: ProjectIcon | null }) => {
     fetch(`/project-groups/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -503,6 +556,53 @@ export default function App() {
     setActiveProjectId(projectId);
     setMainView('project');
   }, []);
+
+  // Agente novo a partir do "+" da secção Agentes: nasce no projecto e NÃO atira o utilizador para
+  // ecrã cheio (o ref é consumido uma vez pelo router do WebSocket e volta a `true` sozinho).
+  const handleAddProjectAgent = useCallback((project: Project) => {
+    focusNewSessionRef.current = false;
+    send({ type: 'create_session', cwd: project.path, projectId: project.id });
+  }, [send]);
+
+  // Agente novo sem projecto, da vista global de Agentes.
+  const handleNewLooseAgent = useCallback((cli: string) => {
+    focusNewSessionRef.current = false;
+    if (!cli || cli === 'claude') send({ type: 'create_session' });
+    else send({ type: 'create_session', cli });
+  }, [send]);
+
+  /**
+   * Contrato ÚNICO de navegação das notificações, partilhado pelos três canais (inbox do rail,
+   * toast e notificação do SO). Quem sabe navegar é o App — os canais só transportam o `meta`.
+   *
+   * Precedência: sessão → tarefa → automação → projecto (do mais específico para o mais lato).
+   * Uma referência morta (sessão fechada, projecto apagado) não rebenta nem atira para um sítio ao
+   * calhar: cai para o nível seguinte e, não havendo nenhum, fica-se onde se está.
+   */
+  const handleOpenNotificationTarget = useCallback((target: NotificationTarget | undefined) => {
+    if (!target) return;
+    if (target.sessionId && sessionsRef.current.some((s) => s.id === target.sessionId)) {
+      handleSwitchSession(target.sessionId);
+      return;
+    }
+    // TODO: a TasksView ainda não abre uma tarefa por id — leva-se ao quadro, não ao detalhe.
+    if (target.taskId) { setMainView('tasks'); return; }
+    if (target.automationId) { setMainView('automations'); return; }
+    if (target.projectId && projectsRef.current.some((p) => p.id === target.projectId)) {
+      handleShowProject(target.projectId);
+    }
+  }, [handleShowProject, handleSwitchSession]);
+
+  // O router de mensagens do WebSocket (que não é um componente) dispara notificações do SO; o
+  // handler de destino vive num módulo para lhe ser alcançável.
+  useEffect(() => {
+    setNotificationTargetHandler(handleOpenNotificationTarget);
+    return () => setNotificationTargetHandler(null);
+  }, [handleOpenNotificationTarget]);
+
+  // O inbox faz `useEffect(..., [unread, onUnreadChange])` — uma lambda nova a cada render
+  // fá-lo-ia correr a cada render.
+  const handleUnreadNotificationsChange = useCallback((n: number) => setUnreadNotifications(n), []);
 
   const loadCommandPalette = useCallback(() => {
     if (jocaItems) return;
@@ -631,6 +731,9 @@ export default function App() {
   }, [contextProjectId, rightPanel, updateProjectMemory]);
 
   return (
+    // O rodapé é permanente em todas as vistas, por isso envolve-se o `.app` (que continua a ser a
+    // linha sidebar/conteúdo/painel) numa coluna e a StatusBar entra como último filho.
+    <div className="app-shell">
     <div className="app">
       <SessionSidebar
         sessions={sessions}
@@ -643,6 +746,7 @@ export default function App() {
         onShowAutomations={() => setMainView('automations')}
         onShowTasks={() => setMainView('tasks')}
         onShowJoca={() => setMainView('joca')}
+        onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
         onClose={handleCloseSession}
         onNew={handleNewSession}
@@ -655,6 +759,7 @@ export default function App() {
         onGroupProjects={handleGroupProjects}
         onUngroupProject={handleUngroupProject}
         onRenameGroup={(id, name) => handleUpdateProjectGroup(id, { name })}
+        onSetGroupIcon={(id, icon) => handleUpdateProjectGroup(id, { icon })}
         onToggleGroupCollapsed={(id, collapsed) => handleUpdateProjectGroup(id, { collapsed })}
       />
 
@@ -665,6 +770,18 @@ export default function App() {
           <AutomationsView refreshKey={automationsRefresh} />
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
+        ) : mainView === 'agents' ? (
+          // Todos os agentes de todos os projectos num sítio só. `managerRefresh` é a chave certa:
+          // sobe a cada evento de sessão/gestor, que é exactamente quando a pool muda.
+          <AgentsView
+            sessions={sessions}
+            projects={projects}
+            onOpenSession={handleSwitchSession}
+            onCloseSession={handleCloseSession}
+            onNewSession={handleNewLooseAgent}
+            onOpenProject={(project) => handleShowProject(project.id)}
+            refreshKey={managerRefresh}
+          />
         ) : mainView === 'project' ? (
           // A vista de projecto é agora o workspace do gestor (chat > tarefas > terminais); o
           // DashboardView continua a tratar só do panorama global de projectos.
@@ -677,6 +794,8 @@ export default function App() {
             onEditProject={handleEditProject}
             onOpenProject={handleOpenProject}
             onSwitchSession={handleSwitchSession}
+            onCloseSession={handleCloseSession}
+            onAddAgent={handleAddProjectAgent}
             onPreviewFile={(path) => {
               setPreviewPath(path);
               setSelectedPath(path);
@@ -746,8 +865,6 @@ export default function App() {
         )}
       </div>
 
-      <NotificationsInbox refreshKey={notificationsRefresh} />
-
       <RightWorkspace
         panel={rightPanel}
         width={rightSlotSize}
@@ -760,7 +877,17 @@ export default function App() {
         events={activityEvents}
         jocaItems={jocaItems}
         onSetPanel={setRightPanel}
-        onPastePath={(p) => activeId && handleInput(activeId, p)}
+        onPastePath={(p) => {
+          // "Colar caminho" tem dois destinos possíveis. Com um chat de gestor à frente, o caminho
+          // é um ANEXO (o ManagerChat escuta `joca:attach-path`); nas outras vistas é texto para o
+          // terminal activo. Sem esta distinção, o caminho caía sempre num terminal que pode nem
+          // estar visível.
+          if (mainView === 'project' || mainView === 'joca') {
+            window.dispatchEvent(new CustomEvent('joca:attach-path', { detail: p }));
+            return;
+          }
+          if (activeId) handleInput(activeId, p);
+        }}
         onPreview={(path) => {
           setPreviewPath(path);
           setSelectedPath(path);
@@ -779,6 +906,10 @@ export default function App() {
         onRunCommand={handleRunCommand}
         onReloadRuntime={reloadRuntime}
         selectedPath={selectedPath}
+        notificationsRefresh={notificationsRefresh}
+        unreadNotifications={unreadNotifications}
+        onUnreadNotificationsChange={handleUnreadNotificationsChange}
+        onOpenNotificationTarget={handleOpenNotificationTarget}
       />
 
       {previewPath && (
@@ -807,6 +938,7 @@ export default function App() {
         toasts={toasts}
         onDismiss={handleDismissToast}
         onSelect={handleSwitchSession}
+        onOpenTarget={handleOpenNotificationTarget}
       />
 
       <CreateProjectModal
@@ -821,6 +953,17 @@ export default function App() {
         onCreateProjectSkill={handleCreateProjectSkill}
         onArchiveProject={handleArchiveProject}
         onRemoveProject={handleRemoveProject}
+      />
+    </div>
+
+      {/* Com `sessions` e `unreadNotifications` por props o rodapé não faz pedido nenhum — já
+          temos os dois do WebSocket e do painel de notificações. */}
+      <StatusBar
+        rateLimits={rateLimits}
+        sessions={sessions}
+        busyManagerIds={busyManagerIds}
+        unreadNotifications={unreadNotifications}
+        onOpenInbox={() => setRightPanel('inbox')}
       />
     </div>
   );

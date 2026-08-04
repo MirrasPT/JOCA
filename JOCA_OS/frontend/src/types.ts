@@ -9,11 +9,33 @@ export interface SessionInfo {
 }
 
 
+/**
+ * Ícone de um projecto ou grupo (espelha backend/src/project-store.ts).
+ * `image` → `value` é o nome do ficheiro devolvido por `POST /icons`; renderiza-se em
+ * `/icons/{value}`. `emoji` → `value` é o próprio emoji.
+ * Sem ícone (undefined) a UI mostra as 2 primeiras letras do nome — ver `iconInitials`.
+ */
+export interface ProjectIcon {
+  type: 'image' | 'emoji';
+  value: string;
+}
+
+/** URL para desenhar um ícone de imagem. Só para `type === 'image'`. */
+export function projectIconUrl(icon: ProjectIcon): string {
+  return `/icons/${encodeURIComponent(icon.value)}`;
+}
+
+/** Fallback textual quando não há ícone: 2 primeiras letras do nome, em maiúsculas. */
+export function iconInitials(name: string): string {
+  return [...(name.trim() || '?')].slice(0, 2).join('').toUpperCase();
+}
+
 export interface Project {
   id: string;
   name: string;
   path: string;
   color?: string;
+  icon?: ProjectIcon;
   initialized?: boolean;
   githubRepo?: string;
   archived?: boolean;
@@ -31,6 +53,7 @@ export interface ProjectGroup {
   id: string;
   name: string;
   color?: string;
+  icon?: ProjectIcon;
   order?: number;
   collapsed?: boolean;
 }
@@ -73,7 +96,8 @@ export interface ProjectMemory {
   favoriteAgents: string[];
   quickCommands: string[];
   openFiles: string[];
-  rightPanel: 'files' | 'toolkit' | 'settings' | null;
+  /** Espelha `ProjectMemory['rightPanel']` do backend — alterar os dois em conjunto. */
+  rightPanel: RightPanel;
   updatedAt: string;
 }
 
@@ -190,6 +214,9 @@ export interface HeartbeatConfig {
   enabled: boolean;
   everyMinutes: number;                                 // >= 5
   activeHours?: { start: string; end: string } | null;  // "HH:MM" local; null = sempre activo
+  // Wakes automáticos seguidos que um gestor pode gastar antes de a fila parar (1–40). Opcional
+  // porque um `data/heartbeat.json` gravado por uma versão anterior não o traz.
+  maxAutoWakes?: number;
   model: string;
   scratch: string;
   lastRunAt?: number | null;
@@ -207,5 +234,7 @@ export interface CliProfileInfo {
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
-export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca';
-export type RightPanel = 'files' | 'toolkit' | 'settings' | null;
+/** `agents` = vista global de agentes (todos os projectos num sítio só). */
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca' | 'agents';
+/** `inbox` = notificações como 4º painel do rail direito (deixou de ser sino flutuante). */
+export type RightPanel = 'files' | 'toolkit' | 'settings' | 'inbox' | null;

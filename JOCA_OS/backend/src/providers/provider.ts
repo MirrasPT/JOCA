@@ -28,11 +28,10 @@ export interface BrainRunOptions {
   // In-process MCP servers built with createSdkMcpServer(). Their tools reach the model as
   // mcp__<server>__<tool>.
   mcpServers?: Record<string, unknown>;
-  // Hard tool boundary. `tools: []` disables EVERY built-in (Bash/Edit/Write/Read) — this, not
-  // allowedTools, is what guarantees an agent cannot touch the filesystem.
+  // Fronteira dura de ferramentas: `tools: []` desliga TODOS os built-ins (Bash/Edit/Write/Read).
   disallowedTools?: string[];
-  // Auto-approved tool names (e.g. our mcp__joca__* set). This does NOT widen what exists — the
-  // `tools` option decides that — it only skips the permission prompt for these.
+  // Nomes de ferramentas auto-aprovadas (o nosso conjunto mcp__joca__* e, no modo gestor, também os
+  // built-ins). Em modo gestor esta lista é a fonte de `tools` — ver ClaudeProvider.run.
   allowedTools?: string[];
   // Defaults to 'bypassPermissions' (needed by anything touching the filesystem). An agent with
   // tools:[] has no filesystem access at all, so it should run on 'default': bypass is both
@@ -72,9 +71,13 @@ export class ClaudeProvider {
         // REWRITES the instruction instead of EXECUTING it. tools:[] disables all built-ins; maxTurns:1
         // is belt-and-suspenders against any tool/continue loop.
         ...(opts.noTools ? { tools: [] as string[], maxTurns: 1 } : {}),
-        // Manager mode: no built-ins at all, only the in-process MCP tools we hand it. Same tools:[]
-        // switch as noTools, but the conversation keeps running across turns via `resume`.
-        ...(opts.mcpServers ? { tools: [] as string[], mcpServers: opts.mcpServers as never } : {}),
+        // Modo gestor: as ferramentas MCP in-process MAIS os built-ins que o caller autorizou. `tools`
+        // é o que decide o que EXISTE; `allowedTools` só dispensa a permissão. Os built-ins saem da
+        // mesma lista, tirando as entradas mcp__* (essas vêm do servidor MCP).
+        ...(opts.mcpServers ? {
+          tools: (opts.allowedTools ?? []).filter((t) => !t.startsWith('mcp__')),
+          mcpServers: opts.mcpServers as never,
+        } : {}),
         ...(opts.disallowedTools ? { disallowedTools: opts.disallowedTools } : {}),
         ...(opts.allowedTools ? { allowedTools: opts.allowedTools } : {}),
         ...(opts.resume ? { resume: opts.resume } : {}),

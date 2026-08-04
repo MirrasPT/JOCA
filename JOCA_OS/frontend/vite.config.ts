@@ -18,6 +18,7 @@ export default defineConfig({
       '/open': { target: http },
       '/projects': { target: http },
       '/project-groups': { target: http },
+      '/icons': { target: http },
       '/runtime': { target: http },
       '/cli-tools': { target: http },
       '/joca-items': { target: http },

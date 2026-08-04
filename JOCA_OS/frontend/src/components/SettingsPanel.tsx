@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CliProfileInfo, CliToolStatus, HeartbeatConfig, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
+import { readThemeSettings, resolveTheme } from '../lib/theme';
+import type { ThemeMode } from '../lib/theme';
+import { saveThemeSettings } from '../hooks/useAutoTheme';
 
 interface ServiceConnection {
   id: string;
@@ -21,6 +24,12 @@ interface Props {
   onClose: () => void;
 }
 
+const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
+  { id: 'light', label: 'Claro' },
+  { id: 'dark', label: 'Escuro' },
+  { id: 'auto', label: 'Dinâmico' },
+];
+
 function ChevronsRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -33,7 +42,11 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
   const [skipPermissions, setSkipPermissions] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'));
+  // Tema: o modo escolhido + os horários do modo dinâmico. O `useAutoTheme` do App é que aplica
+  // ao vivo; aqui só se escreve a escolha.
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => readThemeSettings().mode);
+  const [dayStart, setDayStart] = useState(() => readThemeSettings().dayStart);
+  const [nightStart, setNightStart] = useState(() => readThemeSettings().nightStart);
   const [optimizeProvider, setOptimizeProvider] = useState('claude');
   const [optimizeModel, setOptimizeModel] = useState('');
   const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
@@ -56,12 +69,12 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
       if (s.defaultCli === 'claude' || s.defaultCli === 'codex' || s.defaultCli === 'agy' || s.defaultCli === 'opencode') {
         setDefaultCli(s.defaultCli);
       }
-      if (s.theme === 'light' || s.theme === 'dark') {
-        setTheme(s.theme);
-        if (s.theme === 'light') document.documentElement.dataset.theme = 'light';
-        else delete document.documentElement.dataset.theme;
-        try { localStorage.setItem('joca-theme', s.theme); } catch { /* ignore */ }
-      }
+      // O `useAutoTheme` já sincronizou servidor→localStorage e aplicou; aqui só se relê para os
+      // campos mostrarem o que está mesmo guardado.
+      const stored = readThemeSettings();
+      setThemeMode(stored.mode);
+      setDayStart(stored.dayStart);
+      setNightStart(stored.nightStart);
       setOptimizeProvider(s.optimizeProvider ?? 'claude');
       setOptimizeModel(s.optimizeModel ?? '');
     }).catch(() => {});
@@ -87,14 +100,31 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
 
   useEffect(() => () => { if (savedTimer.current) window.clearTimeout(savedTimer.current); }, []);
 
-  const toggleTheme = useCallback(() => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    if (next === 'light') document.documentElement.dataset.theme = 'light';
-    else delete document.documentElement.dataset.theme;
-    try { localStorage.setItem('joca-theme', next); } catch { /* ignore */ }
-    patchSettings({ theme: next });
-  }, [theme, patchSettings]);
+  // A pré-visualização ("agora seria claro/escuro") tem de envelhecer com o relógio: sem isto,
+  // ficava a dizer o contrário do que está no ecrã se o painel atravessasse a hora da troca.
+  const [, setNowTick] = useState(0);
+  useEffect(() => {
+    if (themeMode !== 'auto') return;
+    const t = window.setInterval(() => setNowTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(t);
+  }, [themeMode]);
+
+  const selectThemeMode = useCallback((mode: ThemeMode) => {
+    setThemeMode(mode);
+    saveThemeSettings(mode, dayStart, nightStart);
+  }, [dayStart, nightStart]);
+
+  // Um `<input type="time">` vazio (a meio da edição) não pode apagar o horário guardado — o campo
+  // acompanha o que se escreve, mas só se grava quando é uma hora completa.
+  const changeDayStart = useCallback((value: string) => {
+    setDayStart(value);
+    if (/^\d{2}:\d{2}$/.test(value)) saveThemeSettings(themeMode, value, nightStart);
+  }, [themeMode, nightStart]);
+
+  const changeNightStart = useCallback((value: string) => {
+    setNightStart(value);
+    if (/^\d{2}:\d{2}$/.test(value)) saveThemeSettings(themeMode, dayStart, value);
+  }, [themeMode, dayStart]);
 
   const toggleSkipPermissions = useCallback(() => {
     const next = !skipPermissions;
@@ -194,10 +224,50 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             <span className="status-pill status-pill--connected">aparência</span>
             <span>Tema</span>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer' }}>
-            <input type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
-            <span>Light mode</span>
-          </label>
+          {/* Radiogroup a sério: UM tab stop (roving tabindex) e setas a navegar — num radiogroup
+              o Tab entra e sai do grupo, não percorre as opções uma a uma. */}
+          <div className="theme-mode-row" role="radiogroup" aria-label="Modo do tema">
+            {THEME_MODE_OPTIONS.map((opt, i) => (
+              <button
+                key={opt.id}
+                type="button"
+                role="radio"
+                aria-checked={themeMode === opt.id}
+                tabIndex={themeMode === opt.id ? 0 : -1}
+                className={`theme-mode-btn${themeMode === opt.id ? ' is-active' : ''}`}
+                onClick={() => selectThemeMode(opt.id)}
+                onKeyDown={(e) => {
+                  const delta = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+                    : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+                  if (!delta) return;
+                  e.preventDefault();
+                  const next = THEME_MODE_OPTIONS[(i + delta + THEME_MODE_OPTIONS.length) % THEME_MODE_OPTIONS.length];
+                  selectThemeMode(next.id);
+                  // O foco tem de seguir a selecção, senão fica num botão que passou a tabIndex=-1.
+                  const group = e.currentTarget.parentElement;
+                  (group?.querySelectorAll('.theme-mode-btn')[THEME_MODE_OPTIONS.indexOf(next)] as HTMLElement | undefined)?.focus();
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {themeMode === 'auto' && (
+            <div className="theme-schedule">
+              <label className="theme-schedule-field">
+                <span>Passa a claro</span>
+                <input type="time" value={dayStart} onChange={(e) => changeDayStart(e.target.value)} />
+              </label>
+              <label className="theme-schedule-field">
+                <span>Passa a escuro</span>
+                <input type="time" value={nightStart} onChange={(e) => changeNightStart(e.target.value)} />
+              </label>
+              <p className="theme-schedule-hint">
+                Agora seria <strong>{resolveTheme('auto', dayStart, nightStart) === 'light' ? 'claro' : 'escuro'}</strong>.
+                {' '}Troca sozinho à hora marcada, com a app aberta.
+              </p>
+            </div>
+          )}
         </div>
         {services.map((service) => (
           <div key={service.id} className="settings-service-card">
@@ -319,6 +389,16 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
                 <input
                   type="number" min={5} value={heartbeat.everyMinutes}
                   onChange={(e) => patchHeartbeat({ everyMinutes: Math.max(5, Number(e.target.value) || 5) })}
+                />
+              </label>
+              <label
+                className="hb-field hb-field--inline"
+                title="Quantas vezes seguidas um gestor pode ser acordado sozinho antes de a fila parar e avisar. É o travão contra ciclos caros — configura-se, não se desliga."
+              >
+                <span>Wakes automáticos por gestor antes de parar (1–40)</span>
+                <input
+                  type="number" min={1} max={40} value={heartbeat.maxAutoWakes ?? 12}
+                  onChange={(e) => patchHeartbeat({ maxAutoWakes: Math.max(1, Math.min(40, Number(e.target.value) || 12)) })}
                 />
               </label>
               <label className="hb-check">

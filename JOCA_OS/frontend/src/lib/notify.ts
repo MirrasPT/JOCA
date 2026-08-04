@@ -1,8 +1,36 @@
 // Notification helpers: a short sound cue + a real OS (Windows/macOS) desktop notification, so the
 // user is alerted even when the JOCA window isn't focused. The in-app toast is separate (visual, only
 // when the tab is visible); these fire alongside it.
+//
+// Uma notificação que avisa e não leva a lado nenhum obriga o utilizador a procurar sozinho o sítio
+// de que ela falava. Por isso todas as vias (toast, inbox, notificação do SO) partilham o mesmo
+// contrato de destino — o `meta` da própria notificação — resolvido por um único handler registado
+// pelo App, que é quem sabe navegar.
+import type { AppNotification } from '../types';
+
+export type NotificationTarget = NonNullable<AppNotification['meta']>;
 
 let audioCtx: AudioContext | null = null;
+
+// Registado uma vez pelo App (quem tem o router e o estado de vistas). Módulo e não contexto React
+// porque quem dispara isto — o router de mensagens do WebSocket — não é um componente.
+let openTargetHandler: ((target: NotificationTarget) => void) | null = null;
+
+export function setNotificationTargetHandler(fn: ((target: NotificationTarget) => void) | null): void {
+  openTargetHandler = fn;
+}
+
+/** Navega para a origem de uma notificação. No-op silencioso se ainda ninguém registou o handler. */
+export function openNotificationTarget(target: NotificationTarget | undefined | null): void {
+  if (!target || !openTargetHandler) return;
+  try { openTargetHandler(target); } catch { /* navegação falhou — não vale rebentar o aviso */ }
+}
+
+/** Há para onde ir? Serve para o toast decidir se mostra "Abrir" ou não. */
+export function hasNotificationTarget(target: NotificationTarget | undefined | null): boolean {
+  if (!target) return false;
+  return Boolean(target.sessionId || target.taskId || target.automationId || target.projectId);
+}
 
 // Ask once for OS-notification permission. Call on first mount; browsers only grant from a page that
 // has been interacted with, which is the case by the time anything worth notifying happens.
@@ -42,16 +70,25 @@ export function playNotifySound(): void {
 }
 
 // Fire an OS notification if the user granted permission (no-op otherwise).
-export function osNotify(title: string, body: string): void {
+//
+// Com `target`, o clique traz a janela para a frente E navega. A ordem importa: `window.focus()`
+// antes de navegar, senão a mudança de vista acontece numa janela que continua atrás de tudo e o
+// utilizador só a encontra mais tarde, já sem contexto.
+export function osNotify(title: string, body: string, target?: NotificationTarget): void {
   try {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body });
-    }
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const n = new Notification(title, { body });
+    if (!hasNotificationTarget(target)) return;
+    n.onclick = () => {
+      try { window.focus(); } catch { /* o browser pode recusar o foco */ }
+      openNotificationTarget(target);
+      n.close();
+    };
   } catch { /* unsupported */ }
 }
 
 // Convenience: sound + OS notification together (the two "external" cues), used for done events.
-export function notify(title: string, body: string): void {
+export function notify(title: string, body: string, target?: NotificationTarget): void {
   playNotifySound();
-  osNotify(title, body);
+  osNotify(title, body, target);
 }
