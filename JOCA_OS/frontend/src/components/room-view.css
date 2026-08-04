@@ -177,15 +177,19 @@
   font-weight: 700;
 }
 
-/* Três pontos a saltar enquanto a ronda corre. */
+/* Três pontos a saltar enquanto a ronda corre.
+   ⚠ Estas regras têm de visar a CLASSE, nunca `span` solto: a etiqueta ("a discutir…") é o 4.º
+   span da mesma bolha, e um selector genérico dava-lhe `width: 6px` — o texto passava a quebrar
+   a cada caractere e lia-se na vertical. */
 .room-bubble--typing { display: inline-flex; align-items: center; gap: 4px; padding: 10px 14px; }
-.room-bubble--typing span {
+.room-typing-dot {
   width: 6px; height: 6px; border-radius: 50%;
+  flex: none;
   background: var(--text-ghost);
   animation: room-typing 1.2s ease-in-out infinite;
 }
-.room-bubble--typing span:nth-child(2) { animation-delay: 0.15s; }
-.room-bubble--typing span:nth-child(3) { animation-delay: 0.3s; }
+.room-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.room-typing-dot:nth-child(3) { animation-delay: 0.3s; }
 @keyframes room-typing {
   0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }

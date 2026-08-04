@@ -238,7 +238,7 @@ export default function RoomView({ projects }: { projects: Project[] }) {
             <div className="room-row-av"><span className="room-av room-av--ghost">…</span></div>
             <div className="room-bubble-wrap">
               <div className="room-bubble room-bubble--typing" aria-live="polite">
-                <span /><span /><span />
+                <span className="room-typing-dot" /><span className="room-typing-dot" /><span className="room-typing-dot" />
                 <span className="room-typing-label">a discutir…</span>
               </div>
             </div>
