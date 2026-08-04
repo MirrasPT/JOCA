@@ -147,6 +147,20 @@ export function submitCrDelay(payloadLength: number): number {
   return Math.min(CR_MAX_DELAY_MS, CR_BASE_DELAY_MS + Math.floor(payloadLength / 1024) * CR_PER_KB_MS);
 }
 
+
+/**
+ * Escrita num PTY que pode já ter morrido.
+ *
+ * Um worker que arranca mal (CLI em falta, pasta sem permissões, `claude` a sair logo) deixa o PTY
+ * fechado, e escrever nele lança `EPIPE`. Quando essa escrita está dentro de um `setTimeout` ou de
+ * um `async` sem `catch`, o erro sobe como excepção não-apanhada e o Node mata o PROCESSO — ou
+ * seja: um terminal morto derrubava o backend todo, com todas as outras sessões e o gestor atrás.
+ * Devolve `false` em vez de rebentar; quem escreve decide o que fazer.
+ */
+function safePtyWrite(pty: { write(d: string): void }, data: string): boolean {
+  try { pty.write(data); return true; } catch { return false; }
+}
+
 export class SessionManager extends EventEmitter {
   private sessions = new Map<string, Session>();
   private sessionCounter = 0;
@@ -247,7 +261,7 @@ export class SessionManager extends EventEmitter {
       model: opts.model,
       autonomous: loadUiSettings().skipPermissions,
     });
-    setTimeout(() => ptyProcess.write(`${launchLine}\r`), 100);
+    setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
     // Resolve the /resume|/init-project command synchronously (cheap fs checks). It is SENT only once
     // the Claude TUI is actually ready (see runStartupSequence). Fixed timers were the bug behind
@@ -304,6 +318,14 @@ export class SessionManager extends EventEmitter {
         // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
         if (dispatchDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
+    });
+
+    // node-pty emite 'error' no socket interno quando o processo morre a meio de uma escrita. Um
+    // 'error' sem ouvinte é excepção não-apanhada em Node — mata o backend inteiro. Este ouvinte
+    // existe SÓ para o absorver; o fecho a sério continua a ser tratado no onExit abaixo.
+    const ptySocket = (ptyProcess as unknown as { _socket?: { on(e: string, f: (err: Error) => void): void } })._socket;
+    ptySocket?.on('error', (err: Error) => {
+      console.warn(`[pty] socket da sessão ${session.id} falhou: ${err.message}`);
     });
 
     ptyProcess.onExit(() => {
@@ -393,14 +415,14 @@ export class SessionManager extends EventEmitter {
     // First-time folders show "Do you trust the files in this folder?" — accept the default (Enter) so
     // the CLI reaches its prompt. These are folders the user explicitly opened in JOCA.
     if (/trust the files in this folder|Do you trust the files/i.test(session.buffer.slice(-2000))) {
-      p.write('\r');
+      safePtyWrite(p, '\r');
       await this.waitForQuiet(session, 700, 8000);
     }
     if (!this.sessions.has(session.id)) return;
     if (startupCmd) {
-      p.write(startupCmd);
+      if (!safePtyWrite(p, startupCmd)) return;   // terminal morreu a arrancar — nada a enviar
       await new Promise((r) => setTimeout(r, 120)); // let the line register before the submit CR
-      p.write('\r');
+      safePtyWrite(p, '\r');
       if (initialInput) await this.waitForQuiet(session, 900, 20000); // /resume loads context — let it settle
     }
     if (initialInput && this.sessions.has(session.id)) {
@@ -450,8 +472,7 @@ export class SessionManager extends EventEmitter {
   interrupt(sessionId: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
-    session.pty.write('\x03');
-    return true;
+    return safePtyWrite(session.pty, '\x03');
   }
 
   resize(sessionId: string, cols: number, rows: number): boolean {

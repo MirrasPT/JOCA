@@ -57,6 +57,27 @@ setNotificationsBroadcaster((n) => broadcast({ type: 'notification', notificatio
 setManagerBroadcaster((projectId, message) => broadcast({ type: 'manager_message', projectId, message }));
 setManagerBusyBroadcaster((projectId, busy) => broadcast({ type: 'manager_busy', projectId, busy }));
 
+/**
+ * Rede de segurança: uma falha de socket não pode matar o servidor inteiro.
+ *
+ * EPIPE/ECONNRESET/ECONNABORTED acontecem quando o outro lado desaparece — um PTY que morreu, um
+ * browser que fechou a meio de uma resposta, um subprocesso do SDK que saiu. São normais e locais.
+ * Sem este guarda, o Node trata-os como excepção fatal e derruba o backend com TODAS as sessões,
+ * os gestores e as filas atrás — um worker mal arrancado apagava o JOCA inteiro.
+ *
+ * Deliberadamente estreito: só estes três códigos. Qualquer outra excepção não-apanhada continua a
+ * derrubar o processo, que é o que deve acontecer a um bug a sério — engolir tudo aqui era esconder
+ * problemas em vez de resolver.
+ */
+const SOCKET_NOISE = new Set(['EPIPE', 'ECONNRESET', 'ECONNABORTED']);
+process.on('uncaughtException', (err: NodeJS.ErrnoException) => {
+  if (err && SOCKET_NOISE.has(err.code ?? '')) {
+    console.warn(`[socket] ${err.code} ignorado: ${err.message}`);
+    return;
+  }
+  throw err;
+});
+
 const app = express();
 app.use(requireSafeHost);     // before everything: blocks DNS rebinding, on reads as well as writes
 app.use(requireSafeOrigin);
