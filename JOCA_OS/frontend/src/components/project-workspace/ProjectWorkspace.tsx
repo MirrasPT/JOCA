@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PooledWorker, Project, SessionInfo, TerminalRef } from '../../types';
 import { shortPath } from '../../lib/paths';
 import type { Task } from '../TaskDetail';
-import { ActivityIcon, PlusIcon, SettingsIcon, TasksIcon } from '../dashboard/icons';
+import { ActivityIcon, SettingsIcon, TasksIcon } from '../dashboard/icons';
 import { TasksView } from '../TasksView';
 import ChannelTabs, { CHANNEL_IDS, type ProjectChannel } from './ChannelTabs';
 import ChatChannel from './ChatChannel';
@@ -23,7 +23,6 @@ interface Props {
   managerRefresh: number;
   tasksRefresh: number;
   onEditProject: (project: Project) => void;
-  onOpenProject: (project: Project) => void;
   /** Escape hatch explícito (ícone de expandir num agente) — ecrã cheio, como antes. */
   onSwitchSession: (id: string) => void;
   onPreviewFile: (path: string) => void;
@@ -39,7 +38,7 @@ interface Props {
 
 export default function ProjectWorkspace({
   project, projects, sessions, managerRefresh, tasksRefresh,
-  onEditProject, onOpenProject, onSwitchSession, onPreviewFile,
+  onEditProject, onSwitchSession, onPreviewFile,
   onRenameProject, onCloseSession, onAddAgent, onInput, onResize, onReady,
 }: Props) {
   const [workers, setWorkers] = useState<PooledWorker[]>([]);
@@ -147,13 +146,6 @@ export default function ProjectWorkspace({
           <button className="f-btn f-btn--secondary pw-settings-btn" type="button" onClick={() => onEditProject(project)} aria-label="Configurações do projecto" data-tooltip="Settings" data-tooltip-position="bottom">
             <SettingsIcon />
           </button>
-          {/* Projecto já inicializado: abrir agentes faz-se no "+" da secção Agentes, onde eles
-              estão. Aqui só fica o passo que ainda não tem sítio próprio — inicializar. */}
-          {!project.initialized && (
-            <button className="f-btn" type="button" onClick={() => onOpenProject(project)}>
-              <PlusIcon /> Inicializar projecto
-            </button>
-          )}
         </div>
       </div>
 

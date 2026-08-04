@@ -303,28 +303,6 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
     await runFileOp(kind, { path: currentPath, name });
   };
 
-  const renameEntry = async (entry: FileEntry) => {
-    const name = window.prompt('Rename to', entry.name);
-    if (!name || name === entry.name) return;
-    await runFileOp('rename', { path: entry.path, name });
-  };
-
-  const deleteEntry = async (entry: FileEntry) => {
-    const ok = window.confirm(`Delete ${entry.name}? This removes the real ${entry.isDir ? 'folder' : 'file'}.`);
-    if (!ok) return;
-    await runFileOp('delete', { path: entry.path });
-  };
-
-  const duplicateEntry = async (entry: FileEntry) => {
-    await runFileOp('duplicate', { path: entry.path });
-  };
-
-  const moveEntry = async (entry: FileEntry) => {
-    const targetFolder = window.prompt('Move file/folder to folder path:', currentPath);
-    if (!targetFolder || targetFolder.trim() === currentPath) return;
-    await runFileOp('move', { path: entry.path, targetPath: targetFolder.trim() });
-  };
-
   const openExternalPath = async (p: string) => {
     await fetch('/open', {
       method: 'POST',
@@ -334,14 +312,6 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
   };
 
   const openExternal = (entry: FileEntry) => openExternalPath(entry.path);
-
-  const copyRelativePath = async (entry: FileEntry) => {
-    const relative = currentPath && entry.path.toLowerCase().startsWith(currentPath.toLowerCase())
-      ? entry.path.slice(currentPath.length + 1)
-      : entry.path;
-    await navigator.clipboard?.writeText(relative).catch(() => {});
-    onPastePath(relative);
-  };
 
   return (
     <div className={`file-browser${embedded ? ' file-browser--embedded' : ''}`}>
@@ -534,6 +504,8 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
             >
               <span className="fb-icon">{e.isDir ? <BrowserIcon name="folder" /> : <BrowserIcon name={fileIcon(kind)} />}</span>
               <span className="fb-name">{e.name}</span>
+              {/* Só Ver e Abrir. Oito ícones por linha faziam da lista uma barra de ferramentas —
+                  o navegador serve para encontrar e espreitar, não para gerir o disco. */}
               <span className="fb-entry-actions">
                 {!e.isDir && (
                   <button
@@ -543,74 +515,12 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
                       ev.stopPropagation();
                       onPreview(e.path);
                     }}
-                    title="Preview"
-                    aria-label={`Preview ${e.name}`}
+                    title="Ver"
+                    aria-label={`Ver ${e.name}`}
                   >
                     <BrowserIcon name="eye" />
                   </button>
                 )}
-                {!embedded && (
-                  <button
-                    className="fb-action"
-                    type="button"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      onPastePath(quotePath(e.path));
-                    }}
-                    title="Insert path in terminal"
-                    aria-label={`Insert ${e.name} path in terminal`}
-                  >
-                    <BrowserIcon name="corner-down-left" />
-                  </button>
-                )}
-                <button
-                  className="fb-action"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    copyRelativePath(e);
-                  }}
-                  title="Copy relative path"
-                  aria-label={`Copy ${e.name} relative path`}
-                >
-                  <BrowserIcon name="copy" />
-                </button>
-                <button
-                  className="fb-action"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    duplicateEntry(e);
-                  }}
-                  title="Duplicate"
-                  aria-label={`Duplicate ${e.name}`}
-                >
-                  <BrowserIcon name="plus" />
-                </button>
-                <button
-                  className="fb-action"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    moveEntry(e);
-                  }}
-                  title="Move"
-                  aria-label={`Move ${e.name}`}
-                >
-                  <BrowserIcon name="move" />
-                </button>
-                <button
-                  className="fb-action"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    renameEntry(e);
-                  }}
-                  title="Rename"
-                  aria-label={`Rename ${e.name}`}
-                >
-                  <BrowserIcon name="edit" />
-                </button>
                 <button
                   className="fb-action"
                   type="button"
@@ -618,22 +528,10 @@ export default function FileBrowser({ onPastePath, onPreview, initialPath, selec
                     ev.stopPropagation();
                     openExternal(e);
                   }}
-                  title="Open externally"
-                  aria-label={`Open ${e.name} externally`}
+                  title="Abrir"
+                  aria-label={`Abrir ${e.name}`}
                 >
                   <BrowserIcon name="external" />
-                </button>
-                <button
-                  className="fb-action fb-action--danger"
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    deleteEntry(e);
-                  }}
-                  title="Delete"
-                  aria-label={`Delete ${e.name}`}
-                >
-                  <BrowserIcon name="trash" />
                 </button>
               </span>
             </div>

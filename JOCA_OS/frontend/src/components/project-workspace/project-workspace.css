@@ -94,13 +94,25 @@
 }
 
 .pw-chat-side-block--workers .pw-workers {
-  max-height: 260px;
+  max-height: clamp(200px, 26dvh, 340px);
   overflow-y: auto;
 }
 
+/* O .project-folder-browser já tem moldura, fundo e cantos próprios — envolvê-lo no
+   .project-dashboard-block punha caixa dentro de caixa. Aqui o bloco é só o título + o navegador. */
+.pw-chat-side-block--folder {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+}
+
 .pw-chat-side-block--folder .project-folder-browser {
-  margin-top: 10px;
-  height: 360px;
+  margin-top: 8px;
+  /* Cresce com o ecrã em vez de ficar preso a 360px, mas com tecto: `dvh` (não `vh`) porque no
+     telemóvel a barra do browser entra e sai, e com `vh` o painel passava por baixo dela. O mínimo
+     garante que num portátil baixo continua a caber uma lista útil. */
+  height: clamp(320px, 58dvh, 680px);
 }
 
 @media (max-width: 1100px) {
@@ -109,7 +121,7 @@
 
 @media (max-width: 860px) {
   .pw-chat-layout { grid-template-columns: 1fr; }
-  .pw-chat-side-block--folder .project-folder-browser { height: 320px; }
+  .pw-chat-side-block--folder .project-folder-browser { height: clamp(280px, 46dvh, 420px); }
 }
 
 /* ─── Agente inline no painel de chat (troca sem sair do projecto) ──────────────────────────── */
