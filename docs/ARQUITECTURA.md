@@ -117,7 +117,7 @@ Duas flags distintas, de propósito: `notifyOnIdle` arma-se com **qualquer** inp
 
 ## 3. Camada de dados
 
-Tudo em `JOCA_OS/data/` (`DATA_DIR = __dirname/../../data`). **Gitignorado em dois níveis** (`.gitignore` da raiz e do `JOCA_OS`) — é estado pessoal por máquina. Nunca commitar; a sincronização multi-PC é feita por `/sync-brain`, não por git.
+Tudo em `JOCA_OS/data/` (`DATA_DIR = __dirname/../../data`). **Gitignorado em dois níveis** (`.gitignore` da raiz e do `JOCA_OS`) — é estado pessoal por máquina. Nunca commitar; se trabalhares em mais do que uma máquina, sincroniza-o por fora do git (o teu método preferido).
 
 | Ficheiro | Escreve | Lê | Notas |
 |---|---|---|---|

@@ -49,7 +49,6 @@ const COMANDOS_PESADOS = new Set([
   'install',            // setup de máquina
   'migrate',            // migração de versão
   'init-project',       // cria estrutura de projecto em disco
-  'sync-brain',         // resolve divergência git entre máquinas
   'sync-questionnaires',// audita e reescreve os questionários
   'map-joca',           // corre scripts + graphify sobre todo o toolkit
   'plan',               // arquitectura: leitura extensa da codebase
