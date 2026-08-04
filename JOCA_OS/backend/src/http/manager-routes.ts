@@ -3,6 +3,7 @@
 // POST answers 202 immediately: the manager's reply arrives over the WebSocket as `manager_message`,
 // possibly followed by more messages minutes later as workers finish. Holding the HTTP request open
 // would recreate exactly the blocking behaviour this feature exists to remove.
+import { appendRoomMessage, dispatchToRoom, isRoomBusy, listRoomMessages } from '../manager/room';
 import express, { Router, Response } from 'express';
 import { loadProjects } from '../project-store';
 import { loadChat, clearChat, getState, patchState, appendMessage } from '../manager/store';
@@ -168,6 +169,27 @@ export function managerRouter(): Router {
   r.delete('/manager/global/chat', (_req, res) => {
     clearChat(GLOBAL_MANAGER_ID);
     res.json({ ok: true });
+  });
+
+  // ── A Sala (chat de grupo dono + Joca + gestores) ──────────────────────────
+  // `busy` viaja com as mensagens: a UI precisa de saber que a discussão AINDA corre, senão
+  // apagava o indicador na primeira resposta e o utilizador julgava que tinha acabado.
+  r.get('/room/messages', (_req, res) => {
+    res.json({ messages: listRoomMessages(), busy: isRoomBusy() });
+  });
+
+  r.post('/room/messages', express.json(), (req, res) => {
+    const body = (req.body ?? {}) as { text?: string; name?: string; targets?: string[] };
+    const text = typeof body.text === 'string' ? body.text.trim() : '';
+    if (!text) { res.status(400).json({ error: 'texto vazio' }); return; }
+    const name = (typeof body.name === 'string' && body.name.trim()) ? body.name.trim().slice(0, 40) : 'Dono';
+    const targets = Array.isArray(body.targets) ? body.targets.filter((t): t is string => typeof t === 'string').slice(0, 12) : [];
+    const msg = appendRoomMessage({ kind: 'user', name }, text);
+    // 202: a mensagem entrou; as respostas dos gestores chegam ao GET à medida que os turnos acabam.
+    if (targets.length > 0) {
+      dispatchToRoom(targets, name, text).catch((e) => console.error('[room] erro no despacho:', e));
+    }
+    res.status(202).json({ ok: true, message: msg, dispatched: targets });
   });
 
   return r;
