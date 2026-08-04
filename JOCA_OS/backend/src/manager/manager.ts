@@ -57,6 +57,8 @@ const MANAGER_TOOLS = [
     // Verificação — atalhos de leitura com as regras de segurança do backend (safePathForRead) e
     // formato pronto a ver (imagem, screenshot). Continuam a valer a pena mesmo com os built-ins.
     'ver_ficheiro', 'ver_imagem', 'listar_pasta', 'ver_pagina',
+    // Memória: o dossiê (push, entra no prompt) e o histórico (pull, custa zero até ser usado).
+    'actualizar_dossie', 'procurar_no_historico',
   ].map((t) => `mcp__joca__${t}`),
   ...BUILTIN_TOOLS,
 ];
@@ -71,6 +73,7 @@ const GLOBAL_MANAGER_TOOLS = [
     'projectos', 'falar_com_gestor', 'trabalhar', 'ver_workers', 'ler_worker', 'responder_worker',
     'fechar_worker', 'tarefas', 'executar_tarefa', 'avisar_utilizador', 'estado_tarefa',
     'ver_pagina', 'ver_imagem',
+    'actualizar_dossie', 'procurar_no_historico',
   ].map((t) => `mcp__joca__${t}`),
   ...BUILTIN_TOOLS,
 ];
@@ -169,6 +172,29 @@ function toolInventory(mcpNames: string[]): string {
   ].join('\n');
 }
 
+
+/**
+ * O dossiê do gestor no prompt. É a única memória que sobrevive à perda da sessão SDK — a janela
+ * de contexto é do SDK e é opaca; isto é o que o GESTOR decidiu preservar. Curto por contrato
+ * (DOSSIER_MAX), entra no prefixo estável do prompt: o custo em regime é ~zero via cache.
+ */
+function dossierSection(managerId: string): string {
+  const d = getState(managerId).dossier?.trim();
+  return [
+    '',
+    '# O teu dossiê (a tua memória de longo prazo)',
+    d
+      ? d
+      : '(vazio — ainda não guardaste nada)',
+    '',
+    'Isto sobrevive a reinícios e a perda de contexto; a conversa pode ser cortada, o dossiê não.',
+    'Mantém-no tu, com `actualizar_dossie` (substitui o texto todo): decisões tomadas, restrições do',
+    'cliente, onde estão as coisas, o que já se tentou e falhou. Actualiza quando algo DURADOURO',
+    'muda — não a cada mensagem. E quando o cliente referir algo que não te lembras, usa',
+    '`procurar_no_historico` antes de dizeres que não sabes: a conversa completa está pesquisável.',
+  ].join('\n');
+}
+
 function buildSystemPrompt(project: Project): string {
   return [
     `És o gestor do projecto "${project.name}" no JOCA. Falas português de Portugal, de forma directa e curta.`,
@@ -256,8 +282,10 @@ function buildSystemPrompt(project: Project): string {
     'Proactivo NÃO é atrevido: despachar trabalho e pedir testes por tua iniciativa, sim; apagar, fazer deploy, publicar, pagar, `git push` ou mexer em credenciais sem confirmação explícita do cliente, nunca.',
     '',
     toolInventory(MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
+    dossierSection(project.id),
     brainInventory(),
     toolInventory(GLOBAL_MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
+    dossierSection(GLOBAL_MANAGER_ID),
     brainInventory(),
     ESTILO_DE_ESCRITA,
     '',

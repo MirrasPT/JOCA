@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { DATA_DIR } from '../project-store';
-import { appendMessage, loadChat, clearChat, getState, patchState, clearAllBusy } from '../manager/store';
+import { appendMessage, loadChat, clearChat, getState, patchState, clearAllBusy, rotateChat, searchChat } from '../manager/store';
 
 const PROJECT = 'test-project-0000';
 const chatFile = path.join(DATA_DIR, 'manager-chats', `${PROJECT}.jsonl`);
@@ -14,6 +14,13 @@ const stateFile = path.join(DATA_DIR, 'manager-state.json');
 function wipe() {
   try { fs.rmSync(chatFile, { force: true }); } catch { /* ok */ }
   try { fs.rmSync(stateFile, { force: true }); } catch { /* ok */ }
+  // Arquivos criados pela rotação nos testes de memória.
+  try {
+    const dir = path.join(DATA_DIR, 'manager-chats');
+    for (const f of fs.readdirSync(dir)) {
+      if (f.startsWith(`${PROJECT}.`) && f.endsWith('.archive.jsonl')) fs.rmSync(path.join(dir, f), { force: true });
+    }
+  } catch { /* ok */ }
 }
 
 describe('manager chat store', () => {
@@ -88,5 +95,48 @@ describe('manager state', () => {
     expect(getState(PROJECT).busy).toBe(true);
     clearAllBusy();
     expect(getState(PROJECT).busy).toBe(false);
+  });
+});
+
+describe('manager memory (dossier + archive + search)', () => {
+  beforeEach(wipe);
+  afterEach(wipe);
+
+  it('rotateChat archives the old half instead of destroying it', () => {
+    // 4001 mensagens força a rotação (MAX_LINES=4000, mantém as 2000 mais novas).
+    for (let i = 0; i < 4001; i++) appendMessage(PROJECT, { role: 'user', text: `msg-${i}` });
+    rotateChat(PROJECT);
+    const live = loadChat(PROJECT, 5000);
+    expect(live.length).toBe(2000);
+    expect(live[0].text).toBe('msg-2001');
+    // A metade antiga tem de estar num arquivo, não no lixo.
+    const dir = path.join(DATA_DIR, 'manager-chats');
+    const archives = fs.readdirSync(dir).filter((f) => f.startsWith(`${PROJECT}.`) && f.endsWith('.archive.jsonl'));
+    expect(archives.length).toBe(1);
+    const archived = fs.readFileSync(path.join(dir, archives[0]), 'utf8').split('\n').filter(Boolean);
+    expect(archived.length).toBe(2001);
+    expect(JSON.parse(archived[0]).text).toBe('msg-0');
+  });
+
+  it('searchChat finds hits in the live file AND in archives, newest first', () => {
+    for (let i = 0; i < 4001; i++) {
+      appendMessage(PROJECT, { role: 'user', text: i === 10 ? 'o orcamento antigo era 500 euros' : `ruido-${i}` });
+    }
+    rotateChat(PROJECT);
+    appendMessage(PROJECT, { role: 'manager', text: 'orcamento novo aprovado: 900 euros' });
+    const hits = searchChat(PROJECT, 'ORCAMENTO'); // case-insensitive
+    expect(hits.length).toBe(2);
+    expect(hits[0].excerpt).toContain('900');   // mais recente primeiro (ficheiro vivo)
+    expect(hits[1].excerpt).toContain('500');   // veio do arquivo
+  });
+
+  it('searchChat returns empty for blank terms and unknown projects', () => {
+    expect(searchChat(PROJECT, '   ')).toEqual([]);
+    expect(searchChat('nunca-existiu-0000', 'x')).toEqual([]);
+  });
+
+  it('dossier persists via patchState and survives state reload', () => {
+    patchState(PROJECT, { dossier: 'Cliente prefere PT-PT. Deploy só à sexta.' });
+    expect(getState(PROJECT).dossier).toContain('Deploy só à sexta');
   });
 });

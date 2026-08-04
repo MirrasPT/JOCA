@@ -24,6 +24,13 @@ import {
 } from '../tasks/store';
 import { dispatchTask } from '../tasks/engine';
 import { dispatchToArea, listWorkers, getWorker, closeWorker } from './worker-pool';
+import { DOSSIER_MAX, patchState, searchChat } from './store';
+
+// Mesma chave sintética de manager.ts. Duplicada de propósito: importá-la de manager.ts criaria
+// um ciclo (manager.ts já importa este ficheiro); movê-la para store.ts era a alternativa limpa,
+// mas mexia em mais sítios do que este passo pede. Testes garantem que não divergem? Não — o
+// valor é um literal estável desde o dia um ('__global__'), tratado como parte do esquema em disco.
+const GLOBAL_KEY = '__global__';
 
 const ok = (text: string) => ({ content: [{ type: 'text' as const, text }] });
 const fail = (text: string) => ({ content: [{ type: 'text' as const, text: `ERRO: ${text}` }], isError: true });
@@ -86,6 +93,43 @@ function mapKey(token: string): string | null {
 
 // `actions` collects a human-readable trace of what the manager did this turn — shown under its
 // message in the chat, so you can see it worked without reading terminals.
+
+// ── Memória do gestor (dossiê + histórico) ───────────────────────────────────
+// Duas ferramentas, uma por camada: o DOSSIÊ é o que o gestor decide lembrar (entra no prompt a
+// cada turno, sobrevive à perda da sessão SDK); o HISTÓRICO é pull — grep sobre o chat vivo + os
+// arquivos da rotação, custa zero até ser usado. Partilhadas pelo gestor de projecto e pelo Joca
+// (a chave muda, a mecânica não).
+function memoryTools(key: string, note: (s: string) => void) {
+  return [
+    tool(
+      'actualizar_dossie',
+      `O teu dossiê é a tua memória de longo prazo: entra no teu prompt em TODOS os turnos e sobrevive a reinícios e a perda de contexto. Escreve-o COMPLETO (substitui o anterior — não é um log, é um dossiê): decisões tomadas, restrições do cliente, onde estão as coisas, o que já se tentou e falhou. Máx ${DOSSIER_MAX} caracteres — se não cabe, resume; o histórico completo continua pesquisável.`,
+      { conteudo: z.string().describe('O dossiê completo, já revisto. Substitui o anterior na íntegra.') },
+      async ({ conteudo }) => {
+        const text = conteudo.trim();
+        if (!text) return fail('dossiê vazio — para limpar de propósito, escreve "-"');
+        if (text.length > DOSSIER_MAX) return fail(`dossiê com ${text.length} caracteres (máx ${DOSSIER_MAX}) — resume antes de gravar`);
+        patchState(key, { dossier: text === '-' ? undefined : text });
+        note('actualizou o dossiê');
+        return ok('Dossiê gravado. Vais vê-lo no teu prompt a partir do próximo turno.');
+      },
+    ),
+    tool(
+      'procurar_no_historico',
+      'Procura na conversa TODA deste chat — incluindo o que já saiu da tua janela de contexto e os arquivos antigos. Usa quando o cliente refere algo que não te lembras ("o que combinámos sobre X?", "qual era o valor que te disse?"). Devolve excertos com data, mais recentes primeiro.',
+      { termo: z.string().describe('Palavra ou expressão a procurar (case-insensitive).') },
+      async ({ termo }) => {
+        const hits = searchChat(key, termo);
+        if (!hits.length) return ok(`Nada encontrado no histórico para "${termo}". Tenta um termo mais curto ou um sinónimo.`);
+        const who = (h: { role: string; author?: string }) => h.author ?? (h.role === 'manager' ? 'tu' : h.role === 'user' ? 'cliente' : 'sistema');
+        const linhas = hits.map((h) => `[${new Date(h.ts).toISOString().slice(0, 10)}] ${who(h)}: ${h.excerpt}`);
+        note(`procurou "${termo}" no histórico`);
+        return ok(`${hits.length} resultado(s), mais recentes primeiro:\n${linhas.join('\n')}`);
+      },
+    ),
+  ];
+}
+
 export function buildManagerTools(projectId: string, actions: string[]) {
   const note = (s: string) => { actions.push(s); };
 
@@ -437,6 +481,7 @@ export function buildManagerTools(projectId: string, actions: string[]) {
           return ok(lines.filter(Boolean).join('\n'));
         },
       ),
+      ...memoryTools(projectId, note),
     ],
   });
 }
@@ -809,6 +854,7 @@ export function buildGlobalManagerTools(actions: string[]) {
           }
         },
       ),
+      ...memoryTools(GLOBAL_KEY, note),
     ],
   });
 }
