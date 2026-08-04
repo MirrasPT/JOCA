@@ -235,6 +235,6 @@ export interface CliProfileInfo {
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
 /** `agents` = vista global de agentes (todos os projectos num sítio só). */
-export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca' | 'agents';
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca' | 'agents' | 'room';
 /** `inbox` = notificações como 4º painel do rail direito (deixou de ser sino flutuante). */
 export type RightPanel = 'files' | 'toolkit' | 'settings' | 'inbox' | null;

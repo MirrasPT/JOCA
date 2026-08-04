@@ -84,6 +84,18 @@
   /* Generic "add substance to a surface" tint — white in dark mode, black in
      light mode. Component CSS uses color-mix(in srgb, var(--on-surface) N%, transparent)
      instead of rgba(255,255,255,N) so highlight/bevel overlays invert correctly per theme. */
+  /* Ícones por tipo de ficheiro (navegador). Pastéis afinados para fundo preto — as variantes
+     escurecidas para o claro estão no bloco do tema claro, mesma razão que os --badge-*. */
+  --fb-code:   #60c8b8;
+  --fb-img:    #c080d0;
+  --fb-doc:    #a090d0;
+  --fb-style:  #9080e0;
+  --fb-markup: #50b8b0;
+  --fb-data:   #f59332;
+  --fb-pdf:    #f06a6a;
+  --fb-media:  #9080c0;
+  --fb-shell:  #3dba7a;
+
   --on-surface: #ffffff;
   --grad-shade-1: rgba(20,20,20,0.4);
   --grad-shade-2: rgba(20,20,20,0.5);
@@ -140,6 +152,17 @@
   --border-bento:  rgba(0,0,0,0.08);
   --border-bento-strong: rgba(0,0,0,0.15);
   --shadow-bento:  0 20px 48px rgba(0,0,0,0.09), inset 0 1px color-mix(in srgb, var(--on-surface) 4%, transparent);
+
+  /* Ícones do navegador de ficheiros: os pastéis de cima caem para ~2:1 sobre branco. */
+  --fb-code:   #0f766e;
+  --fb-img:    #9333ea;
+  --fb-doc:    #7c3aed;
+  --fb-style:  #5b21b6;
+  --fb-markup: #0e7490;
+  --fb-data:   #b45309;
+  --fb-pdf:    #dc2626;
+  --fb-media:  #6b21a8;
+  --fb-shell:  #15803d;
 
   --on-surface: #000000;
   --grad-shade-1: rgba(0,0,0,0.06);
@@ -468,23 +491,32 @@ html, body, #root {
 }
 .fb-crumb:hover { color:var(--accent-amber); }
 .fb-crumb-home { font-size:12px; }
-.fb-sep { color:color-mix(in srgb, var(--on-surface) 12%, transparent); margin:0 1px; user-select:none; }
+.fb-sep { color:var(--text-ghost); opacity:0.55; margin:0 1px; user-select:none; }
 
 .fb-list {
   flex:1;
   overflow-y:auto;
-  padding:4px 0;
+  padding:5px 0;
   scrollbar-width:thin;
-  scrollbar-color:color-mix(in srgb, var(--on-surface) 6%, transparent) transparent;
+  scrollbar-color:color-mix(in srgb, var(--on-surface) 16%, transparent) transparent;
 }
-.fb-list::-webkit-scrollbar { width:3px; }
-.fb-list::-webkit-scrollbar-thumb { background:color-mix(in srgb, var(--on-surface) 7%, transparent); border-radius:2px; }
+.fb-list::-webkit-scrollbar { width:9px; }
+.fb-list::-webkit-scrollbar-track { background:transparent; }
+.fb-list::-webkit-scrollbar-thumb {
+  background:color-mix(in srgb, var(--on-surface) 14%, transparent);
+  border-radius:99px;
+  /* Borda do lado do fundo em vez de largura menor: o polegar fica fino a ver mas largo a agarrar. */
+  border:3px solid transparent;
+  background-clip:content-box;
+}
+.fb-list::-webkit-scrollbar-thumb:hover { background:color-mix(in srgb, var(--on-surface) 24%, transparent); background-clip:content-box; }
 
 .fb-entry {
   display:flex;
   align-items:center;
-  gap:8px;
-  padding:5px var(--sp-3);
+  gap:9px;
+  padding:6px 10px;
+  margin:0 6px;
   cursor:pointer;
   transition:background var(--t-fast), border-color var(--t-fast);
   user-select:none;
@@ -498,20 +530,22 @@ html, body, #root {
 }
 
 .fb-icon {
-  font-size:10px;
+  font-size:11px;
   flex-shrink:0;
-  width:14px;
+  width:16px;
   text-align:center;
   line-height:1;
 }
-.fb-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11.5px; line-height:1.3; }
-.fb-meta { margin-left:auto; font-size:9.5px; font-family:var(--font-mono); color:color-mix(in srgb, var(--on-surface) 15%, transparent); flex-shrink:0; white-space:nowrap; }
+.fb-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px; line-height:1.35; }
+/* `on-surface` a 15% é branco-sobre-preto no escuro (legível) mas PRETO a 15% sobre branco no
+   claro (~#dedede) — texto invisível. Cor de texto pede token de texto, não véu de superfície. */
+.fb-meta { margin-left:auto; font-size:9.5px; font-family:var(--font-mono); color:var(--text-ghost); opacity:0.75; flex-shrink:0; white-space:nowrap; }
 
 /* Directories */
 .fb-dir .fb-icon { color:var(--accent-amber); }
 .fb-dir .fb-name { color:var(--text-normal); font-weight:500; }
 .fb-dir:hover .fb-name { color:var(--text-bright); }
-.fb-dir:hover { border-color:rgba(245,147,50,0.18); }
+.fb-dir:hover { border-color:color-mix(in srgb, var(--accent-amber) 22%, transparent); }
 
 /* Up directory */
 .fb-up .fb-icon { color:var(--text-ghost); }
@@ -519,18 +553,18 @@ html, body, #root {
 .fb-up:hover .fb-name { color:var(--text-dim); }
 
 /* File types — icon colours */
-.fb-file-code   .fb-icon { color:#60c8b8; }
-.fb-file-img    .fb-icon { color:#c080d0; }
-.fb-file-doc    .fb-icon { color:#a090d0; }
+.fb-file-code   .fb-icon { color:var(--fb-code); }
+.fb-file-img    .fb-icon { color:var(--fb-img); }
+.fb-file-doc    .fb-icon { color:var(--fb-doc); }
 .fb-file-config .fb-icon { color:var(--accent-amber); }
-.fb-file-style  .fb-icon { color:#9080e0; }
-.fb-file-markup .fb-icon { color:#50b8b0; }
-.fb-file-data   .fb-icon { color:#f59332; opacity:0.8; }
-.fb-file-pdf    .fb-icon { color:#f06a6a; }
-.fb-file-media  .fb-icon { color:#9080c0; }
+.fb-file-style  .fb-icon { color:var(--fb-style); }
+.fb-file-markup .fb-icon { color:var(--fb-markup); }
+.fb-file-data   .fb-icon { color:var(--fb-data); }
+.fb-file-pdf    .fb-icon { color:var(--fb-pdf); }
+.fb-file-media  .fb-icon { color:var(--fb-media); }
 .fb-file-audio  .fb-icon { color:var(--accent-amber); opacity:0.8; }
 .fb-file-archive .fb-icon { color:var(--text-normal); opacity:0.7; }
-.fb-file-shell  .fb-icon { color:#3dba7a; }
+.fb-file-shell  .fb-icon { color:var(--fb-shell); }
 .fb-file-default .fb-icon { color:var(--text-dim); }
 
 /* File name colours */
@@ -544,7 +578,7 @@ html, body, #root {
 .fb-entry:hover .fb-name { color:var(--text-bright) !important; opacity:1 !important; }
 
 .fb-loading,.fb-error { padding:var(--sp-3) var(--sp-4); color:var(--text-ghost); font-size:11px; font-style:italic; }
-.fb-error { color:rgba(240,106,106,0.5); }
+.fb-error { color:var(--red); }
 
 .fb-empty { padding:var(--sp-5) var(--sp-4); text-align:center; color:var(--text-ghost); font-size:10.5px; }
 
@@ -570,7 +604,7 @@ html, body, #root {
   white-space:nowrap;
 }
 .fb-toggle:hover { color:var(--text-dim); border-color:var(--border-subtle); }
-.fb-toggle.active { color:var(--accent-amber); border-color:rgba(245,147,50,0.25); background:rgba(245,147,50,0.05); }
+.fb-toggle.active { color:var(--accent-amber); border-color:color-mix(in srgb, var(--accent-amber) 28%, transparent); background:color-mix(in srgb, var(--accent-amber) 9%, transparent); }
 
 /* ─── Session Grid ───────────────────────────────────────────────── */
 
@@ -1965,6 +1999,18 @@ html, body, #root {
   border-radius:50%;
 }
 
+/* Logo em imagem (temas de marca que trazem ficheiro). Dimensionado pela ALTURA com largura auto:
+   as marcas têm rácios muito diferentes (o morcego é 2:1, o KITT é 1.8:1) e uma caixa quadrada
+   encolhia as largas a um selo ilegível. `width:auto` mantém o rácio do ficheiro — nunca esticar. */
+.sb-logo-img {
+  height:24px;
+  width:auto;
+  max-width:52px;
+  object-fit:contain;
+  flex-shrink:0;
+}
+.session-sidebar--collapsed .sb-logo-img { height:20px; max-width:40px; }
+
 .sb-logo-text {
   font-weight:800;
   color:var(--accent);
@@ -2433,7 +2479,7 @@ background:var(--surface-panel);
 .workflow-node-row span,
 .service-chip-row span {
   border:1px solid var(--border-subtle);
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
   border-radius:999px;
   color:var(--text-dim);
   font-size:11px;
@@ -2454,7 +2500,7 @@ background:var(--surface-panel);
   padding:12px;
   border:1px solid var(--border-faint);
   border-radius:var(--r-sm);
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
   color:var(--text-normal);
   font-family:var(--font-mono);
   font-size:11px;
@@ -2652,7 +2698,7 @@ background:var(--surface-panel);
   width:100%;
   border:1px solid var(--border-faint);
   border-radius:var(--r-sm);
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
   color:var(--text-normal);
   padding:12px;
   text-align:left;
@@ -2908,22 +2954,27 @@ background:var(--surface-main);
   display:inline-block;
 }
 
+/* Navegação compacta: são 6 entradas fixas no topo da barra, e cada pixel que gastam aqui é um
+   projecto que deixa de caber na lista por baixo. 44px x6 + gaps comiam ~330px; assim ficam ~200px.
+   Em ecrã táctil voltam aos 44px (regra no fim do ficheiro) — aí a barra é uma tira temporária,
+   não o painel permanente que rouba altura à lista. */
 .nav-menu {
-  gap:8px;
+  gap:2px;
 }
 
 .nav-btn {
-  min-height:44px;
-  border-radius:9px;
-  padding:6px 10px;
+  min-height:30px;
+  border-radius:8px;
+  padding:4px 10px;
+  gap:9px;
   font-size:12.5px;
-  font-weight:750;
+  font-weight:700;
 }
 
 .nav-btn.active {
-  background:linear-gradient(90deg, rgba(255,69,0,0.12), rgba(255,69,0,0.04));
-  border-color:rgba(255,69,0,0.42);
-  box-shadow:inset 0 0 20px rgba(255,69,0,0.05);
+  background:var(--accent-soft);
+  border-color:var(--accent-border);
+  box-shadow:none;
 }
 
 .nav-btn:not(.active) .nav-icon {
@@ -3515,7 +3566,7 @@ background:var(--surface-main);
   border:1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
   border-radius:13px;
   outline:0;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   color:var(--text-bright);
   font-family:var(--font-mono);
   font-size:12px;
@@ -3562,7 +3613,7 @@ background:var(--surface-main);
   padding:14px;
   border:1px solid color-mix(in srgb, var(--project-color) 28%, color-mix(in srgb, var(--on-surface) 8%, transparent));
   border-radius:17px;
-  background:color-mix(in srgb, var(--project-color) 9%, rgba(0,0,0,0.18));
+  background:color-mix(in srgb, var(--project-color) 9%, var(--bg-input));
 }
 
 .project-preview-dot {
@@ -4136,8 +4187,8 @@ background:var(--surface-panel);
 
 .fb-toolbar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .fb-tool-btn,
@@ -4151,9 +4202,9 @@ background:var(--surface-panel);
 }
 
 .fb-tool-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4422,8 +4473,8 @@ background:var(--surface-panel);
 .fb-action:hover,
 .fb-path-btn:hover {
   color:var(--text-bright);
-  border-color:rgba(255,84,36,0.28);
-  background:rgba(255,84,36,0.075);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
 }
 
 .fb-tool-btn:disabled,
@@ -4440,9 +4491,9 @@ background:var(--surface-panel);
 }
 
 .fb-tool-btn.active {
-  color:var(--accent);
-  border-color:rgba(255,84,36,0.30);
-  background:rgba(255,84,36,0.09);
+  color:var(--accent-text);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
 }
 
 .fb-breadcrumb {
@@ -4602,10 +4653,12 @@ background:var(--bg-input);
   border:1px solid color-mix(in srgb, var(--on-surface) 7.5%, transparent);
   border-radius:24px;
   background:
-    radial-gradient(circle at 22% 0%, rgba(255,84,36,0.035), transparent 34%),
+    radial-gradient(circle at 22% 0%, var(--accent-soft), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--on-surface) 2.8%, transparent), color-mix(in srgb, var(--on-surface) 1.2%, transparent)),
     var(--surface-panel);
-  box-shadow:0 24px 56px rgba(0,0,0,0.28), inset 0 1px color-mix(in srgb, var(--on-surface) 3.5%, transparent);
+  /* Sem dropshadow: o painel está encaixado no layout, não a flutuar por cima dele — a sombra
+     projectada fazia-o descolar da página. Fica só o filete interior, que é bisel, não sombra. */
+  box-shadow:inset 0 1px color-mix(in srgb, var(--on-surface) 3.5%, transparent);
 }
 
 .files-slot--closed {
@@ -4672,7 +4725,7 @@ background:var(--bg-input);
   min-height:108px;
   border:1px solid transparent;
   border-radius:16px;
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
   color:var(--text-ghost);
   box-shadow:none;
   transform:none;
@@ -4707,7 +4760,7 @@ background:var(--bg-input);
 .files-slot--open .right-tab-btn:not(.active) {
   opacity:0.38;
   color:var(--text-dim);
-  background:rgba(0,0,0,0.18);
+  background:var(--bg-input);
 }
 
 .files-slot--open .right-tab-btn:not(.active):hover {
@@ -4807,25 +4860,25 @@ background:var(--bg-input);
 .fb-search-row {
   display:grid;
   grid-template-columns:minmax(0, 1fr) auto;
-  gap:8px;
-  margin:0 0 10px;
+  gap:6px;
+  margin:0 0 8px;
 }
 
 .fb-search-input {
   min-width:0;
-  height:34px;
+  height:32px;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
-  border-radius:12px;
+  border-radius:10px;
   background:var(--bg-input);
   color:var(--text-normal);
-  padding:0 12px;
-  font:600 11px var(--font-ui);
+  padding:0 11px;
+  font:600 11.5px var(--font-ui);
   outline:none;
 }
 
 .fb-search-input:focus {
-  border-color:rgba(255,84,36,0.28);
-  box-shadow:0 0 0 3px rgba(255,84,36,0.08);
+  border-color:var(--accent-border);
+  box-shadow:0 0 0 3px var(--accent-soft);
 }
 
 .fb-favorite-btn {
@@ -4842,9 +4895,9 @@ background:var(--bg-input);
 }
 
 .fb-favorite-btn.active {
-  color:var(--accent);
-  border-color:rgba(255,84,36,0.24);
-  background:rgba(255,84,36,0.08);
+  color:var(--accent-text);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
 }
 
 .fb-memory-strip {
@@ -4956,7 +5009,7 @@ background:var(--bg-input);
   height:34px;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
   border-radius:12px;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   color:var(--text-normal);
   padding:0 11px;
   font:600 11px var(--font-ui);
@@ -5009,9 +5062,9 @@ background:var(--bg-input);
 }
 
 .toolkit-filters button.active {
-  color:var(--accent);
-  border-color:rgba(255,84,36,0.24);
-  background:rgba(255,84,36,0.08);
+  color:var(--accent-text);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
 }
 
 .toolkit-list {
@@ -5493,7 +5546,7 @@ background:var(--bg-input);
   overflow:hidden;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
   border-radius:22px;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
 }
 
 .toolkit-editor-toolbar {
@@ -5579,7 +5632,7 @@ background:var(--bg-input);
 
 .fb-action--danger:hover {
   color:var(--red);
-  border-color:rgba(255,84,36,0.22);
+  border-color:color-mix(in srgb, var(--red) 34%, transparent);
 }
 
 .command-palette-grid {
@@ -6337,7 +6390,7 @@ background: var(--surface-panel);
 }
 
 .fb-sort-select {
-  height:34px;
+  height:32px;
   max-width:150px;
   padding:0 8px;
   border:1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
@@ -6353,8 +6406,8 @@ background: var(--surface-panel);
 .fb-sort-select:hover,
 .fb-sort-select:focus {
   color:var(--text-bright);
-  border-color:rgba(255,84,36,0.28);
-  background:rgba(255,84,36,0.075);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
 }
 
 .fb-sort-select option:disabled { opacity:0.45; }
@@ -6834,11 +6887,17 @@ background: var(--surface-panel);
    agentes, não vale um segundo sistema de estilos. */
 
 /* ── Cabeçalho do workspace ───────────────────────────────────────────────── */
-.project-workspace .pw-head-main { min-width:0; }
+/* O .vp-header é space-between com 3 filhos — sem grow no bloco do título, o espaço livre caía
+   ENTRE as estatísticas e o botão de settings e os contadores ficavam a meio da barra. O título
+   come o espaço livre; stats e settings encostam à direita como um só grupo. */
+.project-workspace .pw-head-main { min-width:0; flex:1 1 auto; }
+/* O .vp-header genérico usa 46px — folga de dashboard, a mais quando logo a seguir vêm as tabs. */
+.project-workspace .vp-header { gap:16px; margin-bottom:18px; }
+.project-workspace .pw-head-stats { margin-left:auto; }
 .pw-name-input {
   height:38px; padding:0 8px; margin-bottom:8px;
   min-width:min(420px, 100%);
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   border:1px solid color-mix(in srgb, var(--on-surface) 12%, transparent);
   border-radius:8px;
   color:var(--text-bright);
@@ -7031,7 +7090,7 @@ background: var(--surface-panel);
   min-height:88px; padding:11px 13px;
   border:1px solid color-mix(in srgb, var(--on-surface) 10%, transparent);
   border-radius:13px; outline:0;
-  background:rgba(0,0,0,0.22);
+  background:var(--bg-input);
   color:var(--text-bright);
   font:13px/1.55 var(--font-ui);
 }
@@ -7110,6 +7169,104 @@ background: var(--surface-panel);
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+/* ── Agentes rápidos (sessões sem projecto), à cabeça da barra ─────────────────────────────── */
+.sidebar-loose {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.sidebar-loose-title {
+  padding: 0 9px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+}
+
+.sidebar-loose-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-normal);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.sidebar-loose-item:hover,
+.sidebar-loose-item:focus-visible {
+  background: var(--surface-soft);
+  color: var(--text-bright);
+  border-color: var(--border-faint);
+}
+.sidebar-loose-icon { display: inline-flex; flex-shrink: 0; color: var(--text-ghost); }
+.sidebar-loose-icon svg { width: 13px; height: 13px; }
+.sidebar-loose-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-loose-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  background: var(--text-ghost); opacity: 0.4;
+}
+.sidebar-loose-dot[data-on='true'] { background: var(--accent); opacity: 1; }
+
+/* Em edição a linha deixa de ser botão e passa a caixa — mesma altura, para a lista não saltar. */
+.sidebar-loose-item.is-editing { cursor: default; }
+/* O X só aparece ao passar/focar — em repouso a linha é nome + ponto de estado. */
+.sidebar-loose-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-ghost);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sidebar-loose-close svg { width: 11px; height: 11px; }
+.sidebar-loose-item:hover .sidebar-loose-close,
+.sidebar-loose-item:focus-within .sidebar-loose-close { display: inline-flex; }
+.sidebar-loose-close:hover { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+/* Com o X visível o ponto sai — os dois juntos empurravam o nome. */
+.sidebar-loose-item:hover .sidebar-loose-dot,
+.sidebar-loose-item:focus-within .sidebar-loose-dot { display: none; }
+.sidebar-loose-input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-bright);
+  font: 500 12px var(--font-ui);
+  outline: none;
+}
+.sidebar-loose-input:focus { border-color: var(--accent-border); }
+
+/* Fechada, a linha vira um quadrado como as dos projectos — só o ícone e o ponto de estado. */
+.session-sidebar--collapsed .sidebar-loose { align-items: center; gap: 4px; }
+.session-sidebar--collapsed .sidebar-loose-title,
+.session-sidebar--collapsed .sidebar-loose-name { display: none; }
+.session-sidebar--collapsed .sidebar-loose-item {
+  position: relative;
+  width: 44px; height: 36px; padding: 0;
+  justify-content: center;
+}
+.session-sidebar--collapsed .sidebar-loose-dot { position: absolute; top: 5px; right: 7px; }
 
 .session-sidebar--collapsed .project-group-grip,
 .session-sidebar--collapsed .project-group-name,
@@ -7192,7 +7349,7 @@ background: var(--surface-panel);
 .project-group-picker { padding: 2px 9px 5px; }
 .project-group-picker select {
   width: 100%; height: 26px; font-size: 11px;
-  background: rgba(0,0,0,0.22); color: var(--text-bright);
+  background: var(--bg-input); color: var(--text-bright);
   border: 1px solid var(--accent-border, rgba(255,255,255,0.15)); border-radius: 6px;
   padding: 0 6px;
 }
@@ -7296,3 +7453,324 @@ background: var(--surface-panel);
    por cima dele. */
 .toast-container { bottom: calc(24px + 28px); }
 .tk-merge-bar { bottom: calc(26px + 28px); }
+
+/* ─── Temas de marca ("Custom Temas") ────────────────────────────────────────────────────────
+   Eixo independente do claro/escuro: `data-brand` × `data-theme`. Cada marca redefine só TOKENS —
+   nenhuma regra de componente aqui, senão um tema novo passava a exigir tocar no CSS todo.
+   O default (JOCA) não tem bloco: é o `:root` de cima.
+
+   Ficam no fim do ficheiro de propósito. `:root[data-brand]` tem a mesma especificidade que
+   `:root[data-theme="light"]`, por isso é a ORDEM que desempata; a variante clara de cada marca
+   junta os dois atributos (especificidade maior) e ganha ao bloco claro genérico.
+
+   ⚠ REGRA DOS TEMAS DE MARCA — os dois modos são OBRIGATÓRIOS, e cada um escreve-se no seu bloco:
+     :root[data-brand="x"]:not([data-theme="light"])  → paleta escura
+     :root[data-brand="x"][data-theme="light"]        → paleta clara
+   Escrever fundos num bloco `:root[data-brand="x"]` sem escopo parece funcionar no escuro e PARTE
+   o claro: como estes blocos vêm depois do `:root[data-theme="light"]`, os fundos escuros da marca
+   sobrevivem à troca de modo enquanto o texto passa a escuro — preto sobre preto. Foi exactamente
+   o que aconteceu ao Alfredo. Se a marca só quiser mexer no acento, um bloco sem escopo é seguro;
+   a partir do momento em que toca em `--bg-*`/`--surface-*`/`--text-*`, tem de ter os dois. */
+
+/* Alfredo escuro — o mordomo de Gotham. Amarelo-morcego sobre preto de cave. */
+:root[data-brand="alfredo"]:not([data-theme="light"]) {
+  --accent:         #ffd230;
+  --accent-text:    #ffd230;
+  --accent-amber:   #ffd230;
+  --accent-soft:    rgba(255,210,48,0.09);
+  --accent-glow:    rgba(255,210,48,0.28);
+  --accent-border:  rgba(255,210,48,0.24);
+
+  --bg-void:      #0a0a0c;
+  --bg-base:      #0a0a0c;
+  --bg-nav:       #121216;
+  --bg-card:      #1c1c22;
+  --bg-card-hover:#25252c;
+  --bg-elevated:  #1c1c22;
+  --bg-input:     #0f0f13;
+  --bg-files:     #121216;
+  --bg-terminal:  #0f0f13;
+
+  --surface-main:  #141419;
+  --surface-panel: #121217;
+  --surface-raised:#1e1e25;
+  --surface-base:  #101014;
+
+  --badge-orange: #ffd230;
+}
+
+/* Alfredo claro — Gotham de dia: cinzentos frios em vez do creme do JOCA, para a marca continuar a
+   ler-se. O amarelo é ilegível como TEXTO sobre claro (mesmo problema documentado no `--accent-text`
+   do JOCA), por isso fica só no preenchimento; o texto de acento passa a castanho-tostado. */
+:root[data-brand="alfredo"][data-theme="light"] {
+  --accent:         #d9a900;
+  --accent-text:    #6b5000;  /* ~7:1 sobre accent-soft — AA com folga */
+  --accent-amber:   #8a6a00;
+  --accent-soft:    rgba(217,169,0,0.15);
+  --accent-glow:    rgba(217,169,0,0.28);
+  --accent-border:  rgba(107,80,0,0.28);
+
+  --bg-void:      #eceef2;
+  --bg-base:      #eceef2;
+  --bg-nav:       #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-hover:#e6e8ee;
+  --bg-elevated:  #ffffff;
+  --bg-input:     #ffffff;
+  --bg-files:     #e9ebf0;
+  --bg-terminal:  #f7f8fa;
+
+  --surface-main:  #ffffff;
+  --surface-panel: #e9ebf0;
+  --surface-raised:#ffffff;
+  --surface-base:  #ffffff;
+
+  --text-bright:  #14161c;
+  --text-normal:  #363a45;
+  --text-dim:     #646a78;
+  --text-muted:   #646a78;
+  --text-ghost:   #737988;
+  --text-primary:   #14161c;
+  --text-secondary: #4f5462;
+
+  --badge-orange: #8a6a00;
+}
+
+/* O wordmark do Alfredo lê-se melhor como texto normal do tema do que a amarelo sobre preto —
+   o amarelo fica para o logo e para os acentos da interface. */
+:root[data-brand="alfredo"] .sb-logo-text { color: var(--text-bright); letter-spacing: 0.08em; }
+
+/* K.I.T.T. escuro — Trans Am preto com o scanner vermelho a varrer. O vermelho é o acento; os
+   fundos são pretos puros com um toque quente, para o scanner ser a única coisa que salta. */
+:root[data-brand="kitt"]:not([data-theme="light"]) {
+  --accent:         #ff2d2d;
+  --accent-text:    #ff5c5c;  /* o #ff2d2d puro cansa em corpo de texto; este lê 6.4:1 sobre o fundo */
+  --accent-amber:   #ff7a45;
+  --accent-soft:    rgba(255,45,45,0.10);
+  --accent-glow:    rgba(255,45,45,0.34);
+  --accent-border:  rgba(255,45,45,0.26);
+
+  --bg-void:      #070606;
+  --bg-base:      #070606;
+  --bg-nav:       #111010;
+  --bg-card:      #1a1818;
+  --bg-card-hover:#232020;
+  --bg-elevated:  #1a1818;
+  --bg-input:     #0d0c0c;
+  --bg-files:     #111010;
+  --bg-terminal:  #0d0c0c;
+
+  --surface-main:  #141212;
+  --surface-panel: #111010;
+  --surface-raised:#1c1a1a;
+  --surface-base:  #0f0e0e;
+
+  --badge-orange: #ff5c5c;
+}
+
+/* K.I.T.T. claro — o painel do Knight Industries com as luzes acesas de dia: cinzentos quentes,
+   e o vermelho puxado para carmim escuro, que o scanner sobre branco era impossível de ler. */
+:root[data-brand="kitt"][data-theme="light"] {
+  --accent:         #d11f1f;
+  --accent-text:    #8e1212;  /* 7.4:1 sobre accent-soft */
+  --accent-amber:   #9a4a10;
+  --accent-soft:    rgba(209,31,31,0.09);
+  --accent-glow:    rgba(209,31,31,0.24);
+  --accent-border:  rgba(142,18,18,0.26);
+
+  --bg-void:      #f2f0ef;
+  --bg-base:      #f2f0ef;
+  --bg-nav:       #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-hover:#ebe8e7;
+  --bg-elevated:  #ffffff;
+  --bg-input:     #ffffff;
+  --bg-files:     #eeebea;
+  --bg-terminal:  #faf9f8;
+
+  --surface-main:  #ffffff;
+  --surface-panel: #eeebea;
+  --surface-raised:#ffffff;
+  --surface-base:  #ffffff;
+
+  --text-bright:  #1a1514;
+  --text-normal:  #3d3634;
+  --text-dim:     #6b625f;
+  --text-muted:   #6b625f;
+  --text-ghost:   #7a716e;
+  --text-primary:   #1a1514;
+  --text-secondary: #554d4a;
+
+  --badge-orange: #9a4a10;
+}
+
+/* R2-D2 escuro — o astromecânico no hangar: cinzentos de casco frios e o azul dos painéis a
+   marcar. Único tema em que o claro é o modo "natural" (o droide é branco), por isso o escuro
+   assume-se como a versão nocturna e não o contrário. */
+:root[data-brand="r2d2"]:not([data-theme="light"]) {
+  --accent:         #4a9eff;
+  --accent-text:    #7ab8ff;
+  --accent-amber:   #ffb340;
+  --accent-soft:    rgba(74,158,255,0.11);
+  --accent-glow:    rgba(74,158,255,0.30);
+  --accent-border:  rgba(74,158,255,0.26);
+
+  --bg-void:      #0d1014;
+  --bg-base:      #0d1014;
+  --bg-nav:       #151a20;
+  --bg-card:      #1e242c;
+  --bg-card-hover:#272f38;
+  --bg-input:     #11151a;
+  --bg-elevated:  #1e242c;
+  --bg-files:     #151a20;
+  --bg-terminal:  #11151a;
+
+  --surface-main:  #171d23;
+  --surface-panel: #151a20;
+  --surface-raised:#212831;
+  --surface-base:  #12171c;
+
+  --badge-blue:   #7ab8ff;
+  --badge-orange: #ffb340;
+}
+
+/* R2-D2 claro — o casco: branco sujo e prateado, com o azul dos painéis escurecido para servir de
+   texto. É o modo que se parece mesmo com o droide. */
+:root[data-brand="r2d2"][data-theme="light"] {
+  --accent:         #2b6cb8;
+  --accent-text:    #1a4c85;  /* 7.1:1 sobre accent-soft */
+  --accent-amber:   #8a5a00;
+  --accent-soft:    rgba(43,108,184,0.10);
+  --accent-glow:    rgba(43,108,184,0.22);
+  --accent-border:  rgba(26,76,133,0.26);
+
+  --bg-void:      #eef0f3;
+  --bg-base:      #eef0f3;
+  --bg-nav:       #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-hover:#e7eaee;
+  --bg-input:     #ffffff;
+  --bg-elevated:  #ffffff;
+  --bg-files:     #eaedf1;
+  --bg-terminal:  #f8f9fb;
+
+  --surface-main:  #ffffff;
+  --surface-panel: #eaedf1;
+  --surface-raised:#ffffff;
+  --surface-base:  #ffffff;
+
+  --text-bright:  #151a20;
+  --text-normal:  #383f49;
+  --text-dim:     #656d78;
+  --text-muted:   #656d78;
+  --text-ghost:   #747c87;
+  --text-primary:   #151a20;
+  --text-secondary: #4f5761;
+
+  --badge-blue:   #1a4c85;
+  --badge-orange: #8a5a00;
+}
+
+/* HAL 9000 escuro — a lente. Carmim FRIO sobre ardósia azulada, ao contrário do KITT, que é
+   vermelho vivo sobre preto quente: sem essa separação os dois temas vermelhos confundiam-se.
+   O amarelo do ponto central da lente fica como cor secundária. */
+:root[data-brand="hal"]:not([data-theme="light"]) {
+  --accent:         #e01313;
+  --accent-text:    #ff6a6a;
+  --accent-amber:   #ffe600;  /* o pinpoint no meio da lente */
+  --accent-soft:    rgba(224,19,19,0.12);
+  --accent-glow:    rgba(224,19,19,0.42);  /* halo mais forte: a lente brilha, não pinta */
+  --accent-border:  rgba(224,19,19,0.30);
+
+  --bg-void:      #08090c;
+  --bg-base:      #08090c;
+  --bg-nav:       #101218;
+  --bg-card:      #171a22;
+  --bg-card-hover:#1f232d;
+  --bg-input:     #0c0e12;
+  --bg-elevated:  #171a22;
+  --bg-files:     #101218;
+  --bg-terminal:  #0c0e12;
+
+  --surface-main:  #12141a;
+  --surface-panel: #101218;
+  --surface-raised:#191d26;
+  --surface-base:  #0e1015;
+
+  --badge-orange: #ff6a6a;
+}
+
+/* HAL claro — a sala de controlo da Discovery: brancos clínicos, cinzento azulado, e o carmim
+   escurecido para se ler como texto. */
+:root[data-brand="hal"][data-theme="light"] {
+  --accent:         #b81212;
+  --accent-text:    #8a0e0e;  /* 8.4:1 sobre accent-soft */
+  --accent-amber:   #7a6a00;
+  --accent-soft:    rgba(184,18,18,0.09);
+  --accent-glow:    rgba(184,18,18,0.26);
+  --accent-border:  rgba(138,14,14,0.26);
+
+  --bg-void:      #eff1f4;
+  --bg-base:      #eff1f4;
+  --bg-nav:       #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-hover:#e8eaee;
+  --bg-input:     #ffffff;
+  --bg-elevated:  #ffffff;
+  --bg-files:     #ebedf1;
+  --bg-terminal:  #f9fafb;
+
+  --surface-main:  #ffffff;
+  --surface-panel: #ebedf1;
+  --surface-raised:#ffffff;
+  --surface-base:  #ffffff;
+
+  --text-bright:  #12141a;
+  --text-normal:  #363b45;
+  --text-dim:     #636974;
+  --text-muted:   #636974;
+  --text-ghost:   #727884;
+  --text-primary:   #12141a;
+  --text-secondary: #4d525d;
+
+  --badge-orange: #8a0e0e;
+}
+
+/* Selector de Custom Temas (Definições → Tema). */
+.brand-theme-block { margin-top:16px; padding-top:14px; border-top:1px solid var(--border-faint); }
+.brand-theme-label { display:block; font-size:0.78em; font-weight:600; color:var(--text-bright); }
+.brand-theme-hint { margin:3px 0 10px; font-size:0.74em; line-height:1.45; opacity:0.55; }
+.brand-theme-row { display:flex; flex-direction:column; gap:6px; }
+.brand-theme-opt {
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:9px 10px; border-radius:var(--r-md);
+  border:1px solid var(--border-subtle); background:transparent;
+  color:inherit; text-align:left; cursor:pointer; transition:all var(--t-fast);
+}
+.brand-theme-opt:hover { border-color:var(--border-default); }
+.brand-theme-opt.is-active { border-color:var(--accent-border); background:var(--accent-soft); }
+.brand-theme-opt-mark {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:44px; height:28px; flex-shrink:0;
+}
+/* Altura fixa, largura pelo rácio — mesma razão que em `.sb-logo-img`. */
+.brand-theme-opt-mark img { height:100%; width:auto; max-width:100%; object-fit:contain; }
+/* Eco dos anéis do logo original, para o tema default também ter marca no selector. */
+.brand-theme-opt-rings {
+  width:20px; height:11px; border-radius:50%; border:1.5px solid var(--accent);
+  display:flex; align-items:center; justify-content:center;
+}
+.brand-theme-opt-rings::before {
+  content:''; width:11px; height:5px; border-radius:50%; border:1.5px solid var(--accent);
+}
+.brand-theme-opt-text { display:flex; flex-direction:column; gap:1px; min-width:0; }
+.brand-theme-opt-name { font-size:0.88em; color:var(--text-bright); }
+.brand-theme-opt-detail { font-size:0.72em; opacity:0.55; }
+
+/* Navegação: no rato os botões são compactos (ver `.nav-btn` acima), mas num ecrã táctil 30px é
+   menos de metade do alvo mínimo — aqui voltam aos 44px. `pointer:coarse` e não largura: um
+   portátil estreito continua a ser rato, e um tablet largo continua a ser dedo. */
+@media (pointer: coarse) {
+  .nav-btn { min-height: 44px; }
+  .nav-menu { gap: 4px; }
+}

@@ -14,6 +14,7 @@ import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import AgentsView from './components/AgentsView';
+import RoomView from './components/RoomView';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
@@ -746,11 +747,13 @@ export default function App() {
         onShowAutomations={() => setMainView('automations')}
         onShowTasks={() => setMainView('tasks')}
         onShowJoca={() => setMainView('joca')}
+        onShowRoom={() => setMainView('room')}
         onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
+        onOpenSession={handleSwitchSession}
+        onRenameSession={handleRenameSession}
         onClose={handleCloseSession}
         onNew={handleNewSession}
-        onOpenProject={handleOpenProject}
         onCreateProject={handleCreateProjectPrompt}
         onInput={handleInput}
         onRenameProject={handleRenameProject}
@@ -770,6 +773,8 @@ export default function App() {
           <AutomationsView refreshKey={automationsRefresh} />
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
+        ) : mainView === 'room' ? (
+          <RoomView projects={projects} />
         ) : mainView === 'agents' ? (
           // Todos os agentes de todos os projectos num sítio só. `managerRefresh` é a chave certa:
           // sobe a cada evento de sessão/gestor, que é exactamente quando a pool muda.
@@ -792,7 +797,6 @@ export default function App() {
             managerRefresh={managerRefresh}
             tasksRefresh={tasksRefresh}
             onEditProject={handleEditProject}
-            onOpenProject={handleOpenProject}
             onSwitchSession={handleSwitchSession}
             onCloseSession={handleCloseSession}
             onAddAgent={handleAddProjectAgent}
@@ -807,29 +811,18 @@ export default function App() {
           />
         ) : mainView === 'dashboard' ? (
           <DashboardView
-            mainView={mainView}
             projects={projects}
             sessions={sessions}
-            activeProjectId={contextProjectId}
-            projectMemory={projectMemory}
             jocaLogicInfo={jocaLogicInfo}
-            onUpdateProjectMemory={updateProjectMemory}
+            rateLimits={rateLimits}
             onCreateProject={handleCreateProjectPrompt}
             onEditProject={handleEditProject}
             onShowProject={handleShowProject}
             onOpenProject={handleOpenProject}
             onSwitchSession={handleSwitchSession}
             onNewSession={handleNewSession}
-            setRightPanel={setRightPanel}
-            onPreviewFile={(path) => {
-              setPreviewPath(path);
-              setSelectedPath(path);
-            }}
             onRenameProject={handleRenameProject}
-            onUpdateProject={handleUpdateProject}
             onRenameSession={handleRenameSession}
-            onCreateProjectSkill={handleCreateProjectSkill}
-            rateLimits={rateLimits}
           />
         ) : (
           <TerminalView

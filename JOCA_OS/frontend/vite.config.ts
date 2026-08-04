@@ -37,6 +37,7 @@ export default defineConfig({
       '/knowledge-graph': { target: http },
       '/auth': { target: http },
       '/notifications': { target: http },
+      '/room': { target: http },
       '/runs': { target: http },
       '/heartbeat': { target: http },
       '/cli-profiles': { target: http },

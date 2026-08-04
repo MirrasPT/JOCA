@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode, KeyboardEvent as ReactKeyboardEvent } fr
 import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as ProjectGroupData } from '../types';
 import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
+import { useBrand } from '../hooks/useBrand';
 
 
 
@@ -19,12 +20,16 @@ interface Props {
   onShowAutomations: () => void;
   onShowTasks: () => void;
   onShowJoca: () => void;
+  onShowRoom: () => void;
   /** Vista global de agentes (todos os projectos num sítio só). */
   onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
+  /** Abrir um agente solto (sem projecto) directamente da barra. */
+  onOpenSession: (id: string) => void;
+  /** Renomear um agente rápido (duplo-clique no nome). */
+  onRenameSession?: (id: string, name: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
-  onOpenProject: (p: Project) => void;
   onCreateProject: () => void;
   onInput: (sessionId: string, data: string) => void;
   onRenameProject?: (id: string, name: string) => void;
@@ -268,13 +273,12 @@ function sortProjects(list: Project[], sort: ProjectSort): Project[] {
 // (stopPropagation) para as duas acções nunca dispararem ao mesmo tempo.
 
 function ProjectRow({
-  project, sessions, onOpen, onDashboard, onRenameProject,
+  project, sessions, onDashboard, onRenameProject,
   onArchive, onUngroup, indented, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
   dotDragOver, onDotDragEnter, onDotDragLeave, onGroupDrop, groupCandidates, onGroupWith,
 }: {
   project: Project;
   sessions: SessionInfo[];
-  onOpen: () => void;
   onDashboard: () => void;
   onRenameProject?: (id: string, name: string) => void;
   onArchive?: () => void;
@@ -366,7 +370,7 @@ function ProjectRow({
             <input
               ref={inputRef}
               className="session-item-name-input"
-              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
+              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commit}
@@ -401,7 +405,6 @@ function ProjectRow({
         )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
         <div className="project-group-actions">
-          <button className="project-group-action" type="button" aria-label={`Nova sessão em ${project.name}`} onClick={(e) => { e.stopPropagation(); onOpen(); }} data-tooltip="Nova sessão no projeto" data-tooltip-position="bottom"><LucideIcon name="plus" /></button>
           {groupCandidates && groupCandidates.length > 0 && onGroupWith && (
             <button className="project-group-action" type="button" aria-label={`Agrupar ${project.name} com outro projecto`} onClick={(e) => { e.stopPropagation(); setGrouping(true); }} data-tooltip="Agrupar com…" data-tooltip-position="bottom"><LucideIcon name="link" /></button>
           )}
@@ -438,6 +441,87 @@ function ProjectRow({
 // Linha colapsável que representa um grupo de projectos (agrupamento puramente visual — largar a
 // bolinha de um projecto sobre a de outro cria/junta a este). Expandida, mostra os projectos-membro
 // indentados por baixo, cada um como uma ProjectRow normal.
+
+/**
+ * Linha de um agente rápido (sessão sem projecto). Duplo-clique no nome entra em edição — mesmo
+ * gesto que renomeia um projecto na linha acima, para não haver dois vocabulários na mesma barra.
+ * Com a barra fechada não há nome à vista, portanto também não há renome: fica só o quadrado.
+ */
+function LooseAgentRow({
+  session, collapsed, onOpen, onRename, onClose,
+}: {
+  session: SessionInfo;
+  collapsed: boolean;
+  onOpen: () => void;
+  onRename?: (name: string) => void;
+  onClose?: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(session.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) { setDraft(session.name); inputRef.current?.focus(); inputRef.current?.select(); }
+  }, [editing, session.name]);
+
+  const commit = () => {
+    const t = draft.trim();
+    if (t && t !== session.name && onRename) onRename(t);
+    setEditing(false);
+  };
+
+  if (editing && !collapsed) {
+    return (
+      <div className="sidebar-loose-item is-editing">
+        <span className="sidebar-loose-icon"><LucideIcon name="terminal" /></span>
+        <input
+          ref={inputRef}
+          className="sidebar-loose-input"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { setDraft(session.name); setEditing(false); }
+            e.stopPropagation();
+          }}
+          aria-label={`Nome do agente ${session.name}`}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={`sidebar-loose-item${session.status === 'working' ? ' is-working' : ''}`}
+      onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
+      onDoubleClick={onRename && !collapsed ? (e) => { e.stopPropagation(); setEditing(true); } : undefined}
+      title={onRename && !collapsed
+        ? `${session.name} — agente sem projecto (duplo-clique renomeia)`
+        : `${session.name} — agente sem projecto`}
+      aria-label={`Abrir agente ${session.name}`}
+    >
+      <span className="sidebar-loose-icon"><LucideIcon name="terminal" /></span>
+      <span className="sidebar-loose-name">{session.name}</span>
+      {onClose && !collapsed && (
+        <button
+          type="button"
+          className="sidebar-loose-close"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          aria-label={`Fechar agente ${session.name}`}
+          data-tooltip="Fechar agente"
+          data-tooltip-position="bottom"
+        >
+          <LucideIcon name="x" />
+        </button>
+      )}
+      <span className="sidebar-loose-dot" data-on={session.status === 'working'} aria-hidden />
+    </div>
+  );
+}
 
 function ProjectFolder({
   group, members, sessions, expanded, collapsed, onToggle, onRenameGroup, onSetIcon, onOpenMember, renderMember,
@@ -546,7 +630,7 @@ function ProjectFolder({
             <input
               ref={inputRef}
               className="session-item-name-input"
-              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
+              style={{ fontSize: '11px', height: '20px', padding: '0 4px', background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-bright)', borderRadius: '4px', width: '120px' }}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commit}
@@ -573,7 +657,7 @@ function ProjectFolder({
             aria-label={collapsed
               ? `Grupo ${group.name}, ${members.length} projectos — abrir lista`
               : `Grupo ${group.name}, ${members.length} projectos`}
-            aria-haspopup={collapsed ? 'dialog' : undefined}
+            aria-haspopup={collapsed ? 'menu' : undefined}
             aria-expanded={collapsed ? flyoutOpen : expanded}
           >
             <ProjectAvatar icon={group.icon} name={group.name} />
@@ -623,31 +707,34 @@ function ProjectFolder({
           {members.map((project) => renderMember(project))}
         </div>
       )}
+      {/* Fechada, os membros saem EM FLUXO por baixo do quadrado do grupo — uma coluna das bolas
+          dos projectos, na mesma linguagem do resto da barra fechada.
+          ⚠ Não usar `position:absolute` aqui: o `.session-sidebar-list` tem `overflow-y:auto` +
+          `overflow-x:hidden` (precisa deles para o scroll), e qualquer painel que saísse para o
+          lado era CORTADO pelo overflow do antepassado — foi o que partiu a versão anterior. */}
       {collapsed && flyoutOpen && (
         <div
           ref={flyoutRef}
-          className="group-flyout"
-          role="dialog"
+          className="group-collapsed-list"
+          role="menu"
           aria-label={`Projectos do grupo ${group.name}`}
           onKeyDown={onFlyoutKeyDown}
         >
-          <p className="group-flyout-title">{group.name}</p>
-          <ul className="group-flyout-list">
-            {members.map((project) => (
-              <li key={project.id}>
-                <button
-                  type="button"
-                  className="group-flyout-item"
-                  style={{ '--project-color': projectColor(project) } as CSSProperties}
-                  onClick={() => { setFlyoutOpen(false); onOpenMember(project); }}
-                >
-                  <ProjectAvatar icon={project.icon} name={project.name} />
-                  <span className="group-flyout-item-name">{project.name}</span>
-                </button>
-              </li>
-            ))}
-            {members.length === 0 && <li className="group-flyout-empty">Grupo sem projectos</li>}
-          </ul>
+          {members.map((project) => (
+            <button
+              key={project.id}
+              type="button"
+              role="menuitem"
+              className="group-flyout-item"
+              style={{ '--project-color': projectColor(project) } as CSSProperties}
+              onClick={() => { setFlyoutOpen(false); onOpenMember(project); }}
+              title={project.name}
+              aria-label={`Abrir ${project.name}`}
+            >
+              <ProjectAvatar icon={project.icon} name={project.name} />
+            </button>
+          ))}
+          {members.length === 0 && <span className="group-collapsed-empty" title="Grupo sem projectos" aria-hidden>—</span>}
         </div>
       )}
     </div>
@@ -659,10 +746,11 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowAgents, onShowProject,
-  onClose, onNew, onOpenProject, onCreateProject, onInput, onRenameProject,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowRoom, onShowAgents, onShowProject,
+  onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
+  const brand = useBrand();
   const [confirmCloseIdle, setConfirmCloseIdle] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
@@ -680,6 +768,10 @@ export default function SessionSidebar({
   }, [sortMenuOpen]);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
+  // Agentes "rápidos": sessões sem projecto. A trabalhar primeiro — é o que se vai lá ver.
+  const looseSessions = sessions
+    .filter(s => !s.projectId)
+    .sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'));
 
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
@@ -767,7 +859,6 @@ export default function SessionSidebar({
   const projectRowProps = (project: Project) => ({
     project,
     sessions: sessions.filter(s => s.projectId === project.id),
-    onOpen: () => onOpenProject(project),
     onDashboard: () => onShowProject(project.id),
     onRenameProject,
     onArchive: onArchiveProject ? () => onArchiveProject(project.id, true) : undefined,
@@ -800,8 +891,10 @@ export default function SessionSidebar({
       <div className="sidebar-main-bento">
         <div className="sb-header">
           <div className="sb-brand">
-            <div className="sb-logo-rings" aria-hidden />
-            <span className="sb-logo-text">JOCA <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>0.4.0</span></span>
+            {brand.logo
+              ? <img className="sb-logo-img" src={brand.logo} alt="" aria-hidden />
+              : <div className="sb-logo-rings" aria-hidden />}
+            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>0.8.1</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"
@@ -863,11 +956,21 @@ export default function SessionSidebar({
             className={`nav-btn ${mainView === 'joca' ? 'active' : ''}`}
             type="button"
             onClick={onShowJoca}
-            aria-label="Joca"
+            aria-label={brand.managerName}
             aria-current={mainView === 'joca' ? 'page' : undefined}
           >
             <span className="nav-icon"><LucideIcon name="sparkles" /></span>
-            <span>Joca</span>
+            <span>{brand.managerName}</span>
+          </button>
+          <button
+            className={`nav-btn ${mainView === 'room' ? 'active' : ''}`}
+            type="button"
+            onClick={onShowRoom}
+            aria-label="Sala"
+            aria-current={mainView === 'room' ? 'page' : undefined}
+          >
+            <span className="nav-icon"><LucideIcon name="message-square" /></span>
+            <span>Sala</span>
           </button>
         </div>
 
@@ -917,6 +1020,24 @@ export default function SessionSidebar({
         )}
 
         <div className="session-sidebar-list">
+          {/* Agentes sem projecto, à cabeça da lista. Antes só se lá chegava pela vista global de
+              Agentes e procurando — um agente rápido perde o sentido se custar dois passos. */}
+          {looseSessions.length > 0 && (
+            <div className="sidebar-loose" aria-label="Agentes rápidos">
+              <div className="sidebar-loose-title">Rápidos</div>
+              {looseSessions.map((s) => (
+                <LooseAgentRow
+                  key={s.id}
+                  session={s}
+                  collapsed={collapsed}
+                  onOpen={() => onOpenSession(s.id)}
+                  onRename={onRenameSession ? (name) => onRenameSession(s.id, name) : undefined}
+                  onClose={() => onClose(s.id)}
+                />
+              ))}
+            </div>
+          )}
+
           {sidebarItems.map((item) => item.kind === 'project' ? (
             <ProjectRow key={item.project.id} {...projectRowProps(item.project)} />
           ) : (

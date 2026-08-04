@@ -4,6 +4,7 @@ import { shortPath } from '../lib/paths';
 import { readThemeSettings, resolveTheme } from '../lib/theme';
 import type { ThemeMode } from '../lib/theme';
 import { saveThemeSettings } from '../hooks/useAutoTheme';
+import { BRAND_THEMES, applyBrand, readBrand } from '../lib/brand';
 
 interface ServiceConnection {
   id: string;
@@ -30,6 +31,21 @@ const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
   { id: 'auto', label: 'Dinâmico' },
 ];
 
+/* Modelos do cérebro dos gestores. Só modelos do Agent SDK: o gestor precisa de ferramentas
+   (mcpServers) e de retomar a conversa (resume), e um provider que não carregue esse contrato
+   deixaria o gestor mudo e sem mãos. Trocar de modelo aqui nunca tira funcionalidades. */
+const MANAGER_MODELS: { value: string; label: string }[] = [
+  { value: '', label: 'Padrão (Sonnet)' },
+  { value: 'haiku', label: 'Haiku — rápido e barato' },
+  { value: 'sonnet', label: 'Sonnet — equilibrado' },
+  { value: 'opus', label: 'Opus — o mais capaz' },
+];
+
+const MANAGER_BRAINS: { key: 'jocaModel' | 'managerModel'; label: string; hint: string }[] = [
+  { key: 'jocaModel', label: 'Joca (gestor global)', hint: 'Decide entre projectos — vale-lhe o modelo mais forte.' },
+  { key: 'managerModel', label: 'Gestores de projecto', hint: 'Despacham e verificam muitas vezes — um modelo mais barato chega.' },
+];
+
 function ChevronsRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -49,6 +65,11 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [nightStart, setNightStart] = useState(() => readThemeSettings().nightStart);
   const [optimizeProvider, setOptimizeProvider] = useState('claude');
   const [optimizeModel, setOptimizeModel] = useState('');
+  // Tema de marca activo (só aparência + nome).
+  const [brandId, setBrandId] = useState(() => readBrand().id);
+  // Cérebro dos gestores. Vazio = default do backend (MANAGER_MODEL_DEFAULT).
+  const [jocaModel, setJocaModel] = useState('');
+  const [managerModel, setManagerModel] = useState('');
   const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
   // CLI por defeito para novas sessões (PATCH /ui-settings { defaultCli }).
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
@@ -77,6 +98,14 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
       setNightStart(stored.nightStart);
       setOptimizeProvider(s.optimizeProvider ?? 'claude');
       setOptimizeModel(s.optimizeModel ?? '');
+      // O localStorage é que manda no arranque (o index.html precisa dele antes do paint); o
+      // servidor só reconcilia quem chega de outra máquina.
+      if (typeof s.brandTheme === 'string' && s.brandTheme !== readBrand().id) {
+        setBrandId(s.brandTheme);
+        applyBrand(s.brandTheme);
+      }
+      setJocaModel(s.jocaModel ?? '');
+      setManagerModel(s.managerModel ?? '');
     }).catch(() => {});
     fetch('/llm-providers').then(r => r.json()).then(setProviders).catch(() => {});
   }, []);
@@ -84,6 +113,12 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const patchSettings = useCallback((patch: Record<string, unknown>) => {
     fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }).catch(() => {});
   }, []);
+  // Aplica já (CSS + evento para quem está montado) e espelha no servidor, como o modo do tema.
+  const selectBrand = useCallback((id: string) => {
+    setBrandId(id);
+    applyBrand(id);
+    patchSettings({ brandTheme: id });
+  }, [patchSettings]);
   const selectOptimizeProvider = useCallback((id: string) => { setOptimizeProvider(id); patchSettings({ optimizeProvider: id }); }, [patchSettings]);
 
   const selectDefaultCli = useCallback((id: CliProfileInfo['id']) => {
@@ -268,6 +303,35 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               </p>
             </div>
           )}
+
+          {/* Custom Temas — eixo separado do claro/escuro acima: cada marca traz os dois modos. */}
+          <div className="brand-theme-block">
+            <span className="brand-theme-label">Custom Temas</span>
+            <p className="brand-theme-hint">
+              Muda o nome, o logo e as cores. Só aparência — o cérebro, a memória e o trabalho
+              ficam exactamente iguais.
+            </p>
+            <div className="brand-theme-row" role="radiogroup" aria-label="Tema de marca">
+              {BRAND_THEMES.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={brandId === b.id}
+                  className={`brand-theme-opt${brandId === b.id ? ' is-active' : ''}`}
+                  onClick={() => selectBrand(b.id)}
+                >
+                  <span className="brand-theme-opt-mark" aria-hidden>
+                    {b.logo ? <img src={b.logo} alt="" /> : <span className="brand-theme-opt-rings" />}
+                  </span>
+                  <span className="brand-theme-opt-text">
+                    <span className="brand-theme-opt-name">{b.label}</span>
+                    <span className="brand-theme-opt-detail">{b.detail}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         {services.map((service) => (
           <div key={service.id} className="settings-service-card">
@@ -362,6 +426,35 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em', fontFamily: 'var(--font-mono)' }}
             />
           </label>
+        </div>
+        <div className="settings-service-card">
+          <div className="settings-service-head">
+            <span className="status-pill status-pill--connected">cérebro</span>
+            <span>Modelo dos gestores</span>
+          </div>
+          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
+            Modelo que corre o Joca e os gestores de projecto. Aplica-se ao turno seguinte — não
+            precisa de reiniciar. Todos mantêm as mesmas ferramentas, seja qual for o modelo.
+          </p>
+          {MANAGER_BRAINS.map((b) => (
+            <label key={b.key} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
+              <span style={{ fontSize: '0.75em', opacity: 0.6 }}>{b.label}</span>
+              <select
+                value={b.key === 'jocaModel' ? jocaModel : managerModel}
+                onChange={(e) => {
+                  const m = e.target.value;
+                  if (b.key === 'jocaModel') setJocaModel(m); else setManagerModel(m);
+                  patchSettings({ [b.key]: m });
+                }}
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em' }}
+              >
+                {MANAGER_MODELS.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+              <span style={{ fontSize: '0.72em', opacity: 0.5 }}>{b.hint}</span>
+            </label>
+          ))}
         </div>
         <div className="settings-service-card settings-service-card--heartbeat">
           <div className="settings-service-head">

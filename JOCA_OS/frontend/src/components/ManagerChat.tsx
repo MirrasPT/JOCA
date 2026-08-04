@@ -20,6 +20,7 @@ import { renderMarkdown } from '../lib/markdown';
 import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, uploadPickedFiles } from '../lib/fileDrop';
 import { fullDate } from './TaskDetail';
+import { useBrand } from '../hooks/useBrand';
 import './manager-chat.css';
 
 function PaperclipIcon() {
@@ -213,6 +214,7 @@ function ManagerText({ text }: { text: string }) {
 }
 
 export default function ManagerChat({ projectId, projectName, refreshKey, onWorkersChange }: Props) {
+  const brand = useBrand();
   const isGlobal = !projectId;
   const chatBase = isGlobal ? '/manager/global/chat' : `/projects/${projectId}/chat`;
   const [messages, setMessages] = useState<ManagerMessage[]>([]);
@@ -512,15 +514,15 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
   }, [chatBase, load]);
 
   return (
-    <section className="mgr-chat" aria-label={isGlobal ? 'Joca — gestor global' : `Gestor do projecto ${projectName}`}>
+    <section className="mgr-chat" aria-label={isGlobal ? `${brand.managerName} — gestor global` : `Gestor do projecto ${projectName}`}>
       {/* Cabeçalho de conversa, não de página: quem é, em que estado está, custo, limpar. */}
       <header className="mgr-chat-head">
         <div className="mgr-chat-head-main">
           <span className={`mgr-avatar mgr-avatar--manager mgr-head-avatar${busy ? ' is-busy' : ''}`} aria-hidden>
-            {isGlobal ? 'J' : 'G'}
+            {isGlobal ? brand.managerName.charAt(0).toUpperCase() : 'G'}
           </span>
           <div className="mgr-chat-head-id">
-            <h2>{isGlobal ? 'Joca' : 'Gestor do projecto'}</h2>
+            <h2>{isGlobal ? brand.managerName : 'Gestor do projecto'}</h2>
             <p className="mgr-chat-head-status">
               {busy ? 'a pensar…' : isGlobal ? 'vê todos os projectos' : projectName}
             </p>
@@ -563,7 +565,7 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
             {isGlobal ? (
               <>
                 <p>
-                  O Joca não escreve código nem mexe em ficheiros: vê os teus projectos todos, abre workers
+                  O {brand.managerName} não escreve código nem mexe em ficheiros: vê os teus projectos todos, abre workers
                   em qualquer um deles, e gere tarefas cross-project. Depois volta aqui a dizer o que ficou feito.
                 </p>
                 <p className="mgr-empty-hints">
@@ -761,7 +763,7 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
             rows={2}
             placeholder="Diz o que queres feito…"
             title="Enter envia · Shift+Enter nova linha · / para comandos · Ctrl+V cola imagens"
-            aria-label={isGlobal ? 'Falar com o Joca' : 'Falar com o gestor do projecto'}
+            aria-label={isGlobal ? `Falar com o ${brand.managerName}` : 'Falar com o gestor do projecto'}
             role="combobox"
             aria-expanded={slashOpen}
             aria-controls="mgr-slash-list"
