@@ -274,7 +274,29 @@ function buildGlobalSystemPrompt(projects: Project[]): string {
 
 export interface TurnResult {
   message: ManagerMessage | null;
+  /** Resposta em texto. Existe mesmo quando `message` é null (turno destacado — ver TurnOptions). */
+  text: string;
   error?: string;
+}
+
+/**
+ * Turno DESTACADO: corre o gestor sem lhe tocar no chat privado.
+ *
+ * A Sala precisa disto. Sem ele um turno da sala (a) escrevia a resposta no chat privado do
+ * gestor e (b) — pior — fazia `resume` da conversa SDK privada e gravava-lhe o id de volta, o que
+ * enfiava o debate inteiro no histórico do modelo desse chat. O dono via na conversa a dois coisas
+ * que nunca lhe disse.
+ *
+ * Destacado = histórico SDK próprio (o caller guarda-o e devolve-o em `resume`), sem appendMessage
+ * e sem rotateChat. O custo continua a somar ao total do gestor — o dinheiro foi gasto na mesma.
+ */
+export interface TurnOptions {
+  detached?: {
+    /** Id da conversa SDK desta thread separada (não a do chat privado). */
+    resume?: string;
+    /** Devolve o id novo, para o caller o guardar e continuar a mesma thread no turno seguinte. */
+    onSession?: (id: string) => void;
+  };
 }
 
 // Run ONE turn. `kind` distinguishes a real user message from a system wake, which the manager is
@@ -283,9 +305,10 @@ export async function runManagerTurn(
   projectId: string,
   input: string,
   kind: 'user' | 'system' = 'user',
+  opts: TurnOptions = {},
 ): Promise<TurnResult> {
   const project = loadProjects().find((p) => p.id === projectId);
-  if (!project) return { message: null, error: 'projecto não encontrado' };
+  if (!project) return { message: null, text: '', error: 'projecto não encontrado' };
 
   const state = getState(projectId);
   patchState(projectId, { busy: true });
@@ -306,7 +329,8 @@ export async function runManagerTurn(
       systemPrompt: buildSystemPrompt(project),
       model: modelFor(projectId),
       cwd: project.path,
-      resume: state.sdkSessionId,
+      // Destacado retoma a thread própria; sem isso partilharia o histórico com o chat privado.
+      resume: opts.detached ? opts.detached.resume : state.sdkSessionId,
       mcpServers: { joca: buildManagerTools(projectId, actions) },
       // MANAGER_TOOLS é a lista toda (MCP + built-ins): auto-aprova o que ele pode usar e, no
       // provider, é dela que sai o `tools` do SDK — o que não está aqui não lhe chega às mãos.
@@ -332,22 +356,28 @@ export async function runManagerTurn(
   patchState(projectId, {
     busy: false,
     lastTurnAt: Date.now(),
-    ...(sessionId ? { sdkSessionId: sessionId } : {}),
+    // O id da conversa SDK do chat privado NÃO é tocado por um turno destacado.
+    ...(sessionId && !opts.detached ? { sdkSessionId: sessionId } : {}),
     totalCostUsd: Math.round(((state.totalCostUsd ?? 0) + costUsd) * 10000) / 10000,
   });
+  if (opts.detached) {
+    if (sessionId) opts.detached.onSession?.(sessionId);
+    // Nada escrito no chat privado — o caller é que decide onde a resposta aparece.
+    return { message: null, text: finalText, ...(error ? { error } : {}) };
+  }
 
   if (error && !finalText) {
     const msg = appendMessage(projectId, {
       role: 'system',
       text: `Não consegui completar este pedido: ${error}`,
     });
-    return { message: msg, error };
+    return { message: msg, text: '', error };
   }
   if (!finalText) {
     // The manager chose to stay silent (e.g. a wake that needed no user-facing update). Actions
     // still happened, so they are worth recording — but not as a chat message.
     if (actions.length) console.log(`[manager] ${project.name}: ${actions.join(', ')} (sem resposta)`);
-    return { message: null };
+    return { message: null, text: '' };
   }
 
   rotateChat(projectId);
@@ -357,7 +387,7 @@ export async function runManagerTurn(
     costUsd,
     actions,
   });
-  return { message: msg };
+  return { message: msg, text: finalText };
 }
 
 // Mesma forma que runManagerTurn, mas sem `loadProjects().find(id)` — não há UM projecto, há
@@ -366,6 +396,7 @@ export async function runManagerTurn(
 export async function runGlobalManagerTurn(
   input: string,
   kind: 'user' | 'system' = 'user',
+  opts: TurnOptions = {},
 ): Promise<TurnResult> {
   const state = getState(GLOBAL_MANAGER_ID);
   patchState(GLOBAL_MANAGER_ID, { busy: true });
@@ -385,7 +416,8 @@ export async function runGlobalManagerTurn(
     for await (const ev of claudeProvider.run(prompt, {
       systemPrompt: buildGlobalSystemPrompt(loadProjects()),
       model: modelFor(GLOBAL_MANAGER_ID),
-      resume: state.sdkSessionId,
+      // Destacado retoma a thread própria; sem isso partilharia o histórico com o chat privado.
+      resume: opts.detached ? opts.detached.resume : state.sdkSessionId,
       mcpServers: { joca: buildGlobalManagerTools(actions) },
       // O Joca não tem pasta própria (é cross-project), mas agora tem Bash — e sem `cwd` os
       // comandos dele corriam na pasta do PRÓPRIO backend, onde um `rm`/`git` distraído mexe no
@@ -413,20 +445,25 @@ export async function runGlobalManagerTurn(
   patchState(GLOBAL_MANAGER_ID, {
     busy: false,
     lastTurnAt: Date.now(),
-    ...(sessionId ? { sdkSessionId: sessionId } : {}),
+    // O id da conversa SDK do chat privado NÃO é tocado por um turno destacado.
+    ...(sessionId && !opts.detached ? { sdkSessionId: sessionId } : {}),
     totalCostUsd: Math.round(((state.totalCostUsd ?? 0) + costUsd) * 10000) / 10000,
   });
+  if (opts.detached) {
+    if (sessionId) opts.detached.onSession?.(sessionId);
+    return { message: null, text: finalText, ...(error ? { error } : {}) };
+  }
 
   if (error && !finalText) {
     const msg = appendMessage(GLOBAL_MANAGER_ID, {
       role: 'system',
       text: `Não consegui completar este pedido: ${error}`,
     });
-    return { message: msg, error };
+    return { message: msg, text: '', error };
   }
   if (!finalText) {
     if (actions.length) console.log(`[manager] global: ${actions.join(', ')} (sem resposta)`);
-    return { message: null };
+    return { message: null, text: '' };
   }
 
   rotateChat(GLOBAL_MANAGER_ID);
@@ -436,5 +473,5 @@ export async function runGlobalManagerTurn(
     costUsd,
     actions,
   });
-  return { message: msg };
+  return { message: msg, text: finalText };
 }

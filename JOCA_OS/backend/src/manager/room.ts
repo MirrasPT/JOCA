@@ -110,19 +110,35 @@ function mentionedIds(text: string, selfId: string): string[] {
   return found;
 }
 
+/**
+ * Thread SDK da SALA, por participante. Separada da conversa privada de cada gestor: sem isto, um
+ * turno da sala fazia `resume` do chat a dois com o dono e gravava-lhe o id de volta — o debate
+ * inteiro passava a fazer parte do histórico desse chat, e o dono via lá coisas que nunca disse.
+ *
+ * Em memória de propósito: a sala é uma conversa de trabalho, não um registo. Reiniciar o backend
+ * limpa o contexto SDK e a discussão seguinte recomeça do transcrito em `room.jsonl`, que é
+ * persistente e é o que interessa manter.
+ */
+const roomSessions = new Map<string, string>();
+
 /** Corre UM turno de um participante e devolve o que ele disse (já anexado à sala). */
 async function speak(who: Participant, turnsLeft: number): Promise<string> {
   const framed = roomFrame(who, listRoomMessages(32), turnsLeft);
+  const detached = {
+    resume: roomSessions.get(who.id),
+    onSession: (id: string) => roomSessions.set(who.id, id),
+  };
+
   if (who.id === 'joca') {
-    const r = await runGlobalManagerTurn(framed, 'system');
-    const reply = r.message?.text?.trim() ?? '';
+    const r = await runGlobalManagerTurn(framed, 'system', { detached });
+    const reply = r.text.trim();
     if (reply) appendRoomMessage({ kind: 'joca', name: 'Joca' }, reply);
     return reply;
   }
   const project = loadProjects().find((p) => p.id === who.id);
   if (!project) return '';
-  const r = await runManagerTurn(project.id, framed, 'system');
-  const reply = r.message?.text?.trim() ?? '';
+  const r = await runManagerTurn(project.id, framed, 'system', { detached });
+  const reply = r.text.trim();
   if (reply) appendRoomMessage({ kind: 'manager', projectId: project.id, name: project.name }, reply);
   return reply;
 }
