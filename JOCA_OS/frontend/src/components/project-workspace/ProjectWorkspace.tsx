@@ -161,6 +161,7 @@ export default function ProjectWorkspace({
             <ChatChannel
               projectId={project.id}
               projectName={project.name}
+              project={project}
               refreshKey={managerRefresh}
               onWorkersChange={handleWorkers}
               projectSessions={projectSessions}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { PooledWorker, SessionInfo, TerminalRef } from '../../types';
+import type { PooledWorker, Project, SessionInfo, TerminalRef } from '../../types';
 import ManagerChat from '../ManagerChat';
 import TerminalPane from '../TerminalPane';
 import WorkersChannel from './WorkersChannel';
@@ -8,6 +8,8 @@ import FilesChannel from './FilesChannel';
 interface Props {
   projectId: string;
   projectName: string;
+  /** O projecto inteiro — o chat usa o ícone e a cor dele na identidade do gestor. */
+  project: Project;
   refreshKey: number;
   onWorkersChange: (workers: PooledWorker[]) => void;
   projectSessions: SessionInfo[];
@@ -33,7 +35,7 @@ type LeftView = { kind: 'manager' } | { kind: 'agent'; sessionId: string; label:
 // acontece se o utilizador pedir explicitamente "expandir"). O gestor fica sempre a um clique de
 // distância via a barra de regresso.
 export default function ChatChannel({
-  projectId, projectName, refreshKey, onWorkersChange,
+  projectId, projectName, project, refreshKey, onWorkersChange,
   projectSessions, workers, onExpandSession, onCloseSession, onInput, onResize, onReady,
   path, onPreviewFile, onNewAgent,
 }: Props) {
@@ -69,6 +71,7 @@ export default function ChatChannel({
             key={projectId}
             projectId={projectId}
             projectName={projectName}
+            project={project}
             refreshKey={refreshKey}
             onWorkersChange={onWorkersChange}
           />

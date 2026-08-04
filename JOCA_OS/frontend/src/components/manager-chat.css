@@ -308,3 +308,19 @@
 
 /* Largar um ficheiro (ou um caminho vindo do painel de ficheiros) em cima do compose anexa-o. */
 .mgr-compose--dragover .mgr-compose-row textarea { border-color: var(--accent); }
+
+/* Identidade do gestor: um gestor de projecto É o projecto — leva o ícone e a cor dele. Sem isto
+   todos os gestores eram o mesmo "G" cinzento e não se percebia em que chat se estava. */
+.mgr-avatar--project {
+  background: color-mix(in srgb, var(--project-color, var(--accent)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--project-color, var(--accent)) 36%, transparent);
+  color: var(--text-bright);
+}
+.mgr-avatar--emoji { font-size: 15px; }
+.mgr-avatar--brand {
+  background: none;
+  border: 1px solid var(--border-faint);
+  padding: 2px;
+  overflow: hidden;
+}
+.mgr-avatar--brand img { width: 100%; height: 100%; object-fit: contain; display: block; }

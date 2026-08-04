@@ -14,8 +14,10 @@
 // A camada de escrita (barra de formatação, colar com formatação, autocomplete de `/`) vive no
 // mesmo composer: clip à esquerda, caixa ao meio, enviar à direita, com a barra por cima.
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, ClipboardEvent, DragEvent, KeyboardEvent, ReactNode } from 'react';
-import type { ManagerMessage, ManagerRole, PooledWorker } from '../types';
+import type { ChangeEvent, ClipboardEvent, CSSProperties, DragEvent, KeyboardEvent, ReactNode } from 'react';
+import type { ManagerMessage, ManagerRole, PooledWorker, Project } from '../types';
+import { iconInitials, projectIconUrl } from '../types';
+import { projectColor } from '../lib/projectColor';
 import { renderMarkdown } from '../lib/markdown';
 import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, uploadPickedFiles } from '../lib/fileDrop';
@@ -135,6 +137,8 @@ interface Props {
   /** Omitido = modo global (Joca): fala com todos os projectos, não um só. */
   projectId?: string;
   projectName?: string;
+  /** Projecto: dá o ícone e a cor à identidade do gestor. Ausente = modo global (Joca). */
+  project?: Project;
   /** Incrementa a cada evento WS do gestor (mensagem nova ou mudança de "a pensar"). */
   refreshKey: number;
   /** O GET do chat traz também a pool de workers — quem os mostra é o ProjectWorkspace. */
@@ -213,7 +217,32 @@ function ManagerText({ text }: { text: string }) {
   return <div className="mgr-md" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-export default function ManagerChat({ projectId, projectName, refreshKey, onWorkersChange }: Props) {
+
+/**
+ * Cara de quem fala. Um gestor de projecto É o projecto: leva o ícone e a cor dele, senão todos os
+ * gestores eram o mesmo "G" cinzento e não se distinguia em que chat se está. O gestor global leva
+ * o logo do tema de marca (KITT, Alfredo, …). O Joca a falar DENTRO de um projecto usa a mesma
+ * cara do global — é a mesma pessoa, noutra sala.
+ */
+function ManagerFace({ project, brandLogo, brandName, className = '' }: {
+  project?: Project; brandLogo?: string; brandName: string; className?: string;
+}) {
+  if (!project) {
+    return brandLogo
+      ? <span className={`mgr-avatar mgr-avatar--brand ${className}`} aria-hidden><img src={brandLogo} alt="" /></span>
+      : <span className={`mgr-avatar mgr-avatar--manager ${className}`} aria-hidden>{brandName.charAt(0).toUpperCase()}</span>;
+  }
+  const style = { '--project-color': projectColor(project) } as CSSProperties;
+  if (project.icon?.type === 'image') {
+    return <span className={`mgr-avatar mgr-avatar--brand ${className}`} style={style} aria-hidden><img src={projectIconUrl(project.icon)} alt="" /></span>;
+  }
+  if (project.icon?.type === 'emoji') {
+    return <span className={`mgr-avatar mgr-avatar--project mgr-avatar--emoji ${className}`} style={style} aria-hidden>{project.icon.value}</span>;
+  }
+  return <span className={`mgr-avatar mgr-avatar--project ${className}`} style={style} aria-hidden>{iconInitials(project.name)}</span>;
+}
+
+export default function ManagerChat({ projectId, projectName, project, refreshKey, onWorkersChange }: Props) {
   const brand = useBrand();
   const isGlobal = !projectId;
   const chatBase = isGlobal ? '/manager/global/chat' : `/projects/${projectId}/chat`;
@@ -518,9 +547,12 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
       {/* Cabeçalho de conversa, não de página: quem é, em que estado está, custo, limpar. */}
       <header className="mgr-chat-head">
         <div className="mgr-chat-head-main">
-          <span className={`mgr-avatar mgr-avatar--manager mgr-head-avatar${busy ? ' is-busy' : ''}`} aria-hidden>
-            {isGlobal ? brand.managerName.charAt(0).toUpperCase() : 'G'}
-          </span>
+          <ManagerFace
+            project={project}
+            brandLogo={brand.logo}
+            brandName={brand.managerName}
+            className={`mgr-head-avatar${busy ? ' is-busy' : ''}`}
+          />
           <div className="mgr-chat-head-id">
             <h2>{isGlobal ? brand.managerName : 'Gestor do projecto'}</h2>
             <p className="mgr-chat-head-status">
@@ -591,7 +623,8 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
         <ol className="mgr-thread">
           {messages.map((m, i) => {
             const meta = ROLE_META[m.role] ?? ROLE_META.system;
-            const name = m.author || meta.label;
+            // O backend grava `author:'Joca'`; a UI mostra o nome do tema de marca activo.
+            const name = m.author === 'Joca' ? brand.managerName : (m.author || meta.label);
             const prev = i > 0 ? messages[i - 1] : null;
             const startsDay = !prev || !sameDay(prev.ts, m.ts);
             // "Bloco de fala": mesmo autor, seguido, no mesmo dia e dentro da janela — sem repetir
@@ -613,15 +646,19 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
               );
             }
 
-            const mine = m.role === 'user';
+            // O Joca é gravado com `role:'user'` (para o gestor o ler como um pedido), mas não é o
+            // dono — tem de ficar do lado de lá do chat, senão parecia que era o dono a falar.
+            const mine = m.role === 'user' && m.author !== 'Joca';
             return (
               <Fragment key={m.id}>
                 {day}
                 <li className={`mgr-row mgr-row--${mine ? 'out' : 'in'}${grouped ? ' is-grouped' : ''}`}>
                   <div className="mgr-avatar-slot">
-                    {!grouped && (
-                      <span className={`mgr-avatar mgr-avatar--${m.role}`} aria-hidden>{monogram(name)}</span>
-                    )}
+                    {!grouped && (m.role === 'manager'
+                      ? <ManagerFace project={project} brandLogo={brand.logo} brandName={brand.managerName} />
+                      : m.author === 'Joca'
+                        ? <ManagerFace brandLogo={brand.logo} brandName={brand.managerName} />
+                        : <span className={`mgr-avatar mgr-avatar--${m.role}`} aria-hidden>{monogram(name)}</span>)}
                   </div>
                   <div className="mgr-bubble-wrap">
                     {!grouped && !mine && <span className="mgr-bubble-author">{name}</span>}
@@ -659,7 +696,7 @@ export default function ManagerChat({ projectId, projectName, refreshKey, onWork
           {busy && (
             <li className="mgr-row mgr-row--in mgr-row--typing" role="status">
               <div className="mgr-avatar-slot">
-                <span className="mgr-avatar mgr-avatar--manager" aria-hidden>{isGlobal ? 'J' : 'G'}</span>
+                <ManagerFace project={project} brandLogo={brand.logo} brandName={brand.managerName} />
               </div>
               <div className="mgr-bubble-wrap">
                 <div className="mgr-bubble mgr-bubble--typing">

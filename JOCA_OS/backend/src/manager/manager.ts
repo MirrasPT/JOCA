@@ -14,6 +14,7 @@ import os from 'os';
 import { claudeProvider } from '../providers/provider';
 import { loadProjects, loadUiSettings, type Project } from '../project-store';
 import { buildManagerTools, buildGlobalManagerTools } from './tools';
+import { collectToolkitItems } from '../toolkit-registry';
 import { appendMessage, getState, patchState, rotateChat, type ManagerMessage } from './store';
 
 // Modelo por omissão dos dois cérebros. A env continua a valer como override de máquina; as
@@ -105,6 +106,69 @@ const ESTILO_DE_ESCRITA = [
   'Nesses casos ser telegráfico é perigoso, não eficiente. Volta ao curto assim que a parte delicada ficar clara.',
 ].join('\n');
 
+
+/**
+ * Inventário do JOCA_Brain para o prompt: NOMES de skills, agentes e comandos — não o conteúdo.
+ *
+ * O gestor não executa skills; quem as lê são os agentes que ele despacha. Mas se ele não souber
+ * que existem, nunca as manda usar, e o agente arranca do zero um trabalho para o qual havia
+ * doutrina pronta. Só a lista, portanto: chega para ele dizer "usa a skill `laravel-specialist`"
+ * numa instrução, e cabe no prompt sem custar um Read por turno.
+ *
+ * Lido a cada turno (é fs em disco local, barato) para uma skill nova entrar sem reiniciar.
+ * Se o Brain não estiver ligado devolve vazio e a secção não aparece — degrada, não rebenta.
+ */
+function brainInventory(): string {
+  try {
+    const { skills, agents, commands } = collectToolkitItems();
+    if (!skills.length && !agents.length && !commands.length) return '';
+    const lista = (items: { name: string }[]) => items.map((i) => i.name).sort().join(' · ');
+    return [
+      '',
+      '# O que existe no JOCA_Brain (para dares aos agentes)',
+      'Tu não corres skills — quem as lê são os agentes. Mas conheces o catálogo, e é teu o trabalho de',
+      'dizer a cada agente o que usar. Uma instrução que aponta a skill certa poupa-lhe meia hora de',
+      'tactear. Na instrução escreve, por exemplo: "lê a skill `frontend` antes de mexer no componente".',
+      '',
+      `SKILLS (${skills.length}) — doutrina por domínio, o agente lê com Read:`,
+      lista(skills),
+      '',
+      `AGENTES (${agents.length}) — contexto próprio, corre em paralelo; o agente pode despachá-los:`,
+      lista(agents),
+      '',
+      `COMANDOS (${commands.length}) — o agente invoca com /nome:`,
+      lista(commands),
+      '',
+      'Não sabes o CONTEÚDO de nenhum destes — só que existem. Se precisares do detalhe, manda o agente',
+      'lê-lo; não inventes o que uma skill diz.',
+    ].join('\n');
+  } catch {
+    return '';
+  }
+}
+
+
+/**
+ * O que este gestor tem nas mãos, escrito a partir da whitelist REAL (não à mão: uma lista
+ * desactualizada no prompt é pior do que nenhuma — ele acredita nela).
+ *
+ * A metade "não tens" é a que muda o comportamento: sem ela, o gestor confunde "não está na minha
+ * lista" com "o sistema não consegue" e desiste em vez de despachar.
+ */
+function toolInventory(mcpNames: string[]): string {
+  return [
+    '',
+    '# As tuas ferramentas (a lista exacta)',
+    `MCP do JOCA: ${mcpNames.join(' · ')}`,
+    `Terminal: ${BUILTIN_TOOLS.join(' · ')}`,
+    '',
+    'NÃO tens (e não vais ter): browser/Playwright, login em sites, geração de imagem ou vídeo, MCPs',
+    'externos, gh/stripe/wp-cli e os outros CLIs, nem as skills do Brain.',
+    'Os AGENTES que despachas têm tudo isso — são terminais Claude Code completos na máquina do',
+    'cliente. Por isso o que te falta nunca é motivo para dizer "não consigo": é motivo para despachar.',
+  ].join('\n');
+}
+
 function buildSystemPrompt(project: Project): string {
   return [
     `És o gestor do projecto "${project.name}" no JOCA. Falas português de Portugal, de forma directa e curta.`,
@@ -191,6 +255,10 @@ function buildSystemPrompt(project: Project): string {
     'O sistema também trava sozinho — os acordares automáticos têm orçamento e um travão de progresso, e a fila pára com um aviso. Se isso acontecer, é sinal para reportar, não para arranjar volta.',
     'Proactivo NÃO é atrevido: despachar trabalho e pedir testes por tua iniciativa, sim; apagar, fazer deploy, publicar, pagar, `git push` ou mexer em credenciais sem confirmação explícita do cliente, nunca.',
     '',
+    toolInventory(MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
+    brainInventory(),
+    toolInventory(GLOBAL_MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
+    brainInventory(),
     ESTILO_DE_ESCRITA,
     '',
     '# Regras',

@@ -488,6 +488,11 @@ export function buildGlobalManagerTools(actions: string[]) {
           // Import dinâmico: wake.ts importa manager.ts, que importa este ficheiro. Carregar em
           // cima fecharia o ciclo no arranque; aqui só corre quando a ferramenta é usada.
           const { handleUserMessage } = await import('./wake');
+          // O chat de um projecto é uma conversa a TRÊS: o dono, o Joca e o gestor. Sem esta linha
+          // só aparecia lá a RESPOSTA do gestor, e o dono via-o a responder a uma pergunta que
+          // nunca ninguém lhe tinha feito à vista. `author` distingue quem falou.
+          const { appendMessage } = await import('./store');
+          appendMessage(project.id, { role: 'user', author: 'Joca', text: mensagem });
           void handleUserMessage(project.id, `[DO JOCA — gestor da empresa, em nome do cliente]\n${mensagem}`);
           note(`falou com o gestor de ${project.name}`);
           return ok(`Mensagem entregue ao gestor de "${project.name}". Ele trata disso com os agentes dele e responde no chat DESSE projecto — se for coisa que o cliente espera de ti, usa avisar_utilizador quando souberes o resultado.`);
