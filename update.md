@@ -44,15 +44,21 @@ git remote add origin https://github.com/MirrasPT/JOCA.git
 
 ## Passo 3 — Fetch e comparação
 
+**Resolver o ramo por defeito — nunca assumir `master`.** O repo usa `main`; um `origin/master`
+fixo compara contra uma ref que não existe e o update falha ou reporta "já actualizado" em falso.
+
 ```bash
 git fetch origin 2>&1
-git log HEAD..origin/master --oneline
+BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
+[ -z "$BASE" ] && BASE=main
+echo "ramo: $BASE"
+git log HEAD..origin/$BASE --oneline
 ```
 
 Se output vazio → **JOCA já está actualizado.** Parar.
 
 ```bash
-git diff --name-status HEAD..origin/master
+git diff --name-status HEAD..origin/$BASE
 ```
 
 Categorizar ficheiros:
@@ -61,7 +67,7 @@ Categorizar ficheiros:
 |-----------|-------|-------|
 | **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `install.md`, `update.md` | Actualizar (safe) |
 | **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md`, `memory/soul.md` | **Proteger** — não sobrescrever |
-| **UI Data** | `JOCA_OS/data/` (`projects.json`, `project-memory.json`, `session-snapshots.json`, `ui-settings.json`) | **Proteger** — dados do utilizador |
+| **UI Data** | `JOCA_OS/data/` — `projects.json`, `project-memory.json`, `ui-settings.json` (inclui tema de marca e modelos dos gestores), `tasks.json`, `automacoes.json`, `notifications.json`, `runs.jsonl`, `room.jsonl` (histórico da Sala), `manager-chats/` | **Proteger** — dados do utilizador |
 | **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
 | **Local** | Ficheiros com `origin: local` no frontmatter | **NUNCA tocar** |
 | **UI Code** | `JOCA_OS/backend/`, `JOCA_OS/frontend/` | Actualizar (rebuild necessário) |
@@ -100,13 +106,13 @@ Aplicar? [S/n]
 
 ### Sem conflitos locais:
 ```bash
-git pull --ff-only origin master
+git pull --ff-only origin "$BASE"
 ```
 
 ### Com alterações locais:
 ```bash
 git stash push -m "update-joca backup $(date +%Y-%m-%d)"
-git pull origin master
+git pull origin "$BASE"
 git stash pop
 ```
 
@@ -118,14 +124,28 @@ Se `stash pop` falhar: reportar quais ficheiros e instruir resolução manual.
 
 ### Rebuild JOCA_OS (se ficheiros UI alterados):
 ```bash
-cd JOCA_OS/backend && npm install && npm run build && cd ..
-cd JOCA_OS/frontend && npm install && cd ..
+cd JOCA_OS/backend  && npm install && npm run build && cd ../..
+cd JOCA_OS/frontend && npm install && npm run build && cd ../..
+```
+
+⚠ O `npm run build` do **frontend** não é opcional — o backend serve `frontend/dist/`, e sem ele a
+interface fica na versão anterior apesar de os ficheiros novos já estarem no disco. Assets novos
+(ex.: `frontend/public/brand/`) também só entram no `dist` por aqui.
+
+⚠ **O backend corre o build compilado, sem watch.** Alterações ao backend só ganham efeito depois de
+reiniciar o processo — e **reiniciar mata os agentes/terminais vivos**. Fecha o que estiveres a
+correr antes:
+```bash
+bash JOCA_OS/stop.sh   # Windows: JOCA_OS\stop.bat
+bash JOCA_OS/start.sh  # Windows: JOCA_OS\start.bat
 ```
 
 ### Actualizar StatusLine (se script alterado):
 ```bash
 cp JOCA_Brain/.claude/scripts/statusline-command.js ~/.claude/statusline-command.js
 ```
+(Há também `statusline-command.sh` para quem a tenha configurada em shell — copiar a que estiver
+referida no `~/.claude/settings.json`, não as duas às cegas.)
 
 ### Regenerar SKILL_INDEX:
 ```bash

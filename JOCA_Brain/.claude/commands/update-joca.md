@@ -220,8 +220,10 @@ These files and directories are NEVER overwritten, deleted, or reset:
 
 ```
 cd <JOCA_DIR>
-git pull --ff-only origin master
+git pull --ff-only origin "$BASE"
 ```
+`$BASE` é o ramo resolvido na Fase 1 — nunca escrever `master` à mão aqui. O repo usa `main`, e um
+`origin/master` fixo faz o pull falhar contra uma ref que não existe.
 
 If `--ff-only` fails: proceed to Option B.
 
@@ -230,7 +232,7 @@ If `--ff-only` fails: proceed to Option B.
 ```
 cd <JOCA_DIR>
 git stash push -m "update-joca backup"
-git pull origin master
+git pull origin "$BASE"
 git stash pop
 ```
 
@@ -282,7 +284,13 @@ If frontend files changed:
 ```
 cd <JOCA_DIR>/JOCA_OS/frontend
 npm install
+npm run build
 ```
+O `npm run build` não é opcional: o backend serve `frontend/dist/`, portanto sem ele a interface
+continua a mostrar a versão anterior mesmo com os ficheiros novos no disco.
+
+Assets estáticos novos (ex.: `frontend/public/brand/`) entram no `dist` por este build — se a
+interface aparecer sem logos ou ícones, é sinal de que este passo foi saltado.
 
 Report rebuild results. If `npm install` or `npm run build` fails: report the error but do not block the rest of the update.
 

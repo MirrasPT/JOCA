@@ -424,7 +424,10 @@
   border: 1px solid var(--border-faint);
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.18);
+  /* Preto fixo a 18% dava um poço no escuro e uma laje cinzenta no claro (o mesmo problema que a
+     nota abaixo já descrevia para o breadcrumb e o rodapé, mas o contentor tinha ficado de fora).
+     `--bg-input` é o token do "campo encaixado" e vira branco no claro. */
+  background: var(--bg-input);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
 }
 .project-folder-browser .file-browser {
@@ -1041,4 +1044,29 @@
   text-align: right;
   flex-shrink: 0;
   opacity: 0.75;
+}
+
+/* ── Dashboard global (refresh) ────────────────────────────────────────────── */
+.db-project-card-title-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-project-working-chip {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.db-project-session-item--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
 }

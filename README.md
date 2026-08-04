@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 27 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── commands/        <- 26 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
 │       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 132 skills flat — triggers declarativos, on-demand loading
+│       ├── skills/          <- 131 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
 │       ├── reference/       <- referencia densa, carregada on-demand (nao vive em contexto)
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**260 componentes:** 132 skills + 101 agents + 27 commands.
+**258 componentes:** 131 skills + 101 agents + 26 commands.
 
 ---
 
@@ -58,6 +58,38 @@ dedicados, sem precisares de estar a olhar.
 - **Supervisao silenciosa:** um juiz SDK (sem ferramentas) classifica cada execucao — ok, erro, ou bloqueada numa pergunta; nesse caso recebes uma notificacao para ir responder ao terminal e a fila espera por ti
 - **Workers visiveis:** cada worker e um terminal PTY real que podes ler e assumir a qualquer momento — nao ha caixa preta
 
+### A Sala — os gestores discutem entre si
+
+Um chat de grupo onde estás tu, o gestor global e os gestores de cada projecto, todos na mesma
+conversa. Serve para o que os chats privados não resolvem: decisões que atravessam projectos,
+verificações cruzadas ("confirma com o gestor do X se isto ainda bate certo"), e reaproveitamento
+de trabalho entre projectos.
+
+- **Escolhes quem responde** por chips no compositor — o gestor global e/ou projectos concretos
+- **Os agentes chamam-se uns aos outros** com `@etiqueta`: quem for mencionado responde a seguir,
+  já a ver o que o anterior disse. Não é uma ronda de respostas — é um debate com várias voltas
+- **Fecha sozinho:** quando o assunto está resolvido alguém escreve `RESOLVIDO: <decisão>` e não
+  passa a palavra. Travões duros para o caso de não convergir (16 turnos no total, 5 por gestor)
+- **Cada gestor traz as ferramentas dele** — pode ir mesmo ver o projecto antes de afirmar
+- **Identidade visual:** cada gestor aparece com o nome e o ícone do seu projecto; tu configuras o
+  teu nome e avatar num mini-perfil
+
+> Custo: uma discussão longa são dezenas de chamadas ao modelo e pode abrir workers reais nos
+> projectos. Os limites vivem no topo de `JOCA_OS/backend/src/manager/room.ts`.
+
+### Temas de marca — o JOCA com a cara que quiseres
+
+Selector em Definições → Tema. Muda **nome, logo e cores** da interface; nada mais. O cérebro, a
+memória e o trabalho ficam exactamente iguais — é só aparência.
+
+Vêm cinco: **JOCA** (o original), **Alfredo**, **K.I.T.T.**, **R2-D2** e **HAL 9000**. Cada tema
+traz modo claro **e** escuro (eixo independente do selector claro/escuro/dinâmico), e troca também
+o favicon do separador. Quando o tema muda, o gestor global passa a chamar-se pelo nome do tema em
+toda a interface.
+
+> Os logos que acompanham os temas não-JOCA são arte de terceiros, incluída para uso local. Quem
+> publicar um fork deve substituí-los.
+
 ### Interface
 
 - **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty (scrollback 2M linhas, buffer 5MB por sessao, cap 30 sessoes simultaneas)
@@ -65,9 +97,11 @@ dedicados, sem precisares de estar a olhar.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 260 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos 258 componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
+- **Agentes rapidos na barra:** as sessoes sem projecto aparecem no topo da barra lateral, com
+  acesso directo, renome por duplo-clique e fecho — sem passar pela vista global de Agentes
 - **Sidebars colapsaveis:** left rail (62px) e right rail (54px) com animacoes suaves (280ms ease-out-quart)
 - **Cross-platform:** macOS (zsh) e Windows (PowerShell) — deteccao automatica de OS
 
@@ -107,6 +141,12 @@ JOCA_PASSWORD='uma-password-forte' JOCA_HOST=0.0.0.0 npm start
 - **Inbox persistente:** todas as notificacoes (automacoes, perguntas de tarefas, heartbeat, erros) ficam guardadas — fechar a tab ja nao perde nada
 - **Historico de runs:** cada execucao de automacao/tarefa/heartbeat fica em `data/runs.jsonl` com duracao, estado e custo SDK; totais em Automacoes → Historico
 - **Multi-CLI:** sessoes, tarefas e automacoes podem correr Claude Code (default), Codex CLI, Antigravity ou OpenCode — com modelo configuravel por execucao
+- **Os gestores escolhem o CLI:** ao despachar trabalho, um gestor pode abrir o worker em `agy`
+  (vídeo, segunda opinião de design) ou `codex` (geração de imagem, revisão independente) em vez do
+  default — decide pela natureza do trabalho, sem tu pedires
+- **Modelo dos gestores configuravel** (Definições → Modelo dos gestores): Haiku/Sonnet/Opus, com
+  escolha separada para o gestor global e para os gestores de projecto. Aplica-se ao turno seguinte,
+  sem reiniciar. Só modelos do Agent SDK — trocar de modelo nunca tira ferramentas ao gestor
 
 ---
 
@@ -146,7 +186,23 @@ Abre automaticamente `http://localhost:7492`.
 Le o ficheiro update.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/update.md e segue as instrucoes.
 ```
 
-Sync one-way do GitHub. Protege memoria de projectos, feedback, soul calibration e componentes locais (`origin: local`).
+Sync one-way do GitHub. Protege memoria de projectos, feedback, soul calibration, componentes
+locais (`origin: local`) e todo o estado do JOCA_OS em `JOCA_OS/data/` — projectos, definicoes
+(tema, modelos), tarefas, automacoes, historico da Sala e chats dos gestores.
+
+**Depois de actualizar, se mexeu no JOCA_OS:**
+
+```bash
+cd JOCA_OS/backend  && npm install && npm run build && cd ../..
+cd JOCA_OS/frontend && npm install && npm run build && cd ../..
+bash JOCA_OS/stop.sh && bash JOCA_OS/start.sh   # Windows: stop.bat / start.bat
+```
+
+Duas coisas que se esquecem e dao "o update nao fez nada":
+- o **frontend precisa de `npm run build`** — o backend serve `frontend/dist/`, portanto sem build
+  a interface fica na versao anterior mesmo com os ficheiros novos no disco;
+- o **backend corre o build compilado, sem watch** — so ganha as alteracoes ao reiniciar, e o
+  reinicio **mata os agentes e terminais vivos**. Fecha o que estiveres a correr primeiro.
 
 ### Melhorar o JOCA
 
@@ -166,7 +222,7 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (132)
+## Skills (131)
 
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
@@ -238,7 +294,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (27)
+## Commands (26)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 
