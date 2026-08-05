@@ -183,3 +183,46 @@
   .project-workspace .pw-head-main { flex: 1 1 100%; }
   .project-workspace .pw-head-stats { flex-wrap: wrap; }
 }
+
+/* ─── Altura: a vista do projecto NUNCA scrolla como página ──────────────────
+   Invariante da casa (docs/ARQUITECTURA.md): "nenhuma vista scrolla como página; quem scrolla é a
+   conversa, a lista ou a coluna do quadro". A vista herdava `overflow:auto` do `.dashboard-view`
+   e o canal crescia com o conteúdo (`flex: 0 1 auto` + `align-items: start`), portanto em ecrãs
+   baixos scrollava o bloco inteiro — cabeçalho e separadores saíam do ecrã ao descer.
+
+   Aqui a coluna passa a ter altura fixa: o canal fica com o espaço que sobra e scrolla POR DENTRO.
+   `min-height: 0` em cada nível é o que permite encolher — sem isso um filho flex nunca fica
+   menor que o conteúdo e o `overflow` do pai nunca chega a ser usado. */
+.dashboard-view.project-workspace {
+  overflow: hidden;
+  min-height: 0;
+}
+.project-workspace .pw-channel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+}
+.project-workspace .pw-chat-layout {
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;   /* era `start`: as colunas não enchiam a altura e não podiam scrollar */
+}
+.project-workspace .pw-chat-main { min-height: 0; }
+.project-workspace .pw-chat-side { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+
+/* Em ecrãs baixos o cabeçalho é que tem de ceder — é moldura, não conteúdo. Isto recupera ~60px
+   para o canal num portátil de 720p, que é a diferença entre ver duas mensagens e ver cinco. */
+@media (max-height: 800px) {
+  .dashboard-view.project-workspace { padding: 14px 22px; }
+  .project-workspace .vp-header { margin-bottom: 10px; gap: 14px; align-items: center; }
+  .project-workspace .vp-title { font-size: 21px; }
+  .project-workspace .pw-channel-tabs { margin-bottom: 10px; }
+}
+@media (max-height: 620px) {
+  .dashboard-view.project-workspace { padding: 10px 16px; }
+  .project-workspace .vp-header { margin-bottom: 6px; }
+  .project-workspace .vp-title { font-size: 18px; }
+  .project-workspace .pw-channel-tabs { margin-bottom: 6px; }
+}
