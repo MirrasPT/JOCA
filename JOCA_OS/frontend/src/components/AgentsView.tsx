@@ -110,6 +110,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
           <InlineName
             value={s.name}
             onRename={onRenameSession ? (name) => onRenameSession(s.id, name) : undefined}
+            onActivate={() => onOpenSession(s.id)}
             className="pw-worker-area"
             inputClassName="pw-worker-name-input"
           />

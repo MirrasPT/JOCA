@@ -73,6 +73,7 @@ export default function WorkersChannel({ projectSessions, workers, onSelectAgent
           <InlineName
             value={label}
             onRename={onRenameAgent ? (name) => onRenameAgent(sessionId, name) : undefined}
+            onActivate={() => onSelectAgent(sessionId, label)}
             className="pw-worker-area"
             inputClassName="pw-worker-name-input"
           />

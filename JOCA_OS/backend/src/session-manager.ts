@@ -191,7 +191,7 @@ export class SessionManager extends EventEmitter {
     // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
     const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
-    // Resolve the resume folder once — Claude Code consumes it as /resume|/init-project (see
+    // Resolve the resume folder once — Claude Code consumes it as /resume (see
     // runStartupSequence); the other CLIs have no such commands, so project context is provided by
     // simply STARTING the CLI inside the project folder (cwd).
     let resumeResolved: string | null = null;
@@ -263,19 +263,37 @@ export class SessionManager extends EventEmitter {
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
-    // Resolve the /resume|/init-project command synchronously (cheap fs checks). It is SENT only once
-    // the Claude TUI is actually ready (see runStartupSequence). Fixed timers were the bug behind
-    // "sometimes it doesn't send /resume": on a slow boot or a "trust this folder?" prompt the command
-    // landed before the CLI could receive it and was lost. Claude Code only — the other CLIs get
-    // project context via cwd (resolved above) instead.
+    // Contexto de projecto no arranque. Duas regras, e a diferença é QUEM abriu o terminal:
+    //
+    //   • aberto à MÃO (origin 'user') → `/resume "<pasta>"` sozinho, como submissão própria. É a
+    //     única coisa que o terminal recebe, e sem ela o utilizador ficava com um Claude Code cru
+    //     sem saber em que projecto está.
+    //   • aberto pelo GESTOR ou por um runner (origin 'auto') → o `/resume` NÃO vai à frente
+    //     sozinho: viaja colado ao brief, na mesma submissão. Quem despacha já sabe o projecto e
+    //     manda-o junto com o trabalho; um `/resume` automático antes disso é um turno inteiro
+    //     gasto a carregar contexto que a mensagem seguinte ia dar de qualquer forma.
+    //     (O `/resume` lê só o 1.º argumento — a pasta entre aspas —, portanto o brief a seguir
+    //     passa como texto normal e não é confundido com argumento.)
+    //
+    // `/init-project` NUNCA é enviado daqui. Ligar um projecto ao JOCA é conversa com o gestor,
+    // não uma coreografia de arranque de terminal: o gestor faz o levantamento da pasta e conduz
+    // as perguntas (ver manager.ts → onboardingSection). Um terminal a disparar `/init-project`
+    // sozinho abria um questionário por cima de trabalho que o utilizador nem pediu.
+    //
+    // Enviado só quando a TUI está mesmo pronta (ver runStartupSequence). Timers fixos foram o bug
+    // por trás de "às vezes não manda o /resume": num arranque lento, ou com o prompt "trust this
+    // folder?", o comando chegava antes de o CLI o poder receber e perdia-se. Claude Code apenas —
+    // os outros CLIs recebem o contexto por cwd (resolvido acima).
     let startupCmd: string | null = null;
+    let firstMessage = initialInput;
     if (profile.startupSequence && resumeResolved) {
-      const hasClaudeMd = fs.existsSync(path.join(resumeResolved, 'CLAUDE.md'));
-      startupCmd = hasClaudeMd ? `/resume "${resumeResolved}"` : `/init-project "${resumeResolved}"`;
+      const resumeCmd = `/resume "${resumeResolved}"`;
+      if (origin === 'user') startupCmd = resumeCmd;
+      else if (firstMessage) firstMessage = `${resumeCmd}\n\n${firstMessage}`;
     }
 
-    if (startupCmd || initialInput) {
-      void this.runStartupSequence(session, startupCmd, initialInput);
+    if (startupCmd || firstMessage) {
+      void this.runStartupSequence(session, startupCmd, firstMessage);
     }
 
     ptyProcess.onData((data: string) => {
@@ -407,7 +425,8 @@ export class SessionManager extends EventEmitter {
   }
 
   // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
-  // "trust this folder?" prompt if present, THEN send /resume|/init-project, THEN submit any brief.
+  // "trust this folder?" prompt if present, THEN send /resume (só em terminais abertos à mão),
+  // THEN submit any brief (que, nos automáticos, já traz o /resume colado à frente).
   // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
   private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
     const p = session.pty;

@@ -4,7 +4,7 @@
 // everything is overridable via DATA_DIR/cli-profiles.json (partial merge by id) so a flag rename
 // upstream is a config fix, not a code change.
 //
-// startupSequence: only Claude Code gets the /resume|/init-project + trust-prompt choreography —
+// startupSequence: only Claude Code gets the /resume + trust-prompt choreography —
 // the other CLIs have no JOCA commands, so project context is provided by cwd = project folder.
 import path from 'path';
 import { DATA_DIR, readJsonFile } from './project-store';

@@ -175,6 +175,7 @@ export default function ProjectsOverview({
                       <InlineName
                         value={session.name}
                         onRename={onRenameSession ? (name) => onRenameSession(session.id, name) : undefined}
+                        onActivate={() => onSwitchSession(session.id)}
                         className="db-project-session-name"
                         inputStyle={{ fontSize: '11px', height: '18px', flex: 1, marginRight: '8px' }}
                       />
