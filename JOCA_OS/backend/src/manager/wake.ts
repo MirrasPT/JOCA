@@ -22,7 +22,7 @@ import { getMaxAutoWakes } from '../heartbeat';
 import { pushNotification } from '../notifications/store';
 import { runManagerTurn, runGlobalManagerTurn, GLOBAL_MANAGER_ID } from './manager';
 import { getState, patchState, appendMessage } from './store';
-import { markIdle, findBySession, forgetSession, listWorkers } from './worker-pool';
+import { markIdle, findBySession, forgetSession, listWorkers, listAllWorkers } from './worker-pool';
 
 // Fila/serialização (queues, running, debounce, orçamento de auto-wake) são genéricas por chave —
 // funcionam tal-e-qual para GLOBAL_MANAGER_ID, só o turno em si (qual runXTurn chamar) difere.
@@ -156,19 +156,21 @@ async function drain(projectId: string): Promise<void> {
   if ((queues.get(projectId)?.texts.length ?? 0) > 0) void drain(projectId);
 }
 
-// Wire the SessionManager events to the wake queue. Called once from server.ts.
-export function startManagerWatch(): void {
-  sessionManager.on('done', ({ sessionId }: { sessionId: string }) => {
-    const worker = findBySession(sessionId);
-    if (!worker) return;                          // not a manager-owned worker (task worker / user session)
-    markIdle(sessionId);
+/**
+ * Reporta ao gestor o que aconteceu num worker. Duas entradas chamam isto: o evento 'done' e a
+ * varredura de encalhados (ver `varrerEncalhados`).
+ */
+function reportarWorker(sessionId: string, encalhado = false): void {
+  const worker = findBySession(sessionId);
+  if (!worker) return;                          // not a manager-owned worker (task worker / user session)
+  markIdle(sessionId);
 
-    const session = sessionManager.get(sessionId);
-    const project = loadProjects().find((p) => p.id === worker.projectId);
-    if (!session || !project) return;
+  const session = sessionManager.get(sessionId);
+  const project = loadProjects().find((p) => p.id === worker.projectId);
+  if (!session || !project) return;
 
-    const job = worker.currentJob ?? '';
-    void (async () => {
+  const job = worker.currentJob ?? '';
+  void (async () => {
       // Reuse the tasks judge: a cheap, tool-less classification of what the terminal ended with.
       // The manager gets the verdict + a short tail, never the whole buffer (cost + noise).
       const tail = (sessionManager.readBuffer(sessionId, { strip: true }) ?? '').slice(-4000);
@@ -180,6 +182,10 @@ export function startManagerWatch(): void {
           : `O worker de "${worker.area}" terminou o trabalho.`;
       enqueue(worker.projectId, [
         head,
+        encalhado
+          ? `(Ninguém tinha reportado isto: o terminal está calado há mais de ${Math.round(ENCALHADO_MS / 1000)}s`
+            + ' e continuava marcado como a trabalhar. Vê o que ele tem no ecrã antes de assumir que acabou.)'
+          : '',
         job ? `Trabalho que lhe tinhas dado: ${job}` : '',
         `Veredicto: ${verdict.summary}`,
         // O gestor tem Bash. Esta cauda é output de terminal — pode conter texto que veio de uma
@@ -196,13 +202,68 @@ export function startManagerWatch(): void {
           : 'Diz ao utilizador o que ficou feito (curto). Se houver passo seguinte natural, propõe-o.',
       ].filter(Boolean).join('\n'));
     })();
-  });
+}
+
+/**
+ * Rede de segurança: um worker que ficou calado sem nunca ter disparado 'done'.
+ *
+ * O 'done' exige que a rajada tenha durado mais de DONE_MIN_WORK_MS (2s) — existe para o
+ * utilizador a escrever não acordar um runner. Mas isso engole precisamente o caso mau: um agente
+ * que abre um selector de escolha ao fim de meio segundo pára ali, o evento nunca sai, o worker
+ * fica `busy` para sempre e NINGUÉM é avisado — nem o gestor, nem o dono. Foi assim que apareceu
+ * um agente parado à espera de resposta sem nada acontecer.
+ *
+ * Baixar o limiar não serve (voltavam os 'done' espúrios). O que resolve é olhar para o estado em
+ * vez de esperar por um evento: de 30 em 30 segundos, quem estiver marcado como a trabalhar mas
+ * com o terminal calado há mais de ENCALHADO_MS é reportado pelo caminho normal — o juiz classifica
+ * o que está no ecrã e o gestor decide (responde se for reversível, pergunta ao dono se não for).
+ *
+ * `markIdle` dentro do report limpa o `busy`, portanto cada encalhado é reportado UMA vez.
+ * Se a fila estiver travada (orçamento/progresso), o `pararFila` já notifica o dono — ou seja,
+ * em nenhum caminho isto fica em silêncio.
+ */
+export const ENCALHADO_MS = 45_000;
+const VARRER_MS = 30_000;
+let varredura: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * A decisão, isolada do mundo para ser testável: este worker está encalhado?
+ * Encalhado = marcado como a trabalhar, mas com o terminal parado e calado há tempo demais.
+ */
+export function estaEncalhado(
+  w: { busy: boolean },
+  s: { status: 'working' | 'idle'; lastOutputTime: number } | undefined,
+  agora: number,
+): boolean {
+  if (!w.busy) return false;          // ninguém está à espera dele
+  if (!s) return false;               // sessão morta — o evento 'closed' é que trata
+  if (s.status !== 'idle') return false;
+  return agora - s.lastOutputTime >= ENCALHADO_MS;
+}
+
+function varrerEncalhados(): void {
+  const agora = Date.now();
+  for (const w of listAllWorkers()) {
+    const s = sessionManager.get(w.sessionId);
+    if (!estaEncalhado(w, s, agora)) continue;
+    console.log(`[manager] worker "${w.area}" calado há ${Math.round((agora - s!.lastOutputTime) / 1000)}s e ainda marcado como ocupado — a reportar ao gestor`);
+    reportarWorker(w.sessionId, true);
+  }
+}
+
+// Wire the SessionManager events to the wake queue. Called once from server.ts.
+export function startManagerWatch(): void {
+  sessionManager.on('done', ({ sessionId }: { sessionId: string }) => reportarWorker(sessionId));
 
   sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
     forgetSession(sessionId);
   });
 
-  console.log('[manager] watch on (workers acordam o gestor do projecto)');
+  if (varredura) clearInterval(varredura);
+  varredura = setInterval(varrerEncalhados, VARRER_MS);
+  varredura.unref?.();
+
+  console.log('[manager] watch on (workers acordam o gestor do projecto; varredura de encalhados a cada 30s)');
 }
 
 // Used by the HTTP route: the user talking is what resets the automatic budget and gets priority.

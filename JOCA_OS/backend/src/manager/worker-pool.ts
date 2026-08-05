@@ -65,6 +65,16 @@ function adopt(projectId: string): void {
   }
 }
 
+/**
+ * Todos os workers de todos os projectos. Existe para a varredura de workers encalhados
+ * (`wake.ts`), que precisa de olhar para o pool inteiro sem saber que projectos existem.
+ */
+export function listAllWorkers(): PooledWorker[] {
+  const out: PooledWorker[] = [];
+  for (const porArea of pool.values()) out.push(...porArea.values());
+  return out;
+}
+
 export function listWorkers(projectId: string): PooledWorker[] {
   prune(projectId);
   adopt(projectId);

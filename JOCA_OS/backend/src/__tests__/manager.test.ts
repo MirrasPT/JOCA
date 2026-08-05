@@ -8,6 +8,7 @@ import path from 'path';
 import { DATA_DIR } from '../project-store';
 import { appendMessage, loadChat, clearChat, getState, patchState, clearAllBusy, rotateChat, searchChat } from '../manager/store';
 import { onboardingSection } from '../manager/manager';
+import { estaEncalhado, ENCALHADO_MS } from '../manager/wake';
 import { JOCA_LOGIC_ROOT } from '../toolkit-registry';
 
 const PROJECT = 'test-project-0000';
@@ -195,5 +196,35 @@ describe('onboardingSection', () => {
 
   it('pasta inexistente não rebenta a construção do prompt', () => {
     expect(onboardingSection(proj(path.join(dir, 'nao-existe')))).toBe('');
+  });
+});
+
+// Worker encalhado: o 'done' só dispara depois de 2s de trabalho (DONE_MIN_WORK_MS), o que engole
+// exactamente o caso mau — um agente que abre um selector de escolha ao fim de meio segundo fica
+// `busy` para sempre e ninguém é avisado. A varredura existe para isso; estes testes prendem a
+// decisão dela.
+describe('estaEncalhado', () => {
+  const idle = (haQuantoTempo: number) => ({ status: 'idle' as const, lastOutputTime: AGORA - haQuantoTempo });
+  const AGORA = 1_000_000_000;
+
+  it('reporta quem está ocupado e calado há mais do que o limiar', () => {
+    expect(estaEncalhado({ busy: true }, idle(ENCALHADO_MS + 1), AGORA)).toBe(true);
+  });
+
+  it('não reporta quem ainda está a trabalhar', () => {
+    expect(estaEncalhado({ busy: true }, { status: 'working', lastOutputTime: AGORA - 10 * ENCALHADO_MS }, AGORA)).toBe(false);
+  });
+
+  it('não reporta quem está parado mas não tinha trabalho atribuído', () => {
+    expect(estaEncalhado({ busy: false }, idle(ENCALHADO_MS * 10), AGORA)).toBe(false);
+  });
+
+  it('não reporta uma pausa curta — só a partir do limiar', () => {
+    expect(estaEncalhado({ busy: true }, idle(ENCALHADO_MS - 1), AGORA)).toBe(false);
+    expect(estaEncalhado({ busy: true }, idle(ENCALHADO_MS), AGORA)).toBe(true);
+  });
+
+  it('sessão morta não conta — quem trata disso é o evento closed', () => {
+    expect(estaEncalhado({ busy: true }, undefined, AGORA)).toBe(false);
   });
 });
