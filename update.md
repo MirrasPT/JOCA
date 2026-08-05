@@ -120,6 +120,27 @@ Se `stash pop` falhar: reportar quais ficheiros e instruir resolução manual.
 
 ---
 
+## Passo 5b — Correções pendentes
+
+Bugs apanhados na produção **depois** do último release, que o código publicado ainda não traz. O
+`CORRECOES.md` na raiz descreve cada um com o bloco exacto a substituir.
+
+```bash
+ls CORRECOES.md 2>/dev/null
+```
+
+**Se o ficheiro existir:** lê-o e aplica-o. Ele próprio traz, por correção, uma linha
+`Já está aplicada?` — corre-a primeiro e salta as que já estiverem feitas (um update repetido não
+pode aplicar a mesma coisa duas vezes). Se um bloco *Antes* não bater certo à letra, **não
+adivinhes**: salta essa correção e diz ao dono qual falhou.
+
+Quando **todas** derem `aplicada`, o ficheiro cumpriu o seu papel — o release seguinte já traz as
+correções. Aí apaga o `CORRECOES.md` e este passo.
+
+**Se o ficheiro não existir:** salta este passo, não há nada pendente.
+
+---
+
 ## Passo 6 — Pós-update
 
 ### Rebuild JOCA_OS (se ficheiros UI alterados):
