@@ -7774,3 +7774,39 @@ background: var(--surface-panel);
   .nav-btn { min-height: 44px; }
   .nav-menu { gap: 4px; }
 }
+
+/* ─── Dashboard global: também não scrolla como página ────────────────────────
+   Mesma invariante do workspace do projecto (ver project-workspace.css): a vista tem a altura do
+   ecrã e quem scrolla é a LISTA, não o ecrã todo. Sem isto, num portátil o cabeçalho, as
+   estatísticas e o estado do Brain saíam do ecrã ao procurar um projecto — e são precisamente o
+   que se quer sempre à vista.
+
+   `:not(.project-workspace)` porque o workspace já tem o seu tratamento e é outro conteúdo. */
+.dashboard-view:not(.project-workspace) {
+  overflow: hidden;
+  min-height: 0;
+}
+.dashboard-view:not(.project-workspace) .db-projects-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;   /* sem isto o grid estica as linhas para encher a altura nova */
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+  padding-right: 4px;     /* a barra não fica colada aos cartões */
+}
+
+/* Em ecrãs baixos o que cede é a moldura: cabeçalho, cartões de estatística e o bloco de estado.
+   O conteúdo — a lista de projectos — fica com o que sobra. */
+@media (max-height: 800px) {
+  .dashboard-view:not(.project-workspace) { padding: 14px 22px; gap: 12px; }
+  .dashboard-view:not(.project-workspace) .vp-header { margin-bottom: 10px; align-items: center; }
+  .dashboard-view:not(.project-workspace) .vp-title { font-size: 21px; }
+  .dashboard-view:not(.project-workspace) .db-stats-grid { gap: 10px; margin-bottom: 12px; }
+  .dashboard-view:not(.project-workspace) .db-logic-status { margin-bottom: 12px; padding: 10px 14px; }
+}
+@media (max-height: 620px) {
+  .dashboard-view:not(.project-workspace) { padding: 10px 16px; }
+  .dashboard-view:not(.project-workspace) .vp-title { font-size: 18px; }
+  .dashboard-view:not(.project-workspace) .db-stats-grid { display: none; }  /* números cabem no rodapé; a lista é que importa */
+}

@@ -209,7 +209,17 @@
   min-height: 0;
   align-items: stretch;   /* era `start`: as colunas não enchiam a altura e não podiam scrollar */
 }
-.project-workspace .pw-chat-main { min-height: 0; }
+/* A coluna do chat tem de FICAR pela altura dela: sem isto o chat (cabeçalho + conversa +
+   composer) media mais que a coluna, transbordava com `overflow: visible`, e quem acabava a
+   scrollar era o canal inteiro — o sintoma que se queria eliminar. Preso aqui, quem scrolla passa
+   a ser só a conversa (`.mgr-chat-thread`), que é o correcto. */
+.project-workspace .pw-chat-main {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.project-workspace .pw-chat-main > * { flex: 1 1 auto; min-height: 0; }
 .project-workspace .pw-chat-side { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 
 /* Em ecrãs baixos o cabeçalho é que tem de ceder — é moldura, não conteúdo. Isto recupera ~60px
