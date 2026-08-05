@@ -130,8 +130,11 @@ function memoryTools(key: string, note: (s: string) => void) {
   ];
 }
 
-export function buildManagerTools(projectId: string, actions: string[]) {
+export function buildManagerTools(projectId: string, actions: string[], mostrados: string[] = []) {
   const note = (s: string) => { actions.push(s); };
+  // Ficheiros que o gestor abriu para VER neste turno. Vao como anexo da resposta dele, para o
+  // dono ver o mesmo — ver a nota em `ver_imagem`.
+  const mostrar = (abs: string) => { if (!mostrados.includes(abs)) mostrados.push(abs); };
 
   return createSdkMcpServer({
     name: 'joca',
@@ -380,6 +383,9 @@ export function buildManagerTools(projectId: string, actions: string[]) {
               return fail(`imagem demasiado grande (${Math.round(buf.length / 1024)}KB, máximo ${MAX_IMAGE_BYTES / 1024 / 1024}MB)`);
             }
             note(`viu ${path.basename(abs)}`);
+            // O dono ve o MESMO: sem isto a imagem so entrava no contexto do modelo, e o gestor
+            // acabava a mandar o dono abrir o ficheiro a mao — devolver-lhe trabalho manual.
+            mostrar(abs);
             return {
               content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: mime }],
             };
@@ -492,8 +498,9 @@ export function buildManagerTools(projectId: string, actions: string[]) {
 // cada chamada (não há um `projectId` de closure), e as ferramentas de ficheiros por-projecto
 // (ver_ficheiro/listar_pasta) ficam de fora: os caminhos delas são relativos a UMA pasta, que o
 // Joca não tem. Para espreitar ficheiros ele usa os built-ins com caminho absoluto.
-export function buildGlobalManagerTools(actions: string[]) {
+export function buildGlobalManagerTools(actions: string[], mostrados: string[] = []) {
   const note = (s: string) => { actions.push(s); };
+  const mostrar = (abs: string) => { if (!mostrados.includes(abs)) mostrados.push(abs); };
 
   const findProjectOrFail = (ref: string) => {
     const p = resolveProjectRef(ref);
@@ -812,6 +819,9 @@ export function buildGlobalManagerTools(actions: string[]) {
               return fail(`imagem demasiado grande (${Math.round(buf.length / 1024)}KB, máximo ${MAX_IMAGE_BYTES / 1024 / 1024}MB)`);
             }
             note(`viu ${path.basename(abs)}`);
+            // O dono ve o MESMO: sem isto a imagem so entrava no contexto do modelo, e o gestor
+            // acabava a mandar o dono abrir o ficheiro a mao — devolver-lhe trabalho manual.
+            mostrar(abs);
             return { content: [{ type: 'image' as const, data: buf.toString('base64'), mimeType: mime }] };
           } catch (e) {
             return fail(e instanceof Error ? e.message : 'não foi possível abrir a imagem');

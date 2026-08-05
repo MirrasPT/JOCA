@@ -292,6 +292,18 @@ function buildSystemPrompt(project: Project): string {
     '4. Só depois disto tudo é que vais ao cliente — e aí dizes o que está partido, PORQUÊ, e o que falta para ficar a funcionar (ex.: falta um login que só ele pode fazer).',
     'A regra por trás disto: tu geres, não executas. Trabalhar o mínimo é a tua função, não preguiça — cada coisa que fazes pela tua mão é uma coisa que um agente fazia melhor e em paralelo.',
     '',
+    '⛔ NUNCA devolvas trabalho manual ao cliente. Uma resposta que acaba em "vai a <caminho> e abre",',
+    '"corre este comando", "instala X e volta a pedir" é uma tarefa que lhe estás a passar — e o',
+    'sistema existe para o contrário. Se alguma coisa tem de ser feita na máquina dele, fá-la tu',
+    '(tens Bash: `start ""` no Windows, `open` no macOS) ou despacha um agente que a faça.',
+    'Só lhe pedes uma acção quando ela é MESMO só dele: uma decisão, uma password, um login, uma',
+    'compra, ou uma confirmação de coisa irreversível.',
+    '',
+    'Mostrar é a mesma coisa. Quando ele pede para VER (um print, um mockup, um gráfico), usa',
+    '`ver_imagem` — a imagem vai automaticamente anexada à tua resposta e ele vê-a no chat. Não é',
+    'uma ferramenta só para os teus olhos: o que abres com ela, ele vê. Nunca lhe indiques um',
+    'caminho para ele abrir à mão.',
+    '',
     '# Como trabalhas',
     '1. Quando o utilizador pede alguma coisa, responde JÁ e curto a dizer o que vais fazer. Não o deixes à espera.',
     '2. Usa `trabalhar` para entregar o trabalho. Escolhe a ÁREA certa (design, backend, frontend, conteúdo, testes, geral) — cada área tem o seu terminal, que é reutilizado.',
@@ -402,6 +414,16 @@ function buildGlobalSystemPrompt(projects: Project[]): string {
     '⛔ NUNCA respondas "não consigo" ou "não tenho essa ferramenta" como resposta final: o sistema consegue, só não és tu a fazê-lo.',
     'Manda o trabalho ao gestor do projecto (`falar_com_gestor`) — ele despacha a quem tem as ferramentas. Se a ferramenta puder estar em baixo, pede que a VERIFIQUEM primeiro e que a tentem CORRIGIR; só depois é que voltas ao cliente a dizer o que está partido, porquê, e o que falta dele.',
     '',
+    '⛔ NUNCA devolvas trabalho manual ao cliente. Uma resposta que acaba em "vai a <caminho> e abre",',
+    '"corre este comando" ou "instala X e volta a pedir" é uma tarefa que lhe estás a passar — e o',
+    'sistema existe para o contrário. Fá-la tu (tens Bash: `start ""` no Windows, `open` no macOS) ou',
+    'despacha quem a faça. Só lhe pedes uma acção quando ela é MESMO só dele: uma decisão, uma',
+    'password, um login, uma compra, ou a confirmação de algo irreversível.',
+    '',
+    'Mostrar é a mesma coisa. Quando ele pede para VER (um print, um mockup), usa `ver_imagem` — a',
+    'imagem vai anexada à tua resposta e ele vê-a no chat. Não é uma ferramenta só para os teus',
+    'olhos. Nunca lhe indiques um caminho para ele abrir à mão.',
+    '',
     '# Como trabalhas',
     '1. Responde já e curto. Não deixes o cliente à espera.',
     '2. Para pôr trabalho a andar num projecto, usa `falar_com_gestor` — é a via normal. Dá-lhe o contexto todo: ele não vê esta conversa. Ele responde no chat DESSE projecto, não aqui.',
@@ -494,6 +516,7 @@ export async function runManagerTurn(
   patchState(projectId, { busy: true });
 
   const actions: string[] = [];
+  const mostrados: string[] = [];   // imagens que ele abriu — vao como anexo da resposta
   const prompt = kind === 'system'
     ? `[EVENTO AUTOMÁTICO DO SISTEMA — não é o utilizador a falar]\n${input}`
     : input;
@@ -511,7 +534,7 @@ export async function runManagerTurn(
       cwd: project.path,
       // Destacado retoma a thread própria; sem isso partilharia o histórico com o chat privado.
       resume: opts.detached ? opts.detached.resume : state.sdkSessionId,
-      mcpServers: { joca: buildManagerTools(projectId, actions) },
+      mcpServers: { joca: buildManagerTools(projectId, actions, mostrados) },
       // MANAGER_TOOLS é a lista toda (MCP + built-ins): auto-aprova o que ele pode usar e, no
       // provider, é dela que sai o `tools` do SDK — o que não está aqui não lhe chega às mãos.
       allowedTools: MANAGER_TOOLS,
@@ -566,6 +589,7 @@ export async function runManagerTurn(
     text: finalText,
     costUsd,
     actions,
+    attachments: mostrados.length ? mostrados : undefined,
   });
   return { message: msg, text: finalText };
 }
@@ -582,6 +606,7 @@ export async function runGlobalManagerTurn(
   patchState(GLOBAL_MANAGER_ID, { busy: true });
 
   const actions: string[] = [];
+  const mostrados: string[] = [];   // imagens que ele abriu — vao como anexo da resposta
   const prompt = kind === 'system'
     ? `[EVENTO AUTOMÁTICO DO SISTEMA — não é o utilizador a falar]\n${input}`
     : input;
@@ -598,7 +623,7 @@ export async function runGlobalManagerTurn(
       model: modelFor(GLOBAL_MANAGER_ID),
       // Destacado retoma a thread própria; sem isso partilharia o histórico com o chat privado.
       resume: opts.detached ? opts.detached.resume : state.sdkSessionId,
-      mcpServers: { joca: buildGlobalManagerTools(actions) },
+      mcpServers: { joca: buildGlobalManagerTools(actions, mostrados) },
       // O Joca não tem pasta própria (é cross-project), mas agora tem Bash — e sem `cwd` os
       // comandos dele corriam na pasta do PRÓPRIO backend, onde um `rm`/`git` distraído mexe no
       // código do JOCA_OS. A home do utilizador é o neutro certo: nenhum projecto em particular,
@@ -652,6 +677,7 @@ export async function runGlobalManagerTurn(
     text: finalText,
     costUsd,
     actions,
+    attachments: mostrados.length ? mostrados : undefined,
   });
   return { message: msg, text: finalText };
 }

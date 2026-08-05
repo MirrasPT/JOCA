@@ -324,3 +324,16 @@
   overflow: hidden;
 }
 .mgr-avatar--brand img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Imagem que o gestor mostrou (ver_imagem): aparece na bolha, com tecto para não empurrar a
+   conversa toda para fora do ecrã. Clicar abre em tamanho real. */
+.mgr-bubble-img {
+  display: block;
+  max-width: min(320px, 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-faint);
+  line-height: 0;
+}
+.mgr-bubble-img img { width: 100%; height: auto; max-height: 240px; object-fit: contain; background: var(--bg-input); }
+.mgr-bubble-img:hover { border-color: var(--accent-border); }

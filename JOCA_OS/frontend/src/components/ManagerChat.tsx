@@ -20,6 +20,12 @@ import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
 import { renderMarkdown } from '../lib/markdown';
 import { basename } from '../lib/paths';
+
+// Anexo que se pode mostrar como imagem. Lista fechada e alinhada com IMAGE_TYPES do backend
+// (manager/tools.ts) — o que o gestor consegue abrir e o que faz sentido mostrar aqui.
+const IMG_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+const isImagePath = (p: string) => IMG_EXT.some((e) => p.toLowerCase().endsWith(e));
+const fileUrl = (p: string) => `/file-content?path=${encodeURIComponent(p)}`;
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPastedImages, uploadPickedFiles } from '../lib/fileDrop';
 import { fullDate } from './TaskDetail';
 import { useBrand } from '../hooks/useBrand';
@@ -668,11 +674,25 @@ export default function ManagerChat({ projectId, projectName, project, refreshKe
                         : <p className="mgr-bubble-text">{m.text}</p>}
                       {m.attachments?.length ? (
                         <div className="tk-attach-chips mgr-bubble-attach">
-                          {m.attachments.map((p) => (
+                          {m.attachments.map((p) => (isImagePath(p) ? (
+                            // Imagem aparece MESMO, não só o nome num clipe. Sem isto, o gestor abria
+                            // o screenshot com `ver_imagem`, via-o, e depois mandava o dono ir abrir o
+                            // ficheiro à mão — devolver-lhe trabalho manual em vez de lhe mostrar.
+                            <a
+                              key={p}
+                              className="mgr-bubble-img"
+                              href={fileUrl(p)}
+                              target="_blank"
+                              rel="noreferrer"
+                              title={`${basename(p)} — abrir em tamanho real`}
+                            >
+                              <img src={fileUrl(p)} alt={basename(p)} loading="lazy" />
+                            </a>
+                          ) : (
                             <span key={p} className="tk-attach-chip" title={p}>
                               <PaperclipIcon /><span className="tk-attach-name">{basename(p)}</span>
                             </span>
-                          ))}
+                          )))}
                         </div>
                       ) : null}
                       {m.actions?.length ? (
