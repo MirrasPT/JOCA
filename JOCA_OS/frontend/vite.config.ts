@@ -42,6 +42,8 @@ export default defineConfig({
       '/heartbeat': { target: http },
       '/cli-profiles': { target: http },
       '/manager': { target: http },
+      '/pick-folder': { target: http },
+      '/sessions': { target: http },
     },
   },
 });

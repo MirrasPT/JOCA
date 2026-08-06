@@ -1,6 +1,6 @@
 ---
 name: dependency-auditor
-description: "Use when you need to audit project dependencies for security vulnerabilities, outdated packages, or unused dependencies. Triggered by: \"audit dependencies\", \"check packages\", \"outdated packages\", \"npm outdated\", \"composer outdated\", \"CVE in my packages\", \"vulnerable dependency\", \"update packages\", \"cleanup dependencies\", \"unused packages\", \"depcheck\", \"composer unused\", \"dependency audit\", \"package audit\", \"supply chain security\". Scans composer/npm/pip for CVEs, outdated packages, and unused deps. Produces prioritized update plan."
+description: "Audita dependências do projecto: CVEs, pacotes desactualizados, deps não usadas. Scans composer/npm/pip, produz plano de update priorizado. Triggers: audit dependencies, outdated packages, CVE in my packages, npm/composer outdated, dependency audit, supply chain security."
 chain: security-review
 tools: Bash, Read, Write
 model: sonnet

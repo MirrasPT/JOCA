@@ -19,8 +19,6 @@ interface Props {
   onShowDashboard: () => void;
   onShowAutomations: () => void;
   onShowTasks: () => void;
-  onShowJoca: () => void;
-  onShowRoom: () => void;
   /** Vista global de agentes (todos os projectos num sítio só). */
   onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
@@ -746,7 +744,7 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowJoca, onShowRoom, onShowAgents, onShowProject,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowAgents, onShowProject,
   onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
@@ -951,26 +949,6 @@ export default function SessionSidebar({
           >
             <span className="nav-icon"><LucideIcon name="terminal" /></span>
             <span>Agentes</span>
-          </button>
-          <button
-            className={`nav-btn ${mainView === 'joca' ? 'active' : ''}`}
-            type="button"
-            onClick={onShowJoca}
-            aria-label={brand.managerName}
-            aria-current={mainView === 'joca' ? 'page' : undefined}
-          >
-            <span className="nav-icon"><LucideIcon name="sparkles" /></span>
-            <span>{brand.managerName}</span>
-          </button>
-          <button
-            className={`nav-btn ${mainView === 'room' ? 'active' : ''}`}
-            type="button"
-            onClick={onShowRoom}
-            aria-label="Sala"
-            aria-current={mainView === 'room' ? 'page' : undefined}
-          >
-            <span className="nav-icon"><LucideIcon name="message-square" /></span>
-            <span>Sala</span>
           </button>
         </div>
 

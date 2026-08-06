@@ -1,6 +1,6 @@
 ---
 name: seo-analyst
-description: "Use when you need a research-first SEO audit of a website. Triggered by: \"SEO audit\", \"audit my site SEO\", \"check my SEO\", \"technical SEO audit\", \"crawl my site\", \"Core Web Vitals SEO\", \"schema markup check\", \"E-E-A-T\", \"crawlability\", \"sitemap check\", \"robots.txt issues\", \"page indexing\", \"SEO report\", \"why isn't my site ranking\", \"fix SEO issues\", \"meta tags audit\", \"canonical issues\", \"duplicate content\". Crawls the site with Firecrawl, analyzes technical signals, produces a prioritized audit report. Different from the `seo` skill (implementation guidance) — this agent actively crawls and audits."
+description: "Auditoria SEO research-first: crawla o site com Firecrawl, analisa sinais técnicos, produz relatório priorizado. Diferente da skill `seo` (guidance) — este agente crawla e audita de facto. Triggers: SEO audit, technical SEO, Core Web Vitals SEO, schema markup, E-E-A-T, crawlability, sitemap/robots.txt, why isn't my site ranking, canonical issues, duplicate content."
 skills: seo
 tools: Read, Write, Bash, WebSearch, WebFetch, firecrawl_scrape, firecrawl_search, firecrawl_map
 model: sonnet

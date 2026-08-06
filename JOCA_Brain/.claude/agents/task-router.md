@@ -1,6 +1,6 @@
 ---
 name: task-router
-description: "Lightweight task classifier. Takes any natural-language task and routes it to one of 4 lanes — A (direct), B (skill), C (agent), D (workflow) — by threshold rules (file count, domain count, reversibility, skill-match ≥60%, cross-stack). Returns a JSON decision; does NOT execute or spawn anything. Triggers: classificar tarefa, que via, skill ou agente ou workflow, preciso de workflow?, qual a lane desta tarefa."
+description: "Classificador leve de tarefas: recebe qualquer tarefa em NL e devolve a via certa — A (directa), B (skill), C (agente), D (workflow) — por thresholds (nº ficheiros, domínios, reversibilidade, skill-match≥60%, cross-stack). Devolve decisão JSON; NÃO executa nem despacha nada. Triggers: classificar tarefa, que via, preciso de workflow?"
 skills:
 tools: Read, Glob, Grep
 model: inherit

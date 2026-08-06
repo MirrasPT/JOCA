@@ -2,19 +2,16 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 import SessionSidebar from './components/SessionSidebar';
 import CreateProjectModal from './components/CreateProjectModal';
-import FilePreview from './components/FilePreview';
 import ToastNotification, { type ToastItem } from './components/ToastNotification';
 import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './components/WorkflowPanel';
 import RightWorkspace from './components/RightWorkspace';
 import DashboardView, { type RateLimits } from './components/DashboardView';
 import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
-import GlobalManagerView from './components/GlobalManagerView';
 import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
 import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import AgentsView from './components/AgentsView';
-import RoomView from './components/RoomView';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
@@ -56,7 +53,6 @@ export default function App() {
   const [projectGroups, setProjectGroups] = useState<ProjectGroup[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
-  const [previewPath, setPreviewPath] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [activityEvents, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
   const [rightPanel, setRightPanel] = useState<RightPanel>(null);
@@ -93,7 +89,6 @@ export default function App() {
   const [runtimeInfo, setRuntimeInfo] = useState<RuntimeInfo | null>(null);
 
   // New UX States
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [pinOutput, setPinOutput] = useState(false);
   const pinOutputRef = useRef(false);
 
@@ -360,10 +355,13 @@ export default function App() {
   const handleRestartSession = useCallback((id: string) => {
     const session = sessions.find((s) => s.id === id);
     if (!session) return;
-    const { cwd, name, projectId } = session;
+    const { name, projectId } = session;
+    // Reiniciar repete o arranque canónico: nasce no JOCA_Brain e, se tem projecto, volta a fazer
+    // o resume da pasta dele (em vez de herdar o cwd antigo).
+    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
     send({ type: 'close_session', sessionId: id });
-    send({ type: 'create_session', cwd, sessionName: name, projectId });
-  }, [sessions, send]);
+    send({ type: 'create_session', sessionName: name, projectId, ...(project ? { resumePath: project.path } : {}) });
+  }, [sessions, projects, send]);
 
   const handleInput = useCallback((sessionId: string, data: string) => {
     send({ type: 'input', sessionId, data });
@@ -544,7 +542,6 @@ export default function App() {
     const instruction = `Vamos criar uma skill. Para tal, usa o /create-skill para criar a skill "${skillName}" apenas para o projeto no path "${project.path}". Antes de iniciar, faz-me o questionário perguntando o que é e para que serve esta skill, e só depois de eu responder é que deves avançar com o ciclo de criação da skill.`;
     send({
       type: 'create_session',
-      cwd: project.path,
       resumePath: project.path,
       sessionName: `Criar Skill: ${skillName}`,
       projectId: project.id,
@@ -560,9 +557,14 @@ export default function App() {
 
   // Agente novo a partir do "+" da secção Agentes: nasce no projecto e NÃO atira o utilizador para
   // ecrã cheio (o ref é consumido uma vez pelo router do WebSocket e volta a `true` sozinho).
-  const handleAddProjectAgent = useCallback((project: Project) => {
+  const handleAddProjectAgent = useCallback((project: Project, cli?: string) => {
     focusNewSessionRef.current = false;
-    send({ type: 'create_session', cwd: project.path, projectId: project.id });
+    // SEM `cwd`: o terminal nasce no JOCA_Brain (default do backend) e recebe o contexto do
+    // projecto pelo comando de resume do perfil (`/resume "<pasta>"` no claude, `resume` nos outros).
+    send({
+      type: 'create_session', resumePath: project.path, projectId: project.id,
+      ...(cli && cli !== 'claude' ? { cli } : {}),
+    });
   }, [send]);
 
   // Agente novo sem projecto, da vista global de Agentes.
@@ -654,10 +656,6 @@ export default function App() {
         event.preventDefault();
         setSidebarCollapsed((value) => !value);
       }
-      if (key === 'f' && event.shiftKey) {
-        event.preventDefault();
-        setRightPanel((panel) => panel === 'files' ? null : 'files');
-      }
       if (key === '.') {
         event.preventDefault();
         handleInterruptSession();
@@ -746,8 +744,6 @@ export default function App() {
         onShowDashboard={() => setMainView('dashboard')}
         onShowAutomations={() => setMainView('automations')}
         onShowTasks={() => setMainView('tasks')}
-        onShowJoca={() => setMainView('joca')}
-        onShowRoom={() => setMainView('room')}
         onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
         onOpenSession={handleSwitchSession}
@@ -767,14 +763,10 @@ export default function App() {
       />
 
       <div className="main-area">
-        {mainView === 'joca' ? (
-          <GlobalManagerView managerRefresh={managerRefresh} />
-        ) : mainView === 'automations' ? (
+        {mainView === 'automations' ? (
           <AutomationsView refreshKey={automationsRefresh} />
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
-        ) : mainView === 'room' ? (
-          <RoomView projects={projects} />
         ) : mainView === 'agents' ? (
           // Todos os agentes de todos os projectos num sítio só. `managerRefresh` é a chave certa:
           // sobe a cada evento de sessão/gestor, que é exactamente quando a pool muda.
@@ -802,10 +794,6 @@ export default function App() {
             onSwitchSession={handleSwitchSession}
             onCloseSession={handleCloseSession}
             onAddAgent={handleAddProjectAgent}
-            onPreviewFile={(path) => {
-              setPreviewPath(path);
-              setSelectedPath(path);
-            }}
             onRenameProject={handleRenameProject}
             onInput={handleInput}
             onResize={handleResize}
@@ -836,8 +824,8 @@ export default function App() {
             terminalHistory={terminalHistory}
             historyIndex={historyIndex}
             setHistoryIndex={setHistoryIndex}
-            selectedPath={selectedPath}
-            onClearSelectedPath={() => setSelectedPath(null)}
+            selectedPath={null}
+            onClearSelectedPath={() => {}}
             projectMemory={projectMemory}
             onSaveSession={handleSave}
             onCompactSession={handleCompact}
@@ -863,7 +851,6 @@ export default function App() {
       <RightWorkspace
         panel={rightPanel}
         width={rightSlotSize}
-        activeSession={activeSession}
         runtimeInfo={runtimeInfo}
         jocaLogicInfo={jocaLogicInfo}
         sessions={sessions}
@@ -872,44 +859,16 @@ export default function App() {
         events={activityEvents}
         jocaItems={jocaItems}
         onSetPanel={setRightPanel}
-        onPastePath={(p) => {
-          // "Colar caminho" tem dois destinos possíveis. Com um chat de gestor à frente, o caminho
-          // é um ANEXO (o ManagerChat escuta `joca:attach-path`); nas outras vistas é texto para o
-          // terminal activo. Sem esta distinção, o caminho caía sempre num terminal que pode nem
-          // estar visível.
-          if (mainView === 'project' || mainView === 'joca') {
-            window.dispatchEvent(new CustomEvent('joca:attach-path', { detail: p }));
-            return;
-          }
-          if (activeId) handleInput(activeId, p);
-        }}
-        onPreview={(path) => {
-          setPreviewPath(path);
-          setSelectedPath(path);
-          if (contextProjectId) {
-            // Read the freshest openFiles from the ref (not the render closure) so rapid
-            // consecutive previews accumulate instead of dropping entries.
-            const current = projectMemoryRef.current[contextProjectId];
-            updateProjectMemory(contextProjectId, {
-              openFiles: [path, ...(current?.openFiles ?? []).filter((item) => item !== path)].slice(0, 20),
-            });
-          }
-        }}
         onLoadToolkit={loadCommandPalette}
         onToolkitItemsChange={setJocaItems}
         onInsertToolkit={insertCommandDraft}
         onRunCommand={handleRunCommand}
         onReloadRuntime={reloadRuntime}
-        selectedPath={selectedPath}
         notificationsRefresh={notificationsRefresh}
         unreadNotifications={unreadNotifications}
         onUnreadNotificationsChange={handleUnreadNotificationsChange}
         onOpenNotificationTarget={handleOpenNotificationTarget}
       />
-
-      {previewPath && (
-        <FilePreview filePath={previewPath} onClose={() => setPreviewPath(null)} />
-      )}
 
       {commandPaletteOpen && (
         <CommandPalette
@@ -918,8 +877,6 @@ export default function App() {
           jocaItems={jocaItems}
           onClose={() => setCommandPaletteOpen(false)}
           onShowDashboard={() => { setMainView('dashboard'); setCommandPaletteOpen(false); }}
-          onOpenFiles={() => { setRightPanel('files'); setCommandPaletteOpen(false); }}
-          onOpenToolkit={() => { setRightPanel('toolkit'); loadCommandPalette(); setCommandPaletteOpen(false); }}
           onOpenSettings={() => { setRightPanel('settings'); setCommandPaletteOpen(false); }}
           onSelectSession={(id) => { handleSwitchSession(id); setCommandPaletteOpen(false); }}
           onNewSession={() => { handleNewSession(); setCommandPaletteOpen(false); }}

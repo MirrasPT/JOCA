@@ -1,6 +1,6 @@
 ---
 name: laravel-refactor
-description: "Use to refactor and optimize Laravel code for scale — remove dead code, reduce complexity, fix N+1s, extract to Actions, run Larastan/PHPStan, and harden for scalability. Triggered by: \"refactor laravel\", \"optimize laravel\", \"clean up this code\", \"dead code\", \"unused code\", \"reduce complexity\", \"larastan\", \"phpstan\", \"fat controller\", \"scale this\", \"laravel scalability\", \"remove unused\", \"tech debt\". Reads code, runs static analysis, proposes and applies surgical refactors. Different from security-review (security) and query-debugger (single-query EXPLAIN)."
+description: "Refactoriza/optimiza Laravel para escala — remove código morto, reduz complexidade, corrige N+1, extrai para Actions, corre Larastan/PHPStan. Lê código, analisa estaticamente, aplica refactors cirúrgicos. Diferente de security-review (segurança) e query-debugger (1 query). Triggers: refactor laravel, dead code, fat controller, larastan, reduce complexity, scale this."
 skills: laravel-specialist, caching
 chain: tester-code
 tools: Read, Grep, Glob, Bash, Edit, Write

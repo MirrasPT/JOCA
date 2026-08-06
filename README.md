@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**257 componentes:** 131 skills + 101 agents + 25 commands.
+**259 componentes:** 131 skills + 102 agents + 26 commands.
 
 ---
 
@@ -162,6 +162,28 @@ Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main
 
 O assistente clona o repo, configura identidade, personalidade (soul), skills, CLIs e instala o JOCA_OS.
 
+### Já tenho JOCA mas está lento, caro ou a dar problemas — instalação limpa
+
+Para quem já usa JOCA há tempo (possivelmente várias cópias antigas na mesma máquina) e sente
+consumo excessivo de tokens, instalações a conflituar, ou só quer recomeçar sem perder memória.
+
+**Passo 1 — cria uma pasta NOVA e VAZIA** (nunca dentro de uma instalação JOCA existente — o
+comando acaba por arquivar instalações antigas, e corrê-lo de dentro de uma delas tentaria
+mover/arquivar a própria pasta de onde o Claude Code está a correr).
+
+**Passo 2 — abre um terminal Claude Code dentro dessa pasta vazia e cola:**
+
+```
+Le o ficheiro clean-install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/clean-install.md e segue as instrucoes.
+```
+
+O assistente clona o JOCA para dentro desta pasta (que passa a ser a instalação de produção, não se
+move outra vez), descobre TODAS as instalações antigas na máquina, audita-as contra este baseline,
+propõe uma tabela de optimizações de tokens (nunca aplica sem aprovares), consolida a memória de
+todas as instalações antigas para aqui (a mais recente vence em conflito, nada se descarta), corre o
+graphify (obrigatório) sobre todos os projectos ligados, e arquiva as instalações antigas numa pasta
+`Old/` — nunca as apaga.
+
 ### Iniciar a interface
 
 ```bash
@@ -258,7 +280,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 
 ---
 
-## Agents (101)
+## Agents (102)
 
 Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — inventario completo em `JOCA_Brain/.claude/agents/`.)
 
@@ -294,7 +316,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (25)
+## Commands (26)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 

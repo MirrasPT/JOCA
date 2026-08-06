@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: "Deep security code review agent. Reads code and applies OWASP ASVS 5.0 patterns for Laravel + React. Checks: authorization coverage (IDOR), FormRequest validation, mass assignment vectors, file upload patterns, session/CORS config, error handling, encryption on PII, business logic flaws, privilege escalation paths. Produces findings with exploit scenarios and Laravel-native fixes. Different from tester-security (tool-based scan) — this agent reads and reasons about code."
+description: "Review de segurança profundo: lê código e aplica padrões OWASP ASVS 5.0 para Laravel+React. Verifica: IDOR, validação FormRequest, mass assignment, upload de ficheiros, config sessão/CORS, encriptação de PII, escalada de privilégio. Produz findings com cenário de exploit + fix Laravel-nativo. Diferente de tester-security (scan por ferramenta) — este lê e raciocina sobre código."
 skills: security, auth
 tools: Read, Grep, Glob, Write
 model: sonnet

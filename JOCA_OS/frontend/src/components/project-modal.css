@@ -26,49 +26,50 @@
   background: color-mix(in srgb, var(--on-surface) 16%, transparent);
 }
 
+/* Sem browser de pastas embutido (a escolha é pelo diálogo NATIVO do SO — /pick-folder), o
+   formulário fica em coluna única com todo o espaço. */
 .project-modal .project-modal-body .project-modal-grid {
-  grid-template-columns: minmax(280px, 1fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   overflow: visible;
   padding: 0;
-}
-
-/* Sem browser de pastas não faz sentido deixar meia caixa vazia — a coluna única dá todo o
-   espaço ao formulário, que é o que interessa em modo de edição. */
-.project-modal .project-modal-body .project-modal-grid:has(> .project-browse-toggle) {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@media (max-width: 860px) {
-  .project-modal .project-modal-body .project-modal-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 640px) {
   .project-modal .project-modal-body { padding: 0 20px 16px; }
 }
 
-/* ─── Botão que traz o browser de volta (modo edição) ───────────────────────────────────────── */
-.project-modal .project-browse-toggle {
-  align-self: start;
-  justify-self: start;
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px dashed color-mix(in srgb, var(--on-surface) 16%, transparent);
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--on-surface) 2.6%, transparent);
-  color: var(--text-muted);
+/* ─── Campo Pasta: input + botão do explorador nativo ───────────────────────────────────────── */
+.project-modal .project-path-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.project-modal .project-path-row input { flex: 1; min-width: 0; }
+.project-modal .project-pick-folder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--on-surface) 16%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--on-surface) 4%, transparent);
+  color: var(--text-normal);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
-  transition: color var(--t-fast), border-color var(--t-fast);
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
 }
-
-.project-modal .project-browse-toggle:hover {
+.project-modal .project-pick-folder-btn svg { width: 15px; height: 15px; }
+.project-modal .project-pick-folder-btn:hover:not(:disabled) {
   color: var(--accent-text);
   border-color: var(--accent-border, color-mix(in srgb, var(--accent) 40%, transparent));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
+.project-modal .project-pick-folder-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.project-modal .project-pick-folder-btn:disabled { opacity: 0.6; cursor: wait; }
 
 /* ─── Selector de ícone dentro do formulário ────────────────────────────────────────────────── */
 /* O `.project-field input` do App.css impõe altura 42px e tipo mono a QUALQUER input do campo —
@@ -231,12 +232,7 @@
   border-color: #991b1b;
 }
 
-.project-modal .project-danger-btn:focus-visible,
-.project-modal .project-browse-toggle:focus-visible {
+.project-modal .project-danger-btn:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;
-}
-
-.project-modal .project-browse-toggle:focus-visible {
-  outline-color: var(--accent-text);
 }

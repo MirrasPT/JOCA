@@ -1,6 +1,6 @@
 ---
 name: tester-api
-description: "REST API testing agent. Tests endpoints for correctness, auth, schema, IDOR, performance, and edge cases. Triggered by: \"test my API\", \"test endpoints\", \"API testing\", \"check my routes\", \"test authentication\", \"API broken\", \"endpoint not working\", \"test REST API\", \"validate API response\", \"API contract test\", \"test my Laravel API\", \"HTTP 500\", \"401 unauthorized\", \"check response schema\", \"test webhook\". Produces pass/fail report per endpoint."
+description: "Testa endpoints REST: correcção, auth, schema, IDOR, performance, edge cases. Produz relatório pass/fail por endpoint. Triggers: test my API, test endpoints, API broken, HTTP 500, 401 unauthorized, test webhook, validate API response."
 skills: rest-api, auth
 chain: tester-ratelimit
 tools: Bash, Read, Write

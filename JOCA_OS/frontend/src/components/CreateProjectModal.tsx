@@ -23,18 +23,6 @@ function parseGithubRepo(url?: string): string {
   return match ? match[1] : '';
 }
 
-interface FileEntry {
-  name: string;
-  path: string;
-  isDir: boolean;
-}
-
-interface FileListResponse {
-  path: string;
-  parent: string;
-  entries: FileEntry[];
-}
-
 interface ProjectDraft {
   name: string;
   path: string;
@@ -88,13 +76,9 @@ export default function CreateProjectModal({
   // novos enviavam o mesmo laranja por omissão (draft.color já nasce com PROJECT_COLORS[0]),
   // e o fallback de cor por hash em `projectColor()` nunca chegava a disparar via UI.
   const [colorTouched, setColorTouched] = useState(false);
-  const [browserPath, setBrowserPath] = useState('');
-  const [fileList, setFileList] = useState<FileListResponse | null>(null);
-  const [showHidden, setShowHidden] = useState(false);
-  // A criar, escolher a pasta É a tarefa (browser aberto); a editar é raro — fica atrás de um
-  // botão, senão metade do diálogo era uma lista de pastas que ninguém ia usar.
-  const [showBrowser, setShowBrowser] = useState(true);
-  const [loading, setLoading] = useState(false);
+  // Picker NATIVO (Finder/Explorer) via backend /pick-folder — o browser não consegue dar o
+  // caminho absoluto de uma pasta, o SO consegue. Enquanto o diálogo está aberto, o botão espera.
+  const [picking, setPicking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   // Logótipos carregados nesta sessão do modal. Se o utilizador fechar sem gravar, nenhum projecto
@@ -132,7 +116,6 @@ export default function CreateProjectModal({
     }
   }, [project, onUpdateProject, githubRepoDraft]);
 
-  const visibleDirs = useMemo(() => fileList?.entries.filter((entry) => entry.isDir) ?? [], [fileList]);
   const isEditing = Boolean(project);
   const colorOptions = useMemo(() => (
     draft.color && !PROJECT_COLORS.includes(draft.color)
@@ -142,7 +125,6 @@ export default function CreateProjectModal({
 
   useEffect(() => {
     if (!open) return;
-    setShowBrowser(!project);
     setDraft({
       name: project?.name ?? '',
       path: project?.path ?? '',
@@ -152,40 +134,28 @@ export default function CreateProjectModal({
       hasCode: Boolean(project?.hasCode),
     });
     pendingUploadsRef.current = [];
-    setBrowserPath(project?.path ?? '');
-    setFileList(null);
     setError('');
     setColorTouched(Boolean(project?.color));
   }, [open, project]);
 
-  useEffect(() => {
-    if (!open) return;
-    const controller = new AbortController();
-    setLoading(true);
+  // Abre o diálogo nativo do SO e preenche o caminho automaticamente.
+  const pickFolder = useCallback(async () => {
+    if (picking) return;
+    setPicking(true);
     setError('');
-
-    const params = new URLSearchParams();
-    if (browserPath) params.set('path', browserPath);
-    if (showHidden) params.set('hidden', 'true');
-
-    fetch(`/files?${params.toString()}`, { signal: controller.signal })
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Não foi possível ler a pasta');
-        return data as FileListResponse;
-      })
-      .then((data) => {
-        setFileList(data);
-        setBrowserPath(data.path);
-        setDraft((current) => current.path ? current : { ...current, path: data.path });
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') setError(err.message || String(err));
-      })
-      .finally(() => setLoading(false));
-
-    return () => controller.abort();
-  }, [browserPath, open, showHidden]);
+    try {
+      const res = await fetch('/pick-folder', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Não foi possível abrir o selector de pastas');
+      if (data.path) {
+        setDraft((current) => ({ ...current, path: data.path }));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPicking(false);
+    }
+  }, [picking]);
 
   // Focus-trap real: `aria-modal="true"` promete que o resto do documento fica inerte, mas sem
   // isto o Tab continuava a percorrer a sidebar por trás do overlay (mesmo padrão já usado no
@@ -320,15 +290,24 @@ export default function CreateProjectModal({
 
             <label className="project-field">
               <span>Pasta</span>
-              <input
-                value={draft.path}
-                onChange={(event) => {
-                  setDraft((current) => ({ ...current, path: event.target.value }));
-                  setBrowserPath(event.target.value);
-                }}
-                onKeyDown={(event) => { if (event.key === 'Enter') submit(); }}
-                placeholder="~/projects/..."
-              />
+              <div className="project-path-row">
+                <input
+                  value={draft.path}
+                  onChange={(event) => setDraft((current) => ({ ...current, path: event.target.value }))}
+                  onKeyDown={(event) => { if (event.key === 'Enter') submit(); }}
+                  placeholder="~/projects/..."
+                />
+                <button
+                  type="button"
+                  className="project-pick-folder-btn"
+                  onClick={pickFolder}
+                  disabled={picking}
+                  title="Abrir o explorador de ficheiros e escolher a pasta"
+                >
+                  <FolderIcon />
+                  {picking ? 'A escolher…' : 'Procurar'}
+                </button>
+              </div>
             </label>
 
             <label className="project-field">
@@ -424,47 +403,6 @@ export default function CreateProjectModal({
             </div>
           </section>
 
-          {showBrowser ? (
-          <section className="project-folder-browser" aria-label="Escolher pasta">
-            <div className="project-browser-toolbar">
-              <button type="button" onClick={() => fileList?.parent && setBrowserPath(fileList.parent)}>Subir</button>
-              <button type="button" onClick={() => setBrowserPath('')}>Início</button>
-              <button type="button" onClick={() => fileList && setDraft((current) => ({ ...current, path: fileList.path }))}>
-                Usar esta
-              </button>
-              <label className="project-hidden-toggle">
-                <input type="checkbox" checked={showHidden} onChange={(event) => setShowHidden(event.target.checked)} />
-                ocultos
-              </label>
-            </div>
-
-            <div className="project-browser-path">{fileList ? shortPath(fileList.path) : 'A carregar…'}</div>
-
-            <div className="project-browser-list">
-              {loading && <div className="project-browser-empty">A carregar pastas…</div>}
-              {!loading && visibleDirs.map((entry) => (
-                <button
-                  key={entry.path}
-                  type="button"
-                  className={`project-browser-row ${draft.path === entry.path ? 'active' : ''}`}
-                  onClick={() => {
-                    setBrowserPath(entry.path);
-                    setDraft((current) => ({ ...current, path: entry.path }));
-                  }}
-                >
-                  <span><FolderIcon /></span>
-                  <strong>{entry.name}</strong>
-                </button>
-              ))}
-              {!loading && visibleDirs.length === 0 && <div className="project-browser-empty">Sem pastas aqui</div>}
-            </div>
-          </section>
-          ) : (
-            // Em edição a pasta raramente muda. Fica atrás de um botão; a criar, continua aberto.
-            <button type="button" className="project-browse-toggle" onClick={() => setShowBrowser(true)}>
-              Escolher outra pasta
-            </button>
-          )}
         </div>
 
         {isEditing && project && (

@@ -84,6 +84,8 @@ export interface PooledWorker {
   busy: boolean;
   lastUsedAt: number;
   currentJob?: string;
+  /** Terminal do gestor (area 'gestor') — abre sozinho com o projecto, mas fecha como os outros. */
+  manager?: boolean;
   status: 'working' | 'idle' | 'closed';
 }
 
@@ -217,6 +219,11 @@ export interface HeartbeatConfig {
   // Wakes automáticos seguidos que um gestor pode gastar antes de a fila parar (1–40). Opcional
   // porque um `data/heartbeat.json` gravado por uma versão anterior não o traz.
   maxAutoWakes?: number;
+  // Vigia activo. Opcional pela mesma razão que o `maxAutoWakes`; ausente lê-se como ligado, que é
+  // o default do backend.
+  crewWatch?: boolean;
+  // Custo de um turno de gestor acima do qual a sessão é recomeçada com um resumo (0.2–20).
+  rotateSessionUsd?: number;
   model: string;
   scratch: string;
   lastRunAt?: number | null;
@@ -235,6 +242,6 @@ export interface CliProfileInfo {
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
 /** `agents` = vista global de agentes (todos os projectos num sítio só). */
-export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'joca' | 'agents' | 'room';
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'agents';
 /** `inbox` = notificações como 4º painel do rail direito (deixou de ser sino flutuante). */
-export type RightPanel = 'files' | 'toolkit' | 'settings' | 'inbox' | null;
+export type RightPanel = 'toolkit' | 'settings' | 'inbox' | null;

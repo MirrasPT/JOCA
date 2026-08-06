@@ -5,8 +5,13 @@ MCP servers ligados (user scope, sempre disponíveis):
 | MCP | Comando | Uso |
 |---|---|---|
 | `markitdown` | `uvx markitdown-mcp` (stdio; Mac) / `python -m markitdown_mcp` (Windows) | Converte ficheiro/URL (PDF/Office/imagem/áudio/HTML/YouTube) → Markdown. Motor do `/know` (skill `knowledge-ingest`). No Mac o pip de sistema é externally-managed (PEP 668) → usar `uvx`. |
-| `playwright` | `npx -y @playwright/mcp@latest` | Browser automation. ⚠ O pacote antigo `@anthropic-ai/mcp-server-playwright` é um **404 fantasma** (nunca existiu no registry) — era essa a causa do "falha a ligar". Oficial = `@playwright/mcp` (Microsoft). Ver skill `browser-automate`. |
 | `plugin:comfy:comfyui` / `civitai` | plugin comfy | Geração de media local (ComfyUI). |
+
+⚠ **Playwright MCP removido de vez (2026-08-05, decisão explícita do dono) — nunca reinstalar
+`@playwright/mcp`.** Browser automation passa a ser: extensão **Claude no Chrome**
+(`mcp__claude-in-chrome__*`) para verificação ad-hoc, **Playwright CLI** (`@playwright/cli`) para
+scripts/automação repetível. Se a máquina não tiver o Playwright CLI, pede para o instalar — nunca
+uses MCP como alternativa. Ver `tools/clis.md`.
 
 ## markitdown — setup
 

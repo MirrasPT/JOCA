@@ -8,7 +8,7 @@ import express, { Router, Response } from 'express';
 import { loadProjects } from '../project-store';
 import { loadChat, clearChat, getState, patchState, appendMessage } from '../manager/store';
 import { handleUserMessage, isManagerBusy } from '../manager/wake';
-import { listWorkers } from '../manager/worker-pool';
+import { listWorkers, ensureManagerSession } from '../manager/worker-pool';
 import { sessionManager } from '../session-manager';
 import { GLOBAL_MANAGER_ID } from '../manager/manager';
 import {
@@ -80,6 +80,9 @@ export function managerRouter(): Router {
 
   r.get('/projects/:id/chat', (req, res) => {
     if (!projectExists(req.params.id)) return res.status(404).json({ error: 'projecto não encontrado' });
+    // O gestor de projecto é hoje um terminal fixo (área 'gestor'), não o chat SDK — nasce sozinho
+    // na primeira vez que o painel do projecto abre. Idempotente (ver ensureManagerSession).
+    try { ensureManagerSession(req.params.id); } catch (e) { console.error('[manager] ensureManagerSession falhou:', e); }
     const limit = Math.max(1, Math.min(Number(req.query.limit) || 200, 1000));
     const state = getState(req.params.id);
     res.json({

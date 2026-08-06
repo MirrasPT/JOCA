@@ -45,6 +45,7 @@ export interface Task {
   result?: string;             // veredicto/resumo do juiz sobre a execução
   testerResult?: string;       // (reservado) output de um passo de verificação
   lastStatus?: 'ok' | 'error' | 'running' | null;
+  retryCount?: number;         // tentativas automáticas já gastas (erro → retry), cap RETRY_MAX
   createdAt: number;
   updatedAt: number;
 }

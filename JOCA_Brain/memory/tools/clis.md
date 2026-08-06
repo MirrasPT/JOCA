@@ -49,7 +49,7 @@ no repositório nem devem ser inventados.**
 | `hf` (huggingface_hub) | modelos/datasets HF | `uv tool install huggingface_hub` | `hf auth login` |
 | `sentry-cli` | error tracking (skills `error-tracking-dev`/`error-tracking-prod`) | `npm i -g @sentry/cli` | `SENTRY_AUTH_TOKEN` |
 | `cli-printing-press` | gerar CLIs/MCP a partir de APIs | `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest` (Go 1.26+; PATH += `~/go/bin`) | — |
-| `graphify` | mapa de código/conhecimento (`/map-joca`, `/resume`) | pacote Python local (instalar no Python de sistema: `pip install <path-do-pacote>`) | — |
+| `graphify` | **OBRIGATÓRIO.** Mapa de código/conhecimento (`/map-joca`, `/resume`, `/save`, `/clean-install`) — memória de projecto mais barata de consultar do que abrir ficheiros `.md` gigantes à procura. | `uv tool install graphifyy` (pacote real chama-se `graphifyy`, entrypoint instala como `graphify`; sem `uv`: `pipx install graphifyy`). Depois de instalar/actualizar, correr sempre `bash .claude/scripts/graphify-patch.sh` (reaplica patches: DOC_EXTENSIONS expandido, inclui dotdirs como `.claude/`). | — |
 | `zmail` | Zoho Mail (jar Java + wrapper `zmail`; requer Java 11+) | jar oficial Zoho + wrapper em `~/.local/bin/zmail` | `zmail` → `login [--dc <tld>]` (interactivo) |
 | `supabase` | Supabase | `brew install supabase/tap/supabase` / `scoop install supabase` | `supabase login` |
 | `railway` | deploy Railway | `npm i -g @railway/cli` | `railway login` |

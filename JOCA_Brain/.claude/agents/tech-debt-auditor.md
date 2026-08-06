@@ -1,6 +1,6 @@
 ---
 name: tech-debt-auditor
-description: "Tech-debt audit agent. Scans a codebase, enumerates technical debt with an upstream upgrade-path, and QUANTIFIES the gain (LOC removed, complexity dropped, cost/time saved). Deterministic-helper-enumerates + LLM-judges pattern: a script measures (cyclomatic complexity, dead code, duplication, outdated deps); the agent prioritizes and estimates gain per item. Triggers: tech debt, dívida técnica, medir ganho, LOC poupado, onde simplificar, where to simplify, debt audit. Plugs into the Backend hardening pipeline alongside laravel-refactor + query-debugger + security-review. Reports only — never commits or decides autonomously."
+description: "Audita dívida técnica: enumera com upstream upgrade-path e QUANTIFICA o ganho (LOC removido, complexidade, tempo poupado). Padrão script-mede + LLM-prioriza (complexidade ciclomática, código morto, duplicação, deps desactualizadas). Entra na pipeline de hardening backend junto com laravel-refactor+query-debugger+security-review. Reports only. Triggers: tech debt, dívida técnica, medir ganho, LOC poupado, onde simplificar."
 skills:
   - karpathy-guidelines
 tools:

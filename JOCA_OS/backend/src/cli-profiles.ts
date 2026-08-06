@@ -4,8 +4,10 @@
 // everything is overridable via DATA_DIR/cli-profiles.json (partial merge by id) so a flag rename
 // upstream is a config fix, not a code change.
 //
-// startupSequence: only Claude Code gets the /resume + trust-prompt choreography —
-// the other CLIs have no JOCA commands, so project context is provided by cwd = project folder.
+// startupSequence: EVERY CLI boots inside JOCA_Brain (cwd) and receives a resume command with the
+// project folder — Claude Code understands the custom `/resume`; os outros CLIs não têm comandos
+// custom, por isso recebem `resume "<pasta>"` em texto simples (o AGENTS.md/GEMINI.md compilado no
+// JOCA_Brain diz-lhes o que isso significa).
 import path from 'path';
 import { DATA_DIR, readJsonFile } from './project-store';
 
@@ -19,7 +21,8 @@ export interface CliProfile {
   modelFlag?: string;        // e.g. '--model' → `--model <m>`; undefined = CLI has no model flag
   autonomousFlags: string[]; // appended when JOCA's skip-permissions/autonomous toggle is on
   extraFlags: string[];      // always appended (user-configurable)
-  startupSequence: boolean;  // run the Claude-specific /resume choreography after boot
+  startupSequence: boolean;  // run the boot choreography (trust prompt, update dialog, resume)
+  resumeCmd: string;         // how this CLI receives the project folder: '/resume' | 'resume'
 }
 
 const DEFAULTS: Record<CliId, CliProfile> = {
@@ -29,27 +32,33 @@ const DEFAULTS: Record<CliId, CliProfile> = {
     autonomousFlags: ['--dangerously-skip-permissions'],
     extraFlags: [],
     startupSequence: true,
+    resumeCmd: '/resume',
   },
   codex: {
     id: 'codex', label: 'Codex CLI', bin: 'codex',
     modelFlag: '--model',
-    autonomousFlags: ['--full-auto'],
+    // O codex ≥0.146 removeu o `--full-auto`; o equivalente ao skip-permissions do claude é este.
+    autonomousFlags: ['--dangerously-bypass-approvals-and-sandbox'],
     extraFlags: [],
-    startupSequence: false,
+    startupSequence: true,
+    resumeCmd: 'resume',
   },
   agy: {
     id: 'agy', label: 'Antigravity', bin: 'agy',
     modelFlag: '--model',
     autonomousFlags: [],
     extraFlags: [],
-    startupSequence: false,
+    startupSequence: true,
+    // O agy não reconhece comandos custom com `/` — recebe `resume "<pasta>"` como prompt normal.
+    resumeCmd: 'resume',
   },
   opencode: {
     id: 'opencode', label: 'OpenCode', bin: 'opencode',
     modelFlag: '--model',
     autonomousFlags: [],
     extraFlags: [],
-    startupSequence: false,
+    startupSequence: true,
+    resumeCmd: 'resume',
   },
 };
 
@@ -69,6 +78,7 @@ export function loadCliProfiles(): Record<CliId, CliProfile> {
       ...(Array.isArray(o.autonomousFlags) ? { autonomousFlags: o.autonomousFlags.filter((f) => typeof f === 'string') } : {}),
       ...(Array.isArray(o.extraFlags) ? { extraFlags: o.extraFlags.filter((f) => typeof f === 'string') } : {}),
       ...(typeof o.startupSequence === 'boolean' ? { startupSequence: o.startupSequence } : {}),
+      ...(typeof o.resumeCmd === 'string' && o.resumeCmd.trim() ? { resumeCmd: o.resumeCmd.trim() } : {}),
     };
   }
   return out;

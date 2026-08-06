@@ -1,6 +1,6 @@
 ---
 name: tester-performance
-description: "Use when you need to audit web performance or run load/stress tests. Triggered by: \"run Lighthouse\", \"check Core Web Vitals\", \"LCP FID CLS INP\", \"performance score\", \"page speed\", \"bundle size\", \"load time\", \"slow site\", \"Lighthouse audit\", \"performance report\", \"why is my site slow\", \"Time to First Byte\", \"TTFB\", \"load test\", \"stress test\", \"k6\", \"can my server handle X users\", \"performance under load\", \"spike test\", \"soak test\", \"how many concurrent users\", \"test scalability\", \"SLA validation\", \"throughput test\", \"API performance test\", \"breaking point\", \"simulate traffic\", \"ramp up users\", \"load before launch\". Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical / Warning / Good."
+description: "Audits web performance or runs load/stress tests. Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical/Warning/Good. Triggers: Lighthouse, Core Web Vitals, LCP/FID/CLS/INP, page speed, bundle size, slow site, TTFB, load test, k6, concurrent users, SLA validation, breaking point."
 skills: caching
 tools: Bash, Read, Write
 model: sonnet

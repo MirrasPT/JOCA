@@ -9,7 +9,7 @@
 // estado, mesma animação de "a trabalhar", mesmas acções. É a mesma entidade, não vale um segundo
 // vocabulário visual.
 import { useEffect, useMemo, useState } from 'react';
-import type { PooledWorker, Project, SessionInfo } from '../types';
+import type { CliProfileInfo, PooledWorker, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 import InlineName from './InlineName';
 import './agents-view.css';
@@ -30,13 +30,6 @@ interface Props {
   refreshKey: number;
 }
 
-const CLIS = [
-  { id: 'claude', label: 'Claude' },
-  { id: 'codex', label: 'Codex' },
-  { id: 'agy', label: 'Antigravity' },
-  { id: 'opencode', label: 'OpenCode' },
-];
-
 function OpenIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -56,6 +49,14 @@ function CloseIcon() {
 export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession, refreshKey }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cli, setCli] = useState('claude');
+  // Fonte única para "que CLIs existem" — respeita `available` (instalado ou não), em vez de uma
+  // lista fixa que inclui CLIs que a máquina nem tem.
+  const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
+  useEffect(() => {
+    fetch('/cli-profiles').then((r) => r.json())
+      .then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : []))
+      .catch(() => setCliProfiles([]));
+  }, []);
   // O que cada agente está a fazer vive na pool do gestor, não na lista de sessões (que só sabe
   // nome e caminho — igual para todos os agentes do mesmo projecto, portanto inútil aqui).
   const [pool, setPool] = useState<PooledWorker[]>([]);
@@ -175,7 +176,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
             aria-label="CLI do agente novo"
             title="Que CLI corre neste agente"
           >
-            {CLIS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            {cliProfiles.filter((p) => p.available).map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
           <button className="f-btn" type="button" onClick={() => onNewSession(cli)}>
             + Novo agente

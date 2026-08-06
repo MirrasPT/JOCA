@@ -32,6 +32,9 @@ import {
 const TASK_TIMEOUT_MS = 60 * 60_000;        // hard cap per dispatch (1h); the judge sees whatever is there
 const ANSWER_TIMEOUT_MS = 24 * 60 * 60_000; // how long we wait for the user to answer a question (24h)
 const NO_PROJECT_KEY = '';                  // queue key for tasks without a project
+// Tentativas automáticas antes de desistir e pedir revisão humana. Alinhado com o
+// loop_max_iterations do soul.md — o mesmo travão anti-loop usado no resto do JOCA.
+const RETRY_MAX = 4;
 
 // One task worker per project. `busy` = a task is currently dispatched into it (the sequential lock).
 interface ProjectWorker { sessionId: string; busy: boolean }
@@ -220,15 +223,26 @@ async function fire(key: string, id: string): Promise<void> {
     verdict = { state: 'error', summary: e instanceof Error ? e.message : String(e), costUsd: 0 };
   }
 
-  // Conclude. The worker stays open (never killed here) — the user can inspect/continue in the terminal.
-  // Only pull the task back to 'concluida' if it is still the one we dispatched: the user (or the
-  // worker itself, via the joca CLI) may have moved/archived it meanwhile.
-  if (getTask(id)?.status === 'em-execucao') moveTask(id, 'concluida');
-  patchTask(id, { lastStatus: verdict.state === 'ok' ? 'ok' : 'error', result: verdict.summary });
+  // Conclude. O worker fica aberto (nunca se mata aqui) — o utilizador pode inspeccionar/continuar
+  // no terminal. Falha → tenta de novo sozinho até RETRY_MAX vezes (volta a 'a-executar' e
+  // re-dispara já, sem esperar pelo heartbeat); ao esgotar, cai em 'concluida' como antes e avisa.
+  const previousRetryCount = task.retryCount ?? 0;
+  const willRetry = verdict.state === 'error' && previousRetryCount < RETRY_MAX;
+
+  // Só pull para o destino se a tarefa ainda for a que despachámos: o utilizador (ou o próprio
+  // worker, via `joca`) pode tê-la movido/arquivado entretanto.
+  if (getTask(id)?.status === 'em-execucao') moveTask(id, willRetry ? 'a-executar' : 'concluida');
+  patchTask(id, {
+    lastStatus: verdict.state === 'ok' ? 'ok' : 'error',
+    result: verdict.summary,
+    retryCount: verdict.state === 'ok' ? 0 : (willRetry ? previousRetryCount + 1 : previousRetryCount),
+  });
   // The judge's verdict joins the task thread, so the board keeps a readable history of every run.
   addTaskComment(id, {
     author: 'judge',
-    text: `${verdict.state === 'ok' ? '✓' : '✗'} ${verdict.summary}`,
+    text: willRetry
+      ? `✗ ${verdict.summary} (tentativa ${previousRetryCount + 1}/${RETRY_MAX} — a repetir sozinho)`
+      : `${verdict.state === 'ok' ? '✓' : '✗'} ${verdict.summary}`,
   });
   recordRun({
     kind: 'task', refId: task.id, name: task.title, projectId: task.projectId,
@@ -237,17 +251,24 @@ async function fire(key: string, id: string): Promise<void> {
     summary: verdict.summary, costUsd: judgeCostUsd,
     cli: task.cli, model: task.model,
   });
-  if (verdict.state !== 'ok') {
-    // Failures land in the persistent inbox — success is visible on the board itself.
+  if (verdict.state !== 'ok' && !willRetry) {
+    // Falhas ficam na inbox persistente — sucesso já se vê no board. `willRetry=false` aqui só
+    // acontece por esgotar as RETRY_MAX tentativas (o 1º-3º erro nem passa por aqui).
+    const exhausted = previousRetryCount >= RETRY_MAX;
     pushNotification({
-      kind: 'system', title: `✗ Tarefa falhou: ${task.title}`,
-      text: verdict.summary,
+      kind: 'system',
+      title: exhausted ? `✗ Tarefa falhou definitivamente: ${task.title}` : `✗ Tarefa falhou: ${task.title}`,
+      text: exhausted
+        ? `Falhou ${RETRY_MAX} vezes seguidas — parei de tentar sozinho. Precisa de revisão tua.\n${verdict.summary}`
+        : verdict.summary,
       priority: 'action',        // uma falha fica parada até decidires o que fazer com ela
       meta: { taskId: task.id, sessionId: w.sessionId || undefined, projectId: task.projectId },
       // Uma fila de tarefas que falha toda pelo MESMO motivo (CLI em baixo, projecto partido) é um
       // problema, não N. O motivo entra na chave: falhas diferentes continuam a ser notificações
       // diferentes, senão o agrupamento escondia a que era distinta.
-      groupKey: `task-fail:${task.projectId ?? 'sem-projecto'}:${verdict.summary.slice(0, 40)}`,
+      groupKey: exhausted
+        ? `task-fail-final:${task.id}`
+        : `task-fail:${task.projectId ?? 'sem-projecto'}:${verdict.summary.slice(0, 40)}`,
     });
   }
   const cur = workers.get(key);
@@ -256,11 +277,23 @@ async function fire(key: string, id: string): Promise<void> {
     else cur.busy = false;
   }
   notifyTasksChanged();
+
+  // Retry com backoff curto (não em rajada — auditoria #11: 4 tentativas seguidas agravam falhas
+  // por rate-limit). Antes de disparar, RELÊ o estado: se o utilizador entretanto moveu/arquivou a
+  // tarefa à mão, o retry respeita-o em vez de a reanimar (auditoria #5).
+  if (willRetry) {
+    const delayMs = 10_000 * (previousRetryCount + 1);
+    const t = setTimeout(() => {
+      if (getTask(id)?.status === 'a-executar') dispatchTask(id);
+    }, delayMs);
+    t.unref?.();
+  }
 }
 
 // Start ONE task in its project's worker, applying the invariant guards. This is the single
-// entry point for execution — tasks NEVER start on their own any more: either the user presses
-// "correr" or the project manager decides it is time (manager/tools.ts → executar_tarefa).
+// entry point for execution: user ("correr"), project manager (manager/tools.ts → executar_tarefa),
+// heartbeat (dispararTarefasEmFila drena 'a-executar') e o retry automático após falha.
+// Tarefas em 'a-definir' NUNCA entram por aqui sozinhas — só quando alguém as move.
 //
 // Returns a reason instead of throwing so the manager can tell the user *why* nothing happened.
 export function dispatchTask(id: string): { ok: boolean; reason?: string } {
@@ -289,7 +322,7 @@ export function dispatchTask(id: string): { ok: boolean; reason?: string } {
 export function startTasksEngine(): void {
   if (started) return;
   started = true;
-  console.log('[tasks] engine on (arranque manual — as tarefas só correm por ordem tua ou do gestor)');
+  console.log('[tasks] engine on (tarefas correm por ordem tua/do gestor; o heartbeat drena a fila a-executar; a-definir nunca arranca sozinha)');
 }
 
 // Manual "run now" — the button on a card. Same path as the manager's.

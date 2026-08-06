@@ -27,11 +27,10 @@ interface Props {
   onRenameSession?: (id: string, name: string) => void;
   /** Escape hatch explícito (ícone de expandir num agente) — ecrã cheio, como antes. */
   onSwitchSession: (id: string) => void;
-  onPreviewFile: (path: string) => void;
   /** Fecha a sessão de um agente (mesmo handler da barra lateral). */
   onCloseSession: (id: string) => void;
   /** Abre um agente novo SEM sair do projecto (o "+" da secção Agentes). */
-  onAddAgent: (project: Project) => void;
+  onAddAgent: (project: Project, cli?: string) => void;
   onRenameProject?: (id: string, name: string) => void;
   onInput: (sessionId: string, data: string) => void;
   onResize: (sessionId: string, cols: number, rows: number) => void;
@@ -40,7 +39,7 @@ interface Props {
 
 export default function ProjectWorkspace({
   project, projects, sessions, managerRefresh, tasksRefresh,
-  onEditProject, onRenameSession, onSwitchSession, onPreviewFile,
+  onEditProject, onRenameSession, onSwitchSession,
   onRenameProject, onCloseSession, onAddAgent, onInput, onResize, onReady,
 }: Props) {
   const [workers, setWorkers] = useState<PooledWorker[]>([]);
@@ -162,21 +161,17 @@ export default function ProjectWorkspace({
           {id === 'chat' && (
             <ChatChannel
               projectId={project.id}
-              projectName={project.name}
-              project={project}
               refreshKey={managerRefresh}
               onWorkersChange={handleWorkers}
               projectSessions={projectSessions}
               workers={workers}
               onExpandSession={onSwitchSession}
               onCloseSession={handleCloseAgent}
-              onNewAgent={() => onAddAgent(project)}
+              onNewAgent={(cli) => onAddAgent(project, cli)}
               onRenameAgent={onRenameSession}
               onInput={onInput}
               onResize={onResize}
               onReady={onReady}
-              path={project.path}
-              onPreviewFile={onPreviewFile}
             />
           )}
           {id === 'tasks' && (

@@ -1,4 +1,4 @@
-description = """Autonomous PR repair agent. Takes a pull request that is failing and brings it back to green: reads the repo's own rules first, resolves merge conflicts, applies unresolved bot review comments, fixes red CI, commits in coherent phases, and pushes ONCE at the end. Fixed-order pipeline with gates and an explicit anti-loop stop criterion. Triggers: reparar PR, arranjar este PR, resolver conflitos, CI vermelho, reviews de bot por resolver, fix this PR, repair PR, fix failing CI. Adapted from swc/repair-pr. Uses gh CLI (authenticated). Different from review-code (which audits) — this agent FIXES and pushes."""
+description = """Agente autónomo de reparação de PR: resolve conflitos, aplica comentários de bots por resolver, corrige CI vermelho, commita em fases coerentes, PUSH uma vez no fim — pipeline de ordem fixa com travão anti-loop. Diferente de review-code (audita) — este CORRIGE e faz push. Usa gh CLI. Triggers: reparar PR, CI vermelho, resolver conflitos, fix failing CI."""
 developer_instructions = """
 
 # PR Repair Agent

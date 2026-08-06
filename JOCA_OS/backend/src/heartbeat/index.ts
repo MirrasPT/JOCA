@@ -19,9 +19,13 @@ import { claudeProvider } from '../providers/provider';
 import { pushNotification, unreadCount } from '../notifications/store';
 import { recordRun } from '../runs/store';
 import { loadTasks } from '../tasks/store';
+import { dispatchTask } from '../tasks/engine';
 import { loadAutomations } from '../automations/store';
 import { listWorkers } from '../manager/worker-pool';
-import { getState } from '../manager/store';
+// Ciclo de import assumido: o `wake.ts` já importa `getMaxAutoWakes` daqui. Os dois lados só se
+// usam DENTRO de funções (nunca no corpo do módulo), que é o que torna o ciclo inofensivo — em
+// CJS as duas metades estão prontas muito antes do primeiro beat. Não mover nada para o topo.
+import { ignorarProximoReporte } from '../manager/wake';
 import { sessionManager } from '../session-manager';
 
 export interface HeartbeatConfig {
@@ -33,6 +37,14 @@ export interface HeartbeatConfig {
   // Wakes automáticos consecutivos que um gestor pode gastar sem o utilizador falar. É o travão
   // anti-loop de `manager/wake.ts` — configurável, nunca removível.
   maxAutoWakes: number;
+  // Vigia activo: além de avisar o utilizador, o beat vai ele próprio cutucar o gestor sobre
+  // agentes e tarefas paradas, e manda os agentes ociosos guardar o que sabem (`/save`).
+  crewWatch: boolean;
+  // Custo de UM turno de gestor acima do qual a sessão SDK é rodada (resumo → sessão nova). Vive
+  // aqui pela mesma razão que o `maxAutoWakes`: é a mesma definição — quanto é que o JOCA pode
+  // gastar sozinho antes de intervir — e um 2º sistema de definições só para um número seria mais
+  // uma coisa a manter em sincronia.
+  rotateSessionUsd: number;
   lastRunAt?: number | null;
   lastDecision?: 'ok' | 'alert' | 'skipped' | 'error' | null;
   lastText?: string;
@@ -55,6 +67,8 @@ export const DEFAULT_HEARTBEAT: HeartbeatConfig = {
   model: 'haiku',
   scratch: '',
   maxAutoWakes: 12,
+  crewWatch: true,
+  rotateSessionUsd: 1.5,
   lastRunAt: null,
   lastDecision: null,
 };
@@ -75,6 +89,22 @@ export function getMaxAutoWakes(): number {
   return clampMaxAutoWakes(loadHeartbeatConfig().maxAutoWakes);
 }
 
+// Limites do limiar de rotação. O chão não é 0: a 0 rodava-se a sessão a cada turno e o gestor
+// nunca teria conversa nenhuma — a rotação passaria de higiene a amnésia permanente.
+export const MIN_ROTATE_USD = 0.2;
+export const MAX_ROTATE_USD = 20;
+
+export function clampRotateUsd(value: unknown): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_HEARTBEAT.rotateSessionUsd;
+  return Math.max(MIN_ROTATE_USD, Math.min(MAX_ROTATE_USD, Math.round(n * 100) / 100));
+}
+
+/** Limiar em vigor. Lido no fim de cada turno de gestor — mudar a definição actua no turno seguinte. */
+export function getRotateSessionUsd(): number {
+  return clampRotateUsd(loadHeartbeatConfig().rotateSessionUsd);
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 let running = false;
 
@@ -89,6 +119,7 @@ export function saveHeartbeatConfig(cfg: HeartbeatConfig): void {
     // Clamp na escrita, não só na leitura: o ficheiro é editável à mão e um 9999 aqui seria um
     // gestor sem travão nenhum.
     maxAutoWakes: clampMaxAutoWakes(cfg.maxAutoWakes),
+    rotateSessionUsd: clampRotateUsd(cfg.rotateSessionUsd),
   });
 }
 
@@ -140,11 +171,10 @@ export function buildStateSnapshot(): { text: string; anomalies: number } {
   return { text: lines.join('\n'), anomalies };
 }
 
-// Um agente que acabou há 5 minutos está a descansar; um que não mexe há quase uma hora com o
-// gestor calado é trabalho parado. Os limiares são generosos de propósito — apertá-los transforma
-// o heartbeat num alarme que ninguém lê.
+// Um agente que acabou há 5 minutos está a descansar; um que não mexe há quase uma hora é trabalho
+// parado. Os limiares são generosos de propósito — apertá-los transforma o heartbeat num alarme
+// que ninguém lê.
 const IDLE_WORKER_MS = 45 * 60_000;
-const SILENT_MANAGER_MS = 60 * 60_000;
 
 function minutosDesde(ts: number | undefined | null): number | null {
   if (!ts) return null;
@@ -162,7 +192,6 @@ function minutosDesde(ts: number | undefined | null): number | null {
 export function buildCrewSnapshot(): { lines: string[]; anomalies: number } {
   const lines: string[] = [];
   let anomalies = 0;
-  const maxAutoWakes = getMaxAutoWakes();
 
   let activos = 0;
   let parados = 0;
@@ -172,8 +201,8 @@ export function buildCrewSnapshot(): { lines: string[]; anomalies: number } {
 
     const workers = listWorkers(project.id).map((w) => ({
       ...w,
-      // `busy` é a intenção do gestor (despachei-lhe trabalho); o status da sessão é o que o
-      // terminal está mesmo a fazer. Divergem quando o worker acabou e ninguém deu por isso.
+      // `busy` é a intenção de quem despachou trabalho; o status da sessão é o que o terminal está
+      // mesmo a fazer. Divergem quando o worker acabou e ninguém deu por isso.
       status: sessionManager.get(w.sessionId)?.status ?? 'closed',
     }));
     if (workers.length === 0) continue;
@@ -183,8 +212,6 @@ export function buildCrewSnapshot(): { lines: string[]; anomalies: number } {
     activos += aTrabalhar.length;
     parados += idle.length;
 
-    const state = getState(project.id);
-    const calado = minutosDesde(state.lastTurnAt);
     const partes: string[] = [];
 
     if (aTrabalhar.length) {
@@ -200,17 +227,6 @@ export function buildCrewSnapshot(): { lines: string[]; anomalies: number } {
       partes.push(`parados: ${idle.map((w) => w.area).join(', ')}`);
     }
 
-    // Gestor preso: gastou o orçamento de wakes automáticos e está à espera de uma palavra do
-    // utilizador. Sem isto, ficava preso em silêncio.
-    if (state.autoWakeCount >= maxAutoWakes) {
-      anomalies += 1;
-      partes.push(`GESTOR PRESO — gastou o orçamento de ${maxAutoWakes} wakes automáticos, só retoma quando o utilizador falar`);
-    } else if (calado !== null && calado > SILENT_MANAGER_MS / 60_000 && workers.length > 0) {
-      // Trabalho aberto no projecto e o gestor sem dar um turno há mais de uma hora.
-      anomalies += 1;
-      partes.push(`gestor sem falar há ${calado} min, com ${workers.length} agente(s) abertos`);
-    }
-
     if (partes.length) lines.push(`Projecto "${project.name}": ${partes.join(' · ')}`);
   }
 
@@ -218,6 +234,145 @@ export function buildCrewSnapshot(): { lines: string[]; anomalies: number } {
     lines.unshift(`Agentes abertos: ${activos} a trabalhar, ${parados} parados.`);
   }
   return { lines, anomalies };
+}
+
+// ── Vigia activo ─────────────────────────────────────────────────────────────
+//
+// O heartbeat deixa de ser só um vigia que te dá um toque: age sobre o que vê. Duas acções, ambas
+// DETERMINÍSTICAS (sem modelo, custo zero) e ambas do tipo mais barato possível — cutucar quem já
+// sabe decidir, em vez de decidir por ele:
+//
+//   • agentes parados há muito e tarefas encalhadas → uma MENSAGEM no terminal do gestor do
+//     projecto (o canal actual — o chat SDK está desligado), para ele ir ver porquê. O gestor é
+//     que tem contexto; o heartbeat não julga trabalho. Sem terminal de gestor aberto, o aviso
+//     cai na inbox do dono.
+//   • agentes parados → `/save`, para o que eles souberem ficar em memória antes de o terminal
+//     morrer ou ser reutilizado noutra coisa.
+//
+// Porque é que isto não vira um ciclo: o re-aviso é limitado por impressão digital + REAVISO_MS
+// (só insiste se a situação MUDOU ou passou tempo suficiente). E o `/save` é silenciado no
+// reporte (senão cada arrumação gerava um "o worker acabou" sobre trabalho que ninguém deu).
+
+// Tarefa parada na fila há mais de isto, sem ninguém lhe tocar, é uma tarefa esquecida.
+const TAREFA_PARADA_MS = 2 * 60 * 60_000;
+// Não repetir o mesmo aviso ao gestor antes disto, mesmo que a situação se mantenha. Um vigia que
+// repete de 30 em 30 minutos deixa de ser lido, e gasta orçamento de wakes a dizer o mesmo.
+const REAVISO_MS = 4 * 60 * 60_000;
+
+// Em memória de propósito, como o travão de progresso do `wake.ts`: é uma medida de "desde que
+// arranquei", e um reinício do backend é interrupção que chega para recomeçar a contar.
+const ultimoAviso = new Map<string, { fp: string; ts: number }>();   // projectId → o que já avisei
+const jaGuardou = new Map<string, number>();                          // sessionId → quando fez /save
+
+/**
+ * A decisão de re-avisar, isolada para ser testável: avisa se a situação MUDOU, ou se já passou
+ * tempo suficiente para valer a pena insistir na mesma.
+ */
+export function deveAvisar(
+  anterior: { fp: string; ts: number } | undefined,
+  fp: string,
+  agora: number,
+): boolean {
+  if (!anterior) return true;
+  if (anterior.fp !== fp) return true;
+  return agora - anterior.ts >= REAVISO_MS;
+}
+
+/** Uma passagem do vigia. Devolve o que fez, para o log e para a rota de teste manual. */
+/**
+ * Tarefas em 'a-executar' nunca arrancam sozinhas por definição do quadro — alguém tem de mandar
+ * `dispatchTask`. Este é esse alguém, para quem ninguém carregou em "correr": corre na janela
+ * normal do heartbeat (intervalo + `withinActiveHours`), e reaproveita as guardas do próprio
+ * `dispatchTask` (recusa se o worker do projecto já está ocupado ou se o limite de terminais foi
+ * atingido) — não precisa de lock novo. 'a-definir' fica de fora sempre: é sempre manual.
+ */
+function dispararTarefasEmFila(): string[] {
+  const feito: string[] = [];
+  const emFila = loadTasks().filter((t) => t.status === 'a-executar');
+  for (const t of emFila) {
+    const r = dispatchTask(t.id);
+    if (r.ok) feito.push(`tarefa "${t.title}" disparada`);
+  }
+  return feito;
+}
+
+export function vigiarEquipa(agora = Date.now()): string[] {
+  const feito: string[] = [];
+  const tarefas = loadTasks();
+
+  for (const project of loadProjects()) {
+    if (project.archived) continue;
+
+    const workers = listWorkers(project.id).map((w) => ({
+      ...w,
+      status: sessionManager.get(w.sessionId)?.status ?? 'closed',
+      cli: sessionManager.get(w.sessionId)?.cli,
+    }));
+    const parados = workers.filter((w) => !w.busy && w.status !== 'working' && w.status !== 'closed');
+    const paradosVelhos = parados.filter((w) => agora - w.lastUsedAt > IDLE_WORKER_MS);
+
+    // 1) Agentes sem trabalho → guardar o que sabem. Uma vez por período de ócio: se o carimbo do
+    // save é posterior ao último trabalho que lhe deram, já guardou desde então.
+    for (const w of parados) {
+      // `/save` é um comando do JOCA_Brain, que só o Claude Code entende. Mandá-lo a um codex ou a
+      // um agy é escrever-lhes uma linha de lixo no prompt.
+      if ((w.cli ?? 'claude') !== 'claude') continue;
+      if ((jaGuardou.get(w.sessionId) ?? 0) >= w.lastUsedAt) continue;
+      ignorarProximoReporte(w.sessionId);
+      if (!sessionManager.submitMessage(w.sessionId, '/save')) continue;
+      jaGuardou.set(w.sessionId, agora);
+      feito.push(`/save → ${project.name}/${w.area}`);
+    }
+
+    // 2) Parados há muito + tarefas encalhadas → o gestor que vá ver porquê.
+    const doProjecto = tarefas.filter((t) => t.projectId === project.id);
+    const naFila = doProjecto.filter((t) => t.status === 'a-executar' && agora - t.updatedAt > TAREFA_PARADA_MS);
+    const bloqueadas = doProjecto.filter((t) => t.status === 'em-execucao' && (t.result ?? '').startsWith('⏸'));
+    if (!paradosVelhos.length && !naFila.length && !bloqueadas.length) continue;
+
+    // A impressão digital é O QUE está parado, não quantos: se um agente diferente parar, é uma
+    // situação nova e vale um aviso novo mesmo dentro da janela de silêncio.
+    const fp = [
+      paradosVelhos.map((w) => w.area).sort().join(','),
+      naFila.map((t) => t.id).sort().join(','),
+      bloqueadas.map((t) => t.id).sort().join(','),
+    ].join('#');
+    if (!deveAvisar(ultimoAviso.get(project.id), fp, agora)) continue;
+
+    const linhas = [
+      `[Vigia do JOCA — projecto "${project.name}"]`,
+      paradosVelhos.length
+        ? `Agentes parados há muito: ${paradosVelhos.map((w) => `${w.area} (${minutosDesde(w.lastUsedAt)} min)`).join(', ')}.`
+        : '',
+      naFila.length
+        ? `Tarefas paradas na coluna "a-executar" há mais de ${Math.round(TAREFA_PARADA_MS / 3600_000)}h: ${naFila.map((t) => t.title).join(' · ')}.`
+        : '',
+      bloqueadas.length
+        ? `Tarefas em execução à espera de resposta: ${bloqueadas.map((t) => t.title).join(' · ')}.`
+        : '',
+      '',
+      'Vai ver o que se passa antes de assumir seja o que for: lê o terminal dos agentes parados'
+      + ' (`joca sessions` + `joca read <id>`) e o quadro (`joca tasks`).',
+      'Depois decide e age: levantar o que ficou feito, responder a quem está à espera, despachar a'
+      + ' tarefa parada, ou fechar o agente que já não faz falta. Se for irreversível, pergunta ao dono.',
+    ].filter(Boolean).join('\n');
+
+    // O canal actual do gestor é o TERMINAL dele (o chat SDK está desligado): o aviso entra lá
+    // como mensagem. Sem terminal de gestor aberto, o aviso vai para a inbox do dono.
+    const gestor = workers.find((w) => w.area === 'gestor' && w.status !== 'closed');
+    if (gestor && sessionManager.submitMessage(gestor.sessionId, linhas)) {
+      feito.push(`aviso ao terminal do gestor de ${project.name}`);
+    } else {
+      pushNotification({
+        kind: 'heartbeat', title: `Vigia: ${project.name}`, text: linhas,
+        groupKey: `vigia:${project.id}`,
+      });
+      feito.push(`aviso na inbox (${project.name} sem terminal de gestor aberto)`);
+    }
+    ultimoAviso.set(project.id, { fp, ts: agora });
+  }
+
+  return feito;
 }
 
 export function isOkResponse(raw: string): boolean {
@@ -231,6 +386,29 @@ export function isOkResponse(raw: string): boolean {
 export async function runHeartbeat(opts: { force?: boolean } = {}): Promise<{ decision: 'ok' | 'alert' | 'skipped' | 'error'; text: string }> {
   const cfg = loadHeartbeatConfig();
   const startedAt = Date.now();
+  // O vigia corre ANTES do guarda de custo, e sem modelo: agir sobre agentes e tarefas paradas não
+  // depende de haver checklist nem de o beat chegar a chamar o LLM. Um beat "skipped" continua a
+  // arrumar a casa.
+  if (cfg.crewWatch) {
+    try {
+      const feito = vigiarEquipa(startedAt);
+      if (feito.length) console.log(`[heartbeat] vigia: ${feito.join(' · ')}`);
+    } catch (e) {
+      // O vigia é um extra: se rebentar, o beat normal tem de acontecer na mesma.
+      console.error('[heartbeat] vigia falhou:', e instanceof Error ? e.message : e);
+    }
+  }
+
+  // Antes do snapshot: para que o retrato que o LLM vê já reflicta tarefas recém-disparadas em vez
+  // de "na fila". Corre sempre (não depende de crewWatch) — despachar trabalho já pedido não é
+  // vigilância opcional, é o quadro a fazer o que já lhe foi mandado.
+  try {
+    const disparadas = dispararTarefasEmFila();
+    if (disparadas.length) console.log(`[heartbeat] tarefas: ${disparadas.join(' · ')}`);
+  } catch (e) {
+    console.error('[heartbeat] disparo de tarefas falhou:', e instanceof Error ? e.message : e);
+  }
+
   const snapshot = buildStateSnapshot();
   const scratch = (cfg.scratch ?? '').trim();
 
@@ -267,7 +445,9 @@ export async function runHeartbeat(opts: { force?: boolean } = {}): Promise<{ de
       text = raw.replace(OK_TOKEN, '').trim().slice(0, 2000);
       // Sem emoji no título: a inbox desenha o ícone do tipo em SVG, um emoji aqui seria um
       // segundo ícone, pior, dentro do texto.
-      pushNotification({ kind: 'heartbeat', title: 'Heartbeat', text });
+      // `groupKey` fixo: o heartbeat a voltar a falar é o MESMO assunto, não um assunto novo. Sem
+      // isto acumulavam-se cartões de 30 em 30 minutos, na inbox e na bandeja do sistema.
+      pushNotification({ kind: 'heartbeat', title: 'Heartbeat', text, groupKey: 'heartbeat' });
     }
   } catch (e) {
     decision = 'error';

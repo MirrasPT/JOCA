@@ -34,18 +34,6 @@ const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
 /* Modelos do cérebro dos gestores. Só modelos do Agent SDK: o gestor precisa de ferramentas
    (mcpServers) e de retomar a conversa (resume), e um provider que não carregue esse contrato
    deixaria o gestor mudo e sem mãos. Trocar de modelo aqui nunca tira funcionalidades. */
-const MANAGER_MODELS: { value: string; label: string }[] = [
-  { value: '', label: 'Padrão (Sonnet)' },
-  { value: 'haiku', label: 'Haiku — rápido e barato' },
-  { value: 'sonnet', label: 'Sonnet — equilibrado' },
-  { value: 'opus', label: 'Opus — o mais capaz' },
-];
-
-const MANAGER_BRAINS: { key: 'jocaModel' | 'managerModel'; label: string; hint: string }[] = [
-  { key: 'jocaModel', label: 'Joca (gestor global)', hint: 'Decide entre projectos — vale-lhe o modelo mais forte.' },
-  { key: 'managerModel', label: 'Gestores de projecto', hint: 'Despacham e verificam muitas vezes — um modelo mais barato chega.' },
-];
-
 function ChevronsRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -68,8 +56,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   // Tema de marca activo (só aparência + nome).
   const [brandId, setBrandId] = useState(() => readBrand().id);
   // Cérebro dos gestores. Vazio = default do backend (MANAGER_MODEL_DEFAULT).
-  const [jocaModel, setJocaModel] = useState('');
-  const [managerModel, setManagerModel] = useState('');
   const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
   // CLI por defeito para novas sessões (PATCH /ui-settings { defaultCli }).
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
@@ -104,8 +90,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         setBrandId(s.brandTheme);
         applyBrand(s.brandTheme);
       }
-      setJocaModel(s.jocaModel ?? '');
-      setManagerModel(s.managerModel ?? '');
     }).catch(() => {});
     fetch('/llm-providers').then(r => r.json()).then(setProviders).catch(() => {});
   }, []);
@@ -427,41 +411,15 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             />
           </label>
         </div>
-        <div className="settings-service-card">
-          <div className="settings-service-head">
-            <span className="status-pill status-pill--connected">cérebro</span>
-            <span>Modelo dos gestores</span>
-          </div>
-          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
-            Modelo que corre o Joca e os gestores de projecto. Aplica-se ao turno seguinte — não
-            precisa de reiniciar. Todos mantêm as mesmas ferramentas, seja qual for o modelo.
-          </p>
-          {MANAGER_BRAINS.map((b) => (
-            <label key={b.key} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
-              <span style={{ fontSize: '0.75em', opacity: 0.6 }}>{b.label}</span>
-              <select
-                value={b.key === 'jocaModel' ? jocaModel : managerModel}
-                onChange={(e) => {
-                  const m = e.target.value;
-                  if (b.key === 'jocaModel') setJocaModel(m); else setManagerModel(m);
-                  patchSettings({ [b.key]: m });
-                }}
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em' }}
-              >
-                {MANAGER_MODELS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-              <span style={{ fontSize: '0.72em', opacity: 0.5 }}>{b.hint}</span>
-            </label>
-          ))}
-        </div>
+        {/* O cartão "Modelo dos gestores" (jocaModel/managerModel) saiu daqui: o chat SDK dos
+            gestores está desligado — o gestor é um terminal normal, e o modelo escolhe-se no
+            próprio terminal (/model) ou no CLI por defeito abaixo. */}
         <div className="settings-service-card settings-service-card--heartbeat">
           <div className="settings-service-head">
             <span className={`status-pill status-pill--${heartbeat?.enabled ? 'connected' : 'offline'}`}>
               {heartbeat?.enabled ? 'activo' : 'parado'}
             </span>
-            <span>💓 Heartbeat</span>
+            <span>Heartbeat</span>
             {hbStatus !== 'idle' && (
               <span className={`settings-save-flag settings-save-flag--${hbStatus}`} role="status">
                 {hbStatus === 'saving' ? 'a guardar…' : hbStatus === 'saved' ? 'guardado ✓' : 'falhou ao guardar'}
@@ -484,15 +442,18 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
                   onChange={(e) => patchHeartbeat({ everyMinutes: Math.max(5, Number(e.target.value) || 5) })}
                 />
               </label>
+              {/* maxAutoWakes e rotateSessionUsd saíram da UI: eram travões do chat SDK dos
+                  gestores, que está desligado. Os campos continuam no heartbeat.json (dormentes). */}
               <label
-                className="hb-field hb-field--inline"
-                title="Quantas vezes seguidas um gestor pode ser acordado sozinho antes de a fila parar e avisar. É o travão contra ciclos caros — configura-se, não se desliga."
+                className="hb-check"
+                title="Além de te avisar, o beat vai ver os agentes e o quadro: manda os agentes parados fazer /save e deixa um aviso no terminal do gestor do projecto quando algo está parado."
               >
-                <span>Wakes automáticos por gestor antes de parar (1–40)</span>
                 <input
-                  type="number" min={1} max={40} value={heartbeat.maxAutoWakes ?? 12}
-                  onChange={(e) => patchHeartbeat({ maxAutoWakes: Math.max(1, Math.min(40, Number(e.target.value) || 12)) })}
+                  type="checkbox"
+                  checked={heartbeat.crewWatch !== false}
+                  onChange={(e) => patchHeartbeat({ crewWatch: e.target.checked })}
                 />
+                <span>Vigia activo (agentes parados fazem /save; avisos entram no terminal do gestor)</span>
               </label>
               <label className="hb-check">
                 <input

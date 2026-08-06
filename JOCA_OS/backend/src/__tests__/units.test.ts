@@ -154,12 +154,17 @@ describe('cli-profiles', () => {
     expect(getCliProfile('codex').id).toBe('codex');
   });
 
-  it('only claude runs the /resume startup choreography by default', () => {
+  it('every CLI runs the startup choreography; only claude uses the /resume slash form', () => {
     const profiles = loadCliProfiles();
     expect(profiles.claude.startupSequence).toBe(true);
-    expect(profiles.codex.startupSequence).toBe(false);
-    expect(profiles.agy.startupSequence).toBe(false);
-    expect(profiles.opencode.startupSequence).toBe(false);
+    expect(profiles.codex.startupSequence).toBe(true);
+    expect(profiles.agy.startupSequence).toBe(true);
+    expect(profiles.opencode.startupSequence).toBe(true);
+    expect(profiles.claude.resumeCmd).toBe('/resume');
+    // codex/agy não reconhecem comandos custom com `/` — recebem `resume` em texto simples.
+    expect(profiles.codex.resumeCmd).toBe('resume');
+    expect(profiles.agy.resumeCmd).toBe('resume');
+    expect(profiles.opencode.resumeCmd).toBe('resume');
   });
 
   it('buildLaunchLine: model flag + autonomous flags', () => {
@@ -168,7 +173,8 @@ describe('cli-profiles', () => {
       .toBe('/usr/local/bin/claude --model opus --dangerously-skip-permissions');
     expect(buildLaunchLine(claude, 'claude', {})).toBe('claude');
     const codex = getCliProfile('codex');
-    expect(buildLaunchLine(codex, 'codex', { autonomous: true })).toBe('codex --full-auto');
+    // codex ≥0.146 removeu o --full-auto; o equivalente ao skip-permissions é este.
+    expect(buildLaunchLine(codex, 'codex', { autonomous: true })).toBe('codex --dangerously-bypass-approvals-and-sandbox');
   });
 
   it('buildLaunchLine: rejects shell-unsafe model values', () => {

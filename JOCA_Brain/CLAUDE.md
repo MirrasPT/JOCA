@@ -112,6 +112,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | claude-agent-sdk · agent sdk · programmatic claude · subscription claude · zero-cost claude · JOCA_OS backend · createSdkMcpServer | `agent-sdk` |
 | enqueue_workflow not running · comfyui mcp bug · workflow crashes via MCP · start_comfyui fails · comfy plugin | `comfy-mcp-workarounds` |
 | JOCA_OS no Windows · node-pty · PowerShell PTY · install/upgrade Windows | `joca-os-windows` |
+| consumo de tokens alto · outra máquina · instalação antiga · consolidar JOCA · limpar instalação · várias versões do JOCA nesta máquina | `/clean-install` |
 | classificar tarefa · que via · skill ou agente ou workflow · preciso de workflow? | `task-router` (agent) |
 | freeze · trancar edições · lock scope · só editar esta pasta | `freeze` (guard-rail) |
 | careful · avisa antes de apagar · modo cauteloso · destrutivo | `careful` (guard-rail) |
@@ -174,6 +175,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | `/create-skill [desc]` | new skill via research pipeline |
 | `/help-joca` | quick reference |
 | `/migrate` | v1-legacy → v2.0 migration guide |
+| `/clean-install` | audita instalações JOCA existentes (possivelmente várias na mesma máquina), compara com o baseline, propõe optimizações de tokens, consolida memória, arquiva o antigo em `Old/`, promove instalação nova |
 | `/upgrade-joca` | feedback → self-improvement → apply |
 | `/update-joca` | sync with GitHub (protects `origin: local`) |
 | `/status` | show rate limits, model and context inline |

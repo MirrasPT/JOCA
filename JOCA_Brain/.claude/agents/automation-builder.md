@@ -1,6 +1,6 @@
 ---
 name: automation-builder
-description: "Traduz um pedido em linguagem natural numa automação estruturada (quando + o-que + reportar) e persiste-a em automacoes.json. Gere agendamento (cron), condicionais e retries. A acção é uma tarefa NL despachada ao orchestrator no horário definido. Triggers: automação, cron, todos os dias às, recorrente, agendar tarefa, a cada X horas, sempre que, se acontecer X. Ex.: 'todos os dias às 9h verifica emails e manda resumo por WhatsApp'. (FUTUROS Fase 3 — autonomia.)"
+description: "Traduz um pedido em linguagem natural numa automação estruturada (quando+o-quê+reportar), persiste em automacoes.json. Gere agendamento (cron), condicionais, retries. Triggers: automação, cron, todos os dias às, recorrente, agendar tarefa, sempre que. Ex.: 'todos os dias às 9h verifica emails e manda resumo'. (FUTUROS Fase 3.)"
 skills: automations
 tools:
   - Read

@@ -14,9 +14,46 @@ import {
 } from '../heartbeat';
 import { loadCliProfiles, CLI_IDS, type CliId } from '../cli-profiles';
 import { binExists } from '../providers/provider';
+import { execFile } from 'child_process';
 
 export function systemRouter(): Router {
   const r = Router();
+
+  // ── Native folder picker ───────────────────────────────────────────────────
+  // O JOCA corre na máquina do dono — o backend PODE abrir o diálogo nativo de escolher pasta
+  // (Finder/Explorer) e devolver o caminho absoluto, coisa que o browser sozinho não consegue
+  // (webkitdirectory só dá caminhos relativos). Usado pelo modal de criar/editar projecto.
+  // Serializado: um diálogo de cada vez — dois pedidos seguidos não abrem duas janelas.
+  let pickerBusy = false;
+  r.post('/pick-folder', (_req, res) => {
+    if (pickerBusy) return res.status(409).json({ error: 'já há um selector de pasta aberto' });
+    pickerBusy = true;
+    const done = (status: number, body: object) => { pickerBusy = false; res.status(status).json(body); };
+    const timeoutMs = 5 * 60_000; // o dono pode demorar a escolher — não cortar cedo
+    if (process.platform === 'darwin') {
+      execFile('osascript', ['-e', 'POSIX path of (choose folder with prompt "Escolhe a pasta do projecto")'],
+        { timeout: timeoutMs }, (err, stdout) => {
+          if (err) return done(200, { canceled: true }); // Cancelar no diálogo sai com código ≠0
+          const p = stdout.trim().replace(/\/$/, '');
+          done(200, p ? { path: p } : { canceled: true });
+        });
+    } else if (process.platform === 'win32') {
+      const ps = 'Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = "Escolhe a pasta do projecto"; if ($d.ShowDialog() -eq "OK") { Write-Output $d.SelectedPath }';
+      execFile('powershell.exe', ['-NoProfile', '-STA', '-Command', ps], { timeout: timeoutMs }, (err, stdout) => {
+        if (err) return done(200, { canceled: true });
+        const p = stdout.trim();
+        done(200, p ? { path: p } : { canceled: true });
+      });
+    } else {
+      // Linux: zenity quando existe; sem ele, o modal cai no campo manual.
+      execFile('zenity', ['--file-selection', '--directory', '--title=Escolhe a pasta do projecto'],
+        { timeout: timeoutMs }, (err, stdout) => {
+          if (err) return done(200, { canceled: true });
+          const p = stdout.trim();
+          done(200, p ? { path: p } : { canceled: true });
+        });
+    }
+  });
 
   // ── Notifications inbox ────────────────────────────────────────────────────
   r.get('/notifications', (req, res) => {
@@ -36,7 +73,7 @@ export function systemRouter(): Router {
     const kind = b.kind === 'automation' || b.kind === 'task_question' || b.kind === 'heartbeat' ? b.kind : 'system';
     res.json(pushNotification({
       kind,
-      title: typeof b.title === 'string' && b.title.trim() ? b.title : '🖥 Terminal',
+      title: typeof b.title === 'string' && b.title.trim() ? b.title : 'Terminal',
       text: b.text,
     }));
   });

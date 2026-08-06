@@ -23,6 +23,8 @@ import { managerRouter } from './http/manager-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
 import { setManagerBroadcaster, setManagerBusyBroadcaster, clearAllBusy } from './manager/store';
 import { startManagerWatch } from './manager/wake';
+import { ensureManagerSession } from './manager/worker-pool';
+import { loadProjects } from './project-store';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
 import { setNotificationsBroadcaster } from './notifications/store';
@@ -155,4 +157,10 @@ server.listen(PORT, HOST, () => {
   startHeartbeat();
   clearAllBusy();       // a crash mid-turn would otherwise leave a manager stuck as "a pensar…"
   startManagerWatch();
+  // Ao iniciar o JOCA, cada projecto activo abre logo o terminal do seu gestor — um terminal
+  // normal (fechável); fechado não renasce até ao próximo arranque.
+  for (const p of loadProjects()) {
+    if (p.archived) continue;
+    try { ensureManagerSession(p.id); } catch (e) { console.error(`[manager] gestor de "${p.name}" não abriu:`, e); }
+  }
 });

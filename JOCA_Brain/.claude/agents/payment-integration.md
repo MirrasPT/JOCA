@@ -1,6 +1,6 @@
 ---
 name: payment-integration
-description: "Payment integration agent. Implements Stripe, Laravel Cashier, MB Way, Multibanco, webhook handling, subscription billing, SCA/3DS. Triggered by: \"integrate Stripe\", \"add payments\", \"Stripe Checkout\", \"subscription billing\", \"Cashier setup\", \"webhook Stripe\", \"refund flow\", \"PCI compliance\", \"payment failed\", \"3D Secure\", \"SCA\", \"dunning\", \"checkout flow\", \"MB Way\", \"Multibanco\", \"chargeback\", \"payment provider\"."
+description: "Integra pagamentos: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI compliance, 3D Secure, MB Way, Multibanco, chargeback."
 skills: laravel-specialist, webhooks, security
 chain: tester-security
 tools: Read, Write, Edit, Bash, Glob, Grep

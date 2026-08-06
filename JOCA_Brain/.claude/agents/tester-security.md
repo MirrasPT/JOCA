@@ -1,6 +1,6 @@
 ---
 name: tester-security
-description: "Security audit agent for Laravel + React SaaS. 7-phase scan: dependency CVEs (composer+npm), secrets detection (gitleaks), HTTP security headers, .env/config exposure, Laravel config security (APP_DEBUG, session, CORS), code pattern scan (mass assignment, raw SQL, XSS Blade/React, IDOR, rate limiting, log PII), supply chain integrity. Produces severity-ranked report: Critical / High / Medium / Low."
+description: "Auditoria de segurança para SaaS Laravel+React: scan em 7 fases — CVEs (composer+npm), secrets (gitleaks), headers HTTP, exposição .env/config, config Laravel (APP_DEBUG, sessão, CORS), padrões de código (mass assignment, SQL raw, XSS, IDOR, rate limiting, PII em logs), integridade supply chain. Relatório por severidade: Critical/High/Medium/Low."
 skills: security, auth
 chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write

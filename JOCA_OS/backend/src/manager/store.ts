@@ -46,12 +46,22 @@ export interface ManagerState {
    * sobrevive à perda da sessão SDK. Curto por contrato (DOSSIER_MAX): não é um log, é um dossiê.
    */
   dossier?: string;
+  /**
+   * Ponto de situação escrito pelo gestor no momento em que a sessão SDK foi rodada por peso
+   * (manager.ts: `talvezRodarSessao`). Entra no system prompt da sessão seguinte.
+   *
+   * Separado do dossiê de propósito: o dossiê é o que DURA e é ele que o mantém; isto é onde a
+   * conversa ia, é escrito pelo sistema, e é substituído em cada rotação. Misturá-los faria o
+   * dossiê inchar com estado transitório até deixar de caber no prefixo cacheado.
+   */
+  handover?: string;
 }
 
 const CHATS_DIR = path.join(DATA_DIR, 'manager-chats');
 const STATE_FILE = path.join(DATA_DIR, 'manager-state.json');
 const MAX_LINES = 4000;       // rotate keeps the newest half
 export const DOSSIER_MAX = 2000; // caracteres — cabe no prefixo cacheado sem pesar
+export const HANDOVER_MAX = 1500; // idem, para o ponto de situação da rotação de sessão
 const TEXT_MAX = 20_000;
 
 // Broadcast injected by server.ts (persist first, then notify — same rule as notifications/store).
@@ -114,7 +124,9 @@ export function clearChat(projectId: string): void {
     // Dropping the SDK session id is what makes the next turn start a fresh conversation.
     // totalCostUsd zera também — sem isto o frontend mostrava $0 optimista e via-o saltar de
     // volta ao valor antigo assim que o próximo GET carregava o estado real.
-    all[projectId] = { ...all[projectId], sdkSessionId: undefined, autoWakeCount: 0, totalCostUsd: 0 };
+    // `handover` também: é o resumo de uma conversa que o utilizador acabou de mandar apagar.
+    // O dossiê fica — esse é memória dele, não da conversa.
+    all[projectId] = { ...all[projectId], sdkSessionId: undefined, handover: undefined, autoWakeCount: 0, totalCostUsd: 0 };
     writeJsonFile(STATE_FILE, all);
   }
 }

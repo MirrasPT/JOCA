@@ -27,14 +27,29 @@
 }
 .tk-header p { margin: 0; color: var(--text-muted, #9b9690); font-size: 14px; max-width: 64ch; }
 
+/* Texto escuro sobre o laranja: branco sobre #ff4500 dá ~3.1:1 e chumba o WCAG 1.4.3 nos botões
+   primários (auditoria #15). */
 .tk-btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--accent, #ff4500); color: #fff;
+  background: var(--accent, #ff4500); color: #1a120c;
   border: none; border-radius: 12px; padding: 10px 16px;
-  font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
 }
 .tk-btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.tk-btn-primary:focus-visible { outline: 2px solid var(--accent, #ff4500); outline-offset: 2px; }
 .tk-btn-primary svg { width: 16px; height: 16px; }
+
+.tk-board-onboarding {
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, #ff4500) 8%, transparent);
+  color: var(--text-primary, #f5f3ef);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tk-board:focus-visible { outline: 2px solid var(--accent, #ff4500); outline-offset: 2px; border-radius: 8px; }
 
 /* ── Form ──────────────────────────────────────────────────────────────────── */
 .tk-form {

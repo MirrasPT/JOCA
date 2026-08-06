@@ -34,7 +34,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (25)
+## Commands (26)
 
 | Comando | Função |
 |---|---|
@@ -59,6 +59,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/upgrade-joca` | feedback → auto-melhoria → aplicar |
 | `/update-joca` | sincronizar com o GitHub (**Fase 0** distingue clone público de instalação com história própria) |
 | `/migrate` | guia de migração v1-legacy → v2.0 |
+| `/clean-install` | audita instalações JOCA existentes (várias, se houver), compara com o baseline, propõe tabela de optimização de tokens, consolida memória por mtime, arquiva antigo em `Old/`, promove instalação nova |
 | `/status` | rate limits, modelo e uso de contexto |
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |

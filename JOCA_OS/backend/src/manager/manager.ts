@@ -17,7 +17,10 @@ import { claudeProvider } from '../providers/provider';
 import { loadProjects, loadUiSettings, type Project } from '../project-store';
 import { buildManagerTools, buildGlobalManagerTools } from './tools';
 import { collectToolkitItems, JOCA_LOGIC_ROOT } from '../toolkit-registry';
-import { appendMessage, getState, patchState, rotateChat, type ManagerMessage } from './store';
+// Ciclo de import assumido (heartbeat → wake → manager → heartbeat): todos os lados só se usam
+// dentro de funções, nunca no corpo do módulo. Ver a nota no topo de `heartbeat/index.ts`.
+import { getRotateSessionUsd } from '../heartbeat';
+import { appendMessage, getState, patchState, rotateChat, HANDOVER_MAX, type ManagerMessage } from './store';
 
 // Modelo por omissão dos dois cérebros. A env continua a valer como override de máquina; as
 // definições da UI ganham-lhe, porque são a escolha explícita do dono.
@@ -34,12 +37,36 @@ function modelFor(managerId: string): string {
   return chosen?.trim() || MANAGER_MODEL_DEFAULT;
 }
 const MAX_TURNS = 24;             // tool calls within ONE reply
-const MAX_BUDGET_USD = 1.5;       // per turn, hard stop
+
+// NOTA sobre o custo por turno (`getRotateSessionUsd`, definido no HeartbeatConfig):
+// já foi um TECTO (`maxBudgetUsd`) e não é. Um tecto aborta o turno a meio e deita fora o trabalho
+// — o cliente via "Reached maximum budget" em vez de resposta, e a causa (a conversa retomada a
+// crescer a cada turno) ficava lá para o turno seguinte. Hoje o número é um SINTOMA: turno caro =
+// contexto pesado, e a sessão roda no FIM, com a resposta já entregue. O travão contra runaway é
+// outro — `MAX_TURNS` por resposta e o orçamento de acordares do `wake.ts` —, e nenhum perde
+// trabalho.
+
+// Modelo do resumo de passagem. Fixo de propósito, independente do modelo do gestor: o resumo é
+// crítico (é tudo o que sobra da conversa) e barato uma vez por rotação — não é sítio para poupar
+// num modelo pequeno, nem para gastar Opus.
+const RESUMO_MODEL = 'sonnet';
 
 // Chave sintética de projecto para o Joca global — store.ts (chat/estado) trata-a como uma chave
 // normal (só sanitiza para nome de ficheiro, `__global__` passa sem alterações), por isso não
 // precisou de nenhuma mudança de esquema.
 export const GLOBAL_MANAGER_ID = '__global__';
+
+// Chat SDK do gestor por-projecto, "A Sala" e "Joca" (global) desactivados por decisão do dono:
+// zero chamadas ao SDK — o gestor de projecto passou a ser um terminal fixo (ver worker-pool.ts,
+// area:'gestor'). O código todo fica no repo a dormir (não apagado, para reactivar sem reescrever);
+// este é o ÚNICO choke-point que importa — cobre as 4 vias (rotas, `room.ts` em modo detached, e a
+// via dormente de `manager/tools.ts`), porque todas passam por uma destas duas funções.
+const MANAGER_SDK_ENABLED = false;
+
+// Quem chama o gestor (wake.ts, room.ts) precisa de saber ANTES de invocar um turno que ele está
+// desligado — para encaminhar a mensagem ao terminal do gestor em vez de a perder num erro que
+// ninguém trata (auditoria 2026-08-06 #1: falha com sucesso aparente).
+export function isManagerSdkEnabled(): boolean { return MANAGER_SDK_ENABLED; }
 
 // Built-ins do Claude Code que o gestor passa a ter — o "terminal por trás". Whitelist explícita:
 // o que não está aqui não existe para ele (Task/NotebookEdit/etc. ficam de fora de propósito, um
@@ -194,6 +221,30 @@ function dossierSection(managerId: string): string {
     'cliente, onde estão as coisas, o que já se tentou e falhou. Actualiza quando algo DURADOURO',
     'muda — não a cada mensagem. E quando o cliente referir algo que não te lembras, usa',
     '`procurar_no_historico` antes de dizeres que não sabes: a conversa completa está pesquisável.',
+  ].join('\n');
+}
+
+/**
+ * O ponto de situação deixado pela última ROTAÇÃO de sessão (ver `talvezRodarSessao`).
+ *
+ * Diferente do dossiê, e de propósito: o dossiê é o que DURA (decisões, restrições, onde estão as
+ * coisas) e é o gestor que o mantém; isto é onde a conversa ia quando foi cortada, escrito pelo
+ * sistema. Sem isto, uma sessão nova acordava sem saber que já tinha agentes a trabalhar.
+ */
+function resumoSection(managerId: string): string {
+  const r = getState(managerId).handover?.trim();
+  if (!r) return '';
+  return [
+    '',
+    '# Onde ias (a conversa anterior foi recomeçada)',
+    'A conversa ficou pesada e foi recomeçada para o contexto voltar a ser leve. Isto é o ponto de',
+    'situação que TU deixaste antes do corte:',
+    r,
+    '',
+    'Isto é um resumo, não a conversa. Se precisares do detalhe — o que exactamente foi combinado,',
+    'como se chamava um ficheiro, o que um agente respondeu — vai buscá-lo em vez de adivinhar:',
+    '`procurar_no_historico` varre a conversa completa (incluindo os arquivos), e o teu dossiê está',
+    'acima. Nunca inventes o que não estiver num dos dois.',
   ].join('\n');
 }
 
@@ -363,9 +414,7 @@ function buildSystemPrompt(project: Project): string {
     toolInventory(MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
     onboardingSection(project),
     dossierSection(project.id),
-    brainInventory(),
-    toolInventory(GLOBAL_MANAGER_TOOLS.filter((t) => t.startsWith('mcp__')).map((t) => t.replace('mcp__joca__', ''))),
-    dossierSection(GLOBAL_MANAGER_ID),
+    resumoSection(project.id),
     brainInventory(),
     ESTILO_DE_ESCRITA,
     '',
@@ -474,6 +523,100 @@ function buildGlobalSystemPrompt(projects: Project[]): string {
   ].join('\n');
 }
 
+/**
+ * O erro deste turno é "acabou-se a quota", e não uma avaria?
+ *
+ * Importa distinguir: uma avaria pede investigação, um limite pede ESPERA. Tratados como iguais (o
+ * que acontecia até aqui — tudo caía no mesmo `catch` e saía como "não consegui completar este
+ * pedido"), o sistema continuava a acordar o gestor contra uma parede, gastando o orçamento de
+ * wakes a colher o mesmo erro.
+ *
+ * Reconhecimento por texto porque é o que há: o SDK devolve a mensagem do CLI, sem código próprio.
+ * Falhar a detecção degrada para o caminho antigo — nunca para pior.
+ */
+export function erroDeLimite(erro: string | undefined | null): boolean {
+  if (!erro) return false;
+  return /rate.?limit|usage limit|limit reached|quota|too many requests|\b429\b|limite (atingido|excedido)/i
+    .test(erro);
+}
+
+/** O texto que o dono lê no chat quando um turno morre. Um limite não é uma avaria — diz-se assim. */
+export function mensagemDeErro(erro: string): string {
+  return erroDeLimite(erro)
+    ? `Cheguei ao limite de utilização do plano, não é avaria. Só volto a trabalhar quando a janela renovar.\nO que o CLI devolveu: ${erro}`
+    : `Não consegui completar este pedido: ${erro}`;
+}
+
+// ── Rotação da sessão (passagem de testemunho) ───────────────────────────────
+
+/**
+ * Instruções do resumo. Deliberadamente pobre em ambição: o resumo é o único fio entre a conversa
+ * que morre e a que nasce, e um resumo INVENTADO é pior do que resumo nenhum — o gestor seguinte
+ * fala com convicção sobre coisas que não aconteceram. Daí o tecto de linhas, o "só factos" e o
+ * "se não tens a certeza, não escrevas": o detalhe recupera-se com `procurar_no_historico`.
+ */
+const PEDIDO_DE_RESUMO = [
+  'A conversa vai ser recomeçada agora para o contexto voltar a ficar leve. Tu continuas o mesmo',
+  'gestor, mas no turno seguinte já não te vais lembrar desta conversa.',
+  '',
+  'Escreve o PONTO DE SITUAÇÃO para o teu eu do próximo turno. Regras:',
+  '- No máximo 8 linhas, uma frase curta por linha, cada uma começada por "- ".',
+  '- Só FACTOS desta conversa: em que ponto está o trabalho, que agentes tens vivos e a fazer o quê,',
+  '  o que o cliente pediu por último, e o que ficou por decidir ou à espera.',
+  '- Não inventes NADA. Se não tens a certeza de uma coisa, deixa-a de fora.',
+  '- Nada de despedidas, explicações nem markdown de título. Só as linhas.',
+].join('\n');
+
+/**
+ * Se o turno saiu caro, faz a passagem de testemunho e larga a sessão SDK.
+ *
+ * Corre DEPOIS de a resposta já estar entregue, por isso não atrasa nada que o cliente esteja a
+ * ler, e nunca lhe custa o turno. Falhar é seguro: mantém-se a sessão pesada, que é sempre melhor
+ * do que uma sessão nova sem memória nenhuma.
+ *
+ * Não corre em turnos DESTACADOS (a Sala): essa thread é do caller, e o id dela nem sequer está no
+ * estado do gestor.
+ */
+async function talvezRodarSessao(
+  managerId: string,
+  costUsd: number,
+  sessionId: string | undefined,
+): Promise<void> {
+  if (costUsd < getRotateSessionUsd() || !sessionId) return;
+
+  let resumo = '';
+  try {
+    for await (const ev of claudeProvider.run(PEDIDO_DE_RESUMO, {
+      resume: sessionId,
+      model: RESUMO_MODEL,
+      // Sem ferramentas: isto é uma pergunta, não uma oportunidade de trabalhar. `noTools` também
+      // fixa maxTurns:1 — não há loop possível. Sem ferramentas não há filesystem, logo 'default'
+      // (o CLI recusa bypassPermissions sob root).
+      noTools: true,
+      permissionMode: 'default',
+    })) {
+      if (ev.type === 'text' && ev.text) resumo += ev.text;
+      else if (ev.type === 'result' && ev.text) resumo = ev.text;
+    }
+  } catch (e) {
+    console.error('[manager] resumo de rotação falhou, sessão mantida:', e instanceof Error ? e.message : e);
+    return;
+  }
+
+  resumo = resumo.trim().slice(0, HANDOVER_MAX);
+  if (!resumo) {
+    console.error('[manager] resumo de rotação veio vazio, sessão mantida');
+    return;
+  }
+
+  // Só agora se larga a sessão: se alguma coisa acima falhasse, ficávamos sem conversa E sem resumo.
+  patchState(managerId, { handover: resumo, sdkSessionId: undefined });
+  appendMessage(managerId, {
+    role: 'system',
+    text: `Conversa recomeçada — o contexto estava pesado (este turno custou $${costUsd.toFixed(2)}). Guardei o ponto de situação:\n${resumo}`,
+  });
+}
+
 export interface TurnResult {
   message: ManagerMessage | null;
   /** Resposta em texto. Existe mesmo quando `message` é null (turno destacado — ver TurnOptions). */
@@ -509,6 +652,8 @@ export async function runManagerTurn(
   kind: 'user' | 'system' = 'user',
   opts: TurnOptions = {},
 ): Promise<TurnResult> {
+  if (!MANAGER_SDK_ENABLED) return { message: null, text: '', error: 'gestor SDK desactivado' };
+
   const project = loadProjects().find((p) => p.id === projectId);
   if (!project) return { message: null, text: '', error: 'projecto não encontrado' };
 
@@ -541,7 +686,8 @@ export async function runManagerTurn(
       // Whitelist explícita → nada a ganhar com bypassPermissions (que o CLI recusa sob root).
       permissionMode: 'default',
       maxTurns: MAX_TURNS,
-      maxBudgetUsd: MAX_BUDGET_USD,
+      // Sem `maxBudgetUsd`: era um tecto duro que abortava o turno a meio e deitava fora a resposta.
+      // O custo continua a ser lido do resultado — mas como sintoma, para decidir rodar a sessão.
     })) {
       if (ev.type === 'text' && ev.text) acc += ev.text;
       else if (ev.type === 'result') {
@@ -569,29 +715,30 @@ export async function runManagerTurn(
     return { message: null, text: finalText, ...(error ? { error } : {}) };
   }
 
+  let msg: ManagerMessage | null = null;
   if (error && !finalText) {
-    const msg = appendMessage(projectId, {
-      role: 'system',
-      text: `Não consegui completar este pedido: ${error}`,
+    msg = appendMessage(projectId, { role: 'system', text: mensagemDeErro(error) });
+  } else if (finalText) {
+    rotateChat(projectId);
+    msg = appendMessage(projectId, {
+      role: 'manager',
+      text: finalText,
+      costUsd,
+      actions,
+      attachments: mostrados.length ? mostrados : undefined,
     });
-    return { message: msg, text: '', error };
-  }
-  if (!finalText) {
+  } else if (actions.length) {
     // The manager chose to stay silent (e.g. a wake that needed no user-facing update). Actions
     // still happened, so they are worth recording — but not as a chat message.
-    if (actions.length) console.log(`[manager] ${project.name}: ${actions.join(', ')} (sem resposta)`);
-    return { message: null, text: '' };
+    console.log(`[manager] ${project.name}: ${actions.join(', ')} (sem resposta)`);
   }
 
-  rotateChat(projectId);
-  const msg = appendMessage(projectId, {
-    role: 'manager',
-    text: finalText,
-    costUsd,
-    actions,
-    attachments: mostrados.length ? mostrados : undefined,
-  });
-  return { message: msg, text: finalText };
+  // Rotação DEPOIS de a resposta estar no chat: o aviso de recomeço fala do turno que acabou e tem
+  // de se ler por baixo dele. Esperar aqui é seguro e é o ponto: o `running` do wake.ts só larga o
+  // projecto quando isto voltar, portanto nenhum turno novo arranca com o id de sessão que estamos
+  // prestes a largar.
+  await talvezRodarSessao(projectId, costUsd, sessionId);
+  return { message: msg, text: finalText, ...(error && !finalText ? { error } : {}) };
 }
 
 // Mesma forma que runManagerTurn, mas sem `loadProjects().find(id)` — não há UM projecto, há
@@ -602,6 +749,8 @@ export async function runGlobalManagerTurn(
   kind: 'user' | 'system' = 'user',
   opts: TurnOptions = {},
 ): Promise<TurnResult> {
+  if (!MANAGER_SDK_ENABLED) return { message: null, text: '', error: 'gestor SDK desactivado' };
+
   const state = getState(GLOBAL_MANAGER_ID);
   patchState(GLOBAL_MANAGER_ID, { busy: true });
 
@@ -632,7 +781,7 @@ export async function runGlobalManagerTurn(
       allowedTools: GLOBAL_MANAGER_TOOLS,
       permissionMode: 'default',
       maxTurns: MAX_TURNS,
-      maxBudgetUsd: MAX_BUDGET_USD,
+      // Ver runManagerTurn: o custo é sintoma (rotação), não tecto.
     })) {
       if (ev.type === 'text' && ev.text) acc += ev.text;
       else if (ev.type === 'result') {
@@ -659,25 +808,23 @@ export async function runGlobalManagerTurn(
     return { message: null, text: finalText, ...(error ? { error } : {}) };
   }
 
+  let msg: ManagerMessage | null = null;
   if (error && !finalText) {
-    const msg = appendMessage(GLOBAL_MANAGER_ID, {
-      role: 'system',
-      text: `Não consegui completar este pedido: ${error}`,
+    msg = appendMessage(GLOBAL_MANAGER_ID, { role: 'system', text: mensagemDeErro(error) });
+  } else if (finalText) {
+    rotateChat(GLOBAL_MANAGER_ID);
+    msg = appendMessage(GLOBAL_MANAGER_ID, {
+      role: 'manager',
+      text: finalText,
+      costUsd,
+      actions,
+      attachments: mostrados.length ? mostrados : undefined,
     });
-    return { message: msg, text: '', error };
-  }
-  if (!finalText) {
-    if (actions.length) console.log(`[manager] global: ${actions.join(', ')} (sem resposta)`);
-    return { message: null, text: '' };
+  } else if (actions.length) {
+    console.log(`[manager] global: ${actions.join(', ')} (sem resposta)`);
   }
 
-  rotateChat(GLOBAL_MANAGER_ID);
-  const msg = appendMessage(GLOBAL_MANAGER_ID, {
-    role: 'manager',
-    text: finalText,
-    costUsd,
-    actions,
-    attachments: mostrados.length ? mostrados : undefined,
-  });
-  return { message: msg, text: finalText };
+  // Ver a nota da rotação em runManagerTurn — mesma razão, mesma ordem.
+  await talvezRodarSessao(GLOBAL_MANAGER_ID, costUsd, sessionId);
+  return { message: msg, text: finalText, ...(error && !finalText ? { error } : {}) };
 }

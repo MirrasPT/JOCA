@@ -44,7 +44,7 @@ export interface ProjectMemory {
   quickCommands: string[];
   openFiles: string[];
   /** Painel activo do rail direito. `inbox` = notificações (4º painel, irmão dos outros). */
-  rightPanel: 'files' | 'toolkit' | 'settings' | 'inbox' | null;
+  rightPanel: 'toolkit' | 'settings' | 'inbox' | null;
   updatedAt: string;
 }
 

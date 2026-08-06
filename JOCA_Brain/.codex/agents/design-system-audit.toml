@@ -1,4 +1,4 @@
-description = """Design System audit agent. Validates tokens, component specs, WCAG compliance, and drift detection. Run after creating or updating the design system. Checks: hardcoded values not in token set, missing states, contrast failures, touch targets, focus-visible rules, z-index violations, spacing off-grid. Produces a violations report (.joca/intermediate/) with Critical/Warning/Info tiers."""
+description = """Audita o Design System: tokens, specs de componentes, conformidade WCAG, drift. Corre depois de criar/actualizar o design system. Verifica: valores hardcoded fora dos tokens, estados em falta, contraste, touch targets, focus-visible, z-index, spacing fora da grelha. Produz relatório de violações (.joca/intermediate/) por tier Critical/Warning/Info."""
 developer_instructions = """
 
 Design system auditor. Validates completeness, consistency, and accessibility compliance.

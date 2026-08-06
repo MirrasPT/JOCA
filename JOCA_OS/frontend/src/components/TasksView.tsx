@@ -486,7 +486,17 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
       {/* Um só picker, reutilizado pelo form de criação e por cada cartão (alvo no ref). */}
       <input ref={fileInputRef} type="file" multiple hidden onChange={onFilesPicked} />
 
-      <div className="tk-board">
+      {/* Quadro vazio: primeira pista de onboarding (auditoria #21). */}
+      {COLUMNS.every((c) => columnTasks(c.status).length === 0) && (
+        <p className="tk-board-onboarding">
+          Ainda não há tarefas. Cria a primeira em "Nova tarefa" — as de "A definir" nunca arrancam
+          sozinhas; as que puseres em "A executar" correm num worker do projecto.
+        </p>
+      )}
+
+      {/* tabIndex: o quadro scrolla horizontalmente — sem foco, um utilizador só-teclado não
+          alcança colunas fora do viewport (auditoria #14). */}
+      <div className="tk-board" tabIndex={0} role="group" aria-label="Quadro de tarefas (scroll horizontal)">
         {COLUMNS.map((col) => {
           const cards = columnTasks(col.status);
           const colNext = nextColumn(col.status);
@@ -526,7 +536,7 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                 </div>
               )}
               <div className="tk-col-body">
-                {cards.length === 0 && <div className="tk-col-empty">Vazio</div>}
+                {cards.length === 0 && <div className="tk-col-empty">Sem tarefas aqui — arrasta um cartão para esta coluna</div>}
                 {cards.map((t, i) => {
                   const proj = t.projectId ? projectsById.get(t.projectId) : undefined;
                   const failed = isFailed(t);

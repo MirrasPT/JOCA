@@ -7,6 +7,7 @@ import {
 import { runTaskNow } from '../tasks/engine';
 import { sessionManager } from '../session-manager';
 import { broadcast } from '../ws/broadcast';
+import { acordarPorTarefas } from '../manager/wake';
 
 // ── Tasks / Kanban (v1) ────────────────────────────────────────────────────────
 // CRUD + board moves over the tasks store. The worker-sequential engine (started in server.ts via
@@ -23,6 +24,19 @@ const sanitizeSkills = (v: unknown) =>
 const sanitizeAttachments = (v: unknown) =>
   Array.isArray(v) ? (v.filter((s) => typeof s === 'string' && s.trim()) as string[]).map((s) => s.trim()).slice(0, 50) : undefined;
 const isStatus = (v: unknown): v is TaskStatus => TASK_STATUSES.includes(v as TaskStatus);
+
+// Uma mudança no quadro: refresca quem está a ver E avisa o gestor do projecto, para ele poder
+// pegar no trabalho sozinho. Vão juntos de propósito — eram duas coisas que não podiam divergir, e
+// antes disto só existia a primeira: o gestor nunca sabia que o quadro tinha mexido.
+//
+// Só aqui, na camada HTTP. As ferramentas do próprio gestor escrevem directamente no store, logo
+// não se acorda a si mesmo (ver `acordarPorTarefas`).
+function mudou(descricao: string, task?: Task | null): void {
+  broadcast({ type: 'tasks_changed' });
+  if (task?.projectId) acordarPorTarefas(task.projectId, descricao);
+}
+
+const resumo = (t: Task) => `"${t.title.slice(0, 120)}"`;
 
 export function tasksRouter(): Router {
   const r = Router();
@@ -46,7 +60,7 @@ export function tasksRouter(): Router {
       model: typeof b.model === 'string' ? b.model : undefined,
     });
     upsertTask(t);
-    broadcast({ type: 'tasks_changed' });
+    mudou(`Tarefa NOVA na coluna "${t.status}": ${resumo(t)}.`, t);
     res.json(t);
   });
 
@@ -64,13 +78,15 @@ export function tasksRouter(): Router {
     if ('cli' in b) updated.cli = typeof b.cli === 'string' && b.cli.trim() ? b.cli.trim() : undefined;
     if ('model' in b) updated.model = typeof b.model === 'string' && b.model.trim() ? b.model.trim().slice(0, 120) : undefined;
     upsertTask(updated);
-    broadcast({ type: 'tasks_changed' });
+    mudou(`Tarefa EDITADA: ${resumo(updated)}.`, updated);
     res.json(updated);
   });
 
   r.delete('/tasks/:id', (req, res) => {
+    // Lida ANTES de apagar: depois já não há de onde tirar o projecto a avisar.
+    const antes = getTask(req.params.id);
     const ok = deleteTask(req.params.id);
-    if (ok) broadcast({ type: 'tasks_changed' });
+    if (ok) mudou(`Tarefa APAGADA: ${antes ? resumo(antes) : req.params.id}.`, antes);
     res.json({ ok });
   });
 
@@ -81,7 +97,7 @@ export function tasksRouter(): Router {
     const order = typeof b.order === 'number' ? b.order : undefined;
     const task = moveTask(req.params.id, b.status, order);
     if (!task) return res.status(404).json({ error: 'not found' });
-    broadcast({ type: 'tasks_changed' });
+    mudou(`Tarefa MOVIDA para "${b.status}": ${resumo(task)}.`, task);
     res.json(task);
   });
 
@@ -131,7 +147,10 @@ export function tasksRouter(): Router {
       : undefined;
     const comment = addTaskComment(req.params.id, { text: b.text, author, authorName });
     if (!comment) return res.status(404).json({ error: 'not found' });
-    broadcast({ type: 'tasks_changed' });
+    mudou(
+      `Comentário NOVO (${authorName ?? author}) em ${resumo(getTask(req.params.id)!)}: ${b.text.slice(0, 300)}`,
+      getTask(req.params.id),
+    );
     res.json(comment);
   });
 
@@ -152,7 +171,7 @@ export function tasksRouter(): Router {
       title: typeof b.title === 'string' ? b.title : undefined,
     });
     if (!merged) return res.status(409).json({ error: 'não foi possível fundir (tarefas inexistentes ou uma delas está em execução)' });
-    broadcast({ type: 'tasks_changed' });
+    mudou(`${b.ids.length} tarefas FUNDIDAS numa só: ${resumo(merged)}.`, merged);
     res.json(merged);
   });
 
@@ -160,7 +179,7 @@ export function tasksRouter(): Router {
   r.post('/tasks/:id/advance', (req, res) => {
     const task = advanceTask(req.params.id);
     if (!task) return res.status(409).json({ error: 'tarefa inexistente ou já na última coluna' });
-    broadcast({ type: 'tasks_changed' });
+    mudou(`Tarefa AVANÇADA para "${task.status}": ${resumo(task)}.`, task);
     res.json(task);
   });
 
@@ -168,8 +187,20 @@ export function tasksRouter(): Router {
   r.post('/tasks/advance-column', express.json(), (req, res) => {
     const b = (req.body ?? {}) as { status?: unknown };
     if (!isStatus(b.status)) return res.status(400).json({ error: 'status invalido' });
+    // Quais eram, ANTES de moverem — é a única altura em que dá para saber que projectos avisar.
+    // Um aviso por projecto, não um por tarefa: mover a coluna é UM gesto do dono.
+    const antes = loadTasks().filter((t) => t.status === b.status);
     const moved = advanceColumn(b.status);
-    if (moved > 0) broadcast({ type: 'tasks_changed' });
+    if (moved > 0) {
+      broadcast({ type: 'tasks_changed' });
+      const porProjecto = new Map<string, number>();
+      for (const t of antes) {
+        if (t.projectId) porProjecto.set(t.projectId, (porProjecto.get(t.projectId) ?? 0) + 1);
+      }
+      for (const [projectId, quantas] of porProjecto) {
+        acordarPorTarefas(projectId, `A coluna "${b.status}" avançou inteira — ${quantas} tarefa(s) deste projecto mudaram de estado.`);
+      }
+    }
     res.json({ ok: true, moved });
   });
 

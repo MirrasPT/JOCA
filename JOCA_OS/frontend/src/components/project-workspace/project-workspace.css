@@ -73,13 +73,13 @@
 
 .pw-channel-body { min-width: 0; }
 
-/* ─── Canal Chat: gestor à esquerda, quem trabalha à direita ────────
-   Não é "chat + 2 canais escondidos" — é uma vista só: o gestor (esquerda, espaço nobre) e,
-   ao lado, os workers (estado de cada um) em cima + a pasta do projecto em baixo. É o que o
-   utilizador quer ver enquanto fala com ele, não uma navegação à parte. */
+/* ─── Canal principal: AGENTES à esquerda, ESCRITA à direita ────────
+   A coluna esquerda é a lista de agentes do projecto (o gestor primeiro — abre sozinho, mas é um
+   terminal normal); a direita é a vista expandida em mais pequeno: o terminal do agente
+   seleccionado + um composer com anexos e botões de comandos. */
 .pw-chat-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
   align-items: start;
   gap: 20px;
 }
@@ -93,62 +93,94 @@
   min-width: 0;
 }
 
+/* A coluna de agentes tem por defeito a ALTURA do chat — mesmo com poucos terminais o bloco
+   enche a coluna (a lista scrolla lá dentro quando transbordar). */
+.pw-chat-side-block--workers {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .pw-chat-side-block--workers .pw-workers {
-  max-height: clamp(200px, 26dvh, 340px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
 }
 
-/* O .project-folder-browser já tem moldura, fundo e cantos próprios — envolvê-lo no
-   .project-dashboard-block punha caixa dentro de caixa. Aqui o bloco é só o título + o navegador. */
-.pw-chat-side-block--folder {
-  background: none;
-  border: 0;
-  padding: 0;
-  min-height: 0;
-}
-
-.pw-chat-side-block--folder .project-folder-browser {
-  margin-top: 8px;
-  /* Cresce com o ecrã em vez de ficar preso a 360px, mas com tecto: `dvh` (não `vh`) porque no
-     telemóvel a barra do browser entra e sai, e com `vh` o painel passava por baixo dela. O mínimo
-     garante que num portátil baixo continua a caber uma lista útil. */
-  height: clamp(320px, 58dvh, 680px);
-}
-
 @media (max-width: 1100px) {
-  .pw-chat-layout { grid-template-columns: 1fr 300px; }
+  .pw-chat-layout { grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); }
 }
 
 @media (max-width: 860px) {
+  /* Em ecrã estreito a escrita vem primeiro; os agentes ficam por baixo. */
   .pw-chat-layout { grid-template-columns: 1fr; }
-  .pw-chat-side-block--folder .project-folder-browser { height: clamp(280px, 46dvh, 420px); }
+  .pw-chat-side { order: 2; }
+  .pw-chat-main { order: 1; }
 }
 
-/* ─── Agente inline no painel de chat (troca sem sair do projecto) ──────────────────────────── */
+/* ─── Barra do agente activo (coluna de escrita) ────────────────────────────────────────────── */
 .pw-chat-agent-bar {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 10px; padding: 8px 12px;
   background: var(--surface-panel); border: 1px solid var(--border-bento);
   border-radius: 10px;
+  flex: 0 0 auto;
 }
-.pw-chat-back-btn {
-  background: none; border: none; color: var(--accent); cursor: pointer;
-  font: 600 12px var(--font-ui); padding: 2px 0;
-}
-.pw-chat-back-btn:hover { text-decoration: underline; }
-.pw-chat-agent-label { flex: 1; min-width: 0; color: var(--text-dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pw-chat-agent-label { flex: 1; min-width: 0; color: var(--text-bright); font: 700 12.5px var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pw-chat-expand-btn {
+  display: inline-flex; align-items: center; gap: 6px;
   background: none; border: 1px solid var(--border-bento); color: var(--text-dim);
-  border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+  border-radius: 8px; padding: 6px 12px; font-size: 11px; cursor: pointer;
+  min-height: 30px;
 }
 .pw-chat-expand-btn:hover { color: var(--text-bright); border-color: var(--accent-border); }
+.pw-chat-expand-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .pw-chat-terminal-wrap {
   display: flex; flex-direction: column;
-  height: min(65vh, 680px);
+  min-height: 220px;
   border: 1px solid var(--border-bento); border-radius: var(--radius-bento);
   overflow: hidden;
 }
+
+/* ─── Composer da coluna de escrita (mini-vista-expandida) ──────────────────────────────────── */
+.pw-composer {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-bento);
+  border-radius: var(--radius-bento, 12px);
+}
+.pw-composer-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pw-composer-input-row { display: flex; align-items: flex-end; gap: 8px; }
+.pw-composer-attach {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  background: none; border: 1px solid var(--border-bento); border-radius: 9px;
+  color: var(--text-dim); cursor: pointer;
+}
+.pw-composer-attach:hover { color: var(--text-bright); border-color: var(--accent-border); }
+.pw-composer-attach:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pw-composer-input {
+  flex: 1 1 auto; min-width: 0;
+  resize: none;
+  padding: 8px 10px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-bento); border-radius: 9px;
+  color: var(--text-primary); font: 400 13px/1.45 var(--font-ui);
+}
+.pw-composer-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.pw-composer-send {
+  flex: 0 0 auto;
+  min-height: 34px; padding: 0 16px;
+  background: var(--accent); border: none; border-radius: 9px;
+  color: #fff; font: 700 12px var(--font-ui); cursor: pointer;
+}
+.pw-composer-send:hover:not(:disabled) { filter: brightness(1.1); }
+.pw-composer-send:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pw-composer-send:disabled { opacity: 0.45; cursor: default; }
 
 .pw-worker-expand {
   display: inline-flex; align-items: center; justify-content: center;
@@ -209,17 +241,15 @@
   min-height: 0;
   align-items: stretch;   /* era `start`: as colunas não enchiam a altura e não podiam scrollar */
 }
-/* A coluna do chat tem de FICAR pela altura dela: sem isto o chat (cabeçalho + conversa +
-   composer) media mais que a coluna, transbordava com `overflow: visible`, e quem acabava a
-   scrollar era o canal inteiro — o sintoma que se queria eliminar. Preso aqui, quem scrolla passa
-   a ser só a conversa (`.mgr-chat-thread`), que é o correcto. */
+/* A coluna de escrita tem de FICAR pela altura dela: barra e composer têm altura própria
+   (flex 0 0 auto), o terminal estica e encolhe com o que sobra. */
 .project-workspace .pw-chat-main {
   min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
-.project-workspace .pw-chat-main > * { flex: 1 1 auto; min-height: 0; }
+.project-workspace .pw-chat-main > .pw-chat-terminal-wrap { flex: 1 1 auto; min-height: 0; }
 .project-workspace .pw-chat-side { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 
 /* Em ecrãs baixos o cabeçalho é que tem de ceder — é moldura, não conteúdo. Isto recupera ~60px

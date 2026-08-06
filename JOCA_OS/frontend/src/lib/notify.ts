@@ -69,6 +69,37 @@ export function playNotifySound(): void {
   } catch { /* audio unavailable */ }
 }
 
+/**
+ * Ícone do tema de marca activo, para a notificação do SO não sair com o ícone genérico do browser.
+ *
+ * Lido do `<link rel="icon">` da própria página em vez de importar o `brand.ts`: é o `index.html`
+ * que o troca (antes do bundle, para o separador não piscar o tema errado), portanto o DOM é a
+ * fonte que está sempre certa — sem duplicar a lógica de qual tema está activo.
+ */
+function iconeDaMarca(): string | undefined {
+  try {
+    const link = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null;
+    return link?.href || undefined;
+  } catch { return undefined; }
+}
+
+/**
+ * Assunto da notificação, para o SO SUBSTITUIR a anterior do mesmo assunto em vez de empilhar.
+ *
+ * Era esta a origem das notificações repetidas: sem `tag`, cada aviso é uma notificação nova, e um
+ * gestor que fala cinco vezes deixa cinco cartões na bandeja a dizer quase o mesmo. O `groupKey` é
+ * a mesma noção que o backend já usa para fundir entradas na inbox (`notifications/store.ts`) —
+ * aqui reaproveita-se, para as duas metades terem uma só ideia de "isto é o mesmo assunto".
+ */
+function assunto(title: string, target?: NotificationTarget): string {
+  if (target?.groupKey) return target.groupKey;
+  if (target?.taskId) return `tarefa:${target.taskId}`;
+  if (target?.automationId) return `automacao:${target.automationId}`;
+  if (target?.sessionId) return `sessao:${target.sessionId}`;
+  if (target?.projectId) return `projecto:${target.projectId}`;
+  return `titulo:${title}`;
+}
+
 // Fire an OS notification if the user granted permission (no-op otherwise).
 //
 // Com `target`, o clique traz a janela para a frente E navega. A ordem importa: `window.focus()`
@@ -77,7 +108,9 @@ export function playNotifySound(): void {
 export function osNotify(title: string, body: string, target?: NotificationTarget): void {
   try {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    const n = new Notification(title, { body });
+    // `renotify` fica por omissão (false): substituir o cartão anterior não volta a tocar nem a
+    // saltar para a frente. O som já foi dado pelo `notify()`, quando é caso disso.
+    const n = new Notification(title, { body, icon: iconeDaMarca(), tag: assunto(title, target) });
     if (!hasNotificationTarget(target)) return;
     n.onclick = () => {
       try { window.focus(); } catch { /* o browser pode recusar o foco */ }

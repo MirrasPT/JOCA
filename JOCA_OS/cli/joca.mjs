@@ -14,7 +14,7 @@
 //   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro agente escreveu
 //   node "$JOCA_CLI" chat <projecto> "texto"    fala com o gestor de um projecto
 //   node "$JOCA_CLI" workers                    vê os workers do gestor e o que fazem
-//   node "$JOCA_CLI" ls|cat <path>              vê o que os outros terminais produziram
+//   node "$JOCA_CLI" cat <path>                  lê 1 ficheiro por caminho (sem navegação/listagem)
 //
 // Os comandos de terminais são LIMITADOS AO PROJECTO de quem os corre: dois agentes do mesmo
 // projecto falam e verificam-se um ao outro sem passar pelo gestor, mas não vêem os de outro
@@ -162,7 +162,7 @@ const commands = {
       for (const t of inCol) {
         const marks = [
           t.lastStatus === 'error' ? '✗' : '',
-          t.comments?.length ? `💬${t.comments.length}` : '',
+          t.comments?.length ? `[${t.comments.length} notas]` : '',
         ].filter(Boolean).join(' ');
         console.log(`  ${short(t.id)}  ${oneLine(t.title, 70)}${marks ? '  ' + marks : ''}`);
       }
@@ -358,18 +358,6 @@ const commands = {
     }
   },
 
-  async ls(flags, [target]) {
-    if (!target) die('falta o caminho: joca ls <path>');
-    const dir = absPath(target);
-    const out = await request('GET', `/files?path=${encodeURIComponent(dir)}&showHidden=${flags.all ? 'true' : 'false'}`, { forbiddenHint: FILES_HINT });
-    console.log(out.path);
-    if (!out.entries.length) return console.log('  (vazio)');
-    for (const e of out.entries) {
-      const size = e.isDir ? '' : `${String(e.size ?? 0).padStart(9)}  `;
-      console.log(`  ${e.isDir ? 'd' : '-'} ${e.isDir ? ' '.repeat(11) : size}${e.name}`);
-    }
-  },
-
   async cat(flags, [target]) {
     if (!target) die('falta o caminho: joca cat <path> [--tail N]');
     const file = absPath(target);
@@ -387,7 +375,7 @@ const commands = {
   async notify(flags, [...parts]) {
     const text = parts.join(' ') || flags.text;
     if (!text) die('falta o texto: joca notify "mensagem"');
-    await api('POST', '/notifications', { title: flags.title || '🖥 Terminal', text, kind: 'system' });
+    await api('POST', '/notifications', { title: flags.title || 'Terminal', text, kind: 'system' });
     console.log('notificação enviada');
   },
 
@@ -421,13 +409,12 @@ TERMINAIS (agentes falam entre si — só dentro do MESMO projecto)
    recusado pelo JOCA_OS. Não precisas do gestor no meio: trata directamente com o colega.)
 
 GESTOR DE PROJECTO
-  chat <projecto> "<texto>"                    fala com o gestor (resposta ASSÍNCRONA — lê depois)
+  chat <projecto> "<texto>"                    entrega a mensagem no TERMINAL do gestor do projecto
   chat <projecto> [--limit 20]                 lê a conversa com o gestor (+ acções de cada turno)
   workers [<projecto>]                         workers por área e o que cada um está a fazer
   (<projecto> aceita id, prefixo de id ou nome)
 
-FICHEIROS (leitura)
-  ls <path> [--all]                            lista uma pasta (--all inclui ocultos)
+FICHEIROS (leitura pontual — sem navegação/listagem, ver skill)
   cat <path> [--tail N]                        lê um ficheiro (--tail N = últimas N linhas)
 
 OUTROS

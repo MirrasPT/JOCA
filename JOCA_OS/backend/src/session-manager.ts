@@ -9,7 +9,9 @@
 //                                              SINGLE broadcast source for both UI- and auto-spawned PTYs
 //   'output' { sessionId, data }            — every PTY chunk (server forwards to WS as 'output')
 //   'status' { sessionId, status, isDone }   — working↔idle transitions (forwarded as 'session_status')
-//   'closed' { sessionId }                   — PTY exit (forwarded as 'session_closed')
+//   'closed' { sessionId, finalOutput }      — PTY exit (forwarded as 'session_closed'). `finalOutput`
+//                                              é o buffer final já sem ANSI: quem ouvir isto não o
+//                                              consegue ir buscar depois, porque a sessão já saiu do mapa.
 //   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
 //                                              work burst ends; automations/tasks await this.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
@@ -33,6 +35,10 @@ export interface Session {
   projectId?: string;
   origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
   cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
+  // Área do gestor a que este terminal pertence, quando foi ele que o abriu. É a IDENTIDADE do
+  // worker (é por aqui que o gestor lhe fala), e vive à parte do `name` de propósito: o `name` é o
+  // rótulo que o dono edita na interface, e renomear não pode mudar com quem o gestor está a falar.
+  area?: string;
   pty: pty.IPty;
   buffer: string;
   status: 'working' | 'idle';
@@ -56,6 +62,7 @@ export interface SessionInfo {
   projectId?: string;
   origin: 'user' | 'auto';
   cli: CliId;
+  area?: string;
   status: 'working' | 'idle';
 }
 
@@ -68,6 +75,7 @@ export interface SpawnOptions {
   origin?: 'user' | 'auto';   // default 'user'
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
   model?: string;             // passed to the CLI's model flag when the profile has one
+  area?: string;              // preenchido pelo pool do gestor — ver `Session.area`
 }
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -109,6 +117,58 @@ function findBin(bin: string): string {
 
 // CSI/OSC/SGR escape stripper for readBuffer({ strip: true }) — leaves plain text for programmatic readers.
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
+
+/**
+ * Esta rajada trouxe alguma coisa VISÍVEL, ou é só o terminal a pintar-se?
+ *
+ * Tirando as sequências de escape e os caracteres de controlo, o que sobra é o que um humano leria.
+ * Se não sobra nada, ninguém escreveu nada: foi cursor, cor, limpar linha, mudar de posição.
+ *
+ * Exportada para ser testável — é uma decisão que afecta TODO o sistema de estados (o `done`, o
+ * juiz, o que a UI mostra), e uma regressão aqui é silenciosa.
+ */
+/**
+ * O CLI está a pedir para confiar nesta pasta?
+ *
+ * Duas armadilhas, ambas pagas em campo:
+ *
+ * 1. **Cada CLI escreve o pedido à sua maneira.** O Claude diz "Do you trust the files in this
+ *    folder?", o codex diz "Do you trust the contents of this directory?". A versão anterior só
+ *    conhecia a do Claude — e um worker codex ficava parado no diálogo para sempre, com o JOCA a
+ *    reportá-lo como `idle`, isto é, livre.
+ * 2. **O texto do TUI não tem espaços.** Estas interfaces posicionam cada palavra com movimentos
+ *    de cursor em vez de escreverem espaços, portanto o buffer sem ANSI lê-se
+ *    `Doyoutrustthecontentsofthisdirectory`. Qualquer padrão com espaços falha. Daí normalizar
+ *    para só letras antes de comparar.
+ *
+ * Em ambos os CLIs o Enter aceita a opção segura por omissão (Claude: confiar; codex: "1. Yes,
+ * continue" já seleccionada, "Press enter to continue"). São pastas que o dono abriu de propósito.
+ */
+export function pedeConfiancaNaPasta(buffer: string): boolean {
+  const t = buffer.replace(ANSI_RE, '').toLowerCase().replace(/[^a-z]/g, '');
+  return t.includes('doyoutrustthefiles')
+    || t.includes('doyoutrustthecontents')
+    || t.includes('trustthefilesinthisfolder')
+    || t.includes('trustthecontentsofthisdirectory');
+}
+
+/**
+ * O CLI está a oferecer-se para se ACTUALIZAR? Nunca se aceita a meio de um arranque.
+ *
+ * Não é pedantismo: no codex a opção por omissão é "Update now", e aceitá-la corre um
+ * `npm install -g` e mata a sessão a seguir ("Please restart Codex"). Uma actualização é uma
+ * decisão do dono, num momento escolhido por ele — não um efeito secundário de despachar trabalho.
+ * Mesma normalização sem espaços de `pedeConfiancaNaPasta`, e pela mesma razão.
+ */
+export function ofereceActualizacao(buffer: string): boolean {
+  const t = buffer.replace(ANSI_RE, '').toLowerCase().replace(/[^a-z]/g, '');
+  return t.includes('updateavailable') || t.includes('updatenowruns') || t.includes('anewversionisavailable');
+}
+
+export function temConteudoVisivel(chunk: string): boolean {
+  // \r e \b são movimento (voltar ao início da linha, apagar atrás), não conteúdo.
+  return chunk.replace(ANSI_RE, '').replace(/[\x00-\x08\x0b-\x1f\x7f\r]/g, '').trim().length > 0;
+}
 
 // Paced writes into a CLI TUI over a PTY. Three separate problems, one mechanism:
 //   1. A multi-line message written raw makes the TUI submit early on the first embedded '\n'
@@ -180,7 +240,7 @@ export class SessionManager extends EventEmitter {
   get(id: string): Session | undefined { return this.sessions.get(id); }
 
   info(s: Session): SessionInfo {
-    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, status: s.status };
+    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, area: s.area, status: s.status };
   }
 
   listInfo(): SessionInfo[] { return this.list().map((s) => this.info(s)); }
@@ -191,9 +251,10 @@ export class SessionManager extends EventEmitter {
     // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
     const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
-    // Resolve the resume folder once — Claude Code consumes it as /resume (see
-    // runStartupSequence); the other CLIs have no such commands, so project context is provided by
-    // simply STARTING the CLI inside the project folder (cwd).
+    // Resolve the resume folder once. TODOS os CLIs arrancam DENTRO do JOCA_Brain (cwd) — é lá que
+    // vivem as skills/regras que os tornam úteis — e recebem a pasta do projecto pelo comando de
+    // resume do perfil: `/resume "<pasta>"` no Claude Code, `resume "<pasta>"` em texto simples nos
+    // outros (codex/agy não reconhecem comandos custom com `/`).
     let resumeResolved: string | null = null;
     if (resumePath) {
       try {
@@ -201,7 +262,7 @@ export class SessionManager extends EventEmitter {
         if (PATH_SAFE.test(r) && fs.existsSync(r)) resumeResolved = r;
       } catch { /* invalid resume path → ignored */ }
     }
-    const cwd = opts.cwd ?? (!profile.startupSequence && resumeResolved ? resumeResolved : JOCA_LOGIC_ROOT);
+    const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
@@ -221,6 +282,7 @@ export class SessionManager extends EventEmitter {
     const session: Session = {
       id, name, cwd, projectId, origin,
       cli: profile.id,
+      area: opts.area,
       pty: ptyProcess,
       buffer: '',
       status: 'idle',
@@ -244,7 +306,7 @@ export class SessionManager extends EventEmitter {
         favoriteAgents: [],
         quickCommands: ['save', 'compact', 'clear'],
         openFiles: [],
-        rightPanel: 'files',
+        rightPanel: null,
         updatedAt: new Date().toISOString(),
       };
       memory[projectId] = {
@@ -256,7 +318,7 @@ export class SessionManager extends EventEmitter {
     }
 
     // Launch the selected CLI. The autonomous toggle maps to each profile's own flags
-    // (claude → --dangerously-skip-permissions, codex → --full-auto, …).
+    // (claude → --dangerously-skip-permissions, codex → --dangerously-bypass-approvals-and-sandbox, …).
     const launchLine = buildLaunchLine(profile, findBin(profile.bin), {
       model: opts.model,
       autonomous: loadUiSettings().skipPermissions,
@@ -282,12 +344,12 @@ export class SessionManager extends EventEmitter {
     //
     // Enviado só quando a TUI está mesmo pronta (ver runStartupSequence). Timers fixos foram o bug
     // por trás de "às vezes não manda o /resume": num arranque lento, ou com o prompt "trust this
-    // folder?", o comando chegava antes de o CLI o poder receber e perdia-se. Claude Code apenas —
-    // os outros CLIs recebem o contexto por cwd (resolvido acima).
+    // folder?", o comando chegava antes de o CLI o poder receber e perdia-se. Todos os CLIs passam
+    // por aqui — a diferença é só a forma do comando (profile.resumeCmd).
     let startupCmd: string | null = null;
     let firstMessage = initialInput;
     if (profile.startupSequence && resumeResolved) {
-      const resumeCmd = `/resume "${resumeResolved}"`;
+      const resumeCmd = `${profile.resumeCmd} "${resumeResolved}"`;
       if (origin === 'user') startupCmd = resumeCmd;
       else if (firstMessage) firstMessage = `${resumeCmd}\n\n${firstMessage}`;
     }
@@ -305,6 +367,17 @@ export class SessionManager extends EventEmitter {
         session.buffer = '\x1b[0m' + session.buffer.slice(cutAt);
       }
       this.emit('output', { sessionId: id, data });
+
+      // Repintura não é trabalho. Um TUI mexe o cursor, repõe cores e apaga linhas sem nada de novo
+      // acontecer — e como o estado era "chegaram bytes = está a trabalhar", uma sessão parada num
+      // ecrã com cursor a piscar nunca voltava a `idle`: o silêncio de IDLE_DEBOUNCE_MS nunca
+      // chegava. Era esta a origem dos terminais eternamente "a trabalhar".
+      //
+      // O que fica de fora: um spinner ou um relógio ESCREVEM caracteres visíveis, e continuam a
+      // contar como trabalho. Resolver isso obriga a comparar o ECRÃ ao longo do tempo, não o
+      // fluxo de bytes — outra empreitada. Isto apanha o caso barato e frequente sem tocar na
+      // detecção de fim, de que o gestor todo depende.
+      if (!temConteudoVisivel(data)) return;
 
       // Status: transition to working
       const wasIdle = session.status === 'idle';
@@ -347,11 +420,17 @@ export class SessionManager extends EventEmitter {
     });
 
     ptyProcess.onExit(() => {
+      // Atenção: isto cancela um `idleTimer` pendente, logo o 'done' desta rajada NUNCA sai. Um
+      // processo que acaba depressa (ou que morre) fecha sem nunca ter dito "terminei" — quem
+      // estivesse à espera do 'done' ficava à espera para sempre. Por isso o 'closed' leva o
+      // output final: é o único sítio onde ainda existe (o `sessions.delete` abaixo torna-o
+      // inalcançável), e é o que permite a quem ouve reportar o fecho em vez de o engolir.
       if (session.idleTimer) clearTimeout(session.idleTimer);
       if (session.writeTimer) clearTimeout(session.writeTimer);
       session.writeQueue.length = 0;
+      const finalOutput = session.buffer.replace(ANSI_RE, '');
       this.sessions.delete(id);
-      this.emit('closed', { sessionId: id });
+      this.emit('closed', { sessionId: id, finalOutput });
     });
 
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
@@ -428,15 +507,42 @@ export class SessionManager extends EventEmitter {
   // "trust this folder?" prompt if present, THEN send /resume (só em terminais abertos à mão),
   // THEN submit any brief (que, nos automáticos, já traz o /resume colado à frente).
   // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
+  /**
+   * Limpa os diálogos modais com que um CLI arranca, ANTES de lhe entregar trabalho.
+   *
+   * Porque é que isto não é "carregar Enter": o Enter aceita a opção por OMISSÃO, e a opção por
+   * omissão nem sempre é inofensiva. Medido em campo com o codex 0.143.0: um Enter cego no
+   * diálogo "Update available!" escolhe **"1. Update now"** — o CLI correu `npm install -g`,
+   * alterou o sistema do dono e saiu com "Please restart Codex". O terminal ficava num prompt de
+   * shell, o JOCA reportava-o como `idle` (livre) e o trabalho nunca chegava a começar.
+   *
+   * Por isso cada diálogo é RECONHECIDO e respondido à medida: confiar na pasta, sim (foi o dono
+   * que a abriu); actualizar-se sozinho a meio de um arranque, nunca. Em ciclo, porque vêm em
+   * série — a actualização aparece antes da confiança.
+   */
+  private async limparDialogosDeArranque(session: Session): Promise<void> {
+    const p = session.pty;
+    for (let i = 0; i < 4; i++) {
+      if (!this.sessions.has(session.id)) return;
+      const tail = session.buffer.slice(-4000);
+      if (ofereceActualizacao(tail)) {
+        // "2. Skip" nos dois formatos conhecidos; o dígito selecciona, o CR confirma.
+        safePtyWrite(p, '2');
+        await new Promise((r) => setTimeout(r, 120));
+        safePtyWrite(p, '\r');
+      } else if (pedeConfiancaNaPasta(tail)) {
+        safePtyWrite(p, '\r');
+      } else {
+        return;
+      }
+      await this.waitForQuiet(session, 700, 8000);
+    }
+  }
+
   private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
     const p = session.pty;
     await this.waitForQuiet(session, 700, 12000);
-    // First-time folders show "Do you trust the files in this folder?" — accept the default (Enter) so
-    // the CLI reaches its prompt. These are folders the user explicitly opened in JOCA.
-    if (/trust the files in this folder|Do you trust the files/i.test(session.buffer.slice(-2000))) {
-      safePtyWrite(p, '\r');
-      await this.waitForQuiet(session, 700, 8000);
-    }
+    await this.limparDialogosDeArranque(session);
     if (!this.sessions.has(session.id)) return;
     if (startupCmd) {
       if (!safePtyWrite(p, startupCmd)) return;   // terminal morreu a arrancar — nada a enviar
@@ -513,8 +619,9 @@ export class SessionManager extends EventEmitter {
     if (session.writeTimer) clearTimeout(session.writeTimer);
     session.writeQueue.length = 0;
     try { session.pty.kill(); } catch {}
+    const finalOutput = session.buffer.replace(ANSI_RE, '');
     this.sessions.delete(sessionId);
-    this.emit('closed', { sessionId });
+    this.emit('closed', { sessionId, finalOutput });
     return true;
   }
 

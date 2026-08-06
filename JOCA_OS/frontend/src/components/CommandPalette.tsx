@@ -6,8 +6,6 @@ interface CommandPaletteProps {
   jocaItems: JocaItems | null;
   onClose: () => void;
   onShowDashboard: () => void;
-  onOpenFiles: () => void;
-  onOpenToolkit: () => void;
   onOpenSettings: () => void;
   onSelectSession: (id: string) => void;
   onNewSession: () => void;
@@ -20,7 +18,7 @@ interface CommandPaletteProps {
 // Pure presentational — all behaviour comes in via props (the parent owns open/close + the actions).
 export default function CommandPalette({
   sessions, projects, jocaItems, onClose,
-  onShowDashboard, onOpenFiles, onOpenToolkit, onOpenSettings,
+  onShowDashboard, onOpenSettings,
   onSelectSession, onNewSession, onShowProject, onCreateProject, onInsert,
 }: CommandPaletteProps) {
   return (
@@ -38,8 +36,6 @@ export default function CommandPalette({
           <div>
             <h3>Workspace</h3>
             <button onClick={onShowDashboard}>Dashboard</button>
-            <button onClick={onOpenFiles}>Open Files</button>
-            <button onClick={onOpenToolkit}>Open Toolkit</button>
             <button onClick={onOpenSettings}>Open Settings</button>
           </div>
           <div>

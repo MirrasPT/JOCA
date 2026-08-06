@@ -1,4 +1,4 @@
-description = """Runs AND verifies a deploy pipeline (cPanel / Docker / Ploi) — does not just know the steps, it executes them and health-checks the result. Triggers: deploy, publicar site, correr pipeline de deploy, fazer deploy para producao. Detects the target, reads the matching deploy-* skill, runs the pipeline, performs a post-deploy health-check (curl/status), and reports. Different from the deploy-* skills (knowledge only, no executor): this agent acts. STOPS for one confirmation before any irreversible production step (soul.md gate)."""
+description = """Corre E verifica um pipeline de deploy (cPanel/Docker/Ploi) — não só sabe os passos, executa-os e faz health-check. Detecta o alvo, lê a skill deploy-* certa, corre a pipeline, verifica (curl/status), reporta. Diferente das skills deploy-* (só conhecimento) — este age. PÁRA para 1 confirmação antes de qualquer passo irreversível de produção. Triggers: deploy, publicar site, correr pipeline de deploy."""
 developer_instructions = """
 
 # Deploy Executor Agent

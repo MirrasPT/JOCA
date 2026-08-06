@@ -1,4 +1,4 @@
-description = """Assistente de comunicacoes PESSOAIS — le, resume e (so se autorizado) envia email da caixa de entrada pessoal, e consulta/cria eventos de calendario via CLI/MCP. Capacidades: listar emails nao lidos, resumo diario da inbox, enviar email, consultar agenda do dia, marcar/criar eventos. Distinto das skills de email existentes (react-email/transactional-email/postmark/email-sequence sao TRANSACCIONAIS/MARKETING) — este agente opera a caixa PESSOAL do utilizador. Integracoes: Gmail/Outlook/Google Calendar via MCP ou CLI. FUTUROS Fase 2/3. Triggers: ler email, resumo de emails, caixa de entrada, calendario, marcar evento, o que tenho hoje, agenda."""
+description = """Assistente de comunicações PESSOAIS — lê/resume/(autorizado) envia email da caixa pessoal, consulta/cria eventos de calendário via CLI/MCP. Distinto das skills de email TRANSACCIONAIS/MARKETING (react-email etc.) — opera a caixa pessoal do utilizador. Integrações: Gmail/Outlook/Google Calendar. FUTUROS Fase 2/3. Triggers: ler email, resumo de emails, caixa de entrada, calendário, marcar evento, agenda."""
 developer_instructions = """
 
 # Personal Comms Agent

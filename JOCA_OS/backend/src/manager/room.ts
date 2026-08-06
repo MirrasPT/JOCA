@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
 import { DATA_DIR, loadProjects } from '../project-store';
-import { runManagerTurn, runGlobalManagerTurn, GLOBAL_MANAGER_ID } from './manager';
+import { runManagerTurn, runGlobalManagerTurn, GLOBAL_MANAGER_ID, isManagerSdkEnabled } from './manager';
 
 export interface RoomAuthor {
   kind: 'user' | 'joca' | 'manager';
@@ -178,6 +178,13 @@ export function isRoomBusy(): boolean { return running; }
  * Sem travões, dois gestores educados a agradecer-se um ao outro nunca mais paravam.
  */
 export async function dispatchToRoom(targets: string[], _userName: string, _text: string): Promise<void> {
+  // SDK desligado → sem gestores para debater. Dizê-lo NO transcrito, em vez de morrer na 1ª ronda
+  // sem indicação nenhuma (auditoria #1: a sala parava em silêncio com sucesso aparente).
+  if (!isManagerSdkEnabled()) {
+    appendRoomMessage({ kind: 'joca', name: 'Joca' },
+      'A Sala está desactivada nesta instalação (o chat SDK dos gestores foi desligado). Fala com o gestor de cada projecto no terminal dele.');
+    return;
+  }
   const roster = participants();
   const spokenCount = new Map<string, number>();
   let queue = targets

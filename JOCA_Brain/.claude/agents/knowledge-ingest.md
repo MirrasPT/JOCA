@@ -1,6 +1,6 @@
 ---
 name: knowledge-ingest
-description: "Ingests a URL or file (PDF, YouTube, Instagram, article, image) into the personal knowledge base. Converts source to Markdown via markitdown, generates a summary, assigns hierarchical tags, and saves a wiki note in memory/knowledge/ as a Karpathy-style wiki (immutable raw + linked .md notes with wikilinks + index). Implements /know. Triggers: /know, guardar isto, ingerir conhecimento, segundo cerebro, tenho truques sobre, adiciona ao conhecimento, ingest this URL/PDF/video. Different from deep-research (multi-source synthesis) — this agent ingests and files ONE source into the second brain."
+description: "Ingere URL/ficheiro (PDF, YouTube, Instagram, artigo, imagem) na base de conhecimento pessoal: markitdown → resumo → tags hierárquicas → nota wiki em memory/knowledge/ (Karpathy-style, raw imutável + notas .md ligadas). Implementa /know. Diferente de deep-research (síntese multi-fonte) — este ingere UMA fonte. Triggers: /know, guardar isto, segundo cérebro, ingerir conhecimento."
 skills:
   - knowledge-ingest
   - deep-research

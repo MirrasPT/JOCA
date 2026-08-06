@@ -21,6 +21,7 @@ export interface PooledWorker {
   busy: boolean;                // a job is dispatched and not yet reported done
   lastUsedAt: number;
   currentJob?: string;          // short description of what it is doing (for the UI / manager)
+  manager?: boolean;            // terminal do gestor (area 'gestor') — abre sozinho, mas fecha como os outros
 }
 
 // projectId → area → worker
@@ -61,7 +62,7 @@ function adopt(projectId: string): void {
     if (!s.name.startsWith(`${NAME_PREFIX} `)) continue;
     const area = s.name.slice(NAME_PREFIX.length + 1).trim();
     if (!area || m.has(area)) continue;
-    m.set(area, { sessionId: s.id, projectId, area, busy: false, lastUsedAt: Date.now() });
+    m.set(area, { sessionId: s.id, projectId, area, busy: false, lastUsedAt: Date.now(), manager: area === MANAGER_AREA });
   }
 }
 
@@ -111,6 +112,12 @@ export function dispatchToArea(
   opts: { cli?: string; model?: string } = {},
 ): DispatchResult {
   const baseArea = area.trim().slice(0, 40) || 'geral';
+  // A área 'gestor' é a identidade do terminal do gestor — despacho normal de trabalho não pode
+  // injectar tarefas lá nem marcá-lo busy (auditoria #3). Quem quer falar com o gestor usa o
+  // próprio terminal dele (ou `joca chat`), não o dispatch de áreas.
+  if (baseArea === MANAGER_AREA) {
+    return { ok: false, error: `a área "${MANAGER_AREA}" é reservada ao terminal do gestor — usa outra área para trabalho` };
+  }
   // O CLI faz parte da identidade da área. Sem isto, pedir `cli:"agy"` numa área que já tinha um
   // worker Claude reutilizava o terminal Claude e o pedido do gestor era ignorado em SILÊNCIO —
   // ele julgava-se a falar com o Gemini. Um CLI diferente é um worker diferente.
@@ -178,6 +185,49 @@ export function closeWorker(projectId: string, area: string): boolean {
   sessionManager.kill(w.sessionId);
   areaMap(projectId).delete(area.trim());
   return true;
+}
+
+// Área do terminal do gestor de projecto — abre sozinho, mas fecha como qualquer outro.
+const MANAGER_AREA = 'gestor';
+
+// Projectos cujo gestor JÁ foi aberto neste processo. Sem isto, o utilizador fechava o terminal do
+// gestor e a próxima chamada a ensureManagerSession reabria-o logo — "fechável" a fingir. Fechado
+// fica fechado; volta a abrir num reinício do JOCA ou se o utilizador o abrir à mão.
+const managerOpened = new Set<string>();
+
+/**
+ * Abre o terminal do gestor do projecto (PTY real, `/resume` sozinho) UMA vez por processo. É um
+ * terminal normal — o utilizador pode fechá-lo, e fechado não renasce sozinho. Chamado no arranque
+ * do backend (projectos existentes) e na criação de um projecto novo.
+ */
+export function ensureManagerSession(projectId: string): PooledWorker | null {
+  prune(projectId);
+  adopt(projectId);
+  const m = areaMap(projectId);
+  const existing = m.get(MANAGER_AREA);
+  if (existing && sessionManager.get(existing.sessionId)) return existing;
+  if (managerOpened.has(projectId)) return null; // já abriu (e foi fechado) — respeitar o fecho
+
+  const project = loadProjects().find((p) => p.id === projectId);
+  if (!project) throw new Error('projecto não encontrado');
+
+  managerOpened.add(projectId);
+  const session = sessionManager.spawn({
+    resumePath: project.path,
+    projectId,
+    sessionName: workerName(MANAGER_AREA),
+    origin: 'auto',
+    // `origin:'auto'` só cola o `/resume` à frente do `initialInput` quando este não é vazio (ver
+    // session-manager.ts spawn()) — por isso não pode ser ''. Não é uma "tarefa": é só o contexto
+    // de que este terminal é o do gestor do projecto, não um agente a que se atribui trabalho.
+    initialInput: 'Este é o terminal do gestor deste projecto — falas aqui directamente com o dono, não é trabalho para reportar a ninguém.',
+  });
+  const worker: PooledWorker = {
+    sessionId: session.id, projectId, area: MANAGER_AREA,
+    busy: false, lastUsedAt: Date.now(), manager: true,
+  };
+  m.set(MANAGER_AREA, worker);
+  return worker;
 }
 
 export function forgetSession(sessionId: string): void {

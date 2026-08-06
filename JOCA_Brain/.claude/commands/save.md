@@ -109,18 +109,32 @@ Se nao ha nada relevante, nao criar ficheiro. Nunca perguntar ao utilizador.
 
 ---
 
-## PASSO 5 — Knowledge graphs (opcional, nao bloqueante)
+## PASSO 5 — Knowledge graphs (OBRIGATÓRIO — corre sempre)
+
+Graphify é a memória de código/conhecimento mais barata do JOCA: consultar `graph.json`/
+`GRAPH_REPORT.md` custa muito menos que reabrir ficheiros `.md` inteiros à procura de contexto.
+Este passo já não é opcional — corre em TODO `/save`, do projecto e do próprio JOCA_Brain.
 
 ```bash
 # Interpretador: Windows usa `python` (o `python3` e o stub vazio da Store); macOS/Linux usam `python3`.
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
-# Tentar rebuild — se graphify nao disponivel, saltar silenciosamente
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))" 2>/dev/null || true
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || true
+if [ -z "${PY:-}" ]; then
+  echo "⚠ graphify não instalado — corre 'uv tool install graphifyy' (ver memory/tools/clis.md)."
+else
+  # Código do projecto
+  "$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))"
+  "$PY" .claude/scripts/graphify-deps.py "<path-projecto>"
+  # Conhecimento do próprio JOCA_Brain (skills/agents/commands/projects) — sempre, não só quando o
+  # Brain muda: mantém o grafo fresco para o /resume e o /map-joca seguintes.
+  node .claude/scripts/joca-graph.mjs
+fi
 ```
 
-Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos.
-Nota: o scan exclui `vendor/`, `node_modules/`, `storage/`, `out/`, `public/` por omissao (evitar dezenas de milhar de nos de ruido).
+Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos (ver `/resume`).
+Nota: `.graphifyignore` já exclui só infra (`node_modules/`, `vendor/`, `dist/`, lockfiles, cache,
+`.git/`) — **nunca excluir por tipo de conteúdo**: imagens, media, texto (com conteúdo) e código
+entram todos. Se `graphify` não estiver instalado, isto **não se salta em silêncio** — o PASSO 8
+tem de reportar o aviso, para a falta ficar visível e não se repetir sessão após sessão.
 
 ---
 
@@ -172,7 +186,7 @@ Feedback JOCA:
   — Sem gaps detectados
 
 Extras:
-  [✓ Graphs actualizados]
+  ✓ Graphs actualizados (projecto + JOCA_Brain)  |  ⚠ graphify não instalado — corre `uv tool install graphifyy`
   [✓ Bridges recompilados]
   [✓ SKILL_INDEX + INDEX.md realinhados | joca-doctor limpo]
   [✓ ~/CLAUDE.md actualizado]

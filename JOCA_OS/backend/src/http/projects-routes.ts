@@ -11,6 +11,7 @@ import {
 } from '../project-store';
 import { sanitizeToolkitName, sanitizeToolkitCategory } from './helpers';
 import { loadProjectGroups, pruneEmptyGroups } from '../project-groups-store';
+import { ensureManagerSession } from '../manager/worker-pool';
 import { iconsRouter, parseIconInput, collectIconIfUnused } from './icons-routes';
 
 // Projects CRUD + per-project git status + per-project toolkit scaffolding.
@@ -83,10 +84,13 @@ export function projectsRouter(): Router {
       favoriteAgents: [],
       quickCommands: ['save', 'compact', 'clear'],
       openFiles: [],
-      rightPanel: 'files',
+      rightPanel: null,
       updatedAt: new Date().toISOString(),
     };
     saveProjectMemory(memory);
+    // Projecto novo → abre logo o terminal do gestor (um terminal normal, fechável). É o mesmo
+    // arranque automático que o server.ts faz para os projectos existentes.
+    try { ensureManagerSession(project.id); } catch (e) { console.error('[projects] gestor não abriu:', e); }
     res.json(project);
   });
 

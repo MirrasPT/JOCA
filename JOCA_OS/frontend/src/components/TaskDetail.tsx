@@ -39,6 +39,7 @@ export interface Task {
   result?: string;
   testerResult?: string;
   lastStatus?: 'ok' | 'error' | 'running' | null;
+  retryCount?: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -70,11 +71,12 @@ const LAST_STATUS_LABEL: Record<'ok' | 'error' | 'running', string> = {
   running: 'A correr',
 };
 
+// Iniciais, não emojis — regra global da casa: zero emojis na interface (auditoria #20).
 const AUTHOR_META: Record<TaskCommentAuthor, { icon: string; label: string }> = {
-  user: { icon: '👤', label: 'Eu' },
-  worker: { icon: '🖥', label: 'Worker' },
-  judge: { icon: '⚖', label: 'Juiz' },
-  system: { icon: '⚙', label: 'Sistema' },
+  user: { icon: 'EU', label: 'Eu' },
+  worker: { icon: 'W', label: 'Worker' },
+  judge: { icon: 'J', label: 'Juiz' },
+  system: { icon: 'S', label: 'Sistema' },
 };
 
 // Basename de um caminho absoluto (Windows \ ou POSIX /).
@@ -358,6 +360,11 @@ export function TaskDetail({ task, projects, cliProfiles, jocaItems, onClose, on
                 <span className={`tk-status tk-status-${task.lastStatus}`}>{LAST_STATUS_LABEL[task.lastStatus]}</span>
               )}
               {failed && <span className="tk-drawer-failed">⚠ concluída com erro</span>}
+              {!!task.retryCount && (
+                <span className="tk-tag" title="Tentativas automáticas gastas nesta tarefa">
+                  tentativa {task.retryCount}/4
+                </span>
+              )}
             </div>
             <h2 id="tk-drawer-title">{task.title}</h2>
           </div>

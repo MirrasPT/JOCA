@@ -1,6 +1,6 @@
 ---
 name: query-debugger
-description: "Use when you need to diagnose slow or broken database queries. Triggered by: \"slow query\", \"query taking too long\", \"EXPLAIN\", \"N+1 problem\", \"database slow\", \"missing index\", \"optimize query\", \"SQL slow\", \"full table scan\", \"query performance\", \"database bottleneck\", \"laravel query debug\", \"DB::listen\", \"query log\", \"timeout in query\", \"too many queries\". Analyzes EXPLAIN plans, identifies missing indexes, N+1 patterns, and suggests optimized rewrites."
+description: "Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, missing index, database bottleneck, full table scan, query performance."
 skills: mysql
 chain: tester-code
 tools: Bash, Read, Write

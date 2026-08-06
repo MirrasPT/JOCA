@@ -105,14 +105,19 @@ Ja tens: gh, ffmpeg, python, graphify
 
 Faltam (escolhe os grupos que queres):
   [core]      markitdown   -> motor do /know (ingerir PDF/Office/YouTube)
-              graphify     -> mapa de codigo; usado por /map-joca e /resume
   [git/cloud] gws, gcloud, aws
   [ai]        agy (Gemini, multimodal) · codex (review adversarial) · huggingface-cli
   [media]     yt-dlp, whisperx        -> usados pelo agente `watch`
   [cms]       wp-cli · shopify · wix · ntn (Notion, Node >= 22)
   [dev]       sentry-cli · stripe-cli · cli-printing-press (Go 1.26+)
-  [browser]   browser-use · Playwright Agent CLI
+  [browser]   Playwright CLI (nunca browser-use, nunca MCP)
 ```
+
+⚠ **`graphify` não entra nesta escolha — é OBRIGATÓRIO, instala-se sempre, sem perguntar.** É a
+memória de código/conhecimento mais barata do JOCA (ver `memory/tools/clis.md`); sem ele, `/save`,
+`/resume`, `/map-joca` e `/clean-install` ficam a reler ficheiros `.md` inteiros em vez de consultar
+o grafo. Instalação na FASE EXECUÇÃO corre incondicionalmente, mesmo que o utilizador não escolha
+nenhum grupo opcional.
 
 Recomendar `[core]` sempre; o resto so se o papel (FASE 1) o justificar — um designer nao precisa de
 `stripe-cli` por defeito. **Instalar CLIs que nao se usam custa tempo e falha em silencio.**
@@ -214,33 +219,32 @@ touch memory/projects/.gitkeep memory/feedback/.gitkeep
 [ -f memory/INDEX.md ] || touch memory/INDEX.md
 ```
 
+### 3b. Graphify (OBRIGATÓRIO — corre sempre, sem perguntar)
+
+```bash
+uv tool install graphifyy   # pacote real chama-se "graphifyy"; instala o entrypoint "graphify"
+# sem uv: pipx install graphifyy
+bash .claude/scripts/graphify-patch.sh   # reaplica patches (DOC_EXTENSIONS, dotdirs incluídos)
+```
+
+Verificar: `graphify --help` ou `python3 -c "import graphify"`. Sem isto, `/save`/`/resume`/
+`/map-joca`/`/clean-install` degradam para reler ficheiros `.md` inteiros em vez de consultar o
+grafo — é a optimização de custo mais barata que o JOCA tem, nunca saltar este passo.
+
 ### 4. Browser Automation (se seleccionado)
 
-**browser-use CLI:**
+⚠ **`browser-use` está BANIDO — nunca instalar, nunca sugerir.** Política do dono (2026-08-05):
+verificação ad-hoc → extensão **Claude no Chrome**; automação com script → **Playwright CLI**.
+**Nunca instalar o MCP do Playwright** (`@playwright/mcp`) — mesmo que pareça a via mais simples.
 
-macOS / Linux:
-```bash
-curl -fsSL https://browser-use.com/cli/install.sh | bash
-```
-
-Windows (PowerShell):
-```powershell
-& "C:\Program Files\Git\bin\bash.exe" -c 'curl -fsSL https://browser-use.com/cli/install.sh | bash'
-```
-
-Apos instalar:
-```bash
-source ~/.zshrc   # ou ~/.bashrc
-browser-use doctor
-```
-
-**Playwright Agent CLI:**
+**Playwright CLI (única via de automação de browser):**
 
 ```bash
 npm install -g @playwright/cli
 ```
 
-Verificar: `playwright-cli --help`
+Verificar: `playwright-cli --help` (ou `npx playwright --version`). Se não estiver instalado nesta
+máquina, pedir ao dono para o instalar — nunca usar MCP como atalho.
 
 **markitdown (Knowledge Base / `/know`):**
 
@@ -251,15 +255,6 @@ claude mcp add markitdown --scope user -- python -m markitdown_mcp
 ```
 
 Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
-
-**Playwright MCP (browser automation — main loop + sub-agentes):**
-
-```bash
-claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest
-```
-
-⚠ Usar SEMPRE `@playwright/mcp` (oficial Microsoft). **NUNCA `@anthropic-ai/mcp-server-playwright`** — esse pacote NÃO existe no npm (404) e deixa o MCP em "Failed to connect" silencioso (browser automation morto).
-Verificar: `claude mcp list | grep playwright` (Connected). Nota: "Connected" ≠ tools acessíveis via ToolSearch no main loop — manter sempre o fallback canónico (build/`tsc` como proxy + pedir confirmação visual ao user). Ver `rules/workflows-and-tooling.md`.
 
 Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
 
@@ -654,7 +649,7 @@ OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Memoria: estrutura verificada
 OK Skills: 127 configuradas (RFC 2119 trigger system)
-OK Integracoes: [Browser: browser-use/playwright-cli/ambos/nenhum] · [CLIs: lista]
+OK Integracoes: [Browser: playwright-cli/nenhum] · [Graphify: instalado] · [CLIs: lista]
 OK JOCA_OS: instalado (backend :7491, frontend :7492)[ · Windows: skill joca-os-windows aplicada]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
