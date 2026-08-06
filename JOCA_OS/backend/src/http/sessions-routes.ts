@@ -14,7 +14,6 @@ import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { safePath } from '../security-fs';
 import { HOME } from './helpers';
 import { loadProjects } from '../project-store';
-import { findBySession } from '../manager/worker-pool';
 
 // Resolve a project by id OR by (case-insensitive) name — agents think in names, not uuids.
 function resolveProject(ref: string | undefined) {
@@ -56,7 +55,7 @@ export function sessionsRouter(): Router {
   const r = Router();
 
   // Listing doubles as DISCOVERY for agents: besides the terminal itself, each entry carries the
-  // area the worker pool assigned it and the job it is on, so an agent can tell who is worth
+  // talking to without opening every buffer.
   // talking to without opening every buffer.
   r.get('/sessions', (req, res) => {
     const caller = callerScope(req);
@@ -64,14 +63,10 @@ export function sessionsRouter(): Router {
     const visible = sessionManager.listInfo()
       .filter((s) => !caller?.projectId || s.projectId === caller.projectId);
     res.json(visible.map((s) => {
-      const worker = findBySession(s.id);
       return {
         ...s,
         cap: MAX_SESSIONS,
         projectName: s.projectId ? projects.find((p) => p.id === s.projectId)?.name : undefined,
-        area: worker?.area,
-        busy: worker?.busy,
-        currentJob: worker?.currentJob,
       };
     }));
   });

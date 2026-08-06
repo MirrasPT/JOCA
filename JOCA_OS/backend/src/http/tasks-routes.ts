@@ -4,10 +4,9 @@ import {
   addTaskComment, deleteTaskComment, mergeTasks, advanceTask, advanceColumn,
   setTasksBroadcaster, TASK_STATUSES, type Task, type TaskStatus, type TaskComment,
 } from '../tasks/store';
-import { runTaskNow } from '../tasks/engine';
+import { runTaskNow, dispararFila } from '../tasks/engine';
 import { sessionManager } from '../session-manager';
 import { broadcast } from '../ws/broadcast';
-import { acordarPorTarefas } from '../manager/wake';
 
 // ── Tasks / Kanban (v1) ────────────────────────────────────────────────────────
 // CRUD + board moves over the tasks store. The worker-sequential engine (started in server.ts via
@@ -25,15 +24,15 @@ const sanitizeAttachments = (v: unknown) =>
   Array.isArray(v) ? (v.filter((s) => typeof s === 'string' && s.trim()) as string[]).map((s) => s.trim()).slice(0, 50) : undefined;
 const isStatus = (v: unknown): v is TaskStatus => TASK_STATUSES.includes(v as TaskStatus);
 
-// Uma mudança no quadro: refresca quem está a ver E avisa o gestor do projecto, para ele poder
-// pegar no trabalho sozinho. Vão juntos de propósito — eram duas coisas que não podiam divergir, e
-// antes disto só existia a primeira: o gestor nunca sabia que o quadro tinha mexido.
+// Uma mudança no quadro: refresca quem está a ver E, se a tarefa ficou em "a-executar", põe a fila
+// desse projecto a andar. É o ÚNICO disparo automático do JOCA — nada nasce por abrires a app ou um
+// projecto, nasce por pores trabalho na fila.
 //
-// Só aqui, na camada HTTP. As ferramentas do próprio gestor escrevem directamente no store, logo
-// não se acorda a si mesmo (ver `acordarPorTarefas`).
-function mudou(descricao: string, task?: Task | null): void {
+// Só aqui, na camada HTTP: o motor escreve directamente no store quando move uma tarefa que ele
+// próprio despachou, portanto não se auto-dispara em ciclo.
+function mudou(_descricao: string, task?: Task | null): void {
   broadcast({ type: 'tasks_changed' });
-  if (task?.projectId) acordarPorTarefas(task.projectId, descricao);
+  if (task?.status === 'a-executar') dispararFila(task.projectId);
 }
 
 const resumo = (t: Task) => `"${t.title.slice(0, 120)}"`;
@@ -94,6 +93,14 @@ export function tasksRouter(): Router {
   r.post('/tasks/:id/move', express.json(), (req, res) => {
     const b = (req.body ?? {}) as { status?: unknown; order?: unknown };
     if (!isStatus(b.status)) return res.status(400).json({ error: 'status invalido' });
+    // Arquivar uma tarefa A CORRER não a parava: o terminal seguia, e o agente fechava-a com
+    // `joca done` — tirando-a do arquivo sozinha, minutos depois. Recusa-se, com o motivo.
+    const actual = getTask(req.params.id);
+    if (actual?.status === 'em-execucao' && b.status === 'arquivada') {
+      return res.status(409).json({
+        error: 'a tarefa está a correr — pára o terminal dela antes de arquivar',
+      });
+    }
     const order = typeof b.order === 'number' ? b.order : undefined;
     const task = moveTask(req.params.id, b.status, order);
     if (!task) return res.status(404).json({ error: 'not found' });
@@ -113,12 +120,18 @@ export function tasksRouter(): Router {
     res.json({ ok: true });
   });
 
-  // Force an immediate run of one task (bypasses the column/CAP throttle). Fire-and-forget: the engine
-  // broadcasts transitions as it executes; we ack right away.
-  r.post('/tasks/:id/run', (req, res) => {
+  // Correr já uma tarefa. O motor emite as transições por WS enquanto executa; aqui devolve-se só
+  // se ARRANCOU — e, se não, porquê. Antes respondia `started:true` mesmo quando o dispatch era
+  // recusado (worker ocupado, tarefa arquivada), e a UI não tinha como saber.
+  r.post('/tasks/:id/run', async (req, res) => {
     if (!getTask(req.params.id)) return res.status(404).json({ error: 'not found' });
-    runTaskNow(req.params.id).catch((e) => console.error('[tasks] run error:', e));
-    res.json({ ok: true, started: true });
+    try {
+      const r0 = await runTaskNow(req.params.id);
+      res.status(r0.ok ? 200 : 409).json({ ok: r0.ok, started: r0.ok, reason: r0.reason });
+    } catch (e) {
+      console.error('[tasks] run error:', e);
+      res.status(500).json({ ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
   });
 
   // Re-run a task that finished with an error: clears the previous verdict and re-queues it.
@@ -187,18 +200,13 @@ export function tasksRouter(): Router {
   r.post('/tasks/advance-column', express.json(), (req, res) => {
     const b = (req.body ?? {}) as { status?: unknown };
     if (!isStatus(b.status)) return res.status(400).json({ error: 'status invalido' });
-    // Quais eram, ANTES de moverem — é a única altura em que dá para saber que projectos avisar.
-    // Um aviso por projecto, não um por tarefa: mover a coluna é UM gesto do dono.
-    const antes = loadTasks().filter((t) => t.status === b.status);
     const moved = advanceColumn(b.status);
     if (moved > 0) {
       broadcast({ type: 'tasks_changed' });
-      const porProjecto = new Map<string, number>();
-      for (const t of antes) {
-        if (t.projectId) porProjecto.set(t.projectId, (porProjecto.get(t.projectId) ?? 0) + 1);
-      }
-      for (const [projectId, quantas] of porProjecto) {
-        acordarPorTarefas(projectId, `A coluna "${b.status}" avançou inteira — ${quantas} tarefa(s) deste projecto mudaram de estado.`);
+      // A coluna inteira avançou — algumas podem ter caído em 'a-executar'. Uma chamada por
+      // projecto afectado; o `dispararFila` é idempotente e respeita o lock.
+      for (const pid of new Set(loadTasks().filter((t) => t.status === 'a-executar').map((t) => t.projectId))) {
+        dispararFila(pid);
       }
     }
     res.json({ ok: true, moved });

@@ -1,11 +1,10 @@
-// Unit tests for the pure logic added in v3: schedule math, heartbeat window/protocol,
-// multi-CLI launch lines. Store IO (JSON/JSONL) is exercised indirectly by the app; these
+// Unit tests for the pure logic added in v3: schedule math and multi-CLI launch lines. Store IO (JSON/JSONL) is exercised indirectly by the app; these
 // tests pin the decision logic that is easy to regress silently.
 import { describe, it, expect } from 'vitest';
 import { computeNextRun } from '../automations/store';
 import { chunkText, submitCrDelay } from '../session-manager';
-import { withinActiveHours, isOkResponse, DEFAULT_HEARTBEAT, type HeartbeatConfig } from '../heartbeat';
 import { loadCliProfiles, getCliProfile, buildLaunchLine } from '../cli-profiles';
+import { ecraVisivel, proximaNaFila } from '../tasks/engine';
 
 // ── computeNextRun ────────────────────────────────────────────────────────────
 describe('computeNextRun', () => {
@@ -45,59 +44,6 @@ describe('computeNextRun', () => {
 
   it('undefined schedule → null', () => {
     expect(computeNextRun(undefined)).toBeNull();
-  });
-});
-
-// ── heartbeat: active hours ───────────────────────────────────────────────────
-describe('withinActiveHours', () => {
-  const cfg = (start: string, end: string): HeartbeatConfig => ({ ...DEFAULT_HEARTBEAT, activeHours: { start, end } });
-  const clock = (h: number, m: number) => new Date(2026, 6, 20, h, m);
-
-  it('inside a normal window', () => {
-    expect(withinActiveHours(cfg('09:00', '22:00'), clock(12, 0))).toBe(true);
-  });
-
-  it('outside a normal window', () => {
-    expect(withinActiveHours(cfg('09:00', '22:00'), clock(23, 30))).toBe(false);
-    expect(withinActiveHours(cfg('09:00', '22:00'), clock(8, 59))).toBe(false);
-  });
-
-  it('overnight window wraps midnight', () => {
-    expect(withinActiveHours(cfg('22:00', '07:00'), clock(23, 30))).toBe(true);
-    expect(withinActiveHours(cfg('22:00', '07:00'), clock(3, 0))).toBe(true);
-    expect(withinActiveHours(cfg('22:00', '07:00'), clock(12, 0))).toBe(false);
-  });
-
-  it('no activeHours → always active', () => {
-    expect(withinActiveHours({ ...DEFAULT_HEARTBEAT, activeHours: null }, clock(3, 0))).toBe(true);
-  });
-
-  it('malformed times → fail-open (active)', () => {
-    expect(withinActiveHours(cfg('9h', '22:00'), clock(3, 0))).toBe(true);
-  });
-});
-
-// ── heartbeat: HEARTBEAT_OK protocol ─────────────────────────────────────────
-describe('isOkResponse', () => {
-  it('exact token → suppressed', () => {
-    expect(isOkResponse('HEARTBEAT_OK')).toBe(true);
-  });
-
-  it('token with small padding (OpenClaw slack) → suppressed', () => {
-    expect(isOkResponse('HEARTBEAT_OK — tudo calmo por aqui.')).toBe(true);
-    expect(isOkResponse('Nada a assinalar. HEARTBEAT_OK')).toBe(true);
-  });
-
-  it('token buried in a long alert → NOT suppressed', () => {
-    expect(isOkResponse(`HEARTBEAT_OK ${'x'.repeat(400)}`)).toBe(false);
-  });
-
-  it('real alert without token → NOT suppressed', () => {
-    expect(isOkResponse('Tens 2 tarefas bloqueadas à espera de resposta.')).toBe(false);
-  });
-
-  it('empty → suppressed (nothing to deliver)', () => {
-    expect(isOkResponse('  ')).toBe(true);
   });
 });
 
@@ -184,5 +130,76 @@ describe('cli-profiles', () => {
     // provider/model style ids stay allowed
     expect(buildLaunchLine(claude, 'claude', { model: 'anthropic/claude-sonnet-5' }))
       .toBe('claude --model anthropic/claude-sonnet-5');
+  });
+});
+
+// ── juiz: o que o terminal MOSTRA vs o que escreveu ───────────────────────────
+// Regressão real (2026-08-06): a tarefa "Diz arroz" correu bem — o agente respondeu `⏺arroz` em
+// 2s — e foi dada como ERRO. O buffer de um TUI não tem `\n` nenhum: separa TUDO com `\r` e
+// repinta o ecrã inteiro a cada frame. Sem isto o juiz via só o rodapé e dizia "só há métricas de
+// sistema" (ou lia um frame do spinner e dizia "encalhou").
+describe('ecraVisivel', () => {
+  // Recorte fiel do buffer que falhou, incluindo a ausência de `\n`.
+  const BUFFER_REAL = '⏺arroz\r✻Cogitated for 2s\r'
+    + '──────────────────────────────────────\r❯\u00a0\r──────────────────────────────────────\r'
+    + 'Opus 5 (1M context)  in:79.5k out:5  ctx █░░░░░░░░░ 8%  5h ░░░░░░░░░░ 0%\r'
+    + '⏵⏵ bypass permissions on (shift+tab to cycle) · ← for agents';
+
+  it('a resposta do agente sobrevive a um buffer sem uma única mudança de linha', () => {
+    const visto = ecraVisivel(BUFFER_REAL);
+    expect(visto).toContain('⏺arroz');
+  });
+
+  it('o rodapé do CLI não passa por conteúdo', () => {
+    const visto = ecraVisivel(BUFFER_REAL);
+    expect(visto).not.toContain('bypass permissions');
+    expect(visto).not.toContain('ctx █');
+    expect(visto).not.toMatch(/^─+$/m);
+  });
+
+  it('o mesmo ecrã repintado três vezes conta uma', () => {
+    expect(ecraVisivel('⏺arroz\r⏺arroz\r⏺arroz')).toBe('⏺arroz');
+  });
+
+  it('frames soltos do spinner saem', () => {
+    expect(ecraVisivel('⏺arroz\r✳\r✢\r·\r✶')).toBe('⏺arroz');
+  });
+
+  it('linhas verdadeiras diferentes ficam todas', () => {
+    expect(ecraVisivel('[Tarefa] Diz arroz\rResponde arroz.\r⏺arroz'))
+      .toBe('[Tarefa] Diz arroz\nResponde arroz.\n⏺arroz');
+  });
+});
+
+// ── fila de tarefas: qual corre a seguir ──────────────────────────────────────
+// Regressão apanhada em auditoria: a fila usava `find()` sobre o ficheiro e ignorava o `order` da
+// coluna — arrastar uma tarefa para o topo de "a-executar" não a fazia correr primeiro.
+describe('proximaNaFila', () => {
+  const t = (id: string, order: number, status = 'a-executar', projectId?: string) =>
+    ({ id, title: id, status, order, projectId, createdAt: 0, updatedAt: 0 }) as never;
+
+  it('respeita a ordem da coluna, não a do ficheiro', () => {
+    const tarefas = [t('B', 2), t('A', 0), t('C', 1)];
+    expect(proximaNaFila(tarefas, '')?.id).toBe('A');
+  });
+
+  it('só olha para a coluna a-executar', () => {
+    const tarefas = [t('espera', 0, 'a-definir'), t('pronta', 5, 'a-executar')];
+    expect(proximaNaFila(tarefas, '')?.id).toBe('pronta');
+  });
+
+  it('cada projecto tem a sua fila', () => {
+    const tarefas = [t('doP1', 0, 'a-executar', 'p1'), t('doP2', 1, 'a-executar', 'p2')];
+    expect(proximaNaFila(tarefas, 'p2')?.id).toBe('doP2');
+    expect(proximaNaFila(tarefas, 'p1')?.id).toBe('doP1');
+  });
+
+  it('tarefas sem projecto partilham a fila genérica', () => {
+    const tarefas = [t('solta', 0, 'a-executar'), t('doP1', 0, 'a-executar', 'p1')];
+    expect(proximaNaFila(tarefas, '')?.id).toBe('solta');
+  });
+
+  it('fila vazia não devolve nada', () => {
+    expect(proximaNaFila([t('x', 0, 'concluida')], '')).toBeUndefined();
   });
 });

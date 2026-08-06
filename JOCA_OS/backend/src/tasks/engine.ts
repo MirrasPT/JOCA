@@ -16,8 +16,9 @@
 //     the engine notifies the user (task_question broadcast → toast + OS notification), leaves the
 //     task 'em-execucao' and waits for the user to answer in the terminal before continuing.
 //
-// Column flow per task: 'a-executar' → 'em-execucao' (dispatch) → 'concluida' (ok|error). Moving to
-// 'arquivada' is a manual, user-only action.
+// Column flow per task: 'a-executar' → 'em-execucao' (dispatch) → 'concluida' QUANDO O AGENTE a
+// fechar (`joca done`). O motor nunca a move para 'concluida': ele não sabe se o trabalho ficou
+// feito, só que o terminal se calou. 'arquivada' é sempre manual.
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { claudeProvider } from '../providers/provider';
 import { loadProjects } from '../project-store';
@@ -25,16 +26,13 @@ import { broadcast } from '../ws/broadcast';
 import { pushNotification } from '../notifications/store';
 import { recordRun } from '../runs/store';
 import {
-  getTask, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, addTaskComment, type Task,
+  getTask, loadTasks, upsertTask, moveTask, notifyTasksChanged, setTasksRunner, addTaskComment, type Task,
 } from './store';
 
-// No polling constant any more — execution is always explicitly requested (user button or manager).
+// Sem constante de polling: a execução é sempre pedida (botão do dono, ou a fila a avançar).
 const TASK_TIMEOUT_MS = 60 * 60_000;        // hard cap per dispatch (1h); the judge sees whatever is there
 const ANSWER_TIMEOUT_MS = 24 * 60 * 60_000; // how long we wait for the user to answer a question (24h)
 const NO_PROJECT_KEY = '';                  // queue key for tasks without a project
-// Tentativas automáticas antes de desistir e pedir revisão humana. Alinhado com o
-// loop_max_iterations do soul.md — o mesmo travão anti-loop usado no resto do JOCA.
-const RETRY_MAX = 4;
 
 // One task worker per project. `busy` = a task is currently dispatched into it (the sequential lock).
 interface ProjectWorker { sessionId: string; busy: boolean }
@@ -49,36 +47,71 @@ function patchTask(id: string, patch: Partial<Task>): void {
   upsertTask({ ...latest, ...patch });
 }
 
-// Build the brief handed to the worker: the task description (fallback to title) plus directives.
-function buildBrief(task: Task): string {
-  const base = (task.description ?? '').trim() || task.title;
-  const directives: string[] = [];
-  directives.push('Isto é uma TAREFA gerida pelo JOCA_OS neste worker dedicado. Executa-a de forma autónoma e, no fim, termina com um resumo claro do que foi feito e do resultado.');
-  // The worker can write back into JOCA itself (agent bridge). The task id travels in the brief
-  // rather than the environment because one worker serves many tasks in sequence.
-  directives.push(
-    `Podes falar com o JOCA a partir deste terminal: \`node "$JOCA_CLI" <comando>\` (corre \`help\` para veres tudo).`
-    + ` Esta tarefa é a ${task.id}.`
-    + ` Quando acabares, deixa uma nota do que fizeste na tarefa: \`node "$JOCA_CLI" comment ${task.id} "resumo do que fiz"\`.`
-    + ` Se a tarefa ficou mesmo concluída, podes fechá-la com \`node "$JOCA_CLI" done ${task.id} --note "..."\`.`
-    + ` Se descobrires trabalho novo, cria uma tarefa: \`node "$JOCA_CLI" new-task "..."\`.`,
-  );
+/**
+ * O que o terminal recebe: o essencial da tarefa, e como fechá-la.
+ *
+ * As instruções da ponte `joca` estão aqui porque QUEM FECHA A TAREFA É O AGENTE — o motor deixou
+ * de a mover para 'concluida' sozinho. Sem elas, o agente fazia o trabalho e a tarefa ficava presa
+ * em "Em execução" para sempre. São três linhas, não o parágrafo que aqui esteve: o resto do
+ * catálogo vive no `joca help`.
+ */
+function buildBrief(task: Task, projectName?: string): string {
+  const linhas = [`[Tarefa] ${task.title}`];
+  const objectivo = (task.description ?? '').trim();
+  if (objectivo) linhas.push('', objectivo);
+  if (projectName) linhas.push('', `Projecto: ${projectName}`);
+  if (task.attachments?.length) linhas.push('', `Anexos: ${task.attachments.join(', ')}`);
   if (task.comments?.length) {
     const thread = task.comments.slice(-8)
       .map((c) => `- [${c.author}${c.authorName ? `/${c.authorName}` : ''}] ${c.text}`)
       .join('\n');
-    directives.push(`Notas já existentes nesta tarefa (contexto — lê antes de agir):\n${thread}`);
+    linhas.push('', `Notas já nesta tarefa (lê antes de agir):\n${thread}`);
   }
-  if (task.skills?.length) {
-    directives.push(`Usa estas skills/agentes do JOCA (faz Read da skill ANTES de agir): ${task.skills.join(', ')}.`);
-  }
+  if (task.skills?.length) linhas.push('', `Usa estas skills do JOCA (lê-as antes de agir): ${task.skills.join(', ')}.`);
   if (task.requireConfirm) {
-    directives.push('ANTES de qualquer acção IRREVERSÍVEL (enviar email, apagar, deploy, push, gastar dinheiro): NÃO a executes. Prepara tudo, entrega o rascunho/plano e PEDE confirmação explícita ao utilizador; só age depois do OK dele.');
+    linhas.push('', 'Antes de qualquer acção IRREVERSÍVEL (enviar, apagar, deploy, push, gastar dinheiro): prepara e pede confirmação. Não executes sem OK.');
   }
-  if (task.attachments?.length) {
-    directives.push(`Ficheiros anexados à tarefa (usa-os como contexto; lê-os se precisares): ${task.attachments.join(', ')}.`);
+  linhas.push(
+    '',
+    '[Como fechar esta tarefa]',
+    `Esta tarefa é a ${task.id}. Vê o quadro com \`node "$JOCA_CLI" tasks\` e o detalhe desta com \`node "$JOCA_CLI" task\`.`,
+    `QUANDO ACABARES: \`node "$JOCA_CLI" done ${task.id} --note "o que fiz e como ficou"\` — deixa a tua nota e move a tarefa para "concluída". Ninguém a move por ti.`,
+    `Se ficares bloqueado ou a tarefa não der para fazer, NÃO a feches: explica porquê com \`node "$JOCA_CLI" comment ${task.id} "..."\` e deixa-a onde está.`,
+  );
+  return linhas.join('\n');
+}
+
+/**
+ * O que o terminal MOSTRA, a partir do que ele escreveu.
+ *
+ * Um TUI repinta o ecrã inteiro a cada frame e separa as linhas com `\r` — sem um único `\n` no
+ * meio. Tirar o ANSI não chega: o buffer fica com o mesmo ecrã três, quatro vezes seguidas, mais
+ * a barra de estado e o spinner. O juiz lia isso e concluía "encalhou" ou "só há métricas de
+ * sistema", sobre trabalho que estava feito — foi assim que um "arroz" respondido em 2s foi dado
+ * como erro.
+ *
+ * Aqui: `\r` conta como fim de linha (é o que o TUI quer dizer com ele), repintura consecutiva do
+ * mesmo texto colapsa numa linha, e o mobiliário do CLI — separadores, prompt vazio, barra de
+ * consumo, barra de permissões — sai. O que fica é o que um humano leria.
+ */
+const MOBILIARIO_DO_TUI = [
+  /^[─━—\-_=]{3,}$/,                 // separadores horizontais
+  /^❯\s*$/,                          // prompt à espera, sem nada escrito
+  /^⏵⏵/,                             // "bypass permissions on (shift+tab to cycle)"
+  /ctx\s+[█░▁▂▃▄▅▆▇]/,               // barra de contexto/consumo do rodapé
+  /^\s*[✳✢✶✻✽·⋅]+\s*$/,             // frames soltos do spinner
+];
+
+export function ecraVisivel(bruto: string): string {
+  const out: string[] = [];
+  for (const crua of bruto.split(/\r\n|\n|\r/)) {
+    const linha = crua.trim();
+    if (!linha) continue;
+    if (MOBILIARIO_DO_TUI.some((re) => re.test(linha))) continue;
+    if (out[out.length - 1] === linha) continue;    // o mesmo ecrã repintado
+    out.push(linha);
   }
-  return `[Tarefa] ${task.title}\n\n${base}\n\n[Instruções da tarefa]\n${directives.join('\n')}`;
+  return out.join('\n');
 }
 
 // ── SDK judge — silent supervision layer (no chat, no tools) ────────────────
@@ -92,6 +125,8 @@ async function judgeOnce(task: Task, tail: string): Promise<Verdict | null> {
     '{"state":"ok"|"error"|"question","summary":"resumo curto em pt-pt (máx 2 frases)"}',
     'Critérios: "question" = o agente está PARADO à espera de resposta do utilizador (pergunta, menu de opções, pedido de confirmação por responder). "error" = a tarefa falhou ou ficou incompleta com erros. "ok" = a tarefa foi concluída.',
     'Em caso de dúvida entre ok e error, escolhe pelo que o resumo final do agente disser.',
+    'O output vem de um terminal: pode trazer restos de indicadores de progresso ("a pensar…", contadores de tempo, pontinhos). Isso NÃO é sinal de que encalhou — o agente já parou quando isto te chega.',
+    'Uma resposta CURTA pode estar perfeitamente certa: se a tarefa pedia uma palavra e o agente respondeu essa palavra, é "ok".',
   ].join(' ');
   const prompt = `Tarefa em execução: "${task.title}"\n\nOutput do terminal (final):\n"""\n${tail}\n"""`;
   let acc = '', result = '', costUsd = 0;
@@ -125,8 +160,7 @@ async function judge(task: Task, tail: string): Promise<Verdict> {
   return { state: 'ok', summary: `⚠ juiz indisponível — assumido ok. ${tail.slice(-300).trim()}`.slice(0, 500), costUsd: 0, fallback: true };
 }
 
-// Same judge, exposed for any worker (not just a board task) — the project manager uses it to find
-// out how its own workers ended, instead of re-reading raw terminal buffers.
+// O mesmo juiz, exposto para qualquer worker (não só uma tarefa do quadro).
 export function judgeWorkerOutput(label: string, tail: string): Promise<Verdict> {
   return judge({ title: label } as Task, tail);
 }
@@ -184,14 +218,15 @@ async function fire(key: string, id: string): Promise<void> {
         origin: 'auto',
         cli: task.cli,
         model: task.model,
-        initialInput: buildBrief(task),
+        initialInput: buildBrief(task, proj?.name),
       });
       sessionId = session.id;
       w.sessionId = sessionId;
       patchTask(id, { sessionId });
     } else {
       // Reuse the project's worker: inject the next task as a new message.
-      if (!sessionManager.submitMessage(sessionId, buildBrief(task))) {
+      const proj = task.projectId ? loadProjects().find((p) => p.id === task.projectId) : undefined;
+      if (!sessionManager.submitMessage(sessionId, buildBrief(task, proj?.name))) {
         throw new Error('o worker de tarefas deste projecto já não existe');
       }
     }
@@ -201,7 +236,7 @@ async function fire(key: string, id: string): Promise<void> {
     for (;;) {
       if (outcome === 'closed') { verdict = { state: 'error', summary: 'O worker foi fechado antes de a tarefa terminar.', costUsd: 0 }; break; }
       if (outcome === 'timeout') { verdict = { state: 'error', summary: `Sem resposta do worker dentro do limite — vê o terminal.`, costUsd: 0 }; break; }
-      const tail = (sessionManager.readBuffer(sessionId, { strip: true }) ?? '').slice(-6000);
+      const tail = ecraVisivel(sessionManager.readBuffer(sessionId, { strip: true }) ?? '').slice(-6000);
       verdict = await judge(task, tail);
       judgeCostUsd += verdict.costUsd;
       if (verdict.state !== 'question') break;
@@ -223,26 +258,23 @@ async function fire(key: string, id: string): Promise<void> {
     verdict = { state: 'error', summary: e instanceof Error ? e.message : String(e), costUsd: 0 };
   }
 
-  // Conclude. O worker fica aberto (nunca se mata aqui) — o utilizador pode inspeccionar/continuar
-  // no terminal. Falha → tenta de novo sozinho até RETRY_MAX vezes (volta a 'a-executar' e
-  // re-dispara já, sem esperar pelo heartbeat); ao esgotar, cai em 'concluida' como antes e avisa.
-  const previousRetryCount = task.retryCount ?? 0;
-  const willRetry = verdict.state === 'error' && previousRetryCount < RETRY_MAX;
-
-  // Só pull para o destino se a tarefa ainda for a que despachámos: o utilizador (ou o próprio
-  // worker, via `joca`) pode tê-la movido/arquivado entretanto.
-  if (getTask(id)?.status === 'em-execucao') moveTask(id, willRetry ? 'a-executar' : 'concluida');
+  // O worker fica aberto (nunca se mata aqui) — o utilizador pode inspeccionar/continuar no
+  // terminal.
+  //
+  // A TAREFA NÃO É MOVIDA AQUI. Quem a fecha é o AGENTE, com `joca done` (ver `buildBrief`): é ele
+  // que sabe se o trabalho ficou mesmo feito. O juiz continua a correr, mas o veredicto dele é
+  // informação — entra no `lastStatus` e na thread —, não uma decisão sobre a coluna. Uma tarefa
+  // que o agente não feche fica em "Em execução", à vista, que é melhor do que ser dada por
+  // concluída sem ninguém ter confirmado.
   patchTask(id, {
     lastStatus: verdict.state === 'ok' ? 'ok' : 'error',
     result: verdict.summary,
-    retryCount: verdict.state === 'ok' ? 0 : (willRetry ? previousRetryCount + 1 : previousRetryCount),
   });
-  // The judge's verdict joins the task thread, so the board keeps a readable history of every run.
+  // O veredicto entra na thread — o quadro fica com o histórico legível de cada execução. Se o
+  // agente já fechou a tarefa pelo caminho, esta nota junta-se à dele.
   addTaskComment(id, {
     author: 'judge',
-    text: willRetry
-      ? `✗ ${verdict.summary} (tentativa ${previousRetryCount + 1}/${RETRY_MAX} — a repetir sozinho)`
-      : `${verdict.state === 'ok' ? '✓' : '✗'} ${verdict.summary}`,
+    text: `${verdict.state === 'ok' ? '✓' : '✗'} ${verdict.summary}`,
   });
   recordRun({
     kind: 'task', refId: task.id, name: task.title, projectId: task.projectId,
@@ -251,24 +283,18 @@ async function fire(key: string, id: string): Promise<void> {
     summary: verdict.summary, costUsd: judgeCostUsd,
     cli: task.cli, model: task.model,
   });
-  if (verdict.state !== 'ok' && !willRetry) {
-    // Falhas ficam na inbox persistente — sucesso já se vê no board. `willRetry=false` aqui só
-    // acontece por esgotar as RETRY_MAX tentativas (o 1º-3º erro nem passa por aqui).
-    const exhausted = previousRetryCount >= RETRY_MAX;
+  if (verdict.state !== 'ok') {
+    // Falhas ficam na inbox persistente — sucesso já se vê no board.
     pushNotification({
       kind: 'system',
-      title: exhausted ? `✗ Tarefa falhou definitivamente: ${task.title}` : `✗ Tarefa falhou: ${task.title}`,
-      text: exhausted
-        ? `Falhou ${RETRY_MAX} vezes seguidas — parei de tentar sozinho. Precisa de revisão tua.\n${verdict.summary}`
-        : verdict.summary,
+      title: `✗ Tarefa falhou: ${task.title}`,
+      text: verdict.summary,
       priority: 'action',        // uma falha fica parada até decidires o que fazer com ela
       meta: { taskId: task.id, sessionId: w.sessionId || undefined, projectId: task.projectId },
       // Uma fila de tarefas que falha toda pelo MESMO motivo (CLI em baixo, projecto partido) é um
       // problema, não N. O motivo entra na chave: falhas diferentes continuam a ser notificações
       // diferentes, senão o agrupamento escondia a que era distinta.
-      groupKey: exhausted
-        ? `task-fail-final:${task.id}`
-        : `task-fail:${task.projectId ?? 'sem-projecto'}:${verdict.summary.slice(0, 40)}`,
+      groupKey: `task-fail:${task.projectId ?? 'sem-projecto'}:${verdict.summary.slice(0, 40)}`,
     });
   }
   const cur = workers.get(key);
@@ -278,24 +304,56 @@ async function fire(key: string, id: string): Promise<void> {
   }
   notifyTasksChanged();
 
-  // Retry com backoff curto (não em rajada — auditoria #11: 4 tentativas seguidas agravam falhas
-  // por rate-limit). Antes de disparar, RELÊ o estado: se o utilizador entretanto moveu/arquivou a
-  // tarefa à mão, o retry respeita-o em vez de a reanimar (auditoria #5).
-  if (willRetry) {
-    const delayMs = 10_000 * (previousRetryCount + 1);
-    const t = setTimeout(() => {
-      if (getTask(id)?.status === 'a-executar') dispatchTask(id);
-    }, delayMs);
-    t.unref?.();
-  }
+  // Acabou uma: pega na seguinte da MESMA fila. É o que torna a coluna 'a-executar' uma fila a
+  // sério em vez de uma lista de espera — sempre em série, porque o `busy` acabou de ser
+  // libertado e o `dispatchTask` volta a tomá-lo.
+  dispararFila(task.projectId);
 }
 
-// Start ONE task in its project's worker, applying the invariant guards. This is the single
-// entry point for execution: user ("correr"), project manager (manager/tools.ts → executar_tarefa),
-// heartbeat (dispararTarefasEmFila drena 'a-executar') e o retry automático após falha.
-// Tarefas em 'a-definir' NUNCA entram por aqui sozinhas — só quando alguém as move.
+/**
+ * Qual é a próxima a correr nesta fila.
+ *
+ * Pela `order` da coluna, não pela ordem do ficheiro: o quadro deixa reordenar dentro da coluna
+ * (`reorderTasks`), e arrastar uma tarefa para o topo de "a-executar" tem de a fazer correr
+ * primeiro. Com um `find()` simples ganhava a ordem do array persistido e o arrasto não valia nada.
+ *
+ * Pura e exportada para ser testável — é a regra que decide o que corre a seguir.
+ */
+export function proximaNaFila(tasks: Task[], key: string): Task | undefined {
+  return tasks
+    .filter((t) => t.status === 'a-executar' && (t.projectId ?? NO_PROJECT_KEY) === key)
+    .sort((a, b) => a.order - b.order)[0];
+}
+
+/**
+ * Arranca a PRIMEIRA tarefa em 'a-executar' de um projecto, se houver e se o terminal de tarefas
+ * dele estiver livre.
+ *
+ * É o único disparo automático que existe: nada nasce por abrires a app ou um projecto — nasce por
+ * pores trabalho na fila. Fechar o terminal de tarefas pára tudo até haver movimento novo no
+ * quadro (o `dispatchTask` abre outro nessa altura, que é o que "registado até ser fechado"
+ * significa na prática).
+ *
+ * Sem `projectId` (tarefas soltas) usa a fila genérica, que tem o mesmo lock.
+ */
+export function dispararFila(projectId?: string): void {
+  const key = projectId ?? NO_PROJECT_KEY;
+  const w = workers.get(key);
+  if (w?.busy) return;                                    // já está a correr uma — a série manda
+  const proxima = proximaNaFila(loadTasks(), key);
+  if (proxima) dispatchTask(proxima.id);
+}
+
+// Start ONE task in its project's worker, applying the invariant guards. Chamado pelo botão
+// "correr" e pelo `dispararFila` (a fila a andar sozinha). Não há retry automático: uma tarefa que
+// falha fica falhada.
 //
-// Returns a reason instead of throwing so the manager can tell the user *why* nothing happened.
+// UMA tarefa de cada vez por projecto: `workers` é um worker por projectId e o `busy` é o lock
+// sequencial — um segundo dispatch no mesmo projecto é recusado enquanto o primeiro corre. O mesmo
+// terminal serve todas as tarefas do projecto enquanto viver; fechado, o próximo dispatch abre
+// outro.
+//
+// Devolve um motivo em vez de atirar, para quem chama poder dizer PORQUÊ nada aconteceu.
 export function dispatchTask(id: string): { ok: boolean; reason?: string } {
   const task = getTask(id);
   if (!task) return { ok: false, reason: 'tarefa não encontrada' };
@@ -317,17 +375,48 @@ export function dispatchTask(id: string): { ok: boolean; reason?: string } {
   return { ok: true };
 }
 
-// The engine no longer polls: there is no automatic drain of 'a-executar'. Kept as a no-op-ish
-// entry point so server.ts wiring (and any future opt-in auto mode) has a place to live.
+// Sem polling: a fila anda por eventos — uma tarefa que chega a 'a-executar' (camada HTTP) e uma
+// tarefa que acaba (fim do `fire`). No arranque NÃO se drena nada: abrir o JOCA não é pôr trabalho
+// na fila, e um relançamento não pode ressuscitar sozinho o que ficou de ontem.
 export function startTasksEngine(): void {
   if (started) return;
   started = true;
-  console.log('[tasks] engine on (tarefas correm por ordem tua/do gestor; o heartbeat drena a fila a-executar; a-definir nunca arranca sozinha)');
+  recuperarOrfas();
+  console.log('[tasks] engine on (só correm por ordem tua, uma de cada vez por projecto)');
+}
+
+/**
+ * Tarefas que ficaram em 'em-execucao' de um processo anterior.
+ *
+ * O lock (`workers`) vive em memória: se o backend cai — ou é reiniciado — a meio de uma tarefa, o
+ * PTY morre com ele mas o disco continua a dizer 'em-execucao'. Ninguém lhe volta a tocar: o
+ * `dispararFila` só olha para 'a-executar', e o agente que a fecharia já não existe. Ficava presa
+ * para sempre, à espera de alguém dar por ela.
+ *
+ * Voltam para 'a-executar', com a razão escrita na thread. NÃO são disparadas aqui — arrancar
+ * trabalho no arranque do JOCA é exactamente o que não queremos; ficam prontas, e correm quando o
+ * quadro mexer ou carregares em "correr".
+ */
+function recuperarOrfas(): void {
+  const orfas = loadTasks().filter((t) => t.status === 'em-execucao');
+  if (!orfas.length) return;
+  for (const t of orfas) {
+    moveTask(t.id, 'a-executar', 0);
+    patchTask(t.id, { lastStatus: null, result: undefined });
+    addTaskComment(t.id, {
+      author: 'system',
+      text: 'O JOCA reiniciou enquanto esta tarefa corria — o terminal dela não sobreviveu. Devolvida a "A executar"; volta a correr quando quiseres.',
+    });
+  }
+  console.log(`[tasks] ${orfas.length} tarefa(s) presas em execução devolvidas a "a-executar" (o processo anterior não as fechou)`);
+  notifyTasksChanged();
 }
 
 // Manual "run now" — the button on a card. Same path as the manager's.
-export async function runTaskNow(id: string): Promise<void> {
-  dispatchTask(id);
+export async function runTaskNow(id: string): Promise<{ ok: boolean; reason?: string }> {
+  // Devolve o veredicto em vez de o deitar fora: o `dispatchTask` recusa por motivos concretos
+  // (worker ocupado, tarefa arquivada, limite de terminais) e a UI dizia "started" a todos eles.
+  return dispatchTask(id);
 }
 
 // Wire the store's injectable runner so the HTTP route can trigger execution without importing this

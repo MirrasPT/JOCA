@@ -53,6 +53,11 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   line-height: 1.2;
+  /* O título é a etiqueta ("TAREFA FALHOU: …"); a mensagem por baixo é a informação. Era ele que
+     crescia para três linhas enquanto a mensagem levava reticências. Uma linha chega. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .toast-container .toast-session {
@@ -60,10 +65,12 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-bright);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   line-height: 1.3;
+  /* Duas linhas antes de cortar: "Sleep 25 bloq…" não dizia nada a ninguém. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ─── Variante "precisa de ti" ─────────────────────────────────────

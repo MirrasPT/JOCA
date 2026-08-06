@@ -1,7 +1,7 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems, CliProfileInfo } from '../types';
 import TerminalPane from './TerminalPane';
-import { shortPath, basename } from '../lib/paths';
+import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
 import './TerminalView.css';
 
@@ -29,29 +29,13 @@ interface Props {
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   onNewSession: () => void;
   onNewSessionWithCli: (cli: string) => void;
+  /** Abre um terminal novo com `--remote-control` (ver o botão na barra de comandos). */
+  onNewRemoteControlSession: () => void;
   jocaItems: JocaItems | null;
   onLoadJocaItems: () => void;
 }
 
 // ── Lucide SVG Icons ───────────────────────────────────────────────
-
-function SaveIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-      <polyline points="17 21 17 13 7 13 7 21" />
-      <polyline points="7 3 7 8 15 8" />
-    </svg>
-  );
-}
-
-function ZapIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
-  );
-}
 
 function StopIcon() {
   return (
@@ -73,6 +57,15 @@ function PaperclipIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
       <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+  );
+}
+
+function RemoteIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <path d="M5 12a7 7 0 0 1 14 0" /><path d="M2 12a10 10 0 0 1 20 0" />
+      <circle cx="12" cy="18" r="2" />
     </svg>
   );
 }
@@ -139,7 +132,7 @@ export default function TerminalView({
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
   onSaveSession, onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
-  onNewSessionWithCli, jocaItems, onLoadJocaItems
+  onNewSessionWithCli, onNewRemoteControlSession, jocaItems, onLoadJocaItems
 }: Props) {
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId) ?? null,
@@ -351,40 +344,6 @@ export default function TerminalView({
         </div>
       )}
       <div className="terminal-panel">
-        <div className="terminal-titlebar">
-          <div className="titlebar-dots" aria-hidden>
-            <span className="dot dot-red" />
-            <span className="dot dot-yellow" />
-            <span className="dot dot-green" />
-          </div>
-          <div className="titlebar-info">
-            <span className="titlebar-name">{activeSession?.name ?? 'Terminal'}</span>
-            {activeSession && (
-              <span className="titlebar-cwd">{shortPath(activeSession.cwd)}</span>
-            )}
-          </div>
-          {activeSession && (
-            <div className="titlebar-actions">
-              <button className="titlebar-btn titlebar-btn--save" type="button" onClick={onSaveSession} data-tooltip="Guardar sessão (/save)" data-tooltip-position="bottom">
-                <SaveIcon /> Save
-              </button>
-              <button className="titlebar-btn titlebar-btn--compact" type="button" onClick={onCompactSession} data-tooltip="Compactar contexto (/compact)" data-tooltip-position="bottom">
-                <ZapIcon /> Compact
-              </button>
-              <button className="titlebar-btn titlebar-btn--restart" type="button" onClick={() => onRestartSession(activeSession.id)} data-tooltip="Reiniciar terminal" data-tooltip-position="bottom">
-                <RefreshIcon /> Restart
-              </button>
-              <button className="titlebar-btn titlebar-btn--interrupt" type="button" onClick={onInterruptSession} data-tooltip="Parar processo (Ctrl-C)" data-tooltip-position="bottom">
-                <StopIcon /> Stop
-              </button>
-              <button className="titlebar-btn titlebar-btn--scroll-bottom" type="button" onClick={() => activeId && termRefs.current.get(activeId)?.scrollToBottom?.()} data-tooltip="Ir para o fim do terminal" data-tooltip-position="bottom">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-              </button>
-            </div>
-          )}
-          <span className={`titlebar-badge titlebar-badge--${activeSession?.status ?? 'idle'}`}>{activeSession?.status ?? 'idle'}</span>
-        </div>
-
         {sessions.length === 0 ? (
           <div className="terminal-empty-state">
             <div className="terminal-empty-icon">
@@ -523,7 +482,55 @@ export default function TerminalView({
               )}
             </div>
 
-            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill">+</button>
+            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill" aria-label="Adicionar comando ou skill">+</button>
+
+            {/* Vieram da barra de título, que foi removida por ocupar uma faixa inteira para
+                repetir o que já estava aqui. Só estes três: `Save` e `Compact` de lá eram os
+                mesmos `save`/`compact` que abrem esta fila. */}
+            <div className="command-bar-divider" />
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={() => activeSession && onRestartSession(activeSession.id)}
+              data-tooltip="Reiniciar terminal"
+            >
+              <RefreshIcon /> Restart
+            </button>
+            <button
+              type="button"
+              className="quick-command-btn quick-command-btn--stop"
+              onClick={onInterruptSession}
+              data-tooltip="Parar processo (Ctrl-C)"
+            >
+              <StopIcon /> Stop
+            </button>
+            {/* `--remote-control` é uma flag de ARRANQUE do Claude Code: não há como ligá-la a meio
+                de uma conversa. Por isso este botão abre um terminal NOVO com ela — em vez de matar
+                a conversa aberta para a relançar, que é o que "ligar aqui" obrigaria a fazer. */}
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={onNewRemoteControlSession}
+              data-tooltip="Abrir um terminal novo com Remote Control ligado"
+              aria-label="Abrir um terminal novo com Remote Control ligado"
+            >
+              <RemoteIcon /> Remote
+            </button>
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={() => activeId && termRefs.current.get(activeId)?.scrollToBottom?.()}
+              data-tooltip="Ir para o fim do terminal"
+              aria-label="Ir para o fim do terminal"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            </button>
+
+            {/* O estado vivia no canto da barra de título; sem ele não se via daqui se o terminal
+                está a trabalhar. Empurrado para a direita, longe dos botões. */}
+            <span className={`cmd-bar-status cmd-bar-status--${activeSession.status}`}>
+              {activeSession.status === 'working' ? 'a trabalhar' : 'parado'}
+            </span>
           </div>
 
           {attachments.length > 0 && (

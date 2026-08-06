@@ -79,7 +79,15 @@ function tick(deps: SchedulerDeps): void {
     if (!a.enabled || a.trigger.type !== 'schedule') continue;
     if (running.has(a.id)) continue;
     // Backfill a missing nextRunAt (e.g. just enabled) without firing immediately.
-    if (a.nextRunAt == null) { recordResult(a.id, { nextRunAt: computeNextRun(a.trigger.schedule, now) }); continue; }
+    if (a.nextRunAt == null) {
+      const proxima = computeNextRun(a.trigger.schedule, now);
+      // Sem `schedule` não há próxima execução possível: escrever `null` por cima de `null` só
+      // sujava o ficheiro a cada tick (de 30 em 30 segundos, indefinidamente), sem nunca disparar.
+      // Automações assim já não entram (validadas na rota), mas as antigas ficaram no disco.
+      if (proxima == null) continue;
+      recordResult(a.id, { nextRunAt: proxima });
+      continue;
+    }
     if (a.nextRunAt <= now) void fire(a, deps);
   }
 }

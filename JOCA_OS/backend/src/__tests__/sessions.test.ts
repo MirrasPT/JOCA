@@ -1,5 +1,4 @@
-// O gestor de projecto é um terminal NORMAL (worker area 'gestor'): abre sozinho, mas fecha como
-// qualquer outro. Este teste cobre a garantia nova — fechar funciona para todas as sessões.
+// Todos os terminais fecham — não há (nem há-de haver) terminais especiais que resistam ao kill.
 import { describe, it, expect, afterEach } from 'vitest';
 import { sessionManager } from '../session-manager';
 
@@ -10,8 +9,8 @@ describe('sessionManager.kill — terminais fecham todos', () => {
     for (const id of spawned.splice(0)) sessionManager.kill(id);
   });
 
-  it('fecha o terminal do gestor como outro qualquer', () => {
-    const session = sessionManager.spawn({ sessionName: 'Worker gestor (teste)', area: 'gestor' });
+  it('fecha um terminal', () => {
+    const session = sessionManager.spawn({ sessionName: 'Terminal (teste)' });
     spawned.push(session.id);
 
     expect(sessionManager.kill(session.id)).toBe(true);

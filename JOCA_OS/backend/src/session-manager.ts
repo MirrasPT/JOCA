@@ -35,9 +35,8 @@ export interface Session {
   projectId?: string;
   origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
   cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
-  // Área do gestor a que este terminal pertence, quando foi ele que o abriu. É a IDENTIDADE do
-  // worker (é por aqui que o gestor lhe fala), e vive à parte do `name` de propósito: o `name` é o
-  // rótulo que o dono edita na interface, e renomear não pode mudar com quem o gestor está a falar.
+  // Etiqueta de área herdada da pool que o gestor de projecto usava. O gestor foi removido e nada
+  // preenche isto hoje; fica no tipo por ser opcional e escrito no ficheiro de sessões antigo.
   area?: string;
   pty: pty.IPty;
   buffer: string;
@@ -75,7 +74,14 @@ export interface SpawnOptions {
   origin?: 'user' | 'auto';   // default 'user'
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
   model?: string;             // passed to the CLI's model flag when the profile has one
-  area?: string;              // preenchido pelo pool do gestor — ver `Session.area`
+  area?: string;              // ver `Session.area` — hoje nunca preenchido
+  /** Arranca o Claude Code com `--remote-control` (flag de arranque; só claude). */
+  remoteControl?: boolean;
+  // Etiqueta OPACA de quem pediu esta sessão (o browser que carregou no "+"). Volta no evento
+  // 'spawn' e daí no broadcast: sem ela, o `session_created` chega igual a toda a gente e CADA
+  // cliente aberto salta para o terminal novo — um segundo separador era atirado para fora do que
+  // estava a fazer sempre que outro criava um terminal.
+  requestedBy?: string;
 }
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -214,7 +220,7 @@ export function submitCrDelay(payloadLength: number): number {
  * Um worker que arranca mal (CLI em falta, pasta sem permissões, `claude` a sair logo) deixa o PTY
  * fechado, e escrever nele lança `EPIPE`. Quando essa escrita está dentro de um `setTimeout` ou de
  * um `async` sem `catch`, o erro sobe como excepção não-apanhada e o Node mata o PROCESSO — ou
- * seja: um terminal morto derrubava o backend todo, com todas as outras sessões e o gestor atrás.
+ * seja: um terminal morto derrubava o backend todo, com todas as outras sessões atrás.
  * Devolve `false` em vez de rebentar; quem escreve decide o que fazer.
  */
 function safePtyWrite(pty: { write(d: string): void }, data: string): boolean {
@@ -306,8 +312,7 @@ export class SessionManager extends EventEmitter {
         favoriteAgents: [],
         quickCommands: ['save', 'compact', 'clear'],
         openFiles: [],
-        rightPanel: null,
-        updatedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
       };
       memory[projectId] = {
         ...current,
@@ -322,6 +327,7 @@ export class SessionManager extends EventEmitter {
     const launchLine = buildLaunchLine(profile, findBin(profile.bin), {
       model: opts.model,
       autonomous: loadUiSettings().skipPermissions,
+      remoteControl: opts.remoteControl,
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
@@ -330,17 +336,15 @@ export class SessionManager extends EventEmitter {
     //   • aberto à MÃO (origin 'user') → `/resume "<pasta>"` sozinho, como submissão própria. É a
     //     única coisa que o terminal recebe, e sem ela o utilizador ficava com um Claude Code cru
     //     sem saber em que projecto está.
-    //   • aberto pelo GESTOR ou por um runner (origin 'auto') → o `/resume` NÃO vai à frente
+    //   • aberto por um runner (origin 'auto') → o `/resume` NÃO vai à frente
     //     sozinho: viaja colado ao brief, na mesma submissão. Quem despacha já sabe o projecto e
     //     manda-o junto com o trabalho; um `/resume` automático antes disso é um turno inteiro
     //     gasto a carregar contexto que a mensagem seguinte ia dar de qualquer forma.
     //     (O `/resume` lê só o 1.º argumento — a pasta entre aspas —, portanto o brief a seguir
     //     passa como texto normal e não é confundido com argumento.)
     //
-    // `/init-project` NUNCA é enviado daqui. Ligar um projecto ao JOCA é conversa com o gestor,
-    // não uma coreografia de arranque de terminal: o gestor faz o levantamento da pasta e conduz
-    // as perguntas (ver manager.ts → onboardingSection). Um terminal a disparar `/init-project`
-    // sozinho abria um questionário por cima de trabalho que o utilizador nem pediu.
+    // `/init-project` NUNCA é enviado daqui: um terminal a disparar `/init-project` sozinho abria
+    // um questionário por cima de trabalho que o utilizador nem pediu.
     //
     // Enviado só quando a TUI está mesmo pronta (ver runStartupSequence). Timers fixos foram o bug
     // por trás de "às vezes não manda o /resume": num arranque lento, ou com o prompt "trust this
@@ -350,8 +354,11 @@ export class SessionManager extends EventEmitter {
     let firstMessage = initialInput;
     if (profile.startupSequence && resumeResolved) {
       const resumeCmd = `${profile.resumeCmd} "${resumeResolved}"`;
-      if (origin === 'user') startupCmd = resumeCmd;
-      else if (firstMessage) firstMessage = `${resumeCmd}\n\n${firstMessage}`;
+      // Com brief (tarefa, agente despachado) o `/resume` vai colado à frente dele: um turno só,
+      // em vez de dois, e o contexto chega antes do trabalho. SEM brief — o dono a abrir um
+      // terminal do projecto — vai sozinho, e é tudo o que o terminal recebe.
+      if (firstMessage) firstMessage = `${resumeCmd}\n\n${firstMessage}`;
+      else startupCmd = resumeCmd;
     }
 
     if (startupCmd || firstMessage) {
@@ -376,7 +383,7 @@ export class SessionManager extends EventEmitter {
       // O que fica de fora: um spinner ou um relógio ESCREVEM caracteres visíveis, e continuam a
       // contar como trabalho. Resolver isso obriga a comparar o ECRÃ ao longo do tempo, não o
       // fluxo de bytes — outra empreitada. Isto apanha o caso barato e frequente sem tocar na
-      // detecção de fim, de que o gestor todo depende.
+      // detecção de fim.
       if (!temConteudoVisivel(data)) return;
 
       // Status: transition to working
@@ -400,8 +407,19 @@ export class SessionManager extends EventEmitter {
 
         session.status = 'idle';
         session.workingSince = null;
-        session.notifyOnIdle = false;
-        session.awaitingDone = false;
+        // `notifyOnIdle` é um toast: perdê-lo custa um aviso. `awaitingDone` é um RUNNER à espera:
+        // perdê-lo custa a fila inteira do projecto.
+        //
+        // Ambos eram limpos aqui SEMPRE, mesmo quando a rajada era curta demais para contar como
+        // trabalho (`substantial`). Bastava um settle de menos de 2s — o eco do paste do brief, uma
+        // pausa entre duas ferramentas — para consumir o "arm" sem emitir `done`. A partir daí
+        // nenhuma rajada seguinte acordava o `waitForDone`, que só desistia ao fim de 1 HORA, com o
+        // lock `busy` presa todo esse tempo e nada mais a correr nesse projecto. Media-se em ~1 de
+        // cada 5 execuções.
+        //
+        // Só se desarma quem chegou a disparar.
+        session.notifyOnIdle = isDone ? false : session.notifyOnIdle;
+        session.awaitingDone = dispatchDone ? false : session.awaitingDone;
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
@@ -436,7 +454,7 @@ export class SessionManager extends EventEmitter {
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
     // single source of the broadcast — workers spawned programmatically (automations/tasks)
     // become visible in the UI exactly like UI-created sessions.
-    this.emit('spawn', { session });
+    this.emit('spawn', { session, requestedBy: opts.requestedBy });
     return session;
   }
 
@@ -503,6 +521,36 @@ export class SessionManager extends EventEmitter {
     });
   }
 
+  /**
+   * Espera que o TUI esteja MESMO pronto a receber texto.
+   *
+   * O `waitForQuiet` sozinho não chega: durante o arranque de um CLI há pausas de mais de 700ms
+   * (a carregar, a resolver o modelo) em que o processo está vivo mas ainda não montou a caixa de
+   * input. Escrever aí é escrever para o vazio — o texto não aparece em lado nenhum e o terminal
+   * fica no prompt limpo. Como nada foi escrito, o `awaitingDone` nunca chega a armar e o runner
+   * que espera pela tarefa fica pendurado até ao timeout de uma hora, com a fila do projecto presa
+   * atrás dele. Foi assim que uma tarefa em cada cinco morria no arranque.
+   *
+   * O sinal de "pronto" é o próprio prompt do CLI. Se não aparecer dentro do tecto, avança à mesma
+   * (um CLI que não conheçamos não pode bloquear o arranque para sempre) — daí o `capMs`.
+   */
+  private waitForTuiReady(session: Session, capMs: number): Promise<void> {
+    // `❯` cobre Claude Code e Codex; as outras duas são a barra de estado do Claude Code, que só
+    // aparece depois de a caixa de input existir.
+    const PRONTO = /[❯›»]|bypass permissions|for agents|\? for shortcuts/;
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const tick = () => {
+        if (!this.sessions.has(session.id)) return resolve();
+        const tail = session.buffer.slice(-4000).replace(ANSI_RE, '');
+        const quietFor = Date.now() - session.lastOutputTime;
+        if ((PRONTO.test(tail) && quietFor >= 400) || Date.now() - start >= capMs) return resolve();
+        setTimeout(tick, 150);
+      };
+      setTimeout(tick, 400);
+    });
+  }
+
   // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
   // "trust this folder?" prompt if present, THEN send /resume (só em terminais abertos à mão),
   // THEN submit any brief (que, nos automáticos, já traz o /resume colado à frente).
@@ -541,7 +589,7 @@ export class SessionManager extends EventEmitter {
 
   private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
     const p = session.pty;
-    await this.waitForQuiet(session, 700, 12000);
+    await this.waitForTuiReady(session, 25000);
     await this.limparDialogosDeArranque(session);
     if (!this.sessions.has(session.id)) return;
     if (startupCmd) {
@@ -558,6 +606,19 @@ export class SessionManager extends EventEmitter {
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
       // into the Claude TUI. Paced+chunked so a long brief isn't truncated by the pty buffer.
       this.enqueueWrite(session, initialInput, true);
+
+      // Rede de segurança: confirmar que o brief CHEGOU. Um paste perdido não dá erro nenhum — o
+      // terminal fica no prompt limpo e quem espera pela tarefa fica pendurado. Verifica-se por uma
+      // marca do próprio texto e, se não estiver lá, tenta-se UMA vez.
+      const marca = initialInput.trim().split('\n')[0].slice(0, 40);
+      await new Promise((r) => setTimeout(r, 3500));
+      if (!this.sessions.has(session.id)) return;
+      const visto = session.buffer.slice(-8000).replace(ANSI_RE, '').includes(marca);
+      if (!visto) {
+        console.warn(`[session ${session.id.slice(0, 8)}] o brief não apareceu no terminal — a repetir`);
+        await this.waitForTuiReady(session, 10000);
+        if (this.sessions.has(session.id)) this.enqueueWrite(session, initialInput, true);
+      }
     }
   }
 

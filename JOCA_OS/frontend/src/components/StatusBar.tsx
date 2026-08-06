@@ -12,12 +12,6 @@ interface Props {
    * lento (ver ACTIVITY_POLL_MS).
    */
   sessions?: SessionInfo[];
-  /** Chaves de gestor a meio de um turno. `__global__` = o Joca. Sem fonte global própria hoje. */
-  busyManagerIds?: string[];
-  /** Notificações por ler. Se vier undefined, o rodapé vai buscá-las sozinho. */
-  unreadNotifications?: number;
-  /** Abrir a inbox. Sem isto o contador de mensagens novas mostra-se, mas não se clica. */
-  onOpenInbox?: () => void;
 }
 
 interface Slot {
@@ -191,7 +185,7 @@ function buildRows(rl: RateLimits | null): ProviderRow[] {
  * (Tab chega lá, é um botão) ou fixos por clique.
  */
 export default function StatusBar({
-  rateLimits, sessions, busyManagerIds, unreadNotifications, onOpenInbox,
+  rateLimits, sessions,
 }: Props) {
   const now = useMinuteTick();
   const [pinned, setPinned] = useState<string | null>(null);
@@ -199,33 +193,22 @@ export default function StatusBar({
 
   // Recurso: só quando o App ainda não passa a informação por props.
   const [fetchedSessions, setFetchedSessions] = useState<SessionInfo[]>([]);
-  const [fetchedUnread, setFetchedUnread] = useState(0);
   useFallbackActivity(sessions === undefined, '/sessions', (raw) => {
     setFetchedSessions(Array.isArray(raw) ? (raw as SessionInfo[]) : []);
   });
-  useFallbackActivity(unreadNotifications === undefined, '/notifications', (raw) => {
-    const d = raw as { unread?: number };
-    setFetchedUnread(typeof d?.unread === 'number' ? d.unread : 0);
-  });
 
   const vivas = sessions ?? fetchedSessions;
-  const porLer = unreadNotifications ?? fetchedUnread;
 
-  // Agentes = terminais abertos pelo gestor/tarefas ('auto'). Os que o utilizador abriu à mão são
-  // dele, não "trabalho a decorrer sem supervisão" — contá-los juntos tornaria o número inútil.
+  // Agentes = terminais abertos pelo motor de tarefas ('auto'). Os que o utilizador abriu à mão
+  // são dele, não "trabalho a decorrer sem supervisão" — juntá-los tornaria o número inútil.
   const agentes = vivas.filter((s) => s.origin === 'auto');
   const agentesActivos = agentes.filter((s) => s.status === 'working').length;
-  const gestoresOcupados = busyManagerIds?.length ?? 0;
-  const jocaACorrer = Boolean(busyManagerIds?.includes('__global__'));
 
   const hhmm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const fullDate = now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' });
 
   const resumoActividade = [
     `${agentesActivos} de ${agentes.length} agente(s) a trabalhar`,
-    gestoresOcupados ? `${gestoresOcupados} gestor(es) a pensar` : null,
-    jocaACorrer ? 'Joca a correr' : null,
-    porLer ? `${porLer} por ler` : null,
   ].filter(Boolean).join(' · ');
 
   return (
@@ -292,7 +275,7 @@ export default function StatusBar({
             movimento é um ponto a pulsar quando há mesmo alguém a trabalhar — o rodapé está
             sempre à vista, não pode competir com o conteúdo. */}
         <div
-          className={`sb-activity${agentesActivos || gestoresOcupados ? ' is-live' : ''}`}
+          className={`sb-activity${agentesActivos ? ' is-live' : ''}`}
           role="group"
           aria-label={`Actividade: ${resumoActividade}`}
         >
@@ -306,41 +289,7 @@ export default function StatusBar({
             <span className="sb-act-num">{agentesActivos}<span className="sb-act-of">/{agentes.length}</span></span>
           </span>
 
-          {gestoresOcupados > 0 && (
-            <span className="sb-act-chip" title={`${gestoresOcupados} gestor(es) a pensar${jocaACorrer ? ' (inclui o Joca)' : ''}`}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              <span className="sb-act-num">{gestoresOcupados}</span>
-            </span>
-          )}
 
-          {porLer > 0 && (
-            // Botão só quando há para onde ir: um contador que não se clica não deve parecer
-            // clicável.
-            onOpenInbox ? (
-              <button
-                type="button"
-                className="sb-act-chip sb-act-chip--btn"
-                onClick={onOpenInbox}
-                aria-label={`${porLer} notificações por ler — abrir`}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                </svg>
-                <span className="sb-act-num">{porLer > 99 ? '99+' : porLer}</span>
-              </button>
-            ) : (
-              <span className="sb-act-chip" title={`${porLer} notificações por ler`}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                </svg>
-                <span className="sb-act-num">{porLer > 99 ? '99+' : porLer}</span>
-              </span>
-            )
-          )}
         </div>
 
         <time className="sb-clock" dateTime={now.toISOString()} title={fullDate}>

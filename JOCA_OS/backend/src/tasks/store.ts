@@ -60,8 +60,8 @@ export function notifyTasksChanged(): void { try { tasksBroadcaster?.(); } catch
 
 // Injectable runner so a "run task" action can fire execution immediately (needs the engine's deps,
 // which live in server.ts / the tasks engine). No-op until wired.
-let tasksRunner: ((id: string) => Promise<void>) | null = null;
-export function setTasksRunner(fn: (id: string) => Promise<void>): void { tasksRunner = fn; }
+let tasksRunner: ((id: string) => Promise<unknown>) | null = null;
+export function setTasksRunner(fn: (id: string) => Promise<unknown>): void { tasksRunner = fn; }
 export async function triggerTaskRun(id: string): Promise<void> {
   if (!tasksRunner) return; // engine not wired yet — no-op
   await tasksRunner(id);

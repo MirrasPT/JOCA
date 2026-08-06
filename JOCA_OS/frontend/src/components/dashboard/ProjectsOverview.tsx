@@ -105,7 +105,7 @@ export default function ProjectsOverview({
         {visibleProjects.length === 0 && looseSessions.length === 0 && (
           <div className="dashboard-empty-card">
             <div className="empty-icon"><TerminalIcon /></div>
-            <p>Ainda não há projectos. Cria um para o gestor ter onde trabalhar, ou abre um agente rápido para uma tarefa avulsa.</p>
+            <p>Ainda não há projectos. Cria um para teres onde trabalhar, ou abre um agente rápido para uma coisa avulsa.</p>
             <button className="btn-new-large" type="button" onClick={onCreateProject}>+ Criar projecto</button>
           </div>
         )}
@@ -152,7 +152,7 @@ export default function ProjectsOverview({
                       className="db-project-description db-project-description--empty"
                       onClick={(e) => { e.stopPropagation(); onEditProject(project); }}
                     >
-                      + Descreve o projecto para o gestor saber o que é
+                      + Descreve o projecto para os terminais saberem o que é
                     </button>
                   )}
                 </div>

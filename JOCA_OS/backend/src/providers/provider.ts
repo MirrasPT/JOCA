@@ -20,18 +20,21 @@ export interface BrainRunOptions {
   model?: string;                                  // 'opus' | 'sonnet' | 'haiku' | full id
   cwd?: string;
   noTools?: boolean;                               // disable ALL built-in tools → pure text completion
-  // ── Multi-turn + tools (used by the project manager) ──────────────────────
-  // resume: SDK session id from a previous run's result event. The SDK reloads that conversation's
-  // history, so we never rebuild context by pasting a transcript into the prompt (the mistake that
-  // made the old Master expensive and fragile).
+  // ── Multi-turn + tools ────────────────────────────────────────────────────
+  // ⚠ Nenhum caller usa estas opções hoje: os três que chamam `run()` (juiz das tarefas,
+  // llm-routes, runner das automações) passam só {systemPrompt, model, noTools}. Ficaram do gestor
+  // de projecto, removido. Mantêm-se porque descrevem o contrato REAL do SDK — quem voltar a
+  // precisar de uma conversa com ferramentas precisa delas —, mas não as tomes por usadas.
+  //
+  // resume: SDK session id de um `result` anterior. O SDK recarrega o histórico dessa conversa, em
+  // vez de o reconstruirmos colando transcrição no prompt.
   resume?: string;
   // In-process MCP servers built with createSdkMcpServer(). Their tools reach the model as
   // mcp__<server>__<tool>.
   mcpServers?: Record<string, unknown>;
   // Fronteira dura de ferramentas: `tools: []` desliga TODOS os built-ins (Bash/Edit/Write/Read).
   disallowedTools?: string[];
-  // Nomes de ferramentas auto-aprovadas (o nosso conjunto mcp__joca__* e, no modo gestor, também os
-  // built-ins). Em modo gestor esta lista é a fonte de `tools` — ver ClaudeProvider.run.
+  // Nomes de ferramentas auto-aprovadas.
   allowedTools?: string[];
   // Defaults to 'bypassPermissions' (needed by anything touching the filesystem). An agent with
   // tools:[] has no filesystem access at all, so it should run on 'default': bypass is both
@@ -71,7 +74,7 @@ export class ClaudeProvider {
         // REWRITES the instruction instead of EXECUTING it. tools:[] disables all built-ins; maxTurns:1
         // is belt-and-suspenders against any tool/continue loop.
         ...(opts.noTools ? { tools: [] as string[], maxTurns: 1 } : {}),
-        // Modo gestor: as ferramentas MCP in-process MAIS os built-ins que o caller autorizou. `tools`
+        // As ferramentas MCP in-process MAIS os built-ins que o caller autorizou. `tools`
         // é o que decide o que EXISTE; `allowedTools` só dispensa a permissão. Os built-ins saem da
         // mesma lista, tirando as entradas mcp__* (essas vêm do servidor MCP).
         ...(opts.mcpServers ? {

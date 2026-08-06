@@ -1,7 +1,6 @@
-// System routes — the new persistent-inbox / run-history / heartbeat / multi-CLI surface.
+// System routes — the persistent-inbox / run-history / multi-CLI surface.
 //   /notifications  → persistent inbox (survives closed tabs; unread state)
 //   /runs           → append-only execution history with SDK cost (runs.jsonl)
-//   /heartbeat      → proactivity loop config + manual beat
 //   /cli-profiles   → the CLIs a session/task/automation can run on, with availability
 import express, { Router } from 'express';
 import {
@@ -9,9 +8,6 @@ import {
   pushNotification,
 } from '../notifications/store';
 import { listRuns, runStats, type RunKind } from '../runs/store';
-import {
-  loadHeartbeatConfig, saveHeartbeatConfig, runHeartbeat, clampMaxAutoWakes, DEFAULT_HEARTBEAT, type HeartbeatConfig,
-} from '../heartbeat';
 import { loadCliProfiles, CLI_IDS, type CliId } from '../cli-profiles';
 import { binExists } from '../providers/provider';
 import { execFile } from 'child_process';
@@ -70,7 +66,7 @@ export function systemRouter(): Router {
   r.post('/notifications', express.json({ limit: '256kb' }), (req, res) => {
     const b = (req.body ?? {}) as { text?: unknown; title?: unknown; kind?: unknown };
     if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text obrigatorio' });
-    const kind = b.kind === 'automation' || b.kind === 'task_question' || b.kind === 'heartbeat' ? b.kind : 'system';
+    const kind = b.kind === 'automation' || b.kind === 'task_question' ? b.kind : 'system';
     res.json(pushNotification({
       kind,
       title: typeof b.title === 'string' && b.title.trim() ? b.title : 'Terminal',
@@ -96,7 +92,7 @@ export function systemRouter(): Router {
   // ── Run history + cost ─────────────────────────────────────────────────────
   r.get('/runs', (req, res) => {
     const limit = Number(req.query.limit) || 100;
-    const kind = ['automation', 'task', 'heartbeat'].includes(String(req.query.kind))
+    const kind = ['automation', 'task'].includes(String(req.query.kind))
       ? (String(req.query.kind) as RunKind) : undefined;
     const refId = typeof req.query.refId === 'string' ? req.query.refId : undefined;
     res.json(listRuns({ limit, kind, refId }));
@@ -105,38 +101,6 @@ export function systemRouter(): Router {
   r.get('/runs/stats', (req, res) => {
     const days = Math.max(1, Math.min(Number(req.query.days) || 30, 365));
     res.json(runStats(days));
-  });
-
-  // ── Heartbeat ──────────────────────────────────────────────────────────────
-  r.get('/heartbeat', (_req, res) => res.json(loadHeartbeatConfig()));
-
-  r.patch('/heartbeat', express.json({ limit: '256kb' }), (req, res) => {
-    const cur = loadHeartbeatConfig();
-    const b = (req.body ?? {}) as Partial<HeartbeatConfig>;
-    const next: HeartbeatConfig = { ...cur };
-    if (typeof b.enabled === 'boolean') next.enabled = b.enabled;
-    if (typeof b.everyMinutes === 'number') next.everyMinutes = Math.max(5, Math.min(24 * 60, Math.floor(b.everyMinutes)));
-    if ('activeHours' in b) {
-      const ah = b.activeHours;
-      next.activeHours = ah && typeof ah.start === 'string' && typeof ah.end === 'string'
-        ? { start: ah.start.slice(0, 5), end: ah.end.slice(0, 5) }
-        : null;
-    }
-    if (typeof b.model === 'string') next.model = b.model.trim().slice(0, 80) || DEFAULT_HEARTBEAT.model;
-    // Orçamento de wakes automáticos por gestor. Sem esta linha só se mudava editando
-    // `data/heartbeat.json` à mão. O clamp vive no módulo do heartbeat (chão 1, nunca 0: o travão
-    // configura-se, não se desliga).
-    if (b.maxAutoWakes !== undefined) next.maxAutoWakes = clampMaxAutoWakes(b.maxAutoWakes);
-    if (typeof b.scratch === 'string') next.scratch = b.scratch;
-    saveHeartbeatConfig(next);
-    res.json(loadHeartbeatConfig());
-  });
-
-  // Manual beat ("testar agora") — forces the LLM call even with an empty scratch/quiet state.
-  r.post('/heartbeat/run', (_req, res) => {
-    runHeartbeat({ force: true })
-      .then((out) => res.json(out))
-      .catch((e) => res.status(500).json({ error: e instanceof Error ? e.message : String(e) }));
   });
 
   // ── Multi-CLI profiles ─────────────────────────────────────────────────────

@@ -1,268 +1,371 @@
-/* ─── Project workspace — channel switcher ──────────────────────────
-   Canais do projecto (Chat/Workers/Tarefas/Ficheiros/Git/Overview): barra horizontal com
-   sublinhado no activo — os canais são navegação primária (label sempre visível), ao contrário
-   do right-tab-rail (utilitário secundário, ícone-só, fixo à borda). */
+/* ─── Workspace de um projecto — o terminal é o palco ─────────────────────────────────────────
+   Três faixas: barra fina de identidade, tabs dos terminais, e o resto TODO é terminal. As
+   tarefas entram numa gaveta ao lado, que encolhe o palco em vez de o substituir.
 
-.pw-channel-tabs {
+   `min-height: 0` em cada nível é o que permite encolher — sem isso um filho flex nunca fica
+   menor que o conteúdo e o `overflow` do pai nunca chega a ser usado. */
+
+.project-workspace {
   display: flex;
-  flex-shrink: 0;
-  gap: 4px;
-  margin-bottom: 18px;
-  padding-bottom: 0;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.project-workspace--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Barra fina de identidade ──────────────────────────────────────────────────────────────── */
+.pw-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 42px;
   border-bottom: 1px solid var(--border-faint);
+}
+.pw-bar-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.pw-bar-name {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-bright);
+  font: 700 13.5px var(--font-ui);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pw-bar-name-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  color: var(--text-bright);
+  font: 700 13.5px var(--font-ui);
+  padding: 3px 8px;
+  min-width: 160px;
+}
+.pw-bar-path {
+  color: var(--text-ghost);
+  font: 400 11px var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pw-bar-spacer { flex: 1 1 auto; }
+.pw-bar-stat { color: var(--text-dim); font: 500 11px var(--font-ui); white-space: nowrap; }
+.pw-bar-settings {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  background: none; border: 1px solid transparent; border-radius: var(--r-sm);
+  color: var(--text-dim); cursor: pointer;
+  transition: all var(--t-fast);
+}
+.pw-bar-settings:hover { color: var(--text-bright); border-color: var(--border-default); }
+
+/* ─── Tabs dos terminais ────────────────────────────────────────────────────────────────────── */
+/* `position: relative` + `z-index` na BARRA, não só no menu: sem contexto de empilhamento próprio,
+   o menu do CLI ficava por baixo do palco (que vem depois no DOM) por muito z-index que levasse.
+   A barra também não pode cortar o que sai dela — daí o `overflow: visible` explícito. */
+.pw-tabbar {
+  position: relative;
+  z-index: 50;
+  overflow: visible;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-faint);
+  min-height: 36px;
+}
+.pw-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Scrolla na horizontal quando há tabs a mais. O botão de terminal novo NÃO vive aqui dentro:
+     um eixo em `auto` força o outro a `auto`, portanto qualquer menu que descesse daqui era
+     podado — e além disso o "+" desaparecia ao fazer scroll. */
   overflow-x: auto;
   scrollbar-width: none;
 }
-.pw-channel-tabs::-webkit-scrollbar { display: none; }
+.pw-tabs::-webkit-scrollbar { display: none; }
 
-.pw-channel-tab {
+.pw-tab {
   position: relative;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
+  max-width: 220px;
+  border-bottom: 2px solid transparent;
+}
+.pw-tab--active { border-bottom-color: var(--accent); }
+.pw-tab-main {
+  display: inline-flex;
+  align-items: center;
   gap: 7px;
-  padding: 9px 14px 11px;
+  padding: 8px 6px 8px 10px;
   background: none;
-  border: none;
+  border: 0;
+  color: var(--text-dim);
+  font: 600 12px var(--font-ui);
   cursor: pointer;
-  color: var(--text-dim);
-  font: 600 12.5px var(--font-ui);
-  white-space: nowrap;
-  transition: color var(--t-fast, 110ms ease);
-}
-
-.pw-channel-tab svg {
-  width: 16px;
-  height: 16px;
-  color: currentColor;
-}
-
-.pw-channel-tab:hover { color: var(--text-normal); }
-
-.pw-channel-tab.is-active { color: var(--text-bright); }
-.pw-channel-tab.is-active svg { color: var(--accent); }
-
-.pw-channel-tab::after {
-  content: '';
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--accent);
-  opacity: 0;
-  transform: scaleX(0.6);
-  transition: opacity var(--t-fast, 110ms ease), transform var(--t-fast, 110ms ease);
-}
-.pw-channel-tab.is-active::after { opacity: 1; transform: scaleX(1); }
-
-.pw-channel-tab-badge {
-  padding: 0 6px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
-  color: var(--text-dim);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 16px;
-  text-align: center;
-}
-.pw-channel-tab.is-active .pw-channel-tab-badge { color: var(--accent); background: var(--accent-soft); }
-
-.pw-channel-body { min-width: 0; }
-
-/* ─── Canal principal: AGENTES à esquerda, ESCRITA à direita ────────
-   A coluna esquerda é a lista de agentes do projecto (o gestor primeiro — abre sozinho, mas é um
-   terminal normal); a direita é a vista expandida em mais pequeno: o terminal do agente
-   seleccionado + um composer com anexos e botões de comandos. */
-.pw-chat-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-  align-items: start;
-  gap: 20px;
-}
-
-.pw-chat-main { min-width: 0; }
-
-.pw-chat-side {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
   min-width: 0;
 }
-
-/* A coluna de agentes tem por defeito a ALTURA do chat — mesmo com poucos terminais o bloco
-   enche a coluna (a lista scrolla lá dentro quando transbordar). */
-.pw-chat-side-block--workers {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+.pw-tab--active .pw-tab-main { color: var(--text-bright); }
+.pw-tab-main:hover { color: var(--text-bright); }
+.pw-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pw-tab-name-input {
+  min-width: 90px; max-width: 170px;
+  padding: 2px 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--text-bright);
+  font: 600 12px var(--font-ui);
 }
-.pw-chat-side-block--workers .pw-workers {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
+/* A tab é `div[role=tab]`, não um <button> — o foco de teclado tem de ser visível à mesma. */
+.pw-tab-main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 4px;
 }
-
-@media (max-width: 1100px) {
-  .pw-chat-layout { grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); }
-}
-
-@media (max-width: 860px) {
-  /* Em ecrã estreito a escrita vem primeiro; os agentes ficam por baixo. */
-  .pw-chat-layout { grid-template-columns: 1fr; }
-  .pw-chat-side { order: 2; }
-  .pw-chat-main { order: 1; }
-}
-
-/* ─── Barra do agente activo (coluna de escrita) ────────────────────────────────────────────── */
-.pw-chat-agent-bar {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 10px; padding: 8px 12px;
-  background: var(--surface-panel); border: 1px solid var(--border-bento);
-  border-radius: 10px;
+.pw-tab-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-ghost);
   flex: 0 0 auto;
 }
-.pw-chat-agent-label { flex: 1; min-width: 0; color: var(--text-bright); font: 700 12.5px var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pw-chat-expand-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: none; border: 1px solid var(--border-bento); color: var(--text-dim);
-  border-radius: 8px; padding: 6px 12px; font-size: 11px; cursor: pointer;
-  min-height: 30px;
-}
-.pw-chat-expand-btn:hover { color: var(--text-bright); border-color: var(--accent-border); }
-.pw-chat-expand-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pw-tab-dot--working { background: var(--ok, #3fb950); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok, #3fb950) 22%, transparent); }
 
-.pw-chat-terminal-wrap {
-  display: flex; flex-direction: column;
-  min-height: 220px;
-  border: 1px solid var(--border-bento); border-radius: var(--radius-bento);
-  overflow: hidden;
-}
-
-/* ─── Composer da coluna de escrita (mini-vista-expandida) ──────────────────────────────────── */
-.pw-composer {
-  flex: 0 0 auto;
-  display: flex; flex-direction: column; gap: 8px;
-  margin-top: 10px; padding: 10px 12px;
-  background: var(--surface-panel);
-  border: 1px solid var(--border-bento);
-  border-radius: var(--radius-bento, 12px);
-}
-.pw-composer-quick { display: flex; flex-wrap: wrap; gap: 6px; }
-.pw-composer-input-row { display: flex; align-items: flex-end; gap: 8px; }
-.pw-composer-attach {
-  flex: 0 0 auto;
+.pw-tab-close {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px;
-  background: none; border: 1px solid var(--border-bento); border-radius: 9px;
+  width: 20px; height: 20px; margin-right: 4px;
+  background: none; border: 0; border-radius: 4px;
+  color: var(--text-ghost); cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), color var(--t-fast), background var(--t-fast);
+}
+/* O fechar aparece no hover ou quando a tab tem foco de teclado — quem navega por Tab também
+   precisa de lhe chegar, e `opacity:0` permanente tirava-lho. */
+.pw-tab:hover .pw-tab-close,
+.pw-tab:focus-within .pw-tab-close,
+.pw-tab--active .pw-tab-close { opacity: 1; }
+.pw-tab-close:hover { color: var(--text-bright); background: color-mix(in srgb, var(--on-surface) 10%, transparent); }
+
+.pw-tab-confirm { display: inline-flex; align-items: center; gap: 3px; margin-right: 4px; }
+.pw-tab-confirm-yes, .pw-tab-confirm-no {
+  padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-default);
+  background: none; cursor: pointer; font: 600 10px var(--font-ui);
+}
+.pw-tab-confirm-yes { color: var(--danger, #f85149); border-color: color-mix(in srgb, var(--danger, #f85149) 45%, transparent); }
+.pw-tab-confirm-no { color: var(--text-dim); }
+
+/* O "+" que segue a última tab. Vive DENTRO da fila, portanto scrolla com ela e fica sempre
+   encostado ao fim — é o gesto rápido. Sem menu: um menu aqui seria podado pelo scroller. */
+.pw-tab-add {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 24px; height: 24px;
+  margin-left: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid transparent; border-radius: var(--r-sm);
+  color: var(--text-ghost); font-size: 15px; line-height: 1; cursor: pointer;
+  transition: all var(--t-fast);
+}
+.pw-tab-add:hover { color: var(--text-bright); border-color: var(--border-default); background: var(--bg-input); }
+
+.pw-tab-new-wrap { position: relative; display: inline-flex; align-items: center; align-self: center; flex: 0 0 auto; }
+.pw-tab-new, .pw-tab-new-caret {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 24px; margin: 4px 0 0;
+  background: none; border: 1px solid transparent; border-radius: var(--r-sm);
   color: var(--text-dim); cursor: pointer;
 }
-.pw-composer-attach:hover { color: var(--text-bright); border-color: var(--accent-border); }
-.pw-composer-attach:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.pw-composer-input {
-  flex: 1 1 auto; min-width: 0;
-  resize: none;
-  padding: 8px 10px;
-  background: var(--surface-base);
-  border: 1px solid var(--border-bento); border-radius: 9px;
-  color: var(--text-primary); font: 400 13px/1.45 var(--font-ui);
+.pw-tab-new { width: 26px; font-size: 15px; line-height: 1; }
+.pw-tab-new-caret { width: 18px; font-size: 9px; }
+.pw-tab-new:hover, .pw-tab-new-caret:hover { color: var(--text-bright); border-color: var(--border-default); }
+
+/* Ancorado à DIREITA: o botão vive encostado à borda direita da barra, e com `left: 0` o
+   menu saía do ecrã (a última opção ficava cortada ao meio). */
+.pw-cli-menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 60;
+  min-width: 190px; padding: 4px;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
 }
-.pw-composer-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
-.pw-composer-send {
+.pw-cli-item {
+  display: block; width: 100%; text-align: left;
+  padding: 7px 10px; border: 0; border-radius: 4px;
+  background: none; color: var(--text-normal);
+  font: 500 12px var(--font-ui); cursor: pointer;
+}
+.pw-cli-item:hover:not(:disabled) { background: var(--bg-input); color: var(--text-bright); }
+.pw-cli-item:disabled { color: var(--text-ghost); cursor: not-allowed; }
+.pw-cli-item--loading { color: var(--text-ghost); cursor: default; }
+
+/* Botão das tarefas — vive na mesma faixa das tabs, encostado à direita. */
+.pw-tasks-toggle {
   flex: 0 0 auto;
-  min-height: 34px; padding: 0 16px;
-  background: var(--accent); border: none; border-radius: 9px;
-  color: #fff; font: 700 12px var(--font-ui); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: center;
+  padding: 5px 10px;
+  background: none; border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  color: var(--text-dim); font: 600 11.5px var(--font-ui); cursor: pointer;
+  transition: all var(--t-fast);
 }
-.pw-composer-send:hover:not(:disabled) { filter: brightness(1.1); }
-.pw-composer-send:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.pw-composer-send:disabled { opacity: 0.45; cursor: default; }
-
-.pw-worker-expand {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 4px; margin: -4px; border-radius: 6px; cursor: pointer;
-  background: none; border: none; color: inherit; font: inherit;
+.pw-tasks-toggle:hover { color: var(--text-bright); border-color: var(--text-ghost); }
+.pw-tasks-toggle--on {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-.pw-worker-expand:hover, .pw-worker-expand:focus-visible { background: rgba(255,255,255,0.08); }
+.pw-tasks-count {
+  min-width: 16px; padding: 0 4px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text-bright); font: 700 10px var(--font-ui); text-align: center;
+}
 
-.pw-overview {
+/* ─── O palco ───────────────────────────────────────────────────────────────────────────────── */
+.pw-stage {
+  position: relative;   /* âncora da gaveta em ecrã inteiro */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.pw-stage--with-tasks { grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); }
+
+.pw-terminal-slot {
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-@media (max-width: 860px) {
-  .pw-channel-tab span { display: none; }
-  .pw-channel-tab {
-    /* 44px de alto (alvo de toque mínimo) — 16px ícone + 14px de cada lado. */
-    padding: 14px 13px;
-    gap: 0;
-  }
-  .pw-channel-tab-badge { position: absolute; top: 6px; right: 6px; }
-}
-
-/* .vp-header é partilhado com o Dashboard/Joca global — o overlap só acontece aqui, onde o
-   cabeçalho ganhou os chips de estado + botão de settings esta sessão, por isso o fix fica
-   scoped a `.project-workspace` em vez de mexer na regra genérica. Abaixo de ~600px o título+
-   caminho (`.pw-head-main`, já min-width:0) era espremido a 0px pelos vizinhos que não encolhiam
-   — texto e chips ficavam sobrepostos. Empilhar em vez de espremer. */
-@media (max-width: 600px) {
-  .project-workspace .vp-header { flex-wrap: wrap; }
-  .project-workspace .pw-head-main { flex: 1 1 100%; }
-  .project-workspace .pw-head-stats { flex-wrap: wrap; }
-}
-
-/* ─── Altura: a vista do projecto NUNCA scrolla como página ──────────────────
-   Invariante da casa (docs/ARQUITECTURA.md): "nenhuma vista scrolla como página; quem scrolla é a
-   conversa, a lista ou a coluna do quadro". A vista herdava `overflow:auto` do `.dashboard-view`
-   e o canal crescia com o conteúdo (`flex: 0 1 auto` + `align-items: start`), portanto em ecrãs
-   baixos scrollava o bloco inteiro — cabeçalho e separadores saíam do ecrã ao descer.
-
-   Aqui a coluna passa a ter altura fixa: o canal fica com o espaço que sobra e scrolla POR DENTRO.
-   `min-height: 0` em cada nível é o que permite encolher — sem isso um filho flex nunca fica
-   menor que o conteúdo e o `overflow` do pai nunca chega a ser usado. */
-.dashboard-view.project-workspace {
   overflow: hidden;
-  min-height: 0;
 }
-.project-workspace .pw-channel-body {
+/* O TerminalView foi desenhado para ser o ecrã todo; aqui é o palco dentro do workspace. Enche o
+   espaço e perde a moldura exterior — as bordas já são as das faixas acima. */
+.pw-terminal-slot > .terminal-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 14px 12px;
+}
+
+/* Palco sem nada — centrado nos dois eixos, não encostado ao canto de cima. */
+.pw-stage-empty {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-ghost);
+}
+.pw-stage-empty-title { margin: 4px 0 0; color: var(--text-normal); font: 600 14px var(--font-ui); }
+.pw-stage-empty-hint { margin: 0; color: var(--text-ghost); font: 400 12.5px var(--font-ui); }
+.pw-stage-empty-btn {
+  margin-top: 6px;
+  padding: 8px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  color: var(--text-bright);
+  font: 600 12px var(--font-ui);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.pw-stage-empty-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── Gaveta de tarefas ─────────────────────────────────────────────────────────────────────── */
+.pw-tasks-drawer {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-faint);
+  background: color-mix(in srgb, var(--surface-panel) 60%, transparent);
+}
+.pw-tasks-drawer-head {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-faint);
+}
+.pw-tasks-drawer-actions { display: inline-flex; align-items: center; gap: 2px; }
+.pw-tasks-drawer-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  background: none; border: 0; border-radius: 4px;
+  color: var(--text-dim); font-size: 17px; line-height: 1; cursor: pointer;
+}
+.pw-tasks-drawer-btn:hover { color: var(--text-bright); background: var(--bg-input); }
+.pw-tasks-drawer-btn[aria-pressed="true"] { color: var(--accent); }
+
+/* Ecrã inteiro: a gaveta cobre o palco. O terminal fica montado por baixo — voltar ao lateral (ou
+   fechar) não o remonta nem perde o que lá está. */
+.pw-tasks-drawer--full {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  border-left: 0;
+  background: var(--surface-base, var(--surface-panel));
+}
+.pw-tasks-drawer--full .pw-tasks-drawer-body { padding: 16px clamp(16px, 3vw, 40px); }
+/* Em ecrã inteiro há largura para o quadro real — as colunas voltam a ficar lado a lado. */
+.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-board { flex-direction: row; overflow-x: auto; gap: 16px; }
+.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-col { flex: 0 0 300px; min-width: 300px; width: auto; }
+.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-header h1,
+.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-header p { display: revert; }
+.pw-tasks-drawer-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  padding: 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--text-ghost) transparent;
 }
-.project-workspace .pw-chat-layout {
-  height: 100%;
-  min-height: 0;
-  align-items: stretch;   /* era `start`: as colunas não enchiam a altura e não podiam scrollar */
-}
-/* A coluna de escrita tem de FICAR pela altura dela: barra e composer têm altura própria
-   (flex 0 0 auto), o terminal estica e encolhe com o que sobra. */
-.project-workspace .pw-chat-main {
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
+/* O quadro em 4 colunas de 300px não cabe numa gaveta de 340px — dava scroll horizontal e
+   escondia as colunas da direita. Na gaveta empilha-se e lê-se como lista, de cima para baixo. */
+.pw-tasks-drawer-body .tk-board {
   flex-direction: column;
+  overflow-x: visible;
+  gap: 12px;
 }
-.project-workspace .pw-chat-main > .pw-chat-terminal-wrap { flex: 1 1 auto; min-height: 0; }
-.project-workspace .pw-chat-side { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.pw-tasks-drawer-body .tk-col {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+}
+/* O cabeçalho do TasksView (título grande + descrição) é redundante aqui: a gaveta já se chama
+   Tarefas. Fica só a linha de acções. */
+.pw-tasks-drawer-body .tk-header h1,
+.pw-tasks-drawer-body .tk-header p { display: none; }
+.pw-tasks-drawer-body .tk-header { margin-bottom: 12px; }
 
-/* Em ecrãs baixos o cabeçalho é que tem de ceder — é moldura, não conteúdo. Isto recupera ~60px
-   para o canal num portátil de 720p, que é a diferença entre ver duas mensagens e ver cinco. */
-@media (max-height: 800px) {
-  .dashboard-view.project-workspace { padding: 14px 22px; }
-  .project-workspace .vp-header { margin-bottom: 10px; gap: 14px; align-items: center; }
-  .project-workspace .vp-title { font-size: 21px; }
-  .project-workspace .pw-channel-tabs { margin-bottom: 10px; }
+/* Ecrã estreito: a gaveta passa a cobrir o palco em vez de o espremer. */
+@media (max-width: 980px) {
+  .pw-stage--with-tasks { grid-template-columns: minmax(0, 1fr); position: relative; }
+  .pw-tasks-drawer {
+    position: absolute; inset: 0 0 0 auto;
+    width: min(360px, 100%);
+    background: var(--surface-panel);
+    box-shadow: -12px 0 32px rgba(0,0,0,0.34);
+    z-index: 30;
+  }
 }
-@media (max-height: 620px) {
-  .dashboard-view.project-workspace { padding: 10px 16px; }
-  .project-workspace .vp-header { margin-bottom: 6px; }
-  .project-workspace .vp-title { font-size: 18px; }
-  .project-workspace .pw-channel-tabs { margin-bottom: 6px; }
+
+@media (max-width: 620px) {
+  .pw-bar-path { display: none; }
+  .pw-tasks-toggle span { display: none; }
 }

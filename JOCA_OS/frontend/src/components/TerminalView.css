@@ -19,25 +19,6 @@
   overflow: hidden;
 }
 
-.terminal-titlebar {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 0 var(--sp-4);
-  height: 44px;
-  min-height: 44px;
-  background: color-mix(in srgb, var(--on-surface) 2%, transparent);
-  border-bottom: 1px solid var(--border-faint);
-  flex-shrink: 0;
-}
-
-.titlebar-dots {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .dot {
   width: 11px;
   height: 11px;
@@ -49,109 +30,6 @@
 .dot-yellow { background: var(--dot-yellow); }
 .dot-green  { background: var(--dot-green); }
 
-.titlebar-info {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  flex: 1;
-  min-width: 0;
-}
-
-.titlebar-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-bright);
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-}
-
-.titlebar-cwd {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--text-ghost);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
-}
-
-.titlebar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.titlebar-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: color-mix(in srgb, var(--on-surface) 4%, transparent);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--r-sm);
-  color: var(--text-normal);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--t-fast);
-}
-
-.titlebar-btn:hover {
-  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
-  color: var(--text-bright);
-}
-
-.titlebar-btn--save:hover {
-  color: var(--accent-amber);
-  border-color: rgba(251, 191, 36, 0.3);
-}
-
-.titlebar-btn--compact:hover {
-  color: var(--badge-blue);
-  border-color: rgba(96, 165, 250, 0.3);
-}
-
-.titlebar-btn--restart:hover {
-  color: var(--status-idle);
-  border-color: rgba(74, 222, 128, 0.3);
-}
-
-.titlebar-btn--interrupt {
-  color: color-mix(in srgb, var(--red) 70%, transparent);
-}
-
-.titlebar-btn--interrupt:hover {
-  background: rgba(240, 106, 106, 0.12);
-  color: var(--red);
-  border-color: rgba(240, 106, 106, 0.3);
-}
-
-.titlebar-badge {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  color: var(--accent-amber);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-  flex-shrink: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--on-surface) 2%, transparent);
-}
-
-.titlebar-badge--working {
-  color: var(--status-working);
-  background: rgba(251, 191, 36, 0.05);
-  border-color: rgba(251, 191, 36, 0.2);
-}
-
-.titlebar-badge--idle {
-  color: var(--status-idle);
-  background: rgba(74, 222, 128, 0.05);
-  border-color: rgba(74, 222, 128, 0.2);
-}
-
 .terminal-wrapper {
   flex: 1;
   display: flex;
@@ -159,9 +37,6 @@
   overflow: hidden;
   padding: var(--sp-2);
 }
-
-.titlebar-btn--scroll-bottom { color: var(--text-ghost); }
-.titlebar-btn--scroll-bottom:hover { color: var(--accent); }
 
 .terminal-container {
   flex: 1;
@@ -370,6 +245,14 @@
   color: var(--text-ghost);
 }
 
+/* O controlo mais usado da app era o único sem sinal de foco: `outline: 0` sem nada em troca.
+   O anel vai na MOLDURA (o textarea não tem borda própria), para não saltar o layout. */
+.terminal-command-input-wrap:focus-within {
+  border-top-color: var(--accent);
+  box-shadow: inset 0 2px 0 -1px var(--accent);
+}
+.terminal-command-input:focus-visible { outline: 0; }
+
 .terminal-command-send {
   align-self: flex-end;
   margin-bottom: 4px;
@@ -502,4 +385,33 @@
   text-overflow: ellipsis;
   min-width: 0;
   flex: 1;
+}
+
+/* ─── Controlos vindos da barra de título (removida) ──────────────────────────
+   `Restart`, `Stop` e o ir-para-o-fim não tinham equivalente na fila de comandos; `Save` e
+   `Compact` tinham, e por isso não foram trazidos. */
+.quick-command-btn--stop { color: var(--danger, #f85149); }
+.quick-command-btn--stop:hover {
+  color: var(--danger, #f85149);
+  border-color: color-mix(in srgb, var(--danger, #f85149) 45%, transparent);
+  background: color-mix(in srgb, var(--danger, #f85149) 10%, transparent);
+}
+
+/* Estado do terminal. Empurrado para a direita da fila — é informação, não um botão, e encostado
+   aos botões lia-se como mais um. */
+.cmd-bar-status {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font: 600 10.5px var(--font-ui);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.cmd-bar-status--working {
+  color: var(--warn, #d29922);
+  background: color-mix(in srgb, var(--warn, #d29922) 15%, transparent);
+}
+.cmd-bar-status--idle {
+  color: var(--text-ghost);
+  background: color-mix(in srgb, var(--on-surface) 7%, transparent);
 }

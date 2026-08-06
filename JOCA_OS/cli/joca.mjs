@@ -12,13 +12,11 @@
 //   node "$JOCA_CLI" sessions                   terminais do teu projecto (área + trabalho actual)
 //   node "$JOCA_CLI" send <id> "texto"          fala com outro agente do mesmo projecto
 //   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro agente escreveu
-//   node "$JOCA_CLI" chat <projecto> "texto"    fala com o gestor de um projecto
-//   node "$JOCA_CLI" workers                    vê os workers do gestor e o que fazem
 //   node "$JOCA_CLI" cat <path>                  lê 1 ficheiro por caminho (sem navegação/listagem)
 //
 // Os comandos de terminais são LIMITADOS AO PROJECTO de quem os corre: dois agentes do mesmo
-// projecto falam e verificam-se um ao outro sem passar pelo gestor, mas não vêem os de outro
-// projecto. Quem corre o CLI à mão (sem JOCA_SESSION_ID) continua a ver tudo.
+// projecto falam e verificam-se um ao outro, mas não vêem os de outro projecto. Quem corre o CLI
+// à mão (sem JOCA_SESSION_ID) continua a ver tudo.
 //
 // Sem dependências. Saída pensada para ser lida por um agente: curta e determinística.
 import process from 'node:process';
@@ -299,64 +297,6 @@ const commands = {
     for (const p of list.filter((x) => !x.archived)) console.log(`${short(p.id)}  ${p.name}  ${p.path}`);
   },
 
-  // Gestor de projecto: com texto envia, sem texto lê. O POST responde 202 e a resposta do gestor
-  // chega minutos depois (ele pode abrir workers pelo caminho) — daí o aviso explícito na saída.
-  async chat(flags, [ref, ...rest]) {
-    const text = rest.join(' ') || (typeof flags.text === 'string' ? flags.text : '');
-    const p = await resolveProject(ref);
-
-    if (text) {
-      await api('POST', `/projects/${p.id}/chat`, { text });
-      console.log(`mensagem entregue ao gestor de "${p.name}" (${short(p.id)})`);
-      console.log('a resposta é ASSÍNCRONA — não vem neste comando. O gestor pode demorar (pode abrir workers).');
-      console.log(`lê-a daqui a pouco com:  joca chat ${short(p.id)}`);
-      return;
-    }
-
-    const limit = Math.max(1, Number(flags.limit) || 20);
-    const out = await api('GET', `/projects/${p.id}/chat?limit=${limit}`);
-    const roles = { user: 'tu    ', manager: 'gestor', system: 'sistema' };
-    console.log(`# Gestor de ${p.name} (${short(p.id)})`);
-    console.log(`estado: ${out.busy ? 'a trabalhar (ocupado)' : 'livre'}  ·  custo acumulado: $${(out.totalCostUsd || 0).toFixed(4)}  ·  workers: ${out.workers?.length || 0}`);
-    if (!out.messages?.length) {
-      console.log('\n(conversa vazia — começa com: joca chat ' + short(p.id) + ' "o que precisas")');
-      return;
-    }
-    console.log(`\n## Últimas ${out.messages.length} mensagens`);
-    for (const m of out.messages) {
-      const cost = m.costUsd ? `  ($${m.costUsd.toFixed(4)})` : '';
-      console.log(`\n[${roles[m.role] || m.role} ${rel(m.ts)}]${cost}`);
-      console.log((m.text || '').split('\n').map((l) => `  ${l}`).join('\n'));
-      if (m.actions?.length) console.log(`  ↳ acções: ${m.actions.join(' · ')}`);
-    }
-    if (out.busy) console.log('\n(o gestor está a trabalhar agora — volta a correr este comando para ver a resposta)');
-  },
-
-  // Sem projecto: usa o do terminal actual, e se não houver mostra todos — um agente perdido
-  // prefere ver o panorama a levar com um erro.
-  async workers(flags, [ref]) {
-    let projects;
-    if (ref) {
-      projects = [await resolveProject(ref)];
-    } else {
-      const all = (await api('GET', '/projects')).filter((p) => !p.archived);
-      const mine = SESSION_ID
-        ? (await api('GET', '/sessions')).find((s) => s.id === SESSION_ID)?.projectId
-        : undefined;
-      projects = mine ? all.filter((p) => p.id === mine) : all;
-      if (!projects.length) return console.log('(sem projectos)');
-    }
-    for (const p of projects) {
-      const out = await api('GET', `/projects/${p.id}/chat?limit=1`);
-      console.log(`\n## ${p.name} (${short(p.id)})${out.busy ? '  · gestor a trabalhar' : ''}`);
-      if (!out.workers?.length) { console.log('  (sem workers abertos)'); continue; }
-      for (const w of out.workers) {
-        const job = w.currentJob ? `  ${oneLine(w.currentJob, 60)}` : '';
-        console.log(`  ${(w.area || '?').padEnd(14)} ${(w.busy ? 'ocupado' : 'livre').padEnd(8)} ${String(w.status).padEnd(7)} ${short(w.sessionId)}${job}`);
-      }
-      console.log(`  (lê um worker com: joca read <id-sessão>)`);
-    }
-  },
 
   async cat(flags, [target]) {
     if (!target) die('falta o caminho: joca cat <path> [--tail N]');
@@ -406,13 +346,8 @@ TERMINAIS (agentes falam entre si — só dentro do MESMO projecto)
   send <id> "<texto>"                          fala com outro agente (verifica-lhe o trabalho, pede algo)
   read <id> [--tail 4000]                      lê o output de outro agente
   (dentro de um agente vês SÓ os terminais do projecto dele; falar com um de outro projecto é
-   recusado pelo JOCA_OS. Não precisas do gestor no meio: trata directamente com o colega.)
+   recusado pelo JOCA_OS.)
 
-GESTOR DE PROJECTO
-  chat <projecto> "<texto>"                    entrega a mensagem no TERMINAL do gestor do projecto
-  chat <projecto> [--limit 20]                 lê a conversa com o gestor (+ acções de cada turno)
-  workers [<projecto>]                         workers por área e o que cada um está a fazer
-  (<projecto> aceita id, prefixo de id ou nome)
 
 FICHEIROS (leitura pontual — sem navegação/listagem, ver skill)
   cat <path> [--tail N]                        lê um ficheiro (--tail N = últimas N linhas)

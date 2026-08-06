@@ -42,7 +42,7 @@ export interface Project {
   order?: number;
   /** Agrupamento visual na sidebar (categorias estilo Discord) — sem efeito no projecto em si. */
   groupId?: string;
-  /** O que o projecto é, por palavras do utilizador — é isto que o gestor sabe sobre ele. */
+  /** O que o projecto é, por palavras do utilizador. */
   description?: string;
   /** `true` = já existe código na pasta; `false`/undefined = projecto a começar do zero. */
   hasCode?: boolean;
@@ -58,37 +58,6 @@ export interface ProjectGroup {
   collapsed?: boolean;
 }
 
-// ── v4: gestor de projecto (chat + pool de workers) ───────────────────────────
-
-export type ManagerRole = 'user' | 'manager' | 'system';
-
-/** Uma mensagem da conversa com o gestor do projecto (espelha backend/src/manager/store.ts). */
-export interface ManagerMessage {
-  id: string;
-  role: ManagerRole;
-  text: string;
-  ts: number;
-  author?: string;
-  costUsd?: number;
-  /** Paths absolutos anexados a esta mensagem (imagem, vídeo, ficheiro). */
-  attachments?: string[];
-  /** Traço curto do que o gestor fez neste turno ("abriu worker de design", "criou a tarefa X"). */
-  actions?: string[];
-}
-
-/** Um terminal real reutilizado pelo gestor para uma área do projecto (design, backend, …). */
-export interface PooledWorker {
-  sessionId: string;
-  projectId: string;
-  area: string;
-  busy: boolean;
-  lastUsedAt: number;
-  currentJob?: string;
-  /** Terminal do gestor (area 'gestor') — abre sozinho com o projecto, mas fecha como os outros. */
-  manager?: boolean;
-  status: 'working' | 'idle' | 'closed';
-}
-
 export interface ProjectMemory {
   projectId: string;
   color?: string;
@@ -98,8 +67,6 @@ export interface ProjectMemory {
   favoriteAgents: string[];
   quickCommands: string[];
   openFiles: string[];
-  /** Espelha `ProjectMemory['rightPanel']` do backend — alterar os dois em conjunto. */
-  rightPanel: RightPanel;
   updatedAt: string;
 }
 
@@ -162,9 +129,9 @@ export interface JocaLogicInfo {
   hasSoul: boolean;
 }
 
-// ── v3: inbox / runs / heartbeat / multi-CLI (mirrors backend stores) ─────────
+// ── v3: inbox / runs / multi-CLI (mirrors backend stores) ────────────────────
 
-export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system' | 'manager';
+export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'system';
 
 // 'action' = nada avança sem tu decidires; 'info' = aconteceu, não precisa de ti.
 export type NotificationPriority = 'action' | 'info';
@@ -184,7 +151,7 @@ export interface AppNotification {
   };
 }
 
-export type RunKind = 'automation' | 'task' | 'heartbeat';
+export type RunKind = 'automation' | 'task';
 export type RunStatus = 'ok' | 'error' | 'timeout' | 'skipped';
 
 export interface RunRecord {
@@ -212,25 +179,6 @@ export interface RunStats {
   byKind: Partial<Record<RunKind, { total: number; ok: number; error: number; costUsd: number }>>;
 }
 
-export interface HeartbeatConfig {
-  enabled: boolean;
-  everyMinutes: number;                                 // >= 5
-  activeHours?: { start: string; end: string } | null;  // "HH:MM" local; null = sempre activo
-  // Wakes automáticos seguidos que um gestor pode gastar antes de a fila parar (1–40). Opcional
-  // porque um `data/heartbeat.json` gravado por uma versão anterior não o traz.
-  maxAutoWakes?: number;
-  // Vigia activo. Opcional pela mesma razão que o `maxAutoWakes`; ausente lê-se como ligado, que é
-  // o default do backend.
-  crewWatch?: boolean;
-  // Custo de um turno de gestor acima do qual a sessão é recomeçada com um resumo (0.2–20).
-  rotateSessionUsd?: number;
-  model: string;
-  scratch: string;
-  lastRunAt?: number | null;
-  lastDecision?: 'ok' | 'alert' | 'skipped' | 'error' | null;
-  lastText?: string;
-}
-
 export interface CliProfileInfo {
   id: 'claude' | 'codex' | 'agy' | 'opencode';
   label: string;
@@ -243,5 +191,3 @@ export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
 /** `agents` = vista global de agentes (todos os projectos num sítio só). */
 export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'agents';
-/** `inbox` = notificações como 4º painel do rail direito (deixou de ser sino flutuante). */
-export type RightPanel = 'toolkit' | 'settings' | 'inbox' | null;

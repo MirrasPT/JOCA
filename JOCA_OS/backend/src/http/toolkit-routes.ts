@@ -16,7 +16,7 @@ import {
 } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
-  HOME, STARTED_AT, LLM_PROVIDERS, MANAGER_MODEL_IDS,
+  HOME, STARTED_AT, LLM_PROVIDERS,
   assertClaudePath, validateToolkitContent, sanitizeToolkitName, sanitizeToolkitCategory,
 } from './helpers';
 
@@ -85,13 +85,6 @@ export function toolkitRouter(): Router {
       const v = typeof body.brandTheme === 'string' ? body.brandTheme.trim().slice(0, 40) : '';
       updated.brandTheme = /^[a-z0-9-]+$/.test(v) ? v : undefined;
     }
-    // Modelo do cérebro do Joca e dos gestores de projecto. Lista fechada: um valor livre chegaria
-    // ao SDK e rebentava o turno do gestor em runtime, não aqui. Vazio = default do backend.
-    for (const key of ['jocaModel', 'managerModel'] as const) {
-      if (!(key in body)) continue;
-      const v = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
-      updated[key] = MANAGER_MODEL_IDS.includes(v) ? v : undefined;
-    }
     // CLI used by new terminals when none is specified (Settings → CLI por defeito).
     if ('defaultCli' in body) {
       updated.defaultCli = CLI_IDS.includes(body.defaultCli as CliId) ? (body.defaultCli as CliId) : undefined;
@@ -119,14 +112,9 @@ export function toolkitRouter(): Router {
       favoriteAgents: [],
       quickCommands: ['save', 'compact', 'clear'],
       openFiles: [],
-      rightPanel: 'files',
       updatedAt: new Date().toISOString(),
     };
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const rightPanelValue = body.rightPanel;
-    // Sem `'inbox'` aqui a escolha do painel de notificações era silenciosamente descartada
-    // e voltava sempre a Files ao recarregar — manter em sincronia com `ProjectMemory['rightPanel']`.
-    const validRightPanel = rightPanelValue === 'files' || rightPanelValue === 'toolkit' || rightPanelValue === 'settings' || rightPanelValue === 'inbox' || rightPanelValue === null;
     // `path` is authoritative on the project record itself, not client-writable via project-memory.
     memory[projectId] = {
       ...current,
@@ -138,7 +126,6 @@ export function toolkitRouter(): Router {
       favoriteAgents: Array.isArray(body.favoriteAgents) ? (body.favoriteAgents as string[]).filter((x) => typeof x === 'string').slice(0, 30) : current.favoriteAgents,
       quickCommands: Array.isArray(body.quickCommands) ? (body.quickCommands as string[]).filter((x) => typeof x === 'string').slice(0, 12) : current.quickCommands,
       openFiles: Array.isArray(body.openFiles) ? (body.openFiles as string[]).filter((x) => typeof x === 'string').slice(0, 20) : current.openFiles,
-      rightPanel: validRightPanel ? rightPanelValue as ProjectMemory['rightPanel'] : current.rightPanel,
       updatedAt: new Date().toISOString(),
     };
     saveProjectMemory(memory);

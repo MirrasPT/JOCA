@@ -9,7 +9,7 @@
 // estado, mesma animação de "a trabalhar", mesmas acções. É a mesma entidade, não vale um segundo
 // vocabulário visual.
 import { useEffect, useMemo, useState } from 'react';
-import type { CliProfileInfo, PooledWorker, Project, SessionInfo } from '../types';
+import type { CliProfileInfo, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 import InlineName from './InlineName';
 import './agents-view.css';
@@ -22,12 +22,10 @@ interface Props {
   onCloseSession: (id: string) => void;
   /** Agente novo sem projecto; `cli` vazio = claude. */
   onNewSession: (cli: string) => void;
-  /** Salta para o workspace do projecto (contexto completo: gestor, tarefas, pasta). */
+  /** Salta para o workspace do projecto (terminais + tarefas). */
   onOpenProject: (project: Project) => void;
   /** Renomear um agente (duplo-clique no nome). */
   onRenameSession?: (id: string, name: string) => void;
-  /** Muda a cada evento de sessão/gestor — dispara o refetch da pool. */
-  refreshKey: number;
 }
 
 function OpenIcon() {
@@ -46,7 +44,7 @@ function CloseIcon() {
   );
 }
 
-export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession, refreshKey }: Props) {
+export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cli, setCli] = useState('claude');
   // Fonte única para "que CLIs existem" — respeita `available` (instalado ou não), em vez de uma
@@ -57,26 +55,6 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
       .then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : []))
       .catch(() => setCliProfiles([]));
   }, []);
-  // O que cada agente está a fazer vive na pool do gestor, não na lista de sessões (que só sabe
-  // nome e caminho — igual para todos os agentes do mesmo projecto, portanto inútil aqui).
-  const [pool, setPool] = useState<PooledWorker[]>([]);
-
-  useEffect(() => {
-    let cancelado = false;
-    fetch('/manager/workers')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: { workers: PooledWorker[] }) => { if (!cancelado) setPool(Array.isArray(d.workers) ? d.workers : []); })
-      .catch(() => { if (!cancelado) setPool([]); });
-    // Uma resposta lenta a chegar depois de um refetch mais recente reporia uma pool velha.
-    return () => { cancelado = true; };
-  }, [refreshKey, sessions.length]);
-
-  const jobBySession = useMemo(() => {
-    const m = new Map<string, PooledWorker>();
-    for (const w of pool) m.set(w.sessionId, w);
-    return m;
-  }, [pool]);
-
   const byProject = useMemo(() => projects.map((p) => ({
     project: p,
     list: sessions.filter((s) => s.projectId === p.id),
@@ -93,10 +71,6 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
   // trata "controlo interactivo aninhado noutro" de forma inconsistente (axe-core: serious).
   const row = (s: SessionInfo) => {
     const confirming = confirmId === s.id;
-    const w = jobBySession.get(s.id);
-    // "à espera de trabalho" é informação: um worker da pool livre não é o mesmo que um terminal
-    // que abri à mão e onde estou a escrever.
-    const job = w ? (w.currentJob || (w.busy ? 'a trabalhar…' : 'à espera de trabalho')) : '';
     return (
       <li key={s.id}>
         <div
@@ -123,12 +97,8 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
             </span>
           ) : (
             <>
-              {w?.area && <span className="ag-area">{w.area}</span>}
               {s.cli && s.cli !== 'claude' && <span className="ag-cli">{s.cli}</span>}
-              {s.origin === 'auto' && <span className="ag-origin" title="Aberto pelo gestor, não por ti">gestor</span>}
-              <span className="pw-worker-job" title={job ? `${job}\n${s.cwd}` : s.cwd}>
-                {job || shortPath(s.cwd)}
-              </span>
+              <span className="pw-worker-job" title={s.cwd}>{shortPath(s.cwd)}</span>
               <span className="pw-worker-time">{s.status === 'working' ? 'a trabalhar' : 'parado'}</span>
               <button
                 type="button"
@@ -187,7 +157,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
       <div className="ag-body">
         {sessions.length === 0 && (
           <p className="tk-drawer-empty">
-            Nenhum agente aberto. Abre um acima — sem projecto, para uma coisa avulsa — ou entra num projecto e pede ao gestor.
+            Nenhum agente aberto. Abre um acima — sem projecto, para uma coisa avulsa — ou entra num projecto e abre lá um terminal.
           </p>
         )}
 

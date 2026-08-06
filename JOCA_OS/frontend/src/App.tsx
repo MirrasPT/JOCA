@@ -4,7 +4,7 @@ import SessionSidebar from './components/SessionSidebar';
 import CreateProjectModal from './components/CreateProjectModal';
 import ToastNotification, { type ToastItem } from './components/ToastNotification';
 import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './components/WorkflowPanel';
-import RightWorkspace from './components/RightWorkspace';
+import SettingsPanel from './components/SettingsPanel';
 import DashboardView, { type RateLimits } from './components/DashboardView';
 import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
 import TerminalView from './components/TerminalView';
@@ -16,7 +16,7 @@ import { useSessionSocket } from './hooks/useSessionSocket';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
 import StatusBar from './components/StatusBar';
-import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RightPanel, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
 import './components/sidebar-icons.css';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
@@ -43,9 +43,12 @@ interface ServiceConnection {
 const OUTPUT_BUFFER_MAX = 64 * 1024;
 
 const SERVICE_CONNECTIONS: ServiceConnection[] = [
-  { id: 'filesystem', name: 'Local Files', status: 'connected', scope: 'Leitura real, preview e drag para terminal' },
-  { id: 'terminal', name: 'Terminal Sessions', status: 'connected', scope: 'PTY real por sessão' },
+  { id: 'filesystem', name: 'Ficheiros locais', status: 'connected', scope: 'Leitura real, pré-visualização e arrastar para o terminal' },
+  { id: 'terminal', name: 'Terminais', status: 'connected', scope: 'Um PTY real por sessão' },
 ];
+
+// Selector de "o que é alcançável por Tab" — usado pelo foco preso do modal de Definições.
+const FOCUSAVEIS = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 export default function App() {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -55,20 +58,48 @@ export default function App() {
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [activityEvents, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
-  const [rightPanel, setRightPanel] = useState<RightPanel>(null);
+  // As definições passaram do rail direito (removido) para um modal, aberto pelo ícone no fundo
+  // da sidebar esquerda.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const settingsOpenerRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Um diálogo com `aria-modal` cujo foco fica no gatilho é pior do que nenhum: quem navega por
+   * teclado percorre a app inteira POR TRÁS dele e nunca lá entra. Três coisas em falta, e as três
+   * são exigidas pelo padrão: entrar ao abrir, prender o Tab, devolver o foco ao fechar.
+   */
+  useEffect(() => {
+    if (!settingsOpen) return;
+    settingsOpenerRef.current = document.activeElement as HTMLElement;
+    const modal = settingsRef.current;
+    requestAnimationFrame(() => {
+      const alvo = modal?.querySelector<HTMLElement>(FOCUSAVEIS);
+      (alvo ?? modal)?.focus();
+    });
+    const prendeTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !modal) return;
+      const focaveis = [...modal.querySelectorAll<HTMLElement>(FOCUSAVEIS)].filter((el) => el.offsetParent !== null);
+      if (!focaveis.length) return;
+      const primeiro = focaveis[0];
+      const ultimo = focaveis[focaveis.length - 1];
+      const activo = document.activeElement;
+      if (e.shiftKey && (activo === primeiro || activo === modal)) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && activo === ultimo) { e.preventDefault(); primeiro.focus(); }
+    };
+    document.addEventListener('keydown', prendeTab, true);
+    return () => {
+      document.removeEventListener('keydown', prendeTab, true);
+      // Devolver o foco a quem abriu: sem isto, fechar deixa o foco no <body> e o utilizador
+      // recomeça a navegação do topo da app.
+      settingsOpenerRef.current?.focus?.();
+    };
+  }, [settingsOpen]);
   const [mainView, setMainView] = useState<MainView>('dashboard');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  useEffect(() => { activeProjectIdRef.current = activeProjectId; }, [activeProjectId]);
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
   const [tasksRefresh, setTasksRefresh] = useState(0);
-  const [notificationsRefresh, setNotificationsRefresh] = useState(0);
-  // A contagem por ler vive AQUI e não dentro do painel: o badge do separador do rail (e o do
-  // rodapé) têm de existir com o painel fechado, e nesse caso o componente está desmontado.
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-  // Sobe a cada evento do gestor no WebSocket — o ManagerChat aberto refaz o GET do chat.
-  const [managerRefresh, setManagerRefresh] = useState(0);
-  // Chaves de gestor a meio de um turno (`__global__` = o Joca), alimentadas pelo WS `manager_busy`.
-  // É a única fonte global deste estado — não há endpoint que o devolva de uma vez.
-  const [busyManagerIds, setBusyManagerIds] = useState<string[]>([]);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -118,6 +149,9 @@ export default function App() {
   // `false` = a próxima sessão criada não rouba o ecrã. Vive aqui porque quem o consome é o router
   // de mensagens do WebSocket, e quem o baixa é o "+" da lista de agentes.
   const focusNewSessionRef = useRef(true);
+  // Espelho do projecto activo para os handlers que correm fora do render (o botão de Remote
+  // Control abre o terminal no projecto em que estás).
+  const activeProjectIdRef = useRef<string | null>(null);
 
   useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
   useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
@@ -199,7 +233,6 @@ export default function App() {
           favoriteAgents: [],
           quickCommands: ['save', 'compact', 'clear'],
           openFiles: [],
-          rightPanel: null,
           updatedAt: new Date().toISOString(),
         }),
         ...patch,
@@ -289,7 +322,7 @@ export default function App() {
         id: n.id,
         title: n.title,
         sessionName: n.text.replace(/\s+/g, ' ').trim().slice(0, 120),
-        // Pode não haver sessão (ex.: gestor preso): o destino real vai em `target`.
+        // Pode não haver sessão: o destino real vai em `target`.
         sessionId: n.meta?.sessionId ?? '',
         timestamp: n.ts,
         priority: 'action',
@@ -303,25 +336,13 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh, setNotificationsRefresh,
-    setManagerRefresh, setBusyManagerIds,
+    setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef, focusNewSessionRef,
     activateSession, addToast, addNotificationToast, processOutput, reloadProjects, reloadProjectMemory,
   });
 
   // Claro/escuro/dinâmico: no modo dinâmico troca sozinho à hora marcada, com a app aberta.
   useAutoTheme();
-
-  // A contagem por ler tem de ser buscada AQUI, não pelo painel. Com o painel fechado o
-  // `NotificationsInbox` está desmontado, portanto ninguém fazia este GET: o badge só aparecia
-  // depois de se abrir o painel uma vez — exactamente quando já não era preciso. Verificado a
-  // correr: 3 por ler e nenhum badge até ao primeiro clique.
-  useEffect(() => {
-    fetch('/notifications')
-      .then((r) => r.json())
-      .then((d) => setUnreadNotifications(typeof d?.unread === 'number' ? d.unread : 0))
-      .catch(() => {});
-  }, [notificationsRefresh]);
 
   const handleNewSession = useCallback(() => {
     send({ type: 'create_session' });
@@ -381,6 +402,14 @@ export default function App() {
   const handleResize = useCallback((sessionId: string, cols: number, rows: number) => {
     send({ type: 'resize', sessionId, cols, rows });
   }, [send]);
+
+  // Escolher um terminal DENTRO da vista de projecto: muda o activo e monta-o, mas não troca de
+  // vista — o `handleSwitchSession` abaixo faria sair do projecto para o ecrã cheio da sessão.
+  const handleSelectProjectTerminal = useCallback((id: string) => {
+    setActiveId(id);
+    activateSession(id);
+    if (termRefs.current.has(id)) send({ type: 'get_buffer', sessionId: id });
+  }, [send, activateSession]);
 
   const handleSwitchSession = useCallback((id: string) => {
     setActiveId(id);
@@ -555,6 +584,24 @@ export default function App() {
     setMainView('project');
   }, []);
 
+  /**
+   * Abrir uma sessão a partir do panorama: se ela pertence a um projecto, o sítio dela é o
+   * workspace DESSE projecto, com a tab respectiva já escolhida — não o ecrã cheio, que arranca o
+   * terminal do contexto onde vive (as outras tabs, as tarefas, o projecto).
+   *
+   * Sessões soltas (sem projecto) não têm workspace onde caber: essas continuam a abrir inteiras.
+   */
+  const handleOpenSessionInContext = useCallback((sessionId: string) => {
+    const alvo = sessionsRef.current.find((x) => x.id === sessionId);
+    const temProjecto = alvo?.projectId && projectsRef.current.some((p) => p.id === alvo.projectId);
+    if (!temProjecto) { handleSwitchSession(sessionId); return; }
+    setActiveProjectId(alvo!.projectId!);
+    setMainView('project');
+    setActiveId(sessionId);
+    activateSession(sessionId);
+    if (termRefs.current.has(sessionId)) send({ type: 'get_buffer', sessionId });
+  }, [handleSwitchSession, activateSession, send]);
+
   // Agente novo a partir do "+" da secção Agentes: nasce no projecto e NÃO atira o utilizador para
   // ecrã cheio (o ref é consumido uma vez pelo router do WebSocket e volta a `true` sozinho).
   const handleAddProjectAgent = useCallback((project: Project, cli?: string) => {
@@ -568,6 +615,21 @@ export default function App() {
   }, [send]);
 
   // Agente novo sem projecto, da vista global de Agentes.
+  /**
+   * Terminal novo com Remote Control. Nasce no projecto activo (se houver), como qualquer outro —
+   * a única diferença é a flag de arranque.
+   */
+  const handleNewRemoteControlSession = useCallback(() => {
+    focusNewSessionRef.current = true;
+    const proj = projectsRef.current.find((p) => p.id === activeProjectIdRef.current);
+    send({
+      type: 'create_session',
+      remoteControl: true,
+      sessionName: 'Remote Control',
+      ...(proj ? { resumePath: proj.path, projectId: proj.id } : {}),
+    });
+  }, [send]);
+
   const handleNewLooseAgent = useCallback((cli: string) => {
     focusNewSessionRef.current = false;
     if (!cli || cli === 'claude') send({ type: 'create_session' });
@@ -575,8 +637,9 @@ export default function App() {
   }, [send]);
 
   /**
-   * Contrato ÚNICO de navegação das notificações, partilhado pelos três canais (inbox do rail,
-   * toast e notificação do SO). Quem sabe navegar é o App — os canais só transportam o `meta`.
+   * Contrato ÚNICO de navegação das notificações, partilhado pelos canais que sobraram (toast e
+   * notificação do SO — o painel do rail foi removido). Quem sabe navegar é o App; os canais só
+   * transportam o `meta`.
    *
    * Precedência: sessão → tarefa → automação → projecto (do mais específico para o mais lato).
    * Uma referência morta (sessão fechada, projecto apagado) não rebenta nem atira para um sítio ao
@@ -602,10 +665,6 @@ export default function App() {
     setNotificationTargetHandler(handleOpenNotificationTarget);
     return () => setNotificationTargetHandler(null);
   }, [handleOpenNotificationTarget]);
-
-  // O inbox faz `useEffect(..., [unread, onUnreadChange])` — uma lambda nova a cada render
-  // fá-lo-ia correr a cada render.
-  const handleUnreadNotificationsChange = useCallback((n: number) => setUnreadNotifications(n), []);
 
   const loadCommandPalette = useCallback(() => {
     if (jocaItems) return;
@@ -644,6 +703,14 @@ export default function App() {
         setCommandPaletteOpen(false);
         return;
       }
+      // Escape fecha as Definições. A seguir à palete de propósito: com as duas abertas, a palete
+      // é a de cima e fecha primeiro.
+      if (event.key === 'Escape' && settingsOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setSettingsOpen(false);
+        return;
+      }
       const mod = event.metaKey || event.ctrlKey;
       if (!mod) return;
       const key = event.key.toLowerCase();
@@ -665,7 +732,7 @@ export default function App() {
     // Combined with stopImmediatePropagation above, ensures palette Escape never leaks to other modals.
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [handleInterruptSession, loadCommandPalette, commandPaletteOpen]);
+  }, [handleInterruptSession, loadCommandPalette, commandPaletteOpen, settingsOpen]);
 
   // CommandPalette focus management: trap Tab inside, restore focus to opener on close.
   const paletteTriggerRef = useRef<HTMLElement | null>(null);
@@ -716,18 +783,10 @@ export default function App() {
     [sessions, activeId]
   );
   // In an explicit project dashboard, the clicked project wins. Otherwise (session/global
-  // dashboard) fall back to the active session's project for right-panel memory context.
+  // dashboard) fall back to the active session's project.
   const contextProjectId = mainView === 'project'
     ? activeProjectId
     : (activeSession?.projectId ?? activeProjectId);
-
-  const rightSlotExpanded = rightPanel !== null;
-  const expandedRightSlotSize = Math.round(Math.max(408, Math.min(viewportWidth * 0.32, 424)));
-  const rightSlotSize = rightSlotExpanded ? `${expandedRightSlotSize}px` : '54px';
-
-  useEffect(() => {
-    if (contextProjectId) updateProjectMemory(contextProjectId, { rightPanel });
-  }, [contextProjectId, rightPanel, updateProjectMemory]);
 
   return (
     // O rodapé é permanente em todas as vistas, por isso envolve-se o `.app` (que continua a ser a
@@ -746,11 +805,12 @@ export default function App() {
         onShowTasks={() => setMainView('tasks')}
         onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
-        onOpenSession={handleSwitchSession}
+        onOpenSession={handleOpenSessionInContext}
         onRenameSession={handleRenameSession}
         onClose={handleCloseSession}
         onNew={handleNewSession}
         onCreateProject={handleCreateProjectPrompt}
+        onOpenSettings={() => setSettingsOpen(true)}
         onInput={handleInput}
         onRenameProject={handleRenameProject}
         onArchiveProject={handleArchiveProject}
@@ -768,36 +828,52 @@ export default function App() {
         ) : mainView === 'tasks' ? (
           <TasksView refreshKey={tasksRefresh} projects={projects} />
         ) : mainView === 'agents' ? (
-          // Todos os agentes de todos os projectos num sítio só. `managerRefresh` é a chave certa:
-          // sobe a cada evento de sessão/gestor, que é exactamente quando a pool muda.
+          // Todos os agentes de todos os projectos num sítio só.
           <AgentsView
             sessions={sessions}
             projects={projects}
-            onOpenSession={handleSwitchSession}
+            onOpenSession={handleOpenSessionInContext}
             onCloseSession={handleCloseSession}
             onNewSession={handleNewLooseAgent}
             onOpenProject={(project) => handleShowProject(project.id)}
             onRenameSession={handleRenameSession}
-            refreshKey={managerRefresh}
           />
         ) : mainView === 'project' ? (
-          // A vista de projecto é agora o workspace do gestor (chat > tarefas > terminais); o
-          // DashboardView continua a tratar só do panorama global de projectos.
+          // Vista de um projecto: terminais + tarefas. O DashboardView trata do panorama global.
           <ProjectWorkspace
             project={projects.find((p) => p.id === contextProjectId) ?? null}
             projects={projects}
             sessions={sessions}
-            managerRefresh={managerRefresh}
             tasksRefresh={tasksRefresh}
             onEditProject={handleEditProject}
+            onSelectTerminal={handleSelectProjectTerminal}
             onRenameSession={handleRenameSession}
-            onSwitchSession={handleSwitchSession}
             onCloseSession={handleCloseSession}
             onAddAgent={handleAddProjectAgent}
             onRenameProject={handleRenameProject}
             onInput={handleInput}
             onResize={handleResize}
             onReady={handleTermReady}
+            terminal={{
+              activeId,
+              activatedIds,
+              terminalDraft,
+              setTerminalDraft,
+              terminalHistory,
+              historyIndex,
+              setHistoryIndex,
+              projectMemory,
+              onSaveSession: handleSave,
+              onCompactSession: handleCompact,
+              onInterruptSession: handleInterruptSession,
+              onRestartSession: handleRestartSession,
+              submitTerminalDraft,
+              onOpenCommandPalette: () => { setCommandPaletteOpen(true); loadCommandPalette(); },
+              termRefs,
+              jocaItems,
+              onLoadJocaItems: loadCommandPalette,
+              onNewRemoteControlSession: handleNewRemoteControlSession,
+            }}
           />
         ) : mainView === 'dashboard' ? (
           <DashboardView
@@ -809,7 +885,7 @@ export default function App() {
             onEditProject={handleEditProject}
             onShowProject={handleShowProject}
             onOpenProject={handleOpenProject}
-            onSwitchSession={handleSwitchSession}
+            onSwitchSession={handleOpenSessionInContext}
             onNewSession={handleNewSession}
             onRenameProject={handleRenameProject}
             onRenameSession={handleRenameSession}
@@ -842,33 +918,12 @@ export default function App() {
             termRefs={termRefs}
             onNewSession={handleNewSession}
             onNewSessionWithCli={handleNewSessionWithCli}
+            onNewRemoteControlSession={handleNewRemoteControlSession}
             jocaItems={jocaItems}
             onLoadJocaItems={loadCommandPalette}
           />
         )}
       </div>
-
-      <RightWorkspace
-        panel={rightPanel}
-        width={rightSlotSize}
-        runtimeInfo={runtimeInfo}
-        jocaLogicInfo={jocaLogicInfo}
-        sessions={sessions}
-        projects={projects}
-        services={SERVICE_CONNECTIONS}
-        events={activityEvents}
-        jocaItems={jocaItems}
-        onSetPanel={setRightPanel}
-        onLoadToolkit={loadCommandPalette}
-        onToolkitItemsChange={setJocaItems}
-        onInsertToolkit={insertCommandDraft}
-        onRunCommand={handleRunCommand}
-        onReloadRuntime={reloadRuntime}
-        notificationsRefresh={notificationsRefresh}
-        unreadNotifications={unreadNotifications}
-        onUnreadNotificationsChange={handleUnreadNotificationsChange}
-        onOpenNotificationTarget={handleOpenNotificationTarget}
-      />
 
       {commandPaletteOpen && (
         <CommandPalette
@@ -877,7 +932,7 @@ export default function App() {
           jocaItems={jocaItems}
           onClose={() => setCommandPaletteOpen(false)}
           onShowDashboard={() => { setMainView('dashboard'); setCommandPaletteOpen(false); }}
-          onOpenSettings={() => { setRightPanel('settings'); setCommandPaletteOpen(false); }}
+          onOpenSettings={() => { setSettingsOpen(true); setCommandPaletteOpen(false); }}
           onSelectSession={(id) => { handleSwitchSession(id); setCommandPaletteOpen(false); }}
           onNewSession={() => { handleNewSession(); setCommandPaletteOpen(false); }}
           onShowProject={(id) => { handleShowProject(id); setCommandPaletteOpen(false); }}
@@ -892,6 +947,29 @@ export default function App() {
         onSelect={handleSwitchSession}
         onOpenTarget={handleOpenNotificationTarget}
       />
+
+      {settingsOpen && (
+        // As definições vivem num modal desde que o rail direito saiu: o painel é o mesmo
+        // componente de sempre (com o seu cabeçalho e o seu fechar), só muda onde é desenhado.
+        <div
+          className="settings-modal-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false); }}
+        >
+          <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Definições" ref={settingsRef} tabIndex={-1}>
+            <SettingsPanel
+              runtimeInfo={runtimeInfo}
+              jocaLogicInfo={jocaLogicInfo}
+              sessions={sessions}
+              projects={projects}
+              services={SERVICE_CONNECTIONS}
+              onReloadRuntime={reloadRuntime}
+              onRunCommand={handleRunCommand}
+              onClose={() => setSettingsOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       <CreateProjectModal
         open={createProjectOpen}
@@ -908,14 +986,10 @@ export default function App() {
       />
     </div>
 
-      {/* Com `sessions` e `unreadNotifications` por props o rodapé não faz pedido nenhum — já
-          temos os dois do WebSocket e do painel de notificações. */}
+      {/* Com `sessions` por props o rodapé não faz pedido nenhum — já as temos do WebSocket. */}
       <StatusBar
         rateLimits={rateLimits}
         sessions={sessions}
-        busyManagerIds={busyManagerIds}
-        unreadNotifications={unreadNotifications}
-        onOpenInbox={() => setRightPanel('inbox')}
       />
     </div>
   );

@@ -26,10 +26,11 @@ export interface Project {
   // Visual-only bundling in the sidebar (see project-groups-store.ts) — has no effect on the
   // project itself. undefined = not in any group.
   groupId?: string;
-  // Short description written when the project is created. It is the manager's permanent context —
+  // O que o projecto é, por palavras do dono. Entra no brief das tarefas deste projecto.
   // the closest thing it has to "what is this project and what are we trying to do".
   description?: string;
-  // false = greenfield (no code yet), so the manager proposes structure instead of assuming there
+  // ⚠ Escrito pela UI mas hoje não lido por lógica nenhuma — ficou sem consumidor quando o
+  // gestor de projecto foi removido.
   // is something to read.
   hasCode?: boolean;
 }
@@ -43,8 +44,6 @@ export interface ProjectMemory {
   favoriteAgents: string[];
   quickCommands: string[];
   openFiles: string[];
-  /** Painel activo do rail direito. `inbox` = notificações (4º painel, irmão dos outros). */
-  rightPanel: 'toolkit' | 'settings' | 'inbox' | null;
   updatedAt: string;
 }
 
@@ -59,22 +58,14 @@ export interface UiSettings {
   themeDayStart?: string;          // "HH:MM" a que passa a claro (só conta em 'auto')
   themeNightStart?: string;        // "HH:MM" a que passa a escuro (só conta em 'auto')
   defaultCli?: string;             // CLI used by new terminals: claude (default) | codex | agy | opencode
-  // ── Modelo do cérebro dos gestores ────────────────────────────────────────
-  // Separados de propósito: o Joca é cross-project e decide (vale-lhe um modelo mais forte); um
-  // gestor de projecto despacha e verifica muitas vezes (vale-lhe um mais barato). Vazio = default.
-  // ⚠ Só modelos do Agent SDK. Trocar isto NUNCA pode custar ferramentas ao gestor — um provider
-  // que não carregue o contrato de tools (mcpServers + resume) não entra aqui. Ver providers/.
   // Tema de marca ("Custom Temas"): só nome + logo + cores no cliente. O backend guarda-o para a
-  // escolha seguir o utilizador para outra máquina — nada no servidor muda de comportamento por
-  // causa dele, e o gestor global continua a ser `__global__`/Joca do lado de cá.
+  // escolha seguir o utilizador para outra máquina — nada no servidor muda de comportamento.
   brandTheme?: string;
-  jocaModel?: string;              // modelo do gestor global (Joca); default MANAGER_MODEL_DEFAULT
-  managerModel?: string;           // modelo dos gestores de projecto; default MANAGER_MODEL_DEFAULT
 }
 
-// Sobreponível por `JOCA_DATA_DIR`. Existe por causa dos testes: `notifications.test.ts` e
-// `manager.test.ts` fazem `fs.rmSync` sobre ficheiros DESTA pasta — apontados aos dados reais,
-// correr `npm test` apagava as notificações e o chat do gestor do utilizador. Com o override, o
+// Sobreponível por `JOCA_DATA_DIR`. Existe por causa dos testes: `notifications.test.ts` faz
+// `fs.rmSync` sobre ficheiros DESTA pasta — apontado aos dados reais,
+// correr `npm test` apagava as notificações reais do utilizador. Com o override, o
 // vitest escreve numa pasta temporária e os testes deixam de poder tocar em dados a sério.
 export const DATA_DIR = process.env.JOCA_DATA_DIR || path.join(__dirname, '../../data');
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');

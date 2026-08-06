@@ -1,5 +1,5 @@
 // Notifications inbox — persistent, delivery-guaranteed layer over the ephemeral WS broadcast.
-// Every user-facing notification (automation message, task question, heartbeat alert, system) is
+// Every user-facing notification (automation message, task question, system) is
 // appended here BEFORE being broadcast, so a closed browser tab never loses it: the UI loads the
 // inbox on connect and shows unread state. Source of truth = DATA_DIR/notifications.json (atomic
 // writes via project-store.writeJsonFile). Capped to the most recent MAX_NOTIFICATIONS.
@@ -7,10 +7,10 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 
-export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'heartbeat' | 'system' | 'manager';
+export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'system';
 
 // What the notification wants from you. The inbox used to treat "a worker is blocked waiting for
-// your answer" exactly like "a job finished" — with the project manager dispatching several workers
+// your answer" exactly like "a job finished" — com várias tarefas a correr em projectos diferentes
 // at once, that flattening is what turns an inbox into noise you stop reading.
 //   action → nothing moves until you decide
 //   info   → happened, no decision needed
@@ -38,7 +38,7 @@ const MAX_NOTIFICATIONS = 500;
 
 // Window in which repeated events from the SAME source collapse into one entry. Three workers of
 // the same project finishing within a minute is one thing that happened, not three; before the
-// manager existed this was rare, now it is the normal case.
+// isto era raro; com a fila de tarefas a andar sozinha, passou a ser o caso normal.
 const GROUP_WINDOW_MS = 90_000;
 
 // Decoupled broadcaster: server.ts injects a fn that pushes the new notification over WS.

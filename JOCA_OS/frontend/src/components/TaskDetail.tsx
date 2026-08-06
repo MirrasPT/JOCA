@@ -48,8 +48,8 @@ export interface JocaItem { name: string; description?: string; kind: 'skill' | 
 
 export const COLUMNS: { status: TaskStatus; label: string }[] = [
   { status: 'a-definir', label: 'A Definir' },
-  { status: 'a-executar', label: 'A Executar' },
-  { status: 'em-execucao', label: 'Em Execução' },
+  { status: 'a-executar', label: 'Na fila' },
+  { status: 'em-execucao', label: 'A correr' },
   { status: 'concluida', label: 'Concluída' },
   { status: 'arquivada', label: 'Arquivada' },
 ];
@@ -65,7 +65,41 @@ export function nextColumn(s: TaskStatus): { status: TaskStatus; label: string }
 /** Uma tarefa acabou mas o veredicto foi negativo — o caso "completa mas com erro". */
 export const isFailed = (t: Task) => t.status === 'concluida' && t.lastStatus === 'error';
 
-const LAST_STATUS_LABEL: Record<'ok' | 'error' | 'running', string> = {
+// ── Tarefas paradas ───────────────────────────────────────────────────────────
+// Duas colunas podem prender trabalho em silêncio, por motivos opostos:
+//
+//   • 'em-execucao' — quem fecha a tarefa é o AGENTE (`joca done`). Se ele morreu, desistiu, ou
+//     simplesmente não a fechou, ela fica aqui para sempre. É o preço de não deixar o motor
+//     concluir por observação, e este aviso é o contrapeso.
+//   • 'a-executar'  — a fila arranca sozinha, mas se o terminal do projecto foi fechado ou o
+//     limite de sessões estava cheio, o dispatch é recusado e a tarefa fica à espera.
+//
+// Limiares generosos de propósito: um alarme que dispara cedo deixa de ser lido.
+export const PARADA_EM_EXECUCAO_MS = 30 * 60_000;   // meia hora sem ninguém a fechá-la
+export const PARADA_A_EXECUTAR_MS = 2 * 60 * 60_000; // duas horas sem arrancar
+
+/** Há quanto tempo esta tarefa está parada onde não devia estar — ou `null` se está bem. */
+export function tarefaParada(t: Task, agora = Date.now()): { ms: number; motivo: string } | null {
+  const ms = agora - t.updatedAt;
+  if (t.status === 'em-execucao' && ms > PARADA_EM_EXECUCAO_MS) {
+    return { ms, motivo: 'Ninguém a fechou. Vê o terminal: o agente pode ter parado a meio, ou ficado à espera de resposta.' };
+  }
+  if (t.status === 'a-executar' && ms > PARADA_A_EXECUTAR_MS) {
+    return { ms, motivo: 'Nunca chegou a arrancar. O terminal de tarefas do projecto pode estar fechado ou ocupado.' };
+  }
+  return null;
+}
+
+/** "2h", "3d" — curto, para caber num badge. */
+export function duracaoCurta(ms: number): string {
+  const m = Math.round(ms / 60_000);
+  if (m < 60) return `${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.round(h / 24)}d`;
+}
+
+export const LAST_STATUS_LABEL: Record<'ok' | 'error' | 'running', string> = {
   ok: 'Sucesso',
   error: 'Erro',
   running: 'A correr',
@@ -341,6 +375,9 @@ export function TaskDetail({ task, projects, cliProfiles, jocaItems, onClose, on
   }, [task.cli, cliProfiles]);
 
   const failed = isFailed(task);
+  const parada = tarefaParada(task);
+  // A contagem de tentativas automáticas deixou de existir (não há retry); o campo pode vir de
+  // tarefas antigas, mas não vale a pena mostrá-lo como se ainda significasse alguma coisa.
 
   return (
     <div className="tk-drawer-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -360,10 +397,8 @@ export function TaskDetail({ task, projects, cliProfiles, jocaItems, onClose, on
                 <span className={`tk-status tk-status-${task.lastStatus}`}>{LAST_STATUS_LABEL[task.lastStatus]}</span>
               )}
               {failed && <span className="tk-drawer-failed">⚠ concluída com erro</span>}
-              {!!task.retryCount && (
-                <span className="tk-tag" title="Tentativas automáticas gastas nesta tarefa">
-                  tentativa {task.retryCount}/4
-                </span>
+              {parada && (
+                <span className="tk-drawer-stale">⏳ parada há {duracaoCurta(parada.ms)}</span>
               )}
             </div>
             <h2 id="tk-drawer-title">{task.title}</h2>
@@ -372,6 +407,12 @@ export function TaskDetail({ task, projects, cliProfiles, jocaItems, onClose, on
             <Icon name="x" />
           </button>
         </header>
+
+        {parada && (
+          <div className="tk-stale-note" role="status">
+            <strong>Esta tarefa está parada há {duracaoCurta(parada.ms)}.</strong> {parada.motivo}
+          </div>
+        )}
 
         <div className="tk-drawer-toolbar">
           {!editing && (

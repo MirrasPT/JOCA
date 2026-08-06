@@ -29,6 +29,8 @@ interface Props {
   onClose: (id: string) => void;
   onNew: () => void;
   onCreateProject: () => void;
+  /** Abre as Definições (modal). O rail direito onde viviam foi removido. */
+  onOpenSettings: () => void;
   onInput: (sessionId: string, data: string) => void;
   onRenameProject?: (id: string, name: string) => void;
   onArchiveProject?: (id: string, archived: boolean) => void;
@@ -46,11 +48,13 @@ type LucideName =
   | 'terminal' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
-  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks' | 'arrow-up-down' | 'link';
+  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks' | 'arrow-up-down' | 'link'
+  | 'settings';
 
 function LucideIcon({ name }: { name: LucideName }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
   if (name === 'layout-dashboard') return <svg {...common}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>;
+  if (name === 'settings') return <svg {...common}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 4l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.9 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.7 1Z" /></svg>;
   if (name === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>;
   if (name === 'folder-plus') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /><path d="M12 10v6M9 13h6" /></svg>;
   if (name === 'message-square') return <svg {...common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" /></svg>;
@@ -745,7 +749,7 @@ function ProjectFolder({
 
 export default function SessionSidebar({
   sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowAgents, onShowProject,
-  onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onInput, onRenameProject,
+  onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
   const brand = useBrand();
@@ -1106,6 +1110,19 @@ export default function SessionSidebar({
           data-tooltip-position="top"
         >
           <LucideIcon name="terminal" /> Sessão rápida
+        </button>
+
+        {/* Definições: o ícone de fundo da coluna esquerda. Passou para aqui quando o rail direito
+            (notificações + definições) foi removido — a app deixou de ter coluna à direita. */}
+        <button
+          type="button"
+          className="sidebar-settings-btn"
+          onClick={onOpenSettings}
+          data-tooltip="Definições"
+          data-tooltip-position="top"
+          aria-label="Definições"
+        >
+          <LucideIcon name="settings" /> <span className="sidebar-settings-label">Definições</span>
         </button>
 
         <div className="session-bulk-actions">

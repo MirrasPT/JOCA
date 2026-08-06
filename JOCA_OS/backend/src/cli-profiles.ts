@@ -93,8 +93,15 @@ export function getCliProfile(cli?: string): CliProfile {
 const MODEL_SAFE = /^[A-Za-z0-9._:/-]{1,120}$/;
 
 // Build the full launch command line for a profile (binPath resolved by the caller via PATH lookup).
-export function buildLaunchLine(profile: CliProfile, binPath: string, opts: { model?: string; autonomous?: boolean }): string {
+export function buildLaunchLine(
+  profile: CliProfile,
+  binPath: string,
+  opts: { model?: string; autonomous?: boolean; remoteControl?: boolean },
+): string {
   const parts = [binPath];
+  // `--remote-control` é uma flag de ARRANQUE do Claude Code: não há como ligá-la a meio de uma
+  // conversa, o terminal tem de nascer com ela. Só se aplica ao claude — os outros CLIs não a têm.
+  if (opts.remoteControl && profile.id === 'claude') parts.push('--remote-control');
   if (opts.model && profile.modelFlag && MODEL_SAFE.test(opts.model)) {
     parts.push(profile.modelFlag, opts.model);
   }

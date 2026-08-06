@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CliProfileInfo, CliToolStatus, HeartbeatConfig, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
+import type { CliProfileInfo, CliToolStatus, JocaLogicInfo, Project, RuntimeInfo, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 import { readThemeSettings, resolveTheme } from '../lib/theme';
 import type { ThemeMode } from '../lib/theme';
@@ -19,11 +19,18 @@ interface Props {
   sessions: SessionInfo[];
   projects: Project[];
   services: ServiceConnection[];
-  events: { id: string; title: string; detail: string; timestamp: number }[];
   onReloadRuntime: () => void;
   onRunCommand: (command: string) => void;
   onClose: () => void;
 }
+
+// `authStatus` vem da API como chave estável ('logged-in' | 'not-logged-in' | 'unknown'); a
+// tradução vive aqui, na camada que mostra.
+const AUTH_LABEL: Record<string, string> = {
+  'logged-in': 'com sessão iniciada',
+  'not-logged-in': 'sem sessão',
+  unknown: 'por confirmar',
+};
 
 const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
   { id: 'light', label: 'Claro' },
@@ -31,9 +38,7 @@ const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
   { id: 'auto', label: 'Dinâmico' },
 ];
 
-/* Modelos do cérebro dos gestores. Só modelos do Agent SDK: o gestor precisa de ferramentas
-   (mcpServers) e de retomar a conversa (resume), e um provider que não carregue esse contrato
-   deixaria o gestor mudo e sem mãos. Trocar de modelo aqui nunca tira funcionalidades. */
+
 function ChevronsRight() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -42,7 +47,7 @@ function ChevronsRight() {
   );
 }
 
-export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, projects, services, events, onReloadRuntime, onRunCommand, onClose }: Props) {
+export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, projects, services, onReloadRuntime, onRunCommand, onClose }: Props) {
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
   const [skipPermissions, setSkipPermissions] = useState(false);
@@ -55,7 +60,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [optimizeModel, setOptimizeModel] = useState('');
   // Tema de marca activo (só aparência + nome).
   const [brandId, setBrandId] = useState(() => readBrand().id);
-  // Cérebro dos gestores. Vazio = default do backend (MANAGER_MODEL_DEFAULT).
   const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
   // CLI por defeito para novas sessões (PATCH /ui-settings { defaultCli }).
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
@@ -151,68 +155,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
     fetch('/ui-settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skipPermissions: next }) }).catch(() => {});
   }, [skipPermissions]);
 
-  // ── Heartbeat (proactividade) ────────────────────────────────────────────────
-  const [heartbeat, setHeartbeat] = useState<HeartbeatConfig | null>(null);
-  const [beatTesting, setBeatTesting] = useState(false);
-  const [beatResult, setBeatResult] = useState<{ decision: string; text: string } | null>(null);
-  const hbTimer = useRef<number | null>(null);
-  // Feedback de gravação: o PATCH é debounced, sem isto o utilizador não sabe se ficou guardado.
-  const [hbStatus, setHbStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const hbStatusTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    fetch('/heartbeat').then((r) => r.json()).then(setHeartbeat).catch(() => {});
-    return () => {
-      if (hbTimer.current) window.clearTimeout(hbTimer.current);
-      if (hbStatusTimer.current) window.clearTimeout(hbStatusTimer.current);
-    };
-  }, []);
-
-  // Actualiza o estado local já e envia o PATCH com um debounce simples (evita um pedido por tecla
-  // no scratch/model; toggles também passam por aqui — 400ms é imperceptível).
-  const patchHeartbeat = useCallback((patch: Partial<HeartbeatConfig>) => {
-    setHeartbeat((cur) => (cur ? { ...cur, ...patch } : cur));
-    setHbStatus('saving');
-    if (hbStatusTimer.current) window.clearTimeout(hbStatusTimer.current);
-    if (hbTimer.current) window.clearTimeout(hbTimer.current);
-    hbTimer.current = window.setTimeout(() => {
-      fetch('/heartbeat', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((cfg: HeartbeatConfig | null) => {
-          if (cfg) setHeartbeat(cfg);
-          setHbStatus(cfg ? 'saved' : 'error');
-        })
-        .catch(() => setHbStatus('error'))
-        .finally(() => {
-          hbStatusTimer.current = window.setTimeout(() => setHbStatus('idle'), 2200);
-        });
-    }, 400);
-  }, []);
-
-  const testHeartbeat = useCallback(() => {
-    setBeatTesting(true);
-    setBeatResult(null);
-    fetch('/heartbeat/run', { method: 'POST' })
-      .then((r) => r.json())
-      .then((d: { decision?: string; text?: string; error?: string }) => {
-        setBeatResult({ decision: d.decision ?? 'error', text: d.text ?? d.error ?? '' });
-        // O beat manual actualiza lastRunAt/lastDecision server-side — re-sincroniza.
-        return fetch('/heartbeat').then((r) => r.json()).then(setHeartbeat);
-      })
-      .catch(() => setBeatResult({ decision: 'error', text: 'Falhou a chamada ao servidor.' }))
-      .finally(() => setBeatTesting(false));
-  }, []);
-
-  // Tempo relativo curto para o último beat.
-  const relTime = (ts: number) => {
-    const m = Math.round((Date.now() - ts) / 60000);
-    if (m < 1) return 'agora';
-    if (m < 60) return `há ${m} min`;
-    const h = Math.round(m / 60);
-    if (h < 24) return `há ${h} h`;
-    return `há ${Math.round(h / 24)} d`;
-  };
-
   const reloadCliTools = useCallback(() => {
     setCliLoading(true);
     fetch('/cli-tools')
@@ -230,10 +172,10 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
     <div className="settings-panel">
       <div className="files-view-header">
         <div>
-          <span className="files-view-title settings-panel-title">Settings</span>
-          <span className="files-view-subtitle">Local runtime</span>
+          <span className="files-view-title settings-panel-title">Definições</span>
+          <span className="files-view-subtitle">Esta máquina</span>
         </div>
-        <button className="files-view-close" onClick={onClose} aria-label="Collapse settings" data-tooltip="Fechar painel" data-tooltip-position="bottom">
+        <button className="files-view-close" onClick={onClose} aria-label="Fechar definições" data-tooltip="Fechar" data-tooltip-position="bottom">
           <ChevronsRight />
         </button>
       </div>
@@ -288,9 +230,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             </div>
           )}
 
-          {/* Custom Temas — eixo separado do claro/escuro acima: cada marca traz os dois modos. */}
+          {/* Temas de marca — eixo separado do claro/escuro acima: cada marca traz os dois modos. */}
           <div className="brand-theme-block">
-            <span className="brand-theme-label">Custom Temas</span>
+            <span className="brand-theme-label">Temas de marca</span>
             <p className="brand-theme-hint">
               Muda o nome, o logo e as cores. Só aparência — o cérebro, a memória e o trabalho
               ficam exactamente iguais.
@@ -320,7 +262,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         {services.map((service) => (
           <div key={service.id} className="settings-service-card">
             <div className="settings-service-head">
-              <span className={`status-pill status-pill--${service.status}`}>{service.status}</span>
+              <span className={`status-pill status-pill--${service.status}`}>
+              {service.status === 'connected' ? 'ligado' : service.status === 'offline' ? 'desligado' : service.status}
+            </span>
               <span>{service.name}</span>
             </div>
             <p>{service.scope}</p>
@@ -328,35 +272,35 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         ))}
         <div className="settings-service-card settings-service-card--runtime">
           <div className="settings-service-head">
-            <span className="status-pill status-pill--connected">runtime</span>
-            <span>Local JOCA</span>
+            <span className="status-pill status-pill--connected">estado</span>
+            <span>Esta instalação</span>
           </div>
           <dl className="settings-runtime-grid">
-            <dt>Backend port</dt><dd>{runtimeInfo?.port ?? '...'}</dd>
+            <dt>Porta do backend</dt><dd>{runtimeInfo?.port ?? '...'}</dd>
             <dt>Claude</dt><dd>{runtimeInfo?.claudeBin ?? '...'}</dd>
             <dt>Shell</dt><dd>{runtimeInfo?.shell ?? '...'}</dd>
-            <dt>Home</dt><dd>{runtimeInfo ? shortPath(runtimeInfo.home) : '...'}</dd>
-            <dt>Sessions</dt><dd>{runtimeInfo?.sessionCount ?? sessions.length}</dd>
-            <dt>Projects</dt><dd>{runtimeInfo?.projectCount ?? projects.length}</dd>
+            <dt>Pasta pessoal</dt><dd>{runtimeInfo ? shortPath(runtimeInfo.home) : '...'}</dd>
+            <dt>Terminais</dt><dd>{runtimeInfo?.sessionCount ?? sessions.length}</dd>
+            <dt>Projectos</dt><dd>{runtimeInfo?.projectCount ?? projects.length}</dd>
           </dl>
-          <button className="db-project-card-btn" onClick={onReloadRuntime}>Refresh runtime</button>
+          <button className="db-project-card-btn" onClick={onReloadRuntime}>Actualizar</button>
         </div>
         {jocaLogicInfo && (
           <div className="settings-service-card">
             <div className="settings-service-head">
-              <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'connected' : 'offline'}`}>
-                {jocaLogicInfo.connected ? 'connected' : 'offline'}
+              <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'ligado' : 'desligado'}`}>
+                {jocaLogicInfo.connected ? 'ligado' : 'desligado'}
               </span>
-              <span>JOCA_Brain Engine</span>
+              <span>JOCA_Brain</span>
             </div>
             <dl className="settings-runtime-grid">
-              <dt>Path</dt><dd>{shortPath(jocaLogicInfo.path)}</dd>
+              <dt>Pasta</dt><dd>{shortPath(jocaLogicInfo.path)}</dd>
               <dt>Skills</dt><dd>{jocaLogicInfo.skillCount}</dd>
-              <dt>Agents</dt><dd>{jocaLogicInfo.agentCount}</dd>
-              <dt>Commands</dt><dd>{jocaLogicInfo.commandCount}</dd>
-              <dt>Memory Index</dt><dd>{jocaLogicInfo.hasMemoryIndex ? 'available' : 'missing'}</dd>
-              <dt>Knowledge Graph</dt><dd>{jocaLogicInfo.hasGraph ? 'available' : 'missing'}</dd>
-              <dt>Soul</dt><dd>{jocaLogicInfo.hasSoul ? 'loaded' : 'missing'}</dd>
+              <dt>Agentes</dt><dd>{jocaLogicInfo.agentCount}</dd>
+              <dt>Comandos</dt><dd>{jocaLogicInfo.commandCount}</dd>
+              <dt>Índice de memória</dt><dd>{jocaLogicInfo.hasMemoryIndex ? 'presente' : 'em falta'}</dd>
+              <dt>Grafo de conhecimento</dt><dd>{jocaLogicInfo.hasGraph ? 'presente' : 'em falta'}</dd>
+              <dt>Soul</dt><dd>{jocaLogicInfo.hasSoul ? 'carregado' : 'em falta'}</dd>
             </dl>
           </div>
         )}
@@ -367,7 +311,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer' }}>
             <input type="checkbox" checked={skipPermissions} onChange={toggleSkipPermissions} />
-            <span>Skip permission prompts <code style={{ fontSize: '0.8em', opacity: 0.6 }}>--dangerously-skip-permissions</code></span>
+            <span>Saltar os pedidos de permissão <code style={{ fontSize: '0.8em', opacity: 0.6 }}>--dangerously-skip-permissions</code></span>
           </label>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
         </div>
@@ -411,113 +355,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             />
           </label>
         </div>
-        {/* O cartão "Modelo dos gestores" (jocaModel/managerModel) saiu daqui: o chat SDK dos
-            gestores está desligado — o gestor é um terminal normal, e o modelo escolhe-se no
-            próprio terminal (/model) ou no CLI por defeito abaixo. */}
-        <div className="settings-service-card settings-service-card--heartbeat">
-          <div className="settings-service-head">
-            <span className={`status-pill status-pill--${heartbeat?.enabled ? 'connected' : 'offline'}`}>
-              {heartbeat?.enabled ? 'activo' : 'parado'}
-            </span>
-            <span>Heartbeat</span>
-            {hbStatus !== 'idle' && (
-              <span className={`settings-save-flag settings-save-flag--${hbStatus}`} role="status">
-                {hbStatus === 'saving' ? 'a guardar…' : hbStatus === 'saved' ? 'guardado ✓' : 'falhou ao guardar'}
-              </span>
-            )}
-          </div>
-          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
-            Proactividade: a cada intervalo o JOCA lê a checklist e o estado do sistema e avisa-te só quando algo merece atenção.
-          </p>
-          {heartbeat ? (
-            <div className="hb-body">
-              <label className="hb-check">
-                <input type="checkbox" checked={heartbeat.enabled} onChange={(e) => patchHeartbeat({ enabled: e.target.checked })} />
-                <span>Heartbeat ligado (corre automaticamente)</span>
-              </label>
-              <label className="hb-field hb-field--inline" title="Intervalo entre beats. O mínimo é 5 minutos.">
-                <span>Intervalo entre beats (minutos, mín. 5)</span>
-                <input
-                  type="number" min={5} value={heartbeat.everyMinutes}
-                  onChange={(e) => patchHeartbeat({ everyMinutes: Math.max(5, Number(e.target.value) || 5) })}
-                />
-              </label>
-              {/* maxAutoWakes e rotateSessionUsd saíram da UI: eram travões do chat SDK dos
-                  gestores, que está desligado. Os campos continuam no heartbeat.json (dormentes). */}
-              <label
-                className="hb-check"
-                title="Além de te avisar, o beat vai ver os agentes e o quadro: manda os agentes parados fazer /save e deixa um aviso no terminal do gestor do projecto quando algo está parado."
-              >
-                <input
-                  type="checkbox"
-                  checked={heartbeat.crewWatch !== false}
-                  onChange={(e) => patchHeartbeat({ crewWatch: e.target.checked })}
-                />
-                <span>Vigia activo (agentes parados fazem /save; avisos entram no terminal do gestor)</span>
-              </label>
-              <label className="hb-check">
-                <input
-                  type="checkbox"
-                  checked={!heartbeat.activeHours}
-                  onChange={(e) => patchHeartbeat({ activeHours: e.target.checked ? null : { start: '09:00', end: '22:00' } })}
-                />
-                <span>Correr a qualquer hora (sem janela horária)</span>
-              </label>
-              {heartbeat.activeHours && (
-                <div className="hb-hours">
-                  <label className="hb-field hb-field--inline">
-                    <span>Início</span>
-                    <input type="time" value={heartbeat.activeHours.start}
-                      onChange={(e) => patchHeartbeat({ activeHours: { start: e.target.value, end: heartbeat.activeHours!.end } })} />
-                  </label>
-                  <label className="hb-field hb-field--inline">
-                    <span>Fim</span>
-                    <input type="time" value={heartbeat.activeHours.end}
-                      onChange={(e) => patchHeartbeat({ activeHours: { start: heartbeat.activeHours!.start, end: e.target.value } })} />
-                  </label>
-                </div>
-              )}
-              <label className="hb-field" title="Modelo usado em cada beat. Vazio = haiku (mais barato e rápido). Grava ao sair do campo.">
-                <span>Modelo (vazio = haiku)</span>
-                <input
-                  type="text" value={heartbeat.model} placeholder="haiku"
-                  onChange={(e) => setHeartbeat((cur) => (cur ? { ...cur, model: e.target.value } : cur))}
-                  onBlur={(e) => patchHeartbeat({ model: e.target.value.trim() })}
-                />
-              </label>
-              <label className="hb-field" title="Uma linha por item. É isto que o JOCA verifica em cada beat. Grava ao sair do campo.">
-                <span>Checklist — o que vigiar em cada beat (grava ao sair do campo)</span>
-                <textarea
-                  rows={4} value={heartbeat.scratch}
-                  placeholder={'- verificar se há tarefas bloqueadas\n- lembrar-me do backup semanal'}
-                  onChange={(e) => setHeartbeat((cur) => (cur ? { ...cur, scratch: e.target.value } : cur))}
-                  onBlur={(e) => patchHeartbeat({ scratch: e.target.value })}
-                />
-              </label>
-              <div className="hb-last">
-                <strong>Último beat:</strong>{' '}
-                {heartbeat.lastRunAt
-                  ? <>
-                      <span className={`hb-decision hb-decision--${heartbeat.lastDecision ?? 'ok'}`}>{heartbeat.lastDecision ?? '—'}</span>
-                      {' '}· {relTime(heartbeat.lastRunAt)}
-                      {heartbeat.lastText ? <span className="hb-last-text">{heartbeat.lastText.slice(0, 200)}</span> : null}
-                    </>
-                  : 'nunca correu'}
-              </div>
-              <button className="db-project-card-btn" type="button" onClick={testHeartbeat} disabled={beatTesting}>
-                {beatTesting ? 'A testar…' : 'Testar agora'}
-              </button>
-              {beatResult && (
-                <div className="hb-last">
-                  <span className={`hb-decision hb-decision--${beatResult.decision}`}>{beatResult.decision}</span>
-                  {beatResult.text ? <span className="hb-last-text">{beatResult.text.slice(0, 300)}</span> : null}
-                </div>
-              )}
-            </div>
-          ) : (
-            <p>A carregar…</p>
-          )}
-        </div>
+        {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">cli</span>
@@ -556,51 +394,34 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </div>
           <div className="settings-cli-list">
             {cliTools.map((tool) => (
-              <article key={tool.id} className={`settings-cli-card settings-cli-card--${tool.installed ? 'installed' : 'missing'}`}>
+              <article key={tool.id} className={`settings-cli-card settings-cli-card--${tool.installed ? 'instalado' : 'em falta'}`}>
                 <div className="settings-cli-head">
                   <div>
                     <strong>{tool.name}</strong>
                     <span>{tool.provider} · <code>{tool.binary}</code></span>
                   </div>
                   <span className={`status-pill status-pill--${tool.installed ? 'connected' : 'offline'}`}>
-                    {tool.installed ? 'installed' : 'missing'}
+                    {tool.installed ? 'instalado' : 'em falta'}
                   </span>
                 </div>
                 <dl className="settings-cli-meta">
-                  <dt>Version</dt><dd>{tool.version || '...'}</dd>
-                  <dt>Path</dt><dd>{tool.path ? shortPath(tool.path) : 'not found'}</dd>
-                  <dt>Auth</dt><dd>{tool.authStatus}</dd>
-                  <dt>Detail</dt><dd>{tool.authDetail || '...'}</dd>
+                  <dt>Versão</dt><dd>{tool.version || '...'}</dd>
+                  <dt>Pasta</dt><dd>{tool.path ? shortPath(tool.path) : 'não encontrado'}</dd>
+                  <dt>Sessão</dt><dd>{AUTH_LABEL[tool.authStatus] ?? tool.authStatus}</dd>
+                  <dt>Detalhe</dt><dd>{tool.authDetail || '...'}</dd>
                 </dl>
                 <div className="settings-cli-actions">
-                  <button type="button" onClick={() => onRunCommand(tool.installCommand)}>Install</button>
-                  <button type="button" onClick={() => onRunCommand(tool.loginCommand)} disabled={!tool.installed && tool.id !== 'agy'}>Login</button>
-                  {tool.updateCommand && <button type="button" onClick={() => onRunCommand(tool.updateCommand!)} disabled={!tool.installed}>Update</button>}
+                  <button type="button" onClick={() => onRunCommand(tool.installCommand)}>Instalar</button>
+                  <button type="button" onClick={() => onRunCommand(tool.loginCommand)} disabled={!tool.installed && tool.id !== 'agy'}>Entrar</button>
+                  {tool.updateCommand && <button type="button" onClick={() => onRunCommand(tool.updateCommand!)} disabled={!tool.installed}>Actualizar</button>}
                 </div>
               </article>
             ))}
             {!cliLoading && cliTools.length === 0 && <p>Não foi possível ler o estado dos CLIs.</p>}
           </div>
           <button className="db-project-card-btn" onClick={reloadCliTools} disabled={cliLoading}>
-            {cliLoading ? 'Checking...' : 'Refresh CLIs'}
+            {cliLoading ? 'A verificar…' : 'Verificar de novo'}
           </button>
-        </div>
-        <div className="settings-service-card settings-service-card--activity">
-          <div className="settings-service-head">
-            <span className="status-pill status-pill--connected">activity</span>
-            <span>Notification Center</span>
-          </div>
-          <div className="settings-activity-list">
-            {events.length === 0 ? (
-              <p>Nada para mostrar. Eventos de sessões, projectos e ficheiros aparecem aqui.</p>
-            ) : events.slice(0, 12).map((event) => (
-              <div key={event.id} className="settings-activity-item">
-                <strong>{event.title}</strong>
-                <span>{event.detail}</span>
-                <small>{new Date(event.timestamp).toLocaleTimeString()}</small>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

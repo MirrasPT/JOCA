@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
-import type { AppNotification, MainView, ManagerMessage, SessionInfo, TerminalRef } from '../types';
+import type { AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
@@ -35,7 +35,7 @@ function pruneMap<T>(map: Map<string, T>, alive: Set<string>): boolean {
 
 export type ServerMessage =
   | { type: 'sessions_list'; sessions: SessionInfo[] }
-  | { type: 'session_created'; session: SessionInfo }
+  | { type: 'session_created'; session: SessionInfo; requestedBy?: string }
   | { type: 'session_closed'; sessionId: string }
   | { type: 'session_renamed'; sessionId: string; name: string }
   | { type: 'output'; sessionId: string; data: string }
@@ -47,8 +47,6 @@ export type ServerMessage =
   | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
   | { type: 'tasks_changed' }
   | { type: 'notification'; notification: AppNotification }
-  | { type: 'manager_message'; projectId: string; message: ManagerMessage }
-  | { type: 'manager_busy'; projectId: string; busy: boolean }
   | { type: 'error'; error: string };
 
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
@@ -71,10 +69,6 @@ export interface SessionSocketDeps {
   setActivatedIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   setTasksRefresh: Dispatch<SetStateAction<number>>;
-  setNotificationsRefresh: Dispatch<SetStateAction<number>>;
-  setManagerRefresh: Dispatch<SetStateAction<number>>;
-  /** Gestores a meio de um turno (`__global__` = o Joca) — alimenta o indicador do rodapé. */
-  setBusyManagerIds: Dispatch<SetStateAction<string[]>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -96,6 +90,12 @@ export interface SessionSocketDeps {
 
 // Owns the WebSocket lifecycle (connect / reconnect / message routing) and exposes a stable `send`.
 // All parent dependencies are read through a ref, so the socket is created once on mount.
+/**
+ * Identidade deste separador. Só vive em memória: recarregar dá um id novo, e é o que se quer —
+ * um separador recarregado é um cliente novo, sem herdar saltos de vista de antes.
+ */
+const CLIENT_ID = crypto.randomUUID();
+
 export function useSessionSocket(deps: SessionSocketDeps) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -106,7 +106,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
 
   const send = useCallback((msg: object) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
+      // Carimba QUEM está a pedir a sessão. O carimbo é injectado aqui, e não em cada um dos dez
+      // sítios que criam sessões, para não haver um que se esqueça — esquecer significa voltar a
+      // arrastar todos os separadores abertos para o terminal novo.
+      const m = msg as { type?: string; clientId?: string };
+      const corpo = m.type === 'create_session' && !m.clientId ? { ...msg, clientId: CLIENT_ID } : msg;
+      wsRef.current.send(JSON.stringify(corpo));
     }
   }, []);
 
@@ -155,9 +160,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             ...prev,
           ].slice(0, 80));
           d.activateSession(msg.session.id);
-          // Workers spawned by automations/tasks (origin 'auto') stay in the BACKGROUND — they must
-          // not yank focus to the terminal. Only user-created sessions switch the view.
-          if (msg.session.origin !== 'auto' && d.focusNewSessionRef.current) {
+          // Só salta para o terminal novo QUEM O PEDIU. Três condições: não é um worker de fundo
+          // ('auto'), fui eu que pedi (`requestedBy`), e este pedido não foi um dos que abrem em
+          // segundo plano (`focusNewSessionRef`). Sem a do meio, um segundo separador — ou outro
+          // agente a abrir um terminal — atirava-te para fora do que estavas a fazer.
+          const pediEu = msg.requestedBy === undefined || msg.requestedBy === CLIENT_ID;
+          if (msg.session.origin !== 'auto' && pediEu && d.focusNewSessionRef.current) {
             d.setActiveId(msg.session.id);
             d.setMainView('session');
           }
@@ -184,11 +192,6 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             { id: crypto.randomUUID(), title: 'Session closed', detail: msg.sessionId, timestamp: Date.now() },
             ...prev,
           ].slice(0, 80));
-          // A pool de workers do gestor não vive no estado global — vem do GET do chat. Sem este
-          // refetch, um agente fechado à mão continuava na lista de Agentes até o gestor falar, e
-          // clicar nele abria um terminal que já não existe. O backend já o tirou da pool
-          // (worker-pool.forgetSession no evento 'closed'); faltava o cliente ir buscar.
-          d.setManagerRefresh((n) => n + 1);
           break;
 
         case 'session_renamed':
@@ -260,36 +263,11 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           d.setTasksRefresh((n) => n + 1);
           break;
 
-        // O gestor de um projecto falou. Não trazemos a mensagem para dentro do estado global: um
-        // contador chega para o ManagerChat aberto refazer o GET (fonte única, sem risco de a lista
-        // divergir). O gestor volta a falar sozinho minutos depois — se a janela não estiver à
-        // frente, isso tem de chegar ao utilizador como notificação do sistema.
-        case 'manager_message':
-          d.setManagerRefresh((n) => n + 1);
-          if (msg.message.role === 'manager' && !document.hasFocus()) {
-            notify(
-              'JOCA — Gestor do projecto',
-              msg.message.text.replace(/\s+/g, ' ').trim().slice(0, 120),
-              { projectId: msg.projectId },
-            );
-          }
-          break;
-        case 'manager_busy':
-          d.setManagerRefresh((n) => n + 1);
-          // Conjunto (via array) de quem está a pensar — o rodapé mostra a contagem. Guardado por
-          // chave de gestor, que pode ser um projectId ou `__global__` (o Joca).
-          d.setBusyManagerIds((prev) => {
-            const tem = prev.includes(msg.projectId);
-            if (msg.busy === tem) return prev; // sem mudança → sem re-render
-            return msg.busy ? [...prev, msg.projectId] : prev.filter((id) => id !== msg.projectId);
-          });
-          break;
 
-        // Nova entrada no inbox persistente → refetch do NotificationsInbox. OS notification só
-        // para heartbeat/system: automation_message e task_question já notificam nos cases acima.
+        // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
+        // do SO só para 'system': automation_message e task_question já notificam nos cases acima.
         case 'notification':
-          d.setNotificationsRefresh((n) => n + 1);
-          if (msg.notification.kind === 'heartbeat' || msg.notification.kind === 'system') {
+          if (msg.notification.kind === 'system') {
             notify(
               msg.notification.title,
               msg.notification.text.replace(/\s+/g, ' ').trim().slice(0, 120),

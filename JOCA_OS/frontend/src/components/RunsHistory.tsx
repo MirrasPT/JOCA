@@ -4,12 +4,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { RunKind, RunRecord, RunStats } from '../types';
 
-const KIND_LABEL: Record<RunKind, string> = { automation: 'automação', task: 'tarefa', heartbeat: 'heartbeat' };
+const KIND_LABEL: Record<RunKind, string> = { automation: 'automação', task: 'tarefa' };
 const FILTERS: { id: 'all' | RunKind; label: string }[] = [
   { id: 'all', label: 'Todos' },
   { id: 'automation', label: 'Automações' },
   { id: 'task', label: 'Tarefas' },
-  { id: 'heartbeat', label: 'Heartbeat' },
 ];
 
 const fmtWhen = (ts: number) => new Date(ts).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });

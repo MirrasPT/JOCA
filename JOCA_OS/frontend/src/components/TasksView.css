@@ -90,8 +90,12 @@
   padding-bottom: 8px;
 }
 .tk-col {
-  flex: 0 0 300px;
-  min-width: 300px;
+  /* Era `0 0 300px`: cinco colunas fixas = 1560px, que não cabem em ecrã nenhum sem scroll, e a
+     última ficava sempre cortada. Agora encolhem juntas até 220px e só depois é que o quadro
+     scrolla. */
+  flex: 1 1 260px;
+  min-width: 220px;
+  max-width: 380px;
   display: flex;
   flex-direction: column;
   background: var(--surface-panel, #1b1916);
@@ -193,3 +197,50 @@
 .tk-attach-chip:hover { color: var(--red, #ff8a8a); border-color: var(--red, #ff8a8a); }
 .tk-attach-chip svg { width: 11px; height: 11px; flex: 0 0 auto; }
 .tk-attach-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+
+/* ─── Tarefas paradas há muito tempo ──────────────────────────────────────────
+   Não há vigia nem notificação: o aviso vive no quadro e aparece quando olhas. O tom é âmbar, não
+   vermelho — uma tarefa parada não é um erro, é uma que ninguém fechou (ver `tarefaParada`). */
+.tk-card--stale {
+  border-color: color-mix(in srgb, var(--warn, #d29922) 45%, transparent);
+}
+.tk-card-stale-flag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 7px; border-radius: 999px;
+  background: color-mix(in srgb, var(--warn, #d29922) 16%, transparent);
+  color: var(--warn, #d29922);
+  font: 600 10.5px var(--font-ui);
+  white-space: nowrap;
+}
+.tk-col-stale {
+  margin-left: 4px; padding: 1px 7px; border-radius: 999px;
+  background: color-mix(in srgb, var(--warn, #d29922) 16%, transparent);
+  color: var(--warn, #d29922);
+  font: 700 10.5px var(--font-ui);
+  cursor: default;
+}
+
+/* Detalhe da tarefa: o badge no cabeçalho e a linha que explica porquê. */
+.tk-drawer-stale {
+  padding: 2px 9px; border-radius: 999px;
+  background: color-mix(in srgb, var(--warn, #d29922) 16%, transparent);
+  color: var(--warn, #d29922);
+  font: 600 11.5px var(--font-ui);
+}
+.tk-stale-note {
+  margin: 0 clamp(16px, 3vw, 30px) 12px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--warn, #d29922) 40%, transparent);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--warn, #d29922) 8%, transparent);
+  color: var(--text-normal);
+  font: 400 12.5px/1.5 var(--font-ui);
+}
+.tk-stale-note strong { color: var(--text-bright); }
+
+
+/* Ecrã estreito: as colunas voltam a ter largura própria e o quadro scrolla — espremer cinco
+   colunas num telemóvel dava cinco tiras ilegíveis. */
+@media (max-width: 900px) {
+  .tk-col { flex: 0 0 260px; min-width: 260px; }
+}

@@ -1,5 +1,5 @@
 // Markdown → HTML seguro, partilhado por quem precisa de mostrar texto escrito por agentes
-// (preview de ficheiros .md, chat do gestor de projecto).
+// (preview de ficheiros .md).
 //
 // O sanitizador vive AQUI e só aqui: duplicá-lo seria a forma mais fácil de um dos sítios ficar
 // para trás e passar a aceitar `<script>`. Sem dependências novas — `marked` já estava instalado.

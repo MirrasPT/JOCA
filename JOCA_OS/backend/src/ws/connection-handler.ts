@@ -20,6 +20,10 @@ interface ClientMessage {
   name?: string;
   cols?: number;
   rows?: number;
+  /** Etiqueta do cliente que pediu — devolvida no `session_created` (ver SpawnOptions). */
+  clientId?: string;
+  /** Abrir com `--remote-control` (só claude). */
+  remoteControl?: boolean;
 }
 
 // Wire up the WebSocket lifecycle: new connection → register client + send sessions snapshot, then
@@ -74,6 +78,8 @@ export function attachConnectionHandler(wss: WebSocketServer) {
               initialInput: msg.initialInput,
               cli: typeof msg.cli === 'string' ? msg.cli : undefined,
               model: typeof msg.model === 'string' ? msg.model : undefined,
+              requestedBy: typeof msg.clientId === 'string' ? msg.clientId.slice(0, 64) : undefined,
+              remoteControl: msg.remoteControl === true,
             });
             // Broadcast is emitted by the SessionManager 'spawn' event subscriber in server.ts.
             break;

@@ -1,7 +1,7 @@
 // Temas de marca ("Custom Temas") — trocam a APARÊNCIA e o NOME do JOCA, nada mais.
 //
 // Fronteira deliberada: um tema de marca é 100% cosmético. Não toca no cérebro, na memória, nos
-// prompts nem no `__global__` do backend — o gestor global continua a chamar-se Joca do lado de lá.
+// prompts do backend.
 // Só o que o utilizador VÊ muda. Trocar de tema é reversível e não deixa rasto no estado.
 //
 // Cada tema traz claro E escuro: o modo (claro/escuro/dinâmico) continua a ser escolha separada,
@@ -17,8 +17,6 @@ export interface BrandTheme {
   label: string;
   /** Palavra grande no topo da barra lateral (ao lado da versão). */
   wordmark: string;
-  /** Nome do gestor global na navegação e no cabeçalho do chat. */
-  managerName: string;
   /** Logo em imagem. Sem isto usam-se os anéis desenhados em CSS (`.sb-logo-rings`). */
   logo?: string;
   /** Ícone do separador. Quadrado, ao contrário do logo — ver `favicon-*.png`. */
@@ -32,7 +30,6 @@ export const BRAND_THEMES: BrandTheme[] = [
     id: 'joca',
     label: 'JOCA',
     wordmark: 'JOCA',
-    managerName: 'Joca',
     favicon: '/favicon.png',
     detail: 'O tema de origem — laranja sobre preto.',
   },
@@ -40,7 +37,6 @@ export const BRAND_THEMES: BrandTheme[] = [
     id: 'alfredo',
     label: 'Alfredo',
     wordmark: 'ALFREDO',
-    managerName: 'Alfredo',
     logo: '/brand/alfredo.png',
     favicon: '/brand/favicon-alfredo.png',
     detail: 'O mordomo de Gotham — amarelo-morcego sobre preto.',
@@ -49,7 +45,6 @@ export const BRAND_THEMES: BrandTheme[] = [
     id: 'kitt',
     label: 'K.I.T.T.',
     wordmark: 'K.I.T.T.',
-    managerName: 'KITT',
     logo: '/brand/kitt.png',
     favicon: '/brand/favicon-kitt.png',
     detail: 'O carro que fala — vermelho scanner sobre preto Trans Am.',
@@ -58,7 +53,6 @@ export const BRAND_THEMES: BrandTheme[] = [
     id: 'r2d2',
     label: 'R2-D2',
     wordmark: 'R2-D2',
-    managerName: 'R2',
     logo: '/brand/r2d2.png',
     favicon: '/brand/favicon-r2d2.png',
     detail: 'O astromecânico — azul e prata sobre branco de casco.',
@@ -67,7 +61,6 @@ export const BRAND_THEMES: BrandTheme[] = [
     id: 'hal',
     label: 'HAL 9000',
     wordmark: 'HAL 9000',
-    managerName: 'HAL',
     logo: '/brand/hal9000.svg',
     favicon: '/brand/favicon-hal.png',
     detail: 'A lente que não pisca — carmim frio sobre ardósia.',

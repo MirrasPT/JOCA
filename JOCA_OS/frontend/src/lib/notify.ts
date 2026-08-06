@@ -87,7 +87,7 @@ function iconeDaMarca(): string | undefined {
  * Assunto da notificação, para o SO SUBSTITUIR a anterior do mesmo assunto em vez de empilhar.
  *
  * Era esta a origem das notificações repetidas: sem `tag`, cada aviso é uma notificação nova, e um
- * gestor que fala cinco vezes deixa cinco cartões na bandeja a dizer quase o mesmo. O `groupKey` é
+ * uma fonte que fala cinco vezes deixa cinco cartões na bandeja a dizer quase o mesmo. O `groupKey` é
  * a mesma noção que o backend já usa para fundir entradas na inbox (`notifications/store.ts`) —
  * aqui reaproveita-se, para as duas metades terem uma só ideia de "isto é o mesmo assunto".
  */

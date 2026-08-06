@@ -29,9 +29,9 @@ interface ProjectDraft {
   color: string;
   /** Logótipo/emoji do projecto; `null` = sem ícone (a barra lateral cai nas 2 primeiras letras). */
   icon: ProjectIcon | null;
-  /** O que o projecto é, por palavras do utilizador — é a memória permanente do gestor. */
+  /** O que o projecto é, por palavras do utilizador — memória permanente do projecto. */
   description: string;
-  /** A pasta já tem código, ou o projecto começa do zero? Muda a forma como o gestor arranca. */
+  /** A pasta já tem código, ou o projecto começa do zero? */
   hasCode: boolean;
 }
 
@@ -311,7 +311,7 @@ export default function CreateProjectModal({
             </label>
 
             <label className="project-field">
-              <span>Descrição — é isto que o gestor vai saber sobre o projecto</span>
+              <span>Descrição — é isto que os terminais deste projecto vão saber sobre ele</span>
               <textarea
                 className="project-desc-input"
                 rows={4}
@@ -321,7 +321,7 @@ export default function CreateProjectModal({
               />
               <small className="project-field-hint">
                 Opcional, mas vale a pena: quanto melhor explicares o que é e o que queres,
-                menos perguntas o gestor te faz depois.
+                menos perguntas te fazem depois.
               </small>
             </label>
 
@@ -435,7 +435,7 @@ export default function CreateProjectModal({
                 <div className="project-row-item">
                   <div>
                     <strong>Sem repositório associado</strong>
-                    <small>Ligar um repo dá ao gestor o contexto de ramos e commits.</small>
+                    <small>Ligar um repo dá contexto de ramos e commits.</small>
                   </div>
                   <div className="project-row-actions">
                     {gitInfo?.isRepository && gitInfo.remoteUrl && parseGithubRepo(gitInfo.remoteUrl) && (

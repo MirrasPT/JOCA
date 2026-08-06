@@ -18,9 +18,9 @@ describe('notification grouping', () => {
   afterEach(wipe);
 
   it('folds repeats of the same groupKey into one entry with a count', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'primeiro', groupKey: 'p1' });
-    pushNotification({ kind: 'manager', title: 'B', text: 'segundo', groupKey: 'p1' });
-    pushNotification({ kind: 'manager', title: 'C', text: 'terceiro', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'A', text: 'primeiro', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'B', text: 'segundo', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'C', text: 'terceiro', groupKey: 'p1' });
 
     const list = loadNotifications();
     expect(list).toHaveLength(1);
@@ -31,8 +31,8 @@ describe('notification grouping', () => {
   });
 
   it('keeps different groupKeys apart', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'x', groupKey: 'p1' });
-    pushNotification({ kind: 'manager', title: 'B', text: 'y', groupKey: 'p2' });
+    pushNotification({ kind: 'system', title: 'A', text: 'x', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'B', text: 'y', groupKey: 'p2' });
     expect(loadNotifications()).toHaveLength(2);
   });
 
@@ -45,9 +45,9 @@ describe('notification grouping', () => {
   });
 
   it('does not fold into an entry the user already read', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'x', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'A', text: 'x', groupKey: 'p1' });
     markAllNotificationsRead();
-    pushNotification({ kind: 'manager', title: 'B', text: 'y', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'B', text: 'y', groupKey: 'p1' });
     // Agrupar numa lida ressuscitava-a silenciosamente; melhor entrada nova.
     expect(loadNotifications()).toHaveLength(2);
   });
@@ -70,12 +70,12 @@ describe('notification priority', () => {
   afterEach(wipe);
 
   it('defaults to info', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'x' });
+    pushNotification({ kind: 'system', title: 'A', text: 'x' });
     expect(loadNotifications()[0].priority).toBe('info');
   });
 
   it('pendingActions returns only unread action items', () => {
-    pushNotification({ kind: 'manager', title: 'info', text: 'x' });
+    pushNotification({ kind: 'system', title: 'info', text: 'x' });
     pushNotification({ kind: 'task_question', title: 'bloqueio', text: 'y', priority: 'action' });
     expect(pendingActions().map((n) => n.title)).toEqual(['bloqueio']);
 
@@ -84,13 +84,13 @@ describe('notification priority', () => {
   });
 
   it('a grouped entry counts as one unread, not N', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'x', groupKey: 'p1' });
-    pushNotification({ kind: 'manager', title: 'B', text: 'y', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'A', text: 'x', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'B', text: 'y', groupKey: 'p1' });
     expect(unreadCount()).toBe(1);
   });
 
   it('carries the project so the UI can jump to the source', () => {
-    pushNotification({ kind: 'manager', title: 'A', text: 'x', meta: { projectId: 'proj-1' } });
+    pushNotification({ kind: 'system', title: 'A', text: 'x', meta: { projectId: 'proj-1' } });
     expect(loadNotifications()[0].meta?.projectId).toBe('proj-1');
   });
 });

@@ -4,7 +4,6 @@
 **Stack:** React + Vite + TypeScript · Node.js + Express + WebSocket (`ws`) · xterm.js · node-pty
 **Objectivo:** Browser UI para Claude Code — terminal emulado com sidebar multi-sessão
 **Directório:** `JOCA_OS/`
-**PRD:** [PRD.md](PRD.md)
 
 ## Arquitectura
 
@@ -62,15 +61,17 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 - Multi-CLI: sessões/tarefas/automações podem correr `claude` (default), `codex`,
   `agy` ou `opencode` — perfis em `src/cli-profiles.ts`, override em `data/cli-profiles.json`
 - Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
-- Heartbeat (proactividade) em `src/heartbeat/` — config em `data/heartbeat.json`
-- **Gestor de projecto** (`src/manager/`): um agente conversacional por projecto. NÃO é um terminal
-  — é in-process (SDK), por isso responde já e não ocupa nenhuma das 30 sessões. Tem **terminal
-  completo** (built-ins `Read/Write/Edit/Glob/Grep/Bash/Web*`, `permissionMode: 'default'`) MAIS as
-  ferramentas MCP próprias: despachar workers por área, ler/responder-lhes, gerir o quadro, e
-  VERIFICAR o resultado (`ver_ficheiro`/`ver_imagem`/`listar_pasta`/`ver_pagina`). O limite é de
-  **papel**, escrito no system prompt, não técnico. Continuidade via `options.resume`.
-  Memória em 3 camadas (dossiê no prompt · arquivo · `procurar_no_historico`) e delegação
-  Joca→gestor por `falar_com_gestor`. Detalhe: `docs/ARQUITECTURA.md` §2.5.
+- **Nada escreve sozinho num terminal.** Só entram (a) o `/resume "<pasta>"` que a sessão corre ao
+  nascer, (b) o que o dono escreve, e (c) o brief de uma tarefa que ele pôs a correr. Removidos: o
+  heartbeat (proactividade), os relatórios automáticos, a varredura de encalhados, e todo o
+  subsistema de gestor de projecto / Joca global / "A Sala".
+- **Um projecto abre VAZIO.** Nenhum terminal nasce sozinho — nem no arranque do backend, nem ao
+  criar o projecto, nem ao abrir o painel. Quem abre terminais é o dono, no "+" do projecto.
+- **Tarefas** (`src/tasks/`): a coluna `a-executar` é uma fila que anda sozinha — pôr lá uma tarefa
+  abre o terminal de tarefas do projecto e corre-a. UMA de cada vez por projecto (lock `busy`), no
+  mesmo terminal enquanto ele viver. Quem move a tarefa para `concluida` é o AGENTE (`joca done`),
+  não o motor: ele só sabe que o terminal se calou, não que o trabalho ficou feito. O juiz (SDK,
+  sem ferramentas) classifica o resultado e escreve na thread, mas não decide a coluna.
 - **Ponte de agentes** (`cli/joca.mjs` + `src/agent-bridge.ts`): cada PTY nasce com `JOCA_CLI`,
   `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
   o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — cria tarefas, abre terminais,
@@ -79,5 +80,5 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 ## Testes
 
 ```bash
-cd backend && npm test   # vitest — unidades puras (schedule math, heartbeat, cli-profiles)
+cd backend && npm test   # vitest — unidades puras (schedule math, cli-profiles, juiz)
 ```

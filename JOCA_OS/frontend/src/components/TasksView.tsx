@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { CliProfileInfo, Project } from '../types';
 import { uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
-import { TaskDetail, COLUMNS, isFailed, nextColumn } from './TaskDetail';
+import { TaskDetail, COLUMNS, isFailed, nextColumn, tarefaParada, duracaoCurta, LAST_STATUS_LABEL } from './TaskDetail';
 import type { JocaItem, Task, TaskStatus } from './TaskDetail';
 import './TasksView.css';
 
@@ -30,7 +30,7 @@ function LucideIcon({ name }: { name: IconName }) {
 // Basename de um caminho absoluto (Windows \ ou POSIX /), para o chip do anexo.
 const baseName = (p: string) => p.split(/[\\/]/).filter(Boolean).pop() ?? p;
 
-// O gestor prefixa com "[para ti]" as tarefas que decidiu NÃO despachar para um worker — é trabalho
+// Uma tarefa prefixada com "[para ti]" é trabalho
 // que ele te passou a ti. Merecem destaque no quadro, senão perdem-se entre as dos workers.
 const isForUser = (title: string) => /^\s*\[para ti\]/i.test(title);
 
@@ -45,6 +45,13 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // "Parada há X" envelhece sozinho: sem um tick, o aviso só aparecia quando algo mais forçasse um
+  // render. Um minuto chega — os limiares são de meia hora e duas horas.
+  const [agora, setAgora] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setAgora(Date.now()), 60_000);
+    return () => window.clearInterval(t);
+  }, []);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<TaskStatus | null>(null);
 
@@ -68,14 +75,10 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
   const [description, setDescription] = useState('');
   const [formProjectId, setFormProjectId] = useState(projectId ?? '');
   const [jocaItems, setJocaItems] = useState<JocaItem[]>([]);
-  const [skillQuery, setSkillQuery] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [requireConfirm, setRequireConfirm] = useState(false);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
-  const [cli, setCli] = useState('claude');
-  const [model, setModel] = useState('');
 
   // Um só <input type=file> reutilizado: o alvo (form de criação vs cartão) fica no ref.
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,15 +112,7 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
   useEffect(() => {
     fetch('/cli-profiles').then((r) => r.json()).then((d: CliProfileInfo[]) => setCliProfiles(Array.isArray(d) ? d : [])).catch(() => setCliProfiles([]));
   }, []);
-  const knownNames = useMemo(() => new Set(jocaItems.map((i) => i.name)), [jocaItems]);
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
-  const addSkill = useCallback((raw: string) => {
-    const v = raw.trim();
-    if (!v) return;
-    setSelectedSkills((s) => (s.includes(v) ? s : [...s, v]));
-    setSkillQuery('');
-  }, []);
-
   // Com `projectId` o quadro mostra só as tarefas desse projecto (o `tasks` completo continua a ser
   // a fonte para procurar por id — arrastar/mover não precisa de saber deste filtro).
   const visibleTasks = useMemo(
@@ -137,16 +132,13 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
       description: description.trim() || undefined,
       status: 'a-definir' as TaskStatus,
       projectId: formProjectId || undefined,
-      skills: selectedSkills.length ? selectedSkills : undefined,
       requireConfirm: requireConfirm || undefined,
       attachments: attachments.length ? attachments : undefined,
-      cli: cli !== 'claude' ? cli : undefined,
-      model: model.trim() || undefined,
     };
     await fetch('/tasks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setTitle(''); setDescription(''); setFormProjectId(projectId ?? ''); setSelectedSkills([]); setSkillQuery(''); setRequireConfirm(false); setAttachments([]); setCli('claude'); setModel(''); setCreating(false);
+    setTitle(''); setDescription(''); setFormProjectId(projectId ?? ''); setRequireConfirm(false); setAttachments([]); setCreating(false);
     reload();
-  }, [title, description, formProjectId, projectId, selectedSkills, requireConfirm, attachments, cli, model, reload]);
+  }, [title, description, formProjectId, projectId, requireConfirm, attachments, reload]);
 
   // Persistir os anexos de uma tarefa existente (PATCH). Reversível → sem confirmação.
   const patchAttachments = useCallback(async (id: string, next: string[]) => {
@@ -392,7 +384,7 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Corrigir formulário de reservas" />
           </label>
           <label className="tk-field">
-            <span>Objectivo (o que o worker faz)</span>
+            <span>Objectivo</span>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
               onPaste={onCreatePaste}
               placeholder="Revê o formulário de contacto, valida campos e melhora o CTA. (Ctrl+V cola imagens como anexo)" />
@@ -416,45 +408,8 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                 </select>
               </label>
             )}
-            <label className="tk-field tk-inline">
-              <span>CLI</span>
-              <select value={cli} onChange={(e) => setCli(e.target.value)}>
-                {cliProfiles.length === 0 && <option value="claude">Claude Code</option>}
-                {cliProfiles.map((p) => (
-                  <option key={p.id} value={p.id} disabled={!p.available}>
-                    {p.label}{p.available ? '' : ' (não instalado)'}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="tk-field tk-inline">
-              <span>Modelo (opcional)</span>
-              <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="sonnet (default)" />
-            </label>
           </div>
           <div className="tk-row">
-            <label className="tk-field tk-inline">
-              <span>Skills/agentes a usar (opcional)</span>
-              <input
-                list="tk-joca-items"
-                value={skillQuery}
-                onChange={(e) => { const v = e.target.value; if (knownNames.has(v)) addSkill(v); else setSkillQuery(v); }}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillQuery); } }}
-                placeholder="procurar skill/agente do JOCA…"
-              />
-              <datalist id="tk-joca-items">
-                {jocaItems.map((i) => (
-                  <option key={`${i.kind}:${i.name}`} value={i.name}>{i.kind === 'agent' ? 'agente' : 'skill'} · {(i.description ?? '').slice(0, 70)}</option>
-                ))}
-              </datalist>
-              {selectedSkills.length > 0 && (
-                <div className="tk-chips">
-                  {selectedSkills.map((s) => (
-                    <button type="button" key={s} className="tk-chip" onClick={() => setSelectedSkills((x) => x.filter((y) => y !== s))}>{s} ✕</button>
-                  ))}
-                </div>
-              )}
-            </label>
             <label className="tk-field tk-inline tk-check">
               <input type="checkbox" checked={requireConfirm} onChange={(e) => setRequireConfirm(e.target.checked)} />
               <span>Confirmar antes de acções irreversíveis</span>
@@ -489,8 +444,9 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
       {/* Quadro vazio: primeira pista de onboarding (auditoria #21). */}
       {COLUMNS.every((c) => columnTasks(c.status).length === 0) && (
         <p className="tk-board-onboarding">
-          Ainda não há tarefas. Cria a primeira em "Nova tarefa" — as de "A definir" nunca arrancam
-          sozinhas; as que puseres em "A executar" correm num worker do projecto.
+          Ainda não há tarefas. Cria a primeira em "Nova tarefa". As de "A definir" ficam à espera
+          de ti; assim que puseres uma em "A executar", ela corre num terminal do projecto — uma de
+          cada vez, sempre no mesmo terminal.
         </p>
       )}
 
@@ -502,6 +458,7 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
           const colNext = nextColumn(col.status);
           // 'arquivada' é a última coluna; 'em-execucao' pertence ao worker → sem "Mover tudo".
           const canAdvanceAll = Boolean(colNext) && col.status !== 'em-execucao';
+          const paradasNaColuna = cards.filter((t) => tarefaParada(t, agora)).length;
           return (
             <section
               key={col.status}
@@ -513,6 +470,14 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
               <div className="tk-col-head">
                 <span className="tk-col-title">{col.label}</span>
                 <span className="tk-col-count">{cards.length}</span>
+                {paradasNaColuna > 0 && (
+                  <span
+                    className="tk-col-stale"
+                    title={`${paradasNaColuna} ${paradasNaColuna === 1 ? 'tarefa parada' : 'tarefas paradas'} há muito tempo nesta coluna`}
+                  >
+                    ⏳ {paradasNaColuna}
+                  </span>
+                )}
                 {canAdvanceAll && colNext && (
                   <button
                     type="button"
@@ -544,10 +509,11 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                   const noteCount = t.comments?.length ?? 0;
                   const isSelected = selected.includes(t.id);
                   const forUser = isForUser(t.title);
+                  const parada = tarefaParada(t, agora);
                   return (
                     <article
                       key={t.id}
-                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''} ${failed ? 'tk-card--failed' : ''} ${isSelected ? 'tk-card--selected' : ''} ${forUser ? 'tk-card--mine' : ''}`}
+                      className={`tk-card ${draggingId === t.id ? 'dragging' : ''} ${failed ? 'tk-card--failed' : ''} ${parada ? 'tk-card--stale' : ''} ${isSelected ? 'tk-card--selected' : ''} ${forUser ? 'tk-card--mine' : ''}`}
                       draggable
                       tabIndex={0}
                       aria-label={`Abrir detalhe da tarefa ${t.title}`}
@@ -580,9 +546,14 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                           />
                         )}
                         <span className="tk-card-title">{t.title}</span>
-                        {forUser && <span className="tk-card-mine-flag" title="O gestor passou-te esta tarefa a ti">👤 para ti</span>}
+                        {forUser && <span className="tk-card-mine-flag" title="Tarefa marcada para ti">👤 para ti</span>}
                         {failed && <span className="tk-card-fail-flag" title="Concluída mas com erro">⚠ erro</span>}
-                        {!failed && t.lastStatus && <span className={`tk-status tk-status-${t.lastStatus}`}>{t.lastStatus}</span>}
+                        {parada && (
+                          <span className="tk-card-stale-flag" title={`Parada há ${duracaoCurta(parada.ms)}. ${parada.motivo}`}>
+                            ⏳ parada há {duracaoCurta(parada.ms)}
+                          </span>
+                        )}
+                        {!failed && t.lastStatus && <span className={`tk-status tk-status-${t.lastStatus}`}>{LAST_STATUS_LABEL[t.lastStatus]}</span>}
                       </div>
                       {t.description && <p className="tk-card-desc">{t.description}</p>}
                       <div className="tk-card-meta">
@@ -613,12 +584,12 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                       )}
                       <div className="tk-card-actions" onClick={(e) => e.stopPropagation()}>
                         {t.status === 'a-executar' && (
-                          <button type="button" className="tk-run" onClick={() => run(t)} disabled={busy === t.id} data-tooltip="Correr agora">
+                          <button type="button" className="tk-run" onClick={() => run(t)} disabled={busy === t.id} data-tooltip="Correr agora" aria-label={`Correr a tarefa ${t.title}`}>
                             <LucideIcon name={busy === t.id ? 'loader' : 'play'} /> Correr
                           </button>
                         )}
                         {failed && (
-                          <button type="button" className="tk-retry" onClick={() => retry(t)} data-tooltip="Re-executar esta tarefa">
+                          <button type="button" className="tk-retry" onClick={() => retry(t)} data-tooltip="Re-executar esta tarefa" aria-label={`Re-executar a tarefa ${t.title}`}>
                             <LucideIcon name="rotate" /> Re-executar
                           </button>
                         )}
@@ -627,25 +598,24 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                             type="button"
                             onClick={() => advance(t)}
                             data-tooltip={`Mover para ${cardNext.label}`}
-                            title={`Mover para ${cardNext.label}`}
-                            aria-label={`Mover para ${cardNext.label}`}
+                            aria-label={`Mover a tarefa ${t.title} para ${cardNext.label}`}
                           >
                             <LucideIcon name="arrow-right" />
                           </button>
                         )}
-                        <button type="button" onClick={() => openPicker({ kind: 'task', id: t.id })} disabled={uploading} data-tooltip="Anexar ficheiro">
+                        <button type="button" onClick={() => openPicker({ kind: 'task', id: t.id })} disabled={uploading} data-tooltip="Anexar ficheiro" aria-label={`Anexar ficheiro à tarefa ${t.title}`}>
                           <LucideIcon name="paperclip" />
                         </button>
                         {t.status !== 'arquivada' ? (
-                          <button type="button" onClick={() => move(t.id, 'arquivada')} data-tooltip="Arquivar">
+                          <button type="button" onClick={() => move(t.id, 'arquivada')} data-tooltip="Arquivar" aria-label={`Arquivar a tarefa ${t.title}`}>
                             <LucideIcon name="archive" />
                           </button>
                         ) : (
-                          <button type="button" onClick={() => move(t.id, 'a-definir')} data-tooltip="Repor">
+                          <button type="button" onClick={() => move(t.id, 'a-definir')} data-tooltip="Repor" aria-label={`Repor a tarefa ${t.title} em "A definir"`}>
                             <LucideIcon name="rotate" />
                           </button>
                         )}
-                        <button type="button" onClick={() => remove(t)} data-tooltip="Apagar" className="tk-danger">
+                        <button type="button" onClick={() => remove(t)} data-tooltip="Apagar" aria-label={`Apagar a tarefa ${t.title}`} className="tk-danger">
                           <LucideIcon name="trash-2" />
                         </button>
                       </div>

@@ -19,24 +19,21 @@ import { automationsRouter, automationDeps } from './http/automations-routes';
 import { tasksRouter } from './http/tasks-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
-import { managerRouter } from './http/manager-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
-import { setManagerBroadcaster, setManagerBusyBroadcaster, clearAllBusy } from './manager/store';
-import { startManagerWatch } from './manager/wake';
-import { ensureManagerSession } from './manager/worker-pool';
 import { loadProjects } from './project-store';
 import { startTasksEngine } from './tasks/engine';
 import { setTasksBroadcaster } from './tasks/store';
 import { setNotificationsBroadcaster } from './notifications/store';
-import { startHeartbeat } from './heartbeat';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
 // ('done' is consumed by the automations runner / tasks engine; it is NOT broadcast.)
 // 'spawn' is the single broadcast source for session_created — covers both UI-created sessions
 // and workers spawned programmatically (automations/tasks), so workers show in the UI.
-sessionManager.on('spawn', ({ session }: { session: Session }) => {
-  broadcast({ type: 'session_created', session: sessionManager.info(session) });
+sessionManager.on('spawn', ({ session, requestedBy }: { session: Session; requestedBy?: string }) => {
+  // `requestedBy` volta tal e qual: é o que deixa o cliente que pediu saltar para o terminal novo
+  // sem arrastar os outros com ele.
+  broadcast({ type: 'session_created', session: sessionManager.info(session), requestedBy });
 });
 sessionManager.on('output', ({ sessionId, data }: { sessionId: string; data: string }) => {
   broadcast({ type: 'output', sessionId, data });
@@ -54,18 +51,13 @@ sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
 // inbox (GET /notifications) on reconnect.
 setNotificationsBroadcaster((n) => broadcast({ type: 'notification', notification: n }));
 
-// Project manager: every message it writes (answers AND the later "the worker finished" updates)
-// reaches open clients live; the chat is also persisted, so a closed tab loses nothing.
-setManagerBroadcaster((projectId, message) => broadcast({ type: 'manager_message', projectId, message }));
-setManagerBusyBroadcaster((projectId, busy) => broadcast({ type: 'manager_busy', projectId, busy }));
-
 /**
  * Rede de segurança: uma falha de socket não pode matar o servidor inteiro.
  *
  * EPIPE/ECONNRESET/ECONNABORTED acontecem quando o outro lado desaparece — um PTY que morreu, um
  * browser que fechou a meio de uma resposta, um subprocesso do SDK que saiu. São normais e locais.
  * Sem este guarda, o Node trata-os como excepção fatal e derruba o backend com TODAS as sessões,
- * os gestores e as filas atrás — um worker mal arrancado apagava o JOCA inteiro.
+ * e as filas atrás — um worker mal arrancado apagava o JOCA inteiro.
  *
  * Deliberadamente estreito: só estes três códigos. Qualquer outra excepção não-apanhada continua a
  * derrubar o processo, que é o que deve acontecer a um bug a sério — engolir tudo aqui era esconder
@@ -106,7 +98,6 @@ app.use(requireAuth, automationsRouter());
 app.use(requireAuth, tasksRouter());
 app.use(requireAuth, systemRouter());
 app.use(requireAuth, sessionsRouter());
-app.use(requireAuth, managerRouter());
 app.use(requireAuth, filesRouter());
 
 // Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
@@ -154,13 +145,5 @@ server.listen(PORT, HOST, () => {
   }
   startScheduler(automationDeps);
   startTasksEngine();
-  startHeartbeat();
-  clearAllBusy();       // a crash mid-turn would otherwise leave a manager stuck as "a pensar…"
-  startManagerWatch();
-  // Ao iniciar o JOCA, cada projecto activo abre logo o terminal do seu gestor — um terminal
-  // normal (fechável); fechado não renasce até ao próximo arranque.
-  for (const p of loadProjects()) {
-    if (p.archived) continue;
-    try { ensureManagerSession(p.id); } catch (e) { console.error(`[manager] gestor de "${p.name}" não abriu:`, e); }
-  }
+  // Nenhum terminal nasce sozinho: os projectos abrem VAZIOS e quem abre terminais é o dono.
 });

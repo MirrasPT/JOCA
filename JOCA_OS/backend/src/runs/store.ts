@@ -1,30 +1,36 @@
-// Run history — append-only JSONL of every automation/task/heartbeat execution, with duration and
+// Run history — append-only JSONL of every automation/task execution, with duration and
 // SDK cost where measurable. The automations store only keeps lastResult (truncated); this is the
 // durable audit trail: DATA_DIR/runs.jsonl, one JSON object per line, append-only (no rewrite races
 // with the stores). Reads tail the file; stats aggregate cost/status per kind.
 //
-// Cost caveat: only DIRECT SDK calls (llm nodes, the tasks judge, heartbeat) report costUsd — PTY
+// Cost caveat: only DIRECT SDK calls (llm nodes, the tasks judge) report costUsd — PTY
 // workers run on the subscription and expose no per-run cost, so costUsd is a lower bound.
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { DATA_DIR } from '../project-store';
 
-export type RunKind = 'automation' | 'task' | 'heartbeat';
+export type RunKind = 'automation' | 'task';
+
+// O ficheiro é append-only e tem histórico de execuções de subsistemas ENTRETANTO REMOVIDOS (o
+// heartbeat, por exemplo). Esses registos não se apagam — são história real, e o custo que
+// gastaram foi mesmo gasto —, mas também não se servem: o `kind` deles já não existe no tipo, e a
+// UI acabava a imprimi-lo cru. Filtra-se na leitura.
+const KINDS_VIVOS = new Set<string>(['automation', 'task']);
 export type RunStatus = 'ok' | 'error' | 'timeout' | 'skipped';
 
 export interface RunRecord {
   id: string;
   kind: RunKind;
-  refId: string;          // automation id / task id / 'heartbeat'
+  refId: string;          // automation id / task id
   name: string;           // automation name / task title
   projectId?: string;
   startedAt: number;
   endedAt: number;
   ms: number;
   status: RunStatus;
-  summary: string;        // final output / judge verdict / heartbeat decision (truncated)
-  costUsd?: number;       // SDK-measured cost (llm nodes + judge + heartbeat); PTY work not included
+  summary: string;        // final output / judge verdict (truncated)
+  costUsd?: number;       // SDK-measured cost (llm nodes + judge); PTY work not included
   cli?: string;
   model?: string;
   retry?: number;         // retry attempt number (automations), 0/undefined = first try
@@ -60,6 +66,7 @@ export function listRuns(opts: { limit?: number; kind?: RunKind; refId?: string 
     if (!line) continue;
     try {
       const rec = JSON.parse(line) as RunRecord;
+      if (!KINDS_VIVOS.has(rec.kind)) continue;      // execução de um subsistema removido
       if (opts.kind && rec.kind !== opts.kind) continue;
       if (opts.refId && rec.refId !== opts.refId) continue;
       out.push(rec);
