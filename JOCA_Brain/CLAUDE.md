@@ -127,6 +127,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | retro · retrospectiva · o que correu bem/mal · revisão semanal | `/retro` |
 | explorar variantes de design · opções de design · brainstorm visual · não gosto do look | `design-shotgun` |
 | codificar o design · mockup → HTML · implementar este design · fazer o mockup real | `design-html` |
+| ao nível de X · tão bom como · benchmark contra um produto real · gauntlet · aim prompt · loop até ficar perfeito | `gauntlet-loop` (`/gauntlet-loop`) |
 | ship · push para main · abrir PR · está pronto envia | `/ship` |
 | cso · auditoria de segurança · threat model · STRIDE · OWASP review | `cso` |
 | mapear conhecimento · como tudo se liga · grafo de skills/agentes/projectos · mapa do JOCA | `/map-joca` |
@@ -167,6 +168,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | `/autoplan` | plano completo auto-revisto (produto → design → eng) — corre a pipeline a fundo, gate final |
 | `/learn` | memória institucional do Brain (decisões/aprendizagens event-sourced + recall) |
 | `/retro` | retrospectiva: aprendizagens da janela → acções (manual ou automação cron) |
+| `/gauntlet-loop` | reformula qualquer pedido num workflow contra uma referência real: fan-out + crítico severo + comparação cega, sem paragem automática |
 | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
 | `/map-joca` | mapa de conhecimento (skills/agentes/comandos/projectos + chains) → graph.html interactivo via graphify |
 | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |

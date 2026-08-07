@@ -911,6 +911,30 @@
   },
   {
     "type": "skill",
+    "name": "gauntlet-loop",
+    "category": "general",
+    "path": ".claude/skills/gauntlet-loop.md",
+    "description": "Reformula QUALQUER pedido num workflow de desenvolvimento medido contra uma referência real e nomeada: preenche o aim prompt de três parágrafos do Matt Shumer, EXECUTA-O, faz fan-out de sub-agentes, p",
+    "triggers": [
+      "gauntlet",
+      "gauntlet loop",
+      "gauntlet-loop",
+      "aim prompt",
+      "prompt do Shumer",
+      "ao nível de",
+      "ao nível do",
+      "tão bom como",
+      "melhor que o",
+      "benchmark contra",
+      "comparado com",
+      "loop até ficar perfeito",
+      "qualidade AAA",
+      "top studio quality",
+      "build like"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "github",
     "category": "general",
     "path": ".claude/skills/github.md",

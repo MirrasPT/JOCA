@@ -86,7 +86,7 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 
 ⚠ `automation-builder`, `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (132)
+## Skills (133)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o
