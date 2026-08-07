@@ -245,6 +245,7 @@ export default function ProjectWorkspace({
           ) : (
             <TerminalView
               sessions={projectSessions}
+              projects={projects}
               activeId={activeTabId}
               activatedIds={terminal.activatedIds}
               terminalDraft={terminal.terminalDraft}

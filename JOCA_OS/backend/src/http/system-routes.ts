@@ -110,6 +110,10 @@ export function systemRouter(): Router {
     res.json(CLI_IDS.map((id: CliId, i) => ({
       id, label: profiles[id].label, bin: profiles[id].bin, available: availability[i],
       startupSequence: profiles[id].startupSequence,
+      // O botão "Resume" da barra de comandos remonta o mesmo comando do arranque, e a forma dele
+      // muda por CLI (`/resume` no claude, `resume` nos outros) e é sobreponível em
+      // cli-profiles.json — por isso vai daqui em vez de estar escrito à mão no frontend.
+      resumeCmd: profiles[id].resumeCmd,
     })));
   });
 

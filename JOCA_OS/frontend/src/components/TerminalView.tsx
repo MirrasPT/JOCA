@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
-import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems, CliProfileInfo } from '../types';
+import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems, CliProfileInfo, Project } from '../types';
 import TerminalPane from './TerminalPane';
 import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
@@ -16,6 +16,8 @@ interface Props {
   setHistoryIndex: (idx: number | null) => void;
   selectedPath: string | null;
   onClearSelectedPath: () => void;
+  /** Para o botão `Resume` saber a pasta do projecto da sessão activa. */
+  projects: Project[];
   projectMemory: Record<string, ProjectMemory>;
   onSaveSession: () => void;
   onCompactSession: () => void;
@@ -66,6 +68,14 @@ function RemoteIcon() {
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
       <path d="M5 12a7 7 0 0 1 14 0" /><path d="M2 12a10 10 0 0 1 20 0" />
       <circle cx="12" cy="18" r="2" />
+    </svg>
+  );
+}
+
+function ResumeIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <circle cx="12" cy="12" r="9" /><path d="M10 8.5v7l5.5-3.5z" />
     </svg>
   );
 }
@@ -129,7 +139,7 @@ const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
 
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
-  historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projectMemory,
+  historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory,
   onSaveSession, onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
   onNewSessionWithCli, onNewRemoteControlSession, jocaItems, onLoadJocaItems
@@ -267,6 +277,29 @@ export default function TerminalView({
     if (!activeId || !activeSession?.projectId) return;
     onInput(activeId, 'git pull\r');
   }, [activeId, activeSession?.projectId, onInput]);
+
+  // Pasta do projecto da sessão activa — o argumento do resume.
+  const activeProjectPath = useMemo(() => {
+    if (!activeSession?.projectId) return null;
+    return projects.find((p) => p.id === activeSession.projectId)?.path ?? null;
+  }, [projects, activeSession?.projectId]);
+
+  /**
+   * Reenvia à MÃO o comando de contexto do arranque: `/resume "<pasta do projecto>"`.
+   *
+   * O backend já o manda sozinho quando o terminal nasce (session-manager, runStartupSequence),
+   * mas isso depende de apanhar a TUI pronta — num arranque lento, ou com o prompt "trust this
+   * folder?" pelo meio, o comando pode perder-se e o terminal fica sem saber em que projecto está.
+   * Este botão é a saída manual desse caso: mesma forma de comando, mesma pasta.
+   */
+  const resumeProject = useCallback(() => {
+    if (!activeId || !activeProjectPath) return;
+    // A forma do comando vem do perfil do CLI (`/resume` no claude, `resume` nos outros) porque é
+    // sobreponível em cli-profiles.json; o fallback só cobre o profile ainda não ter carregado.
+    const profile = cliProfiles?.find((p) => p.id === (activeSession?.cli ?? 'claude'));
+    const verb = profile?.resumeCmd ?? (activeSession?.cli && activeSession.cli !== 'claude' ? 'resume' : '/resume');
+    onInput(activeId, `${verb} "${activeProjectPath}"\r`);
+  }, [activeId, activeProjectPath, activeSession?.cli, cliProfiles, onInput]);
 
   // Fetch quick commands from project memory
   const quickCommands = useMemo(() => {
@@ -488,6 +521,19 @@ export default function TerminalView({
                 repetir o que já estava aqui. Só estes três: `Save` e `Compact` de lá eram os
                 mesmos `save`/`compact` que abrem esta fila. */}
             <div className="command-bar-divider" />
+            {/* Rede de segurança para quando o `/resume` do arranque não chega ao CLI (TUI lenta,
+                prompt "trust this folder?"): reenvia o mesmo comando, com a mesma pasta. */}
+            {activeProjectPath && (
+              <button
+                type="button"
+                className="quick-command-btn"
+                onClick={resumeProject}
+                data-tooltip={`Carregar o contexto do projecto (${basename(activeProjectPath)}) — se o resume automático falhou`}
+                aria-label="Reenviar o resume do projecto"
+              >
+                <ResumeIcon /> Resume
+              </button>
+            )}
             <button
               type="button"
               className="quick-command-btn"

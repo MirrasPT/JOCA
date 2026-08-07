@@ -185,6 +185,8 @@ export interface CliProfileInfo {
   bin: string;
   available: boolean;
   startupSequence: boolean;
+  /** Forma do comando de resume deste CLI: `/resume` no claude, `resume` nos outros. */
+  resumeCmd?: string;
 }
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';

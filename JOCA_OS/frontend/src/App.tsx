@@ -902,6 +902,7 @@ export default function App() {
             setHistoryIndex={setHistoryIndex}
             selectedPath={null}
             onClearSelectedPath={() => {}}
+            projects={projects}
             projectMemory={projectMemory}
             onSaveSession={handleSave}
             onCompactSession={handleCompact}
