@@ -81,6 +81,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | Remotion · video React | `remotion` |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
+| gerar vídeo · voiceover · TTS · música · SFX · vectorizar · raster→SVG · upscale · remove background | `picsart` (gen-ai CLI) |
 | generate video · video clip · motion | `video-gen` (agent) |
 | WordPress · Gutenberg | `wordpress-router` |
 | WooCommerce + Elementor · `_elementor_data` · HFE · storefront editável · content-product.php | `woocommerce-elementor` |

@@ -1456,6 +1456,28 @@
   },
   {
     "type": "skill",
+    "name": "picsart",
+    "category": "general",
+    "path": ".claude/skills/picsart.md",
+    "description": "Route creative generation to the Picsart gen-ai CLI (169 models, 31 providers) for VIDEO, AUDIO, VECTORIZE and UPSCALE. MUST be invoked when the user mentions: generate video, video clip, animate imag",
+    "triggers": [
+      "generate video",
+      "video clip",
+      "animate image",
+      "voiceover",
+      "narration",
+      "text-to-speech",
+      "music track",
+      "sound effect",
+      "vectorize",
+      "raster to SVG",
+      "upscale image",
+      "enhance resolution",
+      "remove background"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "plan",
     "category": "general",
     "path": ".claude/skills/plan.md",
