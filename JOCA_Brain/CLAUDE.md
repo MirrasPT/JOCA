@@ -36,7 +36,10 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 
 ## Repository Structure
 `memory/` — `soul.md` (personality, `@import`ed) · `INDEX.md`+`SKILL_INDEX.json` (component index) · `projects/`+`feedback/` (per-project, by `/save`).
-`.claude/` — `skills/` (flat, depth 1) · `rules/` (global directives — task-intake/pipelines/chaining/orchestration/testing/api-design) · `commands/` · `agents/` · `hooks/` (auto-test) · `scripts/` · `settings.json`.
+`.claude/` — `skills/` (flat, depth 1) · `rules/` (global directives — task-intake/pipelines/chaining/orchestration/api-design/workflows-and-tooling) · `commands/` · `agents/` · `hooks/` (auto-test) · `scripts/` · `settings.json`.
+⚠ `.claude/` é **canónico**; `.agents/` e `.codex/` são **espelhos compilados** que publicam à mesma —
+qualquer edição a skills/agentes exige `bash .claude/scripts/compile-bridges.sh`, senão divergem em
+silêncio (já sobreviveram host/utilizador/chave SSH reais num espelho depois de limpos na fonte).
 Add a **skill** = `.claude/skills/<name>.md` (frontmatter `name`+`description`, add to `INDEX.md`) · **agent** = `.claude/agents/<name>.md` (`Agent(subagent_type=…)`) · **command** = `.claude/commands/<name>.md` (`/<name>`).
 
 ## Context & Agents
@@ -82,7 +85,9 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
 | gerar vídeo · voiceover · TTS · música · SFX · vectorizar · raster→SVG · upscale · remove background | `picsart` (gen-ai CLI) |
-| generate video · video clip · motion | `video-gen` (agent) |
+| generate video · video clip · motion | `video-gen` (agent — ⚠ o `agy` NÃO gera vídeo; rota para gen-ai/ComfyUI/HyperFrames) |
+| upscale · ampliar imagem · aumentar resolução · restaurar imagem · imagem para print · ESRGAN | `image-upscale` |
+| publicar repo público · open source release · scrub antes de publicar · o que vai sair no push · sanitizar repo | `public-release-audit` |
 | WordPress · Gutenberg | `wordpress-router` |
 | WooCommerce + Elementor · `_elementor_data` · HFE · storefront editável · content-product.php | `woocommerce-elementor` |
 | Shopify · Liquid | `shopify-router` |

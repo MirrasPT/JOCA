@@ -7,9 +7,14 @@
  * Store: <JOCA_Brain>/memory/checkpoints/<slug>/<ts>-<title>.md
  *
  * Uso:
- *   echo "<markdown body>" | joca-checkpoint save [--title "x"] [--status wip|done]
+ *   echo "<markdown body>" | joca-checkpoint save [--slug X] [--title "x"] [--status wip|done]
  *   joca-checkpoint latest [--slug X]      # imprime o checkpoint mais recente
  *   joca-checkpoint list   [--slug X]      # lista checkpoints (mais recente primeiro)
+ *
+ * ⚠ Sem --slug o slug é inferido do repo git do CWD DO PROCESSO — sob JOCA_OS/`/save` o cwd é
+ * quase sempre `JOCA_Brain`, e o checkpoint de outro projecto cai em `checkpoints/JOCA...`
+ * (aconteceu com Novanor, Kromway, Livro de Elogios, ComfyUI). Passar sempre
+ * `--slug <projecto resolvido no PASSO 1 do /save>`. `--project` é alias de `--slug`.
  */
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -25,9 +30,11 @@ function arg(name, def) {
   return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : def;
 }
 function sanitize(s) { return String(s).replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown'; }
+let slugInferido = false;
 function slug() {
-  const ex = arg('slug');
+  const ex = arg('slug') || arg('project'); // --project = alias de --slug
   if (ex) return sanitize(ex);
+  slugInferido = true;
   try { return sanitize(basename(execSync('git rev-parse --show-toplevel', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim())); }
   catch (_) { return sanitize(basename(process.cwd())); }
 }
@@ -62,6 +69,7 @@ if (cmd === 'save') {
   const all = ckptList(s);
   for (const old of all.slice(KEEP)) { try { unlinkSync(join(d, old)); } catch (_) { /* best-effort */ } }
   console.log(`[checkpoint] ${s} → ${basename(file)} (${status})`);
+  if (slugInferido) console.error(`[checkpoint] ⚠ slug inferido do cwd (${s}) — se o trabalho foi noutro projecto, re-corre com --slug <projecto> e apaga este ficheiro`);
 } else if (cmd === 'latest') {
   const all = ckptList(s);
   if (!all.length) { console.log(`(sem checkpoints para ${s})`); process.exit(0); }
@@ -72,6 +80,12 @@ if (cmd === 'save') {
   console.log(`# Checkpoints — ${s}`);
   for (const f of all) console.log(`- ${f}`);
 } else {
-  console.log('joca-checkpoint — uso: save (stdin) | latest | list');
-  process.exit(cmd ? 1 : 0);
+  console.log([
+    'joca-checkpoint — uso:',
+    '  echo "<md>" | joca-checkpoint save [--slug X] [--title "x"] [--status wip|done]',
+    '  joca-checkpoint latest [--slug X]',
+    '  joca-checkpoint list   [--slug X]',
+    '  (--project = alias de --slug; sem ele o slug vem do repo git do cwd do processo)',
+  ].join('\n'));
+  process.exit(cmd && cmd !== '--help' && cmd !== '-h' && cmd !== 'help' ? 1 : 0);
 }

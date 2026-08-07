@@ -242,7 +242,11 @@
       "headless browser automation",
       "POST to prompt API",
       "poll history endpoint",
-      "automate local web app"
+      "automate local web app",
+      "QA de jogo Phaser",
+      "cliques no canvas não registam",
+      "trusted input",
+      "page.mouse.click"
     ]
   },
   {
@@ -892,6 +896,8 @@
     "path": ".claude/skills/frontend.md",
     "description": "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, i",
     "triggers": [
+      "frontend-design",
+      "frontend design",
       "website",
       "landing page",
       "site",
@@ -904,9 +910,7 @@
       "nextjs",
       "protótipo",
       "prototype",
-      "ui",
-      "ux",
-      "design web"
+      "ui"
     ]
   },
   {
@@ -1093,6 +1097,29 @@
       "scene transition",
       "audio-reactive",
       "kinetic type"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "image-upscale",
+    "category": "general",
+    "path": ".claude/skills/image-upscale.md",
+    "description": "Ampliar ou restaurar imagens para print/large-format/assets de cliente — escolha de modelo ESRGAN por tipo de conteúdo, tiling com blend por feather para imagens grandes, e verificação por recorte ant",
+    "triggers": [
+      "upscale",
+      "ampliar imagem",
+      "aumentar resolução",
+      "restaurar imagem",
+      "imagem para print",
+      "large format",
+      "imagem pixelizada",
+      "ESRGAN",
+      "Remacri",
+      "UltraSharp",
+      "RealESRGAN",
+      "super resolution",
+      "melhorar qualidade de imagem",
+      "esticar sem perder qualidade"
     ]
   },
   {
@@ -1629,6 +1656,29 @@
   },
   {
     "type": "skill",
+    "name": "public-release-audit",
+    "category": "general",
+    "path": ".claude/skills/public-release-audit.md",
+    "description": "Preparar e auditar um repo privado antes de o publicar (ou de publicar um diff) num repo público. Varre por git e não por disco, apanha espelhos compilados, symlinks, metadados de autor e dependências",
+    "triggers": [
+      "publicar repo público",
+      "open source release",
+      "release público",
+      "scrub PII",
+      "sanitizar repo",
+      "preparar publicação",
+      "o que vai sair no push",
+      "auditar release",
+      "público vs privado",
+      "PII scan",
+      "publicar no repo público",
+      "preparar release público",
+      "scrub antes de publicar",
+      "auditar o que vai sair"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "queues",
     "category": "general",
     "path": ".claude/skills/queues.md",
@@ -1704,19 +1754,19 @@
     "triggers": [
       "react performance",
       "re-render",
-      "rerender",
       "useEffect",
-      "useMemo",
-      "useCallback",
-      "useState",
       "server component",
       "RSC",
-      "suspense",
       "waterfall",
-      "slow react",
       "optimize react",
-      "next.js",
-      "nextjs"
+      "app router",
+      "focus trap",
+      "focus management",
+      "modal",
+      "modais",
+      "restaurar foco",
+      "foco vai para o body",
+      "stale closure"
     ]
   },
   {
@@ -2202,6 +2252,14 @@
   },
   {
     "type": "skill",
+    "name": "test-master",
+    "category": "general",
+    "path": ".claude/skills/test-master.md",
+    "description": "Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing di",
+    "triggers": []
+  },
+  {
+    "type": "skill",
     "name": "transactional-email",
     "category": "general",
     "path": ".claude/skills/transactional-email.md",
@@ -2338,7 +2396,12 @@
       "wp-content",
       "plugin WP",
       "tema WP",
-      "que tipo de projecto WordPress"
+      "que tipo de projecto WordPress",
+      "migrar WordPress",
+      "wpress",
+      "ai1wm",
+      "All-in-One WP Migration",
+      "levar conteudo WP para staging"
     ]
   },
   {
@@ -3849,7 +3912,7 @@
     "name": "video-gen",
     "category": "agents",
     "path": ".claude/agents/video-gen.md",
-    "description": "Generate videos using Antigravity CLI (agy) with Gemini video generation capabilities. Receives a creative brief, constructs a prompt, and executes via agy. Supports: short clips, product videos, anim",
+    "description": "Roteia um pedido de vídeo para um motor que EXISTE. O `agy` (Antigravity/Gemini) NÃO gera vídeo — este agente conhece os caminhos reais (HyperFrames sobre footage, ComfyUI local com WAN, ou o gen-ai C",
     "triggers": [
       "generate video",
       "create video",

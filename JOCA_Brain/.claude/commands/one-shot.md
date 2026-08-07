@@ -43,9 +43,20 @@ O **main loop lê `.claude/agents/master-orchestrator.md` e age como orquestrado
 ### 4. Pós-Execução
 
 Após o orchestrator completar:
-1. Apresentar relatório ao utilizador
-2. Listar ficheiros criados/modificados
-3. Sugerir próximos passos (deploy? PR? review manual?)
+1. **Worker que devolveu `null` não é worker que falhou.** Antes de reportar um stream como perdido,
+   verificar em disco (`git status`, `ls` dos ficheiros do stream). Caso real: num workflow de 8
+   agentes, o `feat:contactos` escreveu ContactModal (249 linhas) + 4 endpoints + AdminInbox (418
+   linhas), tudo a compilar, e só falhou a chamada final de `StructuredOutput` ("retry cap (5)
+   exceeded") — o relatório disse `contact: null` e deu a impressão de trabalho perdido. Distinguir
+   sempre **"output-shape falhou"** de **"agente morreu"**, e sinalizá-lo assim no relatório
+   ("trabalho em disco OK, retorno estruturado falhou — verificar").
+2. Apresentar relatório ao utilizador
+3. Listar ficheiros criados/modificados
+4. **Revisão por leitura ≠ verificação.** Se a pipeline acabou em deploy, correr uma fase pós-deploy
+   de smoke test end-to-end (HTTP real + estado da BD), separada da revisão de código. Caso real:
+   revisão adversarial até 9/10, 0 bloqueadores — e chegaram a produção assets em falta e uma coluna
+   sem privilégio `ALTER`, ambos invisíveis à leitura e triviais para um smoke test.
+5. Sugerir próximos passos (deploy? PR? review manual?)
 
 ## Argumentos Opcionais
 

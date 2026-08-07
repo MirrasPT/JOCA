@@ -12,11 +12,11 @@
  *   <JOCA_Brain>/memory/decisions/<slug>.jsonl     (+ .active.json snapshot)
  *   <JOCA_Brain>/memory/learnings/<slug>.jsonl
  *
- * Uso:
- *   joca-brain decide  --text "..." [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10]
+ * Uso (o texto pode ir posicional ou em --text; `<cmd> --help` imprime a assinatura):
+ *   joca-brain decide  "..." | --text "..." [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10]
  *   joca-brain supersede <id>
  *   joca-brain redact <id>
- *   joca-brain learn   --text "..." [--tags a,b,c] [--file path]
+ *   joca-brain learn   "..." | --text "..." [--tags a,b,c] [--file path]
  *   joca-brain active  [--slug X] [--json]
  *   joca-brain recall  [--slug X] [--limit 5]      # active decisions + learnings recentes (p/ hook)
  *   joca-brain search  <query> [--limit 5] [--slug X]
@@ -147,10 +147,16 @@ function filterByScope(active, branch) {
 }
 
 // ---------- commands ----------
+// texto aceite posicional (`learn "x"`) OU em --text — o posicional era o erro nº1 do /learn
+function textOf(a) {
+  if (typeof a.text === 'string') return a.text.trim();
+  if (typeof a._[0] === 'string') return a._[0].trim();
+  return '';
+}
 function cmdDecide(a) {
   const slug = currentSlug(a.slug);
-  const text = typeof a.text === 'string' ? a.text.trim() : '';
-  if (!text) fail('decide: --text obrigatório');
+  const text = textOf(a);
+  if (!text) fail(`decide: texto obrigatório\n  ${USAGE.decide}`);
   const freeText = [text, a.rationale, a.branch].filter((s) => typeof s === 'string').join('\n');
   const secrets = scanSecrets(freeText);
   if (secrets.length) fail(`decide REJEITADO: contém segredo (${secrets.join(', ')}). Roda + remove — não logar segredos.`);
@@ -177,8 +183,8 @@ function cmdRef(kind, a) {
 }
 function cmdLearn(a) {
   const slug = currentSlug(a.slug);
-  const text = typeof a.text === 'string' ? a.text.trim() : '';
-  if (!text) fail('learn: --text obrigatório');
+  const text = textOf(a);
+  if (!text) fail(`learn: texto obrigatório\n  ${USAGE.learn}`);
   const secrets = scanSecrets(text);
   if (secrets.length) fail(`learn REJEITADO: contém segredo (${secrets.join(', ')}).`);
   const ev = {
@@ -262,10 +268,30 @@ async function cmdReindex() {
 
 function fail(msg) { console.error(msg); process.exit(1); }
 
+// ---------- usage (--help por comando; antes era preciso abrir o .mjs p/ ver as flags) ----------
+const USAGE = {
+  decide: 'joca-brain decide "texto" [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10] [--slug X]',
+  supersede: 'joca-brain supersede <id> [--slug X]',
+  redact: 'joca-brain redact <id> [--slug X]',
+  learn: 'joca-brain learn "texto" [--tags a,b,c] [--file path] [--slug X]',
+  active: 'joca-brain active [--slug X] [--json]',
+  recall: 'joca-brain recall [--slug X] [--limit 5]',
+  search: 'joca-brain search <query> [--limit 5] [--slug X]',
+  reindex: 'joca-brain reindex',
+};
+
 // ---------- main ----------
 const argv = process.argv.slice(2);
 const cmd = argv[0];
 const a = parseArgs(argv.slice(1));
+if (cmd === '--help' || cmd === '-h' || cmd === 'help') {
+  console.log(Object.values(USAGE).join('\n'));
+  process.exit(0);
+}
+// `-h` e `help` não começam por `--`, portanto o parseArgs mete-os no posicional `_` — e o texto
+// dos comandos de escrita LÊ o `_[0]`. Sem este check, `learn -h` registava uma aprendizagem "-h".
+const pedeAjuda = a.help || a.h || a._.includes('-h') || a._.includes('help');
+if (pedeAjuda && USAGE[cmd]) { console.log(USAGE[cmd]); process.exit(0); }
 switch (cmd) {
   case 'decide': cmdDecide(a); break;
   case 'supersede': cmdRef('supersede', a); break;

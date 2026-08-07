@@ -28,11 +28,36 @@ ls package.json composer.json requirements.txt pyproject.toml go.mod Cargo.toml 
    wp-config.json .shopify 2>/dev/null
 ```
 
-E, se existir memória para esta pasta no Brain, **lê-a antes de perguntar seja o que for**:
+E, se existir memória para esta pasta no Brain, **lê-a antes de perguntar seja o que for**. Procurar
+o caminho exacto **não chega**: a memória pode estar numa pasta-mãe (guarda-chuva) ou numa
+sub-pasta já inicializada.
 
 ```bash
-grep -rl "$(pwd)" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null
+# 1. caminho exacto, pastas-mãe e sub-pastas — `directorio:` contido em, ou a conter, esta pasta
+grep -rn "^directorio" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null | grep -F "$(basename "$(pwd)")"
+grep -rln "$(pwd)" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null
+grep -rln "$(dirname "$(pwd)")" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null
+
+# 2. CLAUDE.md em sub-directórios (sub-projecto já ligado ao JOCA)
+find . -maxdepth 3 -name CLAUDE.md -not -path "./node_modules/*" 2>/dev/null
 ```
+
+Se aparecer mais do que uma memória (aconteceu: a pasta do cliente Luís Gonçalo tinha 4 —
+`luis-goncalo`, `elite-imagens-db`, `elite-orcamentos`, `royal-douro` — e um `CLAUDE.md` em `_DB/`),
+**parar e mostrar o que já existe**, e perguntar qual dos três: inicializar como **guarda-chuva** de
+sub-projectos · **actualizar** uma memória existente · **criar** entrada nova. Não começar o
+questionário como se fosse projecto novo.
+
+**Pasta em cloud-sync** (MEGA, Google Drive, OneDrive, Dropbox, iCloud) — avisar os três riscos, não
+só o do git:
+1. `.git` corrompe-se com sync concorrente (nunca trabalhar em simultâneo nas duas máquinas);
+2. **dotfiles não atravessam** — `.git`, `.env`, `.gitignore` desaparecem na travessia Mac↔Windows;
+3. **estado de runtime não atravessa** — volumes Docker nomeados, base de dados local. "Pasta
+   partilhada" ≠ "projecto sincronizado".
+
+Se houver `docker-compose.yml` com volumes nomeados dentro de uma pasta cloud-synced, registar na
+memória do projecto qual é o **artefacto-ponte** entre máquinas (dump SQL, seed, backup) — sem isso,
+a outra máquina arranca sem dados.
 
 ### O que o levantamento decide sozinho
 
@@ -189,7 +214,10 @@ Depois, uma linha em `memory/INDEX.md`, secção `## Projects`:
 ```
 
 ### 5. `~/CLAUDE.md`
-Acrescentar à tabela de projectos activos, se ainda lá não estiver.
+Acrescentar à tabela de projectos activos, se ainda lá não estiver — **uma linha**, com ponteiro para
+`memory/projects/<x>.md`. Guard-rail: se a célula do projecto passar de ~400 caracteres, o excesso vai
+para a memória, não para a tabela. (A tabela macOS cresceu célula-parágrafo até 19,8k tokens — ~50% do
+`~/CLAUDE.md` — por falta desta disciplina; a secção Windows, que a aplicava, ficou uma fracção disso.)
 
 ### 6. `/create-skill` — só se a FASE 2 tiver identificado um gap real e o utilizador o aprovar.
 

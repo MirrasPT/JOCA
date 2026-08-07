@@ -46,6 +46,27 @@ Cada worker grava o output em ficheiro (ex.: `.joca/intermediate/<stream>.md`) e
 - Padrão complementar à fila de testes já existente (`.joca/test-queue.jsonl`).
 - **⚠ `.joca/intermediate/` é apanhado por content-scanners do projecto-alvo.** Quando os resumos ficam DENTRO da árvore do projecto, o content-scan do Tailwind v4 (e afins) trata-os como código e regenera classes citadas neles — uma classe partida num resumo `.md` parte o build do projecto-alvo (e o gate `tsc`/`build` NÃO apanha; só o dev runtime). Mitigar: `.joca/` no `.gitignore` E excluído do content-scan (`@source not`), OU escrever os resumos no scratchpad da sessão (fora da árvore do projecto). Ver `tailwind.md` + `workflows-and-tooling.md`. (Fonte: projecto React + Tailwind v4, 2026-06-23.)
 
+### 5b. Sessões paralelas (dois Claude no mesmo repo)
+
+Não são subagentes — são **pares**, cada um com o seu main loop. Já aconteceu várias vezes (JOCA_OS
+multi-worker, duas sessões no `Meu-Site`, duas no `JOCA_FINAL`) e correu bem só porque as sessões
+inventaram, sozinhas e por acaso, o mesmo protocolo. Codificado:
+
+- **Handshake ao descobrir um par:** path onde estou · o que vou fazer · ficheiros que tenho sujos.
+- **Fronteira por directório.** Leitura livre; escrita só no meu território. Tocar em ficheiro alheio
+  exige aviso antes. Dois workers na mesma árvore já reverteram trabalho intencional um do outro
+  (`AppShell.jsx` acabou com edições dos dois misturadas — e o build compilava à mesma).
+- **Estado partilhado avisa-se sempre:** BD, portas, ficheiros de configuração, `~/CLAUDE.md`.
+- **Ficheiro partilhado edita-se com `Edit` cirúrgico, nunca `Write`.** Reler antes de escrever. Um
+  `Write` no `memory/projects/<x>.md` teria apagado o trabalho da outra sessão — só se soube porque o
+  `Edit` avisou "the file had been modified on disk".
+- **Endereçar: os nomes do `ListAgents` são opacos** (`joca-brain-be`, `joca-brain-dc`) e **não**
+  identificam projecto nem sessão — uma mensagem endereçada por nome foi parar à sessão errada. O
+  endereço fiável é o socket do `from=` de quem escreveu (`uds:/tmp/cc-socks/NNNNN.sock`). Responder
+  sempre por aí; usar o nome só para iniciar contacto, e confirmar quem é antes de assumir contexto.
+- **Artefactos por sessão, não por repo.** Checkpoints, filas e `.joca/intermediate/` derivados do
+  repo do cwd colidem entre sessões — o `latest` passa a devolver o da outra. Derivar do **projecto**.
+
 ### 5. Doutrina Agent / Skill / Workflow
 Quando usar cada um:
 
@@ -76,6 +97,12 @@ Sequência determinística não-paralelizável + git destrutivo → **script ver
 | Errado | Correcto |
 |---|---|
 | Agente que faz spawn de agentes | Coordenação no main loop / command |
+| Aceitar o **diagnóstico** de um agente sem reproduzir a falha | O relatório localiza o **sintoma**; a causa confirma-se no artefacto (buffer, log, estado real). Corrigir o sintoma e voltar a testar sai mais barato do que assumir que a causa estava certa |
+| Brief que apresenta uma decisão de triagem como facto ("a AgentsView foi descartada e não volta") | Separar **FACTOS** verificáveis (paths, contratos, o que está no disco) de **DECISÕES** de quem despacha, e marcar estas como revogáveis: *"se isto contradisser o que encontrares, pára e reporta"*. Um agente obedece a uma decisão errada e propaga-a sem ninguém a questionar |
+| Mandar scope novo por `SendMessage` a um agente já a correr | Scope novo **invalida trabalho em curso**: 4 pontos enviados a meio caducaram medições de contraste e anularam a estratégia dada no ponto anterior (~40 min perdidos). Ou se espera pelo relatório e se despacha uma segunda ronda, ou se cancela e re-despacha com o brief completo. `SendMessage` serve para **desbloquear** (dar um dado em falta), não para acrescentar objectivos |
+| Agente com whitelist de ferramentas que responde "não tenho essa ferramenta" e pára | A ausência de uma ferramenta é **sinal de delegação**, não impossibilidade — tem de estar escrita no prompt como tal (despachar → verificar → tentar corrigir → só então reportar), senão o modelo lê "não está na minha lista" como "o sistema não consegue" |
+| Listas de capacidades escritas à mão nos prompts | Desactualizam-se em silêncio e o modelo acredita nelas — uma lista errada é pior do que nenhuma. Apontar ao índice gerado (`memory/SKILL_INDEX.json`), não transcrever |
+| Ler o output de um comando pelo princípio (`\| head`) | `git apply` é **atómico** mas imprime `Applied patch to X` para os ficheiros que passaram **antes** de abortar — um `\| head -40` mostra sucessos e esconde o erro fatal na cauda. Verificar sempre pelo **efeito** (`git status`: 1 ficheiro alterado em vez de 214), nunca pelo relatório |
 | Loop sem travão (iterações infinitas) | max iterações + 3x-nada-para |
 | Workers despachados em mensagens separadas (serial) | Todas as chamadas `Agent()` num só turno |
 | Worker devolve dump completo ao supervisor | Escreve `.joca/intermediate/` + resumo + path |

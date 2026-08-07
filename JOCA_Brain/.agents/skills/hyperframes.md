@@ -260,7 +260,10 @@ tl.from("#s2-heading", { x: -40, opacity: 0, duration: 0.6, ease: "expo.out" }, 
 
 ## CLI Workflow
 
+**Platforms:** macOS (Apple Silicon), Linux x64 **and Windows x64** — `npx hyperframes doctor` reports `win32 x64` with FFmpeg and headless Chrome OK. Only the optional extras (whisper, TTS, Docker) are missing on Windows, and compositions without narration never touch them. Run `doctor` before concluding a platform is unsupported.
+
 ```bash
+npx hyperframes doctor                                # check the toolchain first
 npx hyperframes init my-video                         # interactive wizard
 npx hyperframes init my-video --example warm-grain    # pick a template
 npx hyperframes init my-video --tailwind              # with Tailwind v4 browser runtime

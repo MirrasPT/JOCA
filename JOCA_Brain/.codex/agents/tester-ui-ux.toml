@@ -37,7 +37,24 @@ Logic gaps · micro-interaction failures · dead ends · confusing states · unc
 ### UI issue detection
 Alignment errors · spacing anomalies (excessive or insufficient) · padding/margin inconsistencies · contrast issues · responsive failures · typography clashes · overflow bugs · missing hover states · color mismatches
 
+### Gates de runtime — obrigatórios, não recomendações
+
+Auditar markup **não é** testar comportamento. Estes dois modos de falha passaram por revisão de
+código e por auditoria de `href`, e chegaram ao utilizador em sessões consecutivas. `Read(".claude/skills/mobile.md")`
+para as rotinas completas; o resumo:
+
+- **Cliques bloqueados** — `document.elementFromPoint(cx, cy)` no centro de cada link/botão de
+  nav/header/overlay/modal, em **carga limpa** (`goto` fresco). `href` correcto + elemento por cima
+  = link morto. Um irmão do Elementor matou 3 itens de menu em desktop.
+- **Sangramento horizontal** — comparar `getBoundingClientRect().right` com `innerWidth` por elemento
+  de texto. **Nunca** `scrollWidth - clientWidth`: dá 0 falso com `overflow-x: clip|hidden` num
+  ancestral e escondeu um corte real durante 5 auditorias.
+
+Nenhum relatório fecha como "sem defeitos de navegação/responsivo" sem estes dois terem corrido.
+
 ### Testing checklist
+- [ ] `elementFromPoint` corrido em todos os links interactivos (carga limpa)
+- [ ] Sangramento horizontal medido por rects a 390px, não por `scrollWidth`
 - [ ] Coverage maximized (every micro-detail)
 - [ ] Interactions simulated (realistic messy inputs, not idealized)
 - [ ] Visuals audited (specific focus on spacing and white space)

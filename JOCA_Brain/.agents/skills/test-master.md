@@ -1,16 +1,10 @@
 ---
 name: test-master
-description: Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing disciplines. Use when writing unit tests, integration tests, or E2E tests; creating test strategies or automation frameworks; analyzing coverage gaps; performance testing with k6 or Artillery; security testing with OWASP methods; debugging flaky tests; or working on QA, regression, test automation, quality gates, shift-left testing, or test maintenance.
-license: MIT
+description: "Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing disciplines. Use when writing unit tests, integration tests, or E2E tests; creating test strategies or automation frameworks; analyzing coverage gaps; performance testing with k6 or Artillery; security testing with OWASP methods; debugging flaky tests; or working on QA, regression, test automation, quality gates, shift-left testing, or test maintenance."
 metadata:
-  author: https://github.com/Jeffallan
   version: "1.1.1"
+  author: https://github.com/Jeffallan
   domain: quality
-  triggers: test, testing, QA, unit test, integration test, E2E, coverage, performance test, security test, regression, test strategy, test automation, test framework, quality metrics, defect, exploratory, usability, accessibility, localization, manual testing, shift-left, quality gate, flaky test, test maintenance
-  role: specialist
-  scope: testing
-  output-format: report
-  related-skills: fullstack-guardian, playwright-expert, devops-engineer, debugging-wizard, code-reviewer, feature-forge
 ---
 
 # Test Master
@@ -48,25 +42,6 @@ describe('calculateDiscount', () => {
 ```
 
 Apply the same structure for pytest (`def test_…`, `assert result == expected`) and other frameworks.
-
-## Reference Guide
-
-Load detailed guidance based on context:
-
-<!-- TDD Iron Laws and Testing Anti-Patterns adapted from obra/superpowers by Jesse Vincent (@obra), MIT License -->
-
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Unit Testing | `references/unit-testing.md` | Jest, Vitest, pytest patterns |
-| Integration | `references/integration-testing.md` | API testing, Supertest |
-| E2E | `references/e2e-testing.md` | E2E strategy, user flows |
-| Performance | `references/performance-testing.md` | k6, load testing |
-| Security | `references/security-testing.md` | Security test checklist |
-| Reports | `references/test-reports.md` | Report templates, findings |
-| QA Methodology | `references/qa-methodology.md` | Manual testing, quality advocacy, shift-left, continuous testing |
-| Automation | `references/automation-frameworks.md` | Framework patterns, scaling, maintenance, team enablement |
-| TDD Iron Laws | `references/tdd-iron-laws.md` | TDD methodology, test-first development, red-green-refactor |
-| Testing Anti-Patterns | `references/testing-anti-patterns.md` | Test review, mock issues, test quality problems |
 
 ## Constraints
 

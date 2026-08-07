@@ -51,7 +51,23 @@ try {
     }
   } catch (_) { /* sem pasta feedback — segue */ }
 
-  const finalCtx = [ctx, recall, feedbackNudge].filter(Boolean).join('\n\n');
+  // Co-actividade — memória de projecto escrita nos últimos 45 min = outra sessão/worker esteve
+  // (ou está) no mesmo projecto. Já custou: duas sessões em paralelo no mesmo projecto, uma a
+  // reverter edições da outra, descoberto só pelo mtime da memória.
+  let coAct = '';
+  try {
+    const projDir = path.join(repoRoot, 'memory', 'projects');
+    const limite = Date.now() - 45 * 60 * 1000;
+    const recentes = fs.readdirSync(projDir)
+      .filter((f) => f.endsWith('.md'))
+      .filter((f) => { try { return fs.statSync(path.join(projDir, f)).mtimeMs > limite; } catch (_) { return false; } })
+      .slice(0, 5);
+    if (recentes.length) {
+      coAct = `## ⚠ Co-actividade\nMemória escrita nos últimos 45 min: ${recentes.join(', ')} — outra sessão/worker pode estar activa nesse(s) projecto(s). Verifica antes de reverter edições que não fizeste, e evita reescrever ficheiros que ela esteja a tocar.`;
+    }
+  } catch (_) { /* sem memory/projects — segue */ }
+
+  const finalCtx = [ctx, recall, coAct, feedbackNudge].filter(Boolean).join('\n\n');
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: finalCtx },

@@ -2,7 +2,7 @@
 name: wordpress-router
 description: "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
-triggers: WordPress, WP, wp-content, plugin WP, tema WP, que tipo de projecto WordPress
+triggers: WordPress, WP, wp-content, plugin WP, tema WP, que tipo de projecto WordPress, migrar WordPress, wpress, ai1wm, All-in-One WP Migration, levar conteudo WP para staging
 ---
 
 # WordPress Router
@@ -44,6 +44,29 @@ Activate at the start of WordPress tasks to:
 - Triage reports `kind: unknown` -- inspect:
   - root `composer.json`, `package.json`, `style.css`, `block.json`, `theme.json`, `wp-content/`.
 - Huge repo -- narrow scanning scope or add ignore rules to triage script.
+
+## Migração de conteúdo (local → shared hosting, sem SSH/WP-CLI)
+
+Rota para quando o pedido é "levar o conteúdo do local/Docker para staging/produção" num alojamento
+partilhado (sem SSH nem WP-CLI). Pipeline validado ponta-a-ponta (2026-07-17) e reutilizável — a
+mesma conta FTP aloja ≥8 sites WP:
+
+1. **Export** — All-in-One WP Migration, botão "Export to File" **na UI**. A CLI da versão free está
+   *gated*; a extensão S3 modificada, quando out-of-date, **trunca o backup em silêncio**. Validar o
+   `.wpress` comparando o **tamanho com o do original**, não por inspeccionar os zeros no fim do ficheiro.
+2. **Upload** — FTP do `.wpress` para `wp-content/ai1wm-backups/`. Os certificados destes hosts
+   obrigam a `curl -k --ftp-ssl-control` (sem estas duas flags o upload falha no handshake).
+3. **Restore** — pela wp-admin. O menu ⋮ da lista de backups é hover-hidden → em automação, clicar
+   por JS nativo em `a.ai1wm-backup-restore[data-archive]` (um click sintético no ⋮ não abre).
+4. **Pós-restore** — o restore **substitui também o utilizador admin** (repor a password). Se o site
+   vive numa subpasta, corrigir os URLs root-relative em **4 formatos**: `/wp-content`, escapado em
+   JSON (`\/wp-content`), URL-encoded (`%2Fwp-content`) e absoluto (`https://<host>/wp-content`).
+   Usar `str_replace` **idempotente**, nunca regex.
+5. **Caches que mascaram os fixes de BD** — limpar `_elementor_element_cache` (não só `_elementor_css`)
+   e purgar o LSCache (PHP que emita `header('X-LiteSpeed-Purge: *')`). Sem isto, uma correcção
+   correcta na base de dados **parece não ter efeito** e leva a "corrigir" o que já estava certo.
+
+Detalhe de Elementor/WooCommerce pós-restore → `Read(".claude/skills/woocommerce-elementor.md")`.
 
 ## Escalation
 

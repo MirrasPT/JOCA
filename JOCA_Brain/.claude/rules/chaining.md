@@ -69,3 +69,4 @@ Pipelines multi-passo nomeadas (cross-stack) vivem em `rules/pipelines.md` e cor
 | Agente despachado sem Step 0 (skills) no brief | Brief carrega sempre `Read()` das skills |
 | Encadear em loop infinito "a ajudar" | Travão: profundidade `loop_max_iterations`, 3x-nada → parar |
 | Inventar próximos passos fora do scope | Só chains declaradas / pipelines nomeadas (steward) |
+| Encadear a partir do **relatório** de um passo que produziu output visual/binário (imagem, PDF, vector, build) | Verificar o **artefacto**: abrir/rasterizar e comparar com a referência antes de aceitar. Um agente pode reportar sucesso e descrever mal o que produziu; um build sem erros pode ter 3 bugs visuais |

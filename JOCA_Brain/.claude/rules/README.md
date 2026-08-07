@@ -7,4 +7,5 @@ Regras:
 - **Terse.** Tabelas > prosa. Sem repetir o que já está no `CLAUDE.md` ou noutra rule.
 - **Detalhe extenso → `.claude/reference/`** (NÃO auto-carregado; `Read()` on-demand) ou `memory/projects/*.md`. Já lá vivem `api-design.md` e `workflows-and-tooling.md` — os pointers de 1-parágrafo ficam aqui em `rules/`.
 - Antes de adicionar uma rule nova, perguntar: "isto tem de estar em contexto SEMPRE?" Se não → não é uma rule.
+- **Sinal de intruso:** um `.md` aqui com frontmatter de skill (`name:` + `description:` + `triggers:`) foi lá parar por engano → mover para `.claude/skills/`. Aconteceu com o `testing.md` (era o skill `test-master` de terceiros): 94 linhas / ~1k tokens em **cada mensagem**, zero valor comportamental, e a tabela de `references/*.md` que continha apontava para ficheiros que nunca existiram no repo. Ao adicionar/editar uma rule, confirmar que **cada path citado resolve** (`ls`).
 - Este README também é auto-carregado → mantê-lo curto.

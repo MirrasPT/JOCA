@@ -20,7 +20,8 @@ Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **diverg
 - Ler o sistema de design se existir: `DESIGN.md`, tokens, `brand-guidelines`. Variantes respeitam o sistema (não inventam paletas do nada, salvo se o brief for "explorar identidade").
 - Definir o **brief comum**: o que é a página/componente, o objectivo, a audiência, 1 constraint dura (ex.: "tem de caber above-the-fold").
 - **Ler o banco de eixos**: `Read(".claude/reference/design-dataset.md")` — paletas OKLCH verificadas, pares de fontes e estilos nomeados. Cada variante = 1 estilo + 1 paleta + 1 par de fontes, combinações DISTINTAS; registar a combinação no output (`[V2: brutalist-editorial + Ember + Fraunces/Inter]`). Anti-convergence: excluir os eixos usados nos 2-3 projectos anteriores do mesmo tipo (`memory/projects/`).
-- Definir **3-6 eixos de divergência** (cada variante explora um): ex.: editorial vs minimal vs bold; grid vs assimétrico; foto-driven vs tipográfico.
+- Definir **3-6 eixos de divergência** (cada variante explora um). Os eixos têm de ser **estruturais**, não só estéticos: ordem e número de secções, tipo de navegação, densidade, grelha (simétrica vs quebrada), o que ocupa o primeiro viewport, foto-driven vs tipográfico. Trocar só o `<style>` sobre o mesmo markup produz peles da mesma variante, não variantes.
+- **Registo/intenção** é o 4º eixo, obrigatório: silencioso · acolhedor · imponente · documental · cinematográfico. Três agentes já convergiram no mesmo registo (arquivo frio, acento azul, numerais tabulares) com três estilos nomeados diferentes — os eixos de estilo/paleta/fonte separam gramática visual, não intenção. Variantes concorrentes têm de diferir aqui.
 
 ### 2. Fan-out das variantes (paralelo)
 - Despachar **3-5 agentes** em paralelo (`img-gen-openai`/`img-gen-google` para imagem; ou geração de HTML/JSX estático para mockup navegável). Cap 3-5 (custo de contexto).
@@ -28,6 +29,7 @@ Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **diverg
 - Cada agente escreve o output para disco (`scratchpad/shotgun/<n>/`) e devolve só um resumo + path (padrão "agentes escrevem para disco" — `rules/orchestration-patterns.md`).
 
 ### 3. Board de comparação
+- **Paridade de pipeline antes de comparar.** Todas as variantes passam pelos mesmos passos (upscale, export, resolução). Uma variante saiu sem o passo ESRGAN (568 KB vs 4,7 MB, ~88 dpi em A3) e a comparação ficou enviesada — a nitidez mascarou o desenho, que era o que estava em avaliação. Comparar tamanhos de ficheiro é o teste barato que apanha isto.
 - Apresentar as variantes lado-a-lado (grelha de thumbnails/links).
 - Para cada uma: 1 frase do conceito + a tensão que explora.
 

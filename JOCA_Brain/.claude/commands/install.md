@@ -250,9 +250,14 @@ máquina, pedir ao dono para o instalar — nunca usar MCP como atalho.
 
 ```bash
 python -m pip install markitdown-mcp        # MCP + core (Windows: python, nao python3)
-python -m pip install 'markitdown[all]'     # opcional: todos os parsers (OCR, audio)
+python -m pip install 'markitdown[all]'     # NAO e opcional — ver aviso abaixo
 claude mcp add markitdown --scope user -- python -m markitdown_mcp
 ```
+
+⚠ **Instalar sempre com `[all]`.** O markitdown do brew (e o `pip install markitdown` simples) vem
+sem o extra `[docx]` → converter um `.docx` rebenta com `MissingDependencyException`, sem pista de
+qual e o extra em falta. Se nao der para reinstalar: um `.docx` e um zip — `zipfile` + regex sobre
+`word/document.xml` extrai o texto.
 
 Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
 

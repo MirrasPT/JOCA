@@ -71,7 +71,34 @@ pdfinfo out.pdf | grep Pages                            # cross-platform (popple
 ```
 ⚠ `mdls` pode devolver `(null)` logo a seguir a escrever (Spotlight ainda não indexou) e não existe fora de macOS → usar `pdfinfo` (ou `pdftk out.pdf dump_data | grep NumberOfPages`) como fallback fiável. Tem de dar o número esperado (normalmente `1`). Se der `2+` → o `@page size` não cobre o conteúdo real; voltar ao passo 1 e medir a altura certa.
 
-**b) Re-leitura visual:** ler `out.pdf` com o `Read` tool (ou `pdftoppm out.pdf preview -png` + abrir a imagem) e confirmar visualmente que o layout bate certo com o HTML original — cortes, overflow e fundos que desapareceram só se apanham a olho.
+**a2) Contagem sem browser nem binários externos (fallback mais fiável):** quando o `mdls` devolve `(null)` e o poppler não está instalado, contar `/Type /Page` nos próprios bytes do PDF:
+```bash
+python3 -c "import re,sys;d=open('out.pdf','rb').read();print(len(re.findall(rb'/Type\s*/Page[^s]',d)))"
+```
+
+**a3) Calibrar a altura por sweep (sem Playwright):** em vez de medir `scrollHeight` no browser, gerar 4-5 PDFs para o scratchpad com alturas candidatas de `@page` e ficar com a **menor que dá 1 página**. ~5 s no total e não depende de browser nenhum — foi o caminho que funcionou numa sessão em que o Playwright estava indisponível (`Browser is already in use for ~/Library/Caches/ms-playwright-mcp/mcp-chrome-<id>, use --isolated`; acontece sempre que outra sessão tem o browser MCP aberto).
+
+**b) Re-leitura visual:** ler `out.pdf` com o `Read` tool (ou `pdftoppm out.pdf preview -png` + abrir a imagem) e confirmar visualmente que o layout bate certo com o HTML original — cortes, overflow e fundos que desapareceram só se apanham a olho. Em macOS, `qlmanage -t -s 1000 -o <dir> out.pdf` gera a miniatura sem instalar nada.
+
+---
+
+## 5. PDF a partir de HTML com imagens (tamanho do ficheiro)
+
+O `--print-to-pdf` do Chrome **re-embebe PNG/WebP como lossless** — um manual com fotografias sai gigante sem nada de errado no HTML. Receita validada: converter os rasters para **JPEG q80 antes do build**, reconstruir o HTML a apontar para eles, e só depois imprimir. Num manual real levou o PDF de **54,6 MB → 13,8 MB** sem diferença visível.
+
+Cuidados: padrões de tiling e regras `@media print` ficam **no fim da cascata** — uma imagem trocada por JPEG pode reaparecer via uma regra de print que continuava a apontar ao PNG antigo. Confirmar o peso final com `ls -lh out.pdf`, não assumir.
+
+---
+
+## 6. Documento longo self-contained (brand book, manual de normas, 50-80 págs)
+
+Padrão redescoberto de raiz em cada manual — fixá-lo poupa ~1h por projecto:
+- **Fragmentos por parte** + um `build.py` que concatena. O ficheiro final é grande demais para editar à mão, e a sidebar repetida em ~70 páginas é a maior fonte de drift.
+- O compilador **expande tokens**: `%%ASSET%%` (asset → data URI base64, para o HTML ficar self-contained) e `%%NAV%%` (navegação/TOC gerada uma vez, não copiada por página).
+- **Extrair assets de um PDF sem inkscape/pdf2svg:** render com `pypdfium2` + keying por distância de cor + trim da bbox.
+- **Remover uma página/parte:** grep pelo texto → apagar o bloco no fragmento-fonte → actualizar `PARTS`/TOC no `build.py` → rebuild → reverificar a contagem de páginas e a página vizinha.
+
+Composição da folha (acentos em maiúsculas que somem em barra escura, `min-height` da mancha, rodapé com `margin-top:auto`, `columns:N` que fragmenta) → ver "Print CSS traps" e "Fixed-page pieces" em `graphic-design.md`.
 
 ---
 
@@ -84,6 +111,8 @@ pdfinfo out.pdf | grep Pages                            # cross-platform (popple
 | Fundos/cores desaparecem no PDF | Chrome não imprime backgrounds por defeito | `-webkit-print-color-adjust: exact; print-color-adjust: exact` |
 | Fontes/imagens em falta no PDF | `file://` bloqueado ou assets ainda a carregar | Servir via `python3 -m http.server` + subir `--virtual-time-budget` |
 | Cabeçalho/rodapé com URL e data no PDF | Header/footer default do Chrome | `--no-pdf-header-footer` |
+| PDF de dezenas de MB com poucas fotos | Chrome re-embebe PNG/WebP como lossless | Converter rasters para JPEG q80 **antes** do build (§5) |
+| `Browser is already in use … use --isolated` | Outra sessão tem o browser MCP do Playwright aberto | Chrome headless directo (§3) + contagem/sweep sem browser (§4 a2/a3) |
 
 ---
 
@@ -93,5 +122,5 @@ pdfinfo out.pdf | grep Pages                            # cross-platform (popple
 - [ ] `print-color-adjust: exact` para preservar fundos/cores
 - [ ] HTML servido via `python3 -m http.server` (não `file://`)
 - [ ] Comando Chrome com `--no-pdf-header-footer` + `--virtual-time-budget`
-- [ ] `mdls -name kMDItemNumberOfPages out.pdf` = número esperado de páginas
+- [ ] Contagem de páginas = esperado (`mdls`/`pdfinfo`, ou o regex `/Type /Page` do §4 a2 quando não há binários)
 - [ ] PDF re-lido visualmente (Read tool / `pdftoppm`) e layout confirmado fiel ao HTML

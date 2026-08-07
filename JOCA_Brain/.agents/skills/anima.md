@@ -87,6 +87,15 @@ gsap.to(".card", { x: 100, opacity: 0, duration: 0.3 });
 gsap.to(".card", { left: 100, width: 200, duration: 0.3 });
 ```
 
+**`filter` a partir de `none` = preto.** O GSAP le `filter: none` como `brightness(0)`, nao `brightness(1)` — um `gsap.to(el, { filter: "brightness(1.2)" })` sobre um elemento sem `filter` inicial faz o elemento ficar PRETO e clarear (animacao invertida). Usar sempre `fromTo` com o estado inicial explicito:
+```js
+// ❌ arranca em brightness(0) → cartao fica preto
+gsap.to(".card", { filter: "brightness(1.2)" });
+
+// ✅ estado inicial explicito
+gsap.fromTo(".card", { filter: "brightness(1)" }, { filter: "brightness(1.2)" });
+```
+
 **will-change:** usar so em elementos que vao animar (nao globalmente):
 ```css
 .will-animate { will-change: transform, opacity; }
@@ -204,6 +213,15 @@ gsap.to(".hero-bg", {
   }
 });
 ```
+
+**`scrub: 1` (numero), nunca `scrub: true`** em scroll-scrub — `true` liga a animacao 1:1 ao scroll e a roda do rato da degraus; um numero (0.5–1.5) adiciona inercia e suaviza.
+
+#### Validar um scrub (Playwright / browser)
+
+Medir `getComputedStyle` logo a seguir a um `scrollTo` da valores errados — o scrub tem ~1 s de lag.
+1. Esperar **≥2 s** apos o `scrollTo` antes de medir.
+2. **Confirmar o viewport ANTES de medir** efeitos dependentes de media queries (sticky/stack desligam-se em mobile; medir um stack a 390px da numeros que nao fazem sentido).
+3. Para validar a CURVA do scrub, **screenshots em 3 pontos** sao mais fiaveis do que ler computed styles.
 
 ### Deep dives -> `./gsap/`
 

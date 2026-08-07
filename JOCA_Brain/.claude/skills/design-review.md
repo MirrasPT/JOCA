@@ -126,6 +126,13 @@ Quando o brief pede para **corrigir** (não só pontuar) numa UI viva/renderizá
 6. **Repetir** por severidade. 1 issue = 1 fix coeso (commit atómico se em repo).
 Sem capacidade de render (sem Playwright/sem URL) → NÃO inventar que "está corrigido": aplicar o fix, dizer que a prova visual ficou por confirmar, e pedir confirmação ao user.
 
+### Verification rules (what a green build never catches)
+
+- **Both themes, every time.** In a project with light + dark (inverted tokens), verify each visual change in **both** — grey slabs in light mode, mid-line clipping, box-inside-box and wrong hover states all shipped past a green `npm run build`. Grep fixed `rgba(0,0,0,…)`/`rgba(255,255,255,…)` as the signal of an overlay that doesn't invert.
+- **Recompute any contrast you cite.** Ratios copied from a brief/analysis/old manual are frequently wrong (a source claimed the turquoise failed at 2.1; measured it passes AA at 5.19 — the black half of the wordmark was the real failure). On multicolour wordmarks, compute **every** colour against the background, not just the accent.
+- **No browser? Say so, and use the static check.** Without a browser MCP: Chrome headless + the overflow diagnostic in `site-capture` §3 (`scrollWidth === clientWidth`, plus elements whose `getBoundingClientRect().right > clientWidth`). `--window-size=390` renders at ~485px, so right-side clipping in the shot is an artefact, not overflow. A review done by reading code only declares that in the **first** paragraph, not the last.
+- **Prove the fix live before editing the file** — `addStyleTag` the candidate CSS, re-measure, then write. See `site-capture` §7.
+
 ### Verdict
 
 - **Pass** — all 🟢 or minor 🟡 only.

@@ -1,7 +1,7 @@
 ---
 name: frontend
-description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, protótipo, prototype, ui, ux."
-triggers: website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, jogo grelha, jogo cartas react
+description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, protótipo, prototype, ui, ux. Also answers to the legacy name 'frontend-design' — the skills are flat in .claude/skills/, there is no skills/design/ tree."
+triggers: frontend-design, frontend design, website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, jogo grelha, jogo cartas react
 chain: design-review, tester-ui-ux
 ---
 # Frontend — Design Director + Router
@@ -121,6 +121,8 @@ Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(
 
 **Rule:** if removing an element loses no info, don't add it.
 
+**Ban nomeado — `border-left` de acento.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global do utilizador, já reincidente (Kromway, bolhas da Sala) — aplicar na escrita, não esperar pelo review.
+
 Tabela de bans absolutos + naming adblock-safe (tokens proibidos em nomes de ficheiros/componentes/ids/classes/`data-*`) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
 
 ### Anti-convergence (output diversity)
@@ -164,6 +166,16 @@ Se algum campo cair num default banido (Inter, roxo, beige+brass, center-hero, d
 Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
 
 Modo advisor completo (max 3 perguntas → brief → 3 direcções de 3 escolas → 3 demos HTML → escolha) → `Read(".claude/reference/frontend/design-craft.md")`.
+
+---
+
+## #11 Verificação (antes de dizer "feito")
+
+**Provar antes de editar (fixes de CSS/layout).** Não editar o ficheiro-fonte à primeira: reproduzir a página no viewport do problema (ex.: 390×844), medir com `getBoundingClientRect()` / `getComputedStyle()`, **injectar o fix candidato** (`page.addStyleTag`), re-medir, e só depois escrever no ficheiro. Poupa um ciclo editar→deploy→ver e produz números concretos (`left`/`right` vs largura do viewport, rácio de contraste medido em vez de estimado).
+
+**Gate de paridade de conteúdo** quando a tarefa é "reconstruir / reestilizar preservando o conteúdo": comparar contra o ficheiro-fonte, a cada build, (a) a contagem de palavras visíveis e (b) o conjunto de `src` de imagens. O QA de layout (sangramento, contraste, alvos de toque) dá tudo verde e não vê conteúdo em falta — num caso real desapareceram 9 descrições e 7 imagens sem nenhum alarme.
+
+**Depois de correcções de frontend em lote**, o passo seguinte por omissão é verificação em **browser real** (Playwright headless: screenshot de cada página + consola limpa). `node --check`, HTML bem aninhado e chavetas CSS equilibradas passam a 100% num site que pode estar inerte ao toque. O relatório declara sempre o que **não** foi verificado.
 
 ---
 

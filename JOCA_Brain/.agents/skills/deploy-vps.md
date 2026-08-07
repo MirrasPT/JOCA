@@ -127,6 +127,41 @@ Verificar:
 ssh -i ~/.ssh/<name>_id root@<ip> "ls /var/www/mysite"
 ```
 
+### 6b. rsync Mac/Windows → container Linux — nunca `-a` puro
+
+`rsync -a` corrido como root **carimba o uid da origem** no destino (501 do Mac). O `www-data`
+(uid 33) dentro do container deixa de conseguir escrever: o CMS lê bem e rebenta ao gravar no painel.
+Receita canónica:
+
+```bash
+rsync -rlptzD --no-owner --no-group --delete local/ root@<ip>:/dest/
+ssh root@<ip> "chown -R 33:33 /dest"          # 33 = www-data no container
+```
+**Obrigatório antes:** `rsync --dry-run --itemize-changes` — apanha cache local, `.DS_Store` e o que
+não devia viajar.
+
+> PHP-FPM corre como `www-data`, não como `caddy`. Ficheiros de configuração sensíveis (`.env`) levam
+> `chown www-data`, não `caddy`.
+
+### 6c. Verificação: derivar do HTML publicado
+
+Um deploy só está verificado quando **as dependências da página publicada** respondem 200 — não
+quando os ficheiros que enviaste respondem 200. Um script que esqueceu `form.css`/`form.js` deu tudo
+verde com o site partido em produção. Ver o bloco de verificação no agente `deploy-executor`.
+
+### 6d. Cloudflare guarda 404 em cache (~4 h)
+
+Negative caching: um ficheiro **novo** pedido uma vez antes de existir continua a devolver 404 do
+edge depois de aterrar. "Nomes novos ⇒ sem purge" é verdade para **substituições** e falso para
+**adições**. Acrescentaste ficheiros a um site atrás da CF → **purga obrigatória**.
+Sintoma: origin 200, público 404.
+
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/purge_cache" \
+  -H "Authorization: Bearer <CF_API_TOKEN>" -H "Content-Type: application/json" \
+  --data '{"purge_everything":true}'
+```
+
 ---
 
 ## 7. DNS via Cloudflare API

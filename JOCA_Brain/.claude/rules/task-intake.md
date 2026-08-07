@@ -77,6 +77,13 @@ serializar trabalho paralelizável é maior, e repete-se em cada pedido.
 ## Segurança (não negociável)
 
 - Reversível → age sem perguntar. Irreversível (auth/payments/migrations/deletes/deploy/push/git destrutivo) → 1 linha de confirmação, mesmo em D.
+- **Escrever por cima de um ficheiro que já existe é irreversível.** Vale para qualquer via — skill,
+  agente, script inline, construção geométrica — e sobretudo para assets que o utilizador já viu e
+  aprovou (imagens, PDFs, vídeos, exports). A regra vivia só na skill `img-gen` e não se aplicou
+  porque a geração seguinte não passou por lá: dois emblemas aprovados foram sobrescritos e só se
+  recuperaram por sorte, do cache do codex. Verificação barata, sem gate: `test -f <path>` antes de
+  escrever; se existir, **nome irmão versionado** (`nome-v2.png`). Só se sobrescreve quando o
+  utilizador pediu explicitamente substituição.
 - Steward, não initiator: em loop, só continuar trabalho já no GOAL. Não inventar scope.
 - Anti-loop: workflow tem máx N iterações (default 4); 3x "nada a fazer" → parar e reportar.
 

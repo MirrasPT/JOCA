@@ -195,6 +195,17 @@ Regras:
 
 ---
 
+## Flag de visibilidade (publicado/rascunho, activo/arquivado)
+
+Introduzir um estado de visibilidade numa entidade **não é uma mudança de CRUD** — é uma mudança de contrato em TODAS as rotas que tocam a tabela. O erro por omissão é filtrar o resource óbvio e esquecer as rotas laterais que fazem JOIN à mesma tabela.
+
+Checklist ao adicionar a flag:
+- `grep` por **todas** as rotas/queries que referenciam a tabela (não só o resource) e verificar cada `JOIN` — agregadores, destaques, feeds, sitemaps, pesquisa, contadores.
+- **Testar o lado anónimo** com uma chamada sem credenciais: o registo despublicado desaparece do output público?
+- Assertar por **contagem**, não por leitura de código (vivido: `/api/featured/:section` continuou a servir um projecto despublicado na homepage; só se apanhou porque os destaques anónimos passaram de 6 para 5).
+
+---
+
 ## Anti-patterns
 
 | Errado | Correcto |
@@ -211,6 +222,7 @@ Regras:
 | Rate limiting in-memory | Redis ou gateway |
 | Erros HTML em rotas API | `ForceJsonResponse` middleware |
 | Route group sem `throttle:api` | Incluir sempre |
+| Flag de visibilidade aplicada só ao resource | `grep` a tabela + filtrar todos os JOIN + teste anónimo por contagem |
 
 ---
 

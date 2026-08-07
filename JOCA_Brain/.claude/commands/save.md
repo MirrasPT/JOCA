@@ -22,6 +22,12 @@ Actualizar `memory/projects/<nome>.md`:
 | **Pendente** | Substituir com lista actual |
 | **Ultima sessao** | Data + resumo de 1 linha |
 
+**⚠ Sessões concorrentes — `Edit`, nunca `Write`.** Se houver outras sessões Claude activas
+(`ListAgents`), a memória do projecto tem mais do que um autor. **Reler o ficheiro imediatamente
+antes de escrever** e usar sempre `Edit` cirúrgico. Um `Write` teria apagado o trabalho da outra
+sessão — só se soube porque o `Edit` avisou "the file had been modified on disk". Entradas do mesmo
+dia numeram-se com sufixo `(a)`/`(b)`/`(c)` para não colidirem.
+
 **Sub-repos git (repo aninhado num sub-directório):** alguns projectos têm um repo git PRÓPRIO num subdir (ex.: `<JOCA_ROOT>` = repo `JOCA`, mas `JOCA_OS/` é repo local-only separado). Detectar sub-repos (`git -C <subdir> rev-parse --is-inside-work-tree`) e reportar pendências de commit POR repo no PASSO 8 — senão trabalho num repo aninhado fica por commitar e invisível no `git status` do repo-pai. (Fonte: JOCA 2026-06-25.)
 
 ---
@@ -41,13 +47,46 @@ Se o projecto tiver um `CLAUDE.md` com secção `### Conceito` (comum em jogos, 
 Escrever um snapshot machine-readable da sessão (adaptado de gstack context-save) — restaurado pelo `/resume`. Complementa a prosa do PASSO 2, não a substitui.
 
 ```bash
-printf '## Decisões desta sessão\n- <...>\n## Trabalho restante\n- <...>\n## Próxima acção\n- <...>' | node .claude/scripts/joca-checkpoint.mjs save --title "<slug-curto>" --status wip
+printf '## Decisões desta sessão\n- <...>\n## Trabalho restante\n- <...>\n## Próxima acção\n- <...>' | node .claude/scripts/joca-checkpoint.mjs save --slug <projecto> --title "<slug-curto>" --status wip
 ```
+⚠ **`--slug <projecto>`** com o nome do PASSO 1, não o default. Sem ele o slug vem do repo do cwd e
+sessões concorrentes misturam checkpoints na mesma pasta — o `latest` do `/resume` passa a devolver o
+de outro projecto.
 - Body = decisões desta sessão + trabalho restante + próxima acção (1 linha cada).
 - `--status done` se a tarefa ficou concluída; senão `wip`.
 - O helper escreve `memory/checkpoints/<slug>/<ts>.md` (frontmatter branch/ts/status), poda aos últimos 12, rename atómico.
 
 **Decisões/aprendizagens atómicas** desta sessão (não-óbvias, reutilizáveis) → registar no Brain log (reversível, sem perguntar) — sintaxe do `joca-brain decide/learn`: ver `/learn` (fonte única).
+
+---
+
+## PASSO 2d — Estado que vive fora do git
+
+Guardar a memória não serve de nada se o **conteúdo** do projecto ficar para trás. Antes de fechar:
+
+**a) Artefacto-ponte desactualizado.** Se o `CLAUDE.md` do projecto declarar um artefacto de estado
+exportável (padrão `snapshot/`, `*.sql`, `dump/`, `backup/`), comparar o `mtime` do artefacto com o do
+estado vivo (volume Docker, BD local, `wp-content/uploads`). Artefacto mais velho → **re-exportar**
+(reversível, sem perguntar) ou reportar como pendente **crítico** no PASSO 8.
+> Caso real: uma sessão fez trabalho de conteúdo numa BD dentro de um volume Docker e nunca
+> re-exportou o snapshot. 12 dias depois a outra máquina abriu um site silenciosamente velho — assets
+> de Julho na pasta, BD de Junho no volume — e custou uma migração staging→local completa.
+
+**b) Cloud-sync não é sincronização de projecto.** Uma pasta em MEGA/Drive **não** leva dotfiles
+(`.git`, `.env`, `.gitignore`) nem estado de runtime (volumes, BDs). "Está no MEGA, deve estar
+actualizado" é falso por omissão. Registar na memória do projecto **qual é o artefacto-ponte** entre
+máquinas.
+
+**c) A memória do Brain não viaja por git nesta instalação.** `memory/projects/`, `checkpoints/`,
+`learnings/`, `decisions/`, `feedback/` e `knowledge/` estão todos no `.gitignore` — e com razão, já
+que o `origin` daqui é o repo **público**. Commitar `memory/` não leva nada a lado nenhum. A travessia
+entre máquinas faz-se por **`/sync-brain`** (pasta-ponte). Se a sessão produziu decisões/checkpoints
+que a outra máquina precisa, dizê-lo no PASSO 8 como "correr `/sync-brain`".
+
+**d) Um aviso na documentação não é um fix.** Se estiveres a escrever "⚠ não corras X", regista-o
+também como **pendente de correcção** — um `⚠ não corras npm test` sobreviveu semanas a esconder um
+defeito de perda de dados (os testes faziam `fs.rmSync` sobre o `DATA_DIR` real e apagavam
+notificações e chat).
 
 ---
 
@@ -75,6 +114,13 @@ Passos do processo do projecto que foram corrigidos ou melhorados.
 - Contexto estrutural novo → append a `memory/projects/<nome>.md`
 
 **Regra:** so escrever o que a sessao trouxe de novo. Edicoes cirurgicas — nao reescrever ficheiros inteiros. Se nao ha nada relevante, saltar este passo silenciosamente.
+
+**Regra de validade — receitas e estado vivo.** Ao registar uma receita de comando (deploy, rsync,
+FTP, invocação de CLI), guardar **as condições em que foi validada**: nº de casos, tamanho/tipo de
+ficheiro, versão da ferramenta, data. Amostra única marca-se `validado 1×`. Uma receita de FTP
+generalizada a partir de um só ficheiro grande foi seguida como facto e partiu um site. O mesmo vale
+para afirmações sobre estado vivo (contagens, IDs, credenciais): datar e marcar como perecível — o
+`/resume` (2c) lista-as para revalidação.
 
 ---
 
@@ -109,32 +155,18 @@ Se nao ha nada relevante, nao criar ficheiro. Nunca perguntar ao utilizador.
 
 ---
 
-## PASSO 5 — Knowledge graphs (OBRIGATÓRIO — corre sempre)
-
-Graphify é a memória de código/conhecimento mais barata do JOCA: consultar `graph.json`/
-`GRAPH_REPORT.md` custa muito menos que reabrir ficheiros `.md` inteiros à procura de contexto.
-Este passo já não é opcional — corre em TODO `/save`, do projecto e do próprio JOCA_Brain.
+## PASSO 5 — Knowledge graphs (opcional, nao bloqueante)
 
 ```bash
 # Interpretador: Windows usa `python` (o `python3` e o stub vazio da Store); macOS/Linux usam `python3`.
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
-if [ -z "${PY:-}" ]; then
-  echo "⚠ graphify não instalado — corre 'uv tool install graphifyy' (ver memory/tools/clis.md)."
-else
-  # Código do projecto
-  "$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))"
-  "$PY" .claude/scripts/graphify-deps.py "<path-projecto>"
-  # Conhecimento do próprio JOCA_Brain (skills/agents/commands/projects) — sempre, não só quando o
-  # Brain muda: mantém o grafo fresco para o /resume e o /map-joca seguintes.
-  node .claude/scripts/joca-graph.mjs
-fi
+# Tentar rebuild — se graphify nao disponivel, saltar silenciosamente
+"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))" 2>/dev/null || true
+"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || true
 ```
 
-Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos (ver `/resume`).
-Nota: `.graphifyignore` já exclui só infra (`node_modules/`, `vendor/`, `dist/`, lockfiles, cache,
-`.git/`) — **nunca excluir por tipo de conteúdo**: imagens, media, texto (com conteúdo) e código
-entram todos. Se `graphify` não estiver instalado, isto **não se salta em silêncio** — o PASSO 8
-tem de reportar o aviso, para a falta ficar visível e não se repetir sessão após sessão.
+Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos.
+Nota: o scan exclui `vendor/`, `node_modules/`, `storage/`, `out/`, `public/` por omissao (evitar dezenas de milhar de nos de ruido).
 
 ---
 
@@ -186,7 +218,7 @@ Feedback JOCA:
   — Sem gaps detectados
 
 Extras:
-  ✓ Graphs actualizados (projecto + JOCA_Brain)  |  ⚠ graphify não instalado — corre `uv tool install graphifyy`
+  [✓ Graphs actualizados]
   [✓ Bridges recompilados]
   [✓ SKILL_INDEX + INDEX.md realinhados | joca-doctor limpo]
   [✓ ~/CLAUDE.md actualizado]

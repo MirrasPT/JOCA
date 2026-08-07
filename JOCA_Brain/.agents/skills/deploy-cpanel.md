@@ -8,6 +8,11 @@ chain: deploy-executor
 
 Deploy Laravel/PHP e Node.js (Passenger) em cPanel. Workarounds para shared hosting.
 
+> **WordPress?** Esta skill cobre codigo. Levar **conteudo** WP (BD+uploads) de local/Docker para
+> shared hosting sem SSH/WP-CLI tem pipeline propria (All-in-One WP Migration + FTP do `.wpress` +
+> restore pela wp-admin + caches) → `Read(".claude/skills/wordpress-router.md")`, seccao "Migracao de
+> conteudo". Nao improvisar: ja custou horas uma vez.
+
 ---
 
 ## Estrutura de pastas (CRITICO — ambos os stacks)

@@ -1,6 +1,6 @@
 # Workflows & Tooling
 
-Gotchas recorrentes em workflows multi-agente e ambiente local. Carregado em todas as sessões. Terso por design.
+Gotchas recorrentes em workflows multi-agente e ambiente local. **Carregado on-demand** (`Read()`), NÃO em todas as sessões — o pointer auto-carregado é `rules/workflows-and-tooling.md`. Terso por design.
 
 ---
 
@@ -20,12 +20,21 @@ Sub-agentes **não herdam** `soul.md` automaticamente — só recebem o brief. P
 - **`args` não-fiável** — dados passados em `args` podem chegar `undefined` ao script. Embeber dados como literais no script, ou validar `args` no arranque com erro claro antes de usar.
 - **Verify adversarial sem falsos positivos** — passar ao verificador o conjunto exacto de ficheiros/linhas DESTA tarefa (ou commitar por fase). Caso contrário o review estático sobre o `git diff` cumulativo marca trabalho anterior aprovado como "scope creep".
 - **Git destrutivo ≠ workflow** — sequência determinística não-paralelizável → usar script versionado. Workflow é bom para fan-out (auditoria, research, drafting).
+- **Gate de lint/testes: MEDIR o baseline, nunca hardcode.** Um gate com `LINT_BASE` constante fica desactualizado (vivido: constante 24, baseline real do HEAD 33 → gate `pass=false` e **3 iterações de reparação inúteis** a tentar baixar lint que já era baseline). Medir no arranque do workflow: `git stash` → `npm run lint` → contar → `git stash pop`; a regressão é `atual − baseline_medido`.
+- **Agente que falha só o StructuredOutput ≠ agente que morreu.** Sintoma: o stream devolve `null` ("retry cap (5) exceeded — 5 failed calls with no valid output") mas os ficheiros estão TODOS escritos e a compilar (vivido: 249+418 linhas + 4 endpoints dados como perdidos). Antes de re-correr o stream, **verificar o disco** (`git status`/`ls` dos ficheiros esperados). Mitigar na origem: schemas de retorno com poucos `required`, e pedir o resumo estruturado antes do trabalho pesado saturar o contexto.
+- **Revisão por leitura ≠ verificação em execução.** Revisores adversariais podem dar 9/10 e mesmo assim deixar passar defeitos triviais que só um smoke test apanha (vivido: assets em falta + coluna sem privilégio `ALTER`, ambos invisíveis à leitura). Pipeline que acaba em deploy leva uma fase **pós-deploy** de verificação end-to-end (HTTP real + estado da BD), separada da revisão de código.
 - **Upgrades grandes do próprio JOCA = 2 fases** (padrão validado): Fase 1 = workflow de análise → escreve plano + drafts em staging (`_improvement/`), não toca canónicos. Fase 2 = aplicação: ficheiros independentes (skills/agentes/hooks novos) via workflow paralelo; ficheiros canónicos partilhados (`CLAUDE.md`, `soul.md`, `settings.json`) via main loop sequencial (anti-clobber). Verificar hooks com `node` antes de confiar.
 
 ## Ambiente local (Windows-first)
 
 O ambiente primário é **Windows**. Ao escrever scripts/skills que tocam credenciais, binários ou paths:
-- **`python`, não `python3`** — `python3` é o stub vazio da Microsoft Store (`ModuleNotFoundError`). Detectar: `for PY in python python3; do command -v "$PY" && "$PY" -c "import <mod>" && break; done`.
+- **`python`, não `python3`** — no **PowerShell/cmd** o `python3` é o stub vazio da Microsoft Store (`ModuleNotFoundError`). ⚠ **No Git Bash o `python3` pode resolver para um Python real** — o aviso não é universal, e tratá-lo como universal gera falso alarme (vivido: previsto que a purga Cloudflare de um `deploy-staging.sh` ia falhar por chamar `python3`; correu bem, `purge success: True`). Detectar em vez de assumir: `for PY in python python3; do command -v "$PY" && "$PY" -c "import <mod>" && break; done`.
+- **O `/tmp` do Git Bash NÃO é visível ao Python nativo do Windows.** Um script misto Bash→`/tmp`→Python vê ficheiros inexistentes, devolve listas vazias e **trunca o destino** ao reescrever (vivido: `runs.jsonl` truncado; só se salvou porque os blobs ainda estavam no índice do git). Usar um path que ambos vêem (o scratchpad da sessão). E ao reescrever um ficheiro a partir de dados lidos, **falhar** em vez de escrever vazio quando a leitura devolve 0 registos.
+- **`tar` com drive-letter → `--force-local`.** No Git Bash, `tar czf x.tgz C:/algo` trata `C:` como host remoto (rmt) → `Cannot connect to C: resolve failed` / `Broken pipe`. Usar `tar --force-local`.
+- **Não fazer `find` recursivo em drives de cloud sync** (`G:` Google Drive File Stream, `D:\Mega`) — o File Stream materializa cada pasta ao percorrê-la e o `find -iname`/`-mtime` estoura o timeout de 2 min do Bash (vivido 2×, uma delas ficou em background a correr para nada). Navegar por paths conhecidos com `ls` direccionado.
+- **Porta a responder ≠ o teu processo.** Depois de reiniciar um servidor, confirmar que o PID em LISTEN é o **novo** (`Get-NetTCPConnection -LocalPort <p> -State Listen | Select OwningProcess` + contar instâncias) — senão testa-se o build **anterior** sem dar por isso (vivido, com `EADDRINUSE` repetido a mascarar a instância velha). Complementa o double-bind IPv4+IPv6 abaixo.
+- **Caracteres de controlo literais partem Write/Edit/Workflow.** Escrever os bytes reais numa classe de regex (`[\x00-\x20\x7f]`) torna o ficheiro "binário": o `grep` recusa mostrar, o `Edit` deixa de casar strings, e o validador do Workflow rejeita o script. Preferir comparação por code point. ⚠ **CRLF num script de Workflow dá o MESMO erro enganador** ("control characters") — verificar line endings antes de caçar regex.
+- **Rasterizar PDF sem poppler** — o Read tool falha em PDF sem poppler e `fitz`/`poppler` não estão instalados nesta máquina. Usar `pypdfium2`: `pdf[i].render(scale=…).to_pil()`.
 - **Credenciais** — Claude em `~/.claude/.credentials.json` (não Keychain macOS); Codex sem binário `sqlite3` → usar `node:sqlite`.
 - **Detecção de processo local** — filtrar `Name='python.exe'` + `CommandLine -like '*main.py*'`. NUNCA incluir o nome único da app no filtro `Win32_Process` — a própria pwsh que corre a query contém essa string (falso positivo "loop de reinício").
 - **Matar servidores por porta** — `taskkill /F /T /PID` (o `/T` mata a árvore; vite/esbuild children seguram a porta).
@@ -41,6 +50,17 @@ O ambiente primário é **Windows**. Ao escrever scripts/skills que tocam creden
 
 - **PHP/Laravel em Windows nativo — Octane impossível, `composer install` corrompe `vendor/` silenciosamente.** (1) **Octane** (qualquer runtime, incl. FrankenPHP/RoadRunner) **NÃO corre em Windows nativo** — exige `pcntl`/`posix` (sinais POSIX inexistentes); FrankenPHP só tem binários Linux/macOS (instalador recusa Windows). Persistent-worker/multi-thread em Windows → **WSL2 ou Docker**; senão `php artisan serve` + opcache é o tecto (single-thread, pedidos serializam). (2) **`composer install` falha a criar symlinks** de alguns pacotes sem Developer Mode/admin → `vendor/` inconsistente. Com **opcache ON** isso manifesta-se como **corrupção da tabela de funções** (ex.: `mb_convert_encoding(...)` despacha para `intltz_create_default()` → `ArgumentCountError` no boot, **mascarado** por "Class config does not exist"). Diagnosticar com opcache OFF (`php -d opcache.enable=0 -d opcache.enable_cli=0`); reparar `rm -rf vendor && composer install --no-scripts --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix` + `php -d opcache.enable_cli=0 artisan package:discover`. (3) **PHP 8.4 portátil**: JIT do opcache **segfalha** em Windows (exit 5) → manter `opcache.jit=disable`. Exemplo de ambiente (PHP portátil em Windows): `<YOUR_PHP_PATH>`. (Fonte: projecto SaaS Laravel, 2026-06-26.)
 - **Escrita em massa numa BD externa com nomes duplicados — validar a real por metadados primeiro.** Bases/data-sources com o mesmo nome (ex.: cópia de backup "Save DD-MM" criada hoje + a real) são fáceis de confundir → editar a errada. Antes de escrita em massa, **distinguir por metadados** (`created_time` / `database_parent` / `id`) e **confirmar 1 linha** qual é a real. (Fonte: Notion `ntn` 2026-06-27 — editou a data source de backup em vez da real.)
+
+## Line endings — falsos diffs entre máquinas e servidor
+
+Trabalho em 2 máquinas (Windows + macOS) com deploys a partir de ambas → CRLF vs LF produz divergências que **não são mudanças**.
+- Ao sincronizar código de um servidor (sem `.git` lá), o `md5` marca ficheiros como diferentes só por line endings (vivido: 25 ficheiros "diferentes", **7 com mudanças reais**, 18 só CRLF). Diffar com `tr -d '\r'` **antes** de concluir divergência; ao trazer ficheiros do servidor, converter para o estilo do ficheiro local antes de escrever.
+- Ao comparar **builds** do mesmo commit entre plataformas: normalizar line endings primeiro. Se os chunks de **vendor** batem e os de **app** não, suspeitar de CRLF (`?raw` + `core.autocrlf`), não de código.
+- Corolário de sondagem: em bundles **minificados**, a ausência de uma string NÃO prova ausência de código (comentários são removidos no build, identificadores são minificados). Toda a sonda precisa de um **controlo positivo** — "isto detecta algo que eu SEI que lá está?". Sondas HTTP também precisam de controlo negativo (o Caddy devolve 403 a tudo em `config/`, exista ou não o ficheiro). O sinal fiável é rebuildar o commit e comparar hashes.
+
+## macOS — gotchas
+
+- **`~/.Trash` é bloqueado pelo TCC.** `ls`/`find`/`stat` directos no Trash a partir do Terminal dão `Operation not permitted`, mesmo com o `trash` CLI a conseguir escrever lá. Para esvaziar sem exigir Full Disk Access: `osascript -e 'tell application "Finder" to empty trash'` (passa pela API do Finder, sem prompt).
 
 ## Plugins Claude Code
 
@@ -59,6 +79,17 @@ Fallback canónico quando playwright não está disponível:
 2. Verificação programática: `tsc --noEmit` + output do bundler (vite/next build) como proxy.
 3. Confirmação visual: pedir ao user "podes confirmar que X aparece no browser?".
 Nunca reportar "não consigo verificar" sem primeiro tentar o fallback. Não redirigir para sub-agente se o sub-agente também não tem playwright.
+
+### Outputs do MCP caem no JOCA_Brain (produção read-only)
+O MCP playwright só escreve dentro dos **allowed roots** = cwd do servidor. Sob JOCA_OS o cwd é sempre `JOCA_Brain` → `.playwright-mcp/` e os `*.png` nascem **dentro da produção read-only**, e um `filename` absoluto para o scratchpad dá `File access denied` / "outside allowed roots". Padrão obrigatório: capturar → `Read` imediato → **mover para o scratchpad e apagar** `JOCA_Brain/.playwright-mcp/` + `*.png` da raiz antes de fechar a sessão.
+
+### Recovery de lock do browser
+`Browser is already in use for …ms-playwright-mcp… use --isolated` = instância stale de sessão anterior a segurar o profile lock (bloqueia `navigate`/`resize`). Fix: matar a árvore de processos chrome com `ms-playwright-mcp` na command line (macOS: `pkill -f ms-playwright-mcp`) + remover `SingletonLock` do profile; ou arrancar o servidor MCP com `--isolated`.
+
+### QA visual — o que engana
+- **`page.screenshot({fullPage:true})` desalinha elementos `position:fixed`** — aparecem a meio da página e simulam um defeito de layout que não existe. Confirmar qualquer suspeita de sobreposição com uma captura de **viewport normal** antes de a tratar como defeito.
+- **`img.decode()` numa imagem `loading="lazy"` ainda não pedida NUNCA resolve** e pendura o script indefinidamente. Pôr `loading="eager"` antes de percorrer a página e correr `decode()` contra um timeout.
+- **Scroll-scrub (GSAP ScrollTrigger):** medir `getComputedStyle` logo após `scrollTo` dá valores errados (o scrub tem ~1s de lag) → esperar ≥2s. E **confirmar o viewport ANTES de medir** efeitos dependentes de media query (sticky/stack desligam-se em mobile e a geometria fica sem sentido — vivido a medir um stack a 390px). Para validar a **curva** de um scrub, 3 screenshots em 3 pontos são mais fiáveis que computed style.
 
 ## Vite no HOST, não no container Sail (Windows)
 
@@ -110,3 +141,5 @@ git config --global url."https://github.com/".insteadOf "git@github.com:"
 ## Asset readiness
 
 Um plano que depende de **propriedades visuais** de assets (vídeo sem watermark, hook ao seg. 0, imagem limpa) não é verificável pelo nome do ficheiro. Antes de declarar "pronto a publicar", amostrar frames via `gemini-brain`/`watch`. Ficheiro existir ≠ ficheiro pronto.
+
+**Correr no ARRANQUE, não no fim.** Em trabalho de branding/co-branding, montar a tabela `marca · formato · vector? · transparente? · utilizável para lockup?` antes de planear. Vivido: material de marca de terceiro só existia em **JPEG com fundo sólido** — bloqueante para qualquer lockup — e só se detectou no fim do inventário.

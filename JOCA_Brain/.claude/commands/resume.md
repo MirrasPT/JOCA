@@ -18,7 +18,22 @@ grep -rIl "^directorio: *<path-alvo>$" memory/projects/*.md   # match EXACTO do 
 3. **Path-alvo é pasta-MÃE de entradas** (nenhum match exacto, mas há entradas cujo `directorio` começa por `<path-alvo>`) → listar todas e apresentar a umbrella se existir, não uma só sub-entrada.
 4. **Path-alvo é SUBDIR de uma entrada** → carregar essa entrada-mãe.
 
-**Prioridade 2 — por NOME** (fallback, só se a Prioridade 1 não deu nada — ex.: o `directorio:` na memória está desactualizado/movido, ou a pasta não bate certo com nenhum `directorio`): fazer match do **basename do path-alvo** (normalizado: minúsculas, `_`/espaços→`-`) contra o `name:`/ficheiro das entradas em `memory/projects/`. Se casar, carregar essa entrada **e avisar** que se resolveu por nome porque o `directorio:` não bateu — sugerir corrigir o `directorio:` da entrada para o path real.
+**`directorio:` aceita LISTA.** Um projecto pode viver legitimamente em mais do que um path — este
+utilizador alterna entre 2 máquinas (macOS + Windows) e vários projectos existem nas duas. O
+frontmatter suporta as duas formas:
+
+```yaml
+directorio: /Users/<user>/Projectos/meu-projecto                  # 1 path
+directorio: [/Users/<user>/Projectos/meu-projecto, C:\Users\<user>\Projetos\meu-projecto]
+```
+
+A Prioridade 1 casa contra **qualquer** elemento da lista. Só se nenhum casar é que se desce ao
+fallback por nome — e é aí que o aviso faz sentido.
+
+**Prioridade 2 — por NOME** (fallback, só se a Prioridade 1 não deu nada — ex.: o `directorio:` na memória está desactualizado/movido, ou a pasta não bate certo com nenhum `directorio`): fazer match do **basename do path-alvo** (normalizado: minúsculas, `_`/espaços→`-`) contra o `name:`/ficheiro das entradas em `memory/projects/`. Se casar, carregar essa entrada **e avisar** que se resolveu por nome porque o `directorio:` não bateu.
+⚠ **O conselho de correcção depende do caso:** se o path-alvo é uma *segunda máquina* legítima →
+**acrescentar** o path à lista `directorio:`, nunca substituir (substituir parte a resolução na
+outra máquina). Só sugerir substituição quando o path antigo já não existe.
 
 > Exemplo (por caminho): `/resume <YOUR_PROJECTS_DIR>\MeuProjecto` → umbrella `meu-projecto-geral.md` (`directorio` == pasta-mãe). `/resume <YOUR_PROJECTS_DIR>\MeuProjecto\2026_Nova_Plataforma` → `meu-projecto.md` (`directorio` == subdir da plataforma). Nunca o inverso.
 
@@ -39,9 +54,14 @@ Ler a **entrada resolvida no passo 1** — estado actual, decisões tomadas, pen
 
 Antes da prosa, carregar o estado estruturado (adaptado de gstack context-restore):
 ```bash
-node .claude/scripts/joca-checkpoint.mjs latest   # último snapshot: decisões/restante/próxima acção
-node .claude/scripts/joca-brain.mjs active        # decisões activas do projecto (event-sourced)
+node .claude/scripts/joca-checkpoint.mjs latest --slug <projecto>  # snapshot: decisões/restante/próxima acção
+node .claude/scripts/joca-brain.mjs active                          # decisões activas (event-sourced)
 ```
+⚠ **`--slug <projecto>` é obrigatório, com o nome resolvido no passo 1.** Sem ele o script deriva o
+slug do **repo do cwd**, e duas sessões concorrentes escrevem na mesma pasta: já aconteceu o `latest`
+devolver o checkpoint de outro projecto (guardei o do rate-it-plus às 20:54, outra sessão gravou às
+21:29, e a minha "próxima acção" ficou invisível ao `/resume`). O ficheiro não se perde — deixa é de
+ser encontrado pelo caminho que o `/resume` usa.
 - O checkpoint dá a **próxima acção** exacta da sessão anterior (restauro cross-branch).
 - As decisões activas do Brain são a fonte de verdade atómica (sobre a prosa, em caso de conflito).
 - Nota: o hook `session-intake` já injecta o recall (decisões+aprendizagens) no arranque; este passo é o restauro explícito + próxima-acção dentro do `/resume`.
@@ -60,6 +80,38 @@ git log --oneline --all | head -10  # histórico de TODAS as branches
 - Se houver commits com mensagens que contradizem o "Estado actual" (ex.: memória diz "backend pendente" mas há commits "feat: complete backend"): alertar e re-inferir estado a partir do git
 
 Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
+
+#### 2c. Afirmações perecíveis — a memória é pista, não facto
+
+O drift do 2b compara memória ↔ **git**. Não cobre memória ↔ **estado vivo** (BD, infra, contas), que
+apodrece em silêncio e é onde mora o risco real:
+
+- A memória dizia "prod tem 2 users (id2 Mirras, id14 Joana)". Realidade: **4 users, com IDs
+  diferentes**, um deles pessoa real registada depois do go-live. Copiar dados staging→prod por
+  `user_id` a partir dessa nota teria escrito por cima de um utilizador real.
+- A memória e dois docs anunciavam há meses um admin do Bigorna que **não existia**: a BD tinha 0
+  users/0 roles. O `curl /admin/login → 200` reforçava a ilusão — a porta estava lá, faltava a chave.
+- Uma receita de FTP documentada como *a* solução tinha sido validada **uma vez, com um ficheiro**.
+  Falhou nos 2 maiores e partiu o site.
+
+Marcar como **perecível** qualquer afirmação sobre estado vivo (contagens, IDs, credenciais, infra,
+receitas de comando) — datada e com as condições em que foi validada ("validado 1×, ficheiro de
+600 MB"). No `/resume`, listá-las como *a revalidar*, não como facto.
+
+**Regra dura: antes de qualquer escrita em produção derivada da memória, revalidar contra a fonte.**
+
+#### 2d. Pasta local vazia — o projecto vive noutra máquina
+
+Se o path-alvo existe mas está **vazio ou sem `.git`**, e a memória tem o projecto com repo remoto:
+não é um projecto novo, é esta máquina que ainda não o tem. Fluxo (repetível — 2 máquinas alternadas):
+
+1. `gh repo clone <owner>/<repo> <path>` — para repos **privados** usar o `gh`; o `git clone https`
+   pendura à espera de credenciais.
+2. Listar o que é **gitignored e portanto não veio**: `.env`, base de dados, `uploads/`, `storage/`.
+   Ir buscá-los à origem real (VPS/cPanel/backup) — a memória do projecto diz onde.
+3. Instalar dependências (`npm install` / `composer install`).
+4. **Verificar coerência BD ↔ disco**: registos que apontem para ficheiros que não existem localmente.
+5. Só depois arrancar. Portas: respeitar as hard rules do projecto.
 
 Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
 

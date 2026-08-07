@@ -65,6 +65,15 @@ grep -o '<svg[^>]*>.*</svg>' /tmp/homepage.html | head -5
 
 **Verificar:** SVG abre sem erros · tem versão escura e clara · background transparente
 
+#### 2.1b Asset readiness (fazer no ARRANQUE, não no fim)
+
+Para **cada** marca envolvida (incluindo as de terceiros num co-branding), preencher a tabela antes de desenhar seja o que for:
+
+| Marca | Formato | Vector? | Transparente? | Serve para lockup? |
+|---|---|---|---|---|
+
+Numa sessão o material de uma das marcas só existia em **JPEG com fundo sólido** — bloqueante para qualquer lockup — e isso só apareceu no fecho do inventário, depois do trabalho já estar desenhado à volta dele.
+
 #### 2.2 Produto / UI (se aplicável)
 
 - **Produto físico**: imagem hero oficial (≥2000px), 2-3 ângulos
@@ -265,7 +274,10 @@ Gerar `BRAND.md` com asset paths, checksums e data de actualização para rastre
 - **OKLCH sempre**: converter hex → OKLCH antes de documentar
 - **Asset path real**: listar só assets existentes no directório
 - **Contraste verificado**: calcular rácio text/background antes de documentar
+- **Contraste citado noutra fonte recalcula-se**: um rácio que vem de uma análise, briefing ou manual antigo é uma alegação, não um facto. Numa sessão a `ANALISE.md` do cliente dizia que o problema do lockup era "o turquesa sobre o verde"; medido, o turquesa passa AA (5,19) e quem falhava era o preto da outra metade do wordmark (2,12) — a premissa errada teria ido inteira para o manual.
+- **Wordmark multicolor**: calcular **cada** cor do wordmark contra o fundo, não só a cor de acento
 - **Anti-references obrigatórias**: sem anti-refs o sistema não tem guardrails
+- **Aviso de marca registada na entrega**: ao propor um logótipo/nome para uso comercial, avisar o utilizador de que falta a verificação INPI/EUIPO. Não temos acesso a essas bases de dados — é aviso, não tarefa executável.
 
 ---
 

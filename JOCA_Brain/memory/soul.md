@@ -47,6 +47,8 @@ Max 1 confirmation per flow. Show visual output when possible.
 
 ## Hard Limits
 - Never fabricate paths, APIs, capabilities, or facts
+- **Design tokens count as facts.** Colours, fonts, spacings, brand values — sem token medido (do alvo, via `getComputedStyle`) ou documentado (`DESIGN.md`/brand-guidelines) → `TODO: token em falta`, nunca um valor plausível. Falha igual à de uma credencial inventada: passa o build, só está errada.
+- **Escrever por cima de um ficheiro existente é irreversível** — `test -f` antes; se existir, nome irmão versionado. Vale para qualquer via, incluindo construção inline (ver `rules/task-intake.md`).
 - **Applies to spawned sub-agents.** When delegating (Agent/Workflow), the brief MUST carry this rule. A worker missing a credential/endpoint/key MUST (a) prefer a no-auth source, or (b) leave `TODO: credencial em falta` and report — NEVER invent a plausible key/URL. Fabricated values pass `tsc`/build and surface only at runtime.
 - Never add features that weren't requested
 - Never expose secrets or credentials

@@ -90,8 +90,29 @@ await browser.close();
 | Secção `min-height:80vh` gigante ou cortada | Janela de captura muito alta infla `vh` (viewport = altura da janela) | Viewport normal (1440×900) + `fullPage:true`, OU `element.screenshot({clip})`/boundingBox |
 | Imagens em branco/cinza | Lazy-load (`data-src`) nunca disparou fora do viewport visível | Scroll completo + `img.loading='eager'` + `img.src=dataset.src` + `waitForFunction naturalWidth>0` |
 | Faixas pretas / "NO IMAGE" na captura | `<video>` e placeholders quebrados renderizam preto em headless | Recortar a faixa; costurar topo+baixo com PIL (fundo neutro = costura invisível) |
-| `Error: Browser is already in use ... --isolated` | Chrome órfão de sessão anterior segura o profile | Matar PID órfão + `crashpad-handler`, OU script directo `playwright-core` com `executablePath` |
+| `Error: Browser is already in use ... --isolated` | Chrome órfão de sessão anterior (ou outra sessão) segura o lock do profile. Nem `browser_close` recupera — não há saída pela própria ferramenta | `pkill -f ms-playwright-mcp` (mata a árvore + `crashpad-handler`) e apagar o `SingletonLock` do profile; OU, mais fiável, script directo `playwright-core` com `executablePath` |
 | `claude-in-chrome`: "extension not connected" | Extensão desligada | Fallback: Chrome headless CLI (sem login) ou MCP `playwright` (com login) |
+| MCP diz "screenshot guardado" e não há ficheiro | `filename` relativo no `browser_take_screenshot` — sucesso falso | Caminho **absoluto** dentro da raiz permitida (`<repo>/.playwright-mcp/`); ler, mover para o scratchpad, apagar a pasta (o cwd do MCP é o `JOCA_Brain`, produção read-only) |
+| `browser_resize` não pega (pediste 390, `innerWidth` fica 1170) · `devicePixelRatio` 0.333, `innerWidth` 3× o pedido | Estado do browser MCP, não da página — persiste entre tabs | Não confiar no screenshot: medir por `browser_evaluate` (`getBoundingClientRect`, `gridTemplateColumns`, `scrollWidth`). Workarounds validados: pedir resize a 1/3 do valor; medir mobile dentro de um `<iframe>` com a largura alvo. Fiável: script `playwright-core` com `viewport` explícito |
+| `locator('#id').screenshot()` devolve outra secção da página | Bug de composição da captura (o DOM está certo — `getBoundingClientRect`/`getComputedStyle` confirmam) | Quando a imagem contradiz o DOM, acreditar no `evaluate()` |
+| `page.screenshot({fullPage:true})` põe elementos `position:fixed` a meio da página | Comportamento conhecido do fullPage | Confirmar qualquer suspeita de sobreposição com uma captura de viewport normal ANTES de a tratar como defeito |
+| Script pendura para sempre no `img.decode()` | `decode()` numa imagem `loading="lazy"` ainda não pedida nunca resolve | Pôr `loading='eager'` antes de percorrer a página + correr `decode()` contra um timeout |
+| `file://` bloqueado (MCP playwright e Chrome headless `--print-to-pdf`) | Protocolo recusado | Servir sempre por HTTP local: `python3 -m http.server` com `run_in_background: true` (numa chamada Bash normal o servidor morre no fim da chamada) + versionar assets (`site.css?v=N`), senão o `http.server` manda `Last-Modified` e o browser serve CSS/JS em cache após cada edição |
+
+### Chrome headless CLI: full-page pelo ficheiro-sombra
+
+`--headless=new --screenshot` só captura o **viewport**. Forçar `--window-size=1440,7000` para "apanhar tudo" rebenta qualquer hero com `min-height:100svh` (passa a 7000px) — a captura sai sem erro e com o layout errado.
+
+Padrão: copiar o HTML para `_shot.html` com um `<style>` extra a fixar o `min-height` dos heros e a forçar `.reveal{opacity:1}`, capturar esse ficheiro, apagar no fim.
+
+`--window-size=390` também não dá viewport de 390px (renderiza a ~485px, `clientWidth ≠ window`) — os cortes à direita são artefacto, não overflow. Diagnóstico fiável de overflow, sem MCP nenhum:
+
+```js
+document.documentElement.scrollWidth === document.documentElement.clientWidth  // sem overflow
+[...document.querySelectorAll('*')].filter(e => e.getBoundingClientRect().right > document.documentElement.clientWidth)
+```
+
+Nota: `python -m playwright` pode não estar instalado mesmo com o MCP playwright activo.
 
 ---
 
@@ -142,6 +163,24 @@ region.save('asset.webp', 'WEBP', quality=90)
 Regra dura: se a resolução medida ficar abaixo do necessário, reportar o gap e pedir o ficheiro original — não fazer upscale e apresentar como se fosse a fonte real.
 
 ---
+
+## 6. Prints multi-página (desktop + mobile)
+
+Auditoria visual de N páginas × 2 viewports feita chamada-a-chamada no main loop (navigate→resize→screenshot ×14) é lenta e frágil. Padrão: **um script**, login uma vez, loop de rotas por viewport.
+
+1. Extrair a lista de rotas do router (não escrever à mão).
+2. Um `browser.newContext({viewport})` por viewport; autenticar uma vez, reutilizar o context.
+3. Por rota: `goto` → esperar o reveal (ver §2) → `screenshot({fullPage:true})` para `<scratchpad>/shots/<viewport>/<rota>.png`.
+4. Contact-sheet por viewport (§4) para a leitura lado-a-lado.
+
+## 7. Provar antes de editar
+
+Antes de tocar no ficheiro-fonte, provar o fix na página viva — poupa o ciclo editar→deploy→ver e produz números concretos (item a item) para mostrar ao cliente:
+
+1. Reproduzir no viewport do defeito (ex.: 390×844).
+2. Medir: `getBoundingClientRect()` (`left`/`right` vs largura do viewport) e `getComputedStyle` (contraste medido, não estimado).
+3. `page.addStyleTag({ content: <css candidato> })`.
+4. Re-medir. Só se os números mudarem no sentido certo é que se escreve no ficheiro.
 
 ## Próximo passo (chain)
 

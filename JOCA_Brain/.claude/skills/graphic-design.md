@@ -283,6 +283,7 @@ TRÁS (dobrado):
 | Cores muito claras (< 15% opacidade) | Desaparecem na impressão |
 | Imagens raster < 300dpi | Pixelado em print |
 | Texto muito pequeno (< 7pt) | Ilegível impresso |
+| Reciclar o mesmo fundo por N peças de social | Rejeitado em produção: 4 fundos do cartaz espalhados por 28 visuais leu-se como "muito fraco". Default de evento: **1 fundo AI próprio por categoria** (gerado com o cartaz como ref via `-i`) e **carrossel** (capa + slides) para conteúdo denso, não um post cheio de texto |
 
 ### Print Typography
 
@@ -295,7 +296,19 @@ TRÁS (dobrado):
 
 ## PDF Export
 
-### Via Playwright (recommended)
+### Via Chrome headless (zero install — try this first)
+
+Same engine as Playwright, no `npm i`. On machines where neither playwright nor puppeteer was installed this was the pragmatic path:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless --disable-gpu --no-pdf-header-footer \
+  --print-to-pdf=out.pdf http://localhost:8000/design.html
+```
+
+`file://` is blocked in headless print — serve the folder over HTTP (`python3 -m http.server`) first. Playwright is also unavailable whenever another session has the MCP browser open (`Browser is already in use … use --isolated`), so do not build a delivery flow that assumes it.
+
+### Via Playwright
 
 ```js
 // export-print.mjs
@@ -345,6 +358,65 @@ Include in PDF output:
 
 ---
 
+## Fixed-page pieces (A4/A3 that must stay on ONE sheet)
+
+**Put the rhythm in CSS variables at the top** (`--line-h`, `--row-gap`, `--sec-gap`, `--pad`). On a single-page A4 every type or spacing change costs millimetres, and without the variables trimming a piece becomes a hunt through scattered values instead of a one-line edit. A session spent 6+ manual render→count-pages→trim cycles for exactly this reason.
+
+**Estimate the vertical cost BEFORE applying a type-scale change.** "Make the text bigger" has a mm price that only shows up after rendering. In one session the compensation the user proposed (shrinking `--row-gap`/`--sec-gap`) yielded ~6mm against ~17mm of growth, and the sheet only fit after taking space from peripheral slack. Say where the space is coming from; if there is none, present the real levers — `@page` margin, cut content, shrink the display — instead of silently compressing everything to illegibility.
+
+**Verify pagination as a gate, not by eye.** After every export, count pages and check the sheet size before showing it to anyone:
+
+```python
+import pypdfium2 as pdfium
+d = pdfium.PdfDocument("out.pdf")
+print(len(d), [(round(p.get_width()/72*25.4), round(p.get_height()/72*25.4)) for p in d])  # pages, mm
+```
+
+A browser-free fallback (no pypdfium2, no Playwright) is in `html-to-pdf.md`.
+
+### Print CSS traps (each of these cost real time)
+
+- `columns: N` inside a **fixed-height** container fragments to the next page instead of balancing. Use a grid or explicit columns.
+- Flex children **shrink** when content overflows — 1–2px rules silently vanish with no error. Pin them (`flex: 0 0 auto`) and check the render, not the code.
+- A footer anchored with `margin-top: auto` needs an explicit `min-height` inside `@media print`; with `min-height: auto` the flex column collapses and the footer floats up.
+- Accented capitals on a dark bar disappear without generous `line-height` — the diacritic gets clipped by the line box.
+
+### Stroke icons
+
+Balance of an SVG icon that mixes `stroke` paths with `fill` shapes is **not** predictable from reading the paths — it only appears when rasterized (this project hit the same wall twice: a squashed drop, then a solid bolt dominating its row). Always render at the real sizes of use (24 / 64 / 180 px) before accepting, and rebalance the `fill` shapes by hand whenever the stroke weight changes. Lucide (ISC) is the default base system.
+
+---
+
+## Poster composed by code (AI background + code-rendered lettering)
+
+Canonical sequence for the recurring print-poster flow (MICS, Montalegre, Espuma, Track Day, Acura):
+
+1. **AI background with no text** — say so in the prompt, and keep the top/bottom bands empty so the lettering has somewhere to land.
+2. **Upscale (ESRGAN) BEFORE compositing**, never after — the lettering must be drawn at final resolution.
+3. **Lettering at 300 dpi** over the upscaled art.
+4. **Check brand emblems at real size** — generated vehicles/objects keep recognisable manufacturer badges even when the prompt forbids them.
+5. **Export JPG + PDF.**
+
+Known gotchas: heavy display inks bleed past their glyph box; rotating a text block widens its bounding box; Pillow does not read `woff2` (convert to TTF/OTF first).
+
+**Cut-out alignment:** enlarging the cut-out from the centre works only with **one** subject near the centre. With several scattered subjects each one moves a different distance and stops sitting on its own copy — there, enlarge the whole canvas (background + cut-out together) and separate by depth instead (blur + darken the background).
+
+**Builders take `[source] [suffix]` arguments from day one.** Single-piece builders that always write the same filename destroy the previous version, so a "compare the two" request means rebuilding. With no arguments they write the canonical name.
+
+**Before showing variants side by side, assert they went through the same pipeline.** One comparison was invalidated because a variant skipped the ESRGAN step (568 KB vs 4.7 MB, ~88 dpi at A3) — the sharpness gap masked the drawing difference that was actually under evaluation. Comparing file sizes is a cheap test that catches it.
+
+---
+
+## Assets: readiness and provenance
+
+**Run an asset-readiness check at the START of any branding/print job**, not at the end. For each brand involved, a table: `format · vector? · transparent? · usable for a lockup?`. One session only discovered at inventory-close that the third-party mark existed solely as JPEG on a solid background — blocking for any co-branding lockup.
+
+**Assets in cloud-sync folders (Google Drive File Stream, `G:`, `D:\Mega`):** never run a recursive `find`/`find -iname` from the client root. File Stream materializes each folder as it is walked and the call hangs past the Bash timeout with no error (happened twice in one session). Navigate to known paths with targeted `ls` instead.
+
+**Also:** after structural edits to large files inside a sync folder, verify an invariant (section/page/ID count) before continuing — a whole brandbook section vanished mid-edit-sequence because the sync regressed the file between writes.
+
+---
+
 ## Brand-guidelines Integration
 
 If `DESIGN.md` exists:
@@ -368,5 +440,7 @@ If no `DESIGN.md`, run brand-guidelines skill first or request assets from user.
 - [ ] Images >= 300dpi (or SVG)
 - [ ] Logo in SVG or PNG >= 600px
 - [ ] PDF exported + validated in browser
+- [ ] Page count + page size in mm verified on the exported PDF (fixed-page pieces: must be exactly 1)
 - [ ] Max 3 fonts total
 - [ ] Clear visual hierarchy (1 dominant element)
+- [ ] **Literal content transcribed from an original:** spelling errors found in the source were listed to the user and a decision taken — never carry them silently into the client deliverable under "the instruction was literal"

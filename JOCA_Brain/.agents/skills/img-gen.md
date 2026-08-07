@@ -88,8 +88,16 @@ Generative edits drift — discipline prevents it:
 - Compositing: describe the interaction ("place subject from Image 2 into the scene of Image 1, matching its lighting").
 - Masks / `input_fidelity` / background-transparency → these are CLI-only params (`img-gen-openai`), never on a built-in tool.
 
+### Reference limits & CLI argument order (`codex -i`)
+- **Hard cap of 5 references.** More than that fails with `referenced_image_paths must contain at most 5 paths`. A brief that asked for 8 refs errored and the agent had to fall back to 5 mid-run. Pick the ≤5 most authoritative refs (the canonical scene, the real logo file) and drop the rest.
+- **Prompt first, `-i` last.** `-i` is variadic: `codex exec -i ref.png "PROMPT"` swallows the prompt as a second image and codex then hangs on "No prompt provided via stdin". Either put the prompt before the `-i` flags or pass it via stdin. This recurred across projects — it is a CLI gotcha, not a project detail.
+- **Mockup/application of an existing brand → always attach the real logo file via `-i`.** Describing the mark in words produces the wrong symbol (observed on a first Kromway pass; fix required a full regeneration). Add the brand's usage rules to the prompt too; never let the model draw a logo from a verbal description.
+- **Third-party brands as reference are a brand risk.** Passing real competitor/inspiration marks as refs makes the model drift visibly towards them — 3 of 6 outputs landed close to their reference *despite* an explicit "do not copy" in the prompt. "Do not copy" is not enough: compare each output against the refs and flag collisions to the user.
+- **Model-only rendering (`NO_CODE_OVERLAY`).** Given a scene + a logo ref, Codex sometimes decides on its own to write a Python/PIL `alpha_composite` script and paste the logo instead of generating it (caught in the `codex exec` log: `ink.putalpha(...)`; the user rejected the result as "still looks pasted on"). When the brief requires everything rendered by the model, put the prohibition in the prompt verbatim: *"Do NOT write or run any Python/PIL/ImageMagick script to composite text or logos onto the image — render everything through the native image generation/edit tool only."*
+
 ### Product shots with fixed layout/colour (refs)
 - **Use the official composite/scene photo as the single reference**, not loose individual components. Passing separate bottles/objects as refs makes gpt-image-2 invent composition and colour (observed: Rosé rendered coral/peach, capsule colour wrong, variants swapped). One canonical scene ref preserves identity.
+- **"Label-fix 2-ref" recipe** — fixing a typo on a label in an AI product photo without regenerating from scratch: img2img with **two** refs (`-i` base scene + `-i` the real product mockup) and the instruction "copy label EXACTLY from image 2, reproduce scene from image 1", plus the text spelled out line by line. Validated on vertical/front-facing bottles; fails on small text at extreme angles (e.g. a pouring bottle) — regenerate there.
 - **"Real glass vs mockup" 2nd pass:** first generation often looks like a flat mockup. A second pass emphasising "real photographed glass / physical product, natural reflections" corrects the plastic/flat look.
 
 ## 3. Agent invocation
@@ -112,6 +120,16 @@ If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel.
 
 **Validate** before iterating: subject, style, composition, text accuracy, invariants/avoid honored.
 
+**Format ≠ content.** `file out.png` saying "PNG image data" proves nothing about what is in it. Several agents accepted a downloaded asset on `file` alone and shipped the Chinese handset maker's logo instead of the Brazilian carrier Vivo — a perfectly valid PNG of the wrong company. Any asset fetched from search must be *looked at* before it is accepted.
+
+**Fan-out collision check.** After N parallel image generations, `md5` all outputs. Byte-identical files mean the copy step grabbed another session's PNG (`~/.codex/generated_images/` is shared) — regenerate, don't ship.
+
+**Deriving a family (variants of an approved asset):** every `codex exec` redraws the shape — angles, stroke widths and proportions change between generations, so asking the model for "the inverted one", "the mono" and "the favicon" gives N similar drawings, not one mark. Variants of an approved asset are derived by **processing** (Pillow: split by colour mask, recolour, crop, scale), never by regeneration. Regenerating is fine to *explore*; never to produce the final family.
+
+**Never trust the CLI's claim that it saved the file.** `codex exec` answers "Image saved at <dest>" while the PNG only ever exists in `~/.codex/generated_images/<session-id>/` — it does not write to network/UNC paths (`G:\…`) at all. Copy from the session folder, then prove the destination: `file dest.png` must say `PNG image data, WxH` (one run copied a redirected `.log` and wrote 6 KB of text with a `.png` extension). Do not redirect logs into the folder the copy step scans.
+
+**List the whole destination folder at the end, not just the expected names.** With `--dangerously-bypass-approvals-and-sandbox`, codex invents extra unrequested files on its own initiative (a whole fictional "social pack" with plausible names). Delete what was not asked for before reporting.
+
 **Save-path discipline (non-destructive):**
 - Never leave a project-referenced asset only at a CLI default temp path — move it into the project workspace.
 - Never overwrite an existing asset unless replacement is explicitly requested — write a sibling versioned name (`hero-v2.png`).
@@ -119,3 +137,7 @@ If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel.
 **Report:** taxonomy slug, CLI used, final saved path(s), final prompt, key parameters. If multiple images, list all paths.
 
 **Colour-faithful conversion:** for "convert without changing colours" (e.g. JPG→WEBP), check the source colour space first. **ffmpeg shifts CMYK** images (with ICC profile) — it treats the 4th channel as YUV/alpha. Use **Pillow** instead: `ImageCms.profileToProfile(img, src_icc, srgb, outputMode='RGB')` then save WEBP `lossless=True, exact=True`. ffmpeg is fine for RGB sources.
+
+**Never drop the alpha channel in a conversion pipeline.** `Image.open(x).convert("RGB")` discards transparency silently and bakes a black background. Check `im.mode` (`RGBA`/`LA`/`P` with `transparency`) *before* converting, and preserve the source format rather than flattening. Alarm signal: when several layers of the system "compensate" for the same anomaly (three design variants masking it with `mix-blend-mode`), suspect the asset, not the CSS.
+
+**Rasterizing SVG on macOS:** use `cairosvg` (respects the `viewBox`). `qlmanage -t` is the obvious native path and is wrong here — it forces a square thumbnail and crops horizontal lockups, which looks like a broken SVG when it isn't. Note: recent macOS system pip is PEP-668, so create a `.venv` in the project before installing.

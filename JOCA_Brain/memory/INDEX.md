@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
-Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-05:**
-**131 skills · 101 agentes (65 gerados + 36 curados) · 25 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 22 scripts.**
+Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-07:**
+**136 skills · 102 agentes (65 gerados + 37 curados) · 27 comandos · 6 rules (+`README.md` = 7 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -12,7 +12,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 
 ## Core
 - [soul.md](soul.md) — motor de personalidade: drives, filtros de decisão, estados, alinhamento com o utilizador. Base de todas as sessões (`@import` do `CLAUDE.md`).
-- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das 131 skills (nome/path/description/triggers). É isto que o matching por relevância lê; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
+- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das 136 skills (nome/path/description/triggers). É isto que o matching por relevância lê; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
 - [tools/mcps.md](tools/mcps.md) — servidores MCP ligados + setup do markitdown para `/know`.
 - [tools/clis.md](tools/clis.md) — inventário de CLIs externos (função + instalação macOS/Windows + auth interactiva).
 
@@ -24,9 +24,12 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `task-intake.md` | classifica qualquer pedido nas 4 vias (directa / skill / agente / fan-out). **Regra de paralelismo: ≥2 partes independentes → despachar em paralelo.** |
 | `pipelines.md` | catálogo de sequências nomeadas + o auto-runner que as corre a fundo |
 | `chaining.md` | convenção `chain:` — como um passo entrega ao seguinte sem o utilizador pedir |
-| `orchestration-patterns.md` | fan-out, cap 3-5 workers, agentes-escrevem-para-disco, steward-não-initiator. **Regra crítica: sub-agentes não fazem spawn de sub-agentes.** |
-| `testing.md` | doutrina de testes (funcional/performance/segurança) |
+| `orchestration-patterns.md` | fan-out, cap 3-5 workers, agentes-escrevem-para-disco, steward-não-initiator, **sessões paralelas**. **Regra crítica: sub-agentes não fazem spawn de sub-agentes.** |
 | `api-design.md` · `workflows-and-tooling.md` | **ponteiros** — o conteúdo extenso vive em `.claude/reference/` e carrega-se com `Read()` |
+
+> `testing.md` foi **removido** de `rules/` — era a skill `test-master` duplicada em contexto
+> permanente. A doutrina de testes vive em `.claude/skills/test-master.md` (on-demand); o
+> **gate estático vs gate de runtime** vive em `pipelines.md`.
 
 ## Reference (`.claude/reference/`) — NÃO auto-carregado, `Read()` on-demand
 `api-design.md` · `workflows-and-tooling.md` · `design-dataset.md` · `availability/` · `filament/` · `frontend/` · `reverb-realtime/` · `saas-patterns/` · `wp-performance-review/`
@@ -34,7 +37,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (26)
+## Commands (27)
 
 | Comando | Função |
 |---|---|
@@ -64,7 +67,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
 
-## Agents (101 = 65 gerados + 36 curados)
+## Agents (102 = 65 gerados + 37 curados)
 
 **65 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
 por `node .claude/scripts/skill-agents.mjs` a partir das próprias skills. Cada um lê a sua skill como
@@ -72,7 +75,7 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 ≥2 partes independentes → despachar um agente por parte, no mesmo turno.
 **Não se editam à mão** — edita-se a skill e regenera-se.
 
-**36 agentes curados:**
+**37 agentes curados:**
 
 | Grupo | Agentes |
 |---|---|
@@ -86,7 +89,7 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 
 ⚠ `automation-builder`, `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (133)
+## Skills (136)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o

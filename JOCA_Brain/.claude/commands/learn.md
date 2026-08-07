@@ -6,6 +6,15 @@ Adaptado do `learn`/`gstack-decision` do gstack. Local-first (markdown/JSONL no 
 
 CLI: `.claude/scripts/joca-brain.mjs` (slug = nome do repo git do cwd).
 
+⚠ **Sintaxe.** O texto vai **posicional**; `--text` também é aceite. `--help` por comando imprime a
+assinatura (`node .claude/scripts/joca-brain.mjs learn --help`). Formas válidas:
+`… learn "texto" [--tags a,b,c] [--slug X]` · `… decide "texto"` · `… learn --text "texto"`.
+
+⚠ **Passar sempre `--slug <projecto>`** quando o cwd não é o projecto do trabalho. O slug default é o
+repo git do cwd — a trabalhar noutro projecto a partir do `JOCA_Brain`, as decisões ficam carimbadas
+`(JOCA)` (aconteceu com decisões que eram do Livro de Elogios). `decide`, `learn`, `active`, `search`
+e `recall` aceitam todos `--slug`.
+
 ---
 
 ## Quando usar

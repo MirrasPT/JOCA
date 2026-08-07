@@ -133,6 +133,7 @@ Prize lists, news grids, contact info, gallery filters → register a PHP shortc
 - Elementor default kit forces headings to blue (`#6EC1E4`) + Roboto → override in CSS with your font/colour (`!important`, rules placed AFTER the kit); dark sections re-override to `#fff!important`.
 - `add_theme_support('woocommerce')`: Hello Elementor declares it — if you disable `hello_elementor_add_woocommerce_support`, re-add it in the child `after_setup_theme` or gallery zoom/lightbox/slider break.
 - Hero full-bleed under a fixed nav: `body:has(.bd-hero){padding-top:0!important}`.
+- **Container inside a flex header → size it with `max-width` in px.** Elementor containers carry a declared width that poisons `flex-basis`. Measured on a real HFE custom header, in order: `flex:0 0 auto` → 335px (inherits the parent width), `width:max-content` → collapses to 0, `min-width:max-content` → 852px (counts the positioned menu dropdown as content), `flex:0 0 content` → overflows. Only `max-width: <n>px` gave a predictable width. Don't burn 4 attempts rediscovering this.
 - **Cache-bust on every CSS change:** bump a `THEME_VERSION` constant used in the asset `?ver=` (clients see stale CSS otherwise — "still looks off" = cached). Per-page CSS auto-enqueued via glob in `functions.php` avoids clobber in parallel builds.
 
 ---

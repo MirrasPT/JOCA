@@ -1,6 +1,6 @@
 ---
 name: browser-automate
-description: "Automate a local canvas/litegraph web app via Playwright headless — load a workflow template, serialize the graph via page.evaluate, POST to the job API, poll history. MUST be invoked when the user says: Playwright canvas, automate ComfyUI, drive litegraph, page.evaluate workflow, headless browser automation, POST to prompt API, poll history endpoint, automate local web app."
+description: "Automate a local canvas/litegraph web app via Playwright headless — load a workflow template, serialize the graph via page.evaluate, POST to the job API, poll history. MUST be invoked when the user says: Playwright canvas, automate ComfyUI, drive litegraph, page.evaluate workflow, headless browser automation, POST to prompt API, poll history endpoint, automate local web app, QA de jogo Phaser, cliques no canvas não registam, trusted input, page.mouse.click."
 metadata:
   version: 1.0.0
   origin: local
@@ -296,8 +296,63 @@ The HTTP submit/poll pattern (job API + history/status endpoint) is standard acr
 
 ---
 
+## Visual QA in a Browser
+
+Ad-hoc verification of a real page/game (DOM or canvas). Canonical full pipeline (slicing, contact sheets, asset extraction) → `site-capture`.
+
+### Canvas games need TRUSTED input
+
+Phaser / PixiJS / Unity WebGL **ignore** synthetic `PointerEvent` dispatched via `canvas.dispatchEvent` — clicks never register, no error. Only CDP-generated events work:
+
+```js
+await page.mouse.click(x, y);   // trusted — works
+// canvas.dispatchEvent(new PointerEvent('pointerdown', …))  // silently ignored
+```
+
+**Before any `page.mouse.click` on a canvas, measure and scale the coordinates.** With `devicePixelRatio ≠ 1` (0.333 seen repeatedly on this setup) a click computed from 390×844 design coordinates lands outside the canvas:
+
+```js
+const box = await page.locator('canvas').boundingBox();
+const sx = box.width / DESIGN_W, sy = box.height / DESIGN_H;
+await page.mouse.click(box.x + designX * sx, box.y + designY * sy);
+```
+
+### Run the script from the scratchpad, not the project tree
+
+Repeated failure mode: a temp `.mjs` written inside the frontend folder (because `@playwright/test` only resolves from there), then left behind by agents. Put the script in the session scratchpad and resolve the package explicitly:
+
+```js
+import { createRequire } from 'node:module';   // ESM ignores NODE_PATH — createRequire is required
+import { execSync } from 'node:child_process';
+const require = createRequire(import.meta.url);
+// Resolver o caminho real na máquina, não o cravar:
+//   npm root -g  →  <prefix>/lib/node_modules
+const PW = process.env.PLAYWRIGHT_PKG
+  || `${execSync('npm root -g').toString().trim()}/@playwright/cli/node_modules/playwright`;
+const { chromium } = require(PW);
+const browser = await chromium.launch({
+  executablePath: process.env.CHROME_BIN
+    || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // macOS default
+});
+```
+
+(Alternative source: `ls -d ~/.npm/_npx/*/node_modules/playwright | head -1` — the npx cache hash is not stable, never hardcode it.)
+
+`page.evaluate(fn, arg)` takes **one** argument only — pass an object, not a positional list (`page.evaluate(fn, null, 2)` silently drops the extras).
+
+### Playwright MCP: output lands in the cwd
+
+The MCP writes `.playwright-mcp/` and screenshots into the **server's cwd**, which under JOCA_OS is `JOCA_Brain` — production, read-only by hard rule. Worse: a **relative** `filename` reports success and writes nothing readable. Always pass an **absolute** path inside the allowed root (`<repo>/.playwright-mcp/`), read the file, then move/delete it. Paths outside the root give `File access denied`.
+
+### Don't verify live while a tester agent runs
+
+Live Playwright verification from the main loop against the **same dev server** as a background `tester-ui-ux` makes the agent observe your own actions (creating/deleting a test record) as things appearing and vanishing — it reported that as a backend race / data-loss incident that did not exist. Either serialize, or state in the agent's brief that another session may be mutating shared state.
+
+---
+
 ## Related Skills
 
+- **site-capture** — canonical screenshot/visual-QA pipeline for real sites (DOM), incl. the launch fallback chain
 - **comfyui** — ComfyUI-specific skill (node types, ControlNet, workflows, model management)
 - **remotion** — programmatic video via React (different paradigm: code, not canvas)
 - **webhooks** — if the app exposes webhook callbacks instead of polling

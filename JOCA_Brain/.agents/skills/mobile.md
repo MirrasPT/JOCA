@@ -202,9 +202,58 @@ For PWA or native-feel web apps:
 
 ---
 
+## Medir a sério (não confiar em `scrollWidth`)
+
+### Sangramento horizontal — a rotina canónica
+
+`document.documentElement.scrollWidth - clientWidth` devolve **0 falso** quando há
+`overflow-x: clip|hidden` num ancestral: o conteúdo continua cortado, o número diz que está tudo bem.
+Escondeu um defeito real (heading e parágrafo cortados a 390px) durante **5 auditorias seguidas**.
+Medir elemento a elemento:
+
+```js
+// Correr a 390×844, com goto fresco
+[...document.querySelectorAll('h1,h2,h3,p,li,a,button,img,td')]
+  .map(el => ({ el, r: el.getBoundingClientRect() }))
+  .filter(({ el, r }) => {
+    if (!r.width || !r.height) return false;                       // invisível
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.position === 'fixed') return false;
+    return r.right > innerWidth + 1 || r.left < -1;                // sangra
+  })
+  .map(({ el, r }) => `${el.tagName}.${el.className} → right ${Math.round(r.right)} / vw ${innerWidth}`);
+```
+Lista vazia = passa. Qualquer entrada = defeito com o elemento nomeado, não "há scroll horizontal".
+
+### O clique chega? (`elementFromPoint`)
+
+Auditar `href` **não é** testar navegação. Um irmão do Elementor pintado por cima deixou 3 itens de
+menu com `href` correcto e mortos ao clique — reportado pelo cliente, em **duas sessões seguidas**,
+depois de rondas de auditoria ao HTML. Obrigatório em qualquer alteração a nav/header/overlay/modal:
+
+```js
+[...document.querySelectorAll('nav a, header a, [role="menuitem"], .overlay a')].map(a => {
+  const r = a.getBoundingClientRect();
+  const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  return { href: a.getAttribute('href'), ok: a.contains(hit) || hit === a, blocker: a.contains(hit) ? null : hit?.className };
+});
+```
+`ok: false` = link morto, e o `blocker` diz quem está por cima. **Carga limpa** (`goto` fresco), não
+uma página já mexida — o estado acumulado esconde o defeito.
+
+### Provar antes de editar
+
+Para validar um fix de CSS: injectar o candidato na página ao vivo (`addStyleTag`) e **re-medir** com
+os rects, antes de tocar no ficheiro-fonte. Poupa o ciclo editar→deploy→ver e produz números
+concretos (item a item, `left`/`right` vs largura do viewport) para mostrar ao cliente — em vez de
+"parece melhor". O mesmo padrão prova causas-raiz: contraste medido ~1:1, não estimado.
+
+---
+
 ## Checklist Mobile
 
-- [ ] 375px without horizontal scroll
+- [ ] 375px without horizontal scroll — **medido pela rotina de rects acima**, não por `scrollWidth`
+- [ ] Links de nav/header/overlay passam o teste `elementFromPoint`
 - [ ] Touch targets >= 44px
 - [ ] Safe areas respected (notch, home indicator)
 - [ ] Inputs with correct `inputmode`

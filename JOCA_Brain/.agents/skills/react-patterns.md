@@ -1,7 +1,7 @@
 ---
 name: react-patterns
 description: "Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data fetching, bundle size, Server Components. MUST be invoked when the user says: react performance, re-render, useEffect, useMemo, useCallback, server component, RSC, suspense, waterfall, slow react, optimize react. SHOULD also invoke when: next.js, app router, use client, bundle size, code split, data fetching, stale closure, react review."
-triggers: react performance, re-render, rerender, useEffect, useMemo, useCallback, useState, server component, RSC, suspense, waterfall, slow react, optimize react, next.js, nextjs, app router, use client, use server, bundle size, code split, lazy, dynamic import, data fetching, stale closure, react review, react best practices, memo, react.memo, derived state, key prop, context performance, streaming
+triggers: react performance, re-render, useEffect, server component, RSC, waterfall, optimize react, app router, focus trap, focus management, modal, modais, restaurar foco, foco vai para o body, stale closure, bundle size, code split, data fetching, useMemo, useCallback, suspense, next.js, memo, derived state, key prop, context performance, streaming, autoFocus
 ---
 # React Patterns — Performance + Correctness Specialist
 
@@ -167,6 +167,41 @@ export default async function Page({ params }) {
 
 ---
 
+## 7. Modais — foco e focus-trap (bugs silenciosos)
+
+Padrão comum (focus-trap + restaurar o foco ao fechar) em Bigorna / Rate It Plus / UniMedia. Falha sem erro nem warning — só o foco a cair para `<body>`.
+
+### Gotcha: `autoFocus` vs captura do opener
+`autoFocus` (HTML) corre no commit síncrono do browser, **antes do paint**. O `useEffect` que guarda `document.activeElement` (o "opener" a restaurar ao fechar) corre **depois do paint** — apanha o campo autofocado, não o botão que abriu o modal. Ao fechar, foca um elemento a ser desmontado (no-op silencioso) e o foco cai para `<body>`.
+
+```tsx
+// ❌ autoFocus compete com a gestão manual de foco no mesmo modal
+useEffect(() => { openerRef.current = document.activeElement as HTMLElement; }, []);
+return <input autoFocus />;
+
+// ✅ sem autoFocus — o foco inicial é dado à mão, depois de capturar o opener
+useEffect(() => {
+  openerRef.current = document.activeElement as HTMLElement;
+  firstFieldRef.current?.focus();
+  return () => openerRef.current?.focus();
+}, []);
+```
+Regra: `autoFocus` e gestão manual de foco **nunca no mesmo modal**. Diagnóstico quando não há sintoma: monkey-patch temporário de `HTMLElement.prototype.focus` para registar quem foca o quê.
+
+### Gotcha: modais empilhados com `className` partilhada
+Dois modais abertos (um por cima do outro) com a mesma classe (ex.: `.project-modal`): `document.querySelector('.project-modal')` devolve sempre o **primeiro do DOM** (o de baixo) → Tab/Escape ficam presos no modal de trás enquanto o da frente está visível.
+
+```tsx
+// ❌ apanha o modal errado quando há dois montados
+const el = document.querySelector('.project-modal');
+
+// ✅ ref própria por instância
+const modalRef = useRef<HTMLDivElement>(null);
+```
+Regra: focus-trap sempre por `ref` da própria instância, nunca por `querySelector` de classe partilhada. E o modal de baixo tem de ficar em silêncio (ignorar Tab/Escape) enquanto houver um modal aninhado aberto por cima.
+
+---
+
 ## Review mode
 
 When asked to "review react" / "why is this slow":
@@ -186,6 +221,7 @@ When asked to "review react" / "why is this slow":
 - [ ] Lists keyed by stable id
 - [ ] Context split by change frequency / state vs dispatch
 - [ ] Immutable updates, functional updaters
+- [ ] Modais: sem `autoFocus` a competir com captura do opener; focus-trap por `ref`, não por `querySelector`
 
 ---
 

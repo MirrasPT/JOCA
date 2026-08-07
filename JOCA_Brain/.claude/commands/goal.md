@@ -43,6 +43,10 @@ O **main loop adopta o playbook `.claude/agents/master-orchestrator.md`** e cond
 Corre a Phase 4.5 (Goal-Satisfaction Loop): compara resultado vs critérios, re-decompõe só a lacuna, re-dispatch. Cap `loop_max_iterations` (default 4); 3x sem progresso → para e reporta.
 
 ### 5. Reportar
+⚠ Antes de dar um stream como falhado: um worker que devolve `null` pode ter feito o trabalho todo e
+falhado só o `StructuredOutput` (já aconteceu — ver `/one-shot` PASSO 4). Verificar em disco
+(`git status`/`ls`) e reportar "trabalho em disco OK, retorno estruturado falhou", nunca `null` seco.
+
 Resumir o que foi feito vs critérios de aceitação. Listar o que ficou por concluir (se cap atingido) e auto-disparar `tester-*` conforme o pipeline de testes.
 
 ## Restrição arquitectural

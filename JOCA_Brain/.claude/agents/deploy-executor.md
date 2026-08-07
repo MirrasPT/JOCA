@@ -65,6 +65,30 @@ Execute the steps from the loaded skill via `Bash`, in order. Order-dependent se
 
 ### Step 4 — Post-deploy health-check (mandatory)
 A deploy is NOT done until verified live. Run actual checks against the deployed target:
+
+**⚠ Derive the checklist from the PUBLISHED page, never from the upload list.** A deploy script that
+shipped the HTML and the PHP but forgot two new assets (`form.css`, `form.js`) reported all-green —
+because it only tested what it had itself sent. The site served a raw, unstyled block in production
+for minutes. A "green" deploy serving a broken page is the worst possible outcome.
+
+```bash
+BASE=https://<site>
+curl -s "$BASE/" \
+  | grep -oE '(src|href)="[^"]+\.(css|js|png|jpg|svg|woff2?)"' \
+  | cut -d'"' -f2 | sort -u \
+  | while read -r a; do
+      case "$a" in http*) u="$a";; /*) u="$BASE$a";; *) u="$BASE/$a";; esac
+      code=$(curl -sS -o /dev/null -w '%{http_code}' "$u")
+      [ "$code" = 200 ] || echo "FALHA $code  $u"
+    done
+```
+Any dependency not returning 200 fails the deploy.
+
+**⚠ Cloudflare caches 404s (negative caching, ~4 h).** A *new* file requested once before it existed
+keeps serving 404 from the edge after it lands. The rule of thumb "new filenames ⇒ no purge needed"
+is true for **replacements** and false for **additions**: if this deploy added files behind CF, purge.
+Symptom that cost a full diagnosis cycle: origin 200, public 404.
+
 - HTTP: `curl -sS -o /dev/null -w "%{http_code}" <url>` on the live URL and a key route — expect 2xx/3xx, not 5xx/000.
 - Docker: container `Up`/healthy (`docker ps`, healthcheck status), not restart-looping.
 - App-specific: a known endpoint returning expected content (verify against the REAL response — do not assume the shape; if you parse the response, check a known field/value, never trust an inferred format).

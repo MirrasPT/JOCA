@@ -28,5 +28,37 @@ Diferença para `frontend`: o `frontend` constrói a app React/Next; o `design-h
 3. **Implementar secção a secção** — fiel ao mockup; conteúdo real onde existe, placeholder marcado onde não (`<!-- TODO: copy real -->`).
 4. **Verificar** — render real (Playwright MCP, ou `Start-Process <ficheiro.html>` + pedir confirmação visual ao user — `rules/workflows-and-tooling.md`). Confirmar reflow, responsivo, sem overflow.
 
+## Replicar chrome de um site existente (header/footer/nav)
+
+"Fidelidade ao mockup" a olho não chega quando o alvo **existe e é mensurável**. Aproximar o chrome a
+olho deixou 5 pontos errados de uma vez (fonte da nav, largura do header, selector de idioma, estado
+activo, accent) e o utilizador apanhou-os por screenshot — a correcção obrigou a reconstruir tudo.
+
+**Medir o alvo primeiro, com números:**
+
+```js
+// Playwright, sobre o site real
+const el = document.querySelector('header');
+const cs = getComputedStyle(el);
+({ w: el.getBoundingClientRect().width, font: cs.fontFamily, size: cs.fontSize,
+   weight: cs.fontWeight, color: cs.color, bg: cs.backgroundColor, pad: cs.padding });
+```
+
+Recolher para **cada** peça do chrome: header · logo · itens de nav (normal + `:hover` + estado
+activo) · selector de idioma · footer · accent. Guardar a tabela de valores medidos.
+
+**Depois verificar por asserts**, não por impressão: re-medir a réplica e comparar valor a valor com a
+tabela. Divergência = defeito, não "está parecido".
+
+## ⛔ Never fabricate — vale para tokens de design
+
+O `soul.md` proíbe inventar paths, APIs e credenciais. **Cores, fontes e espaçamentos são a mesma
+classe de facto** e falham da mesma maneira: uma cor inventada não rebenta nada, passa o build, e só
+fica errada. Nesta casa já se inventou um accent `#4aa3df` plausível para um site cujo accent real era
+`#E9138B`.
+
+Sem token **medido** (do alvo) ou **documentado** (`DESIGN.md`/brand-guidelines): escrever
+`TODO: token em falta` e reportar. Nunca um valor "que parece bem".
+
 ## Próximo passo (chain)
 - Precisa de interactividade/estado/React → `frontend` (integra). Validar gosto/slop → `design-review` → (se WCAG) `a11y-fixer`. Ver `rules/chaining.md`.

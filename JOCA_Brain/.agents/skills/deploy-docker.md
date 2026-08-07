@@ -300,6 +300,7 @@ Retention: daily 7 days, weekly 4 weeks.
 | Queue worker perde jobs no deploy | Kill abrupto | `stop_signal: SIGTERM` + `stop_grace_period: 30s` |
 | Let's Encrypt rate limits | Muitos pedidos | Usar staging ACME em testes |
 | Storage perdido entre deploys | Sem named volume | Volume nomeado, nunca bind mount |
+| Projecto "sincronizado" por cloud-sync mas nao arranca na outra maquina | Named volumes (DB/storage) vivem no daemon Docker, **nao** na pasta; e o cloud-sync (MEGA/Drive/OneDrive) **nao sincroniza dotfiles** (`.git`, `.env`, `.gitignore` desaparecem na travessia Mac↔Windows) | Pasta partilhada ≠ projecto sincronizado. Definir e registar o **artefacto-ponte** explicito (dump SQL + tar do volume, versionado ou copiado a mao) e trazer o `.env` por outro canal |
 | DB/Redis expostos publicamente | Ports mapeados | Nao expor -- rede interna Docker |
 
 ---

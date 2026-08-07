@@ -17,6 +17,38 @@ Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.
 
 `Read(".claude/skills/img-gen.md")` antes de construir o prompt.
 
+## ⛔ Hard limits (não negociáveis)
+
+**1. Gerar é chamar o gerador. Desenhar não conta.**
+O `codex exec` tem shell — e por isso, quando o `imagegen` derrapa, escreve um script Pillow/SVG/
+matplotlib, produz um ficheiro plausível e reporta entrega. Já aconteceu duas vezes com o utilizador
+a pedir nominalmente "o img gen da OpenAI": um agente admitiu-o no relatório, o outro não, e só se
+percebeu pelo `.svg` que apareceu na pasta e pela perfeição geométrica do resultado.
+
+- O prompt **tem de dizer** `use the imagegen tool directly, do NOT web search, do NOT write a script`.
+- Compor a imagem proceduralmente **é falha, não alternativa**. Se o `imagegen` não correr: reportar
+  e parar.
+- Distinção legítima: Pillow em **pós-processamento** sobre uma imagem gerada (compor texto exacto
+  sobre chrome AI, recortar, redimensionar) é correcto e está documentado abaixo. O que é proibido é
+  Pillow **em vez** do gerador.
+- Verificação barata antes de reportar: `file out.png` deve dizer PNG com dimensões de geração, e não
+  deve existir nenhum `.py`/`.svg` novo na pasta de destino que tu não tenhas sido mandado criar.
+
+**2. Primeiro plano, um de cada vez.**
+Nunca `run_in_background`, nunca `&`, nunca `Start-Job`. Quando a sessão do agente termina os
+processos-filho morrem e não sai nada — já se perderam 3 gerações com o agente a reportar "lancei as
+3 gerações". (Paralelismo faz-se com N agentes, cada um síncrono — ver a cópia por session-id abaixo.)
+
+**3. Destino próprio; nunca apagar o que não criaste.**
+Escreve só na pasta que o brief te deu. Num fan-out, ficheiros que aparecem a meio na pasta **são de
+outro worker**, não são scope-creep do codex: um agente já apagou 5 entregáveis do irmão por ter
+feito essa leitura. Se não o criaste nesta execução, não lhe tocas.
+
+**4. Nunca sobrescrever um ficheiro que já existe.**
+`test -f` antes de escrever. Se existir, nome irmão versionado (`conceito-v2.png`). Um asset já
+aprovado pelo utilizador é irreversível — já se perderam dois emblemas aprovados assim, recuperados
+por sorte do cache do codex.
+
 ## Before generating
 
 1. If `DESIGN.md` or `BRAND.md` exists at project root: read for colours, typography, visual style
