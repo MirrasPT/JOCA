@@ -310,7 +310,7 @@ export class SessionManager extends EventEmitter {
         recentSessions: [],
         favoriteSkills: [],
         favoriteAgents: [],
-        quickCommands: ['save', 'compact', 'clear'],
+        quickCommands: ['save', 'compact', 'plan'],
         openFiles: [],
           updatedAt: new Date().toISOString(),
       };
@@ -369,8 +369,18 @@ export class SessionManager extends EventEmitter {
       session.buffer += data;
       if (session.buffer.length > BUFFER_MAX) {
         let cutAt = session.buffer.length - BUFFER_MAX;
-        const nlPos = session.buffer.indexOf('\n', cutAt);
-        if (nlPos !== -1 && nlPos < cutAt + 500) cutAt = nlPos + 1;
+        // NUNCA cortar a meio de uma sequência de escape. `cutAt` é um índice arbitrário; se o
+        // `\x1b` inicial ficar do lado deitado fora, os parâmetros que sobram (`38;2;255;0;0m`)
+        // chegam ao xterm como TEXTO e o replay aparece com lixo e linhas repetidas. Alinhar ao
+        // próximo `\x1b` é sempre seguro — toda a sequência começa aí. Um TUI repinta com CSI de
+        // posicionamento, não com `\n`, por isso o alinhamento por linha (fallback) falha muito.
+        const escPos = session.buffer.indexOf('\x1b', cutAt);
+        if (escPos !== -1 && escPos < cutAt + 2000) {
+          cutAt = escPos;
+        } else {
+          const nlPos = session.buffer.indexOf('\n', cutAt);
+          if (nlPos !== -1 && nlPos < cutAt + 500) cutAt = nlPos + 1;
+        }
         session.buffer = '\x1b[0m' + session.buffer.slice(cutAt);
       }
       this.emit('output', { sessionId: id, data });

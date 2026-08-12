@@ -231,7 +231,7 @@ export default function App() {
           recentSessions: [],
           favoriteSkills: [],
           favoriteAgents: [],
-          quickCommands: ['save', 'compact', 'clear'],
+          quickCommands: ['save', 'compact', 'plan'],
           openFiles: [],
           updatedAt: new Date().toISOString(),
         }),
@@ -615,21 +615,6 @@ export default function App() {
   }, [send]);
 
   // Agente novo sem projecto, da vista global de Agentes.
-  /**
-   * Terminal novo com Remote Control. Nasce no projecto activo (se houver), como qualquer outro —
-   * a única diferença é a flag de arranque.
-   */
-  const handleNewRemoteControlSession = useCallback(() => {
-    focusNewSessionRef.current = true;
-    const proj = projectsRef.current.find((p) => p.id === activeProjectIdRef.current);
-    send({
-      type: 'create_session',
-      remoteControl: true,
-      sessionName: 'Remote Control',
-      ...(proj ? { resumePath: proj.path, projectId: proj.id } : {}),
-    });
-  }, [send]);
-
   const handleNewLooseAgent = useCallback((cli: string) => {
     focusNewSessionRef.current = false;
     if (!cli || cli === 'claude') send({ type: 'create_session' });
@@ -872,7 +857,6 @@ export default function App() {
               termRefs,
               jocaItems,
               onLoadJocaItems: loadCommandPalette,
-              onNewRemoteControlSession: handleNewRemoteControlSession,
             }}
           />
         ) : mainView === 'dashboard' ? (
@@ -919,7 +903,6 @@ export default function App() {
             termRefs={termRefs}
             onNewSession={handleNewSession}
             onNewSessionWithCli={handleNewSessionWithCli}
-            onNewRemoteControlSession={handleNewRemoteControlSession}
             jocaItems={jocaItems}
             onLoadJocaItems={loadCommandPalette}
           />

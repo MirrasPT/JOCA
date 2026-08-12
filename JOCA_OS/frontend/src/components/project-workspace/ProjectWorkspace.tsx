@@ -63,7 +63,6 @@ export interface TerminalBridge {
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   jocaItems: JocaItems | null;
   onLoadJocaItems: () => void;
-  onNewRemoteControlSession: () => void;
 }
 
 interface Props {
@@ -268,7 +267,6 @@ export default function ProjectWorkspace({
               termRefs={terminal.termRefs}
               onNewSession={() => onAddAgent(project)}
               onNewSessionWithCli={(cli) => onAddAgent(project, cli)}
-              onNewRemoteControlSession={terminal.onNewRemoteControlSession}
               jocaItems={terminal.jocaItems}
               onLoadJocaItems={terminal.onLoadJocaItems}
             />

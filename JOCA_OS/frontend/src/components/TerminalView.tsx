@@ -31,8 +31,6 @@ interface Props {
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   onNewSession: () => void;
   onNewSessionWithCli: (cli: string) => void;
-  /** Abre um terminal novo com `--remote-control` (ver o botão na barra de comandos). */
-  onNewRemoteControlSession: () => void;
   jocaItems: JocaItems | null;
   onLoadJocaItems: () => void;
 }
@@ -105,6 +103,16 @@ function LinkIcon() {
   );
 }
 
+// Borracha — apagar o TEXTO da caixa, não o ecrã do terminal nem o processo.
+function EraserIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <path d="M7 21h13" />
+      <path d="m16 6-9.5 9.5a2.1 2.1 0 0 0 0 3l2 2h4l7.5-7.5a2.1 2.1 0 0 0 0-3L18 6a2.1 2.1 0 0 0-3 0Z" />
+    </svg>
+  );
+}
+
 // Built-in Claude Code slash commands (shown alongside JOCA's own /commands).
 const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
   { name: 'add-dir', description: 'Add a working directory' },
@@ -142,7 +150,7 @@ export default function TerminalView({
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory,
   onSaveSession, onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
-  onNewSessionWithCli, onNewRemoteControlSession, jocaItems, onLoadJocaItems
+  onNewSessionWithCli, jocaItems, onLoadJocaItems
 }: Props) {
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId) ?? null,
@@ -301,29 +309,78 @@ export default function TerminalView({
     onInput(activeId, `${verb} "${activeProjectPath}"\r`);
   }, [activeId, activeProjectPath, activeSession?.cli, cliProfiles, onInput]);
 
-  // Fetch quick commands from project memory
+  /**
+   * Liga o Remote Control NA conversa aberta: `/remote-control <nome do projecto>`.
+   * Sem projecto activo vai só `/remote-control` — o comando não leva argumento a inventar.
+   */
+  const sendRemoteControl = useCallback(() => {
+    if (!activeId) return;
+    const name = projects.find((p) => p.id === activeSession?.projectId)?.name;
+    onInput(activeId, name ? `/remote-control ${name}\r` : '/remote-control\r');
+  }, [activeId, activeSession?.projectId, projects, onInput]);
+
+  /**
+   * Reiniciar e parar são irreversíveis do ponto de vista de quem lá está a trabalhar: o Restart
+   * mata o CLI e leva a conversa com ele, o Stop manda Ctrl-C ao que está a correr. Ambos ficavam
+   * a um clique de distância de botões vizinhos inofensivos.
+   */
+  const restartComAviso = useCallback(() => {
+    if (!activeSession) return;
+    const ok = window.confirm(
+      `Reiniciar o terminal "${activeSession.name}"?\n\nO processo que lá está a correr é morto e a conversa aberta perde-se.`,
+    );
+    if (ok) onRestartSession(activeSession.id);
+  }, [activeSession, onRestartSession]);
+
+  const interromperComAviso = useCallback(() => {
+    if (!activeSession) return;
+    const ok = window.confirm(
+      `Parar o que está a correr em "${activeSession.name}"?\n\nManda Ctrl-C ao processo. A conversa fica, o trabalho a meio é interrompido.`,
+    );
+    if (ok) onInterruptSession();
+  }, [activeSession, onInterruptSession]);
+
+  /**
+   * Apaga a linha que está escrita DENTRO do terminal (o input do CLI), sem interromper nada.
+   *
+   * Num terminal a via habitual é o Ctrl-C, mas esse manda SIGINT: limpa a linha E pára o trabalho
+   * a correr — exactamente o que não se quer. Aqui vai `\x05` (Ctrl-E, ir para o fim da linha)
+   * seguido de `\x15` (Ctrl-U, apagar até ao início): limpa a linha toda independentemente de onde
+   * o cursor esteja, e nenhum dos dois é um sinal — são operações de edição de linha.
+   */
+  const apagarTexto = useCallback(() => {
+    if (!activeId) return;
+    onInput(activeId, '\x05\x15');
+  }, [activeId, onInput]);
+
+  /**
+   * O que estava a ser escrito quando se entrou no histórico com a seta para cima. Recuperado ao
+   * sair do histórico pela outra ponta — sem isto, espreitar uma mensagem anterior deitava fora o
+   * que se tinha escrito.
+   */
+  const rascunhoGuardado = useRef('');
+
+  // Fetch quick commands from project memory.
+  // O `clear` saiu da fila: apagava o ecrã do terminal a um clique. Filtra-se também o que vier da
+  // memória do projecto, senão os projectos que já o têm configurado continuavam a mostrá-lo.
   const quickCommands = useMemo(() => {
-    if (!activeSession?.projectId) return ['save', 'compact', 'clear', 'plan'];
-    const memory = projectMemory[activeSession.projectId];
-    return memory?.quickCommands ?? ['save', 'compact', 'clear', 'plan'];
+    const base = ['save', 'compact', 'plan'];
+    const list = activeSession?.projectId
+      ? projectMemory[activeSession.projectId]?.quickCommands ?? base
+      : base;
+    return list.filter((cmd) => cmd !== 'clear');
   }, [activeSession, projectMemory]);
 
+  /**
+   * Um clique no acesso rápido ESCREVE o comando no campo de input — não o envia.
+   * Quem carrega no Enter é sempre o utilizador: dá-lhe hipótese de acrescentar argumentos
+   * (`/save nota`, `/plan <objectivo>`) ou de desistir sem ter mandado nada ao CLI.
+   */
   const runQuickCommand = useCallback((cmd: string) => {
     if (!activeId) return;
-    if (cmd === 'save') onSaveSession();
-    else if (cmd === 'compact') onCompactSession();
-    else if (cmd === 'clear') {
-      onInput(activeId, 'clear\r');
-      termRefs.current.get(activeId)?.clear?.();
-    }
-    else if (cmd === 'plan') {
-      setTerminalDraft('/plan');
-      inputAreaRef.current?.focus();
-    }
-    else {
-      onInput(activeId, `/${cmd}\r`);
-    }
-  }, [activeId, onSaveSession, onCompactSession, onInput, setTerminalDraft, termRefs]);
+    setTerminalDraft(`/${cmd} `);
+    inputAreaRef.current?.focus();
+  }, [activeId, setTerminalDraft]);
 
   return (
     <div
@@ -517,6 +574,19 @@ export default function TerminalView({
 
             <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill" aria-label="Adicionar comando ou skill">+</button>
 
+            {/* Limpa a linha de input DENTRO do terminal. Existe porque a alternativa habitual
+                (Ctrl-C) também mata o trabalho a correr. */}
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={apagarTexto}
+              disabled={!activeId}
+              data-tooltip="Apagar o texto escrito no terminal (sem interromper o que está a correr)"
+              aria-label="Apagar o texto escrito no terminal"
+            >
+              <EraserIcon /> Apagar texto
+            </button>
+
             {/* Vieram da barra de título, que foi removida por ocupar uma faixa inteira para
                 repetir o que já estava aqui. Só estes três: `Save` e `Compact` de lá eram os
                 mesmos `save`/`compact` que abrem esta fila. */}
@@ -537,7 +607,7 @@ export default function TerminalView({
             <button
               type="button"
               className="quick-command-btn"
-              onClick={() => activeSession && onRestartSession(activeSession.id)}
+              onClick={restartComAviso}
               data-tooltip="Reiniciar terminal"
             >
               <RefreshIcon /> Restart
@@ -545,20 +615,20 @@ export default function TerminalView({
             <button
               type="button"
               className="quick-command-btn quick-command-btn--stop"
-              onClick={onInterruptSession}
+              onClick={interromperComAviso}
               data-tooltip="Parar processo (Ctrl-C)"
             >
               <StopIcon /> Stop
             </button>
-            {/* `--remote-control` é uma flag de ARRANQUE do Claude Code: não há como ligá-la a meio
-                de uma conversa. Por isso este botão abre um terminal NOVO com ela — em vez de matar
-                a conversa aberta para a relançar, que é o que "ligar aqui" obrigaria a fazer. */}
+            {/* Manda `/remote-control <projecto>` na conversa ABERTA — não abre terminal novo.
+                (A versão anterior lançava uma sessão com a flag de arranque `--remote-control`,
+                o que obrigava a deixar a conversa em curso para trás.) */}
             <button
               type="button"
               className="quick-command-btn"
-              onClick={onNewRemoteControlSession}
-              data-tooltip="Abrir um terminal novo com Remote Control ligado"
-              aria-label="Abrir um terminal novo com Remote Control ligado"
+              onClick={sendRemoteControl}
+              data-tooltip="Ligar Remote Control neste terminal"
+              aria-label="Ligar Remote Control neste terminal"
             >
               <RemoteIcon /> Remote
             </button>
@@ -673,20 +743,33 @@ export default function TerminalView({
                     submitTerminalDraft();
                   }
                 }
-                if (e.key === 'ArrowUp' && terminalHistory.length > 0) {
+                // Setas: primeiro andam no TEXTO, só nos extremos é que andam no HISTÓRICO.
+                // Antes, qualquer ArrowUp saltava logo para a mensagem anterior — num rascunho de
+                // várias linhas era impossível subir uma linha para corrigir o que se escreveu.
+                const campo = e.currentTarget;
+                const antesDoCursor = campo.value.slice(0, campo.selectionStart ?? 0);
+                const depoisDoCursor = campo.value.slice(campo.selectionEnd ?? 0);
+                const naPrimeiraLinha = !antesDoCursor.includes('\n');
+                const naUltimaLinha = !depoisDoCursor.includes('\n');
+
+                if (e.key === 'ArrowUp' && naPrimeiraLinha && terminalHistory.length > 0) {
                   e.preventDefault();
+                  // Ao ENTRAR no histórico, guarda o que estava a ser escrito — é o que a seta
+                  // para baixo devolve no fim, em vez de o deitar fora.
+                  if (historyIndex === null) rascunhoGuardado.current = terminalDraft;
                   const nextIndex = historyIndex === null
                     ? terminalHistory.length - 1
                     : Math.max(0, historyIndex - 1);
                   setHistoryIndex(nextIndex);
                   setTerminalDraft(terminalHistory[nextIndex] ?? '');
                 }
-                if (e.key === 'ArrowDown' && historyIndex !== null) {
+                if (e.key === 'ArrowDown' && naUltimaLinha && historyIndex !== null) {
                   e.preventDefault();
                   const nextIndex = historyIndex + 1;
                   if (nextIndex >= terminalHistory.length) {
                     setHistoryIndex(null);
-                    setTerminalDraft('');
+                    setTerminalDraft(rascunhoGuardado.current);
+                    rascunhoGuardado.current = '';
                   } else {
                     setHistoryIndex(nextIndex);
                     setTerminalDraft(terminalHistory[nextIndex] ?? '');

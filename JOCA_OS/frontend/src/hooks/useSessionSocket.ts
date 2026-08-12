@@ -102,6 +102,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
   const reconnectDelay = useRef(RECONNECT_BASE_DELAY);
   const unmountedRef = useRef(false);
   const depsRef = useRef(deps);
+  // O que já foi pintado no xterm de cada sessão, para NÃO voltar a limpar o ecrã por nada.
+  // Guarda o comprimento do último buffer replicado + a cauda nesse ponto (impressão digital
+  // barata): se o buffer novo continua o mesmo, escreve-se só o delta em vez de `reset()`.
+  // `ref` guarda a INSTÂNCIA do terminal em que se pintou: uma `TerminalPane` remontada traz um
+  // xterm novo e vazio, e aí o replay tem de ser completo, não incremental.
+  const replayed = useRef<Map<string, { ref: TerminalRef; len: number; tail: string }>>(new Map());
   useEffect(() => { depsRef.current = deps; });
 
   const send = useCallback((msg: object) => {
@@ -144,6 +150,7 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           // a session it no longer knows about (e.g. closed while we were disconnected).
           pruneMap(d.termRefs.current, alive);
           pruneMap(d.outputBuffers.current, alive);
+          pruneMap(replayed.current, alive);
           if (pruneMap(d.workflowRef.current, alive)) d.setWorkflowStates(new Map(d.workflowRef.current));
           d.setUnreadIds((prev) => pruneIds(prev, alive));
           d.setActivatedIds((prev) => pruneIds(prev, alive));
@@ -200,22 +207,49 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           ));
           break;
 
-        case 'output':
+        case 'output': {
           d.termRefs.current.get(msg.sessionId)?.write(msg.data);
           d.processOutput(msg.sessionId, msg.data);
+          // O buffer do servidor é a concatenação do que sai do PTY: acompanhar aqui o que já foi
+          // pintado ao vivo é o que impede o replay seguinte de reescrever estas mesmas linhas
+          // (era essa a duplicação). Se o servidor entretanto cortar o buffer, o comprimento deixa
+          // de bater certo e o replay cai no caminho do `reset()`, que é o correcto nesse caso.
+          const marca = replayed.current.get(msg.sessionId);
+          if (marca) {
+            const tail = (marca.tail + msg.data).slice(-256);
+            replayed.current.set(msg.sessionId, { ref: marca.ref, len: marca.len + msg.data.length, tail });
+          }
           if (d.pinOutputRef.current && msg.sessionId === d.activeIdRef.current) {
             d.termRefs.current.get(msg.sessionId)?.scrollToBottom?.();
           }
           break;
+        }
 
         case 'buffer': {
           const ref = d.termRefs.current.get(msg.sessionId);
-          ref?.reset();
-          ref?.write(msg.data);
-          requestAnimationFrame(() => ref?.fit?.());
-          d.outputBuffers.current.set(msg.sessionId, '');
-          d.workflowRef.current.delete(msg.sessionId);
-          d.processOutput(msg.sessionId, msg.data);
+          // Um `reset()` apaga o ecrã à frente de quem está a ler. Antes acontecia em TODAS as
+          // respostas a `get_buffer` — incluindo as que uma reconexão dispara para cada terminal
+          // montado — e lia-se como "saiu um clear do nada e limpou-me o chat". Só se limpa quando
+          // o buffer do servidor deixou de continuar o que já está pintado (terminal acabado de
+          // montar, ou buffer cortado no servidor por ter passado o tecto).
+          const prev = replayed.current.get(msg.sessionId);
+          const continua = !!prev
+            && !!ref
+            && prev.ref === ref
+            && msg.data.length >= prev.len
+            && msg.data.slice(Math.max(0, prev.len - prev.tail.length), prev.len) === prev.tail;
+          if (continua && prev) {
+            const delta = msg.data.slice(prev.len);
+            if (delta) { ref?.write(delta); d.processOutput(msg.sessionId, delta); }
+          } else {
+            ref?.reset();
+            ref?.write(msg.data);
+            requestAnimationFrame(() => ref?.fit?.());
+            d.outputBuffers.current.set(msg.sessionId, '');
+            d.workflowRef.current.delete(msg.sessionId);
+            d.processOutput(msg.sessionId, msg.data);
+          }
+          if (ref) replayed.current.set(msg.sessionId, { ref, len: msg.data.length, tail: msg.data.slice(-256) });
           break;
         }
 

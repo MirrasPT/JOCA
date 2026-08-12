@@ -81,7 +81,7 @@ export function projectsRouter(): Router {
       recentSessions: [],
       favoriteSkills: [],
       favoriteAgents: [],
-      quickCommands: ['save', 'compact', 'clear'],
+      quickCommands: ['save', 'compact', 'plan'],
       openFiles: [],
       updatedAt: new Date().toISOString(),
     };
