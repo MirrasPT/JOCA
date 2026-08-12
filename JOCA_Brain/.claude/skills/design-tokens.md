@@ -322,11 +322,54 @@ Compiled flat output. The file frontend imports.
   :root {
     --duration-fast: 0ms;
     --duration-base: 0ms;
-    --duration-slow: 0ms;
-    --duration-slower: 0ms;
+    --duration-slow: 150ms;
+    --duration-slower: 200ms;
   }
 }
 ```
+
+⚠ **Nao zerar as durations.** `prefers-reduced-motion` **substitui** o movimento, nao o apaga: remover
+translate/scale/parallax, **manter opacity**, reduzir a duracao ≥50%. A 0ms os estados aparecem de
+golpe e perde-se a orientacao que a transicao dava — que e precisamente o que a preferencia pede que
+se preserve. (Os 4 valores acima sao um default nosso a derivar da escala do projecto; a regra e o
+−50%, nao os numeros.)
+
+---
+
+## Typography
+
+A rampa entra como **proporcoes por degrau**, derivadas do `DESIGN.md` da marca — nunca colada igual
+em todos os projectos (`clamp()` com os mesmos limites em 5 sites e convergencia disfarcada de sistema).
+
+```css
+:root {
+  /* Display / Hero */
+  --text-display:  clamp(3rem, 8vw + 1rem, 10rem);
+  /* Headings */
+  --text-h1:       clamp(2.5rem, 5vw + 1rem, 5rem);
+  --text-h2:       clamp(1.75rem, 3vw + 0.5rem, 3rem);
+  --text-h3:       clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+  /* Body */
+  --text-body-lg:  clamp(1.125rem, 1vw + 0.5rem, 1.375rem);
+  --text-body:     clamp(1rem, 0.5vw + 0.75rem, 1.125rem);
+  --text-body-sm:  clamp(0.875rem, 0.5vw + 0.5rem, 0.9375rem);
+  /* Labels */
+  --text-label:    clamp(0.6875rem, 0.3vw + 0.5rem, 0.8125rem);
+  --text-overline: clamp(0.625rem, 0.25vw + 0.5rem, 0.75rem);
+}
+```
+
+**Tracking e line-height andam com o degrau** — texto grande aperta, texto pequeno em caixa alta abre:
+
+| Degrau | letter-spacing | line-height |
+|---|---|---|
+| display | −0.03em | 0.9 |
+| h1 | −0.025em | 0.95 |
+| h2 | −0.02em | 1.1 |
+| h3 | — | 1.2 |
+| body | −0.011em | 1.55 |
+| label (uppercase) | 0.08em | 1.2 |
+| overline (uppercase) | 0.12em | 1.2 |
 
 ---
 
@@ -366,7 +409,9 @@ Compiled flat output. The file frontend imports.
 3. **No raw in semantic/component** -- only `{references}`. Raw values = global.json only
 4. **4px grid** -- all spacing is a multiple of 4
 5. **Contrast check** -- text on surface >= 4.5:1 (WCAG AA); large text >= 3:1
-6. **Reduced motion** -- always include `@media (prefers-reduced-motion: reduce)`
+6. **Reduced motion** -- always include `@media (prefers-reduced-motion: reduce)`, e nele **reduzir**
+   as durations (≥50%), nunca as zerar
+7. **Typography scale** -- rampa de 9 degraus com `clamp()`, com tracking e line-height por degrau
 
 ---
 

@@ -4,10 +4,10 @@ description: "código · Writing or reviewing React/Next.js code for performance
 skills: react-patterns
 model: inherit
 category: código
-triggers: react performance, re-render, rerender, useEffect, useMemo, useCallback
+triggers: react performance, re-render, useEffect, server component, RSC, waterfall
 generated-from: .claude/skills/react-patterns.md
 generated-by: skill-agents.mjs
-content-hash: e47ea5ecfc192da1
+content-hash: 077f278ff0acc423
 ---
 
 # react-patterns — agente de execução
@@ -15,7 +15,7 @@ content-hash: e47ea5ecfc192da1
 Especialista em react-patterns. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** react performance, re-render, rerender, useEffect, useMemo, useCallback, useState, server component, RSC, suspense, waterfall, slow react, optimize react, next.js, nextjs, app router, use client, use server, bundle size, code split, lazy, dynamic import, data fetching, stale closure, react review, react best practices, memo, react.memo, derived state, key prop, context performance, streaming
+**Gatilhos:** react performance, re-render, useEffect, server component, RSC, waterfall, optimize react, app router, focus trap, focus management, modal, modais, restaurar foco, foco vai para o body, stale closure, bundle size, code split, data fetching, useMemo, useCallback, suspense, next.js, memo, derived state, key prop, context performance, streaming, autoFocus
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

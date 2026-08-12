@@ -45,6 +45,16 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 - Asymmetry, overlap, diagonal flow, grid-breaking > centered symmetric.
 - **Cardless by default.** Sections, columns, dividers, lists, media blocks > cards. A card only when the card IS the interaction. If a panel works as plain layout without losing meaning, drop the card treatment. (Stacked-cards app UI is the #1 AI tell.)
 - **Full-bleed hero:** hero runs edge-to-edge — no inherited page gutters, framed container, or shared max-width; constrain only the inner text/action column. First viewport is a poster, not a document.
+  The mechanic (pair the two; `calc(50% - 50vw)` is the piece that does the work):
+  ```css
+  .container {
+    --max-width: 1200px;
+    --padding: clamp(20px, 5vw, 80px);
+    width: min(var(--max-width), 100% - var(--padding) * 2);
+    margin-inline: auto;
+  }
+  .full-bleed { width: 100vw; margin-left: calc(50% - 50vw); }
+  ```
 - **Viewport budget:** sticky/fixed header counts against the hero. Header + hero must fit the initial viewport — use `calc(100svh - var(--header-h))` or overlay the header, don't stack.
 - Z-index scale defined as tokens, never ad-hoc.
 

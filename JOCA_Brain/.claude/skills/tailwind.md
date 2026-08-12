@@ -121,6 +121,8 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 </div>
 ```
 - Fluid type/space with `clamp()` in a token rather than many breakpoint steps when it reads better.
+- Escapar para CSS nativo quando a plataforma ja resolve (scroll-driven animations, `:has()`,
+  `color-mix()`, `content-visibility`) → `Read(".claude/reference/frontend/modern-css.md")`.
 
 ---
 

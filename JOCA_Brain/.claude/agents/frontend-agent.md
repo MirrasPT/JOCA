@@ -4,10 +4,10 @@ description: "código · Building production frontend applications with React, N
 skills: frontend
 model: inherit
 category: código
-triggers: website, landing page, site, webapp, web app, frontend
+triggers: frontend-design, frontend design, website, landing page, site, webapp
 generated-from: .claude/skills/frontend.md
 generated-by: skill-agents.mjs
-content-hash: dba43c4e9f48457e
+content-hash: b6d8baee4886f876
 ---
 
 # frontend — agente de execução
@@ -15,7 +15,7 @@ content-hash: dba43c4e9f48457e
 Especialista em frontend. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, jogo grelha, jogo cartas react
+**Gatilhos:** frontend-design, frontend design, website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, jogo grelha, jogo cartas react
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

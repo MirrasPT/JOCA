@@ -102,7 +102,7 @@ Scan code for, emit `path:line — issue`:
 - **URL-as-state:** filters/tabs/pagination/expanded panels in query params (deep-linkable); `useState` for shareable state → consider URL sync.
 - **A11y baseline:** icon-only buttons need `aria-label`; decorative icons `aria-hidden`; semantic `<button>`/`<a>` not `<div onClick>`; `:focus-visible` ring, never `outline:none` bare.
 - **CLS/perf:** `<img>` explicit width/height; lazy below-fold, `priority`/`fetchpriority` above; virtualize lists >50; no layout reads (`getBoundingClientRect`) during render.
-- **Typography literals:** `…` not `...`; curly quotes; `tabular-nums` for number columns; `text-wrap: balance` on headings; `min-w-0` on truncating flex children.
+- **Typography literals:** `…` not `...`; curly quotes; `tabular-nums` for number columns; `text-wrap: balance` on headings, `text-wrap: pretty` on paragraphs; `min-w-0` on truncating flex children.
 - **Destructive actions:** confirm modal OR undo window, never immediate.
 - **Forms:** never block paste; submit stays enabled until request; inline errors + focus first error.
 - **Dark mode:** `color-scheme: dark` on `<html>`; `<meta theme-color>` matches bg; native `<select>` explicit bg+color.
@@ -222,6 +222,8 @@ Builder to builder, not consultant. Lead with the point. Cite `file:line`/number
 - `design-system-audit` (agent) — token/component drift (hand off token checks)
 - `tester-performance` (agent) — Lighthouse/load
 - `anima` — motion principles referenced by the lint
+- `reference/frontend/motion-quality.md` — rubrica binária + tiers CRITICAL/HIGH/MEDIUM quando a review inclui movimento
+- `reference/frontend/visual-effects-vocab.md` — vocabulário para nomear efeitos de uma referência com precisão
 - Command `/review-design` — dispatches this + the agents by target type
 
 ## Próximo passo (chain)

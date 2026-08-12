@@ -388,10 +388,10 @@ npx hyperframes transcribe subtitles.srt   # import existing SRT
 
 ## GSAP Reference
 
-For full GSAP API docs → read skills in `../../anima/gsap/`:
-- `gsap-core.md` — gsap.to/from/fromTo, easing, defaults
+For full GSAP API docs → `Read(".claude/reference/gsap/<file>")`:
+- `gsap-core.md` — gsap.to/from/fromTo, easing, defaults, autoAlpha, immediateRender
 - `gsap-timeline.md` — position parameter, labels, nesting
-- `gsap-scrolltrigger.md` — pin, scrub, batch
+- `gsap-scrolltrigger.md` — pin, scrub, batch, containerAnimation
 - `gsap-plugins.md` — Flip, SplitText, MorphSVG
 - `gsap-performance.md` — quickTo, batch reads, will-change
 

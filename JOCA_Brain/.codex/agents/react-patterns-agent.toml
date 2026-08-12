@@ -6,7 +6,7 @@ developer_instructions = """
 Especialista em react-patterns. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** react performance, re-render, rerender, useEffect, useMemo, useCallback, useState, server component, RSC, suspense, waterfall, slow react, optimize react, next.js, nextjs, app router, use client, use server, bundle size, code split, lazy, dynamic import, data fetching, stale closure, react review, react best practices, memo, react.memo, derived state, key prop, context performance, streaming
+**Gatilhos:** react performance, re-render, useEffect, server component, RSC, waterfall, optimize react, app router, focus trap, focus management, modal, modais, restaurar foco, foco vai para o body, stale closure, bundle size, code split, data fetching, useMemo, useCallback, suspense, next.js, memo, derived state, key prop, context performance, streaming, autoFocus
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

@@ -54,7 +54,7 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 |---|---|---|---|---|
 | Editorial clássico | Fraunces | Inter | revista, vinho, artesanal | dashboards densos |
 | Suíço neutro | Inter (weights 700/400) | Inter | SaaS, fintech | marcas com alma |
-| Geo-humanista | Space Grotesk | Work Sans | tech com carácter | legal, saúde |
+| Geo-humanista | Bricolage Grotesque | Work Sans | tech com carácter | legal, saúde |
 | Serif de luxo | Playfair Display | Source Sans 3 | premium, hotel, vinho | apps utilitárias |
 | Brutal contraste | Archivo Black | Archivo | poster, streetwear | conteúdo longo |
 | Nostalgia mono | JetBrains Mono | Inter | dev tools, docs técnicas | consumer B2C |
@@ -66,6 +66,12 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 | Neo-grotesque técnico | IBM Plex Sans | IBM Plex Sans | enterprise, dados | marcas emocionais |
 
 ---
+
+⚠ **Nenhuma display desta tabela pode violar o `anti-slop-bans.md`.** `Inter`, `system-ui`, `Roboto`,
+`Arial` e `Space Grotesk` estão banidos como display (⬛ hard-reject) — só valem como body. O par
+Geo-humanista tinha `Space Grotesk` na coluna de display e contradizia-o em silêncio; um agente que
+recebeu essa combinação num brief construiu a variante inteira em cima de um hard-reject.
+Ao acrescentar um par aqui, verificar a coluna Display contra a lista de bans.
 
 ## Estilos nomeados (eixos p/ design-shotgun)
 

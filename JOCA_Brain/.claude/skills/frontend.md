@@ -37,6 +37,7 @@ The director decides direction, then delegates craft. Notify in 1 line: `[+ <ski
 | **shadcn/ui project** (has `components.json`, Radix+Tailwind copy-paste components) | `shadcn` | `Read(".claude/skills/shadcn.md")` |
 | **Email templates** (React Email, client-safe HTML) | `react-email` | `Read(".claude/skills/react-email.md")` |
 | **Motion** (GSAP scroll/hero/hover, Lottie icons) | `anima` | `Read(".claude/skills/anima.md")` |
+| **CSS nativo moderno** (scroll-driven, container queries, `:has()`, `color-mix`, `content-visibility`) | modern-css reference | `Read(".claude/reference/frontend/modern-css.md")` |
 | **Responsive/touch depth** | `mobile` | `Read(".claude/skills/mobile.md")` |
 | **Images** | `img-gen` | `Read(".claude/skills/img-gen.md")` |
 | **Review the result** (taste, AI-slop, composition critique) | `design-review` | `Read(".claude/skills/design-review.md")` |
