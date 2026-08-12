@@ -4,6 +4,16 @@ import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as Proje
 import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
 import { useBrand } from '../hooks/useBrand';
+import { probeOfficeGif, loadOfficePool, poolIndex, stillFor } from '../lib/office-gifs';
+// Versão lida do `package.json`, não escrita à mão: o número que estava aqui cravado tinha ficado
+// uma versão inteira atrás do real (0.8.1 no ecrã, 0.9.1 nos três package.json). O import nomeado
+// só traz a string para o bundle, não o ficheiro todo.
+import { version as VERSAO_COMPLETA } from '../../package.json';
+
+/** Só `major.minor` na barra (`0.9`). O patch continua a viver no `package.json`, que é onde
+ *  interessa; aqui é identidade, não número de build — e continua a derivar do ficheiro, para não
+ *  voltar a divergir como aconteceu com o `0.8.1` escrito à mão. */
+const VERSAO = VERSAO_COMPLETA.split('.').slice(0, 2).join('.');
 
 
 
@@ -45,20 +55,142 @@ interface Props {
 
 type LucideName =
   | 'layout-dashboard' | 'plus' | 'folder-plus' | 'message-square'
-  | 'terminal' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
+  | 'terminal' | 'terminal-quick' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
   | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks' | 'arrow-up-down' | 'link'
   | 'settings';
 
+/**
+ * Ícones do tema "The Office" — só entram com `data-brand="office"`, e só para os nomes que aqui
+ * estão; o resto cai no conjunto normal.
+ *
+ * São desenhos NOSSOS, no mesmo traço dos outros (24×24, `currentColor`), a citar as piadas
+ * correntes da série — a caneca do chefe, o Dundie, o agrafador, a beterraba de Schrute Farms, os
+ * óculos, a resma de papel. Não são fotogramas: imagens da série num repo público seriam material
+ * com direitos de terceiros, e estes herdam a cor do tema, coisa que um PNG não faz.
+ */
+const OFFICE_ICONS: Partial<Record<LucideName, React.ReactNode>> = {
+  // Caneca "World's Best Boss" — o painel principal.
+  'layout-dashboard': <><path d="M4 8h11v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" /><path d="M15 10h2.2a2.4 2.4 0 0 1 0 4.8H15" /><path d="M7.5 3v2M11.5 3v2" /></>,
+  // Dundie — as tarefas premiadas.
+  'list-checks': <><path d="M8 3h8v5a4 4 0 0 1-8 0Z" /><path d="M8 4.5H5.2a2.4 2.4 0 0 0 2.9 3.9M16 4.5h2.8a2.4 2.4 0 0 1-2.9 3.9" /><path d="M12 12v3.5" /><path d="M9.2 15.5h5.6L16 21H8Z" /></>,
+  // Agrafador (o da gelatina) — as automações.
+  zap: <><path d="M3 15.5h18V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18Z" /><path d="M5.5 15.5V9.2l12-4.7v11" /></>,
+  // Beterraba de Schrute Farms — os agentes.
+  terminal: <><path d="M12 20.5c-3.2 0-5.5-2.3-5.5-5.2S9 9.5 12 9.5s5.5 2.9 5.5 5.8-2.3 5.2-5.5 5.2Z" /><path d="M12 9.5V5.5" /><path d="M12 6.5C10.8 4.3 9 3.8 7.4 4.4c.2 1.9 2 3 4.6 2.1ZM12 6.5c1.2-2.2 3-2.7 4.6-2.1-.2 1.9-2 3-4.6 2.1Z" /></>,
+  // Lápis — a sessão rápida é o rascunho ao lado, não a lavoura dos agentes. Glifo PRÓPRIO para os
+  // dois se distinguirem mesmo sem GIF nenhum configurado.
+  'terminal-quick': <><path d="m14.5 4.5 5 5L9 20H4v-5Z" /><path d="m12.5 6.5 5 5" /></>,
+  // Óculos do Dwight — as definições.
+  settings: <><circle cx="6.6" cy="13.5" r="3.6" /><circle cx="17.4" cy="13.5" r="3.6" /><path d="M10.2 13.2c.8-.9 2.8-.9 3.6 0" /><path d="m3.2 11.4 1.8-3M20.8 11.4 19 8.4" /></>,
+  // Resma de papel — cada projecto é uma pilha de folhas.
+  folder: <><path d="M8 3.5h9.5v17H8Z" /><path d="M5 6.5v14h11" /><path d="M10.6 8h4.4M10.6 11.5h4.4" /></>,
+};
+
+/**
+ * URL do GIF deste ícone, se o ficheiro existir em `public/brand/office/`. Devolve `null` enquanto
+ * sonda e sempre que o tema não é o The Office — nesses casos desenha-se o glifo, como antes.
+ */
+function useOfficeGif(name: LucideName, activo: boolean): string | null {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    if (!activo) { setSrc(null); return; }
+    let vivo = true;
+    void probeOfficeGif(name).then((url) => { if (vivo) setSrc(url); });
+    return () => { vivo = false; };
+  }, [name, activo]);
+  return src;
+}
+
+/**
+ * Imagem animada que só anima com o rato em cima. Em repouso mostra o fotograma parado; ao entrar
+ * troca para o ficheiro animado, ao sair volta atrás (e o animado recomeça do início na próxima vez,
+ * que é o que se quer). Se o parado não existir, fica-se pelo animado — nunca há buraco.
+ */
+function OfficeGif({ src, className }: { src: string; className?: string }) {
+  const [hover, setHover] = useState(false);
+  const [seleccionado, setSeleccionado] = useState(false);
+  const [temParado, setTemParado] = useState(true);
+  const ref = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // O gatilho é o BOTÃO/linha que contém o ícone, não o ícone: um alvo de 20px obrigava a acertar
+    // no quadrado, quando o que se está a apontar é a entrada inteira.
+    const alvo = ref.current?.closest<HTMLElement>(
+      'button, a, [role="button"], .sidebar-loose-item, .project-group-header',
+    );
+    if (!alvo) return;
+
+    const entra = () => setHover(true);
+    const sai = () => setHover(false);
+    alvo.addEventListener('mouseenter', entra);
+    alvo.addEventListener('mouseleave', sai);
+
+    // O item ONDE SE ESTÁ anima sem hover nenhum. O estado activo é escrito em classes/atributos do
+    // botão, e muda sem que este componente volte a renderizar — daí o observador, em vez de o ler
+    // uma vez e ficar desactualizado ao mudar de vista.
+    const leEstado = () => setSeleccionado(
+      alvo.classList.contains('active')
+      || alvo.classList.contains('is-active')
+      || alvo.getAttribute('aria-current') === 'page',
+    );
+    leEstado();
+    const obs = new MutationObserver(leEstado);
+    obs.observe(alvo, { attributes: true, attributeFilter: ['class', 'aria-current'] });
+
+    return () => {
+      alvo.removeEventListener('mouseenter', entra);
+      alvo.removeEventListener('mouseleave', sai);
+      obs.disconnect();
+    };
+  }, []);
+
+  const aAnimar = hover || seleccionado;
+  return (
+    <img
+      ref={ref}
+      className={className ?? 'office-gif-icon'}
+      src={aAnimar || !temParado ? src : stillFor(src)}
+      alt=""
+      aria-hidden
+      onError={() => { if (!aAnimar) setTemParado(false); }}
+    />
+  );
+}
+
+/**
+ * GIF da pool para este id (projecto ou sessão). `null` fora do tema The Office, enquanto a pool é
+ * sondada, ou se a pasta estiver vazia — nesses casos desenha-se o ícone normal.
+ */
+function usePoolGif(id: string, activo: boolean): string | null {
+  const [pool, setPool] = useState<string[]>([]);
+  useEffect(() => {
+    if (!activo) { setPool([]); return; }
+    let vivo = true;
+    void loadOfficePool().then((p) => { if (vivo) setPool(p); });
+    return () => { vivo = false; };
+  }, [activo]);
+  return pool.length ? pool[poolIndex(id, pool.length)] : null;
+}
+
 function LucideIcon({ name }: { name: LucideName }) {
+  const brand = useBrand();
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
+  // Ordem: GIF (se o ficheiro existir na pasta) → glifo do tema → glifo normal. O glifo é o que se
+  // desenha enquanto a sondagem não responde, portanto nunca há um buraco nem um ícone partido.
+  const gif = useOfficeGif(name, brand.id === 'office');
+  if (gif) return <OfficeGif src={gif} />;
+  if (brand.id === 'office' && OFFICE_ICONS[name]) return <svg {...common}>{OFFICE_ICONS[name]}</svg>;
   if (name === 'layout-dashboard') return <svg {...common}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>;
   if (name === 'settings') return <svg {...common}><circle cx="12" cy="12" r="3.2" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 4l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.9 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.7 1Z" /></svg>;
   if (name === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>;
   if (name === 'folder-plus') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /><path d="M12 10v6M9 13h6" /></svg>;
   if (name === 'message-square') return <svg {...common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" /></svg>;
-  if (name === 'terminal') return <svg {...common}><path d="m5 7 5 5-5 5" /><path d="M12 19h7" /></svg>;
+  // `terminal-quick` (sessão rápida / agentes soltos) desenha-se igual ao `terminal` no conjunto
+  // normal — é a MESMA coisa. Existe como nome próprio só para poder receber um ícone diferente nos
+  // temas: partilhar a chave fazia o GIF dos Agentes aparecer também na sessão rápida.
+  if (name === 'terminal' || name === 'terminal-quick') return <svg {...common}><path d="m5 7 5 5-5 5" /><path d="M12 19h7" /></svg>;
   if (name === 'folder') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
   if (name === 'folder-open') return <svg {...common}><path d="M6 17.5A2.5 2.5 0 0 1 3.5 15V6.5A2.5 2.5 0 0 1 6 4h3.5l2 2H18a2 2 0 0 1 2 2v1" /><path d="M4 17.5 6.2 10h15.3l-2.2 7.5A2 2 0 0 1 17.4 19H5.9A2 2 0 0 1 4 17.5Z" /></svg>;
   if (name === 'chevron-down') return <svg {...common}><path d="m6 9 6 6 6-6" /></svg>;
@@ -91,7 +223,11 @@ function LucideIcon({ name }: { name: LucideName }) {
 // O monograma vem em `data-mono` e só o CSS o troca pelo svg quando a barra está fechada (o ícone
 // de pasta continua no DOM para a barra aberta).
 
-function ProjectAvatar({ icon, name }: { icon?: ProjectIcon; name: string }) {
+function ProjectAvatar({ icon, name, id }: { icon?: ProjectIcon; name: string; id?: string }) {
+  const brand = useBrand();
+  // A pool só entra quando o projecto NÃO tem ícone próprio: um logótipo que o dono escolheu ganha
+  // sempre ao sorteio. Hook chamado incondicionalmente (regra dos hooks) e desligado por `activo`.
+  const poolGif = usePoolGif(id ?? name, brand.id === 'office' && !icon);
   if (icon?.type === 'image') {
     return (
       <span className="project-group-icon project-icon--image">
@@ -102,6 +238,13 @@ function ProjectAvatar({ icon, name }: { icon?: ProjectIcon; name: string }) {
   }
   if (icon?.type === 'emoji') {
     return <span className="project-group-icon project-icon--emoji" aria-hidden>{icon.value}</span>;
+  }
+  if (poolGif) {
+    return (
+      <span className="project-group-icon project-icon--image">
+        <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" />
+      </span>
+    );
   }
   return (
     <span className="project-group-icon" data-mono={iconInitials(name)}>
@@ -244,7 +387,7 @@ const PROJECT_SORT_OPTIONS: { value: ProjectSort; label: string }[] = [
 ];
 
 const PROJECT_SORT_HINT =
-  'Ordenação da lista de projectos. "Mais recentes"/"Mais antigos" usam a posição na lista como '
+  'Ordenação da barra: projectos E agentes rápidos. "Mais recentes"/"Mais antigos" usam a posição na lista como '
   + 'aproximação da data (os projectos não guardam data de criação — o último adicionado fica no fim). '
   + 'Só "Manual (arrastar)" permite reordenar por drag; as outras são apenas uma vista, até carregares em "Fixar ordem".';
 
@@ -255,7 +398,11 @@ function readProjectSort(): ProjectSort {
   } catch { return 'manual'; }
 }
 
-function sortProjects(list: Project[], sort: ProjectSort): Project[] {
+/**
+ * Genérico em `{ name }` porque o mesmo selector ordena DUAS listas: os projectos e os agentes
+ * rápidos. Eram dois critérios diferentes na mesma barra — mudar a ordenação não mexia nos agentes.
+ */
+function sortProjects<T extends { name: string }>(list: T[], sort: ProjectSort): T[] {
   // 'manual' e 'oldest' são a ordem tal como vem do servidor (mais antigo primeiro).
   if (sort === 'manual' || sort === 'oldest') return list;
   const out = [...list];
@@ -363,7 +510,7 @@ function ProjectRow({
         )}
         {editing ? (
           <>
-            <ProjectAvatar icon={project.icon} name={project.name} />
+            <ProjectAvatar icon={project.icon} name={project.name} id={project.id} />
             <span
               className="project-group-color"
               style={{ '--project-color': projectColor(project) } as CSSProperties}
@@ -393,7 +540,7 @@ function ProjectRow({
             title={`${project.name} — abrir workspace (duplo-clique renomeia)`}
             aria-label={`Abrir workspace de ${project.name}`}
           >
-            <ProjectAvatar icon={project.icon} name={project.name} />
+            <ProjectAvatar icon={project.icon} name={project.name} id={project.id} />
             <span
               className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
               style={{ '--project-color': projectColor(project) } as CSSProperties}
@@ -458,6 +605,9 @@ function LooseAgentRow({
   onRename?: (name: string) => void;
   onClose?: () => void;
 }) {
+  const brand = useBrand();
+  // Cada sessão apanha o seu GIF da pool, pelo id — estável enquanto a sessão viver.
+  const poolGif = usePoolGif(session.id, brand.id === 'office');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(session.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -475,7 +625,7 @@ function LooseAgentRow({
   if (editing && !collapsed) {
     return (
       <div className="sidebar-loose-item is-editing">
-        <span className="sidebar-loose-icon"><LucideIcon name="terminal" /></span>
+        <span className="sidebar-loose-icon">{poolGif ? <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" /> : <LucideIcon name="terminal-quick" />}</span>
         <input
           ref={inputRef}
           className="sidebar-loose-input"
@@ -506,7 +656,7 @@ function LooseAgentRow({
         : `${session.name} — agente sem projecto`}
       aria-label={`Abrir agente ${session.name}`}
     >
-      <span className="sidebar-loose-icon"><LucideIcon name="terminal" /></span>
+      <span className="sidebar-loose-icon">{poolGif ? <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" /> : <LucideIcon name="terminal-quick" />}</span>
       <span className="sidebar-loose-name">{session.name}</span>
       {onClose && !collapsed && (
         <button
@@ -623,7 +773,7 @@ function ProjectFolder({
         </button>
         {editing ? (
           <>
-            <ProjectAvatar icon={group.icon} name={group.name} />
+            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} />
             <span
               className="project-group-color"
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -662,7 +812,7 @@ function ProjectFolder({
             aria-haspopup={collapsed ? 'menu' : undefined}
             aria-expanded={collapsed ? flyoutOpen : expanded}
           >
-            <ProjectAvatar icon={group.icon} name={group.name} />
+            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} />
             <span
               className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -733,7 +883,7 @@ function ProjectFolder({
               title={project.name}
               aria-label={`Abrir ${project.name}`}
             >
-              <ProjectAvatar icon={project.icon} name={project.name} />
+              <ProjectAvatar icon={project.icon} name={project.name} id={project.id} />
             </button>
           ))}
           {members.length === 0 && <span className="group-collapsed-empty" title="Grupo sem projectos" aria-hidden>—</span>}
@@ -770,10 +920,15 @@ export default function SessionSidebar({
   }, [sortMenuOpen]);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
-  // Agentes "rápidos": sessões sem projecto. A trabalhar primeiro — é o que se vai lá ver.
-  const looseSessions = sessions
-    .filter(s => !s.projectId)
-    .sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'));
+  // Agentes "rápidos": sessões sem projecto. Seguem a MESMA ordenação escolhida no selector dos
+  // projectos — é um selector só para a barra toda, e ter duas listas com critérios diferentes era
+  // o que fazia parecer que a ordenação não pegava aqui.
+  // Excepção em "Manual": uma sessão não tem ordem arrastada para respeitar, portanto mantém-se o
+  // critério que já existia — a trabalhar primeiro, que é o que se vai lá ver.
+  const soltas = sessions.filter(s => !s.projectId);
+  const looseSessions = projectSort === 'manual'
+    ? [...soltas].sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'))
+    : sortProjects(soltas, projectSort);
 
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
@@ -896,7 +1051,7 @@ export default function SessionSidebar({
             {brand.logo
               ? <img className="sb-logo-img" src={brand.logo} alt="" aria-hidden />
               : <div className="sb-logo-rings" aria-hidden />}
-            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>0.8.1</span></span>
+            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>{VERSAO}</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"
@@ -964,9 +1119,9 @@ export default function SessionSidebar({
                 className={`sidebar-btn-sort${sortMenuOpen ? ' is-active' : ''}`}
                 type="button"
                 onClick={() => setSortMenuOpen((v) => !v)}
-                data-tooltip="Ordenar projectos"
+                data-tooltip="Ordenar projectos e agentes rápidos"
                 data-tooltip-position="bottom"
-                aria-label="Ordenar projectos"
+                aria-label="Ordenar projectos e agentes rápidos"
                 aria-expanded={sortMenuOpen}
                 aria-controls="sidebar-sort-row"
               ><LucideIcon name="arrow-up-down" /></button>
@@ -1109,7 +1264,7 @@ export default function SessionSidebar({
           data-tooltip="Sessão rápida — agente sem projecto"
           data-tooltip-position="top"
         >
-          <LucideIcon name="terminal" /> Sessão rápida
+          <LucideIcon name="terminal-quick" /> Sessão rápida
         </button>
 
         {/* Definições: o ícone de fundo da coluna esquerda. Passou para aqui quando o rail direito

@@ -7170,6 +7170,201 @@ background: var(--surface-panel);
   --badge-orange: #8a0e0e;
 }
 
+/* The Office — preto e branco, sem cor nenhuma. Segue o pictograma do tema: tinta sobre papel.
+   O acento deixa de ser uma cor e passa a ser CONTRASTE — preto no claro, branco no escuro — o que
+   obriga os dois blocos a inverter tudo, não só a escurecer. Cinzentos neutros de propósito (sem
+   bege, sem azul), para não reintroduzir um matiz pela porta das traseiras.
+   Contrastes medidos: accent 17,4:1 sobre papel no claro; 17,2:1 sobre o fundo no escuro;
+   o texto mais fraco (ghost) fica em 5,35:1. */
+:root[data-brand="office"]:not([data-theme="light"]) {
+  --accent:         #f2f2f2;
+  --accent-text:    #ffffff;
+  --accent-amber:   #cfcfcf;  /* o "âmbar" também é cinzento — senão voltava a cor ao tema */
+  --accent-soft:    rgba(255,255,255,0.10);
+  --accent-glow:    rgba(255,255,255,0.26);
+  --accent-border:  rgba(255,255,255,0.28);
+
+  --bg-void:      #0e0e0e;
+  --bg-base:      #0e0e0e;
+  --bg-nav:       #151515;
+  --bg-card:      #1c1c1c;
+  --bg-card-hover:#252525;
+  --bg-input:     #111111;
+  --bg-elevated:  #1c1c1c;
+  --bg-files:     #151515;
+  --bg-terminal:  #101010;
+
+  --surface-main:  #171717;
+  --surface-panel: #151515;
+  --surface-raised:#1f1f1f;
+  --surface-base:  #131313;
+
+  --badge-orange: #cfcfcf;
+
+  /* Sem matiz, o estado passa a distinguir-se por LUMINOSIDADE — é a única variável que sobra.
+     A trabalhar = branco, parado = cinzento médio. */
+  --status-working:      #ffffff;
+  --status-idle:         #8f8f8f;
+  --status-working-glow: rgba(255,255,255,0.26);
+  --status-idle-glow:    rgba(255,255,255,0.12);
+  --status-done-glow:    rgba(255,255,255,0.32);
+
+  --badge-purple: #d4d4d4;
+  --badge-blue:   #bdbdbd;
+  --badge-teal:   #a6a6a6;
+
+  /* ÚNICA cor do tema, e é deliberada: o vermelho de perigo. Num interface sem matiz, apagar e
+     destruir passavam a parecer-se com tudo o resto — e a cor é o aviso, não decoração. Tijolo
+     dessaturado, para avisar sem estragar o preto e branco. */
+  --red:        #c96a6a;
+  --dot-red:    #c96a6a;
+  --dot-yellow: #b0b0b0;
+  --dot-green:  #6b6b6b;
+}
+
+/* The Office claro — a folha branca com a tinta preta. */
+:root[data-brand="office"][data-theme="light"] {
+  --accent:         #1a1a1a;
+  --accent-text:    #000000;
+  --accent-amber:   #3a3a3a;
+  --accent-soft:    rgba(0,0,0,0.07);
+  --accent-glow:    rgba(0,0,0,0.18);
+  --accent-border:  rgba(0,0,0,0.26);
+
+  --bg-void:      #f0f0f0;
+  --bg-base:      #f0f0f0;
+  --bg-nav:       #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-hover:#e6e6e6;
+  --bg-input:     #ffffff;
+  --bg-elevated:  #ffffff;
+  --bg-files:     #ebebeb;
+  --bg-terminal:  #fafafa;
+
+  --surface-main:  #ffffff;
+  --surface-panel: #ebebeb;
+  --surface-raised:#ffffff;
+  --surface-base:  #ffffff;
+
+  --text-bright:  #111111;
+  --text-normal:  #333333;
+  --text-dim:     #5e5e5e;
+  --text-muted:   #5e5e5e;
+  --text-ghost:   #626262;
+  --text-primary:   #111111;
+  --text-secondary: #474747;
+
+  --badge-orange: #2b2b2b;
+
+  /* Mesma lógica invertida: a trabalhar = tinta preta, parado = cinzento. */
+  --status-working:      #111111;
+  --status-idle:         #7a7a7a;
+  --status-working-glow: rgba(0,0,0,0.22);
+  --status-idle-glow:    rgba(0,0,0,0.09);
+  --status-done-glow:    rgba(0,0,0,0.26);
+
+  --badge-purple: #3a3a3a;
+  --badge-blue:   #4d4d4d;
+  --badge-teal:   #444444;
+
+  /* Mesma excepção do bloco escuro: o perigo mantém cor. Escurecido para ler sobre papel. */
+  --red:        #a33a3a;
+  --dot-red:    #a33a3a;
+  --dot-yellow: #6b6b6b;
+  --dot-green:  #9a9a9a;
+}
+
+/* Nem toda a cor da app vem de tokens: cinco regras trazem o verde e o âmbar cravados no CSS, e
+   num tema sem matiz sobreviviam como um halo colorido por cima do preto e branco. Reescrevem-se
+   para os tokens de acento — que JÁ são por modo, portanto isto serve claro e escuro sem duplicar.
+   Os pontos de cor DO PROJECTO são escolha do utilizador e ficam guardados: em vez de os
+   reescrever, tira-se-lhes a saturação, para a cor voltar intacta quando ele mudar de tema. */
+:root[data-brand="office"] .status-pill--active,
+:root[data-brand="office"] .status-pill--connected,
+:root[data-brand="office"] .status-pill--paused,
+:root[data-brand="office"] .status-pill--mock,
+:root[data-brand="office"] .toolkit-open-dirty {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+:root[data-brand="office"] .settings-cli-card--installed { border-color: var(--accent-border); }
+/* As mesmas cravadas, mas nos CSS dos componentes (Dashboard e Terminal). Ficam aqui e não lá
+   porque `:root[data-brand]` + classe ganha em especificidade, portanto a ordem de import não
+   conta — e assim o tema inteiro lê-se num sítio só. */
+:root[data-brand="office"] .db-project-session-status--working,
+:root[data-brand="office"] .db-project-session-status--idle,
+:root[data-brand="office"] .quick-command-btn--highlight,
+:root[data-brand="office"] .quick-command-btn--highlight:hover,
+:root[data-brand="office"] .slash-menu-badge--skill {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+:root[data-brand="office"] .db-stat-card:nth-child(1):hover,
+:root[data-brand="office"] .db-stat-card:nth-child(3):hover {
+  box-shadow: 0 10px 24px var(--accent-glow), inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
+}
+:root[data-brand="office"] .project-group-color,
+:root[data-brand="office"] .db-project-color-dot { filter: grayscale(1); }
+/* A cor do projecto entra por `--project-color` escrita no atributo `style` do elemento, e tinge
+   degradês e bordas por toda a app. Uma declaração inline só se vence com `!important` — é a
+   excepção que este caso justifica. O valor guardado do projecto não é tocado: volta ao mudar de
+   tema. */
+:root[data-brand="office"] [style*="--project-color"] { --project-color: var(--accent) !important; }
+
+/* GIF no lugar de um ícone (tema The Office). Quadrado, do tamanho do glifo que substitui, com o
+   canto redondo para não brigar com a linha de texto. `object-fit:cover` porque os GIFs vêm em
+   rácios variados e um 16:9 esmagado num quadrado fica ilegível. */
+.office-gif-icon {
+  width: 1.25em; height: 1.25em;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: block;
+}
+/* Na posição de avatar (projecto / sessão) o GIF preenche a caixa quadrada que o ícone ocupava,
+   em vez de ficar do tamanho da linha de texto. */
+.office-gif-icon--avatar { width: 100%; height: 100%; border-radius: inherit; }
+
+/* Rato EM CIMA do próprio GIF: cresce para se perceber o que lá está. A 20px um fotograma de vídeo
+   é uma mancha; ampliado lê-se. `position:relative` + `z-index` para passar por cima das linhas
+   vizinhas em vez de ser cortado por elas, e a sombra separa-o do fundo enquanto está por cima. */
+.office-gif-icon {
+  position: relative;
+  z-index: 1;
+  transition: transform var(--t-fast, 0.14s) ease, box-shadow var(--t-fast, 0.14s) ease;
+  transform-origin: left center;
+}
+.office-gif-icon:hover {
+  transform: scale(4.5);
+  z-index: 30;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+}
+
+/* O crescimento não pode ser cortado por NENHUMA das caixas por cima do ícone, e nos projectos
+   havia duas a cortar: a caixa do logótipo (`.project-icon--image`, que recorta a imagem ao
+   quadrado arredondado) e a linha inteira (`.project-group`). Por isso o zoom funcionava na
+   navegação e não nos projectos.
+   ⚠ A regra que ganhava vinha de `components/sidebar-icons.css` com TRÊS classes; um selector com a
+   mesma contagem que a nossa empatava e ganhava por vir depois na cascata. Daí o `.session-sidebar`
+   também aqui — não é decoração, é o que desempata. */
+:root[data-brand="office"] .project-group-icon,
+:root[data-brand="office"] .sidebar-loose-icon,
+:root[data-brand="office"] .nav-icon,
+:root[data-brand="office"] .project-group,
+:root[data-brand="office"] .session-sidebar .project-group-icon.project-icon--image { overflow: visible; }
+
+/* A caixa do ícone de sessão rápida nunca teve tamanho próprio: com um SVG dentro não fazia falta
+   (o SVG traz o seu), mas uma imagem sem caixa assume o tamanho NATURAL do ficheiro — 480×400 — e
+   ocupava a barra inteira. Fixa-se ao mesmo quadrado do ícone de projecto. */
+:root[data-brand="office"] .sidebar-loose-icon {
+  width: 18px; height: 18px; flex: 0 0 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  /* Mesmo raio do ícone de projecto (`.project-icon--image`, 5px). O avatar herda o raio do pai;
+     sem ele aqui, `border-radius: inherit` resolvia para 0 e as sessões ficavam de cantos vivos ao
+     lado de projectos arredondados. */
+  border-radius: 5px;
+}
+
 /* Selector de Custom Temas (Definições → Tema). */
 .brand-theme-block { margin-top:16px; padding-top:14px; border-top:1px solid var(--border-faint); }
 .brand-theme-label { display:block; font-size:0.78em; font-weight:600; color:var(--text-bright); }

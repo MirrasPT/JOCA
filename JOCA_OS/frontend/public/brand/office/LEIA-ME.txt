@@ -1,0 +1,17 @@
+GIFs do tema "The Office".
+
+Larga ficheiros aqui com estes nomes e eles passam a ser os icones da barra lateral
+(so com o tema The Office activo; recarrega a pagina depois de os pores):
+
+  dashboard.gif    -> Dashboard
+  tarefas.gif      -> Tarefas Globais
+  automacoes.gif   -> Automacoes
+  agentes.gif      -> Agentes (item da navegacao)
+  sessao.gif       -> Sessao rapida e agentes soltos
+  definicoes.gif   -> Definicoes
+  projectos.gif    -> cada projecto na barra
+
+O que faltar continua com o icone desenhado. Nao e preciso editar codigo.
+
+Esta pasta esta no .gitignore de proposito: os GIFs da serie sao obra de terceiros e este
+repositorio e publico. Ficam nesta maquina, nao viajam no push.

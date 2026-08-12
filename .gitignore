@@ -17,3 +17,7 @@ rename-to-brain.bat
 **/.claude/settings.local.json
 .claude/scheduled_tasks.lock
 **/.playwright-mcp/
+
+# GIFs do tema The Office — obra de terceiros, ficam locais (ver LEIA-ME dentro da pasta)
+JOCA_OS/frontend/public/brand/office/*
+!JOCA_OS/frontend/public/brand/office/LEIA-ME.txt

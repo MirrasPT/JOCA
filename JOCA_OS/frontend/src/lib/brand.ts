@@ -65,6 +65,14 @@ export const BRAND_THEMES: BrandTheme[] = [
     favicon: '/brand/favicon-hal.png',
     detail: 'A lente que não pisca — carmim frio sobre ardósia.',
   },
+  {
+    id: 'office',
+    label: 'The Office',
+    wordmark: 'DUNDER MIFFLIN',
+    logo: '/brand/office.png',
+    favicon: '/brand/favicon-office.png',
+    detail: 'Escritório de Scranton — preto e branco, tinta sobre papel.',
+  },
 ];
 
 export const DEFAULT_BRAND = BRAND_THEMES[0];

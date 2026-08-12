@@ -50,7 +50,7 @@
           // Ícone do separador também aqui: trocá-lo só depois do bundle deixava o favicon do tema
           // anterior no separador durante o arranque. A lista é fixa de propósito — este script
           // corre antes dos módulos, não tem acesso ao registo de `lib/brand.ts`.
-          if (['alfredo', 'kitt', 'r2d2', 'hal'].indexOf(brand) >= 0) {
+          if (['alfredo', 'kitt', 'r2d2', 'hal', 'office'].indexOf(brand) >= 0) {
             var icon = document.querySelector('link[rel="icon"]');
             if (icon) icon.href = '/brand/favicon-' + brand + '.png';
           }
