@@ -178,6 +178,78 @@
   },
   {
     "type": "skill",
+    "name": "blender-render",
+    "category": "general",
+    "path": ".claude/skills/blender-render.md",
+    "description": "Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output, animacao e sequencias. MUST be invoked when the user says: render 3d, renderizar, cycles, eevee, turntabl",
+    "triggers": [
+      "render 3d",
+      "renderizar",
+      "cycles",
+      "eevee",
+      "turntable",
+      "product shot",
+      "material pbr",
+      "shader blender",
+      "iluminar cena",
+      "three point lighting",
+      "hdri",
+      "world background",
+      "camara 3d",
+      "focal length",
+      "depth of field"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "blender-scripting",
+    "category": "general",
+    "path": ".claude/skills/blender-scripting.md",
+    "description": "Escrever e correr scripts bpy headless: construir cenas, transformar objectos, modificadores, importar/exportar 3D, batch de .blend, hierarquia e custom properties. MUST be invoked when the user says:",
+    "triggers": [
+      "bpy",
+      "script blender",
+      "blender python",
+      "automatizar blender",
+      "headless blender",
+      "batch blend",
+      "importar modelo 3d",
+      "exportar modelo 3d",
+      "converter 3d",
+      "glb",
+      "gltf",
+      "fbx",
+      "obj",
+      "stl",
+      "usd"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "blender",
+    "category": "general",
+    "path": ".claude/skills/blender.md",
+    "description": "Director/router de trabalho 3D em Blender por Python headless (bpy). MUST be invoked when the user says: blender, 3d, modelo 3d, cena 3d, render 3d, .blend, bpy, glb, gltf, fbx, obj, stl, malha, mesh,",
+    "triggers": [
+      "blender",
+      "bpy",
+      "3d",
+      "modelo 3d",
+      "modelacao 3d",
+      "cena 3d",
+      "render 3d",
+      ".blend",
+      "glb",
+      "gltf",
+      "fbx",
+      "obj",
+      "stl",
+      "usd",
+      "malha"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "blueprint",
     "category": "general",
     "path": ".claude/skills/blueprint.md",
@@ -2668,6 +2740,51 @@
   },
   {
     "type": "agent",
+    "name": "blender-agent",
+    "category": "agents",
+    "path": ".claude/agents/blender-agent.md",
+    "description": "3d · Director/router de trabalho 3D em Blender por Python headless (bpy). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "blender",
+      "bpy",
+      "3d",
+      "modelo 3d",
+      "modelacao 3d",
+      "cena 3d"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "blender-render-agent",
+    "category": "agents",
+    "path": ".claude/agents/blender-render-agent.md",
+    "description": "3d · Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "render 3d",
+      "renderizar",
+      "cycles",
+      "eevee",
+      "turntable",
+      "product shot"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "blender-scripting-agent",
+    "category": "agents",
+    "path": ".claude/agents/blender-scripting-agent.md",
+    "description": "3d · Escrever e correr scripts bpy headless: construir cenas, transformar objectos, modificadores. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "bpy",
+      "script blender",
+      "blender python",
+      "automatizar blender",
+      "headless blender",
+      "batch blend"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "browser-automate-agent",
     "category": "agents",
     "path": ".claude/agents/browser-automate-agent.md",
@@ -3029,12 +3146,12 @@
     "path": ".claude/agents/frontend-agent.md",
     "description": "código · Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
+      "frontend-design",
+      "frontend design",
       "website",
       "landing page",
       "site",
-      "webapp",
-      "web app",
-      "frontend"
+      "webapp"
     ]
   },
   {
@@ -3459,10 +3576,10 @@
     "triggers": [
       "react performance",
       "re-render",
-      "rerender",
       "useEffect",
-      "useMemo",
-      "useCallback"
+      "server component",
+      "RSC",
+      "waterfall"
     ]
   },
   {

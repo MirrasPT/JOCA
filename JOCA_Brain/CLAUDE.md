@@ -82,6 +82,9 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | security code review · IDOR · mass assignment · OWASP | `security-review` (agent) |
 | GSAP · ScrollTrigger · animation | `anima` |
 | Remotion · video React | `remotion` |
+| Blender · 3D · .blend · bpy · malha · modelo 3D · render 3D | `blender` (director — CLI headless, routes to scripting/render) |
+| bpy · script Blender · importar/exportar 3D · glTF/GLB/FBX/OBJ/STL/USD · batch .blend · modificadores | `blender-scripting` |
+| render 3D · Cycles · EEVEE · turntable · material PBR · iluminar cena 3D · câmara 3D | `blender-render` |
 | slides · pitch deck | `slides` |
 | generate image · illustration | `img-gen` |
 | gerar vídeo · voiceover · TTS · música · SFX · vectorizar · raster→SVG · upscale · remove background | `picsart` (gen-ai CLI) |
