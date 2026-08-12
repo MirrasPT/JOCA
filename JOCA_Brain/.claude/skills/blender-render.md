@@ -70,6 +70,30 @@ r.filepath = "/out/render_"                 # still: sai "/out/render_.png"
 bpy.ops.render.render(write_still=True)
 ```
 
+### Render region — ligar por omissão em cenas com câmara
+
+```python
+r.use_border = True
+r.border_min_x, r.border_min_y = 0.0, 0.0
+r.border_max_x, r.border_max_y = 1.0, 1.0
+r.use_crop_to_border = False      # True corta a imagem final ao tamanho da região
+```
+
+Sem isto, o viewport Rendered calcula também a zona cinzenta fora do passepartout — GPU gasta em
+pixels que ninguém vê. Com os limites a 0–1 o enquadramento não muda; só se deixa de renderizar
+fora da câmara.
+
+Equivale a **Ctrl+B** em vista de câmara. Duas propriedades distintas, e a descrição da API é que
+as separa:
+
+| Contexto | Propriedade | Alcance |
+|---|---|---|
+| pela câmara (Numpad 0) | `scene.render.use_border` | viewport Rendered **e** render final |
+| fora da câmara | `space.use_render_border` | só o viewport — *"when not viewing through the camera"* |
+
+É **por cena**, guardado no `.blend` — não é preferência global, cada ficheiro novo nasce sem ela.
+Por isso vai no script.
+
 `Standard` para composição/UI onde as cores têm de sair como foram definidas; `AgX` para imagem
 fotográfica (comprime highlights, dessatura no clipping); **`Khronos PBR Neutral` para produto/
 e-commerce** — preserva a cor do material sem a lavagem do AgX. Entregar um swatch de cor de marca
