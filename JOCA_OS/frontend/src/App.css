@@ -21,6 +21,13 @@
      ler em claro (≈2.8:1 sobre creme); no escuro é o próprio accent (≈4.7:1). Ver o override no
      bloco do tema claro — mesma razão por que --red/--badge-* já lá são re-afinados. */
   --accent-text:    #ff4500;
+  /* Texto/ícone POR CIMA de um fundo --accent (≠ --accent-text, que é accent COMO texto). Existe
+     porque `color:#fff` cravado é ilegível assim que o accent da marca é claro: no Office escuro
+     (#f2f2f2) dava 1,12:1 — branco sobre branco — e no Alfredo (#ffd230) 1,45:1. Tinta escura por
+     omissão: passa AA nos accents laranja/amarelo/azul-claro (5,5 · 13,1 · 6,9). As marcas cujo
+     accent é escuro o bastante invertem-no para #fff no próprio bloco (kitt/r2d2 claros, hal, office
+     claro). Qualquer marca nova tem de medir o par antes de escolher. */
+  --on-accent:      #12100e;
   --accent-amber:   #fbbf24;
   --accent-soft:    rgba(255,69,0,0.08);
   --accent-glow:    rgba(255,69,0,0.3);
@@ -7007,6 +7014,7 @@ background: var(--surface-panel);
 :root[data-brand="kitt"][data-theme="light"] {
   --accent:         #d11f1f;
   --accent-text:    #8e1212;  /* 7.4:1 sobre accent-soft */
+  --on-accent:      #ffffff;  /* 5.4:1 sobre o accent — melhor que a tinta escura (3,6:1) */
   --accent-amber:   #9a4a10;
   --accent-soft:    rgba(209,31,31,0.09);
   --accent-glow:    rgba(209,31,31,0.24);
@@ -7073,6 +7081,7 @@ background: var(--surface-panel);
 :root[data-brand="r2d2"][data-theme="light"] {
   --accent:         #2b6cb8;
   --accent-text:    #1a4c85;  /* 7.1:1 sobre accent-soft */
+  --on-accent:      #ffffff;  /* 5.3:1 sobre o accent */
   --accent-amber:   #8a5a00;
   --accent-soft:    rgba(43,108,184,0.10);
   --accent-glow:    rgba(43,108,184,0.22);
@@ -7111,6 +7120,7 @@ background: var(--surface-panel);
 :root[data-brand="hal"]:not([data-theme="light"]) {
   --accent:         #e01313;
   --accent-text:    #ff6a6a;
+  --on-accent:      #ffffff;  /* 4.9:1 sobre o accent */
   --accent-amber:   #ffe600;  /* o pinpoint no meio da lente */
   --accent-soft:    rgba(224,19,19,0.12);
   --accent-glow:    rgba(224,19,19,0.42);  /* halo mais forte: a lente brilha, não pinta */
@@ -7139,6 +7149,7 @@ background: var(--surface-panel);
 :root[data-brand="hal"][data-theme="light"] {
   --accent:         #b81212;
   --accent-text:    #8a0e0e;  /* 8.4:1 sobre accent-soft */
+  --on-accent:      #ffffff;  /* 6.7:1 sobre o accent */
   --accent-amber:   #7a6a00;
   --accent-soft:    rgba(184,18,18,0.09);
   --accent-glow:    rgba(184,18,18,0.26);
@@ -7226,6 +7237,7 @@ background: var(--surface-panel);
 :root[data-brand="office"][data-theme="light"] {
   --accent:         #1a1a1a;
   --accent-text:    #000000;
+  --on-accent:      #ffffff;  /* 17,4:1 — a tinta preta sobre tinta preta era o mesmo defeito ao contrário */
   --accent-amber:   #3a3a3a;
   --accent-soft:    rgba(0,0,0,0.07);
   --accent-glow:    rgba(0,0,0,0.18);

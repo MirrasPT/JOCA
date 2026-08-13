@@ -262,7 +262,7 @@
   border: 0;
   border-radius: 999px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 600;
@@ -271,9 +271,12 @@
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
+/* O hover trazia o laranja (#ff5511) e o brilho laranja cravados — em qualquer marca que não a de
+   origem, o botão mudava de cor ao passar o rato. Puxar o accent na direcção da própria tinta
+   funciona nos dois sentidos: escurece o laranja, acinzenta o branco do Office. */
 .terminal-command-send:hover:not(:disabled) {
-  background: #ff5511;
-  box-shadow: 0 4px 18px rgba(255, 69, 0, 0.45);
+  background: color-mix(in srgb, var(--accent) 86%, var(--on-accent));
+  box-shadow: 0 4px 18px var(--accent-glow);
 }
 
 .terminal-command-send:disabled {
