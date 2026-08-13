@@ -4,6 +4,11 @@ import fs from 'fs';
 import { HttpError, safePath } from '../security-fs';
 import { DROP_DIR, UPLOAD_ALLOWED_EXTS, safeDesktopFilename, safeRelSegments } from './helpers';
 
+// Windows strips trailing dots/spaces when creating a file, so `evil.exe.` lands on disk as
+// `evil.exe`. Normalize BEFORE judging the extension and write the normalized name — otherwise the
+// allowlist reads an extension that the filesystem will not keep.
+const stripTrailing = (s: string) => s.replace(/[. ]+$/, '');
+
 // Ficheiros no JOCA são só anexo ou caminho — sem navegador/listagem. Só resta leitura pontual
 // (1 ficheiro por path, para previews/anexos) e o upload que alimenta esses anexos.
 export function filesRouter(): Router {
@@ -74,8 +79,10 @@ export function filesRouter(): Router {
     let filepath: string;
     let root: string | undefined;
     if (rawRel) {
-      const segs = safeRelSegments(rawRel);
-      if (!segs) return res.status(400).json({ error: 'Invalid relative path' });
+      const rawSegs = safeRelSegments(rawRel);
+      if (!rawSegs) return res.status(400).json({ error: 'Invalid relative path' });
+      const segs = rawSegs.map(stripTrailing);
+      if (segs.some((s) => !s)) return res.status(400).json({ error: 'Invalid relative path' });
       // A extensão REAL é a do nome final do rel-path, não a do header x-file-ext — validar essa,
       // senão `x-file-ext: png` + `x-rel-path: drop/payload.html` escrevia um .html fora da
       // allowlist (auditoria 2026-08-06 #2).
@@ -87,7 +94,16 @@ export function filesRouter(): Router {
       root = path.join(DROP_DIR, segs[0]);
       fs.mkdirSync(path.dirname(filepath), { recursive: true });
     } else {
-      const filename = safeDesktopFilename(originalName, ext || 'bin');
+      const filename = stripTrailing(safeDesktopFilename(originalName, ext || 'bin'));
+      if (!filename) return res.status(400).json({ error: 'Invalid filename' });
+      // A extensão que conta é a do nome ESCRITO, não a do header: `x-file-ext: png` com
+      // `x-file-name: evil.exe` gravava um .exe (o header passava a allowlist, o nome não era
+      // verificado). Nome sem extensão (README, .env) dá `realExt` vazio e é aceite — é para isso
+      // que existe o marcador 'bin'.
+      const realExt = path.extname(filename).slice(1).toLowerCase();
+      if (realExt && !UPLOAD_ALLOWED_EXTS.has(realExt)) {
+        return res.status(400).json({ error: `Extension .${realExt} not allowed` });
+      }
       filepath = path.join(DROP_DIR, filename);
       fs.mkdirSync(DROP_DIR, { recursive: true });
     }

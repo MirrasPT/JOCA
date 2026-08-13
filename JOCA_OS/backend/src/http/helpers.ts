@@ -29,9 +29,15 @@ export const OPEN_ALLOWED_EXTS = new Set([
   'html','htm',
 ]);
 
-// Allowlist of droppable extensions. 'svg'/'html'/'htm' are intentionally EXCLUDED — they can
-// carry executable scripts and would be XSS vectors when rendered via /file-content. Executables
-// (exe/bat/cmd/ps1/sh/…) are also excluded — no reason to land them via a drop.
+// Allowlist of droppable extensions. Executables (exe/bat/cmd/ps1/msi/…) stay OUT — no reason to
+// land them via a drop.
+// 'svg'/'html'/'htm' ARE allowed (2026-08-13, decisão do dono). They can carry script, but the risk
+// lives in the RENDER path, and /file-content already contains it: SVG is served under a CSP
+// sandbox, HTML is forced to Content-Disposition: attachment on any active-render context. An
+// attachment only hands the agent a PATH — the composer never renders it.
+// 'bin' is the marker for EXTENSIONLESS files (README, Dockerfile, .env). The real guard for those
+// is the name-based check in files-routes.ts, which judges the extension of the name actually
+// written to disk — the x-file-ext header alone was never enough (`png` + `evil.exe` wrote an .exe).
 export const UPLOAD_ALLOWED_EXTS = new Set([
   // images
   'png','jpg','jpeg','gif','webp','bmp','ico','heic','heif','tiff','tif','avif',
@@ -49,6 +55,10 @@ export const UPLOAD_ALLOWED_EXTS = new Set([
   'psd','ai','eps','sketch','fig',
   // common code/text attachments
   'ts','tsx','js','jsx','py','rb','go','rs','java','c','h','cpp','cs','php','sql','sh','css','scss',
+  // markup — safe to STORE; /file-content is what sandboxes them on render
+  'svg','html','htm',
+  // extensionless files (README, Dockerfile, .env) — see note above
+  'bin',
 ]);
 
 export function assertClaudePath(targetPath: string) {

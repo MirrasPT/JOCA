@@ -76,7 +76,16 @@ export function captureDrop(e: DragEvent): DropCapture {
 // ── upload ──
 interface UploadOpts { relPath?: string; name?: string }
 
-async function uploadFile(file: File, opts: UploadOpts = {}): Promise<{ path: string; root?: string } | null> {
+// O que uma remessa de uploads produziu. Os erros SOBEM até ao interface de propósito: em silêncio,
+// um ficheiro recusado pelo backend (extensão fora da allowlist, >200 MB) parecia um botão morto —
+// só havia console.error e nada no ecrã.
+export interface UploadOutcome { paths: string[]; errors: string[] }
+
+function failureText(name: string, detail: string): string {
+  return name ? `${name}: ${detail}` : detail;
+}
+
+async function uploadFile(file: File, opts: UploadOpts = {}): Promise<{ path: string; root?: string; error?: string } | null> {
   try {
     const name = opts.name || file.name || '';
     const buf = await file.arrayBuffer();
@@ -95,39 +104,46 @@ async function uploadFile(file: File, opts: UploadOpts = {}): Promise<{ path: st
       body: buf,
     });
     if (!res.ok) {
-      console.error(`[upload] ${res.status} ${res.statusText}: ${await res.text().catch(() => '')}`);
-      return null;
+      const body = await res.text().catch(() => '');
+      console.error(`[upload] ${res.status} ${res.statusText}: ${body}`);
+      let detail = `${res.status} ${res.statusText}`;
+      try { detail = (JSON.parse(body) as { error?: string }).error || detail; } catch { /* not JSON */ }
+      return { path: '', error: failureText(name, detail) };
     }
     const data = (await res.json()) as { path?: string; root?: string };
-    return data.path ? { path: data.path, root: data.root } : null;
+    return data.path ? { path: data.path, root: data.root } : { path: '', error: failureText(name, 'resposta sem caminho') };
   } catch (err) {
     console.error('[upload] request failed', err);
-    return null;
+    return { path: '', error: failureText(opts.name || file.name || '', 'o pedido falhou') };
   }
 }
 
 // Upload pasted/clipboard images (Ctrl+V). They carry a generic or empty name, so we mint a unique,
 // recognizable one per item to avoid collisions/overwrites in the drop dir. Returns saved paths.
-export async function uploadPastedImages(files: File[], stamp: number): Promise<string[]> {
+export async function uploadPastedImages(files: File[], stamp: number): Promise<UploadOutcome> {
   const out: string[] = [];
+  const errors: string[] = [];
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const ext = extOf(f.name, f.type);
     const r = await uploadFile(f, { name: `colado-${stamp}-${i + 1}.${ext}` });
     if (r?.path) out.push(r.path);
+    else if (r?.error) errors.push(r.error);
   }
-  return out;
+  return { paths: out, errors };
 }
 
 // Upload files chosen via a native picker (<input type="file">). Keeps their original names
 // (unlike uploadPastedImages, which mints names for nameless clipboard blobs). Returns saved paths.
-export async function uploadPickedFiles(files: File[]): Promise<string[]> {
+export async function uploadPickedFiles(files: File[]): Promise<UploadOutcome> {
   const out: string[] = [];
+  const errors: string[] = [];
   for (const f of files) {
     const r = await uploadFile(f, { name: f.name });
     if (r?.path) out.push(r.path);
+    else if (r?.error) errors.push(r.error);
   }
-  return out;
+  return { paths: out, errors };
 }
 
 // ── recursive folder walk (FileSystemEntry API) ──
@@ -191,11 +207,12 @@ export function dropHadFilesWithoutPath(cap: DropCapture): boolean {
 }
 
 // ── resolve a captured drop to a list of absolute paths ──
-export async function resolveDrop(cap: DropCapture): Promise<{ paths: string[]; truncated: boolean }> {
+export async function resolveDrop(cap: DropCapture): Promise<{ paths: string[]; truncated: boolean; errors: string[] }> {
   // 1) real paths win — original on-disk location, no copy needed
-  if (cap.real.length) return { paths: cap.real, truncated: false };
+  if (cap.real.length) return { paths: cap.real, truncated: false, errors: [] };
 
   const paths: string[] = [];
+  const errors: string[] = [];
   const roots = new Set<string>();
   let truncated = false;
 
@@ -212,6 +229,7 @@ export async function resolveDrop(cap: DropCapture): Promise<{ paths: string[]; 
     for (const { file, rel } of collected) {
       const r = await uploadFile(file, { relPath: rel });
       if (r?.root) root = r.root;
+      else if (r?.error) errors.push(r.error);
     }
     if (root) roots.add(root);
   }
@@ -230,7 +248,8 @@ export async function resolveDrop(cap: DropCapture): Promise<{ paths: string[]; 
   for (const f of looseFiles) {
     const r = await uploadFile(f);
     if (r?.path) paths.push(r.path);
+    else if (r?.error) errors.push(r.error);
   }
 
-  return { paths: [...roots, ...paths], truncated };
+  return { paths: [...roots, ...paths], truncated, errors };
 }

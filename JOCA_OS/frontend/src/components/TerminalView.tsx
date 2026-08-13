@@ -210,13 +210,15 @@ export default function TerminalView({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [cliMenuOpen]);
 
-  // Non-blocking hint shown when a drop carried files but the OS hid the real path (Explorer sandbox).
-  const [dropHint, setDropHint] = useState(false);
+  // Aviso não-bloqueante do anexo: o caminho original escondido pelo SO (sandbox do Explorer) OU um
+  // upload recusado pelo backend. `tone` separa informação de falha — uma recusa silenciosa fazia o
+  // botão do clip parecer morto (o erro só ia para a consola).
+  const [dropHint, setDropHint] = useState<{ text: string; tone: 'info' | 'erro' } | null>(null);
   const dropHintTimer = useRef<number | null>(null);
-  const flashDropHint = useCallback(() => {
-    setDropHint(true);
+  const flashDropHint = useCallback((text: string, tone: 'info' | 'erro' = 'info') => {
+    setDropHint({ text, tone });
     if (dropHintTimer.current) clearTimeout(dropHintTimer.current);
-    dropHintTimer.current = window.setTimeout(() => setDropHint(false), 4000);
+    dropHintTimer.current = window.setTimeout(() => setDropHint(null), tone === 'erro' ? 7000 : 4000);
   }, []);
   useEffect(() => () => { if (dropHintTimer.current) clearTimeout(dropHintTimer.current); }, []);
 
@@ -400,10 +402,11 @@ export default function TerminalView({
         } else if (dropHadFilesWithoutPath(cap)) {
           // Explorer drag: the browser sandbox hides the real path (#3). Fall back to uploading a copy
           // to JOCA_Drops and attach that path, so the drop WORKS instead of doing nothing.
-          flashDropHint();
-          void resolveDrop(cap).then(({ paths: uploaded }) => {
+          flashDropHint('A copiar para JOCA_Drops e anexar… (o Explorer não expõe o caminho original)');
+          void resolveDrop(cap).then(({ paths: uploaded, errors }) => {
             uploaded.forEach((p) => addAttachment(p));
             if (uploaded.length) inputAreaRef.current?.focus();
+            if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
           });
         }
       }}
@@ -419,8 +422,8 @@ export default function TerminalView({
             maxWidth: 'calc(100% - 32px)',
             padding: '6px 12px',
             borderRadius: 999,
-            background: 'rgba(232, 96, 28, 0.12)',
-            border: '1px solid rgba(232, 96, 28, 0.35)',
+            background: dropHint.tone === 'erro' ? 'color-mix(in srgb, var(--red) 14%, transparent)' : 'rgba(232, 96, 28, 0.12)',
+            border: `1px solid ${dropHint.tone === 'erro' ? 'var(--red)' : 'rgba(232, 96, 28, 0.35)'}`,
             color: 'var(--text-bright)',
             fontSize: 11,
             fontWeight: 500,
@@ -430,7 +433,7 @@ export default function TerminalView({
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
           }}
         >
-          A copiar para JOCA_Drops e anexar… (o Explorer não expõe o caminho original)
+          {dropHint.text}
         </div>
       )}
       <div className="terminal-panel">
@@ -669,7 +672,10 @@ export default function TerminalView({
               style={{ display: 'none' }}
               onChange={(e) => {
                 const files = e.target.files;
-                if (files) void uploadPickedFiles(Array.from(files)).then((paths) => paths.forEach(addAttachment));
+                if (files) void uploadPickedFiles(Array.from(files)).then(({ paths, errors }) => {
+                  paths.forEach(addAttachment);
+                  if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+                });
                 e.target.value = '';
               }}
             />
@@ -721,7 +727,10 @@ export default function TerminalView({
                   .filter((f): f is File => f !== null);
                 if (imgs.length === 0) return;
                 e.preventDefault();
-                void uploadPastedImages(imgs, Date.now()).then((paths) => paths.forEach(addAttachment));
+                void uploadPastedImages(imgs, Date.now()).then(({ paths, errors }) => {
+                  paths.forEach(addAttachment);
+                  if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+                });
               }}
               onKeyDown={(e) => {
                 if (showSlashMenu) {

@@ -78,6 +78,9 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
   const [requireConfirm, setRequireConfirm] = useState(false);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  // Recusa do backend (extensão fora da allowlist, ficheiro grande demais): sem isto o botão
+  // "Anexar ficheiros" não dava sinal nenhum e parecia avariado.
+  const [attachError, setAttachError] = useState<string | null>(null);
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
 
   // Um só <input type=file> reutilizado: o alvo (form de criação vs cartão) fica no ref.
@@ -161,7 +164,8 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
     if (!files.length || !target) return;
     setUploading(true);
     try {
-      const paths = await uploadPickedFiles(files);
+      const { paths, errors } = await uploadPickedFiles(files);
+      setAttachError(errors.length ? `Não anexado — ${errors.join(' · ')}` : null);
       if (!paths.length) return;
       if (target.kind === 'create') {
         setAttachments((a) => [...a, ...paths]);
@@ -182,7 +186,8 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
     e.preventDefault();
     setUploading(true);
     try {
-      const paths = await uploadPastedImages(imgs, Date.now());
+      const { paths, errors } = await uploadPastedImages(imgs, Date.now());
+      setAttachError(errors.length ? `Não anexado — ${errors.join(' · ')}` : null);
       if (paths.length) setAttachments((a) => [...a, ...paths]);
     } finally { setUploading(false); }
   }, []);
@@ -431,6 +436,9 @@ export function TasksView({ refreshKey, projects, projectId }: TasksViewProps) {
                 </div>
               )}
             </div>
+            {attachError && (
+              <div role="status" style={{ marginTop: 6, fontSize: 11, color: 'var(--red)' }}>{attachError}</div>
+            )}
           </div>
           <button className="tk-btn-primary" type="button" onClick={create} disabled={!title.trim()}>
             Criar tarefa

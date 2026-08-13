@@ -80,13 +80,14 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
   const resizeObserver = useRef<ResizeObserver | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Non-blocking hint when a drop carried files but the OS hid the real path (Explorer sandbox).
-  const [dropHint, setDropHint] = useState(false);
+  // Aviso não-bloqueante: caminho original escondido pelo SO (sandbox do Explorer) OU upload
+  // recusado pelo backend. Sem o segundo caso, uma recusa não deixava rasto nenhum no ecrã.
+  const [dropHint, setDropHint] = useState<{ text: string; tone: 'info' | 'erro' } | null>(null);
   const dropHintTimer = useRef<number | null>(null);
-  const flashDropHint = useCallback(() => {
-    setDropHint(true);
+  const flashDropHint = useCallback((text: string, tone: 'info' | 'erro' = 'info') => {
+    setDropHint({ text, tone });
     if (dropHintTimer.current) clearTimeout(dropHintTimer.current);
-    dropHintTimer.current = window.setTimeout(() => setDropHint(false), 4000);
+    dropHintTimer.current = window.setTimeout(() => setDropHint(null), tone === 'erro' ? 7000 : 4000);
   }, []);
   useEffect(() => () => { if (dropHintTimer.current) clearTimeout(dropHintTimer.current); }, []);
 
@@ -218,9 +219,10 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       if (paths.length === 0) {
         if (dropHadFilesWithoutPath(cap)) {
           // Explorer drag (#3): no real path → upload a copy to JOCA_Drops and paste that path.
-          flashDropHint();
-          void resolveDrop(cap).then(({ paths: uploaded }) => {
+          flashDropHint('Arrasta do painel Ficheiros do JOCA ou usa Ctrl+V para anexar');
+          void resolveDrop(cap).then(({ paths: uploaded, errors }) => {
             if (uploaded.length) { onInput(sessionId, uploaded.map(quotePath).join(' ')); termRef.current?.focus(); }
+            if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
           });
         }
         return;
@@ -240,7 +242,8 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       if (imgs.length === 0) return; // let xterm handle the text paste
       e.preventDefault();
       e.stopPropagation();
-      const paths = await uploadPastedImages(imgs, Date.now());
+      const { paths, errors } = await uploadPastedImages(imgs, Date.now());
+      if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
       if (paths.length === 0) return;
       onInput(sessionId, paths.map(quotePath).join(' '));
       termRef.current?.focus();
@@ -292,8 +295,8 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
             maxWidth: 'calc(100% - 24px)',
             padding: '6px 12px',
             borderRadius: 999,
-            background: 'rgba(232, 96, 28, 0.12)',
-            border: '1px solid rgba(232, 96, 28, 0.35)',
+            background: dropHint.tone === 'erro' ? 'color-mix(in srgb, var(--red) 14%, transparent)' : 'rgba(232, 96, 28, 0.12)',
+            border: `1px solid ${dropHint.tone === 'erro' ? 'var(--red)' : 'rgba(232, 96, 28, 0.35)'}`,
             color: 'var(--text-bright)',
             fontSize: 11,
             fontWeight: 500,
@@ -303,7 +306,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
           }}
         >
-          Arrasta do painel Ficheiros do JOCA ou usa Ctrl+V para anexar
+          {dropHint.text}
         </div>
       )}
     </div>
