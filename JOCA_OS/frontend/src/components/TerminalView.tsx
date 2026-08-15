@@ -35,6 +35,10 @@ interface Props {
   onLoadJocaItems: () => void;
 }
 
+// O mesmo limiar da media query de `TerminalView.css` — a caixa de escrita mede-se de maneira
+// diferente abaixo dele (ver o efeito que ajusta a altura do textarea).
+const ECRA_ESTREITO = '(max-width: 860px)';
+
 // ── Lucide SVG Icons ───────────────────────────────────────────────
 
 function StopIcon() {
@@ -267,8 +271,23 @@ export default function TerminalView({
   useEffect(() => {
     const el = inputAreaRef.current;
     if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.4)}px`;
+    const ajusta = () => {
+      // ⚠ `height:auto` num textarea NÃO cai no `min-height` do CSS — cai no intrínseco do
+      // `rows` (rows=4 → 4×19.5 + 20 de padding = 98px), e é esse o valor que o `scrollHeight`
+      // devolve. Por isso os 98px de repouso eram fixos em qualquer ecrã: a 360×640 comiam 61%
+      // do orçamento vertical do terminal e deixavam o xterm com ~61px. Medir contra `0` devolve
+      // ao `min-height` o papel de chão real — e só aí a media query de ≤860px (que baixa esse
+      // chão e põe o tecto em `max-height`) consegue mexer na altura.
+      // O desktop continua a medir contra `auto`: mesma altura de sempre, medida.
+      el.style.height = window.matchMedia(ECRA_ESTREITO).matches ? '0px' : 'auto';
+      el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.4)}px`;
+    };
+    ajusta();
+    // Rodar o telemóvel atravessa a media query; sem isto a caixa ficava com a altura do outro
+    // modo até à tecla seguinte.
+    const mq = window.matchMedia(ECRA_ESTREITO);
+    mq.addEventListener('change', ajusta);
+    return () => mq.removeEventListener('change', ajusta);
   }, [terminalDraft]);
 
   const sendSelectedPath = useCallback(() => {

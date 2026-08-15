@@ -462,6 +462,24 @@
   }
 
   .terminal-command-bar {
-    padding: 8px 12px;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+
+  /* A caixa de escrita repousava a 98px em QUALQUER ecrã — não por causa do `min-height` (96px,
+     que nunca chegava a morder), mas do `rows={4}` do textarea: com `height:auto`, o intrínseco
+     de 4 filas (4×19.5 + 20 de padding) é o que o JS lê em `scrollHeight`. A 360×640 esses 98px
+     eram 61% do orçamento vertical do terminal e deixavam o xterm com ~61px.
+     Aqui baixa-se o chão para 2 filas e põe-se um tecto de 5; o `TerminalView.tsx` mede a altura
+     contra `0` abaixo destes 860px para que este `min-height` volte a ser o chão de facto.
+     Medido em runtime, terminal aberto, mesma carga antes/depois: a barra passa de 158px a 104px
+     nos três tamanhos e o xterm ganha os mesmos 54px — 360×640 75,5 → 129,5px · 390×667
+     102,5 → 156,5px · 390×844 279,5 → 333,5px. 1440×900 mede igual ao que media (xterm 533px,
+     barra 191px). Com a caixa cheia o xterm fica em 71,5px a 360×640, onde antes ia a 0px: o
+     tecto era `40vh` (256px num ecrã de 640) e engolia o terminal inteiro. */
+  .terminal-command-input {
+    min-height: 52px;
+    max-height: 110px;
+    padding: 6px 0;
   }
 }
