@@ -5377,6 +5377,21 @@ background: var(--surface-panel);
     max-height:38dvh;
   }
 
+  /* Pesquisar ou ordenar acrescenta uma linha de controlo ao cabeçalho, e nos 38dvh da tira isso
+     empurrava a lista toda para fora do fold — 28px de lista visíveis com o menu de ordenar
+     fechado (menos de uma linha de 48px) e 0px com ele aberto, medido a 390×844. A tira cresce
+     só enquanto o gesto dura: assim que a pesquisa é limpa e o menu fecha, volta aos 38dvh. */
+  .session-sidebar--filtering,
+  .session-sidebar--filtering .sidebar-main-bento {
+    max-height:62dvh;
+  }
+
+  /* Nos ecrãs baixos (~600px de altura) 62dvh ainda não chega para uma linha inteira — aí a tira
+     vale mais do que os controlos de cima, que já cumpriram o seu papel quando o filtro está
+     escrito. Não se esconde o cabeçalho: só se aperta o que é folga. */
+  .session-sidebar--filtering .sidebar-search-row { margin-bottom:4px; }
+  .session-sidebar--filtering .sidebar-sort-row { padding-top:2px; padding-bottom:4px; }
+
   .sidebar-tools-bento{
     display:none;
   }
@@ -5907,6 +5922,112 @@ background: var(--surface-panel);
 
 /* Colapsada não tem largura para o controlo — a preferência mantém-se guardada. */
 .session-sidebar--collapsed .sidebar-sort-row { display:none; }
+
+/* ── Sidebar: pesquisar projectos ────────────────────────────────── */
+
+.sidebar-search-row {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0 var(--sp-3) 6px;
+  padding:0 6px;
+  height:26px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-sm);
+  background:var(--surface-soft);
+  flex-shrink:0;
+  transition:border-color var(--t-fast), background var(--t-fast);
+}
+
+.sidebar-search-row:focus-within {
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+}
+
+.sidebar-search-icon {
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-ghost);
+}
+
+.sidebar-search-icon svg { width:12px; height:12px; }
+
+.sidebar-search-input {
+  flex:1;
+  min-width:0;
+  height:100%;
+  border:none;
+  background:transparent;
+  color:var(--text-bright);
+  font:500 11px var(--font-ui);
+  outline:none;
+}
+
+.sidebar-search-input::placeholder { color:var(--text-ghost); }
+
+/* O "x" nativo do type=search duplica o nosso botão de limpar, e em cada motor tem um look
+   diferente — fica só o nosso, que é o que está tematizado. */
+.sidebar-search-input::-webkit-search-cancel-button { display:none; }
+
+.sidebar-search-clear {
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;
+  height:16px;
+  padding:0;
+  border:none;
+  border-radius:var(--r-sm);
+  background:transparent;
+  color:var(--text-ghost);
+  cursor:pointer;
+  transition:color var(--t-fast), background var(--t-fast);
+}
+
+.sidebar-search-clear:hover {
+  color:var(--text-bright);
+  background:color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+
+.sidebar-search-clear svg { width:11px; height:11px; }
+
+.sidebar-search-empty {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  padding:10px var(--sp-3);
+  color:var(--text-ghost);
+  font:500 11px var(--font-ui);
+}
+
+.sidebar-search-empty button {
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-sm);
+  background:transparent;
+  color:var(--text-dim);
+  font:600 10px var(--font-ui);
+  padding:3px 7px;
+  cursor:pointer;
+  transition:all var(--t-fast);
+}
+
+.sidebar-search-empty button:hover {
+  color:var(--accent);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+}
+
+/* Colapsada não há sítio para a caixa — o filtro fica limpo ao reabrir, que é o esperado. */
+.session-sidebar--collapsed .sidebar-search-row,
+.session-sidebar--collapsed .sidebar-search-empty { display:none; }
+
+/* Gatilho da caixa de pesquisa: existe SÓ na tira mobile (ganha display no breakpoint ≤860px).
+   Aqui em cima a caixa está sempre aberta e o botão não teria função nenhuma. */
+.sidebar-search-toggle { display:none; }
 
 /* ── File browser: ordenar ficheiros ─────────────────────────────── */
 
@@ -6754,10 +6875,15 @@ background: var(--surface-panel);
    sozinho não). flex-shrink:0 dá-lhe sempre o tamanho natural do conteúdo — cresce com mais
    projectos e o próprio overflow-y:auto do elemento assume o scroll interno. */
 @media (max-width: 860px) {
-  .session-sidebar-list { flex: 1 0 auto; min-height: 0; }
-  /* Com flex-shrink:0 acima, o total (header+nav+lista+acções+gaps+padding) pode passar dos
-     38dvh com vários projectos — sem isto o excesso derramava para fora da tira, por cima do
-     conteúdo principal. Scroll interno em vez de vazar. */
+  /* `flex-shrink:0` era a defesa contra o colapso a 0px descrito acima, mas tratava a causa errada:
+     o que empurrava a lista para fora do fold era a MOLDURA ser maior do que a tira (497px de
+     chrome em 319px úteis — ver o bloco de orçamento vertical mais acima neste ficheiro). Com a
+     moldura em 149px a lista volta a poder encolher, e quem scrolla passa a ser ela e não a tira
+     inteira — o que devolve o rodapé (Sessão rápida · Definições) ao fold. O `min-height` trava o
+     colapso a zero: garante sempre uma linha de projecto inteira, que é o mínimo aceitável. */
+  .session-sidebar-list { flex: 1 1 auto; min-height: 44px; overflow-y: auto; }
+  /* Rede de segurança: se ainda assim o conteúdo passar dos 38dvh (ecrã muito baixo, rodapé em
+     duas filas), a tira scrolla por dentro em vez de derramar sobre o conteúdo principal. */
   .sidebar-main-bento { overflow-y: auto; }
 }
 
@@ -6832,6 +6958,11 @@ background: var(--surface-panel);
 .sidebar-add-project-row:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); }
 .sidebar-add-project-row svg { width: 14px; height: 14px; }
 .session-sidebar--collapsed .sidebar-add-project-row { display: none; }
+
+/* Rodapé da barra (Sessão rápida · Definições · Fechar inativas). `display:contents` = o wrapper
+   não existe para o layout: os três botões continuam a ser filhos de flex do `.sidebar-main-bento`,
+   com os mesmos gaps de sempre. Só a tira mobile lhe dá caixa própria, para os pôr em fila. */
+.sidebar-footer-row { display: contents; }
 
 .sidebar-quick-session-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -7542,3 +7673,134 @@ background: var(--surface-panel);
 /* Colapsada mostra só o ícone — `font-size:0` no botão apagaria também o SVG herdado. */
 .session-sidebar--collapsed .sidebar-settings-label { display: none; }
 .session-sidebar--collapsed .sidebar-settings-btn svg { flex-shrink: 0; }
+
+/* ═══ Tira mobile (≤860px): orçamento vertical ══════════════════════════════════════════════════
+   Em repouso não se via UMA linha de projecto. Medido a 390×844: o `.sidebar-main-bento` tinha
+   319px úteis e o conteúdo pedia 838px — 0px de lista visível nos três viewports (390×844, 390×667
+   e 360×640), com `elementFromPoint` a aterrar no Dashboard por trás das linhas cortadas.
+
+   A caixa de pesquisa, o suspeito inicial, valia 38 dos 519px em falta (7%) — recolhê-la não chega
+   nem perto. O que come a tira é a MOLDURA, e é ela que encolhe aqui:
+
+     antes  → 40 (marca) + 188 (nav em 4 filas) + 32 (título) + 26+6 (pesquisa)
+              + 103+24 (3 botões de rodapé empilhados) + 84 (gaps) + 24 (padding) = 497px
+     depois → 23 + 46 (nav em fila) + 0 (título fora do fluxo) + 0 (pesquisa recolhida)
+              + 44 (rodapé em fila) + 18 (gaps) + 18 (padding) = 149px
+
+   Medido em repouso depois: 3 · 2 · 2 linhas inteiras (era 0 · 0 · 0). Os estados de pesquisa e de
+   ordenação não regridem — todos iguais ou melhores. O desktop não é tocado por nada disto.
+
+   ⚠ Este bloco vive no FIM do ficheiro de propósito, como o rail colapsado e a casca da app já
+   fazem: `.sidebar-search-toggle`, `.sidebar-footer-row`, `.sidebar-quick-session-btn` e
+   `.sidebar-settings-btn` têm regras-base DEPOIS do breakpoint principal (linha ~5350) e, com a
+   mesma especificidade, ganhavam-lhe na cascata. Escrito lá em cima, metade destas regras não
+   pegava — e o build não dizia nada. */
+@media (max-width: 860px) {
+  /* Cada pixel de moldura é uma linha de projecto que não cabe: a folga é o que cede. */
+  .sidebar-main-bento { padding:10px 8px 8px; gap:6px; position:relative; }
+
+  /* As 4 entradas passam de 4 filas de 44px a UMA fila de 4 colunas — 188px → 46px. O alvo de
+     toque continua acima dos 44px: o que muda é a direcção, não o tamanho.
+     Selector com 2 classes para ganhar ao `@media (pointer:coarse) .nav-btn` mais acima. */
+  .nav-menu { flex-direction:row; gap:6px; }
+
+  .nav-menu .nav-btn {
+    flex:1 1 0;
+    min-width:0;
+    min-height:46px;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+    padding:5px 3px;
+    text-align:center;
+    font-size:9.5px;
+    line-height:1.15;
+    letter-spacing:0;
+  }
+
+  /* "Tarefas Globais" não cabe a 360px — trunca, não empurra a coluna do lado. */
+  .nav-menu .nav-btn > span:not(.nav-icon) {
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  /* O título "Projects" é redundante com a lista logo por baixo, e uma faixa inteira só para os
+     dois ícones custava 32px+gap. Vão para a linha da marca, que ficou meia vazia quando o botão de
+     colapsar saiu (ver mais abaixo) — fora do fluxo, sem mexer na ordem do DOM nem na de tabulação. */
+  .session-sidebar .sidebar-title { display:none; }
+
+  .session-sidebar .session-sidebar-header {
+    position:absolute;
+    top:6px;
+    right:6px;
+    z-index:2;
+    width:auto;
+    padding:0;
+    min-height:0;
+    border-bottom:0;
+  }
+
+  /* A caixa de pesquisa recolhe atrás da lupa: eram 26px+gap sempre ocupados por um campo que só
+     serve quando se está mesmo a procurar. Abri-la conta como filtragem (a tira sobe para 62dvh),
+     senão abrir a pesquisa voltava a empurrar a lista para fora do fold. */
+  .sidebar-header-actions .sidebar-search-toggle {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    padding:0;
+    border:none;
+    border-radius:var(--r-sm);
+    background:transparent;
+    color:var(--text-ghost);
+    cursor:pointer;
+    transition:all var(--t-fast);
+  }
+
+  .sidebar-header-actions .sidebar-search-toggle svg { width:14px; height:14px; }
+  .sidebar-header-actions .sidebar-search-toggle.is-active { color:var(--accent); background:var(--accent-soft); }
+
+  .session-sidebar:not(.session-sidebar--search-open) .sidebar-search-row { display:none; }
+  .session-sidebar .sidebar-search-row { margin-left:0; margin-right:0; }
+
+  /* Rodapé em fila: três blocos empilhados custavam 103px+gaps numa tira de 320px. */
+  .sidebar-main-bento .sidebar-footer-row {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:stretch;
+    gap:6px;
+  }
+
+  .sidebar-footer-row .sidebar-quick-session-btn,
+  .sidebar-footer-row .sidebar-settings-btn {
+    width:auto;
+    margin:0;
+    flex:1 1 40%;
+    min-width:0;
+    min-height:44px;
+    padding:0 6px;
+  }
+
+  /* "Fechar inativas" tem o rótulo mais longo dos três e é a acção mais rara: a 360px ficava
+     cortado a meio de uma palavra. Leva fila própria — e desaparece quando está desactivado, que é
+     o estado normal (sem sessões inativas não há nada para fechar) e o que devolve a fila à lista. */
+  .sidebar-footer-row .session-bulk-actions { flex:1 1 100%; min-width:0; width:auto; }
+  .sidebar-footer-row .session-bulk-actions:has(.bulk-select-btn:disabled) { display:none; }
+  .sidebar-footer-row .bulk-select-btn { min-height:44px; padding:0 8px; }
+
+  .sidebar-footer-row .sidebar-quick-session-btn,
+  .sidebar-footer-row .sidebar-settings-btn,
+  .sidebar-footer-row .bulk-select-btn { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Colapsar não faz nada nesta largura e faz parecer avariado: as ~40 declarações de
+     `.session-sidebar--collapsed` foram escritas para o rail de ícones do desktop e nenhuma delas
+     vive neste breakpoint. Medido a 390×844: colapsar deixava a caixa exterior pixel a pixel igual
+     (top 10, bottom 331, altura 321 antes e depois — zero altura recuperada), enquanto os botões de
+     navegação subiam de 30px para 44px e o cartão perdia fundo e borda.
+     Só se esconde o botão, não se desfaz o estado: `sidebarCollapsed` arranca sempre em `false` e
+     não persiste (App.tsx), portanto numa carga a esta largura o estado é inalcançável. */
+  .sb-header .sidebar-collapse-btn { display:none; }
+}

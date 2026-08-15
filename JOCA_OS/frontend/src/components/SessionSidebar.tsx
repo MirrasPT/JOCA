@@ -411,6 +411,22 @@ function sortProjects<T extends { name: string }>(list: T[], sort: ProjectSort):
   return out.sort((a, b) => dir * a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
 }
 
+// ── Pesquisa de projectos ──────────────────────────────────────────
+// Uma só caixa filtra as TRÊS listas da barra: projectos activos, secções e arquivados. O arquivo
+// cresce sem limite (é para lá que vão os projectos fechados) e sem pesquisa a única forma de lá
+// chegar era abrir a gaveta e percorrer a lista à vista.
+
+/** Sem acentos e em minúsculas: "sao" tem de encontrar "São", "bracaris" tem de encontrar "Bracaris".
+ *  `\p{Diacritic}` em vez de um intervalo de marcas combinatórias escrito em cru — essas são
+ *  invisíveis no ficheiro e o primeiro editor que o re-normalize parte o filtro em silêncio. */
+function normalizeSearch(value: string): string {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+}
+
+function matchesQuery(name: string, query: string): boolean {
+  return normalizeSearch(name).includes(query);
+}
+
 // ── Project row ────────────────────────────────────────────────────
 // Um projecto é um item de rail (estilo lista de servidores) — dot de cor, nome, badge de
 // "a trabalhar", acções reveladas a hover. As sessões do projecto já não aparecem aqui: vivem no
@@ -910,7 +926,16 @@ export default function SessionSidebar({
   const [overId, setOverId] = useState<string | null>(null);
   const [dotOverId, setDotOverId] = useState<string | null>(null);
   const [projectSort, setProjectSort] = useState<ProjectSort>(readProjectSort);
+  const [search, setSearch] = useState('');
+  // Só a tira mobile lê isto: lá a caixa de pesquisa vive atrás da lupa, porque os 26px+gap que
+  // ocupava sempre eram 26px+gap que a lista de projectos não tinha. No desktop a caixa está
+  // sempre visível (nenhuma regra a esconde) e este estado nunca é consultado.
+  const [searchOpen, setSearchOpen] = useState(false);
   const sortRowRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const query = normalizeSearch(search);
+  const searching = query.length > 0;
 
   // Na tira mobile (38dvh, já perto do limite antes disto) abrir a barra empurra a lista de
   // projectos toda para fora do fold, sem pista nenhuma de que há mais para baixo — traz a barra
@@ -919,21 +944,40 @@ export default function SessionSidebar({
     if (sortMenuOpen) sortRowRef.current?.scrollIntoView({ block: 'nearest' });
   }, [sortMenuOpen]);
 
+  // Abrir a lupa põe o cursor onde se vai escrever; fechá-la LIMPA o filtro. Fechar sem limpar
+  // deixava uma pesquisa activa sem nada no ecrã a dizê-lo — a lista aparecia truncada e não havia
+  // caixa à vista para perceber porquê.
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
   const idleSessions = sessions.filter(s => s.status === 'idle');
   // Agentes "rápidos": sessões sem projecto. Seguem a MESMA ordenação escolhida no selector dos
   // projectos — é um selector só para a barra toda, e ter duas listas com critérios diferentes era
   // o que fazia parecer que a ordenação não pegava aqui.
   // Excepção em "Manual": uma sessão não tem ordem arrastada para respeitar, portanto mantém-se o
   // critério que já existia — a trabalhar primeiro, que é o que se vai lá ver.
-  const soltas = sessions.filter(s => !s.projectId);
+  const soltas = sessions.filter(s => !s.projectId && (!searching || matchesQuery(s.name, query)));
   const looseSessions = projectSort === 'manual'
     ? [...soltas].sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'))
     : sortProjects(soltas, projectSort);
 
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
-  const sortedProjects = sortProjects(activeProjects, projectSort);
-  const sortedArchivedProjects = sortProjects(archivedProjects, projectSort);
+
+  // A pesquisa é uma VISTA sobre as três listas — não toca no estado do servidor. Um projecto entra
+  // se o nome casar, ou se casar o nome da SECÇÃO onde está: escrever "clientes" tem de trazer a
+  // secção inteira, senão a secção aparecia vazia e parecia um bug.
+  const groupMatches = (groupId?: string) =>
+    !!groupId && matchesQuery(projectGroups.find(g => g.id === groupId)?.name ?? '', query);
+  const projectMatches = (p: Project) =>
+    !searching || matchesQuery(p.name, query) || groupMatches(p.groupId);
+
+  const visibleActive = activeProjects.filter(projectMatches);
+  const visibleArchived = archivedProjects.filter(projectMatches);
+
+  const sortedProjects = sortProjects(visibleActive, projectSort);
+  const sortedArchivedProjects = sortProjects(visibleArchived, projectSort);
 
   // Top-level items da lista: projectos soltos tal-qual, e um item único por grupo (na posição do
   // seu primeiro membro na ordenação corrente) — o agrupamento é só visual, não altera `order`.
@@ -958,6 +1002,16 @@ export default function SessionSidebar({
     }
   }
 
+  // Ordenar por nome tem de valer para as SECÇÕES também. O ciclo acima emite cada grupo na posição
+  // do seu primeiro membro, portanto uma secção "Zulu" cujo primeiro projecto fosse "Acura" aterrava
+  // no topo do A→Z — a lista parecia desordenada sem se perceber porquê. Só se aplica às ordenações
+  // por nome: em "Mais recentes"/"Mais antigos" a posição na lista É o critério.
+  if (projectSort === 'name-asc' || projectSort === 'name-desc') {
+    const dir = projectSort === 'name-desc' ? -1 : 1;
+    const itemName = (i: SidebarItem) => i.kind === 'group' ? i.group.name : i.project.name;
+    sidebarItems.sort((a, b) => dir * itemName(a).localeCompare(itemName(b), 'pt', { sensitivity: 'base' }));
+  }
+
   const handleGroupDrop = (targetId: string) => {
     if (dragId && onGroupProjects) onGroupProjects(dragId, targetId);
     setDragId(null);
@@ -966,8 +1020,10 @@ export default function SessionSidebar({
   };
 
   // Arrastar só faz sentido na vista manual — noutra ordenação a posição largada seria descartada.
-  const dragEnabled = !!onReorderProjects && activeProjects.length > 1 && projectSort === 'manual';
-  const canPinOrder = !!onReorderProjects && activeProjects.length > 1 && projectSort !== 'manual';
+  // E nunca com a pesquisa activa: a lista visível é um subconjunto, mas `commitReorder` indexa a
+  // lista COMPLETA — largar entre dois resultados filtrados gravaria uma ordem que ninguém pediu.
+  const dragEnabled = !!onReorderProjects && activeProjects.length > 1 && projectSort === 'manual' && !searching;
+  const canPinOrder = !!onReorderProjects && activeProjects.length > 1 && projectSort !== 'manual' && !searching;
   const canSort = activeProjects.length > 1 || archivedProjects.length > 1;
 
   const changeProjectSort = (value: ProjectSort) => {
@@ -976,9 +1032,11 @@ export default function SessionSidebar({
   };
 
   // "Fixar ordem": grava a ordem actualmente visível e volta ao modo manual.
+  // Deriva da lista COMPLETA de activos, não de `sortedProjects` (que a pesquisa filtra) — senão
+  // fixar com um filtro escrito gravaria a ordem só dos resultados e perdia o resto.
   const pinCurrentOrder = () => {
     if (!onReorderProjects) return;
-    onReorderProjects(sortedProjects.map(p => p.id));
+    onReorderProjects(sortProjects(activeProjects, projectSort).map(p => p.id));
     changeProjectSort('manual');
   };
 
@@ -1043,8 +1101,15 @@ export default function SessionSidebar({
     onGroupWith: onGroupProjects ? (targetId: string) => onGroupProjects(project.id, targetId) : undefined,
   });
 
+  // `--filtering` só serve à tira mobile: com a pesquisa escrita OU o menu de ordenar aberto, os
+  // 38dvh da tira ficam todos consumidos pelo cabeçalho e não sobra uma linha de lista sequer
+  // (medido a 390×844: 28px de lista visíveis com o menu fechado, 0px com ele aberto). A tira
+  // cresce enquanto durar o gesto e volta aos 38dvh assim que se limpa.
   return (
-    <aside className={`session-sidebar ${collapsed ? 'session-sidebar--collapsed' : ''}`} aria-label="Projects">
+    <aside
+      className={`session-sidebar ${collapsed ? 'session-sidebar--collapsed' : ''}${(searching || sortMenuOpen || searchOpen) ? ' session-sidebar--filtering' : ''}${(searchOpen || searching) ? ' session-sidebar--search-open' : ''}`}
+      aria-label="Projects"
+    >
       <div className="sidebar-main-bento">
         <div className="sb-header">
           <div className="sb-brand">
@@ -1114,6 +1179,18 @@ export default function SessionSidebar({
         <div className="session-sidebar-header">
           <span className="sidebar-title">Projects</span>
           <div className="sidebar-header-actions">
+            {/* Gatilho da pesquisa — só existe na tira mobile (`display:none` fora do breakpoint):
+                lá a caixa está recolhida por omissão, aqui em cima continua sempre aberta. */}
+            {projects.length > 0 && (
+              <button
+                className={`sidebar-search-toggle${(searchOpen || searching) ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setSearchOpen((v) => { if (v) setSearch(''); return !v; })}
+                aria-label={(searchOpen || searching) ? 'Fechar pesquisa de projectos' : 'Pesquisar projectos'}
+                aria-expanded={searchOpen || searching}
+                aria-controls="sidebar-search-row"
+              ><LucideIcon name={(searchOpen || searching) ? 'x' : 'search'} /></button>
+            )}
             {canSort && (
               <button
                 className={`sidebar-btn-sort${sortMenuOpen ? ' is-active' : ''}`}
@@ -1128,6 +1205,32 @@ export default function SessionSidebar({
             )}
           </div>
         </div>
+
+        {projects.length > 0 && (
+          <div className="sidebar-search-row" id="sidebar-search-row">
+            <span className="sidebar-search-icon" aria-hidden><LucideIcon name="search" /></span>
+            <input
+              ref={searchInputRef}
+              className="sidebar-search-input"
+              type="search"
+              value={search}
+              placeholder="Pesquisar projectos…"
+              aria-label="Pesquisar projectos, secções e arquivados"
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setSearch(''); setSearchOpen(false); } }}
+            />
+            {searching && (
+              <button
+                className="sidebar-search-clear"
+                type="button"
+                onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}
+                aria-label="Limpar pesquisa"
+                data-tooltip="Limpar (Esc)"
+                data-tooltip-position="bottom"
+              ><LucideIcon name="x" /></button>
+            )}
+          </div>
+        )}
 
         {sortMenuOpen && canSort && (
           <div className="sidebar-sort-row" id="sidebar-sort-row" ref={sortRowRef}>
@@ -1183,7 +1286,7 @@ export default function SessionSidebar({
               group={item.group}
               members={item.members}
               sessions={sessions}
-              expanded={!item.group.collapsed}
+              expanded={searching || !item.group.collapsed}
               collapsed={collapsed}
               onToggle={() => onToggleGroupCollapsed?.(item.group.id, !item.group.collapsed)}
               onRenameGroup={onRenameGroup ? (name) => onRenameGroup(item.group.id, name) : undefined}
@@ -1197,26 +1300,30 @@ export default function SessionSidebar({
             />
           ))}
 
-          {projects.length > 0 && (
+          {projects.length > 0 && !searching && (
             <button type="button" className="sidebar-add-project-row" onClick={onCreateProject}>
               <LucideIcon name="folder-plus" /> Novo projecto
             </button>
           )}
 
-          {archivedProjects.length > 0 && (
+          {/* A pesquisa abre a gaveta do arquivo sozinha: o motivo de existir a caixa é encontrar
+              projectos arquivados, e obrigar a um segundo clique para ver os resultados anulava-o. */}
+          {sortedArchivedProjects.length > 0 && (
             <div className="sidebar-archived">
               <button
                 className="sidebar-archived-toggle"
                 type="button"
                 onClick={() => setShowArchived(v => !v)}
-                aria-expanded={showArchived}
+                aria-expanded={searching || showArchived}
               >
                 <span className="sidebar-archived-icon"><LucideIcon name="archive" /></span>
                 <span className="sidebar-archived-label">Arquivados</span>
-                <span className="sidebar-archived-count">{archivedProjects.length}</span>
-                <span className="sidebar-archived-chevron"><LucideIcon name={showArchived ? 'chevron-down' : 'chevron-right'} /></span>
+                <span className="sidebar-archived-count">
+                  {searching ? `${sortedArchivedProjects.length}/${archivedProjects.length}` : archivedProjects.length}
+                </span>
+                <span className="sidebar-archived-chevron"><LucideIcon name={(searching || showArchived) ? 'chevron-down' : 'chevron-right'} /></span>
               </button>
-              {showArchived && (
+              {(searching || showArchived) && (
                 <div className="sidebar-archived-list">
                   {sortedArchivedProjects.map(project => (
                     <div key={project.id} className="archived-item" style={{ '--project-color': projectColor(project) } as CSSProperties}>
@@ -1248,6 +1355,13 @@ export default function SessionSidebar({
             </div>
           )}
 
+          {searching && sortedProjects.length === 0 && sortedArchivedProjects.length === 0 && looseSessions.length === 0 && (
+            <div className="sidebar-search-empty">
+              <span>Nada encontrado para “{search.trim()}”</span>
+              <button type="button" onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}>Limpar pesquisa</button>
+            </div>
+          )}
+
           {projects.length === 0 && (
             <div className="sidebar-empty">
               <div className="sidebar-empty-icon"><LucideIcon name="info" /></div>
@@ -1257,6 +1371,10 @@ export default function SessionSidebar({
           )}
         </div>
 
+        {/* Rodapé da barra. O wrapper é `display:contents` no desktop — os três botões continuam a
+            ser filhos de flex do bento, exactamente como antes — e vira uma FILA na tira mobile,
+            onde três blocos empilhados custavam 103px+gaps de altura a uma tira de 320px. */}
+        <div className="sidebar-footer-row">
         <button
           type="button"
           className="sidebar-quick-session-btn"
@@ -1301,6 +1419,7 @@ export default function SessionSidebar({
               <LucideIcon name="x" /> Fechar inativas ({idleSessions.length})
             </button>
           )}
+        </div>
         </div>
       </div>
 

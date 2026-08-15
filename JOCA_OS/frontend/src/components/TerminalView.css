@@ -418,3 +418,50 @@
   color: var(--text-ghost);
   background: color-mix(in srgb, var(--on-surface) 7%, transparent);
 }
+
+/* ─── Telemóvel / ecrã estreito ──────────────────────────────────────────────
+   A fila de comandos tem ~14 pílulas. Com `flex-wrap: wrap` partia-se em 3 a 5 filas e, como a
+   barra é `flex-shrink: 0`, reclamava esse espaço todo ao palco. A fila passa a UMA fila com
+   scroll horizontal — o conteúdo é o mesmo, deixa é de comer o terminal.
+   Medido em runtime (mesma carga, com/sem estas regras): a 360×640 o xterm tinha 0px e a barra
+   302px transbordava o viewport (654 > 640, com o `enviar` fora do ecrã e sem scroll para lá
+   chegar) → xterm 61px, barra 158px, tudo dentro. A 390×844: xterm 77px → 187px. */
+@media (max-width: 860px) {
+  .quick-command-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    /* `overflow-y` fica `hidden` de propósito: `visible` num eixo com o outro em `auto` computa
+       para `auto` e acrescentava uma barra vertical parasita de 1 fila. */
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .quick-command-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Sem isto os filhos encolhem para caber nos 360px e as pílulas ficam ilegíveis em vez de
+     saírem para fora do scrollport. */
+  .quick-command-row > * {
+    flex-shrink: 0;
+  }
+
+  /* O menu do `Model` abre para cima (`bottom: 100%`, em estilo inline) e o scrollport novo
+     cortava-o: medido, os 5 itens ficavam invisíveis e mortos ao clique. Fixo ao canto inferior
+     esquerdo, escapa ao recorte e cai na zona do polegar. */
+  .quick-command-row [role="menu"] {
+    position: fixed !important;
+    top: auto !important;
+    right: auto !important;
+    left: 12px !important;
+    bottom: 12px !important;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .terminal-command-bar {
+    padding: 8px 12px;
+  }
+}
