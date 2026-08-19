@@ -1,0 +1,54 @@
+# CI — Flutter (app movel, backend a parte).
+#
+# Versao estavel verificada em Agosto 2026: Flutter 3.47.0.
+#
+# `flutter analyze` e o equivalente ao Larastan/eslint aqui e trata avisos como
+# erros com --fatal-infos. Nao o baixar para so-erros: e o unico gate estatico
+# que o Dart tem.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Formatacao
+        run: dart format --set-exit-if-changed .
+
+      - name: Analise estatica
+        run: flutter analyze --fatal-infos
+
+      - name: Testes
+        run: flutter test
+
+      # Build de verificacao. O APK de release exige keystore (segredos do
+      # repositorio) — aqui so se confirma que compila.
+      - name: Build (debug)
+        run: flutter build apk --debug
+
+# ---------------------------------------------------------------------------
+# Para assinar um AAB de release, acrescentar:
+#
+#     - uses: actions/setup-java@v5
+#       with: { distribution: 'temurin', java-version: '21' }
+#     - run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/key.jks
+#     - run: flutter build appbundle --release
+#
+# com key.properties gerado a partir de segredos. NUNCA commitar a keystore.
+# ---------------------------------------------------------------------------

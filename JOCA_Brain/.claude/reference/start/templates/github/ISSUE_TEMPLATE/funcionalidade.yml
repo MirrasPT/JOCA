@@ -1,0 +1,76 @@
+name: Funcionalidade
+description: Algo novo que o produto passa a fazer
+labels: ["tipo: funcionalidade"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema
+      description: A dor concreta, em linguagem de utilizador. Não a solução.
+      placeholder: Hoje, quem gere uma equipa não consegue saber...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solucao
+    attributes:
+      label: O que vai ser feito
+      description: O comportamento desejado, do ponto de vista de quem usa.
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Feito quando
+      description: >-
+        Critérios verificáveis por quem não participou na conversa.
+        Máximo 5 — mais do que isso significa que o issue devia estar dividido.
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: fora
+    attributes:
+      label: Fora de âmbito
+      description: O que este issue explicitamente NÃO faz.
+    validations:
+      required: true
+
+  - type: input
+    id: design
+    attributes:
+      label: Design
+      description: Caminho do mockup, ou "não aplicável".
+      placeholder: docs/mockups/dashboard.html
+
+  - type: textarea
+    id: ficheiros
+    attributes:
+      label: Ficheiros prováveis
+      description: >-
+        Que ficheiros/pastas este trabalho vai tocar. NÃO é decorativo: é o que
+        permite ao `planear-ondas` decidir se dois issues correm em paralelo —
+        só podem se os conjuntos forem disjuntos. Sem isto, sequencia-se por
+        precaução.
+      placeholder: |
+        app/Http/Controllers/RelatorioController.php
+        resources/views/relatorios/
+    validations:
+      required: true
+
+  - type: textarea
+    id: tecnico
+    attributes:
+      label: Contexto técnico
+      description: Entidades envolvidas, decisões já tomadas.
+
+  - type: input
+    id: depende
+    attributes:
+      label: Depende de
+      description: Número de outro issue que tem de ficar feito antes, ou "nada".
+      placeholder: "#12"

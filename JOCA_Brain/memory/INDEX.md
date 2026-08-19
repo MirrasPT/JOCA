@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
-Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-07:**
-**139 skills · 105 agentes (68 gerados + 37 curados) · 27 comandos · 6 rules (+`README.md` = 7 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
+Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-19:**
+**146 skills · 105 agentes (68 gerados + 37 curados) · 27 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -12,7 +12,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 
 ## Core
 - [soul.md](soul.md) — motor de personalidade: drives, filtros de decisão, estados, alinhamento com o utilizador. Base de todas as sessões (`@import` do `CLAUDE.md`).
-- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das 139 skills (nome/path/description/triggers). É isto que o matching por relevância lê; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
+- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das skills (nome/path/description/triggers). É isto que o matching por relevância lê; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
 - [tools/mcps.md](tools/mcps.md) — servidores MCP ligados + setup do markitdown para `/know`.
 - [tools/clis.md](tools/clis.md) — inventário de CLIs externos (função + instalação macOS/Windows + auth interactiva).
 
@@ -22,6 +22,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | Rule | Função |
 |---|---|
 | `task-intake.md` | classifica qualquer pedido nas 4 vias (directa / skill / agente / fan-out). **Regra de paralelismo: ≥2 partes independentes → despachar em paralelo.** |
+| `stack-padrao.md` | a stack da casa (Next.js · Laravel+Livewire+Filament · MySQL/PostgreSQL · Flutter · Unity 6) — o /start escolhe as pecas, sair exige razao em DECISIONS.md |
 | `pipelines.md` | catálogo de sequências nomeadas + o auto-runner que as corre a fundo |
 | `chaining.md` | convenção `chain:` — como um passo entrega ao seguinte sem o utilizador pedir |
 | `orchestration-patterns.md` | fan-out, cap 3-5 workers, agentes-escrevem-para-disco, steward-não-initiator, **sessões paralelas**. **Regra crítica: sub-agentes não fazem spawn de sub-agentes.** |
@@ -89,15 +90,15 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 
 ⚠ `automation-builder`, `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (139)
+## Skills (146)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o
 `SKILL_INDEX.json`. Não se duplica a lista aqui: duplicá-la é garantir que fica desactualizada.
 
 ## Projects
-<!-- Preenchido pelo /init-project — uma linha por projecto, detalhe em projects/<x>.md -->
-_(vazio — o repositório público não traz memória de ninguém. Corre `/init-project` para registar o primeiro.)_
+<!-- Preenchido pelo /start (que absorveu o /init-project) — uma linha por projecto, detalhe em projects/<x>.md -->
+_(vazio — o repositório público não traz memória de ninguém. Corre `/start` para registar o primeiro.)_
 
 ## Feedback
 <!-- Preenchido pelo /save (auto-extract) — sessões processadas vão para feedback/archive/ -->

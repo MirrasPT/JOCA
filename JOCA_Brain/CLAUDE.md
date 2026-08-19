@@ -117,6 +117,13 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | S3 · R2 · upload · CDN | `file-storage` |
 | SaaS · multi-tenant · tenancy | `saas-patterns` |
 | PRD · requirements | `prd` |
+| /start · projecto novo · arrancar do zero · criar produto novo · ligar projecto ao JOCA | `start` (entrevista por formularios + PRD + stack da casa + direccao de design; absorve o /init-project) |
+| executar projeto · constroi o projecto · avanca para a execucao | `executar-projeto` (fundacao → design 2 vias → gate → desenvolvimento em ondas) |
+| novo issue · criterios de aceitacao · abrir issue · backlog | `novo-issue` |
+| planear ondas · organizar backlog · milestones · por onde comeco | `planear-ondas` |
+| desenhar ecra · mockup · briefing de design · ecra novo | `preparar-design` (entrega o mockup como Artifact) |
+| validar mockup · o design bate certo · posso implementar este ecra | `validar-design` |
+| escrever testes do issue · testes a partir dos criterios | `escrever-testes` (sessao separada da implementacao) |
 | plan · architecture · migrate | `plan` (auto) |
 | claude-agent-sdk · agent sdk · programmatic claude · subscription claude · zero-cost claude · JOCA_OS backend · createSdkMcpServer | `agent-sdk` |
 | enqueue_workflow not running · comfyui mcp bug · workflow crashes via MCP · start_comfyui fails · comfy plugin | `comfy-mcp-workarounds` |
@@ -166,7 +173,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | Command | Function |
 |---|---|
 | `/install` | JOCA setup on new machine |
-| `/init-project` | initialize project |
+| `/init-project` | fundido no `/start` — redirect |
 | `/resume` | load context + knowledge graph |
 | `/save` | save state + update graph + auto-feedback |
 | `/plan` | Plan Mode — architecture |

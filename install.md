@@ -115,7 +115,10 @@ grep -rohE "<(YOUR_[A-Z_]+|JOCA_ROOT|STRONG_DOMAIN|LEARNING_DOMAIN)>" . --exclud
 ## Depois da instalação
 
 - **Iniciar interface:** `bash JOCA_OS/start.sh` (macOS/Linux) ou `JOCA_OS\start.bat` (Windows)
-- **Ligar projectos:** navegar para a pasta do projecto e correr `/init-project`
+- **Começar ou ligar um projecto:** navegar para a pasta e correr **`/start`** — entrevista completa
+  para projectos novos (produto → fluxos/PRD → stack da casa → infra → direcção de design, com
+  formulários interactivos), ou liga um projecto existente sem questionário (absorveu o antigo
+  `/init-project`)
 - **Início de sessão:** `/resume`
 - **Referência rápida:** `/help-joca`
 - **Actualizar JOCA:** `/update-joca` (sync com GitHub, protege ficheiros locais)

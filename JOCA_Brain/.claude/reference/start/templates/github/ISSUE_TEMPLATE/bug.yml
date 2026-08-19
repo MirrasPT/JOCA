@@ -1,0 +1,45 @@
+name: Bug
+description: Algo que devia funcionar e não funciona
+labels: ["tipo: bug"]
+body:
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que devia acontecer
+    validations:
+      required: true
+
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que acontece
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Como reproduzir
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impacto
+    attributes:
+      label: Impacto
+      options:
+        - Bloqueia o utilizador — sem alternativa
+        - Incomoda — há forma de contornar
+        - Cosmético
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Ambiente, utilizador afetado, mensagens de erro, entradas de log.

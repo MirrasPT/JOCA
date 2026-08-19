@@ -1,0 +1,306 @@
+<title>Direcções de Design</title>
+<!--
+  TEMPLATE do /start (Fase 5.2). A skill:
+  1. substitui {{PROJETO}} pelo nome do produto;
+  2. pode reordenar/trocar direcções, pares e paletas conforme o tipo de produto
+     (dentro desta estrutura — não reconstruir a página);
+  3. publica via Artifact e dá o URL ao utilizador.
+  O utilizador selecciona, acrescenta referências, carrega em "Gerar resumo",
+  copia o bloco e cola-o de volta no chat.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Manrope:wght@400;600&family=Space+Grotesk:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@400;600&family=Sora:wght@400;600&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f7f7f8; --surface:#ffffff; --ink:#17181c; --ink-2:#4b4e57; --muted:#7c808b;
+  --line:#e3e4e8; --line-soft:#eeeff2;
+  --sel:#3556c9; --sel-soft:#e9edfb; --sel-ink:#2a44a3; --on-sel:#ffffff;
+  --ok:#2e7d5b; --chip:#f0f1f4; --code:#f0f1f4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131418; --surface:#1b1c22; --ink:#ececf0; --ink-2:#b6b9c2; --muted:#878b96;
+    --line:#2c2e36; --line-soft:#24262d;
+    --sel:#8ba3f0; --sel-soft:#232a41; --sel-ink:#a8bbf5; --on-sel:#16181d;
+    --ok:#7cc4a4; --chip:#23252c; --code:#23252c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131418; --surface:#1b1c22; --ink:#ececf0; --ink-2:#b6b9c2; --muted:#878b96;
+  --line:#2c2e36; --line-soft:#24262d;
+  --sel:#8ba3f0; --sel-soft:#232a41; --sel-ink:#a8bbf5; --on-sel:#16181d;
+  --ok:#7cc4a4; --chip:#23252c; --code:#23252c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:7rem}
+.wrap{max-width:60rem;margin:0 auto;padding:3rem 1.25rem}
+header{margin-bottom:2.5rem}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 .8rem}
+h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(2rem,5vw,2.9rem);
+  line-height:1.08;margin:0 0 .8rem;text-wrap:balance}
+.lede{color:var(--ink-2);max-width:42rem;margin:0}
+section{margin:3rem 0}
+h2{font-size:1.05rem;font-weight:700;margin:0 0 .3rem;display:flex;align-items:baseline;gap:.6rem}
+h2 .n{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--muted);font-weight:400}
+.hint{color:var(--muted);font-size:.88rem;margin:0 0 1.1rem}
+.grid{display:grid;gap:.9rem}
+.g2{grid-template-columns:repeat(auto-fill,minmax(16rem,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:1rem 1.1rem;cursor:pointer;transition:border-color .12s, box-shadow .12s;position:relative}
+.card:hover{border-color:var(--muted)}
+.card:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.card[aria-checked="true"]{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel);
+  background:var(--sel-soft)}
+.card[aria-checked="true"]::after{content:"✓";position:absolute;top:.6rem;right:.75rem;
+  color:var(--sel-ink);font-weight:700}
+.card h3{margin:0 0 .3rem;font-size:.95rem;font-weight:600}
+.card p{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
+.preview{border-radius:6px;margin-bottom:.7rem;padding:.8rem .9rem;min-height:4.6rem;
+  display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line-soft)}
+.type-demo .big{font-size:1.35rem;line-height:1.15;margin:0 0 .25rem}
+.type-demo .small{font-size:.8rem;color:var(--muted);margin:0}
+.swatches{display:flex;height:3.4rem;border-radius:6px;overflow:hidden;margin-bottom:.7rem;
+  border:1px solid var(--line-soft)}
+.swatches span{flex:1}
+.shape-demo{display:flex;gap:.6rem;align-items:center;margin-bottom:.7rem}
+.shape-demo i{display:block;width:3.2rem;height:2.2rem;background:var(--chip);
+  border:1.5px solid var(--muted)}
+.dens-demo{display:flex;flex-direction:column;margin-bottom:.7rem;border:1px solid var(--line-soft);
+  border-radius:6px;overflow:hidden}
+.dens-demo i{display:block;background:var(--surface);border-bottom:1px solid var(--line-soft)}
+.dens-demo i:last-child{border-bottom:0}
+.refs{display:flex;gap:.6rem;flex-wrap:wrap}
+.refs input{flex:1;min-width:14rem;background:var(--surface);border:1px solid var(--line);
+  color:var(--ink);border-radius:8px;padding:.65rem .8rem;font:inherit;font-size:.9rem}
+.refs input:focus-visible{outline:2px solid var(--sel);outline-offset:1px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);padding:.65rem 1.1rem;font-weight:600;font-size:.9rem}
+button:hover{border-color:var(--muted)}
+button:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+button.primary{background:var(--sel);border-color:var(--sel);color:var(--on-sel)}
+button.primary:hover{filter:brightness(1.06)}
+#reflist{list-style:none;padding:0;margin:.8rem 0 0;display:flex;flex-direction:column;gap:.4rem}
+#reflist li{display:flex;align-items:center;gap:.6rem;background:var(--surface);
+  border:1px solid var(--line);border-radius:8px;padding:.45rem .7rem;font-size:.85rem;
+  word-break:break-all}
+#reflist button{padding:.1rem .5rem;font-size:.8rem;margin-left:auto;flex:none}
+textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:.7rem .8rem;font:inherit;font-size:.9rem;min-height:5rem;resize:vertical}
+textarea:focus-visible{outline:2px solid var(--sel);outline-offset:1px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);
+  border-top:1px solid var(--line);padding:.85rem 1.25rem;display:flex;align-items:center;
+  gap:1rem;flex-wrap:wrap;z-index:10}
+.bar .status{font-size:.84rem;color:var(--muted);flex:1;min-width:12rem}
+.bar .status b{color:var(--ink)}
+#out{display:none;margin-top:1.2rem}
+#out.show{display:block}
+#outtext{font-family:"JetBrains Mono",monospace;font-size:.8rem;min-height:14rem;
+  background:var(--code)}
+.copied{color:var(--ok);font-size:.85rem;font-weight:600}
+@media (max-width:560px){.wrap{padding:2rem 1rem}.bar{padding:.7rem 1rem}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">/start · Fase 5 · Direcção de design</p>
+  <h1>Que cara vai ter o {{PROJETO}}?</h1>
+  <p class="lede">Escolhe uma opção em cada secção — é uma <em>direcção</em>, não o design final.
+  No fim, carrega em <strong>Gerar resumo</strong>, copia o bloco e cola-o de volta no chat.</p>
+</header>
+
+<section>
+  <h2><span class="n">01</span> Direcção geral</h2>
+  <p class="hint">O tom global do produto. Tudo o resto compõe-se dentro disto.</p>
+  <div class="grid g3" role="radiogroup" aria-label="Direcção geral" data-group="direccao">
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Minimal e preciso — muito branco, hierarquia por tipografia, quase sem decoração">
+      <div class="preview"><span style="font-weight:600">Aa —</span><span style="font-size:.72rem;color:var(--muted)">espaço · silêncio · foco</span></div>
+      <h3>Minimal e preciso</h3><p>Interfaces limpas, densidade de informação por tipografia. Linear, Notion.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Editorial — serifas, ritmo de revista, texto como protagonista">
+      <div class="preview"><span style="font-family:'Instrument Serif',serif;font-size:1.3rem;font-style:italic">Editorial</span><span style="font-size:.72rem;color:var(--muted)">serifa · colunas · ritmo</span></div>
+      <h3>Editorial</h3><p>Lê-se como uma publicação. Bom para conteúdo, marcas com voz.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Tech escuro — fundo escuro por omissão, acento vivo, mono nos dados">
+      <div class="preview" style="background:#16181d;border-color:#26292f"><span style="color:#e8e9ec;font-family:'Space Grotesk',sans-serif">dark_mode</span><span style="font-size:.72rem;color:#6ee7a0">· terminal energy</span></div>
+      <h3>Tech escuro</h3><p>Ferramentas de developer, dashboards, produtos técnicos.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Quente e humano — tons quentes, formas suaves, próximo e acolhedor">
+      <div class="preview" style="background:#faf3ea;border-color:#eee0cd"><span style="font-family:Fraunces,serif;color:#7a4a21;font-size:1.2rem">olá 👋</span><span style="font-size:.72rem;color:#a3805c">quente · suave · próximo</span></div>
+      <h3>Quente e humano</h3><p>Serviços a pessoas, saúde, comunidade, hospitalidade.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Bold e grafico — contraste alto, blocos de cor, tipografia enorme">
+      <div class="preview" style="background:#111;border-color:#111"><span style="color:#fff;font-weight:700;font-size:1.35rem;letter-spacing:-.02em">BOLD<span style="color:#ffd43b">.</span></span></div>
+      <h3>Bold e gráfico</h3><p>Marcas que querem parar o scroll. Landing pages, eventos, moda.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Ludico — cor generosa, cantos redondos, micro-humor, energia de jogo">
+      <div class="preview" style="background:#eef6ff;border-color:#d7e8fb"><span style="font-family:Sora,sans-serif;font-weight:600;color:#2563b8">fun! <span style="color:#e8618c">●</span> <span style="color:#3fae7a">●</span> <span style="color:#e9a13b">●</span></span></div>
+      <h3>Lúdico</h3><p>Jogos, apps para consumidores jovens, educação.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">02</span> Tipografia</h2>
+  <p class="hint">O par título + texto. Cada cartão está renderizado nas fontes reais.</p>
+  <div class="grid g2" role="radiogroup" aria-label="Tipografia" data-group="tipografia">
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Inter (titulos e corpo) — neutro e funcional">
+      <div class="preview type-demo"><p class="big" style="font-family:Inter;font-weight:600">Depressa e bem</p><p class="small" style="font-family:Inter">Uma só família, pesos a fazer a hierarquia. Nunca falha.</p></div>
+      <h3>Inter + Inter</h3><p>Neutro e funcional.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Instrument Serif (titulos) + Inter (corpo) — editorial moderno">
+      <div class="preview type-demo"><p class="big" style="font-family:'Instrument Serif',serif">Depressa e bem</p><p class="small" style="font-family:Inter">Serifa expressiva nos títulos, sans limpa no texto.</p></div>
+      <h3>Instrument Serif + Inter</h3><p>Editorial moderno.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Fraunces (titulos) + Manrope (corpo) — quente com caracter">
+      <div class="preview type-demo"><p class="big" style="font-family:Fraunces,serif;font-weight:600">Depressa e bem</p><p class="small" style="font-family:Manrope">Serifa quente e cheia de personalidade, corpo redondo.</p></div>
+      <h3>Fraunces + Manrope</h3><p>Quente, com carácter.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Space Grotesk (titulos) + IBM Plex Sans (corpo) — tecnico">
+      <div class="preview type-demo"><p class="big" style="font-family:'Space Grotesk';font-weight:600">Depressa e bem</p><p class="small" style="font-family:'IBM Plex Sans'">Geometria técnica, boa para produto e dados.</p></div>
+      <h3>Space Grotesk + IBM Plex</h3><p>Técnico.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Playfair Display (titulos) + Source Sans 3 (corpo) — classico elegante">
+      <div class="preview type-demo"><p class="big" style="font-family:'Playfair Display',serif">Depressa e bem</p><p class="small" style="font-family:'Source Sans 3'">Contraste clássico, elegância sem esforço.</p></div>
+      <h3>Playfair + Source Sans</h3><p>Clássico elegante.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Sora (titulos) + DM Sans (corpo) — geometrico amigavel">
+      <div class="preview type-demo"><p class="big" style="font-family:Sora;font-weight:600">Depressa e bem</p><p class="small" style="font-family:'DM Sans'">Geométrico mas simpático; bom para apps e jogos leves.</p></div>
+      <h3>Sora + DM Sans</h3><p>Geométrico amigável.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span> Paleta</h2>
+  <p class="hint">Marca · acento · fundo · texto. Os valores finais afinam-se depois — aqui escolhe-se a família.</p>
+  <div class="grid g3" role="radiogroup" aria-label="Paleta" data-group="paleta">
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Indigo profissional — marca #4F46E5, acento #818CF8, fundo #FFFFFF, texto #111827">
+      <div class="swatches"><span style="background:#4F46E5"></span><span style="background:#818CF8"></span><span style="background:#F5F6FA"></span><span style="background:#111827"></span></div>
+      <h3>Índigo profissional</h3><p>SaaS clássico, confiável.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Esmeralda calma — marca #0E7A5F, acento #34C79B, fundo #F7FAF8, texto #12211B">
+      <div class="swatches"><span style="background:#0E7A5F"></span><span style="background:#34C79B"></span><span style="background:#F7FAF8"></span><span style="background:#12211B"></span></div>
+      <h3>Esmeralda calma</h3><p>Saúde, finanças, sustentabilidade.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Ambar quente — marca #B45309, acento #F59E0B, fundo #FDF8F1, texto #292018">
+      <div class="swatches"><span style="background:#B45309"></span><span style="background:#F59E0B"></span><span style="background:#FDF8F1"></span><span style="background:#292018"></span></div>
+      <h3>Âmbar quente</h3><p>Comida, artesanato, hospitalidade.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Grafite e lima — marca #191B1E, acento #B8F53C, fundo #0F1113, texto #F2F3F1 (dark-first)">
+      <div class="swatches"><span style="background:#191B1E"></span><span style="background:#B8F53C"></span><span style="background:#0F1113"></span><span style="background:#F2F3F1"></span></div>
+      <h3>Grafite + lima</h3><p>Dark-first, técnico, com punch.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Marinho classico — marca #1E3A5F, acento #C9A227, fundo #FAFAF7, texto #14202E">
+      <div class="swatches"><span style="background:#1E3A5F"></span><span style="background:#C9A227"></span><span style="background:#FAFAF7"></span><span style="background:#14202E"></span></div>
+      <h3>Marinho clássico</h3><p>Direito, consultoria, património.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Terracota editorial — marca #B3502E, acento #E07B54, fundo #FAF4EE, texto #2B211C">
+      <div class="swatches"><span style="background:#B3502E"></span><span style="background:#E07B54"></span><span style="background:#FAF4EE"></span><span style="background:#2B211C"></span></div>
+      <h3>Terracota editorial</h3><p>Conteúdo, lifestyle, marcas com voz.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Magenta bold — marca #C2186B, acento #FF5CA8, fundo #FFFFFF, texto #1C1017">
+      <div class="swatches"><span style="background:#C2186B"></span><span style="background:#FF5CA8"></span><span style="background:#FFFFFF"></span><span style="background:#1C1017"></span></div>
+      <h3>Magenta bold</h3><p>Moda, eventos, consumo jovem.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Neutro puro — marca #131313, acento #E23B2E, fundo #FFFFFF, texto #131313">
+      <div class="swatches"><span style="background:#131313"></span><span style="background:#E23B2E"></span><span style="background:#FFFFFF"></span><span style="background:#8C8C8C"></span></div>
+      <h3>Neutro puro</h3><p>Preto e branco + um acento. Suíço.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">04</span> Forma</h2>
+  <p class="hint">O raio dos cantos define muito do tom.</p>
+  <div class="grid g3" role="radiogroup" aria-label="Forma" data-group="forma">
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Cantos rectos (0) — serio, editorial, tecnico">
+      <div class="shape-demo"><i style="border-radius:0"></i><i style="border-radius:0;width:2.2rem"></i></div>
+      <h3>Rectos</h3><p>Sério, editorial, técnico.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Cantos suaves (0.5rem) — equilibrado, o default sensato">
+      <div class="shape-demo"><i style="border-radius:8px"></i><i style="border-radius:8px;width:2.2rem"></i></div>
+      <h3>Suaves · 0.5rem</h3><p>Equilibrado. O default sensato.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Cantos redondos (0.75rem+ e pills) — amigavel, consumidor, ludico">
+      <div class="shape-demo"><i style="border-radius:14px"></i><i style="border-radius:999px;width:2.2rem"></i></div>
+      <h3>Redondos · 0.75rem+</h3><p>Amigável, consumidor, lúdico.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">05</span> Densidade</h2>
+  <p class="hint">Quanto respira cada ecrã.</p>
+  <div class="grid g3" role="radiogroup" aria-label="Densidade" data-group="densidade">
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Compacta — muitos dados por ecra, aplicacao de trabalho">
+      <div class="dens-demo"><i style="height:.55rem"></i><i style="height:.55rem"></i><i style="height:.55rem"></i><i style="height:.55rem"></i><i style="height:.55rem"></i></div>
+      <h3>Compacta</h3><p>Ferramentas de trabalho, tabelas, dashboards.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Equilibrada — o meio-termo">
+      <div class="dens-demo"><i style="height:.9rem"></i><i style="height:.9rem"></i><i style="height:.9rem"></i></div>
+      <h3>Equilibrada</h3><p>O meio-termo para a maioria dos produtos.</p></div>
+    <div class="card" role="radio" aria-checked="false" tabindex="0" data-v="Espacosa — muito ar, foco num elemento de cada vez, produto publico">
+      <div class="dens-demo"><i style="height:1.5rem"></i><i style="height:1.5rem"></i></div>
+      <h3>Espaçosa</h3><p>Landing pages, produto de consumidor.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">06</span> Referências</h2>
+  <p class="hint">Sites, apps ou imagens de que gostas — cola links, um de cada vez.</p>
+  <div class="refs"><input id="refin" type="url" placeholder="https://…" aria-label="Link de referência">
+  <button id="refadd" type="button">Adicionar</button></div>
+  <ul id="reflist"></ul>
+</section>
+
+<section>
+  <h2><span class="n">07</span> Notas livres</h2>
+  <p class="hint">O que estas opções não perguntaram — "sem gradientes", "tipo a app X mas mais séria"…</p>
+  <textarea id="notas" aria-label="Notas livres" placeholder="Opcional"></textarea>
+
+  <div id="out"><h2 style="margin-top:1.5rem"><span class="n">→</span> Copia isto para o chat</h2>
+  <textarea id="outtext" readonly aria-label="Resumo gerado"></textarea>
+  <div style="margin-top:.6rem;display:flex;gap:.8rem;align-items:center">
+    <button class="primary" id="copybtn" type="button">Copiar</button>
+    <span id="copiedmsg" class="copied" hidden>copiado ✓</span></div></div>
+</section>
+</div>
+
+<div class="bar">
+  <span class="status" id="status">0 de 5 secções escolhidas</span>
+  <button class="primary" id="gerar" type="button">Gerar resumo</button>
+</div>
+
+<script>
+(function(){
+  var GRUPOS=["direccao","tipografia","paleta","forma","densidade"];
+  var NOMES={direccao:"Direcção",tipografia:"Tipografia",paleta:"Paleta",forma:"Forma",densidade:"Densidade"};
+  var refs=[];
+
+  function sel(g){var el=document.querySelector('[data-group="'+g+'"] .card[aria-checked="true"]');
+    return el?el.getAttribute("data-v"):null;}
+  function status(){var n=GRUPOS.filter(sel).length;
+    document.getElementById("status").innerHTML="<b>"+n+" de 5</b> secções escolhidas"+(n===5?" — pronto a gerar":"");}
+
+  document.querySelectorAll("[data-group]").forEach(function(grp){
+    grp.addEventListener("click",function(e){var c=e.target.closest(".card");if(!c)return;pick(grp,c);});
+    grp.addEventListener("keydown",function(e){var c=e.target.closest(".card");if(!c)return;
+      if(e.key===" "||e.key==="Enter"){e.preventDefault();pick(grp,c);}});
+  });
+  function pick(grp,card){grp.querySelectorAll(".card").forEach(function(x){x.setAttribute("aria-checked","false");});
+    card.setAttribute("aria-checked","true");status();}
+
+  document.getElementById("refadd").addEventListener("click",addRef);
+  document.getElementById("refin").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addRef();}});
+  function addRef(){var inp=document.getElementById("refin"),v=inp.value.trim();if(!v)return;
+    refs.push(v);inp.value="";renderRefs();}
+  function renderRefs(){var ul=document.getElementById("reflist");ul.innerHTML="";
+    refs.forEach(function(r,i){var li=document.createElement("li");
+      var s=document.createElement("span");s.textContent=r;li.appendChild(s);
+      var b=document.createElement("button");b.type="button";b.textContent="remover";
+      b.addEventListener("click",function(){refs.splice(i,1);renderRefs();});
+      li.appendChild(b);ul.appendChild(li);});}
+
+  document.getElementById("gerar").addEventListener("click",function(){
+    var faltam=GRUPOS.filter(function(g){return !sel(g);});
+    var linhas=["=== DIRECCAO DE DESIGN — {{PROJETO}} ==="];
+    GRUPOS.forEach(function(g){linhas.push(NOMES[g]+": "+(sel(g)||"(por escolher)"));});
+    linhas.push("Referencias: "+(refs.length?refs.join(" · "):"(nenhuma)"));
+    var notas=document.getElementById("notas").value.trim();
+    linhas.push("Notas: "+(notas||"(nenhumas)"));
+    if(faltam.length)linhas.push("[atencao: por escolher — "+faltam.map(function(g){return NOMES[g];}).join(", ")+"]");
+    linhas.push("=== FIM ===");
+    var out=document.getElementById("out");out.classList.add("show");
+    document.getElementById("outtext").value=linhas.join("\n");
+    out.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+
+  document.getElementById("copybtn").addEventListener("click",function(){
+    var ta=document.getElementById("outtext");ta.select();ta.setSelectionRange(0,99999);
+    function ok(){var m=document.getElementById("copiedmsg");m.hidden=false;
+      setTimeout(function(){m.hidden=true;},2200);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(ok,function(){document.execCommand("copy");ok();});
+    }else{document.execCommand("copy");ok();}
+  });
+  status();
+})();
+</script>

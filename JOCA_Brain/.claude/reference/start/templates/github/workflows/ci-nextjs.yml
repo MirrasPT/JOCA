@@ -1,0 +1,60 @@
+# CI — Next.js 16 + React 19 (App Router, TypeScript).
+#
+# Versoes verificadas em Agosto 2026: next 16.3.1 · react 19.2.8.
+#
+# ⚠️ O gate estatico (tsc + build) prova que COMPILA, nao que FUNCIONA. Um
+#    componente usado sem import passa o build do Next e so rebenta no browser.
+#    Por isso o eslint NAO e opcional aqui: `react/jsx-no-undef` e `no-undef`
+#    sao a unica coisa que apanha identificadores indefinidos.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      # Testes: descomentar quando existirem.
+      # - name: Testes
+      #   run: npm test -- --run
+
+# ---------------------------------------------------------------------------
+# Se o projeto usar Prisma + base de dados nos testes, acrescentar ao job:
+#
+#     services:
+#       postgres:
+#         image: postgres:17
+#         env:
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_DB: testing
+#         ports: ['5432:5432']
+#         options: >-
+#           --health-cmd=pg_isready --health-interval=10s
+#           --health-timeout=5s --health-retries=5
+#
+# e um step `npx prisma migrate deploy` com
+# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testing
+# ---------------------------------------------------------------------------

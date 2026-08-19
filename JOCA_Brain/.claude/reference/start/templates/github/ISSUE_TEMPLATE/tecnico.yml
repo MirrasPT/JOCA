@@ -1,0 +1,48 @@
+name: Técnico
+description: Refactor, dívida técnica, dependências, infraestrutura
+labels: ["tipo: técnico"]
+body:
+  - type: textarea
+    id: situacao
+    attributes:
+      label: Situação atual
+      description: O que existe hoje e porque é que é um problema.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+      description: O que se vai mudar.
+    validations:
+      required: true
+
+  - type: textarea
+    id: risco
+    attributes:
+      label: Risco e reversão
+      description: O que pode partir, e como se volta atrás.
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Feito quando
+      value: |
+        - [ ] Comportamento externo inalterado (testes existentes passam)
+        - [ ]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgencia
+    attributes:
+      label: Urgência
+      options:
+        - Bloqueia trabalho a seguir
+        - Trava o ritmo mas dá para viver
+        - Melhoria oportunista
+    validations:
+      required: true

@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**259 componentes:** 131 skills + 102 agents + 26 commands.
+**278 componentes:** 146 skills + 105 agents + 27 commands.
 
 ---
 
@@ -244,7 +244,7 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (131)
+## Skills (146)
 
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
@@ -280,7 +280,7 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 
 ---
 
-## Agents (102)
+## Agents (105)
 
 Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — inventario completo em `JOCA_Brain/.claude/agents/`.)
 
@@ -316,7 +316,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (26)
+## Commands (27)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 

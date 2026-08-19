@@ -32,6 +32,17 @@ dia numeram-se com sufixo `(a)`/`(b)`/`(c)` para não colidirem.
 
 ---
 
+## PASSO 2a-bis — PROGRESSO.md (estado partilhado por git)
+
+Se a raiz do projecto tiver `PROGRESSO.md` (criado pelo `/start` — formato em
+`.claude/reference/start/progresso-formato.md`):
+1. Actualizar **Estado actual** (1-3 linhas) e a tabela de **Fases** se alguma mudou — sempre com a
+   coluna Prova (caminho/comando), nunca so o ✅.
+2. Acrescentar 1 linha ao **Diario**: `- <data> · <maquina/utilizador> · <o que aconteceu>`.
+3. **Commitar junto com o resto do trabalho** — e a memoria PARTILHADA: o que nao for commitado nao
+   existe para os outros colaboradores. (A memoria do Brain continua individual; as duas apontam uma
+   para a outra, nao se duplicam.)
+
 ## PASSO 2b — Check de Conceito (projectos com regras mutáveis)
 
 Se o projecto tiver um `CLAUDE.md` com secção `### Conceito` (comum em jogos, motores de regras, apps com domínio mutável):

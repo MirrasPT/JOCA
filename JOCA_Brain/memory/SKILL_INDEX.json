@@ -903,6 +903,46 @@
   },
   {
     "type": "skill",
+    "name": "escrever-testes",
+    "category": "general",
+    "path": ".claude/skills/escrever-testes.md",
+    "description": "Escreve testes a partir dos criterios de aceitacao de um issue, deliberadamente sem olhar para a implementacao. Corre em sessao separada da que implementou o codigo. MUST be invoked when the user says",
+    "triggers": [
+      "escrever testes",
+      "testes do issue",
+      "testes a partir dos criterios",
+      "escrever-testes",
+      "testes em sessao separada",
+      "cobrir o issue com testes",
+      "testes de aceitacao",
+      "Pest a partir do issue",
+      "Vitest a partir do issue",
+      "flutter test do issue",
+      "/escrever-testes"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "executar-projeto",
+    "category": "general",
+    "path": ".claude/skills/executar-projeto.md",
+    "description": "A execucao do /start: constroi o projecto do PRD ate producao — fundacao (scaffold, repo, CI, hooks), design por uma de duas vias (Claude Design externo com conversao para o stack, ou design directo n",
+    "triggers": [
+      "executar projeto",
+      "executar-projeto",
+      "avanca para a execucao",
+      "constroi o projecto",
+      "executa o plano do start",
+      "comeca a construir",
+      "scaffold do projecto",
+      "fase de execucao",
+      "desenvolve a plataforma",
+      "/executar-projeto",
+      "desenvolve a plataforma toda"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "filament",
     "category": "general",
     "path": ".claude/skills/filament.md",
@@ -1530,6 +1570,27 @@
   },
   {
     "type": "skill",
+    "name": "novo-issue",
+    "category": "general",
+    "path": ".claude/skills/novo-issue.md",
+    "description": "Transforma uma ideia ou problema num issue do GitHub estruturado, com criterios de aceitacao verificaveis e a lista de ficheiros que o trabalho vai tocar. Usar antes de escrever codigo para algo novo.",
+    "triggers": [
+      "novo issue",
+      "criar issue",
+      "abrir issue",
+      "novo-issue",
+      "issue no GitHub",
+      "transformar isto numa tarefa",
+      "criterios de aceitacao",
+      "adicionar ao backlog",
+      "registar esta ideia",
+      "quero implementar",
+      "/novo-issue",
+      "quero implementar X"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "page-cro",
     "category": "general",
     "path": ".claude/skills/page-cro.md",
@@ -1611,6 +1672,27 @@
       "migra",
       "reestrutura",
       "tarefa multi-ficheiro/irreversível"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "planear-ondas",
+    "category": "general",
+    "path": ".claude/skills/planear-ondas.md",
+    "description": "Organiza os issues abertos em ondas de trabalho, com portoes de validacao, analise de paralelismo e agrupamento por sessao. Usar depois de abrir o backlog, ou quando o plano deixou de reflectir a real",
+    "triggers": [
+      "planear ondas",
+      "ondas de trabalho",
+      "planear-ondas",
+      "organizar o backlog",
+      "por ordem nos issues",
+      "milestones",
+      "por onde comeco",
+      "que issues primeiro",
+      "plano de trabalho",
+      "ONDAS.md",
+      "replanear",
+      "/planear-ondas"
     ]
   },
   {
@@ -1712,6 +1794,28 @@
       "PRD",
       "requirements doc",
       "product spec"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "preparar-design",
+    "category": "general",
+    "path": ".claude/skills/preparar-design.md",
+    "description": "Desenha um ecra dentro do sistema visual do projecto e entrega-o como Artifact navegavel no browser. Comeca por apurar que design JA existe (Figma, marca, site a rodar, mockups) para nao reinventar o ",
+    "triggers": [
+      "preparar design",
+      "desenhar ecra",
+      "mockup do ecra",
+      "preparar-design",
+      "briefing de design",
+      "fazer o ecra",
+      "desenhar a interface",
+      "mockup",
+      "prototipo do ecra",
+      "ecra novo",
+      "/preparar-design",
+      "como vai ser esta pagina",
+      "protipo do ecra"
     ]
   },
   {
@@ -2208,6 +2312,29 @@
   },
   {
     "type": "skill",
+    "name": "start",
+    "category": "general",
+    "path": ".claude/skills/start.md",
+    "description": "O inicio de qualquer projeto. Entrevista completa por formularios interactivos — tipo de produto (website, app movel, jogo, SaaS, software), fluxos, PRD inicial, stack por camadas, infraestrutura e di",
+    "triggers": [
+      "start",
+      "novo projeto",
+      "comecar projeto",
+      "arrancar projeto",
+      "criar produto novo",
+      "iniciar projeto",
+      "comecar do zero",
+      "quero construir uma app",
+      "quero fazer um site",
+      "tenho uma ideia",
+      "ligar projecto ao JOCA",
+      "init project",
+      "/start",
+      "tenho uma ideia de produto"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "stop-slop",
     "category": "general",
     "path": ".claude/skills/stop-slop.md",
@@ -2366,6 +2493,25 @@
       "unlock edits",
       "voltar ao normal",
       "remove guard"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "validar-design",
+    "category": "general",
+    "path": ".claude/skills/validar-design.md",
+    "description": "Valida um mockup contra o sistema visual do projecto e prepara as notas de implementacao. Porteiro, nao autor: assinala o que esta fora e devolve, nao redesenha. MUST be invoked when the user says: va",
+    "triggers": [
+      "validar design",
+      "validar o mockup",
+      "validar-design",
+      "o mockup esta bom",
+      "rever o ecra",
+      "posso implementar este ecra",
+      "conferir o mockup",
+      "aprovar o mockup",
+      "/validar-design",
+      "o design bate certo com o sistema"
     ]
   },
   {

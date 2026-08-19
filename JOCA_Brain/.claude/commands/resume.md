@@ -81,6 +81,14 @@ git log --oneline --all | head -10  # histórico de TODAS as branches
 
 Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
 
+#### 2b-bis. PROGRESSO.md — o estado partilhado
+
+Se a pasta do projecto tiver `PROGRESSO.md` (projectos arrancados pelo `/start`): lê-lo **antes** da
+memória do Brain e mostrar a fase actual no resumo. É a versão partilhada do estado — pode ter sido
+actualizado por outro colaborador ou outra máquina desde a tua última sessão, e nesse caso **ganha
+ao Brain** no que toca a fases/estado do projecto (o Brain guarda o teu contexto pessoal, não o
+estado canónico). Divergência entre os dois → assinalar como drift, igual ao 2b.
+
 #### 2c. Afirmações perecíveis — a memória é pista, não facto
 
 O drift do 2b compara memória ↔ **git**. Não cobre memória ↔ **estado vivo** (BD, infra, contas), que

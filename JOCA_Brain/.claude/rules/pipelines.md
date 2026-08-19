@@ -103,6 +103,17 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
 | **Retro** | `/retro` → lê aprendizagens da janela → propõe acções |
 
+### Arranque de produto
+| Pipeline | Sequência |
+|---|---|
+| **Produto novo (0 → producao)** | `/start` (entrevista + PRD + stack + direccao de design) → `executar-projeto`: E1 fundacao ⛔ push → E2 design (via Claude Design c/ conversao, OU directo: `design-system`→`design-shotgun` se frontend→`preparar-design`/`validar-design` por ecra) → E3 ponto de situacao ⏸ → E4 `planear-ondas` → loop por onda (implementar c/ agentes de dominio → `escrever-testes` **sessao separada** → `tester-code` → gate runtime → portao) → `security-review` → ⛔ deploy |
+| **Ecrã novo em projecto existente** | `preparar-design` (Artifact) → `validar-design` → `novo-issue` se houver componentes novos → implementar → `escrever-testes` |
+| **Backlog → plano** | `novo-issue` (×N) → `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
+
+⚠ **O `escrever-testes` corre em sessão separada da que implementou** — testes escritos a seguir ao
+código verificam o código, não o requisito: passam sempre e não provam nada. Se a mesma sessão fizer
+as duas coisas, a rede de segurança é uma ilusão e o CI verde confirma-a.
+
 ### Conhecimento / automação
 | Pipeline | Sequência |
 |---|---|

@@ -91,7 +91,7 @@ Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria p
 skills que o utilizador viria a precisar.
 
 O que e especifico de um projecto (stack, plataforma, CLIs desse projecto) e decidido pelo
-`/init-project`, que ve a pasta. Aqui trata-se so da maquina.
+`/start`, que ve a pasta (absorveu o antigo `/init-project`). Aqui trata-se so da maquina.
 
 ---
 
@@ -176,7 +176,7 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 ## JOCA
 Toolkit instalado em: [caminho_joca]
 Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /init-project, /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
+Comandos: /install, /start (novo projecto ou ligar existente), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_OS
@@ -188,7 +188,7 @@ Arranque: start.bat (Windows) ou bash start.sh (macOS/Linux)
 ## Projectos activos
 | Directorio | Descricao |
 |-----------|-----------|
-<!-- Entradas adicionadas por /init-project e /save -->
+<!-- Entradas adicionadas por /start e /save -->
 
 @[caminho_joca]/JOCA_Brain/CLAUDE.md
 ```
@@ -645,7 +645,7 @@ Copy-Item "<caminho_joca>\..\JOCA_OS\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
 
 ### 10. Skills novas (se confirmado)
 
-Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamente aprovada. Nao ha deteccao de gaps na instalacao: um gap real aparece a trabalhar num projecto (e o `/init-project` ou o `/upgrade-joca` levantam-no), nao a responder a um formulario.
+Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamente aprovada. Nao ha deteccao de gaps na instalacao: um gap real aparece a trabalhar num projecto (e o `/start` ou o `/upgrade-joca` levantam-no), nao a responder a um formulario.
 
 ### 11. Relatorio final
 
@@ -666,7 +666,7 @@ API KEYS
 JOCA pronto.
 -> Iniciar interface: JOCA_OS\start.bat (Windows) ou bash JOCA_OS/start.sh (macOS/Linux)
 -> Autocomplete: digita / no terminal para ver commands, skills e agents
--> Para ligar projectos: navega para a pasta e corre /init-project
+-> Para comecar/ligar um projecto: navega para a pasta e corre /start
 -> Inicio de sessao: /resume
 -> Referencia rapida: /help-joca
 -> Repo: https://github.com/MirrasPT/JOCA.git

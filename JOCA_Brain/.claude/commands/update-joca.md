@@ -41,11 +41,16 @@ git branch backup/pre-update-$(git rev-parse --short HEAD)      # 1. make it rev
 git fetch upstream
 git checkout upstream/main -- JOCA_Brain/.claude/skills JOCA_Brain/.claude/agents \
                               JOCA_Brain/.claude/commands JOCA_Brain/.claude/rules \
-                              JOCA_OS/backend/src JOCA_OS/frontend/src               # 2. code paths ONLY
+                              JOCA_Brain/.claude/reference \
+                              JOCA_OS/backend/src JOCA_OS/frontend/src JOCA_OS/cli   # 2. code paths ONLY
 ```
 
 Never checkout `memory/`, `JOCA_OS/data/`, `.claude/settings.json` or `soul.md` this way — those are
 the installation, not the toolkit.
+
+`JOCA_Brain/.claude/reference/` viaja com o toolkit (templates do `/start`, playbooks, stacks) —
+e codigo, nao estado. Os `PROGRESSO.md` vivem nos repos dos PROJECTOS, nunca neste — o update do
+JOCA nao lhes toca por definicao.
 
 **After ANY import from the public branch, three things must be put back** (the template ships them
 neutralised, and each one fails *silently* if forgotten):
