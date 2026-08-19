@@ -1,15 +1,12 @@
 // RunsHistory — collapsible "Histórico" section used at the top of AutomationsView. Compact table
-// of the durable run trail (GET /runs) with kind filter chips + a 30-day totals line from
+// of the durable run trail (GET /runs) with a 30-day totals line from
 // GET /runs/stats. Refetches when the parent's refreshKey changes (automations_changed via WS).
 import { useCallback, useEffect, useState } from 'react';
 import type { RunKind, RunRecord, RunStats } from '../types';
 
 const KIND_LABEL: Record<RunKind, string> = { automation: 'automação' };
-const FILTERS: { id: 'all' | RunKind; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'automation', label: 'Automações' },
-];
-
+// Um único tipo vivo (automation) desde que as tarefas saíram — os chips de filtro deixaram de
+// separar coisa nenhuma e saíram com elas.
 const fmtWhen = (ts: number) => new Date(ts).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 // Duração humana: 850ms → "0.9s", 65s → "1m 5s", 3700s → "1h 1m".
@@ -26,7 +23,6 @@ export default function RunsHistory({ refreshKey }: { refreshKey: number }) {
   const [open, setOpen] = useState(false);
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [stats, setStats] = useState<RunStats | null>(null);
-  const [filter, setFilter] = useState<'all' | RunKind>('all');
 
   const reload = useCallback((kind: 'all' | RunKind) => {
     const qs = kind === 'all' ? '' : `&kind=${kind}`;
@@ -41,7 +37,7 @@ export default function RunsHistory({ refreshKey }: { refreshKey: number }) {
   }, []);
 
   // Só busca quando a secção está aberta (a tabela é lazy); refreshKey re-sincroniza após cada run.
-  useEffect(() => { if (open) reload(filter); }, [open, filter, refreshKey, reload]);
+  useEffect(() => { if (open) reload('all'); }, [open, refreshKey, reload]);
 
   return (
     <div className="runs-history">
@@ -55,19 +51,6 @@ export default function RunsHistory({ refreshKey }: { refreshKey: number }) {
 
       {open && (
         <div className="runs-body">
-          <div className="runs-filters" role="group" aria-label="Filtrar por tipo">
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={`runs-chip ${filter === f.id ? 'runs-chip--active' : ''}`}
-                onClick={() => setFilter(f.id)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
           {runs.length === 0 ? (
             <div className="runs-empty">Sem execuções registadas.</div>
           ) : (
