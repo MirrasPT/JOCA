@@ -2,7 +2,7 @@
 //
 // NÃO se edita código para os pôr. Largam-se ficheiros em `public/brand/office/` com estes nomes:
 //
-//     dashboard · tarefas · automacoes · agentes · definicoes · projectos
+//     dashboard · automacoes · agentes · definicoes · projectos
 //
 // A extensão pode ser `.webp`, `.gif` ou `.png`, por essa ordem de preferência. O Giphy serve
 // `.webp` animado, que é o formato mais leve dos três (e o que o "copiar link" de lá dá), por isso
@@ -19,10 +19,9 @@ const DIR = '/brand/office/';
 /** Ordem de tentativa. Primeiro o que o Giphy dá e é mais leve. */
 const EXT = ['webp', 'gif', 'png'];
 
-/** Nome do ícone na barra → nome do ficheiro. Só estes seis é que aceitam GIF. */
+/** Nome do ícone na barra → nome do ficheiro. Só estes cinco é que aceitam GIF. */
 export const OFFICE_GIF_FILES: Record<string, string> = {
   'layout-dashboard': 'dashboard',
-  'list-checks': 'tarefas',
   zap: 'automacoes',
   terminal: 'agentes',
   // Chave à parte da dos Agentes de propósito: partilhá-la punha o mesmo GIF nos dois sítios.

@@ -5,10 +5,6 @@
 // ambiente (e JOCA_API_TOKEN quando a auth está ligada), portanto qualquer agente — Claude Code,
 // Codex, agy, OpenCode — pode usar isto sem configuração e SEM reiniciar o JOCA:
 //
-//   node "$JOCA_CLI" tasks                      lista as tarefas do quadro
-//   node "$JOCA_CLI" task <id>                  vê uma tarefa (com a thread de notas)
-//   node "$JOCA_CLI" comment <id> "texto"       escreve uma nota na tarefa
-//   node "$JOCA_CLI" done [<id>] --note "..."   comenta, conclui e move para 'concluida'
 //   node "$JOCA_CLI" sessions                   terminais do teu projecto (área + trabalho actual)
 //   node "$JOCA_CLI" send <id> "texto"          fala com outro agente do mesmo projecto
 //   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro agente escreveu
@@ -26,9 +22,6 @@ import os from 'node:os';
 const API = (process.env.JOCA_API_URL || 'http://127.0.0.1:7491').replace(/\/$/, '');
 const TOKEN = process.env.JOCA_API_TOKEN || '';
 const SESSION_ID = process.env.JOCA_SESSION_ID || '';
-const TASK_ID = process.env.JOCA_TASK_ID || '';
-
-const COLUMNS = ['a-definir', 'a-executar', 'em-execucao', 'concluida', 'arquivada'];
 
 function die(msg, code = 1) {
   console.error(`joca: ${msg}`);
@@ -146,98 +139,6 @@ const SCOPE_HINT = 'Um agente só fala com terminais do MESMO projecto — vê q
 
 // ── comandos ──────────────────────────────────────────────────────────────────
 const commands = {
-  async tasks(flags) {
-    const tasks = await api('GET', '/tasks');
-    const filtered = tasks.filter((t) => (
-      (!flags.status || t.status === flags.status)
-      && (!flags.project || t.projectId === flags.project)
-    ));
-    if (!filtered.length) return console.log('(sem tarefas)');
-    for (const col of COLUMNS) {
-      const inCol = filtered.filter((t) => t.status === col).sort((a, b) => a.order - b.order);
-      if (!inCol.length) continue;
-      console.log(`\n## ${col} (${inCol.length})`);
-      for (const t of inCol) {
-        const marks = [
-          t.lastStatus === 'error' ? '✗' : '',
-          t.comments?.length ? `[${t.comments.length} notas]` : '',
-        ].filter(Boolean).join(' ');
-        console.log(`  ${short(t.id)}  ${oneLine(t.title, 70)}${marks ? '  ' + marks : ''}`);
-      }
-    }
-  },
-
-  async task(flags, [ref]) {
-    const tasks = await api('GET', '/tasks');
-    const t = resolveId(tasks, ref || TASK_ID, 'tarefa');
-    console.log(`# ${t.title}`);
-    console.log(`id: ${t.id}\ncoluna: ${t.status}${t.lastStatus ? `  ·  último estado: ${t.lastStatus}` : ''}`);
-    if (t.skills?.length) console.log(`skills: ${t.skills.join(', ')}`);
-    if (t.description) console.log(`\n${t.description}`);
-    if (t.result) console.log(`\n[resultado] ${t.result}`);
-    if (t.comments?.length) {
-      console.log(`\n## Notas (${t.comments.length})`);
-      for (const c of t.comments) {
-        console.log(`- [${c.author}${c.authorName ? `/${c.authorName}` : ''} ${rel(c.ts)}] ${c.text}`);
-      }
-    }
-  },
-
-  async comment(flags, [ref, ...rest]) {
-    const text = rest.join(' ') || flags.text;
-    const id = (ref && !ref.startsWith('-')) ? ref : TASK_ID;
-    if (!text) die('falta o texto: joca comment <id> "a tua nota"');
-    const tasks = await api('GET', '/tasks');
-    const t = resolveId(tasks, id, 'tarefa');
-    await api('POST', `/tasks/${t.id}/comments`, { text, author: 'worker', sessionId: SESSION_ID });
-    console.log(`nota adicionada a "${t.title}"`);
-  },
-
-  // O caso de uso central: o worker acaba, explica o que fez e fecha a tarefa.
-  async done(flags, [ref]) {
-    const tasks = await api('GET', '/tasks');
-    const t = resolveId(tasks, ref || TASK_ID, 'tarefa');
-    const note = flags.note || flags.summary;
-    if (note) await api('POST', `/tasks/${t.id}/comments`, { text: note, author: 'worker', sessionId: SESSION_ID });
-    await api('POST', `/tasks/${t.id}/move`, { status: 'concluida' });
-    console.log(`"${t.title}" → concluida${note ? ' (com nota)' : ''}`);
-  },
-
-  async move(flags, [ref, status]) {
-    if (!COLUMNS.includes(status)) die(`coluna inválida. Usa: ${COLUMNS.join(' | ')}`);
-    const tasks = await api('GET', '/tasks');
-    const t = resolveId(tasks, ref, 'tarefa');
-    await api('POST', `/tasks/${t.id}/move`, { status });
-    console.log(`"${t.title}" → ${status}`);
-  },
-
-  async advance(flags, [ref]) {
-    const tasks = await api('GET', '/tasks');
-    const t = resolveId(tasks, ref || TASK_ID, 'tarefa');
-    const out = await api('POST', `/tasks/${t.id}/advance`);
-    console.log(`"${out.title}" → ${out.status}`);
-  },
-
-  async 'new-task'(flags, [...titleParts]) {
-    const title = titleParts.join(' ') || flags.title;
-    if (!title) die('falta o título: joca new-task "o que é preciso fazer"');
-    const t = await api('POST', '/tasks', {
-      title,
-      description: flags.desc || flags.description,
-      status: COLUMNS.includes(flags.status) ? flags.status : undefined,
-      projectId: flags.project,
-    });
-    console.log(`tarefa criada: ${short(t.id)}  ${t.title}  (${t.status})`);
-  },
-
-  async merge(flags, ids) {
-    if (ids.length < 2) die('preciso de pelo menos 2 ids: joca merge <id1> <id2> [...]');
-    const tasks = await api('GET', '/tasks');
-    const resolved = ids.map((r) => resolveId(tasks, r, 'tarefa').id);
-    const out = await api('POST', '/tasks/merge', { ids: resolved, title: flags.title });
-    console.log(`fundidas ${ids.length} tarefas em "${out.title}" (${short(out.id)})`);
-  },
-
   // Dentro de um agente esta lista já vem limitada ao projecto dele (o backend filtra pelo
   // X-Joca-Session). Mostra a ÁREA e o trabalho actual: é o que decide com quem vale a pena falar.
   async sessions() {
@@ -330,16 +231,6 @@ const commands = {
   help() {
     console.log(`joca — ponte entre este terminal e o JOCA_OS (${API})
 
-TAREFAS
-  tasks [--status <coluna>] [--project <id>]   lista o quadro
-  task [<id>]                                  detalhe + notas (sem id: a tarefa deste worker)
-  new-task "<título>" [--desc "..."] [--status <coluna>] [--project <id>]
-  comment [<id>] "<texto>"                     escreve uma nota na tarefa
-  done [<id>] [--note "o que fiz"]             comenta e move para 'concluida'
-  move <id> <coluna>                           ${COLUMNS.join(' | ')}
-  advance [<id>]                               empurra para a coluna seguinte
-  merge <id1> <id2> [...] [--title "..."]      funde tarefas numa só
-
 TERMINAIS (agentes falam entre si — só dentro do MESMO projecto)
   sessions                                     terminais do teu projecto, com área e trabalho actual
   new-session "<nome>" [--cli claude|codex|agy|opencode] [--project <id>] [--prompt "..."]
@@ -355,7 +246,7 @@ FICHEIROS (leitura pontual — sem navegação/listagem, ver skill)
 OUTROS
   automations · projects · runs [--limit N] · notify "<texto>"
 
-Contexto deste terminal: sessão ${SESSION_ID ? short(SESSION_ID) : '(desconhecida)'}${TASK_ID ? `, tarefa ${short(TASK_ID)}` : ''}`);
+Contexto deste terminal: sessão ${SESSION_ID ? short(SESSION_ID) : '(desconhecida)'}`);
   },
 };
 

@@ -1,0 +1,101 @@
+/* ConfirmDialog — aviso a meio do ecrã antes de uma acção irreversível.
+   Mesmo overlay e mesma linguagem do modal de projecto; o que muda é o peso: caixa estreita, um
+   título, uma frase e dois botões. Nada de scroll, nada de campos — é uma decisão, não um ecrã. */
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;   /* acima do modal de projecto (60): pode ser aberto por cima dele */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(14px);
+}
+
+.confirm-dialog {
+  width: min(420px, 100%);
+  padding: 20px;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  background: var(--surface-panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+}
+
+.confirm-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.confirm-dialog-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+.confirm-dialog-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.confirm-dialog-body {
+  margin: 0 0 18px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.confirm-dialog-body strong { color: var(--text-bright); }
+
+/* O que fica intacto merece linha própria: a dúvida que trava a mão é sempre "isto apaga os meus
+   ficheiros?", e a resposta tem de estar à vista antes do clique. */
+.confirm-dialog-body .confirm-note {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-ghost);
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-bright);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+
+.confirm-btn:hover { background: var(--bg-input); }
+
+/* Vermelho fixo, não `--red`: o vermelho do tema escuro é claro de mais e branco por cima ficava
+   abaixo de 4.5:1. Mesma decisão (e mesmo valor) da Zona perigosa do modal de projecto. */
+.confirm-btn--danger {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.confirm-btn--danger:hover { background: #991b1b; border-color: #991b1b; }
+
+.confirm-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.confirm-btn--danger:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }

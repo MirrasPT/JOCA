@@ -1,6 +1,6 @@
 // Multi-CLI profiles — how to launch each supported coding agent inside a JOCA_OS PTY session.
 // Claude Code is the base; Codex CLI, Antigravity (agy) and OpenCode are alternatives selectable
-// per session / task / automation. Defaults below are best-effort for each CLI's current flags;
+// per session / automation. Defaults below are best-effort for each CLI's current flags;
 // everything is overridable via DATA_DIR/cli-profiles.json (partial merge by id) so a flag rename
 // upstream is a config fix, not a code change.
 //

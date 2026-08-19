@@ -28,7 +28,6 @@ interface Props {
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
   onShowAutomations: () => void;
-  onShowTasks: () => void;
   /** Vista global de agentes (todos os projectos num sítio só). */
   onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
@@ -58,7 +57,7 @@ type LucideName =
   | 'terminal' | 'terminal-quick' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
-  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'list-checks' | 'arrow-up-down' | 'link'
+  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'arrow-up-down' | 'link'
   | 'settings';
 
 /**
@@ -73,8 +72,6 @@ type LucideName =
 const OFFICE_ICONS: Partial<Record<LucideName, React.ReactNode>> = {
   // Caneca "World's Best Boss" — o painel principal.
   'layout-dashboard': <><path d="M4 8h11v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" /><path d="M15 10h2.2a2.4 2.4 0 0 1 0 4.8H15" /><path d="M7.5 3v2M11.5 3v2" /></>,
-  // Dundie — as tarefas premiadas.
-  'list-checks': <><path d="M8 3h8v5a4 4 0 0 1-8 0Z" /><path d="M8 4.5H5.2a2.4 2.4 0 0 0 2.9 3.9M16 4.5h2.8a2.4 2.4 0 0 1-2.9 3.9" /><path d="M12 12v3.5" /><path d="M9.2 15.5h5.6L16 21H8Z" /></>,
   // Agrafador (o da gelatina) — as automações.
   zap: <><path d="M3 15.5h18V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18Z" /><path d="M5.5 15.5V9.2l12-4.7v11" /></>,
   // Beterraba de Schrute Farms — os agentes.
@@ -210,7 +207,6 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'archive') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M10 12h4" /></svg>;
   if (name === 'archive-restore') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h4" /><path d="M19 8v3" /><path d="m15 18 4-4 4 4" /><path d="M19 22v-8" /></svg>;
   if (name === 'cpu') return <svg {...common}><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" /><rect x="9.5" y="9.5" width="5" height="5" rx="1" /></svg>;
-  if (name === 'list-checks') return <svg {...common}><path d="m3 7 2 2 4-4M3 17l2 2 4-4M13 6h8M13 12h8M13 18h8" /></svg>;
   if (name === 'arrow-up-down') return <svg {...common}><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>;
   if (name === 'link') return <svg {...common}><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /><line x1="8" y1="12" x2="16" y2="12" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
@@ -914,7 +910,7 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowTasks, onShowAgents, onShowProject,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowAgents, onShowProject,
   onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
@@ -1143,16 +1139,6 @@ export default function SessionSidebar({
           >
             <span className="nav-icon"><LucideIcon name="layout-dashboard" /></span>
             <span>Dashboard</span>
-          </button>
-          <button
-            className={`nav-btn ${mainView === 'tasks' ? 'active' : ''}`}
-            type="button"
-            onClick={onShowTasks}
-            aria-label="Tarefas Globais"
-            aria-current={mainView === 'tasks' ? 'page' : undefined}
-          >
-            <span className="nav-icon"><LucideIcon name="list-checks" /></span>
-            <span>Tarefas Globais</span>
           </button>
           <button
             className={`nav-btn ${mainView === 'automations' ? 'active' : ''}`}

@@ -1,5 +1,5 @@
 // AutomationsView — v1 panel. Lists automations (enable toggle, next/last run, run-now, delete) and
-// a "new automation" form. The common shape is a scheduled worker task: nodes = [{worker, objective}]
+// a "new automation" form. The common shape is a scheduled worker run: nodes = [{worker, objective}]
 // — a dedicated Claude Code worker executes it and stays open with the result. The runtime supports
 // more node types; the visual node editor (n8n-style canvas) comes next — this form generates the
 // 80% case.
@@ -53,7 +53,7 @@ const TEMPLATES: AutomationTemplate[] = [
     id: 'morning-brief',
     label: '☀️ Morning brief',
     name: 'Morning brief',
-    objective: 'Prepara um briefing matinal curto: estado dos projectos JOCA (git status dos que têm alterações), tarefas no quadro por coluna, automações com erros, e 3 prioridades sugeridas para hoje.',
+    objective: 'Prepara um briefing matinal curto: estado dos projectos JOCA (git status dos que têm alterações), automações com erros, e 3 prioridades sugeridas para hoje.',
     kind: 'daily', time: '08:30',
   },
 ];
@@ -190,7 +190,7 @@ export function AutomationsView({ refreshKey }: { refreshKey: number }) {
       <header className="av-header">
         <div>
           <h1>Automações</h1>
-          <p>Tarefas agendadas que correm sozinhas num worker dedicado. O worker fica aberto com o resultado e recebes uma notificação.</p>
+          <p>Trabalho agendado que corre sozinho num worker dedicado. O worker fica aberto com o resultado e recebes uma notificação.</p>
         </div>
         <button className="av-btn-primary" type="button" onClick={() => setCreating((v) => !v)}>
           <LucideIcon name={creating ? 'x' : 'plus'} /> {creating ? 'Cancelar' : 'Nova automação'}

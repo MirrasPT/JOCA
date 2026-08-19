@@ -44,8 +44,6 @@ export type ServerMessage =
   | { type: 'projects_changed' }
   | { type: 'automation_message'; id: string; text: string; ts: number }
   | { type: 'automations_changed' }
-  | { type: 'task_question'; taskId: string; sessionId: string; title: string; summary?: string }
-  | { type: 'tasks_changed' }
   | { type: 'notification'; notification: AppNotification }
   | { type: 'error'; error: string };
 
@@ -68,7 +66,6 @@ export interface SessionSocketDeps {
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
   setActivatedIds: Dispatch<SetStateAction<Set<string>>>;
   setAutomationsRefresh: Dispatch<SetStateAction<number>>;
-  setTasksRefresh: Dispatch<SetStateAction<number>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -261,7 +258,7 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
               // NO popup toast for your own terminal work — keep only the subtle unread dot in the
-              // sidebar. Automation/task workers (origin 'auto') DO fire an OS notification: they run
+              // sidebar. Automation workers (origin 'auto') DO fire an OS notification: they run
               // in the background, so the user must be alerted that the result is ready to inspect.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
               if (session.origin === 'auto') {
@@ -282,24 +279,13 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         case 'automation_message':
           notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120), { automationId: msg.id });
           break;
-        // A task worker is blocked waiting for the user (question/confirmation in the terminal).
-        case 'task_question':
-          notify(
-            'JOCA — Tarefa precisa de ti',
-            `${msg.title}: ${(msg.summary ?? 'responde no terminal').slice(0, 100)}`,
-            { taskId: msg.taskId, sessionId: msg.sessionId },
-          );
-          break;
         case 'automations_changed':
           d.setAutomationsRefresh((n) => n + 1);
-          break;
-        case 'tasks_changed':
-          d.setTasksRefresh((n) => n + 1);
           break;
 
 
         // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
-        // do SO só para 'system': automation_message e task_question já notificam nos cases acima.
+        // do SO só para 'system': automation_message já notifica no case acima.
         case 'notification':
           if (msg.notification.kind === 'system') {
             notify(

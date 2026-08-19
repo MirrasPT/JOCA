@@ -1,7 +1,7 @@
 // System routes — the persistent-inbox / run-history / multi-CLI surface.
 //   /notifications  → persistent inbox (survives closed tabs; unread state)
 //   /runs           → append-only execution history with SDK cost (runs.jsonl)
-//   /cli-profiles   → the CLIs a session/task/automation can run on, with availability
+//   /cli-profiles   → the CLIs a session/automation can run on, with availability
 import express, { Router } from 'express';
 import {
   loadNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, unreadCount,
@@ -66,7 +66,7 @@ export function systemRouter(): Router {
   r.post('/notifications', express.json({ limit: '256kb' }), (req, res) => {
     const b = (req.body ?? {}) as { text?: unknown; title?: unknown; kind?: unknown };
     if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text obrigatorio' });
-    const kind = b.kind === 'automation' || b.kind === 'task_question' ? b.kind : 'system';
+    const kind = b.kind === 'automation' ? b.kind : 'system';
     res.json(pushNotification({
       kind,
       title: typeof b.title === 'string' && b.title.trim() ? b.title : 'Terminal',
@@ -92,7 +92,7 @@ export function systemRouter(): Router {
   // ── Run history + cost ─────────────────────────────────────────────────────
   r.get('/runs', (req, res) => {
     const limit = Number(req.query.limit) || 100;
-    const kind = ['automation', 'task'].includes(String(req.query.kind))
+    const kind = ['automation'].includes(String(req.query.kind))
       ? (String(req.query.kind) as RunKind) : undefined;
     const refId = typeof req.query.refId === 'string' ? req.query.refId : undefined;
     res.json(listRuns({ limit, kind, refId }));

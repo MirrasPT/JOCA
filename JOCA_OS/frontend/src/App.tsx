@@ -9,7 +9,6 @@ import DashboardView, { type RateLimits } from './components/DashboardView';
 import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
 import TerminalView from './components/TerminalView';
 import { AutomationsView } from './components/AutomationsView';
-import { TasksView } from './components/TasksView';
 import CommandPalette from './components/CommandPalette';
 import AgentsView from './components/AgentsView';
 import { useSessionSocket } from './hooks/useSessionSocket';
@@ -99,7 +98,6 @@ export default function App() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   useEffect(() => { activeProjectIdRef.current = activeProjectId; }, [activeProjectId]);
   const [automationsRefresh, setAutomationsRefresh] = useState(0);
-  const [tasksRefresh, setTasksRefresh] = useState(0);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -336,7 +334,7 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setUnreadIds, setActivatedIds, setAutomationsRefresh, setTasksRefresh,
+    setUnreadIds, setActivatedIds, setAutomationsRefresh,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef, focusNewSessionRef,
     activateSession, addToast, addNotificationToast, processOutput, reloadProjects, reloadProjectMemory,
   });
@@ -587,7 +585,7 @@ export default function App() {
   /**
    * Abrir uma sessão a partir do panorama: se ela pertence a um projecto, o sítio dela é o
    * workspace DESSE projecto, com a tab respectiva já escolhida — não o ecrã cheio, que arranca o
-   * terminal do contexto onde vive (as outras tabs, as tarefas, o projecto).
+   * terminal do contexto onde vive (as outras tabs, o projecto).
    *
    * Sessões soltas (sem projecto) não têm workspace onde caber: essas continuam a abrir inteiras.
    */
@@ -626,7 +624,7 @@ export default function App() {
    * notificação do SO — o painel do rail foi removido). Quem sabe navegar é o App; os canais só
    * transportam o `meta`.
    *
-   * Precedência: sessão → tarefa → automação → projecto (do mais específico para o mais lato).
+   * Precedência: sessão → automação → projecto (do mais específico para o mais lato).
    * Uma referência morta (sessão fechada, projecto apagado) não rebenta nem atira para um sítio ao
    * calhar: cai para o nível seguinte e, não havendo nenhum, fica-se onde se está.
    */
@@ -636,8 +634,6 @@ export default function App() {
       handleSwitchSession(target.sessionId);
       return;
     }
-    // TODO: a TasksView ainda não abre uma tarefa por id — leva-se ao quadro, não ao detalhe.
-    if (target.taskId) { setMainView('tasks'); return; }
     if (target.automationId) { setMainView('automations'); return; }
     if (target.projectId && projectsRef.current.some((p) => p.id === target.projectId)) {
       handleShowProject(target.projectId);
@@ -787,7 +783,6 @@ export default function App() {
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
         onShowDashboard={() => setMainView('dashboard')}
         onShowAutomations={() => setMainView('automations')}
-        onShowTasks={() => setMainView('tasks')}
         onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
         onOpenSession={handleOpenSessionInContext}
@@ -810,8 +805,6 @@ export default function App() {
       <div className="main-area">
         {mainView === 'automations' ? (
           <AutomationsView refreshKey={automationsRefresh} />
-        ) : mainView === 'tasks' ? (
-          <TasksView refreshKey={tasksRefresh} projects={projects} />
         ) : mainView === 'agents' ? (
           // Todos os agentes de todos os projectos num sítio só.
           <AgentsView
@@ -824,12 +817,11 @@ export default function App() {
             onRenameSession={handleRenameSession}
           />
         ) : mainView === 'project' ? (
-          // Vista de um projecto: terminais + tarefas. O DashboardView trata do panorama global.
+          // Vista de um projecto: terminais. O DashboardView trata do panorama global.
           <ProjectWorkspace
             project={projects.find((p) => p.id === contextProjectId) ?? null}
             projects={projects}
             sessions={sessions}
-            tasksRefresh={tasksRefresh}
             onEditProject={handleEditProject}
             onSelectTerminal={handleSelectProjectTerminal}
             onRenameSession={handleRenameSession}

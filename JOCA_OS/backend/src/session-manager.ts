@@ -2,7 +2,7 @@
 // spawn/input/resize/kill, the rolling output buffer, and the idle→done heuristic. All timings
 // and constants are IDENTICAL to the original god-file (BUFFER_MAX, IDLE_DEBOUNCE_MS,
 // DONE_MIN_WORK_MS, MAX_SESSIONS). Shared state lives in the single exported `sessionManager`
-// singleton — server.ts, the automations runner and the tasks engine all talk to that instance.
+// singleton — server.ts and the automations runner both talk to that instance.
 //
 // Eventing: extends EventEmitter and emits:
 //   'spawn'  { session }                     — session created (forwarded as 'session_created'); the
@@ -13,7 +13,7 @@
 //                                              é o buffer final já sem ANSI: quem ouvir isto não o
 //                                              consegue ir buscar depois, porque a sessão já saiu do mapa.
 //   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
-//                                              work burst ends; automations/tasks await this.
+//                                              work burst ends; automations await this.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -33,7 +33,7 @@ export interface Session {
   name: string;
   cwd: string;
   projectId?: string;
-  origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
+  origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations worker)
   cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
   // Etiqueta de área herdada da pool que o gestor de projecto usava. O gestor foi removido e nada
   // preenche isto hoje; fica no tipo por ser opcional e escrito no ficheiro de sessões antigo.
@@ -279,9 +279,9 @@ export class SessionManager extends EventEmitter {
       cols: 120,
       rows: 30,
       cwd,
-      // Every session is born knowing how to talk back to JOCA: the agent inside can list/comment/
-      // move tasks, open and message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
-      // JOCA_SESSION_ID lets it identify itself; the tasks engine adds JOCA_TASK_ID per dispatch.
+      // Every session is born knowing how to talk back to JOCA: the agent inside can open and
+      // message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
+      // JOCA_SESSION_ID lets it identify itself.
       env: { ...process.env, ...jocaAgentEnv(id) } as Record<string, string>,
     });
 
@@ -433,7 +433,7 @@ export class SessionManager extends EventEmitter {
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
-        // 'done' wakes whoever dispatched work programmatically (automations runner / tasks engine).
+        // 'done' wakes whoever dispatched work programmatically (the automations runner).
         // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
         if (dispatchDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
@@ -462,7 +462,7 @@ export class SessionManager extends EventEmitter {
     });
 
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
-    // single source of the broadcast — workers spawned programmatically (automations/tasks)
+    // single source of the broadcast — workers spawned programmatically (automations)
     // become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session, requestedBy: opts.requestedBy });
     return session;
@@ -610,7 +610,7 @@ export class SessionManager extends EventEmitter {
     }
     if (initialInput && this.sessions.has(session.id)) {
       // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
-      // (this is what lets the automations runner / tasks engine await the worker's completion).
+      // (this is what lets the automations runner await the worker's completion).
       session.notifyOnIdle = true;
       session.awaitingDone = true;
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
@@ -654,7 +654,7 @@ export class SessionManager extends EventEmitter {
 
   // Programmatic message submit (runner → worker). Unlike input() (which mirrors raw UI keystrokes),
   // this guarantees the whole message is entered and submitted once, via bracketed-paste for
-  // multi-line bodies. Use for any programmatically-driven message (tasks tester pass, etc.).
+  // multi-line bodies. Use for any programmatically-driven message.
   submitMessage(sessionId: string, text: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session || text === undefined) return false;
@@ -711,7 +711,7 @@ export class SessionManager extends EventEmitter {
     return this.sessions.get(sessionId)?.buffer;
   }
 
-  // Programmatic read (automations/tasks). strip=true removes ANSI escapes for plain-text consumption.
+  // Programmatic read (automations). strip=true removes ANSI escapes for plain-text consumption.
   readBuffer(sessionId: string, opts: { strip?: boolean } = {}): string | undefined {
     const buf = this.sessions.get(sessionId)?.buffer;
     if (buf === undefined) return undefined;
@@ -720,7 +720,7 @@ export class SessionManager extends EventEmitter {
 
   // Await the completion of a programmatic dispatch on a session: resolves 'done' when the armed
   // work burst finishes, 'closed' if the PTY exits first, 'timeout' after timeoutMs. Used by the
-  // automations runner and the tasks engine (the worker stays open — this only observes).
+  // automations runner (the worker stays open — this only observes).
   waitForDone(sessionId: string, timeoutMs: number): Promise<'done' | 'closed' | 'timeout'> {
     return new Promise((resolve) => {
       if (!this.sessions.has(sessionId)) return resolve('closed');

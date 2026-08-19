@@ -16,20 +16,17 @@ import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
 import { llmRouter } from './http/llm-routes';
 import { automationsRouter, automationDeps } from './http/automations-routes';
-import { tasksRouter } from './http/tasks-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
 import { loadProjects } from './project-store';
-import { startTasksEngine } from './tasks/engine';
-import { setTasksBroadcaster } from './tasks/store';
 import { setNotificationsBroadcaster } from './notifications/store';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
-// ('done' is consumed by the automations runner / tasks engine; it is NOT broadcast.)
+// ('done' is consumed by the automations runner; it is NOT broadcast.)
 // 'spawn' is the single broadcast source for session_created — covers both UI-created sessions
-// and workers spawned programmatically (automations/tasks), so workers show in the UI.
+// and workers spawned programmatically (automations), so workers show in the UI.
 sessionManager.on('spawn', ({ session, requestedBy }: { session: Session; requestedBy?: string }) => {
   // `requestedBy` volta tal e qual: é o que deixa o cliente que pediu saltar para o terminal novo
   // sem arrastar os outros com ele.
@@ -95,13 +92,9 @@ app.use(requireAuth, projectGroupsRouter());
 app.use(requireAuth, toolkitRouter());
 app.use(requireAuth, llmRouter());
 app.use(requireAuth, automationsRouter());
-app.use(requireAuth, tasksRouter());
 app.use(requireAuth, systemRouter());
 app.use(requireAuth, sessionsRouter());
 app.use(requireAuth, filesRouter());
-
-// Tasks UI live-refresh: broadcast tasks_changed over WS whenever the store mutates.
-setTasksBroadcaster(() => broadcast({ type: 'tasks_changed' }));
 
 // JSON error handler — must precede static + catch-all to intercept errors from API routes
 // before the SPA fallback swallows them. 5xx responses use a generic message to avoid leaking
@@ -144,6 +137,5 @@ server.listen(PORT, HOST, () => {
     console.log(`  Skills: ${items.skills.length} · Agents: ${items.agents.length} · Commands: ${items.commands.length}`);
   }
   startScheduler(automationDeps);
-  startTasksEngine();
   // Nenhum terminal nasce sozinho: os projectos abrem VAZIOS e quem abre terminais é o dono.
 });

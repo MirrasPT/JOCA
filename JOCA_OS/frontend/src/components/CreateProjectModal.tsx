@@ -508,7 +508,7 @@ export default function CreateProjectModal({
                     <div className="project-danger-item">
                       <div>
                         <strong>Remover projecto</strong>
-                        <small>Apaga-o do JOCA (conversa e tarefas incluídas). Os ficheiros na pasta ficam.</small>
+                        <small>Apaga-o do JOCA (conversa incluída). Os ficheiros na pasta ficam.</small>
                       </div>
                       {confirmRemove ? (
                         <div role="alert" className="project-danger-confirm">

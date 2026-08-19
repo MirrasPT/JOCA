@@ -199,7 +199,7 @@ export default function StatusBar({
 
   const vivas = sessions ?? fetchedSessions;
 
-  // Agentes = terminais abertos pelo motor de tarefas ('auto'). Os que o utilizador abriu à mão
+  // Agentes = terminais abertos programaticamente ('auto'). Os que o utilizador abriu à mão
   // são dele, não "trabalho a decorrer sem supervisão" — juntá-los tornaria o número inútil.
   const agentes = vivas.filter((s) => s.origin === 'auto');
   const agentesActivos = agentes.filter((s) => s.status === 'working').length;

@@ -1,6 +1,5 @@
 /* ─── Workspace de um projecto — o terminal é o palco ─────────────────────────────────────────
-   Três faixas: barra fina de identidade, tabs dos terminais, e o resto TODO é terminal. As
-   tarefas entram numa gaveta ao lado, que encolhe o palco em vez de o substituir.
+   Três faixas: barra fina de identidade, tabs dos terminais, e o resto TODO é terminal.
 
    `min-height: 0` em cada nível é o que permite encolher — sem isso um filho flex nunca fica
    menor que o conteúdo e o `overflow` do pai nunca chega a ser usado. */
@@ -210,38 +209,13 @@
 .pw-cli-item:disabled { color: var(--text-ghost); cursor: not-allowed; }
 .pw-cli-item--loading { color: var(--text-ghost); cursor: default; }
 
-/* Botão das tarefas — vive na mesma faixa das tabs, encostado à direita. */
-.pw-tasks-toggle {
-  flex: 0 0 auto;
-  display: inline-flex; align-items: center; gap: 6px;
-  align-self: center;
-  padding: 5px 10px;
-  background: none; border: 1px solid var(--border-default); border-radius: var(--r-sm);
-  color: var(--text-dim); font: 600 11.5px var(--font-ui); cursor: pointer;
-  transition: all var(--t-fast);
-}
-.pw-tasks-toggle:hover { color: var(--text-bright); border-color: var(--text-ghost); }
-.pw-tasks-toggle--on {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.pw-tasks-count {
-  min-width: 16px; padding: 0 4px; border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  color: var(--text-bright); font: 700 10px var(--font-ui); text-align: center;
-}
-
 /* ─── O palco ───────────────────────────────────────────────────────────────────────────────── */
 .pw-stage {
-  position: relative;   /* âncora da gaveta em ecrã inteiro */
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
-.pw-stage--with-tasks { grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); }
-
 .pw-terminal-slot {
   min-width: 0;
   min-height: 0;
@@ -287,85 +261,6 @@
 }
 .pw-stage-empty-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ─── Gaveta de tarefas ─────────────────────────────────────────────────────────────────────── */
-.pw-tasks-drawer {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--border-faint);
-  background: color-mix(in srgb, var(--surface-panel) 60%, transparent);
-}
-.pw-tasks-drawer-head {
-  flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border-faint);
-}
-.pw-tasks-drawer-actions { display: inline-flex; align-items: center; gap: 2px; }
-.pw-tasks-drawer-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px;
-  background: none; border: 0; border-radius: 4px;
-  color: var(--text-dim); font-size: 17px; line-height: 1; cursor: pointer;
-}
-.pw-tasks-drawer-btn:hover { color: var(--text-bright); background: var(--bg-input); }
-.pw-tasks-drawer-btn[aria-pressed="true"] { color: var(--accent); }
-
-/* Ecrã inteiro: a gaveta cobre o palco. O terminal fica montado por baixo — voltar ao lateral (ou
-   fechar) não o remonta nem perde o que lá está. */
-.pw-tasks-drawer--full {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  border-left: 0;
-  background: var(--surface-base, var(--surface-panel));
-}
-.pw-tasks-drawer--full .pw-tasks-drawer-body { padding: 16px clamp(16px, 3vw, 40px); }
-/* Em ecrã inteiro há largura para o quadro real — as colunas voltam a ficar lado a lado. */
-.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-board { flex-direction: row; overflow-x: auto; gap: 16px; }
-.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-col { flex: 0 0 300px; min-width: 300px; width: auto; }
-.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-header h1,
-.pw-tasks-drawer--full .pw-tasks-drawer-body .tk-header p { display: revert; }
-.pw-tasks-drawer-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--text-ghost) transparent;
-}
-/* O quadro em 4 colunas de 300px não cabe numa gaveta de 340px — dava scroll horizontal e
-   escondia as colunas da direita. Na gaveta empilha-se e lê-se como lista, de cima para baixo. */
-.pw-tasks-drawer-body .tk-board {
-  flex-direction: column;
-  overflow-x: visible;
-  gap: 12px;
-}
-.pw-tasks-drawer-body .tk-col {
-  flex: 0 0 auto;
-  min-width: 0;
-  width: 100%;
-}
-/* O cabeçalho do TasksView (título grande + descrição) é redundante aqui: a gaveta já se chama
-   Tarefas. Fica só a linha de acções. */
-.pw-tasks-drawer-body .tk-header h1,
-.pw-tasks-drawer-body .tk-header p { display: none; }
-.pw-tasks-drawer-body .tk-header { margin-bottom: 12px; }
-
-/* Ecrã estreito: a gaveta passa a cobrir o palco em vez de o espremer. */
-@media (max-width: 980px) {
-  .pw-stage--with-tasks { grid-template-columns: minmax(0, 1fr); position: relative; }
-  .pw-tasks-drawer {
-    position: absolute; inset: 0 0 0 auto;
-    width: min(360px, 100%);
-    background: var(--surface-panel);
-    box-shadow: -12px 0 32px rgba(0,0,0,0.34);
-    z-index: 30;
-  }
-}
-
 @media (max-width: 620px) {
   .pw-bar-path { display: none; }
-  .pw-tasks-toggle span { display: none; }
 }

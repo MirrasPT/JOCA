@@ -22,7 +22,7 @@ interface Props {
   onCloseSession: (id: string) => void;
   /** Agente novo sem projecto; `cli` vazio = claude. */
   onNewSession: (cli: string) => void;
-  /** Salta para o workspace do projecto (terminais + tarefas). */
+  /** Salta para o workspace do projecto (terminais). */
   onOpenProject: (project: Project) => void;
   /** Renomear um agente (duplo-clique no nome). */
   onRenameSession?: (id: string, name: string) => void;

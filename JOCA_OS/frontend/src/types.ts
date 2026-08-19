@@ -3,7 +3,7 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
-  origin?: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations/tasks worker)
+  origin?: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations worker)
   status: 'working' | 'idle';
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
 }
@@ -131,7 +131,7 @@ export interface JocaLogicInfo {
 
 // ── v3: inbox / runs / multi-CLI (mirrors backend stores) ────────────────────
 
-export type NotificationKind = 'automation' | 'task_question' | 'session_done' | 'system';
+export type NotificationKind = 'automation' | 'session_done' | 'system';
 
 // 'action' = nada avança sem tu decidires; 'info' = aconteceu, não precisa de ti.
 export type NotificationPriority = 'action' | 'info';
@@ -146,12 +146,12 @@ export interface AppNotification {
   priority?: NotificationPriority;
   count?: number;      // >1 → repetições do mesmo evento, agrupadas
   meta?: {
-    sessionId?: string; taskId?: string; automationId?: string;
+    sessionId?: string; automationId?: string;
     projectId?: string; area?: string; groupKey?: string;
   };
 }
 
-export type RunKind = 'automation' | 'task';
+export type RunKind = 'automation';
 export type RunStatus = 'ok' | 'error' | 'timeout' | 'skipped';
 
 export interface RunRecord {
@@ -192,4 +192,4 @@ export interface CliProfileInfo {
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
 /** `agents` = vista global de agentes (todos os projectos num sítio só). */
-export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'tasks' | 'agents';
+export type MainView = 'dashboard' | 'project' | 'session' | 'automations' | 'agents';

@@ -22,10 +22,6 @@ interface Props {
   /** Renomear a sessão (duplo clique no nome da tab). Ausente = nome não editável. */
   onRename?: (id: string, name: string) => void;
   onNew: (cli?: string) => void;
-  /** Estado da gaveta de tarefas + nº de tarefas por fechar, para o botão à direita. */
-  tasksOpen: boolean;
-  taskCount: number;
-  onToggleTasks: () => void;
 }
 
 /**
@@ -48,16 +44,8 @@ function CloseIcon() {
   );
 }
 
-function TasksIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M4 6h4M4 12h4M4 18h4" /><path d="M12 6h8M12 12h8M12 18h8" />
-    </svg>
-  );
-}
-
 export default function TerminalTabs({
-  tabs, activeId, onSelect, onClose, onRename, onNew, tasksOpen, taskCount, onToggleTasks,
+  tabs, activeId, onSelect, onClose, onRename, onNew,
 }: Props) {
   // Fechar mata trabalho a meio — confirma-se na própria tab, como no resto da app, em vez de um
   // modal por cima do terminal.
@@ -172,19 +160,6 @@ export default function TerminalTabs({
           </div>
         )}
       </div>
-
-      <button
-        type="button"
-        className={`pw-tasks-toggle ${tasksOpen ? 'pw-tasks-toggle--on' : ''}`}
-        onClick={onToggleTasks}
-        aria-expanded={tasksOpen}
-        aria-controls="pw-tasks-drawer"
-        title="Tarefas do projecto (⌘J)"
-      >
-        <TasksIcon />
-        <span>Tarefas</span>
-        {taskCount > 0 && <span className="pw-tasks-count">{taskCount}</span>}
-      </button>
     </div>
   );
 }
