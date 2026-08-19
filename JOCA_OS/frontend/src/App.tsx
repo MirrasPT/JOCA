@@ -15,7 +15,7 @@ import { useSessionSocket } from './hooks/useSessionSocket';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
 import StatusBar from './components/StatusBar';
-import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RuntimeInfo, SessionInfo, TerminalRef, ToolkitFilter, ToolkitRegistryItem, ToolkitType } from './types';
+import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RuntimeInfo, SessionInfo, TerminalRef } from './types';
 import './components/sidebar-icons.css';
 
 // Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
@@ -56,7 +56,7 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [activityEvents, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
+  const [, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
   // As definições passaram do rail direito (removido) para um modal, aberto pelo ícone no fundo
   // da sidebar esquerda.
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -113,24 +113,16 @@ export default function App() {
   const [terminalDraft, setTerminalDraft] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
-  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
-  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [, setUnreadIds] = useState<Set<string>>(new Set());
+  const [, setViewportWidth] = useState(() => window.innerWidth);
   const [runtimeInfo, setRuntimeInfo] = useState<RuntimeInfo | null>(null);
 
   // New UX States
-  const [pinOutput, setPinOutput] = useState(false);
+  // pinOutput UI removida; o ref mantém-se porque o useSessionSocket o consome.
   const pinOutputRef = useRef(false);
 
-  const handleTogglePinOutput = useCallback(() => {
-    setPinOutput((prev) => {
-      const next = !prev;
-      pinOutputRef.current = next;
-      return next;
-    });
-  }, []);
-
   // Workflow state — per-session parsed from terminal output
-  const [workflowStates, setWorkflowStates] = useState<Map<string, WorkflowState>>(new Map());
+  const [, setWorkflowStates] = useState<Map<string, WorkflowState>>(new Map());
   const workflowRef = useRef<Map<string, WorkflowState>>(new Map());
   const outputBuffers = useRef<Map<string, string>>(new Map());
 
@@ -218,32 +210,6 @@ export default function App() {
     reloadProjects();
     reloadProjectMemory();
   }, [reloadProjectMemory, reloadProjects]);
-
-  const updateProjectMemory = useCallback((projectId: string | undefined | null, patch: Partial<ProjectMemory>) => {
-    if (!projectId) return;
-    setProjectMemory((current) => ({
-      ...current,
-      [projectId]: {
-        ...(current[projectId] ?? {
-          projectId,
-          recentSessions: [],
-          favoriteSkills: [],
-          favoriteAgents: [],
-          quickCommands: ['save', 'compact', 'plan'],
-          openFiles: [],
-          updatedAt: new Date().toISOString(),
-        }),
-        ...patch,
-        projectId,
-        updatedAt: new Date().toISOString(),
-      },
-    }));
-    fetch(`/project-memory/${projectId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    }).catch(() => {});
-  }, []);
 
   const reloadRateLimits = useCallback(() => {
     fetch('/rate-limits').then((r) => (r.ok ? r.json() : null)).then(setRateLimits).catch(() => {});
@@ -797,6 +763,7 @@ export default function App() {
         onReorderProjects={handleReorderProjects}
         onGroupProjects={handleGroupProjects}
         onUngroupProject={handleUngroupProject}
+        onRemoveProject={handleRemoveProject}
         onRenameGroup={(id, name) => handleUpdateProjectGroup(id, { name })}
         onSetGroupIcon={(id, icon) => handleUpdateProjectGroup(id, { icon })}
         onToggleGroupCollapsed={(id, collapsed) => handleUpdateProjectGroup(id, { collapsed })}

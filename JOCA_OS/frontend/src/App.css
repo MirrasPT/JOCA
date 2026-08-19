@@ -1285,10 +1285,13 @@ html, body, #root {
 
 .project-group-actions { display:flex; gap:6px; flex-shrink:0; opacity:0; max-width:0; overflow:hidden; transition:opacity var(--t-fast), max-width var(--t-fast); }
 .project-group-header:hover .project-group-actions,
-.project-group-header:focus-within .project-group-actions { opacity:1; max-width:100px; }
-@media (hover:none) { .project-group-actions { opacity:1; max-width:100px; } }
+.project-group-header:focus-within .project-group-actions { opacity:1; max-width:140px; }
+/* 140px, não 100: com o botão Remover são 4 acções num projecto agrupado (4×28 + 3×6 = 130px);
+   a 100px o flex esmagava os alvos de 28px para 21px (medido em iPhone 13, hover:none). */
+@media (hover:none) { .project-group-actions { opacity:1; max-width:140px; } }
 
 .project-group-action {
+  flex-shrink:0; /* o alvo de toque não encolhe — se não couber, transborda, não esmaga */
   background:none;
   border:none;
   color:var(--text-ghost);
@@ -5700,27 +5703,6 @@ background: var(--surface-panel);
 }
 
 .runs-body { padding:0 12px 12px; }
-
-.runs-filters { display:flex; gap:6px; margin:2px 0 10px; flex-wrap:wrap; }
-
-.runs-chip {
-  background:none;
-  border:1px solid var(--border-default);
-  border-radius:999px;
-  color:var(--text-dim);
-  font-size:10.5px;
-  padding:3px 10px;
-  cursor:pointer;
-  transition:color var(--t-fast), border-color var(--t-fast);
-}
-
-.runs-chip:hover { color:var(--text-bright); }
-
-.runs-chip--active {
-  color:var(--accent);
-  border-color:var(--accent-border);
-  background:var(--accent-soft);
-}
 
 .runs-empty { padding:14px 0; font-size:11.5px; color:var(--text-ghost); }
 

@@ -10,7 +10,6 @@ import {
   parseFrontmatter, collectToolkitItems, refreshMemoryIndexSnapshot,
 } from '../toolkit-registry';
 import {
-  ProjectMemory,
   readJsonFile, loadProjects, loadProjectMemory, saveProjectMemory,
   loadUiSettings, saveUiSettings,
 } from '../project-store';
@@ -110,7 +109,7 @@ export function toolkitRouter(): Router {
       recentSessions: [],
       favoriteSkills: [],
       favoriteAgents: [],
-      quickCommands: ['save', 'compact', 'plan'],
+      quickCommands: ['start', 'save', 'compact', 'plan'],
       openFiles: [],
       updatedAt: new Date().toISOString(),
     };

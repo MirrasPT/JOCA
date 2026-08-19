@@ -310,7 +310,7 @@ export class SessionManager extends EventEmitter {
         recentSessions: [],
         favoriteSkills: [],
         favoriteAgents: [],
-        quickCommands: ['save', 'compact', 'plan'],
+        quickCommands: ['start', 'save', 'compact', 'plan'],
         openFiles: [],
           updatedAt: new Date().toISOString(),
       };

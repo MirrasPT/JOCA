@@ -3,6 +3,8 @@ import type { CSSProperties, ReactNode, KeyboardEvent as ReactKeyboardEvent } fr
 import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as ProjectGroupData } from '../types';
 import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
+import { shortPath } from '../lib/paths';
+import ConfirmDialog from './ConfirmDialog';
 import { useBrand } from '../hooks/useBrand';
 import { probeOfficeGif, loadOfficePool, poolIndex, stillFor } from '../lib/office-gifs';
 // Versão lida do `package.json`, não escrita à mão: o número que estava aqui cravado tinha ficado
@@ -46,6 +48,8 @@ interface Props {
   onReorderProjects?: (orderedIds: string[]) => void;
   onGroupProjects?: (draggedId: string, targetId: string) => void;
   onUngroupProject?: (id: string) => void;
+  /** Remove o projecto do JOCA. A confirmação é levantada pela própria linha, não aqui. */
+  onRemoveProject?: (id: string) => void;
   onRenameGroup?: (id: string, name: string) => void;
   /** `null` limpa o ícone do grupo (o backend recolhe o ficheiro se mais ninguém o apontar). */
   onSetGroupIcon?: (id: string, icon: ProjectIcon | null) => void;
@@ -57,7 +61,7 @@ type LucideName =
   | 'terminal' | 'terminal-quick' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
-  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'arrow-up-down' | 'link'
+  | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'arrow-up-down' | 'link' | 'trash'
   | 'settings';
 
 /**
@@ -208,6 +212,7 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'archive-restore') return <svg {...common}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h4" /><path d="M19 8v3" /><path d="m15 18 4-4 4 4" /><path d="M19 22v-8" /></svg>;
   if (name === 'cpu') return <svg {...common}><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" /><rect x="9.5" y="9.5" width="5" height="5" rx="1" /></svg>;
   if (name === 'arrow-up-down') return <svg {...common}><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>;
+  if (name === 'trash') return <svg {...common}><path d="M3 6h18" /><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" /><path d="M19 6v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6" /><path d="M10 11v6M14 11v6" /></svg>;
   if (name === 'link') return <svg {...common}><path d="M9 17H7A5 5 0 0 1 7 7h2" /><path d="M15 7h2a5 5 0 1 1 0 10h-2" /><line x1="8" y1="12" x2="16" y2="12" /></svg>;
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
@@ -426,8 +431,10 @@ function matchesQuery(name: string, query: string): boolean {
 // ── Project row ────────────────────────────────────────────────────
 // Um projecto é um item de rail (estilo lista de servidores) — dot de cor, nome, badge de
 // "a trabalhar", acções reveladas a hover. As sessões do projecto já não aparecem aqui: vivem no
-// canal Workers do ProjectWorkspace, que é para onde `onDashboard` leva. Remover projecto já não
-// vive aqui (era redundante com a "Zona perigosa" do Overview) — só Nova sessão + Arquivar.
+// canal Workers do ProjectWorkspace, que é para onde `onDashboard` leva. Além de agrupar e
+// arquivar, a linha remove o projecto — foi retirado daqui uma vez por ser redundante com a
+// "Zona perigosa" do Overview, e voltou a pedido: chegar lá obrigava a abrir o modal de edição.
+// A diferença é que agora NÃO apaga a um clique — levanta um alertdialog que diz o que se perde.
 //
 // Largar a bolinha de cor de OUTRO projecto sobre esta agrupa os dois (onGroupDrop) — distinto de
 // largar no resto da linha, que reordena (onDrop). A bolinha intercepta o próprio evento
@@ -435,7 +442,7 @@ function matchesQuery(name: string, query: string): boolean {
 
 function ProjectRow({
   project, sessions, onDashboard, onRenameProject,
-  onArchive, onUngroup, indented, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
+  onArchive, onRemove, onUngroup, indented, isDragOver, dragEnabled, onDragStart, onDragEnter, onDragEnd, onDrop, onMoveUp, onMoveDown,
   dotDragOver, onDotDragEnter, onDotDragLeave, onGroupDrop, groupCandidates, onGroupWith,
 }: {
   project: Project;
@@ -443,6 +450,7 @@ function ProjectRow({
   onDashboard: () => void;
   onRenameProject?: (id: string, name: string) => void;
   onArchive?: () => void;
+  onRemove?: () => void;
   onUngroup?: () => void;
   indented?: boolean;
   isDragOver?: boolean;
@@ -466,6 +474,7 @@ function ProjectRow({
   const [dragging, setDragging] = useState(false);
   const [draft, setDraft] = useState(project.name);
   const [grouping, setGrouping] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const groupSelectRef = useRef<HTMLSelectElement>(null);
   const workingCount = sessions.filter(s => s.status === 'working').length;
@@ -571,6 +580,7 @@ function ProjectRow({
           )}
           {onUngroup && <button className="project-group-action" type="button" aria-label={`Retirar ${project.name} do grupo`} onClick={(e) => { e.stopPropagation(); onUngroup(); }} data-tooltip="Retirar do grupo" data-tooltip-position="bottom"><LucideIcon name="x" /></button>}
           {onArchive && <button className="project-group-action" type="button" aria-label={`Arquivar projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Arquivar projeto" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
+          {onRemove && <button className="project-group-action project-group-action--remove" type="button" aria-label={`Remover projecto ${project.name}`} onClick={(e) => { e.stopPropagation(); setConfirmRemove(true); }} data-tooltip="Remover projecto" data-tooltip-position="bottom"><LucideIcon name="trash" /></button>}
         </div>
       </div>
       {grouping && groupCandidates && onGroupWith && (
@@ -593,6 +603,22 @@ function ProjectRow({
             ))}
           </select>
         </div>
+      )}
+
+      {confirmRemove && onRemove && (
+        <ConfirmDialog
+          title={`Remover "${project.name}"?`}
+          confirmLabel="Remover projecto"
+          onCancel={() => setConfirmRemove(false)}
+          onConfirm={() => { setConfirmRemove(false); onRemove(); }}
+        >
+          Vais apagar <strong>{project.name}</strong> do JOCA: a entrada na barra, a conversa e os
+          terminais abertos deste projecto, que são fechados primeiro.
+          <span className="confirm-note">
+            Os ficheiros em <strong>{shortPath(project.path)}</strong> não são tocados. Para o tirar
+            da vista sem apagar nada, arquiva-o.
+          </span>
+        </ConfirmDialog>
       )}
     </div>
   );
@@ -911,8 +937,8 @@ function ProjectFolder({
 
 export default function SessionSidebar({
   sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowAgents, onShowProject,
-  onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput, onRenameProject,
-  onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
+  onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput: _onInput, onRenameProject,
+  onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRemoveProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
   const brand = useBrand();
   const [confirmCloseIdle, setConfirmCloseIdle] = useState(false);
@@ -1073,6 +1099,7 @@ export default function SessionSidebar({
     onDashboard: () => onShowProject(project.id),
     onRenameProject,
     onArchive: onArchiveProject ? () => onArchiveProject(project.id, true) : undefined,
+    onRemove: onRemoveProject ? () => onRemoveProject(project.id) : undefined,
     onUngroup: project.groupId && onUngroupProject ? () => onUngroupProject(project.id) : undefined,
     dragEnabled,
     isDragOver: overId === project.id && dragId !== project.id,

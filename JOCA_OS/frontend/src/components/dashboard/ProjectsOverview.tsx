@@ -27,7 +27,7 @@ interface Props {
 // bloco duplicado na dashboard era a mesma informação com outra pintura a envelhecer à parte.
 export default function ProjectsOverview({
   projects, sessions, jocaLogicInfo,
-  onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession, onNewSession,
+  onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession,
   onRenameProject, onRenameSession,
 }: Props) {
   const workingSessions = sessions.filter((s) => s.status === 'working');

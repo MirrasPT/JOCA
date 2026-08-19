@@ -19,7 +19,6 @@ import { automationsRouter, automationDeps } from './http/automations-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
-import { loadProjects } from './project-store';
 import { setNotificationsBroadcaster } from './notifications/store';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 

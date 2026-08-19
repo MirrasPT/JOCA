@@ -3,8 +3,10 @@
 Âmbito: `JOCA_OS/` do repo público (`MirrasPT/JOCA@main`, HEAD `6f7bf52`), instância de dev em
 `:7591/7592`. Não cobre `JOCA_Brain/` (a decorrer noutra sessão) nem a produção.
 
-Tudo o que está aqui foi **medido** — os comandos e os números estão em cada secção. Nada foi
-alterado a partir desta análise: é diagnóstico, não trabalho aplicado.
+Tudo o que está aqui foi **medido** — os comandos e os números estão em cada secção.
+
+> **Actualização 2026-08-19 (tarde): §1–§3 corrigidos.** Ver "Correcções aplicadas" no fim.
+> §4–§6 ficam como higiene contínua, como a própria análise recomenda.
 
 ---
 
@@ -152,3 +154,30 @@ grep -rl "supertest\|request(app)" backend/src/__tests__/ | wc -l
 
 Os alvos de toque e o contraste foram medidos ao vivo com Playwright contra `:7592` — medir no que
 é **pintado** (`getBoundingClientRect`, `getComputedStyle`), nunca no token declarado.
+
+---
+
+## Correcções aplicadas (2026-08-19, sessão JOCA_Brain)
+
+**§1 — alvos de toque:** `max-width` 100→140px nas DUAS regras (hover:none **e** hover/focus-within
+do desktop — a mesma conta esmagava nos dois) + `flex-shrink:0` no `.project-group-action`.
+**Verificado ao vivo** em `:7592` (iPhone 13, `hover:none:true`): `maxWidth:140px`, `flexShrink:0`.
+
+**§2 — eslint instalado nos 3 sítios:** `backend/eslint.config.mjs` (typescript-eslint),
+`frontend/eslint.config.mjs` (typescript-eslint + react-hooks; as regras novas do compiler ficaram
+`warn` — 21 avisos de refactor documentados, as clássicas são `error`), e `cli/eslint.config.mjs`
+com **`no-undef`** — o gate que teria apanhado o `rel()` indefinido. `npm run lint` nos dois lados:
+**0 erros**. A instalação levantou e fechou 19 erros reais: 4 imports/directivas mortos no backend
+e 15 restos da remoção das Tarefas no frontend (`pinOutput`+callback e `updateProjectMemory`
+apagados; useState com valor morto → `[, setX]`; props mortas prefixadas `_`).
+
+**§3 — testes de contrato:** `backend/src/__tests__/routes-contract.test.ts` — 11 testes sobre
+`/projects` e `/sessions` (validação, traversal, 409, truncagem, PATCH/404, persistência, ids
+inexistentes). Suite: **49/49**. Dois contratos reais documentados no processo: `DELETE
+/projects/:id` é **idempotente** (200 sempre) e `interrupt`/`kill` de sessão são **soft-fail**
+(200 + `ok:false`). Armadilha registada no próprio teste: o isolamento vem do `JOCA_DATA_DIR` do
+`vitest.config.ts` — limpar via `DATA_DIR` importado, nunca um tmpdir próprio.
+
+**Extra (fora da análise, pedido do dono):** `start` juntou-se aos quick commands por omissão
+(`['start','save','compact','plan']` — 3 defaults do backend + base do frontend); o toolkit modal
+apanha as skills novas do disco sem alteração.

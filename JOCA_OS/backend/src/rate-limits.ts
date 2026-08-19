@@ -97,7 +97,7 @@ function getCodexLimits(): Record<string, any> | null {
   try {
     const dbPath = path.join(os.homedir(), '.codex', 'logs_2.sqlite');
     if (fs.existsSync(dbPath)) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- import condicional: node:sqlite pode nao existir nesta versao de Node
       const { DatabaseSync } = require('node:sqlite') as { DatabaseSync: new (p: string, o?: object) => any };
       const db = new DatabaseSync(dbPath, { readonly: true });
       try {

@@ -152,7 +152,7 @@ const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory,
-  onSaveSession, onCompactSession, onInterruptSession,
+  onSaveSession: _onSaveSession, onCompactSession: _onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
   onNewSessionWithCli, jocaItems, onLoadJocaItems
 }: Props) {
@@ -385,7 +385,7 @@ export default function TerminalView({
   // O `clear` saiu da fila: apagava o ecrã do terminal a um clique. Filtra-se também o que vier da
   // memória do projecto, senão os projectos que já o têm configurado continuavam a mostrá-lo.
   const quickCommands = useMemo(() => {
-    const base = ['save', 'compact', 'plan'];
+    const base = ['start', 'save', 'compact', 'plan'];
     const list = activeSession?.projectId
       ? projectMemory[activeSession.projectId]?.quickCommands ?? base
       : base;

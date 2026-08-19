@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { HttpError, safePath } from '../security-fs';
+import { safePath } from '../security-fs';
 import { DROP_DIR, UPLOAD_ALLOWED_EXTS, safeDesktopFilename, safeRelSegments } from './helpers';
 
 // Windows strips trailing dots/spaces when creating a file, so `evil.exe.` lands on disk as

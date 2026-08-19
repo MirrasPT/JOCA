@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { ToastItem } from '../components/ToastNotification';
 import type { WorkflowState } from '../components/WorkflowPanel';
 import type { AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
