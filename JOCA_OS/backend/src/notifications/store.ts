@@ -1,5 +1,5 @@
 // Notifications inbox — persistent, delivery-guaranteed layer over the ephemeral WS broadcast.
-// Every user-facing notification (automation message, system) is
+// Every user-facing notification (sessao terminada, sistema) e
 // appended here BEFORE being broadcast, so a closed browser tab never loses it: the UI loads the
 // inbox on connect and shows unread state. Source of truth = DATA_DIR/notifications.json (atomic
 // writes via project-store.writeJsonFile). Capped to the most recent MAX_NOTIFICATIONS.
@@ -7,7 +7,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 
-export type NotificationKind = 'automation' | 'session_done' | 'system';
+export type NotificationKind = 'session_done' | 'system';
 
 // What the notification wants from you. The inbox used to treat "a worker is blocked waiting for
 // your answer" exactly like "a job finished" — com várias tarefas a correr em projectos diferentes
@@ -28,7 +28,7 @@ export interface AppNotification {
   count?: number;
   // optional deep-link context so the UI can jump to the source
   meta?: {
-    sessionId?: string; automationId?: string;
+    sessionId?: string;
     projectId?: string; area?: string; groupKey?: string;
   };
 }
@@ -65,8 +65,8 @@ export function pushNotification(spec: {
   // Same key + inside GROUP_WINDOW_MS + still unread → folds into the existing entry instead of
   // adding a new one. Callers that omit it always get a separate notification.
   //
-  // The key must identify the same THING repeating, not merely the same source: ten automations
-  // failing because the CLI is down is one problem (group on project+reason), but two workers
+  // The key must identify the same THING repeating, not merely the same source: dez avisos
+  // falhados porque o CLI esta em baixo sao um problema (group on project+reason), but two workers
   // blocked on different questions are two decisions, and folding those hides one. When in doubt,
   // omit it.
   groupKey?: string;

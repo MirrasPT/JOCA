@@ -184,15 +184,6 @@ const commands = {
     console.log(out.text);
   },
 
-  async automations() {
-    const list = await api('GET', '/automations');
-    if (!list.length) return console.log('(sem automações)');
-    for (const a of list) {
-      const next = a.nextRunAt ? new Date(a.nextRunAt).toLocaleString('pt-PT') : '—';
-      console.log(`${short(a.id)}  ${a.enabled ? 'on ' : 'off'}  ${oneLine(a.name, 40).padEnd(42)} próxima: ${next}${a.lastStatus ? `  último: ${a.lastStatus}` : ''}`);
-    }
-  },
-
   async projects() {
     const list = await api('GET', '/projects');
     for (const p of list.filter((x) => !x.archived)) console.log(`${short(p.id)}  ${p.name}  ${p.path}`);
@@ -220,13 +211,6 @@ const commands = {
     console.log('notificação enviada');
   },
 
-  async runs(flags) {
-    const list = await api('GET', `/runs?limit=${Number(flags.limit) || 20}`);
-    if (!list.length) return console.log('(sem execuções registadas)');
-    for (const r of list) {
-      console.log(`${new Date(r.endedAt).toLocaleString('pt-PT')}  ${r.kind.padEnd(10)} ${r.status.padEnd(6)} ${Math.round(r.ms / 1000)}s  ${oneLine(r.name, 40)}`);
-    }
-  },
 
   help() {
     console.log(`joca — ponte entre este terminal e o JOCA_OS (${API})
@@ -244,7 +228,7 @@ FICHEIROS (leitura pontual — sem navegação/listagem, ver skill)
   cat <path> [--tail N]                        lê um ficheiro (--tail N = últimas N linhas)
 
 OUTROS
-  automations · projects · runs [--limit N] · notify "<texto>"
+  projects · notify "<texto>"
 
 Contexto deste terminal: sessão ${SESSION_ID ? short(SESSION_ID) : '(desconhecida)'}`);
   },

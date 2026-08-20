@@ -15,7 +15,7 @@ import {
 } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
-  HOME, STARTED_AT, LLM_PROVIDERS,
+  HOME, STARTED_AT,
   assertClaudePath, validateToolkitContent, sanitizeToolkitName, sanitizeToolkitCategory,
 } from './helpers';
 
@@ -55,13 +55,6 @@ export function toolkitRouter(): Router {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const updated = { ...current };
     if ('skipPermissions' in body) updated.skipPermissions = body.skipPermissions === true;
-    if ('optimizeProvider' in body && LLM_PROVIDERS.includes(body.optimizeProvider as typeof LLM_PROVIDERS[number])) {
-      updated.optimizeProvider = body.optimizeProvider as typeof LLM_PROVIDERS[number];
-    }
-    if ('optimizeModel' in body) {
-      const m = typeof body.optimizeModel === 'string' ? body.optimizeModel.trim().slice(0, 80) : '';
-      updated.optimizeModel = m || undefined;
-    }
     if ('theme' in body) {
       updated.theme = body.theme === 'light' ? 'light' : 'dark';
     }

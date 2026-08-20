@@ -51,8 +51,6 @@ export type LlmProvider = 'claude' | 'ollama';
 
 export interface UiSettings {
   skipPermissions: boolean;
-  optimizeProvider?: LlmProvider;  // SDK used by "Optimizar" (text rewrite); default claude
-  optimizeModel?: string;          // model used by the "Optimizar" feature (text rewrite); default sonnet
   theme?: 'dark' | 'light';        // tema JÁ resolvido (legado + leitura rápida); default dark
   themeMode?: 'dark' | 'light' | 'auto';  // escolha do utilizador; 'auto' = troca pela hora
   themeDayStart?: string;          // "HH:MM" a que passa a claro (só conta em 'auto')

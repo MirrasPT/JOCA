@@ -2,8 +2,7 @@
 //
 // Duas diferenças em relação à versão que só anunciava sessões terminadas:
 //   • o toast LEVA A ALGUM LADO. Carrega o mesmo `meta` que a notificação persistente e a do SO,
-//     e o clique resolve-o pelo mesmo contrato (sessão → terminal · projecto → workspace ·
-//     automação → Automações);
+//     e o clique resolve-o pelo mesmo contrato (sessão → terminal · projecto → workspace);
 //   • um toast de `priority: 'action'` NÃO se auto-fecha. É um bloqueio à espera de resposta;
 //     evaporar-se ao fim de 5 segundos é perder o pedido, que é precisamente o oposto do que se
 //     pede a uma coisa marcada como "precisa de ti".

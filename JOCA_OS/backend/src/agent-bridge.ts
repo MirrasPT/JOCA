@@ -3,7 +3,7 @@
 // Each PTY spawned by JOCA_OS is born with the environment below, so the agent running inside it
 // (Claude Code, Codex, agy, OpenCode — any of them) can call back into the running JOCA_OS over
 // its local HTTP API, WITHOUT restarting anything: open new terminals, message another terminal,
-// list automations, send notifications.
+// send notifications.
 //
 // Transport is the same HTTP API the browser uses, so there is exactly one implementation of every
 // action. When auth is on, a session-scoped token is minted per PTY (see auth.mintAgentToken) —

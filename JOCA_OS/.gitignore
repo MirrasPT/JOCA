@@ -3,7 +3,7 @@ dist/
 *.log
 .env
 .env.*
-# Runtime + personal state: projects, settings, tasks and automations state.
+# Runtime + personal state: projects, settings, sessions.
 # Never commit — local-only per machine.
 data/
 backend/data/

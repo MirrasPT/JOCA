@@ -100,7 +100,6 @@ export function sessionsRouter(): Router {
 
     const session = sessionManager.spawn({
       cwd,
-      resumePath: project?.path,
       projectId: project?.id,
       sessionName: typeof b.name === 'string' && b.name.trim() ? b.name.trim().slice(0, 80) : undefined,
       cli: typeof b.cli === 'string' ? b.cli : undefined,

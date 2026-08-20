@@ -29,7 +29,7 @@ export function openNotificationTarget(target: NotificationTarget | undefined | 
 /** Há para onde ir? Serve para o toast decidir se mostra "Abrir" ou não. */
 export function hasNotificationTarget(target: NotificationTarget | undefined | null): boolean {
   if (!target) return false;
-  return Boolean(target.sessionId || target.automationId || target.projectId);
+  return Boolean(target.sessionId || target.projectId);
 }
 
 // Ask once for OS-notification permission. Call on first mount; browsers only grant from a page that
@@ -93,7 +93,6 @@ function iconeDaMarca(): string | undefined {
  */
 function assunto(title: string, target?: NotificationTarget): string {
   if (target?.groupKey) return target.groupKey;
-  if (target?.automationId) return `automacao:${target.automationId}`;
   if (target?.sessionId) return `sessao:${target.sessionId}`;
   if (target?.projectId) return `projecto:${target.projectId}`;
   return `titulo:${title}`;

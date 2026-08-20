@@ -41,8 +41,6 @@ export type ServerMessage =
   | { type: 'buffer'; sessionId: string; data: string }
   | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
   | { type: 'projects_changed' }
-  | { type: 'automation_message'; id: string; text: string; ts: number }
-  | { type: 'automations_changed' }
   | { type: 'notification'; notification: AppNotification }
   | { type: 'error'; error: string };
 
@@ -64,7 +62,6 @@ export interface SessionSocketDeps {
   setWorkflowStates: Dispatch<SetStateAction<Map<string, WorkflowState>>>;
   setUnreadIds: Dispatch<SetStateAction<Set<string>>>;
   setActivatedIds: Dispatch<SetStateAction<Set<string>>>;
-  setAutomationsRefresh: Dispatch<SetStateAction<number>>;
   termRefs: React.MutableRefObject<Map<string, TerminalRef>>;
   outputBuffers: React.MutableRefObject<Map<string, string>>;
   workflowRef: React.MutableRefObject<Map<string, WorkflowState>>;
@@ -257,8 +254,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
               // NO popup toast for your own terminal work — keep only the subtle unread dot in the
-              // sidebar. Automation workers (origin 'auto') DO fire an OS notification: they run
-              // in the background, so the user must be alerted that the result is ready to inspect.
+              // sidebar. Workers criados programaticamente (origin 'auto') DO fire an OS
+              // notification: correm em segundo plano, portanto o utilizador tem de ser avisado de
+              // que o resultado está pronto para inspecção.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
               if (session.origin === 'auto') {
                 notify('JOCA — Terminado', session.name, { sessionId: session.id });
@@ -273,18 +271,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           d.reloadProjectMemory();
           break;
 
-        // An automation delivered a message-node result → OS notification (the worker terminal and
-        // the automation's lastResult hold the full output).
-        case 'automation_message':
-          notify('JOCA — Automação', msg.text.replace(/\s+/g, ' ').trim().slice(0, 120), { automationId: msg.id });
-          break;
-        case 'automations_changed':
-          d.setAutomationsRefresh((n) => n + 1);
-          break;
-
 
         // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
-        // do SO só para 'system': automation_message já notifica no case acima.
+        // do SO só para 'system'.
         case 'notification':
           if (msg.notification.kind === 'system') {
             notify(

@@ -1,5 +1,5 @@
-// Brain layer — direct LLM calls (no terminal, no orchestration). Used by the automations
-// `llm` node (cheap summarise/transform) and the "Optimizar" text-rewrite feature.
+// Brain layer — direct LLM calls (no terminal, no orchestration). Usada hoje apenas pela
+// funcionalidade "Optimizar" (reescrita de texto).
 //
 // Verified against @anthropic-ai/claude-agent-sdk@0.3.185 (sdk.d.ts + official TS reference):
 //   query({prompt, options}): Query extends AsyncGenerator<SDKMessage, void>
@@ -8,7 +8,6 @@
 //   ⚠️ ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN in env would WIN and bill credits — strip them.
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { execFile } from 'child_process';
-import type { LlmProvider as LlmProviderId } from '../project-store';
 
 export type ProviderEvent =
   | { type: 'text'; text: string }
@@ -19,12 +18,12 @@ export interface BrainRunOptions {
   systemPrompt?: string;
   model?: string;                                  // 'opus' | 'sonnet' | 'haiku' | full id
   cwd?: string;
-  noTools?: boolean;                               // disable ALL built-in tools → pure text completion
+  noTools?: boolean;                               // sem ferramentas → completação de texto pura
   // ── Multi-turn + tools ────────────────────────────────────────────────────
-  // ⚠ Nenhum caller usa estas opções hoje: os três que chamam `run()` (juiz das tarefas,
-  // llm-routes, runner das automações) passam só {systemPrompt, model, noTools}. Ficaram do gestor
-  // de projecto, removido. Mantêm-se porque descrevem o contrato REAL do SDK — quem voltar a
-  // precisar de uma conversa com ferramentas precisa delas —, mas não as tomes por usadas.
+  // ⚠ Nenhum caller usa estas opções hoje. O último era o `/optimize-objective` (llm-routes), que
+  // saiu com o sistema de Automações; antes disso, o gestor de projecto. Mantêm-se porque
+  // descrevem o contrato REAL do SDK — quem voltar a precisar de uma conversa com ferramentas
+  // precisa delas —, mas não as tomes por usadas.
   //
   // resume: SDK session id de um `result` anterior. O SDK recarrega o histórico dessa conversa, em
   // vez de o reconstruirmos colando transcrição no prompt.
@@ -70,9 +69,9 @@ export class ClaudeProvider {
         systemPrompt: opts.systemPrompt,
         cwd: opts.cwd,
         abortController: controller,
-        // noTools → pure text completion (no Bash/Read/etc). Used by /optimize-objective so the brain
-        // REWRITES the instruction instead of EXECUTING it. tools:[] disables all built-ins; maxTurns:1
-        // is belt-and-suspenders against any tool/continue loop.
+        // Sem ferramentas → completação de texto pura (sem Bash/Read/etc), para quem quer que o
+        // cérebro REESCREVA a instrução em vez de a EXECUTAR. `tools:[]` desliga os built-ins;
+        // `maxTurns:1` é cinto e suspensórios contra um ciclo de ferramenta/continuação.
         ...(opts.noTools ? { tools: [] as string[], maxTurns: 1 } : {}),
         // As ferramentas MCP in-process MAIS os built-ins que o caller autorizou. `tools`
         // é o que decide o que EXISTE; `allowedTools` só dispensa a permissão. Os built-ins saem da
@@ -115,16 +114,6 @@ export class ClaudeProvider {
 
 export const claudeProvider = new ClaudeProvider();
 
-// ── Provider availability (for the Settings selector) ───────────────────────
-// `available` = the brain CAN run on this machine (CLI logged in / endpoint up).
-export interface ProviderInfo {
-  id: LlmProviderId;
-  label: string;
-  available: boolean;
-  defaultModel: string;
-  detail: string;
-}
-
 export function binExists(bin: string): Promise<boolean> {
   return new Promise((resolve) => {
     const cmd = process.platform === 'win32' ? 'where' : 'which';
@@ -132,20 +121,3 @@ export function binExists(bin: string): Promise<boolean> {
   });
 }
 
-async function ollamaUp(): Promise<boolean> {
-  try {
-    const c = new AbortController();
-    const t = setTimeout(() => c.abort(), 1200);
-    const r = await fetch('http://127.0.0.1:11434/api/tags', { signal: c.signal });
-    clearTimeout(t);
-    return r.ok;
-  } catch { return false; }
-}
-
-export async function getProviderAvailability(): Promise<ProviderInfo[]> {
-  const ollama = await ollamaUp();
-  return [
-    { id: 'claude', label: 'Claude · Agent SDK', available: true, defaultModel: 'sonnet', detail: 'Subscrição Anthropic (custo-zero)' },
-    { id: 'ollama', label: 'Ollama · local', available: ollama, defaultModel: '', detail: ollama ? 'Inferência local (custo-zero)' : 'Não detectado em :11434' },
-  ];
-}

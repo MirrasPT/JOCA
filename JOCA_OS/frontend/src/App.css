@@ -2341,24 +2341,6 @@ background:var(--surface-panel);
   padding:4px 8px;
 }
 
-.automation-trigger {
-  color:var(--text-ghost);
-  font-size:12px;
-  font-family:var(--font-mono);
-}
-
-.node-canvas-lite {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  padding:12px;
-  border:1px solid var(--border-faint);
-  border-radius:var(--r-sm);
-  background:var(--bg-input);
-  color:var(--text-normal);
-  font-family:var(--font-mono);
-  font-size:11px;
-}
 
 .status-pill {
   align-self:flex-start;
@@ -5245,6 +5227,223 @@ background:var(--bg-input);
   border-radius:999px;
 }
 
+/* ─── Palete de comandos: procura + lista agrupada ───────────────── */
+/* O modal deixa de ser o elemento que faz scroll: só a grelha rola, para que a
+   caixa de procura, o contador e o botão de fechar fiquem sempre no sítio. */
+.command-palette-modal {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  overflow:hidden;
+  padding:18px 18px 14px;
+  background:var(--bg-card);
+  border:1px solid var(--border-bento-strong);
+}
+
+.command-palette-search {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 10px;
+  background:var(--bg-input);
+  border:1px solid var(--border-default);
+  border-radius:var(--r-sm);
+  transition:border-color var(--t-fast);
+}
+
+.command-palette-search:focus-within {
+  border-color:var(--accent-border);
+}
+
+.command-palette-search-icon {
+  flex-shrink:0;
+  color:var(--text-dim);
+}
+
+.command-palette-input {
+  flex:1;
+  min-width:0;
+  border:0;
+  background:transparent;
+  color:var(--text-bright);
+  font-family:var(--font-ui);
+  font-size:13.5px;
+  padding:11px 0;
+  outline:none;
+}
+
+.command-palette-input::placeholder {
+  color:var(--text-dim);
+}
+
+.command-palette-clear {
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  padding:0;
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  color:var(--text-dim);
+  cursor:pointer;
+  transition:color var(--t-fast), background var(--t-fast);
+}
+
+.command-palette-clear:hover {
+  color:var(--text-bright);
+  background:color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+
+.command-palette-bar {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.command-palette-bar .create-skill-title {
+  margin-right:auto;
+}
+
+.command-palette-count {
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  letter-spacing:0.06em;
+  color:var(--text-dim);
+  white-space:nowrap;
+}
+
+.command-palette-close {
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  padding:0;
+}
+
+/* A grelha é a única zona que rola; o resto do modal fica fixo. */
+.command-palette-grid {
+  flex:1 1 auto;
+  min-height:0;
+  margin-top:0;
+  gap:18px;
+  padding-right:4px;
+}
+
+.command-palette-grid h3 {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  position:sticky;
+  top:0;
+  z-index:1;
+  margin:0 0 6px;
+  padding:2px 0 6px;
+  background:var(--bg-card);
+  color:var(--text-dim);
+}
+
+.command-palette-section-count {
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  letter-spacing:0;
+  color:var(--text-dim);
+}
+
+.command-palette-grid button {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:0;
+  padding:7px 10px;
+  font-size:12.5px;
+  line-height:1.35;
+  transition:background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+
+.command-palette-item-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* Excerto da descricao: so aparece quando a procura bateu na descricao e nao no nome. */
+.command-palette-item-why {
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  overflow:hidden;
+  margin-top:3px;
+  font-size:11px;
+  line-height:1.4;
+  color:var(--text-dim);
+}
+
+.command-palette-match {
+  background:transparent;
+  color:var(--accent-text);
+  font-weight:700;
+}
+
+.command-palette-grid button.is-active {
+  color:var(--text-bright);
+  border-color:var(--accent-border);
+  background:var(--accent-soft);
+}
+
+.command-palette-grid button:focus-visible {
+  outline:2px solid var(--accent-border);
+  outline-offset:1px;
+}
+
+.command-palette-empty {
+  flex:1 1 auto;
+  margin:0;
+  padding:28px 4px;
+  font-size:12.5px;
+  line-height:1.6;
+  color:var(--text-dim);
+}
+
+.command-palette-empty strong {
+  color:var(--text-bright);
+}
+
+.command-palette-loading {
+  margin:0;
+}
+
+.command-palette-legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  padding-top:10px;
+  border-top:1px solid var(--border-bento);
+  font-size:10.5px;
+  color:var(--text-dim);
+}
+
+.command-palette-legend kbd {
+  display:inline-block;
+  min-width:16px;
+  margin-right:3px;
+  padding:1px 4px;
+  border:1px solid var(--border-default);
+  border-radius:4px;
+  background:var(--bg-input);
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  color:var(--text-dim);
+  text-align:center;
+}
 
 .settings-activity-list {
   display:flex;
@@ -5665,109 +5864,6 @@ background: var(--surface-panel);
 .inbox-item-actions button:hover { color:var(--text-bright); border-color:var(--border-default); }
 .inbox-item-delete:hover { color:var(--red) !important; }
 
-/* ─── Runs history (dentro da AutomationsView) ─── */
-
-.runs-history {
-  margin:0 0 14px;
-  border:1px solid var(--border-bento);
-  border-radius:var(--r-md);
-  background:var(--surface-soft);
-  overflow:hidden;
-}
-
-.runs-toggle {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  width:100%;
-  padding:10px 12px;
-  background:none;
-  border:none;
-  color:var(--text-bright);
-  font-size:12.5px;
-  font-weight:600;
-  cursor:pointer;
-  text-align:left;
-}
-
-.runs-toggle:hover { background:var(--surface-soft); }
-
-.runs-toggle-chevron { display:inline-flex; transition:transform var(--t-fast); color:var(--text-dim); }
-.runs-toggle-chevron--open { transform:rotate(90deg); }
-
-.runs-toggle-summary {
-  margin-left:auto;
-  font-size:10.5px;
-  font-weight:500;
-  color:var(--text-ghost);
-}
-
-.runs-body { padding:0 12px 12px; }
-
-.runs-empty { padding:14px 0; font-size:11.5px; color:var(--text-ghost); }
-
-.runs-table-wrap { overflow-x:auto; max-height:320px; overflow-y:auto; border-radius:var(--r-sm); }
-
-.runs-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:11px;
-}
-
-.runs-table th {
-  position:sticky;
-  top:0;
-  background:var(--surface-panel);
-  text-align:left;
-  font-weight:600;
-  color:var(--text-ghost);
-  font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:0.05em;
-  padding:6px 8px;
-  border-bottom:1px solid var(--border-subtle);
-  white-space:nowrap;
-}
-
-.runs-table td {
-  padding:6px 8px;
-  border-bottom:1px solid var(--border-faint);
-  color:var(--text-normal);
-  white-space:nowrap;
-  vertical-align:top;
-}
-
-.runs-td-when { font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); }
-
-.runs-td-name {
-  max-width:220px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  color:var(--text-bright);
-}
-
-.runs-status {
-  display:inline-block;
-  padding:1px 7px;
-  border-radius:999px;
-  font-size:9.5px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-}
-
-.runs-status--ok      { color:var(--status-idle); background:var(--status-idle-glow); }
-.runs-status--error   { color:var(--red); background:color-mix(in srgb, var(--red) 14%, transparent); }
-.runs-status--timeout { color:var(--accent-amber); background:color-mix(in srgb, var(--accent-amber) 14%, transparent); }
-.runs-status--skipped { color:var(--text-ghost); background:var(--surface-soft); }
-
-.runs-retry { margin-left:6px; font-size:9.5px; color:var(--accent-amber); }
-
-.runs-totals {
-  margin-top:8px;
-  font-size:10.5px;
-  color:var(--text-ghost);
-}
 
 /* ─── CLI split-button (TerminalView empty state) + session badge ─── */
 
@@ -6522,6 +6618,52 @@ background: var(--surface-panel);
    não existe para o layout: os três botões continuam a ser filhos de flex do `.sidebar-main-bento`,
    com os mesmos gaps de sempre. Só a tira mobile lhe dá caixa própria, para os pôr em fila. */
 .sidebar-footer-row { display: contents; }
+
+/* Rodapé compacto: "Sessão rápida" · "Definições" · "Fechar inativas" numa SÓ linha.
+   Três blocos de largura inteira empilhados comiam ~100px de altura ao fundo da barra — altura
+   que a lista de projectos não tinha. A caixa carrega as margens que os botões tinham sozinhos
+   (6px em cima, 10px de cada lado) e os três dividem a linha. Colapsada volta a
+   `display:contents`: as ~40 declarações de `.session-sidebar--collapsed` foram escritas para os
+   botões como filhos directos do bento. */
+.sidebar-footer-pair {
+  display: flex; align-items: stretch; gap: 4px;
+  margin: 6px 10px 0;
+}
+.sidebar-footer-pair .sidebar-quick-session-btn,
+.sidebar-footer-pair .sidebar-settings-btn {
+  width: auto; flex: 1 1 0; min-width: 0; margin: 0;
+  padding: 6px 4px;
+  gap: 4px;
+}
+/* Os rótulos encolhem antes de o botão encolher — sem isto, três pílulas a 11px empurram a fila
+   para fora da barra em vez de se apertarem. */
+.sidebar-footer-pair .sidebar-quick-session-btn,
+.sidebar-footer-pair .sidebar-settings-btn,
+.sidebar-footer-pair .bulk-select-btn {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-footer-pair .sidebar-quick-session-btn svg,
+.sidebar-footer-pair .sidebar-settings-btn svg,
+.sidebar-footer-pair .bulk-select-btn svg { flex-shrink: 0; }
+
+/* "Fechar inativas" entra na mesma linha. É a acção mais rara das três e some quando está
+   desactivada (sem sessões inativas não há nada para fechar), devolvendo a largura às outras. */
+.sidebar-footer-pair .session-bulk-actions {
+  flex: 1 1 0; min-width: 0; width: auto; margin: 0;
+}
+.sidebar-footer-pair .session-bulk-actions:has(.bulk-select-btn:disabled) { display: none; }
+.sidebar-footer-pair .bulk-select-btn {
+  width: 100%; min-width: 0; padding: 0 4px; justify-content: center;
+}
+/* Na fila compacta fica só "✕ (2)" — o nome vive no tooltip e no aria-label. */
+.sidebar-footer-pair .bulk-select-label { display: none; }
+/* Sem rótulo, este botão precisa de muito menos largura do que os outros dois. */
+.sidebar-footer-pair .session-bulk-actions { flex: 0 0 auto; }
+/* Colapsada: o par sai do layout e os botões voltam a ser filhos da COLUNA do bento — o `flex:1 1 0`
+   que os divide na horizontal passaria a esticá-los na vertical (medido: 32×187 em vez de 32×36). */
+.session-sidebar--collapsed .sidebar-footer-pair { display: contents; }
+.session-sidebar--collapsed .sidebar-footer-pair .sidebar-quick-session-btn,
+.session-sidebar--collapsed .sidebar-footer-pair .sidebar-settings-btn { flex: 0 0 auto; }
 
 .sidebar-quick-session-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -7332,6 +7474,9 @@ background: var(--surface-panel);
     gap:6px;
   }
 
+  /* O par já é uma linha por si; aqui só larga as margens do desktop e ocupa a fila toda. */
+  .sidebar-footer-row .sidebar-footer-pair { flex:1 1 100%; margin:0; gap:6px; }
+
   .sidebar-footer-row .sidebar-quick-session-btn,
   .sidebar-footer-row .sidebar-settings-btn {
     width:auto;
@@ -7345,7 +7490,10 @@ background: var(--surface-panel);
   /* "Fechar inativas" tem o rótulo mais longo dos três e é a acção mais rara: a 360px ficava
      cortado a meio de uma palavra. Leva fila própria — e desaparece quando está desactivado, que é
      o estado normal (sem sessões inativas não há nada para fechar) e o que devolve a fila à lista. */
-  .sidebar-footer-row .session-bulk-actions { flex:1 1 100%; min-width:0; width:auto; }
+  /* O "Fechar inativas" já vive DENTRO do par e sem rótulo (só "✕ (2)"), portanto não precisa da
+     fila própria que tinha quando era irmão dos outros dois — a `flex-basis:100%` de então dava-lhe
+     metade da barra e cortava o "Sessão rápida" ao lado. Aqui pede só o que ocupa. */
+  .sidebar-footer-row .session-bulk-actions { flex:0 0 auto; min-width:0; width:auto; }
   .sidebar-footer-row .session-bulk-actions:has(.bulk-select-btn:disabled) { display:none; }
   .sidebar-footer-row .bulk-select-btn { min-height:44px; padding:0 8px; }
 

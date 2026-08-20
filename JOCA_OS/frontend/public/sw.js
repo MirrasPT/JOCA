@@ -9,11 +9,11 @@ const CACHE_NAME = `joca-static-${CACHE_VERSION}`;
 
 // Prefixes that must NEVER be served from cache (mirror of the backend API surface).
 const API_PREFIXES = [
-  '/ws', '/auth', '/notifications', '/runs', '/heartbeat', '/cli-profiles', '/cli-tools',
-  '/automations', '/tasks', '/projects', '/project-memory', '/runtime', '/joca-items',
+  '/ws', '/auth', '/notifications', '/cli-profiles', '/cli-tools',
+  '/projects', '/project-memory', '/runtime', '/joca-items',
   '/joca-logic', '/toolkit-item', '/files', '/file-content', '/file-op', '/file-diff',
-  '/upload', '/open', '/optimize-objective', '/roots', '/ui-settings', '/rate-limits',
-  '/llm-providers', '/knowledge-graph',
+  '/upload', '/open', '/roots', '/ui-settings', '/rate-limits',
+  '/knowledge-graph',
 ];
 
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image']);

@@ -7,15 +7,12 @@ import { isAllowedOrigin, isAllowedHost, requireSafeHost, requireSafeOrigin } fr
 import { JOCA_LOGIC_ROOT, collectToolkitItems } from './toolkit-registry';
 import { sessionManager } from './session-manager';
 import type { Session } from './session-manager';
-import { startScheduler } from './automations/scheduler';
 import { broadcast } from './ws/broadcast';
 import { attachConnectionHandler } from './ws/connection-handler';
 import { projectsRouter } from './http/projects-routes';
 import { projectGroupsRouter } from './http/project-groups-routes';
 import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
-import { llmRouter } from './http/llm-routes';
-import { automationsRouter, automationDeps } from './http/automations-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
@@ -23,9 +20,9 @@ import { setNotificationsBroadcaster } from './notifications/store';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
-// ('done' is consumed by the automations runner; it is NOT broadcast.)
+// ('done' nao e difundido.)
 // 'spawn' is the single broadcast source for session_created — covers both UI-created sessions
-// and workers spawned programmatically (automations), so workers show in the UI.
+// and workers spawned programmatically, so workers show in the UI.
 sessionManager.on('spawn', ({ session, requestedBy }: { session: Session; requestedBy?: string }) => {
   // `requestedBy` volta tal e qual: é o que deixa o cliente que pediu saltar para o terminal novo
   // sem arrastar os outros com ele.
@@ -89,8 +86,6 @@ app.use(authRouter());
 app.use(requireAuth, projectsRouter());
 app.use(requireAuth, projectGroupsRouter());
 app.use(requireAuth, toolkitRouter());
-app.use(requireAuth, llmRouter());
-app.use(requireAuth, automationsRouter());
 app.use(requireAuth, systemRouter());
 app.use(requireAuth, sessionsRouter());
 app.use(requireAuth, filesRouter());
@@ -135,6 +130,5 @@ server.listen(PORT, HOST, () => {
     const items = collectToolkitItems();
     console.log(`  Skills: ${items.skills.length} · Agents: ${items.agents.length} · Commands: ${items.commands.length}`);
   }
-  startScheduler(automationDeps);
   // Nenhum terminal nasce sozinho: os projectos abrem VAZIOS e quem abre terminais é o dono.
 });

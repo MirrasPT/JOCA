@@ -37,8 +37,8 @@ describe('notification grouping', () => {
   });
 
   it('never groups when no key is given — two blockers stay two decisions', () => {
-    pushNotification({ kind: 'automation', title: 'Q1', text: 'que cor?', priority: 'action' });
-    pushNotification({ kind: 'automation', title: 'Q2', text: 'apago isto?', priority: 'action' });
+    pushNotification({ kind: 'system', title: 'Q1', text: 'que cor?', priority: 'action' });
+    pushNotification({ kind: 'system', title: 'Q2', text: 'apago isto?', priority: 'action' });
     const list = loadNotifications();
     expect(list).toHaveLength(2);
     expect(list.every((n) => n.priority === 'action')).toBe(true);
@@ -52,7 +52,7 @@ describe('notification grouping', () => {
     expect(loadNotifications()).toHaveLength(2);
   });
 
-  it('groups automation failures by reason, so a different failure still surfaces', () => {
+  it('agrupa falhas repetidas por motivo, para que um motivo diferente ainda apareça', () => {
     const key = (reason: string) => `auto-fail:proj:${reason}`;
     pushNotification({ kind: 'system', title: 'T1', text: 'CLI em baixo', priority: 'action', groupKey: key('CLI em baixo') });
     pushNotification({ kind: 'system', title: 'T2', text: 'CLI em baixo', priority: 'action', groupKey: key('CLI em baixo') });
@@ -76,7 +76,7 @@ describe('notification priority', () => {
 
   it('pendingActions returns only unread action items', () => {
     pushNotification({ kind: 'system', title: 'info', text: 'x' });
-    pushNotification({ kind: 'automation', title: 'bloqueio', text: 'y', priority: 'action' });
+    pushNotification({ kind: 'system', title: 'bloqueio', text: 'y', priority: 'action' });
     expect(pendingActions().map((n) => n.title)).toEqual(['bloqueio']);
 
     markAllNotificationsRead();

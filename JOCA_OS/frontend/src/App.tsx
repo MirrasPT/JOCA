@@ -8,7 +8,6 @@ import SettingsPanel from './components/SettingsPanel';
 import DashboardView, { type RateLimits } from './components/DashboardView';
 import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
 import TerminalView from './components/TerminalView';
-import { AutomationsView } from './components/AutomationsView';
 import CommandPalette from './components/CommandPalette';
 import AgentsView from './components/AgentsView';
 import { useSessionSocket } from './hooks/useSessionSocket';
@@ -97,7 +96,6 @@ export default function App() {
   const [mainView, setMainView] = useState<MainView>('dashboard');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   useEffect(() => { activeProjectIdRef.current = activeProjectId; }, [activeProjectId]);
-  const [automationsRefresh, setAutomationsRefresh] = useState(0);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -110,7 +108,15 @@ export default function App() {
   // Claude/Codex/Gemini usage limits, from GET /rate-limits. Fonte única — passada ao DashboardView por prop.
   const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
 
-  const [terminalDraft, setTerminalDraft] = useState('');
+  /**
+   * O que está escrito na caixa de mensagem é DE CADA TERMINAL, não da app.
+   *
+   * Era uma string só, partilhada: escrever aqui e saltar para outro projecto levava o texto
+   * atrás — e, pior, um Enter distraído mandava-o ao CLI errado. Guardado por `sessionId`, cada
+   * conversa guarda o seu rascunho e reencontra-o ao voltar. Limpo quando a sessão fecha
+   * (`handleCloseSession`), senão o mapa cresce para sempre com ids que já não existem.
+   */
+  const [terminalDrafts, setTerminalDrafts] = useState<Record<string, string>>({});
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const [, setUnreadIds] = useState<Set<string>>(new Set());
@@ -300,7 +306,7 @@ export default function App() {
   // is created once on mount.
   const { send } = useSessionSocket({
     setSessions, setActiveId, setActivityEvents, setMainView, setWorkflowStates,
-    setUnreadIds, setActivatedIds, setAutomationsRefresh,
+    setUnreadIds, setActivatedIds,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef, focusNewSessionRef,
     activateSession, addToast, addNotificationToast, processOutput, reloadProjects, reloadProjectMemory,
   });
@@ -331,6 +337,12 @@ export default function App() {
 
   const handleCloseSession = useCallback((id: string) => {
     send({ type: 'close_session', sessionId: id });
+    // O rascunho morre com a conversa — sem isto o mapa acumula ids fechados até ao refresh.
+    setTerminalDrafts((prev) => {
+      if (!(id in prev)) return prev;
+      const { [id]: _fechado, ...resto } = prev;
+      return resto;
+    });
   }, [send]);
 
   const handleInterruptSession = useCallback(() => {
@@ -341,12 +353,11 @@ export default function App() {
     const session = sessions.find((s) => s.id === id);
     if (!session) return;
     const { name, projectId } = session;
-    // Reiniciar repete o arranque canónico: nasce no JOCA_Brain e, se tem projecto, volta a fazer
-    // o resume da pasta dele (em vez de herdar o cwd antigo).
-    const project = projectId ? projects.find((p) => p.id === projectId) : undefined;
+    // Reiniciar repete o arranque canónico: nasce no JOCA_Brain, ligado ao mesmo projecto. O
+    // contexto do projecto NÃO é recarregado sozinho — o resume é manual, pelo botão da barra.
     send({ type: 'close_session', sessionId: id });
-    send({ type: 'create_session', sessionName: name, projectId, ...(project ? { resumePath: project.path } : {}) });
-  }, [sessions, projects, send]);
+    send({ type: 'create_session', sessionName: name, projectId });
+  }, [sessions, send]);
 
   const handleInput = useCallback((sessionId: string, data: string) => {
     send({ type: 'input', sessionId, data });
@@ -527,7 +538,7 @@ export default function App() {
 
   const handleOpenProject = useCallback((project: Project) => {
     setMainView('session');
-    send({ type: 'create_session', resumePath: project.path, sessionName: project.name, projectId: project.id });
+    send({ type: 'create_session', sessionName: project.name, projectId: project.id });
   }, [send]);
 
   const handleCreateProjectSkill = useCallback((project: Project, skillName: string) => {
@@ -535,7 +546,6 @@ export default function App() {
     const instruction = `Vamos criar uma skill. Para tal, usa o /create-skill para criar a skill "${skillName}" apenas para o projeto no path "${project.path}". Antes de iniciar, faz-me o questionário perguntando o que é e para que serve esta skill, e só depois de eu responder é que deves avançar com o ciclo de criação da skill.`;
     send({
       type: 'create_session',
-      resumePath: project.path,
       sessionName: `Criar Skill: ${skillName}`,
       projectId: project.id,
       initialInput: instruction,
@@ -573,7 +583,7 @@ export default function App() {
     // SEM `cwd`: o terminal nasce no JOCA_Brain (default do backend) e recebe o contexto do
     // projecto pelo comando de resume do perfil (`/resume "<pasta>"` no claude, `resume` nos outros).
     send({
-      type: 'create_session', resumePath: project.path, projectId: project.id,
+      type: 'create_session', projectId: project.id,
       ...(cli && cli !== 'claude' ? { cli } : {}),
     });
   }, [send]);
@@ -590,7 +600,7 @@ export default function App() {
    * notificação do SO — o painel do rail foi removido). Quem sabe navegar é o App; os canais só
    * transportam o `meta`.
    *
-   * Precedência: sessão → automação → projecto (do mais específico para o mais lato).
+   * Precedência: sessão → projecto (do mais específico para o mais lato).
    * Uma referência morta (sessão fechada, projecto apagado) não rebenta nem atira para um sítio ao
    * calhar: cai para o nível seguinte e, não havendo nenhum, fica-se onde se está.
    */
@@ -600,7 +610,6 @@ export default function App() {
       handleSwitchSession(target.sessionId);
       return;
     }
-    if (target.automationId) { setMainView('automations'); return; }
     if (target.projectId && projectsRef.current.some((p) => p.id === target.projectId)) {
       handleShowProject(target.projectId);
     }
@@ -618,10 +627,21 @@ export default function App() {
     fetch('/joca-items').then((r) => r.json()).then(setJocaItems).catch(() => setJocaItems({ commands: [], skills: [], agents: [] }));
   }, [jocaItems]);
 
+  // Rascunho da conversa aberta. Sem sessão activa não há caixa onde escrever, logo string vazia.
+  const terminalDraft = activeId ? terminalDrafts[activeId] ?? '' : '';
+  const setTerminalDraft = useCallback((draft: string) => {
+    if (!activeId) return;
+    setTerminalDrafts((prev) => ({ ...prev, [activeId]: draft }));
+  }, [activeId]);
+
   const insertCommandDraft = useCallback((text: string) => {
-    setTerminalDraft((draft) => draft ? `${draft} ${text}` : text);
+    if (!activeId) return;
+    setTerminalDrafts((prev) => {
+      const actual = prev[activeId] ?? '';
+      return { ...prev, [activeId]: actual ? `${actual} ${text}` : text };
+    });
     setCommandPaletteOpen(false);
-  }, []);
+  }, [activeId]);
 
   const handleTermReady = useCallback((sessionId: string, ref: TerminalRef) => {
     termRefs.current.set(sessionId, ref);
@@ -748,7 +768,6 @@ export default function App() {
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
         onShowDashboard={() => setMainView('dashboard')}
-        onShowAutomations={() => setMainView('automations')}
         onShowAgents={() => setMainView('agents')}
         onShowProject={handleShowProject}
         onOpenSession={handleOpenSessionInContext}
@@ -770,9 +789,7 @@ export default function App() {
       />
 
       <div className="main-area">
-        {mainView === 'automations' ? (
-          <AutomationsView refreshKey={automationsRefresh} />
-        ) : mainView === 'agents' ? (
+        {mainView === 'agents' ? (
           // Todos os agentes de todos os projectos num sítio só.
           <AgentsView
             sessions={sessions}
