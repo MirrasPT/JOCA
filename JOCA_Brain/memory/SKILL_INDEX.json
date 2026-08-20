@@ -949,6 +949,30 @@
   },
   {
     "type": "skill",
+    "name": "file-organization",
+    "category": "general",
+    "path": ".claude/skills/file-organization.md",
+    "description": "Audita uma pasta de ficheiros (assets de design, documentos, exports) e produz um plano de renomeação/reorganização com conteúdo REALMENTE verificado, não adivinhado pelo nome. MUST be invoked when th",
+    "triggers": [
+      "organizar pasta",
+      "arrumar ficheiros",
+      "renomear ficheiros",
+      "limpar pasta",
+      "plano de organização",
+      "organização de ficheiros",
+      "duplicados",
+      "ficheiros soltos",
+      "nomear assets",
+      "rename files",
+      "clean up folder",
+      "file organization",
+      "limpar pasta de assets",
+      "pasta de cliente desorganizada",
+      "nomes tipo v1/v2/op1"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "file-storage",
     "category": "general",
     "path": ".claude/skills/file-storage.md",
@@ -1029,6 +1053,30 @@
       "qualidade AAA",
       "top studio quality",
       "build like"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "gdpr-compliance",
+    "category": "general",
+    "path": ".claude/skills/gdpr-compliance.md",
+    "description": "Cookie consent banners, RGPD/GDPR checklists, gating de scripts de terceiros (Google Analytics, Microsoft Clarity) por consentimento, consentimento de formulário validado no servidor com prova em BD, ",
+    "triggers": [
+      "RGPD",
+      "GDPR",
+      "consentimento",
+      "cookie banner",
+      "cookies",
+      "banner de cookies",
+      "política de privacidade",
+      "CNPD",
+      "titular dos dados",
+      "direito ao apagamento",
+      "dados pessoais",
+      "opt-in",
+      "cookie wall",
+      "consentimento de formulário",
+      "Google Analytics consentimento"
     ]
   },
   {
@@ -1697,6 +1745,30 @@
       "project setup",
       "iniciar projecto",
       "kick off"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "ploi-api",
+    "category": "general",
+    "path": ".claude/skills/ploi-api.md",
+    "description": "Controlar o Ploi.io programaticamente — API REST, CLI `ploi`, SDK PHP. MUST be invoked when the user says: ploi api, ploi cli, gerir servidor ploi, criar site no ploi, chave ssh ploi, ssh key ploi, de",
+    "triggers": [
+      "ploi api",
+      "ploi cli",
+      "ploi sdk",
+      "gerir servidor ploi",
+      "criar site no ploi",
+      "chave ssh ploi",
+      "ssh key ploi",
+      "deploy script ploi",
+      "nginx config ploi",
+      "token ploi",
+      "automatizar infra",
+      "provisionar site",
+      "adicionar chave ao servidor",
+      "editar nginx",
+      "listar servidores"
     ]
   },
   {
@@ -2637,6 +2709,30 @@
       "theme.json",
       "block theme",
       "styles not applying"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "wp-index",
+    "category": "general",
+    "path": ".claude/skills/wp-index.md",
+    "description": "Porta única de entrada para QUALQUER trabalho em WordPress — encaminha para a skill wp-* certa (triagem do repo, blocos Gutenberg/block.json, block themes/theme.json, Interactivity API, plugins e subm",
+    "triggers": [
+      "wordpress",
+      "wp",
+      "wp-content",
+      "wp-admin",
+      "plugin wp",
+      "tema wp",
+      "gutenberg",
+      "bloco gutenberg",
+      "block.json",
+      "theme.json",
+      "block theme",
+      "wp-cli",
+      "wp search-replace",
+      "wp db",
+      "rest api wordpress"
     ]
   },
   {

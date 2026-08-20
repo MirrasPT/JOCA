@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**277 componentes:** 145 skills + 103 agents + 29 commands.
+**281 componentes:** 149 skills + 103 agents + 29 commands.
 
 ---
 
@@ -112,7 +112,7 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ---
 
-## Skills (127)
+## Skills (149)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
@@ -163,7 +163,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 
 ---
 
-## Agents (35)
+## Agents (103)
 
 Agentes correm em sub-processos isolados, em paralelo.
 

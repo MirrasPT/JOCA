@@ -105,7 +105,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | captura de site · screenshot limpo · screenshot full-page · QA visual · extrair imagem de print/mockup | `site-capture` |
 | html to pdf · exportar PDF · PDF de 1 página · print-to-pdf · print-CSS A4 | `html-to-pdf` |
 | publicar repo público · open source release · scrub antes de publicar · o que vai sair no push · sanitizar repo · push para repo de cliente · entregar código a terceiros · primeiro push para remote novo | `public-release-audit` |
-| WordPress · WP · Gutenberg · plugin WP · tema WP · block theme · WP-CLI · Playground | **`wordpress-router`** (porta única — classifica o repo e encaminha para `wp-project-triage` · `wp-plugin-development` · `wp-block-development` · `wp-block-themes` · `wp-interactivity-api` · `wp-rest-api` · `wp-abilities-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `blueprint` · `wp-plugin-directory-guidelines` · `wpds`) |
+| WordPress · WP · Gutenberg · plugin WP · tema WP · block theme · WP-CLI · WooCommerce · Playground | **`wp-index`** (porta única — classifica e encaminha para `wp-project-triage` · `wp-plugin-development` · `wp-block-development` · `wp-block-themes` · `wp-interactivity-api` · `wp-rest-api` · `wp-abilities-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `blueprint` · `wp-plugin-directory-guidelines` · `wpds` · `woocommerce-elementor`; `wordpress-router` classifica o repo) |
 | WooCommerce + Elementor · `_elementor_data` · HFE · storefront editável · content-product.php | `woocommerce-elementor` |
 | Shopify · Liquid · Dawn · theme.liquid · app Shopify · auditar loja | **`shopify-router`** (porta única — `shopify-app` · `shopify-theme` · `shopify-store-audit` · `shopify-store-fixer`) |
 | Wix · Wix CLI · dashboard extension | `wix-cli` |
@@ -113,6 +113,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | Stripe · payments · subscriptions | `payment-integration` (agent) |
 | ifthenpay · Multibanco · MB WAY · pagamento PT | `portugal-payments` |
 | Moloni · faturação · fatura · nota de crédito · IVA PT | `portugal-invoicing` |
+| RGPD · GDPR · consentimento de cookies · cookie banner · política de privacidade · CNPD · direito ao apagamento · analytics sem consentimento | `gdpr-compliance` |
 | SEO · meta tags · Core Web Vitals | `seo` |
 | SEO local · Google Business Profile · GBP · map pack · NAP · citações locais · perto de mim | `seo-local` |
 | copywriting · landing page · CTA | `copywriting` |
@@ -187,6 +188,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | tdd · test first · testes primeiro · red green · força testes | `tdd` (guard-rail) |
 | unfreeze · destrancar · remover lock · desligar guard/tdd | `unfreeze` (guard-rail) |
 | pack codebase · empacotar repo · repo num ficheiro · contexto para agente/gemini · repomix | `context-pack` |
+| organizar pasta · arrumar ficheiros · renomear ficheiros · plano de organização · duplicados de ficheiros · ficheiros soltos | `file-organization` |
 | orquestrar sub-agentes · brief de agente · fan-out · contexto perdido · quantos workers | `agent-context` |
 | disciplina de código · evitar overengineering · erros típicos de LLM a programar | `karpathy-guidelines` |
 | criar skill nova · melhorar uma skill · upgrade de skill | `create-skill` (`/create-skill`) |
@@ -211,6 +213,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | public_html · Passenger · 503 Passenger · Setup Node.js App · restart.txt · .htaccess · hosting partilhado | `deploy-cpanel` |
 | Dockerfile · docker compose · multi-stage build · Traefik · containerizar · registry de imagem | `deploy-docker` |
 | Ploi · ploi.io · provisionar servidor · deploy script · atomic/zero-downtime deploy · daemon de fila | `deploy-ploi` |
+| API do Ploi · CLI `ploi` · SDK PHP Ploi · chave SSH no servidor · editar nginx do site · token Ploi · automatizar infra Ploi | `ploi-api` |
 | Cloudflare DNS · Email Routing · SPF merge · MX Cloudflare · reencaminhar email domínio · registo DNS por API | `cloudflare-dns` |
 | deploy · publicar site · correr pipeline de deploy | `deploy-executor` (agent) |
 | corrigir a11y · WCAG fix · acessibilidade | `a11y-fixer` (agent) |
