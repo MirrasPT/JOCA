@@ -97,7 +97,7 @@ do questionário; esta secção existe para saberes o que é cada um se precisar
 
 | Placeholder | Onde | O que é |
 |-------------|------|---------|
-| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (10 hooks) | Caminho absoluto da pasta que contém `JOCA_Brain/`, com barras `/` e sem barra final. **Se não for substituído, os 10 hooks falham em silêncio** — sem erro visível. Verificar com `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (tem de dar `0`). |
+| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (11 hooks) | Caminho absoluto da pasta que contém `JOCA_Brain/`, com barras `/` e sem barra final. **Se não for substituído, os 11 hooks falham em silêncio** — sem erro visível. Verificar com `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (tem de dar `0`). |
 | `<YOUR_NAME>` · `<YOUR_ROLE>` · `<YOUR_STRENGTHS>` · `<YOUR_LEARNING_AREAS>` · `<STRONG_DOMAIN>` · `<LEARNING_DOMAIN>` · `<YOUR_FRUSTRATION_TRIGGERS>` | `JOCA_Brain/memory/soul.md` | O teu perfil, recolhido nas perguntas Q1/Q2 e Q-SOUL-5/6/7. Enquanto não estiverem preenchidos o JOCA usa os defaults de `Communication` + `Calibration Parameters`. |
 
 **Contextuais — só interessam se usares a skill respectiva** (são exemplos na documentação,
@@ -117,8 +117,7 @@ grep -rohE "<(YOUR_[A-Z_]+|JOCA_ROOT|STRONG_DOMAIN|LEARNING_DOMAIN)>" . --exclud
 - **Iniciar interface:** `bash JOCA_OS/start.sh` (macOS/Linux) ou `JOCA_OS\start.bat` (Windows)
 - **Começar ou ligar um projecto:** navegar para a pasta e correr **`/start`** — entrevista completa
   para projectos novos (produto → fluxos/PRD → stack da casa → infra → direcção de design, com
-  formulários interactivos), ou liga um projecto existente sem questionário (absorveu o antigo
-  `/init-project`)
+  formulários interactivos), ou liga um projecto existente sem questionário
 - **Início de sessão:** `/resume`
 - **Referência rápida:** `/help-joca`
 - **Actualizar JOCA:** `/update-joca` (sync com GitHub, protege ficheiros locais)

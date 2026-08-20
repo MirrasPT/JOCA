@@ -54,31 +54,27 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 
 - `node-pty` para PTY real (suporte ANSI, resize)
 - WebSocket raw (`ws`) — avaliar Socket.io se reconexão necessária
-- Estado em ficheiros JSON/JSONL em `data/` (sem DB); runs em `data/runs.jsonl`
+- Estado em ficheiros JSON em `data/` (sem DB)
 - Local-first: bind default em `127.0.0.1` sem auth. Modo remoto (VPS) é opt-in:
   `JOCA_HOST=0.0.0.0` só arranca com auth configurada (`JOCA_PASSWORD` ou password
   definida na UI) — password scrypt + tokens em cookie httpOnly/Bearer
-- Multi-CLI: sessões/tarefas/automações podem correr `claude` (default), `codex`,
+- Multi-CLI: as sessões podem correr `claude` (default), `codex`,
   `agy` ou `opencode` — perfis em `src/cli-profiles.ts`, override em `data/cli-profiles.json`
 - Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
-- **Nada escreve sozinho num terminal.** Só entram (a) o `/resume "<pasta>"` que a sessão corre ao
-  nascer, (b) o que o dono escreve, e (c) o brief de uma tarefa que ele pôs a correr. Removidos: o
-  heartbeat (proactividade), os relatórios automáticos, a varredura de encalhados, e todo o
-  subsistema de gestor de projecto / Joca global / "A Sala".
+- **Nada escreve sozinho num terminal.** Só entra o que o dono escreve — incluindo o resume, que é
+  **manual**, pelo botão da barra do chat (`session-manager.ts`: "Nenhum `/resume` é injectado"; a
+  forma do comando vem do `resumeCmd` do perfil do CLI). Removidos: o heartbeat (proactividade), os relatórios
+  automáticos, a varredura de encalhados, o subsistema de gestor de projecto / Joca global /
+  "A Sala", o sistema de Tarefas e o sistema de Automações (com o histórico de execuções).
 - **Um projecto abre VAZIO.** Nenhum terminal nasce sozinho — nem no arranque do backend, nem ao
   criar o projecto, nem ao abrir o painel. Quem abre terminais é o dono, no "+" do projecto.
-- **Tarefas** (`src/tasks/`): a coluna `a-executar` é uma fila que anda sozinha — pôr lá uma tarefa
-  abre o terminal de tarefas do projecto e corre-a. UMA de cada vez por projecto (lock `busy`), no
-  mesmo terminal enquanto ele viver. Quem move a tarefa para `concluida` é o AGENTE (`joca done`),
-  não o motor: ele só sabe que o terminal se calou, não que o trabalho ficou feito. O juiz (SDK,
-  sem ferramentas) classifica o resultado e escreve na thread, mas não decide a coluna.
 - **Ponte de agentes** (`cli/joca.mjs` + `src/agent-bridge.ts`): cada PTY nasce com `JOCA_CLI`,
   `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
-  o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — cria tarefas, abre terminais,
+  o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — abre terminais,
   fala com outros. Uma implementação por acção, sem reinícios.
 
 ## Testes
 
 ```bash
-cd backend && npm test   # vitest — unidades puras (schedule math, cli-profiles, juiz)
+cd backend && npm test   # vitest — unidades puras (chunkText, cli-profiles, folderPickerCommand, PATH_SAFE) + contratos de rotas, notificações, sessões, host
 ```

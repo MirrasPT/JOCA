@@ -67,7 +67,7 @@ Categorizar ficheiros:
 |-----------|-------|-------|
 | **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `install.md`, `update.md` | Actualizar (safe) |
 | **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md`, `memory/soul.md` | **Proteger** — não sobrescrever |
-| **UI Data** | `JOCA_OS/data/` — `projects.json`, `project-memory.json`, `ui-settings.json` (inclui tema de marca e modelos dos gestores), `tasks.json`, `automacoes.json`, `notifications.json`, `runs.jsonl`, `room.jsonl` (histórico da Sala), `manager-chats/` | **Proteger** — dados do utilizador |
+| **UI Data** | `JOCA_OS/data/` — `projects.json`, `project-groups.json`, `project-memory.json`, `ui-settings.json` (inclui tema de marca), `notifications.json`, `cli-profiles.json`, `auth.json`, `auth-tokens.json` | **Proteger** — dados do utilizador |
 | **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
 | **Local** | Ficheiros com `origin: local` no frontmatter | **NUNCA tocar** |
 | **UI Code** | `JOCA_OS/backend/`, `JOCA_OS/frontend/` | Actualizar (rebuild necessário) |
