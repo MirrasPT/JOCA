@@ -24,7 +24,7 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
 │   │   └── tools/           <- graphify, MCP routing
 │   └── .claude/
-│       ├── commands/        <- 27 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── commands/        <- 29 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
 │       ├── agents/          <- 103 agentes (tester-*, debug, research, media, orquestração, ...)
 │       ├── skills/          <- 145 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**275 componentes:** 145 skills + 103 agents + 27 commands.
+**277 componentes:** 145 skills + 103 agents + 29 commands.
 
 ---
 
@@ -68,7 +68,7 @@ o favicon do separador.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 275 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos 277 componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Agentes rapidos na barra:** as sessoes sem projecto aparecem no topo da barra lateral, com
@@ -279,7 +279,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (27)
+## Commands (29)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 
@@ -287,6 +287,7 @@ Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 |---------|--------|
 | `/install` | Setup interactivo — identidade, soul, skills, CLIs, statusline, JOCA_OS |
 | `/start` | Arranca um projecto novo (entrevista → PRD → stack → design) ou liga um existente |
+| `/executar-projeto` | A execucao do `/start`: fundacao → design → gate → ondas ate producao |
 | `/resume` | Carrega contexto no inicio da sessao |
 | `/save` | Guarda estado + feedback projecto + feedback toolkit (auto) |
 | `/plan` | Plan Mode — arquitectura |
@@ -302,6 +303,7 @@ Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 | `/wp-perf-review` | Code review WordPress |
 | `/wp-perf` | Quick triage WordPress |
 | `/status` | Rate limits, contexto e modelo em uso |
+| `/joca-doctor` | Diagnostico da instalacao (runtimes, hooks, indices, bridges, memoria) |
 | `/help-joca` | Referencia rapida |
 
 ---

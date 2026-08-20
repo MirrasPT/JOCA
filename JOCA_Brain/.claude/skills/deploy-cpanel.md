@@ -338,6 +338,11 @@ uploads/
 - [ ] Cron job para scheduler configurado
 - [ ] SSL activo (AutoSSL)
 - [ ] Storage symlink criado
+- [ ] **Teste negativo corrido**: `.git/config`, `.env`, logs, docs internos e versoes antigas do
+      entregavel dao **403/404** no URL publico (200 = credencial exposta, deploy falhado)
+- [ ] **Health-check pelo CORPO**, nao so pelo status — rota de API devolve JSON, nao o fallback HTML
+- [ ] Tamanho remoto de cada entry point (HTML, bundle JS/CSS) bate com o local
+> Bloco completo dos 4 passos de verificacao: agente `deploy-executor`, Step 4.
 
 ### Node.js (Passenger)
 - [ ] App root definido FORA de `public_html/`

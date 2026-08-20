@@ -64,7 +64,14 @@ Staging/preview deploys that are trivially reversible do not require the gate �
 Execute the steps from the loaded skill via `Bash`, in order. Order-dependent sequences must not be parallelized. Capture stdout/stderr of each step; on a failing step, stop the pipeline and surface the exact error (do not continue blindly).
 
 ### Step 4 — Post-deploy health-check (mandatory)
-A deploy is NOT done until verified live. Run actual checks against the deployed target:
+A deploy is NOT done until verified live. **Status code alone proves nothing** — an SPA/framework
+fallback answers 200 with `index.html` for a route that does not exist. Real case: the front
+controller was never copied and `/api/v1/health` served the SPA shell; the deploy was declared LIVE.
+
+The health-check has **four parts, all obligatory**: 4a positive (by body), 4b negative (what must
+NOT be reachable), 4c size, 4d target-specific. A deploy that skipped any of them is unverified.
+
+#### 4a — Positive: check the BODY, never only the status
 
 **⚠ Derive the checklist from the PUBLISHED page, never from the upload list.** A deploy script that
 shipped the HTML and the PHP but forgot two new assets (`form.css`, `form.js`) reported all-green —
@@ -78,20 +85,83 @@ curl -s "$BASE/" \
   | cut -d'"' -f2 | sort -u \
   | while read -r a; do
       case "$a" in http*) u="$a";; /*) u="$BASE$a";; *) u="$BASE/$a";; esac
-      code=$(curl -sS -o /dev/null -w '%{http_code}' "$u")
-      [ "$code" = 200 ] || echo "FALHA $code  $u"
+      out=$(curl -sS -o /dev/null -w '%{http_code} %{content_type}' "$u")
+      code=${out%% *}; type=${out#* }
+      [ "$code" = 200 ] || { echo "FALHA $code  $u"; continue; }
+      case "$u:$type" in
+        *.css:*text/html*|*.js:*text/html*) echo "FALSO 200 (fallback HTML)  $u  [$type]";;
+      esac
     done
 ```
-Any dependency not returning 200 fails the deploy.
+
+For every API/JSON route, assert on the **content**, not the code — the fallback returns HTML:
+
+```bash
+curl -sS -D- -o /tmp/hc.body "$BASE/api/v1/health" | head -1
+head -c 120 /tmp/hc.body      # tem de ser JSON, não "<!DOCTYPE html>"
+grep -qE '^[[:space:]]*[{[]' /tmp/hc.body || echo "FALHA: fallback HTML servido em /api/v1/health"
+```
+
+Same for HTML routes: `grep` a string that only that page has (a title, a heading), never just 200.
+
+Site served from a **subfolder or path prefix** (multi-language, multi-tenant): run the **full URL
+matrix** against the published URL, not a sample — the default language/tenant answers 200 while
+everything else 404s.
+
+#### 4b — Negative test: what must NOT be reachable (obligatory)
+
+A deploy is also wrong because of what it publishes by accident. Real case: the web root was set to
+the repo folder instead of `<site>/public`, and `.git/config` — **with a GitHub token in plain
+text** — was served on the open web. Every route returned 200, so no positive check saw it.
+
+```bash
+for p in .git/config .git/HEAD .env .env.example storage/logs/laravel.log \
+         composer.json package.json README.md docs/ backup.zip .DS_Store; do
+  code=$(curl -sS -o /dev/null -w '%{http_code}' "$BASE/$p")
+  case "$code" in 403|404) ;; *) echo "EXPOSTO $code  $BASE/$p";; esac
+done
+```
+
+- Anything other than **403/404 is a deploy failure**, not a warning. A `.git/config` served once is
+  a leaked credential: report it, remove it, and **flag the token for rotation**.
+- Add to the list any internal deliverable of this project: internal docs, previous versions of the
+  artifact, `*.sql` dumps, `_playwright.mjs`-style scripts.
+- The root cause is usually one of two: web root pointing above `public/`, or **blacklist packaging**
+  (`tar --exclude`). Package by **whitelist**; on macOS also `COPYFILE_DISABLE=1 tar …`, otherwise
+  hundreds of AppleDouble `._*` files travel (198 in one real deploy).
+
+#### 4c — Size comparison local ↔ remote
+
+Same status, same content-type and still the wrong file: a truncated transfer, a stale cache or an
+older version of the artifact answers 200 all the same.
+
+```bash
+# local (bytes)                          # remoto (bytes)
+wc -c < dist/assets/app.js
+curl -sS -o /dev/null -w '%{size_download}\n' "$BASE/assets/app.js"
+```
+
+Compare the **key entry points** (main HTML, main JS/CSS bundle, largest image). Difference ≠ 0 →
+investigate before declaring LIVE; the usual causes are edge cache (purge) and a partial upload.
+Behind Cloudflare, read `cf-cache-status` in the header (`curl -sSI`) before blaming the origin.
 
 **⚠ Cloudflare caches 404s (negative caching, ~4 h).** A *new* file requested once before it existed
 keeps serving 404 from the edge after it lands. The rule of thumb "new filenames ⇒ no purge needed"
 is true for **replacements** and false for **additions**: if this deploy added files behind CF, purge.
 Symptom that cost a full diagnosis cycle: origin 200, public 404.
 
-- HTTP: `curl -sS -o /dev/null -w "%{http_code}" <url>` on the live URL and a key route — expect 2xx/3xx, not 5xx/000.
-- Docker: container `Up`/healthy (`docker ps`, healthcheck status), not restart-looping.
-- App-specific: a known endpoint returning expected content (verify against the REAL response — do not assume the shape; if you parse the response, check a known field/value, never trust an inferred format).
+#### 4d — Target-specific
+
+- **Docker:** container `Up`/healthy (`docker ps`, healthcheck status), not restart-looping.
+- **Admin / authenticated area:** submit the login and confirm the panel renders — the login page
+  answering 200 proves nothing (a database with 0 users returns `/admin/login → 200` all the same).
+  For Filament/Livewire, confirm `window.Livewire` initialises and that the JS assets are served with
+  a JS `content-type`, not HTML.
+- **Laravel:** `storage:link` resolving to the **current** release path (an image via the public URL,
+  not `ls` on the symlink) · `robots.txt` present in review environments.
+- **App-specific:** a known endpoint returning expected content (verify against the REAL response —
+  do not assume the shape; if you parse the response, check a known field/value, never trust an
+  inferred format).
 
 If health-check fails: report it as FAILED and surface the documented rollback path. Do not declare success.
 
@@ -107,11 +177,13 @@ Skill used: deploy-<target>
 - <step>: ✓ | ✗  (error if any)
 
 ### Health-check
-- <url/route>: <http code> ✓ | ✗
-- <container/service>: <status>
+- positivo (corpo): <url/route>: <http code> · <content-type> · <string confirmada> ✓ | ✗
+- negativo: <.git/config · .env · logs · docs internos>: <403|404> ✓ | ✗ EXPOSTO
+- tamanhos: <ficheiro>: local <N> B ↔ remoto <N> B ✓ | ✗
+- alvo: <container/service · login admin · storage:link>: <status>
 
 ### Result
-LIVE ✓ | FAILED ✗
+LIVE ✓ | FAILED ✗   (nenhum LIVE sem as quatro linhas acima preenchidas)
 
 ### Rollback path
 <exact command/steps to revert this release>
@@ -124,7 +196,16 @@ LIVE ✓ | FAILED ✗
 3. **Never fabricate** — missing credential/endpoint/host/key → no-auth path or `TODO: credencial em falta` + report. Never invent a plausible value (applies to this agent's own actions).
 4. **Verify parsers against the real response** — when reading a deploy/health endpoint, make one real call and validate the parse against the actual output before trusting it.
 5. **Import shared components, don't recreate** — reuse existing deploy scripts/config/env from the repo; do not re-author them inline.
-6. **Health-check is mandatory** — no "deployed" without a passing live check.
-7. **Always document the rollback path** — before deploying and again in the final report.
-8. **Fail loud** — a failed pipeline step stops the run and is reported with the exact error; never paper over it.
-9. **Surgical** — touch only what the deploy needs; no "while I'm here" config rewrites.
+6. **Health-check is mandatory, and it has four parts** — positive by BODY (4a), negative test (4b),
+   size comparison (4c), target-specific (4d). No "deployed" without all four. A status code is not
+   evidence: a fallback answers 200 for a route that does not exist.
+7. **Reporting impossibility requires reproducing the blockage** — before writing `BLOQUEADO` /
+   "cannot be done", inventory the real effect on the target (`ls` on the server, `curl` the URL,
+   `git log`/`git rev-parse` in the deployed folder) and cite **command + full path + literal error**.
+   Real case: an agent reported `BLOQUEADO — falta ligação GitHub↔Ploi` when the site already existed,
+   the files were on disk and the `git pull` had run — only the URLs were left to confirm. A blockage
+   without a reproduction is an opinion, and it pushes a decision the owner did not have to make.
+   Always report **"done X, missing Y"**, never a bare "blocked".
+8. **Always document the rollback path** — before deploying and again in the final report.
+9. **Fail loud** — a failed pipeline step stops the run and is reported with the exact error; never paper over it.
+10. **Surgical** — touch only what the deploy needs; no "while I'm here" config rewrites.

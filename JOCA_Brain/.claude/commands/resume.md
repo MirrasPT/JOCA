@@ -11,8 +11,12 @@ Determinar o **path-alvo**: o 1º argumento se dado (ex.: `/resume <YOUR_PROJECT
 
 **Prioridade 1 — por CAMINHO** (`directorio:` == path-alvo):
 ```bash
-grep -rIl "^directorio: *<path-alvo>$" memory/projects/*.md   # match EXACTO do path
+# match EXACTO do path — cobre as DUAS formas do campo (1 path OU lista de paths)
+grep -rIl -e "^directorio: *<path-alvo>$" \
+          -e "^directorio: *\[.*<path-alvo>[],]" memory/projects/*.md
 ```
+⚠ Um `grep` só com a 1ª forma **não casa** entradas com `directorio: [a, b]` e manda a resolução para
+o fallback por nome sem motivo — o campo é lista desde que há projectos em 2 máquinas.
 1. **Match exacto** (`directorio:` == path-alvo) → é essa a entrada. Carregar essa.
 2. **Múltiplos matches exactos** (ex.: `<nome>.md` + `<nome>-geral.md` ambos com o mesmo `directorio`) → carregar a **umbrella** primeiro (a que tem `-geral` no nome, ou a de descrição mais abrangente) e listar as irmãs.
 3. **Path-alvo é pasta-MÃE de entradas** (nenhum match exacto, mas há entradas cujo `directorio` começa por `<path-alvo>`) → listar todas e apresentar a umbrella se existir, não uma só sub-entrada.
@@ -81,6 +85,21 @@ git log --oneline --all | head -10  # histórico de TODAS as branches
 
 Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
 
+**Ramo obrigatório — pasta cheia mas SEM `.git`.** Os três comandos acima assumem que o repo existe;
+sem `.git` devolvem `fatal: not a git repository` e o passo **colapsa em silêncio**. Testar primeiro:
+```bash
+git rev-parse --is-inside-work-tree 2>/dev/null || echo "SEM GIT"
+```
+Se der `SEM GIT` **e** a pasta tiver ficheiros (≠ do caso 2d, pasta vazia):
+1. **Não** declarar trabalho perdido nem re-clonar por cima — o código está ali, o que falta é a rede
+   de segurança (sem `git diff`, sem `git checkout --`, sem histórico).
+2. Procurar na memória o repo remoto e comparar os `mtime` locais com a data do último push: se
+   baterem, o conteúdo é o do push e só falta a pasta `.git`.
+3. Reportar como pendente **bloqueante**: *"restaurar o `.git` antes de editar código"* — receita:
+   clonar para outro sítio, trazer só a pasta `.git`, confirmar `git status` limpo.
+> Caso real: uma mudança de nome de pasta deixou o `.git` para trás. A pasta parecia saudável e
+> editou-se lá durante uma sessão inteira sem histórico nenhum.
+
 #### 2b-bis. PROGRESSO.md — o estado partilhado
 
 Se a pasta do projecto tiver `PROGRESSO.md` (qualquer projecto — o `/start` cria-o de raiz, o
@@ -109,9 +128,40 @@ receitas de comando) — datada e com as condições em que foi validada ("valid
 
 **Regra dura: antes de qualquer escrita em produção derivada da memória, revalidar contra a fonte.**
 
-#### 2d. Pasta local vazia — o projecto vive noutra máquina
+**"Está deployado" é perecível — medir paridade live ↔ repo.** Um health-check só prova que o
+endereço responde; um live um mês atrasado responde 200 na mesma. Se a memória declarar um **URL
+live** *e* um **repo**, correr o check barato:
+```bash
+git log -1 --format=%H                                  # sha local
+curl -sI <url-do-bundle-js-ou-css> | grep -i content-length   # tamanho servido
+ls -l <ficheiro-correspondente-no-build-local>                 # tamanho local
+curl -s <url-do-bundle> | grep -c "<símbolo-do-último-commit>" # o commit chegou ao ar?
+```
+Divergência de tamanho, ou símbolo ausente → `⚠ LIVE ATRASADO face a <sha>` no resumo, como pendente.
+> Caso real: o live servia tudo e faltavam duas features. Uma delas era *esconder rascunhos* — o
+> efeito visível ("aparece tudo") é indistinguível de não estar deployada. Só a comparação do
+> ficheiro estático dos dois lados o revelou.
 
-Se o path-alvo existe mas está **vazio ou sem `.git`**, e a memória tem o projecto com repo remoto:
+#### 2d. Pasta local vazia — o projecto vive noutra máquina (ou noutra nuvem)
+
+**Antes de concluir "não está cá": se o path-alvo estiver debaixo de uma montagem de nuvem** (`MEGA`,
+`Dropbox`, `OneDrive`, `Google Drive`, `~/Library/CloudStorage/…`), uma pasta vazia ou com 1-2
+ficheiros é tantas vezes uma **migração a meio** como uma máquina nova. Medir e procurar o gémeo
+antes de clonar seja o que for:
+```bash
+ls -A <path-alvo> | head            # vazio? stub de 1 ficheiro?
+ls -d ~/<outra-raiz-de-nuvem>/*/<basename-do-path-alvo> 2>/dev/null   # o mesmo nome noutra nuvem
+```
+⚠ Procura **dirigida** (`ls` a paths conhecidos, `-maxdepth`), nunca `find`/`grep -r` a partir de `~`
+nem da raiz da montagem: a home **contém** as montagens e o mount materializa cada pasta ao percorrê-la
+— estoura o timeout e vai para background sem resultado.
+Encontrado o gémeo com conteúdo → é esse o projecto: **corrigir o `directorio:` na memória**
+(acrescentar o path novo à lista, não substituir às cegas) e reportar a migração no resumo.
+> Caso real: o path de nuvem da memória apareceu como stub de 1 ficheiro e o código estava noutra
+> nuvem. Sem esta verificação, trabalha-se por cima de uma pasta incompleta.
+
+Se o path-alvo existe mas está **vazio** (pasta com ficheiros e sem `.git` → ver o ramo do 2b, não
+este), e a memória tem o projecto com repo remoto:
 não é um projecto novo, é esta máquina que ainda não o tem. Fluxo (repetível — 2 máquinas alternadas):
 
 1. `gh repo clone <owner>/<repo> <path>` — para repos **privados** usar o `gh`; o `git clone https`

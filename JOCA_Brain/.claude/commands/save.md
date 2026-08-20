@@ -91,11 +91,34 @@ estado vivo (volume Docker, BD local, `wp-content/uploads`). Artefacto mais velh
 actualizado" é falso por omissão. Registar na memória do projecto **qual é o artefacto-ponte** entre
 máquinas.
 
-**c) A memória do Brain não viaja por git nesta instalação.** `memory/projects/`, `checkpoints/`,
-`learnings/`, `decisions/`, `feedback/` e `knowledge/` estão todos no `.gitignore` — e com razão, já
-que o `origin` daqui é o repo **público**. Commitar `memory/` não leva nada a lado nenhum. A travessia
-entre máquinas faz-se por **`/sync-brain`** (pasta-ponte). Se a sessão produziu decisões/checkpoints
-que a outra máquina precisa, dizê-lo no PASSO 8 como "correr `/sync-brain`".
+**c) A memória do Brain pode não viajar por git — CONFIRMAR, não presumir.** O que é ignorado e para
+onde aponta o `origin` **varia por instalação** (clone público vs privado, `.gitignore` editado à
+mão). Não tomar nenhuma das duas coisas como facto: medir, em 2 comandos, antes de decidir.
+
+```bash
+git remote -v                                    # o origin daqui é público ou privado?
+for p in memory/projects/x.md memory/feedback/x.md memory/decisions/x.md \
+         memory/learnings/x.md memory/knowledge/x.md memory/checkpoints/x.md; do
+  printf '%-32s ' "$p"; git check-ignore -v "$p" || echo 'NAO IGNORADO'
+done
+```
+⚠ Testar um **ficheiro dentro** da pasta, não a pasta: um padrão `memory/projects/*` ignora o
+conteúdo e `git check-ignore memory/projects` devolve **nada** — parece não estar ignorado e está.
+⚠ Há **excepções por negação** (`!memory/projects/JOCA.md`): "a pasta está ignorada" não implica que
+todos os ficheiros lá dentro estejam.
+
+Leitura do resultado:
+| Medição | Consequência |
+|---|---|
+| Ignorado | Commitar `memory/` não leva nada a lado nenhum → travessia por **`/sync-brain`** (pasta-ponte) |
+| Não ignorado + `origin` **privado** | A memória viaja por git → basta commit+push; dizê-lo no PASSO 8 |
+| Não ignorado + `origin` **público** | ⚠ **Pendente crítico**: memória de projectos privados a caminho de um repo público — parar e reportar antes de qualquer `git add` |
+
+Se a sessão produziu decisões/checkpoints que a outra máquina precisa, dizê-lo no PASSO 8 com a via
+que a medição indicou (`/sync-brain` ou push).
+
+> Foi um facto cravado que criou este defeito: a versão anterior deste passo afirmava "estão todos no
+> `.gitignore`" e "o `origin` daqui é o público". Numa instalação de produção as duas eram falsas.
 
 **d) Um aviso na documentação não é um fix.** Se estiveres a escrever "⚠ não corras X", regista-o
 também como **pendente de correcção** — um `⚠ não corras npm test` sobreviveu semanas a esconder um

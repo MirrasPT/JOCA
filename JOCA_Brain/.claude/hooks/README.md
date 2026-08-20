@@ -13,7 +13,7 @@
 | `check-skill-paths.sh` | PostToolUse (Write\|Edit) | Valida paths referenciados em skills (bash, em `.claude/scripts/`) | sempre ligado |
 | `skill-lint.js` | PostToolUse (Write\|Edit) | Lint de frontmatter quando o ficheiro é uma skill (não-bloqueante) | sempre ligado |
 | `stop-checkpoint.js` | Stop (1º do array) | Auto-checkpoint se a queue tem código (corre ANTES do dispatch, que limpa a queue) | sempre ligado |
-| `auto-test-dispatch.js` | Stop (2º do array) | Lê a queue e recomenda testers; limpa a queue | sempre ligado |
+| `auto-test-dispatch.js` | Stop (2º do array) | Cruza a queue com `git status`, recomenda testers **uma vez** por conjunto, limpa a queue; cala-se com `.joca/loop.json` por fechar | sempre ligado |
 | `stop-continuar.js` | Stop (3º do array) | Bloqueia o fim do turno enquanto `.joca/loop.json` tiver passos pendentes ou feitos-por-verificar; recusa verificação assinada pelo produtor | contrato `.joca/loop.json`; kill-switch `.joca/loop-off.flag` |
 
 ## Pipeline de auto-test
@@ -21,6 +21,19 @@
 1. Write/Edit → `track-changes.js` faz append a `.joca/test-queue.jsonl` (ficheiro + domínio).
 2. Stop → `stop-checkpoint.js` grava checkpoint se houver código na queue; depois `auto-test-dispatch.js` lê a queue e recomenda testers.
 3. O main loop despacha os testers sem perguntar. Queue limpa a cada Stop.
+
+Quatro travões contra a recomendação-em-loop (medido: 6-9 recusas iguais por sessão):
+
+| Travão | Regra | Efeito na fila |
+|---|---|---|
+| Trabalho em curso | `.joca/loop.json` (no cwd ou no Brain) com passo ≠ `verificado` | **não** limpa — a recomendação espera |
+| O que mudou | ficheiro ausente do disco, ou dentro do repo e ausente de `git status --porcelain --ignored`, não conta. Sem git → conta tudo (fail-open) | limpa |
+| Memória de recusa | mesmo conjunto de testers já recomendado nesta `session_id`, ou há < 15 min → silêncio (`.joca/test-dispatch-memo.json`) | limpa |
+| Saídas explícitas | a mensagem nomeia as 3 saídas de 1 linha, incluindo "a sessão proíbe despachar agentes" | — |
+
+Ordem no array `Stop` (não trocar): `stop-checkpoint` lê a queue **antes** de o dispatch a limpar;
+`stop-continuar` vai a seguir porque é o único que emite `decision: block` — a recomendação do
+dispatch tem de estar já escrita quando o turno é bloqueado.
 
 ## Contrato de continuidade (`.joca/loop.json`)
 

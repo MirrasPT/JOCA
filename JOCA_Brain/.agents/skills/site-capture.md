@@ -21,27 +21,42 @@ Distinto de `browser-automate` (que automatiza apps canvas/litegraph via JS app 
 | 1 | MCP `claude-in-chrome` (se registado nesta sessão) | Sessão Chrome logada, sem fricção | "extension not connected" / não registado → passo 2 |
 | 2 | Chrome headless CLI | Sem login necessário — sem extensão | Insuficiente para páginas autenticadas → passo 3 |
 | 3 | MCP `playwright` | Páginas autenticadas / QA interactivo | "Browser is already in use ... use --isolated" (Chrome órfão a segurar o profile) → passo 4 |
-| 4 | `playwright-core` scripted | MCP bloqueado; controlo total do browser | — |
+| 4 | Playwright scripted (via `@playwright/cli`) | MCP bloqueado; controlo total do browser | — |
 
-`playwright-core` global **não** vem com browser bundled → lançar sempre com Chrome do sistema:
+⏳ **Receita de arranque verificada (macOS, 2026-08-20) — está em `browser-automate`, secção
+"Receita de arranque do Playwright". Ler de lá, não reinventar: custou 4 tentativas por sessão
+enquanto não estava escrita.** Resumo dos três tropeços:
+
+1. `playwright` **não resolve por nome** (não está no projecto nem global) — vive em
+   `$(npm root -g)/@playwright/cli/node_modules/playwright`. `playwright-core` **não** está
+   instalado à parte nesta máquina.
+2. É **CommonJS** → num `.mjs` precisa de `createRequire(import.meta.url)`.
+3. O browser que o pacote pede pode **não estar no cache** (pede 1224, o cache tem 1148/1223/1234) →
+   `executablePath` explícito, escolhido em runtime de `~/Library/Caches/ms-playwright/`.
 
 ```js
-const { chromium } = require('playwright-core'); // ~/.npm-global/lib/node_modules/.../playwright-core
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+const require = createRequire(import.meta.url);
+const { chromium } = require(`${execSync('npm root -g').toString().trim()}/@playwright/cli/node_modules/playwright`);
+const CACHE = `${process.env.HOME}/Library/Caches/ms-playwright`;
+const build = fs.readdirSync(CACHE).filter(d => d.startsWith('chromium-')).sort().pop();   // headed = render fiel
 const browser = await chromium.launch({
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  executablePath: `${CACHE}/${build}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`,
+  // ou o Chrome do sistema: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 });
 ```
+
+Para captura preferir o build **headed** (`chromium-*`, Chrome for Testing): o
+`chromium_headless_shell-*` é mais rápido mas não é o mesmo render.
 
 ---
 
 ## 2. Snippet de captura (copy-paste)
 
 ```js
-const { chromium } = require('playwright-core');
-
-const browser = await chromium.launch({
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-});
+// chromium + executablePath: ver §1 (receita verificada). Aqui abreviado.
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }); // nunca janela alta — ver gotcha vh
 await page.goto(url, { waitUntil: 'networkidle' });
 await page.waitForTimeout(6000); // intro curtain (GSAP/ThemeREX/Elementor ~6s até 'load')
@@ -55,7 +70,7 @@ await page.addStyleTag({
 // lazy-load: percorrer a página inteira antes de forçar eager
 await page.evaluate(async () => {
   for (let y = 0; y < document.body.scrollHeight; y += 400) {
-    window.scrollTo(0, y);
+    window.scrollTo({ top: y, behavior: 'instant' });   // 'smooth' falseia rects lidos a seguir
     await new Promise((r) => setTimeout(r, 150));
   }
   document.querySelectorAll('img[data-src]').forEach((img) => {
@@ -90,7 +105,10 @@ await browser.close();
 | Secção `min-height:80vh` gigante ou cortada | Janela de captura muito alta infla `vh` (viewport = altura da janela) | Viewport normal (1440×900) + `fullPage:true`, OU `element.screenshot({clip})`/boundingBox |
 | Imagens em branco/cinza | Lazy-load (`data-src`) nunca disparou fora do viewport visível | Scroll completo + `img.loading='eager'` + `img.src=dataset.src` + `waitForFunction naturalWidth>0` |
 | Faixas pretas / "NO IMAGE" na captura | `<video>` e placeholders quebrados renderizam preto em headless | Recortar a faixa; costurar topo+baixo com PIL (fundo neutro = costura invisível) |
-| `Error: Browser is already in use ... --isolated` | Chrome órfão de sessão anterior (ou outra sessão) segura o lock do profile. Nem `browser_close` recupera — não há saída pela própria ferramenta | `pkill -f ms-playwright-mcp` (mata a árvore + `crashpad-handler`) e apagar o `SingletonLock` do profile; OU, mais fiável, script directo `playwright-core` com `executablePath` |
+| `Error: Browser is already in use ... --isolated` | Chrome órfão de sessão anterior (ou outra sessão) segura o lock do profile. Nem `browser_close` recupera — não há saída pela própria ferramenta | `pkill -f ms-playwright-mcp` (mata a árvore + `crashpad-handler`) e apagar o `SingletonLock` do profile; OU arrancar o MCP isolado (`PLAYWRIGHT_MCP_ISOLATED=1`, = a flag `--isolated` do erro: perfil em memória); OU, mais fiável, o script directo do §1 com `executablePath` |
+| `Cannot find package 'playwright'` · `Executable doesn't exist at .../chromium_headless_shell-<N>` | pacote só dentro do `@playwright/cli` (CommonJS) e o build pedido não está no cache | receita completa do §1 — resolver por `npm root -g` + `createRequire` + `executablePath` do cache |
+| Medições plausíveis mas sobre os pixels errados (contraste, rects, `y` fora da viewport) | `scroll-behavior:smooth` torna o scroll **animado** — os rects lidos no mesmo tick vêm do sítio antigo | `behavior:'instant'` em todo o scroll de medição + confirmar `window.scrollY` antes de ler rects |
+| Link/botão com `href` certo mas que não responde ao clique | outro elemento pinta por cima (irmão do Elementor, overlay, `::after`) — o HTML não o mostra | `document.elementFromPoint(cx,cy)` no centro da caixa, em carga limpa e depois do último reload (receita em `browser-automate`) |
 | `claude-in-chrome`: "extension not connected" | Extensão desligada | Fallback: Chrome headless CLI (sem login) ou MCP `playwright` (com login) |
 | MCP diz "screenshot guardado" e não há ficheiro | `filename` relativo no `browser_take_screenshot` — sucesso falso | Caminho **absoluto** dentro da raiz permitida (`<repo>/.playwright-mcp/`); ler, mover para o scratchpad, apagar a pasta (o cwd do MCP é o `JOCA_Brain`, produção read-only) |
 | `browser_resize` não pega (pediste 390, `innerWidth` fica 1170) · `devicePixelRatio` 0.333, `innerWidth` 3× o pedido | Estado do browser MCP, não da página — persiste entre tabs | Não confiar no screenshot: medir por `browser_evaluate` (`getBoundingClientRect`, `gridTemplateColumns`, `scrollWidth`). Workarounds validados: pedir resize a 1/3 do valor; medir mobile dentro de um `<iframe>` com a largura alvo. Fiável: script `playwright-core` com `viewport` explícito |

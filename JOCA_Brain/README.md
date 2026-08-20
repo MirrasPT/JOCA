@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**275 componentes:** 145 skills + 103 agents + 27 commands.
+**277 componentes:** 145 skills + 103 agents + 29 commands.
 
 ---
 
@@ -190,7 +190,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (26)
+## Commands (29)
 
 | Command | Funcao |
 |---------|--------|

@@ -1,0 +1,10 @@
+# Lançadores do Windows precisam de CRLF: um `.bat` com terminações Unix falha no
+# `cmd.exe` de formas obscuras (rótulos e `goto` deixam de casar). Como o toolkit é
+# desenvolvido no macOS e corrido também no Windows, sem isto a normalização do git
+# desfazia a correcção a cada checkout.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts precisam do inverso, mesmo quando clonados no Windows (Git Bash/WSL).
+*.sh  text eol=lf

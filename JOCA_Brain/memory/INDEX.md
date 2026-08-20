@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
 Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-20:**
-**145 skills · 103 agentes (67 gerados + 36 curados) · 27 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
+**145 skills · 103 agentes (67 gerados + 36 curados) · 29 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -38,12 +38,13 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (26)
+## Commands (29)
 
 | Comando | Função |
 |---|---|
 | `/install` | setup do JOCA numa máquina nova — **conversa guiada**, não formulário |
 | `/start` | arranque de projecto — entrevista → PRD → stack → design; projecto existente liga-se pelo levantamento da pasta |
+| `/executar-projeto` | a execução do `/start`: fundação → design → gate ⏸ → ondas até produção |
 | `/resume` | carregar contexto do projecto + grafo de conhecimento |
 | `/save` | guardar estado, memória, feedback auto-extraído e reindexar o toolkit |
 | `/plan` | Plan Mode — decisões de arquitectura |
@@ -60,11 +61,13 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
 | `/map-joca` | mapa de conhecimento (skills/agentes/comandos/projectos + chains) → `graph.html` via graphify |
 | `/create-skill [desc]` | criar skill nova por pipeline de research |
+| `/gauntlet-loop` | reformula um pedido num workflow medido contra uma referencia real: fan-out + critico severo + comparacao cega |
 | `/upgrade-joca` | feedback → auto-melhoria → aplicar |
 | `/update-joca` | sincronizar com o GitHub (**Fase 0** distingue clone público de instalação com história própria) |
 | `/migrate` | guia de migração v1-legacy → v2.0 |
 | `/clean-install` | audita instalações JOCA existentes (várias, se houver), compara com o baseline, propõe tabela de optimização de tokens, consolida memória por mtime, arquiva antigo em `Old/`, promove instalação nova |
 | `/status` | rate limits, modelo e uso de contexto |
+| `/joca-doctor` | diagnóstico da instalação — runtimes, hooks, índices, bridges, memória (`--fix` corrige o seguro) |
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
 

@@ -43,18 +43,23 @@ descoberto na onda 1 custa uma migracao. Este criterio ganha aos outros dois qua
 
 ### 2. Dependencia tecnica
 
-O que tem de existir antes. Expressa-se nativamente:
+O que tem de existir antes. Expressa-se na API de dependencias de issues:
 
 ```bash
-gh issue edit <n> --add-blocked-by <m>
+ID=$(gh api repos/{owner}/{repo}/issues/<m> --jq .id)
+gh api -X POST repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by -F issue_id=$ID
 ```
 
-**Atencao a direccao:** isto le-se "`<n>` esta bloqueado por `<m>`" — ou seja, **`<m>` vem primeiro**.
-A inversa e `--add-blocking`. Trocar as duas produz um grafo de ondas ao contrario, sem erro visivel
-em lado nenhum.
+⚠ **Nao existe flag `gh issue edit --add-blocked-by`** no `gh` 2.89.0
+(`gh issue edit --help | grep -c add-blocked-by` → `0`). Usa-la nao da erro util e, encadeada com
+`&&`, faz falhar em silencio tudo o que vier a seguir. Se um dia aparecer, so se usa depois de o
+`--help` a listar.
 
-Aceita numero (`200`), `#200` ou URL completo, e varios de uma vez. **Nao** aceita `owner/repo#200` —
-para outro repositorio, usa o URL.
+**Atencao a direccao:** o endpoint `dependencies/blocked_by` de `<n>` le-se "`<n>` esta bloqueado por
+`<m>`" — ou seja, **`<m>` vem primeiro**. A inversa e `dependencies/blocking`. Trocar as duas produz
+um grafo de ondas ao contrario, sem erro visivel em lado nenhum.
+
+⚠ A API usa o **id interno** do issue (`.id`), nao o numero. Passar o numero da 404.
 
 Limite: 50 issues por tipo de relacao. Se um issue esta bloqueado por tres outros, provavelmente esta
 mal dimensionado — ou e um epico disfarcado.
@@ -173,24 +178,20 @@ gh issue edit 3 5 7 --milestone "Onda 1: Fundacao de dados"
 
 A milestone tem de existir antes.
 
-**3. Ligar as dependencias:**
-
-```bash
-gh issue edit <n> --add-blocked-by <m>
-```
-
-Isto exige **`gh` v2.94.0 ou superior** (a release que introduziu estas flags) e permissao de
-*triage* no repositorio. Confirma com `gh --version`.
-
-Se o `gh` for anterior, **nao caias para "registar no corpo do issue"** — a dependencia real continua
-a ser criavel pela API:
+**3. Ligar as dependencias** — pela API, nao por flag do `gh issue edit`:
 
 ```bash
 ID=$(gh api repos/{owner}/{repo}/issues/<m> --jq .id)
 gh api -X POST repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by -F issue_id=$ID
 ```
 
-Repara que a API usa o **id interno** do issue, nao o numero.
+Exige permissao de *triage* no repositorio. Repara que a API usa o **id interno** do issue
+(`.id`), nao o numero — passar o numero da 404.
+
+**Nao caias para "registar a dependencia no corpo do issue"**: o corpo nao produz grafo nenhum.
+E **nao inventes flags** — confirma sempre a existencia antes de usar
+(`gh issue edit --help | grep -c add-blocked-by` da `0` no `gh` 2.89.0). A ausencia de erro nao e
+prova: confirma pelo efeito, no passo 5.
 
 **4. Escrever `docs/ONDAS.md`** com o plano completo — e a versao legivel, que sobrevive a mudancas no
 GitHub e explica o *porque* da ordem, que as milestones nao guardam.
@@ -198,12 +199,17 @@ GitHub e explica o *porque* da ordem, que as milestones nao guardam.
 **5. Verificar pelo efeito, nao pelo relatorio.** Depois de gravar:
 
 ```bash
-gh issue list --state open --json number,milestone,blockedBy \
-  --jq '.[] | "\(.number) \(.milestone.title // "SEM MILESTONE") bloqueado-por:\(.blockedBy|length)"'
+# milestones
+gh issue list --state open --json number,milestone \
+  --jq '.[] | "\(.number) \(.milestone.title // "SEM MILESTONE")"'
+
+# dependencias (uma chamada por issue — o `gh issue list --json` NAO tem campo de dependencias)
+gh api repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by --jq 'length'
 ```
 
 Um `gh issue edit` que imprime sucesso e uma milestone que nao ficou atribuida sao indistinguiveis
-sem esta leitura.
+sem esta leitura. E uma dependencia que nunca foi criada le-se `0` aqui — nunca no output do comando
+que a devia ter criado.
 
 ## Regras
 

@@ -321,28 +321,112 @@ await page.mouse.click(box.x + designX * sx, box.y + designY * sy);
 
 Repeated failure mode: a temp `.mjs` written inside the frontend folder (because `@playwright/test` only resolves from there), then left behind by agents. Put the script in the session scratchpad and resolve the package explicitly:
 
+### Receita de arranque do Playwright — copiar tal e qual ⏳(verificado macOS 2026-08-20)
+
+⏳ **Estado de máquina, não facto permanente.** Versões e builds mudam; a receita descobre-os em
+runtime de propósito. Se falhar, re-verificar e re-datar esta secção — não cravar valores.
+
+Três coisas partem sempre, por esta ordem (foram **4 tentativas** por sessão até isto estar escrito):
+
+| # | Sintoma | Causa | Fix |
+|---|---|---|---|
+| 1 | `Cannot find package 'playwright'` | não está no `node_modules` do projecto nem no global **por nome** — vive dentro do `@playwright/cli` | resolver por `npm root -g` + `/@playwright/cli/node_modules/playwright` |
+| 2 | `require is not defined` / `does not provide an export named 'chromium'` | o pacote é **CommonJS** (`package.json` sem `type`) e o script é `.mjs` | `createRequire(import.meta.url)` — ESM ignora `NODE_PATH` |
+| 3 | `browserType.launch: Executable doesn't exist at .../chromium_headless_shell-1224/...` | o build que o pacote pede **não está no cache**; o que lá está é outro (1148/1223/1234) | `executablePath` explícito, escolhido do cache em runtime |
+
 ```js
-import { createRequire } from 'node:module';   // ESM ignores NODE_PATH — createRequire is required
+import { createRequire } from 'node:module';   // ESM ignora NODE_PATH — createRequire é obrigatório
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 const require = createRequire(import.meta.url);
-// Resolver o caminho real na máquina, não o cravar:
-//   npm root -g  →  <prefix>/lib/node_modules
+
+// 1+2 — resolver o pacote (CommonJS) pelo caminho real da máquina, nunca cravado
 const PW = process.env.PLAYWRIGHT_PKG
   || `${execSync('npm root -g').toString().trim()}/@playwright/cli/node_modules/playwright`;
 const { chromium } = require(PW);
-const browser = await chromium.launch({
-  executablePath: process.env.CHROME_BIN
-    || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // macOS default
+
+// 3 — escolher o build que EXISTE no cache (o pedido pelo pacote pode não estar lá)
+//     headless → chromium_headless_shell-*  ·  headed/screenshots fiéis → chromium-*
+const CACHE = `${process.env.HOME}/Library/Caches/ms-playwright`;          // macOS
+//     ⚠ ordenação NUMÉRICA pelo número do build — `.sort()` é de TEXTO e, no dia em que
+//       aparecer um build de 5 dígitos, escolheria em silêncio o mais antigo.
+const build = fs.readdirSync(CACHE)
+  .filter(d => /^chromium_headless_shell-\d+$/.test(d))
+  .sort((a, b) => Number(a.split('-').pop()) - Number(b.split('-').pop()))
+  .pop();
+const exe = process.env.CHROME_BIN
+  || `${CACHE}/${build}/chrome-headless-shell-mac-arm64/chrome-headless-shell`;
+
+const browser = await chromium.launch({ executablePath: exe });
+```
+
+Alternativas de `executablePath`, por ordem de preferência (todas confirmadas neste Mac):
+
+| Alvo | Caminho |
+|---|---|
+| headless shell (rápido, default) | `~/Library/Caches/ms-playwright/chromium_headless_shell-<N>/chrome-headless-shell-mac-arm64/chrome-headless-shell` |
+| Chrome for Testing (headed, render fiel) | `~/Library/Caches/ms-playwright/chromium-<N>/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing` |
+| Chrome do sistema (perfil real) | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
+
+⚠ `playwright-core` **não** está instalado globalmente nesta máquina — só o `@playwright/cli` (que
+o traz dentro). `require('playwright-core')` falha; usar a resolução acima.
+(Outra fonte possível: `ls -d ~/.npm/_npx/*/node_modules/playwright | head -1` — o hash do cache npx
+não é estável, nunca cravar.)
+
+**Custo:** cada invocação do CLI custa ~20-40s. Encadear 3-4 comandos numa só chamada `Bash`
+estoura o timeout de 120s — **1 comando por chamada**, ou um único `evaluate` que faça tudo dentro
+do browser. E nunca deixar um passo ler um ficheiro intermédio sem verificar que não está vazio.
+
+`page.evaluate(fn, arg)` takes **one** argument only — pass an object, not a positional list (`page.evaluate(fn, null, 2)` silently drops the extras).
+
+### Provar que o clique acerta no alvo — `elementFromPoint`
+
+Auditar `href` **não é** testar o clique, e ler `getComputedStyle` num ponto calculado não prova que
+o rato lá está. Dois bugs chegaram ao utilizador por isto (itens de menu tapados por um irmão do
+Elementor; um hover medido 13px ao lado do ícone depois de o layout reordenar num reload).
+
+Regra: qualquer link/botão/overlay verifica-se com `elementFromPoint` no **centro da caixa**, em
+carga limpa e **depois** do último reload — antes de ler qualquer estilo.
+
+```js
+const mortos = await page.evaluate(() => {
+  const fora = [];
+  for (const el of document.querySelectorAll('a[href], button')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) continue;                       // escondido: não é o mesmo defeito
+    const topo = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (topo !== el && !el.contains(topo)) fora.push({ txt: el.textContent.trim().slice(0, 40), tapado: topo?.className });
+  }
+  return fora;
 });
 ```
 
-(Alternative source: `ls -d ~/.npm/_npx/*/node_modules/playwright | head -1` — the npx cache hash is not stable, never hardcode it.)
+⚠ `elementFromPoint` só vê o **viewport** — um elemento fora do ecrã devolve `null`. Rolar até ele
+primeiro (ver a regra do scroll abaixo).
 
-`page.evaluate(fn, arg)` takes **one** argument only — pass an object, not a positional list (`page.evaluate(fn, null, 2)` silently drops the extras).
+### Scroll para medir: `behavior:'instant'`, sempre
+
+`scrollIntoView()` / `scrollBy()` num documento com `html{scroll-behavior:smooth}` é **animado** — os
+`getBoundingClientRect` lidos no mesmo tick vêm do sítio antigo. Deu `y=2166` numa viewport de 900 e
+a medição de contraste saiu feita sobre os pixels errados: sem erro, só números plausíveis.
+
+```js
+el.scrollIntoView({ behavior: 'instant', block: 'center' });
+window.scrollTo({ top: y, behavior: 'instant' });
+```
+
+E **confirmar a posição** (`window.scrollY`) antes de ler rects — não assumir que o scroll aterrou.
 
 ### Playwright MCP: output lands in the cwd
 
 The MCP writes `.playwright-mcp/` and screenshots into the **server's cwd**, which under JOCA_OS is `JOCA_Brain` — production, read-only by hard rule. Worse: a **relative** `filename` reports success and writes nothing readable. Always pass an **absolute** path inside the allowed root (`<repo>/.playwright-mcp/`), read the file, then move/delete it. Paths outside the root give `File access denied`.
+
+`Browser is already in use for ...ms-playwright-mcp..., use --isolated` = Chrome órfão de outra
+sessão a segurar o lock do profile; `browser_close` **não** recupera. Duas saídas:
+`pkill -f ms-playwright-mcp` (mata a árvore + `crashpad-handler`) e apagar o `SingletonLock` do
+profile; ou arrancar o servidor MCP isolado — `PLAYWRIGHT_MCP_ISOLATED=1` (confirmado no README do
+`@playwright/cli`), que é o que a flag `--isolated` do erro faz: perfil em memória, nada em disco.
+Mais fiável que ambos: o script directo da receita acima.
 
 ### Don't verify live while a tester agent runs
 

@@ -58,6 +58,18 @@ para as rotinas completas; o resumo:
 
 Nenhum relatório fecha como "sem defeitos de navegação/responsivo" sem estes dois terem corrido.
 
+**Não reescrevas o gate.** Os dois acima, mais contraste sobre o pixel pintado, alvos <24 px e
+nome acessível, já estão em `.claude/scripts/gate-runtime.mjs`:
+
+```bash
+node .claude/scripts/gate-runtime.mjs --base http://localhost:3000 --rotas /,/precos --out .joca/gate-runtime
+node .claude/scripts/gate-runtime.mjs --base http://localhost:3000 --clicar "header button,[aria-haspopup]"
+```
+
+Escreve `relatorio.json` + screenshots e sai 1 se houver problema. **Sem `--clicar` mediu só o
+repouso** — overlays/menus/modais exigem accionar o gatilho, senão a rota sai "limpa" com a árvore
+React morta ao primeiro clique. Detalhe das flags: `.claude/reference/gates-runtime.md`.
+
 ### Testing checklist
 - [ ] `elementFromPoint` corrido em todos os links interactivos (carga limpa)
 - [ ] Sangramento horizontal medido por rects a 390px, não por `scrollWidth`

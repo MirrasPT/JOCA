@@ -10,7 +10,23 @@ Analyse request, pick CLI, craft prompt, spawn agent.
 
 ## 1. Model selection
 
-**ROUTING RULE:** Gemini = 1:1 only (ignores ratio). Ratio != 1:1 -> use img-gen-openai.
+**Motor por omissão = `agy` (Antigravity/Gemini).** Está incluído na subscrição. O gen-ai CLI da
+Picsart só se usa quando o utilizador o pedir **pelo nome** — um pedido por modelo ("usa o nano
+banana 2") é pedido de **modelo**, não de fornecedor, e o mesmo modelo sai de graça pelo `agy`
+(medido: 928×1152 idêntico nos dois caminhos, 21 créditos gastos por nada).
+
+**ROUTING RULE (medida 2026-08-13, substitui a antiga "Gemini = 1:1 only"):** o `agy` **gera
+não-quadrado**. 16:9 → 1376×768 · 4:5 → 928×1152 (desvio ~0,8 %). A regra antiga mandava todo o
+trabalho não-quadrado para o OpenAI sem necessidade. Encaminhar por **conteúdo** (texto/marca/precisão
+→ OpenAI), não por rácio.
+
+**Rácios do `agy`** — lista auto-declarada pelo CLI: `1:1` (default, sai exactamente 1024×1024) ·
+`16:9` · `9:16` · `4:3` · `3:4` · `3:2` · `2:3`.
+⚠ **`4:5` (Feed Instagram) está FORA da lista** e é o formato de todo o trabalho de redes sociais.
+Foi produzido quando pedido imperativamente, mas não é garantido: rácio fora da lista **cai em
+silêncio no vizinho** (4:5 → 3:4, 896×1200). Consequência dura: **medir as dimensões do ficheiro
+antes de o aceitar, sempre** — e calcular qualquer cover-fit a partir do rácio **real do ficheiro**,
+nunca do pedido.
 
 ### Use Codex CLI / OpenAI (`img-gen-openai`) when:
 - **Text in image** -- labels, signs, product names, headlines, packaging copy, any readable text requiring accuracy
@@ -20,13 +36,14 @@ Analyse request, pick CLI, craft prompt, spawn agent.
 - **Reference-image editing** -- heavy transforms or restyle of existing image
 - **Dense typography / diagrams** -- infographics with labels, data viz with text
 - **High-fidelity delivery** -- final hero image, client deliverable
-- **Any non-square aspect ratio** (16:9, portrait, ultra-wide) -- gpt-image-2 honours ratios natively (~1672x941 for 16:9); upscale to 2K via `ffmpeg scale=2048:1152:flags=lanczos`
+- **Rácio fora da lista do `agy`** (ex.: 21:9) ou rácio que tem de sair exacto -- gpt-image-2 honra rácios nativamente (~1672x941 para 16:9); upscale para 2K via `ffmpeg scale=2048:1152:flags=lanczos`. Para 16:9/9:16/4:3/3:4/3:2/2:3 o `agy` chega
 
 ### Use Antigravity CLI / Gemini (`img-gen-google`) when:
 - **General imagery** -- people, animals, landscapes, scenes, abstract patterns, textures, backgrounds
 - **Simple/emotional concepts** -- "cute fluffy dog", "misty mountain", "warm cafe interior"
 - **Quick drafts / iteration** -- explore directions cheaply
 - **High-volume generation** -- 10+ images, batch workflows
+- **Rácios da lista suportada** -- 16:9, 9:16, 4:3, 3:4, 3:2, 2:3 (medir sempre o ficheiro)
 - **Web/UI backgrounds** -- abstract gradients, textures, UI mockup backgrounds
 - **No text in image required**
 
@@ -74,6 +91,47 @@ Lead with style, then subject. Clean descriptive language.
 - Avoid text in image — not reliable
 - Include aspect ratio in prompt when needed
 
+#### Prompt em JSON (Nano Banana / Gemini) — a via de mais controlo
+Prosa dá estilo; **JSON dá enquadramento**. Esqueleto validado:
+
+```json
+{
+  "subject": { "description": "...", "placement": "lower third, centred", "scale_in_frame": "35%" },
+  "environment": { "description": "...", "excluded": ["pessoas", "texto", "logótipos"] },
+  "composition": { "upper_third": "clean, sem elementos — reservado para copy" },
+  "lighting": "...", "camera": "35mm, eye level, shallow depth of field",
+  "negative": ["watermark", "wordmarks", "moldura", "texto"]
+}
+```
+
+⚠ **O rácio é a excepção que vive FORA do JSON.** Enterrado como campo `"aspect_ratio"` foi ignorado
+(pedido 4:5 → saiu 896×1200, ou seja 3:4). O rácio vai como **instrução imperativa em texto corrido,
+no topo do prompt**, antes do bloco JSON.
+
+#### Invocação do `agy` (medido 1.1.12 → 1.1.16)
+```bash
+agy --print "$(cat prompt.txt)" --dangerously-skip-permissions --effort high --print-timeout 30m
+```
+- **`--dangerously-skip-permissions` é obrigatório** em `--print`. Sem ela o headless morre com
+  `a tool required the "command" permission that headless mode cannot prompt for, so it was auto-denied`
+  e **não produz ficheiro**. ⚠ Esta instrução **já esteve ao contrário** (na 1.1.5 a flag partia o
+  `--print`): é a segunda inversão. Se o `agy --version` não corresponder, **testar antes de confiar**.
+- Sem a flag, o `agy` **escreve o ficheiro mesmo reportando erro de permissão** — verificar sempre
+  pelo **artefacto** (`ls`), nunca pelo código de saída nem pela última linha do log.
+- **Não existe flag `-i` de imagem no `agy`** (`-i` é alias de `--prompt-interactive`). Referências
+  vão como **caminhos absolutos no corpo do prompt**, com instrução explícita de os ler primeiro.
+  O CLI declara aceitar **até 3 refs** (o `codex` aceita 5).
+- **Onde aterra:** muda entre versões — 1.1.12 em `~/.gemini/antigravity-cli/brain/<session-id>/`,
+  1.1.15+ em `~/.gemini/antigravity-cli/scratch/<nome>.png` (às vezes com cópia na home). Fixar o
+  nome no prompt (`Name the generated image file EXACTLY: <nome>`) e **localizar por nome**
+  (`find ~/.gemini/antigravity-cli ~ -name '<nome>.*'`), nunca "o mais recente" nem uma pasta fixa.
+- **Uma geração demora >2 min → a shell mata-a em primeiro plano (exit 143).** Lote:
+  `run_in_background` + espera por `until [ -f <ficheiro> ]; do ...; done`. Perdeu-se 1 de 3 gerações
+  paralelas por isto.
+- **Gerar é chamar o gerador.** O `agy` tem shell e, quando a geração falha, tende a escrever um
+  script PIL/matplotlib/SVG e a chamar-lhe imagem. Proibir no prompt; se o gerador não correr,
+  reportar e parar.
+
 ### Text in image — verbatim protocol (both models, critical for OpenAI)
 - Quote literal text in quotes or ALL CAPS; spell tricky words letter-by-letter.
 - Specify typography + placement; forbid extra/garbled characters ("no extra text").
@@ -120,6 +178,27 @@ If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel.
 
 **Validate** before iterating: subject, style, composition, text accuracy, invariants/avoid honored.
 
+**Medir o rácio no ficheiro, não no pedido.** `sips -g pixelWidth -g pixelHeight <f>` (macOS) ou
+`python3 -c "from PIL import Image;print(Image.open('f.png').size)"`. Pedido fora da lista suportada
+cai no vizinho **em silêncio** — o ficheiro existe e está errado.
+
+**Folha de contacto antes de aceitar um lote.** Um conjunto que tem de ler como sistema (avatares,
+ícones, posts do mês) não se valida imagem a imagem: montar N×N num só PNG e olhar. Apanhou 2 de 9
+ilegíveis num olhar, e reduziu 23 leituras de imagem a 3.
+
+```bash
+# montagem 3×3 (ffmpeg; testado). O scale+pad é obrigatório: o tile assume células iguais
+ffmpeg -y -pattern_type glob -i 'out*.png' -filter_complex \
+  "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2,tile=3x3:margin=8:padding=8" \
+  -frames:v 1 contact.png
+```
+
+**Wordmarks inventados.** Modelos fotorrealistas escrevem marcas falsas em roupa e equipamento —
+3 em 3 gerações com pessoas em plano próximo. Passam despercebidas porque são ilegíveis. Procurar
+com **zoom** em vestuário/equipamento antes de aceitar. Se houver remoção por clonagem (PIL):
+máscara com blur ≥3 numa caixa pequena dilui a opacidade para ~50 % e deixa o logótipo **translúcido
+por baixo** — verificar por **luminância máxima da caixa vs tecido de referência**, não a olho.
+
 **Format ≠ content.** `file out.png` saying "PNG image data" proves nothing about what is in it. Several agents accepted a downloaded asset on `file` alone and shipped the Chinese handset maker's logo instead of the Brazilian carrier Vivo — a perfectly valid PNG of the wrong company. Any asset fetched from search must be *looked at* before it is accepted.
 
 **Fan-out collision check.** After N parallel image generations, `md5` all outputs. Byte-identical files mean the copy step grabbed another session's PNG (`~/.codex/generated_images/` is shared) — regenerate, don't ship.
@@ -130,9 +209,22 @@ If spawning both: launch `img-gen-openai` and `img-gen-google` in parallel.
 
 **List the whole destination folder at the end, not just the expected names.** With `--dangerously-bypass-approvals-and-sandbox`, codex invents extra unrequested files on its own initiative (a whole fictional "social pack" with plausible names). Delete what was not asked for before reporting.
 
-**Save-path discipline (non-destructive):**
+**Save-path discipline (non-destructive) — ⛔ regra dura:**
+- **`test -f <destino>` ANTES de escrever.** Se existir → **nome irmão versionado** (`hero-v2.png`).
+  Escrever por cima de um ficheiro existente é **irreversível**: dois emblemas já aprovados pelo
+  utilizador foram sobrescritos numa geração seguinte e só se recuperaram por sorte, do cache do
+  codex. Só se sobrescreve quando o utilizador pediu **substituição** explicitamente.
+  ```bash
+  test -f "$DEST" && DEST="${DEST%.png}-v2.png"; cp "$SRC" "$DEST"
+  ```
 - Never leave a project-referenced asset only at a CLI default temp path — move it into the project workspace.
-- Never overwrite an existing asset unless replacement is explicitly requested — write a sibling versioned name (`hero-v2.png`).
+
+**Detectar PNG falso (extensão ≠ conteúdo).** O destino tem de ser provado, não assumido:
+```bash
+file "$DEST"   # tem de dizer: PNG image data, WxH
+```
+Uma corrida copiou um `.log` redireccionado e escreveu 6 KB de **texto** com extensão `.png`. Não
+redireccionar logs para a pasta que o passo de cópia varre. (Formato ≠ conteúdo — ver acima.)
 
 **Report:** taxonomy slug, CLI used, final saved path(s), final prompt, key parameters. If multiple images, list all paths.
 

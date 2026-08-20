@@ -682,23 +682,23 @@
     "name": "deploy-vps",
     "category": "general",
     "path": ".claude/skills/deploy-vps.md",
-    "description": "Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, SSH key setup VPS, Cloudflare DNS AP",
+    "description": "Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, Caddyfile, SSH key setup ",
     "triggers": [
       "deploy VPS",
       "VPS setup",
       "Caddy",
-      "Caddy server",
+      "Caddyfile",
+      "caddy validate",
+      "caddy reload",
       "SSH key VPS",
       "Cloudflare DNS API",
       "scp site",
       "static site VPS",
-      "fresh Ubuntu server",
-      "bootstrap SSH",
-      "plink fingerprint",
-      "ED25519 key",
-      "/var/www",
-      "publicar VPS",
-      "configurar servidor"
+      "SPA no VPS",
+      "try_files",
+      "php_fastcgi",
+      "LEMP",
+      "fresh Ubuntu server"
     ]
   },
   {
@@ -1816,7 +1816,7 @@
     "name": "public-release-audit",
     "category": "general",
     "path": ".claude/skills/public-release-audit.md",
-    "description": "Preparar e auditar um repo privado antes de o publicar (ou de publicar um diff) num repo público. Varre por git e não por disco, apanha espelhos compilados, symlinks, metadados de autor e dependências",
+    "description": "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Varre por git e não por disco, apanha ",
     "triggers": [
       "publicar repo público",
       "open source release",
@@ -1828,10 +1828,11 @@
       "auditar release",
       "público vs privado",
       "PII scan",
-      "publicar no repo público",
-      "preparar release público",
-      "scrub antes de publicar",
-      "auditar o que vai sair"
+      "push para repo de cliente",
+      "entregar código a terceiros",
+      "repo da org do cliente",
+      "primeiro push para remote novo",
+      "adicionar segundo remote"
     ]
   },
   {

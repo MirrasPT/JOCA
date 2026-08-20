@@ -59,6 +59,11 @@ mobile (`getBoundingClientRect().right` vs `innerWidth`; `scrollWidth-clientWidt
 e observar) · deploy (dependências derivadas do **HTML publicado**). Casos e detalhe:
 `.claude/reference/gates-runtime.md`.
 
+**Não reescrever o gate por projecto:** `node .claude/scripts/gate-runtime.mjs --base <url>
+[--rotas /,/precos] [--clicar "<seletor>"]` mede contraste sobre o pixel pintado,
+`elementFromPoint`, sangramento com filtro de scrollers, nome acessível, erros de consola e
+HTTP >=400. Sem `--clicar` mede só o **repouso** — overlays e modais exigem accionar o gatilho.
+
 **Diagnóstico é passo com gate próprio:** afirmar "X está partido" só depois de **ler o código de X**,
 com ficheiro:linha por afirmação. Comparar nomes e tamanhos de ficheiros não é ler.
 

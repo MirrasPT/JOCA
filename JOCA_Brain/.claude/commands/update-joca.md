@@ -15,38 +15,99 @@ between two histories that never shared a commit either refuses outright or, if 
 public template's `<JOCA_ROOT>` placeholders and depersonalised `soul.md` over a live installation.
 
 ```
-cd <JOCA_DIR>
-git remote -v                       # who is origin? is there an upstream?
+cd <JOCA_DIR>                       # SEMPRE a raiz do repo (ver aviso do passo de direccao)
+git remote -v                       # que remotes existem? qual deles e o publico?
 git fetch --all --quiet
-# is the public repo an ancestor at all?
-PUB=$(git remote -v | grep -m1 'MirrasPT/JOCA\.git' | awk '{print $1}')   # origin | upstream | (empty)
-[ -n "$PUB" ] && git merge-base HEAD "$PUB/main" >/dev/null 2>&1 && echo "ANCESTOR: yes" || echo "ANCESTOR: no"
+# nome do remote publico — DERIVA-SE, nunca se crava: nesta maquina pode ser
+# `origin`, `upstream`, `publico`, …
+PUB=$(git remote -v | grep -m1 'MirrasPT/JOCA\.git' | awk '{print $1}')
+# ramo por omissao DESSE remote — tambem se deriva (`main` num, `master` noutro)
+PUBBASE=$(git symbolic-ref --quiet --short "refs/remotes/$PUB/HEAD" 2>/dev/null | sed "s|^$PUB/||")
+[ -z "$PUBBASE" ] && PUBBASE=$(git remote show "$PUB" | sed -n 's/.*HEAD branch: //p')
+echo "publico: $PUB/$PUBBASE"
+[ -n "$PUB" ] && git merge-base HEAD "$PUB/$PUBBASE" >/dev/null 2>&1 && echo "ANCESTOR: yes" || echo "ANCESTOR: no"
 ```
+
+⚠ **`$PUB` e `$PUBBASE` sao a fonte para TODOS os comandos abaixo.** Escrever `upstream` ou `main`
+a mao falha com `unknown revision` na primeira instalacao cujo remote se chame outra coisa — ja
+aconteceu (o remote chamava-se `publico`). Mesmo padrao do `$BASE` da Fase 2.
 
 | Shape | How to recognise it | What to do |
 |---|---|---|
 | **A — clone of the public repo** | `origin` is `MirrasPT/JOCA`, and `ANCESTOR: yes` | Continue to Phase 1. This is the normal path. |
-| **B — a working install with its own history** | `origin` is some *other* repo (a private fork/working repo), the public one is `upstream` or absent, and/or `ANCESTOR: no` | **STOP. Do not pull, do not merge.** Report and offer the selective-checkout path below. |
+| **B — a working install with its own history** | `origin` is some *other* repo (a private fork/working repo), the public one is a second remote (`upstream`, `publico`, …) or absent, and/or `ANCESTOR: no` | **STOP. Do not pull, do not merge.** Corre o passo de direccao abaixo e so depois o selective-checkout. |
+| **C — dois remotes, porte recorrente** | shape B, mas o porte publico↔privado e o **fluxo normal** desta maquina, nao uma excepcao | Mesmo caminho do B. O porte repete-se: nao o tratar como one-shot. |
+
+⚠ **"sem ancestral comum" nao implica "sem updates".** O publico pode ser gerado *a partir* do
+privado (downstream) e mesmo assim estar a frente em arquitectura. Quem declara em dia e o passo de
+direccao, nao o `merge-base`.
 
 **Why B cannot be pulled.** A working install carries files the public repo will never have — real
 memory, per-project state, `JOCA_OS/data/`, personal skills. The two histories have no common
 ancestor, so git has no basis to merge them; and the public branch is a *template*, not an
 installation, so importing it wholesale also imports things that must not land on a live machine.
 
+### Passo de direccao (obrigatorio ANTES do checkout)
+
+Um selective-checkout de uma foto **mais velha** do proprio codigo e uma regressao silenciosa: num
+repo real teria reposto o `JOCA_OS/.gitignore` com `data/` ignorada (o defeito que faz as 2 maquinas
+divergirem sem aviso) e apagado as portas configuraveis do `start.bat`/`stop.bat`. Nem o `tsc` nem o
+build se queixam. Portanto mede-se primeiro **o que vem de onde**.
+
+```
+cd "$(git rev-parse --show-toplevel)"          # ⚠ ver aviso abaixo
+PATHS="JOCA_Brain/.claude/skills JOCA_Brain/.claude/agents JOCA_Brain/.claude/commands \
+       JOCA_Brain/.claude/rules JOCA_Brain/.claude/reference \
+       JOCA_OS/backend/src JOCA_OS/frontend/src JOCA_OS/cli"
+git fetch "$PUB" --quiet
+
+git diff --diff-filter=A --name-only HEAD "$PUB/$PUBBASE" -- $PATHS   # so no publico → importar
+git diff --diff-filter=A --name-only "$PUB/$PUBBASE" HEAD -- $PATHS   # so aqui → NAO importar
+git diff --stat HEAD "$PUB/$PUBBASE" -- $PATHS                        # conteudo que diverge
+```
+
+| Resultado | Leitura |
+|---|---|
+| 1ª lista vazia | Zero ficheiros exclusivos do publico → **nada a importar, parar aqui.** |
+| 1ª lista com ficheiros | Ha material novo → seguir para o checkout, so desses caminhos. |
+| 2ª lista com ficheiros | Sao locais. O checkout **nao** lhes toca; nao entram na lista de remocoes. |
+
+⚠ **`git log HEAD..$PUB/$PUBBASE` NAO serve como sinal de direccao.** Historias geradas a parte dao
+contagens altas com zero conteudo novo — um caso real deu 9 commits "a mais" e 0 ficheiros novos.
+
+⚠ **`git ls-tree` / `git show <ref>:<path>` / `git diff -- <path>` sao cwd-relativos ao repo LOCAL**,
+mesmo para refs de outro historico: corridos de dentro de `JOCA_Brain/` o prefixo do cwd cola-se ao
+pathspec e da falso-negativo. Correr sempre da raiz (`git rev-parse --show-toplevel`).
+
+⚠ **Comparar contra a ARVORE DE TRABALHO, nao contra o commit.** `git show HEAD:<f>` ignora o que
+esta em staging/working tree — uma comparacao assim deu 14 de 19 ficheiros a divergir quando so 3
+divergiam mesmo (`git hash-object <f>` contra `git rev-parse "$PUB/$PUBBASE:<f>"`). Rejeita ficheiros
+seguros e subestima muito o que da para trazer.
+
 **The selective-checkout path for shape B** (only writes, never deletes — local-only files survive
 untouched by construction):
 
 ```
 git branch backup/pre-update-$(git rev-parse --short HEAD)      # 1. make it reversible FIRST
-git fetch upstream
-git checkout upstream/main -- JOCA_Brain/.claude/skills JOCA_Brain/.claude/agents \
-                              JOCA_Brain/.claude/commands JOCA_Brain/.claude/rules \
-                              JOCA_Brain/.claude/reference \
-                              JOCA_OS/backend/src JOCA_OS/frontend/src JOCA_OS/cli   # 2. code paths ONLY
+git checkout "$PUB/$PUBBASE" -- $PATHS                          # 2. code paths ONLY
 ```
 
 Never checkout `memory/`, `JOCA_OS/data/`, `.claude/settings.json` or `soul.md` this way — those are
 the installation, not the toolkit.
+
+### Passo das remocoes (o checkout so escreve)
+
+`git checkout <ref> -- <paths>` **nunca apaga**. Num release que remove ficheiros (aconteceu:
+−10 546 linhas, 22 ficheiros apagados) seguir o comando a letra deixa o codigo antigo no disco com as
+rotas novas a nao o montar — e nem o `tsc` nem o build se queixam.
+
+```
+git diff --diff-filter=D --name-only HEAD "$PUB/$PUBBASE" -- $PATHS   # candidatos a remover
+```
+
+⚠ **"ausente a montante" ≠ "a apagar".** Da lista tirar tudo o que o publico apenas **ignora** ou
+nunca teve: `package-lock.json`, ficheiros com `origin: local` no frontmatter, e o que apareceu na
+2ª lista do passo de direccao (exclusivos locais). O que sobrar, e so isso, sai por `git rm`.
 
 `JOCA_Brain/.claude/reference/` viaja com o toolkit (templates do `/start`, playbooks, stacks) —
 e codigo, nao estado. Os `PROGRESSO.md` vivem nos repos dos PROJECTOS, nunca neste — o update do
@@ -463,6 +524,11 @@ Next:
 ## Rules
 
 - One direction only: GitHub -> local. Never `git push`, never `git commit`
+- Nome de remote e de ramo **derivam-se sempre** (`$PUB`/`$PUBBASE` na Fase 0, `$BASE` na Fase 2).
+  Nunca escrever `upstream`, `main` ou `master` a mao — falha com `unknown revision`, ou pior,
+  reporta "ja actualizado" em falso
+- Shape B: passo de **direccao** antes do checkout, passo das **remocoes** depois. O checkout sozinho
+  nunca apaga e pode andar para tras
 - NEVER overwrite `memory/projects/`, `memory/feedback/`, or `memory/soul.md`
 - NEVER overwrite any file in `JOCA_OS/data/` (projects.json, project-memory.json, session-snapshots.json, ui-settings.json)
 - NEVER overwrite files with `origin: local` in frontmatter

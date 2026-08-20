@@ -26,6 +26,31 @@ sem evidência ao vivo:
 | Playback · media · streaming | reproduzir e observar; o ciclo de vida de streams não se prova a compilar |
 | Deploy | dependências derivadas do **HTML publicado**, não da lista do que foi enviado (ver pipeline Deploy) |
 
+## O gate como artefacto — `gate-runtime.mjs`
+
+A regra acima existia há meses sem código: cada projecto frontend reescrevia ~250 linhas do zero, e cada reescrita perdia uma das armadilhas. Numa sessão, `tsc`+`eslint`+`build` estavam verdes enquanto 9 controlos não tinham nome acessível, 3 rotas rolavam na horizontal e a paginação empurrava a página para fora do ecrã.
+
+```bash
+node .claude/scripts/gate-runtime.mjs --base http://localhost:3000 --rotas /,/precos,/sobre
+node .claude/scripts/gate-runtime.mjs --config gate-runtime.json --clicar "header button,[data-testid=menu]"
+```
+
+| Flag | Efeito |
+|---|---|
+| `--base <url>` | obrigatório (ou `base` no `--config`) |
+| `--rotas a,b,c` | default `/` |
+| `--temas a,b` | escreve `data-theme` no `<html>` e repete a matriz |
+| `--viewports WxH,…` | default `1440x900,390x844` |
+| `--clicar <seletor>` | clica em cada elemento que casa e conta erros novos |
+| `--out <pasta>` | default `./.joca/gate-runtime` (relatório JSON + screenshots) |
+| `--esperar <ms>` | espera após carga, antes de medir (default 500) |
+
+Mede: contraste do texto contra o pixel **pintado** (alpha composto sobre os ancestrais; fundo com gradiente/imagem é assinalado como *não medível*, não adivinhado) · `document.elementFromPoint` no centro de cada alvo interactivo · sangramento por `getBoundingClientRect().right` **descartando** ancestrais com `overflow-x: auto|scroll|hidden|clip` · alvos <24 px · botões sem nome acessível (`label[for]` **não** nomeia um `<button>` — armadilha transversal a Radix/shadcn/Headless) · erros de consola e `pageerror` · HTTP >= 400. Sai com 1 se alguma combinação tiver problema.
+
+⚠ **Sem `--clicar` mede o estado de REPOUSO.** Um gate que nunca interage é um gate de layout: quatro sobreposições publicadas não abriam e matavam a árvore React da página, e o gate dava a rota como limpa. Alvos cujo centro cai fora do viewport não são medidos — o resumo di-lo em vez de os dar por bons.
+
+Playwright: resolvido em runtime (dependência do projecto → `npm root -g` → `PLAYWRIGHT_PATH`), e se não houver binário descarregado usa o Chrome instalado (`CHROME_BIN`). Nunca um caminho cravado — um gate que não arranca é um gate que não existe.
+
 **Diagnóstico é um passo com gate próprio:** um passo que afirma "X está partido" só produz output
 **depois de ler o código de X**, com citação de ficheiro:linha por afirmação. Comparar nomes e
 tamanhos de ficheiros não é ler. Um `WORKFLOW.md` commitado antes da leitura trouxe 2 de 3

@@ -327,6 +327,149 @@ if (!fs.existsSync(OS_DIR)) {
   }
 }
 
+// ── 9. Integridade de conteúdo ────────────────────────────────────────────────
+// As secções 1-8 contam ficheiros e validam JSON. Nada disso apanha a classe de defeito
+// mais cara do toolkit: o ficheiro existe, o índice bate certo, e o conteúdo aponta para
+// o vazio ou é inalcançável. Quatro checks, quatro falhas reais já pagas.
+section('9. Integridade de conteúdo');
+
+const rulesDir = path.join(BRAIN, '.claude', 'rules');
+const DIRS_MD = [
+  [skillsDir, 'skills'],
+  [agentsDir, 'agents'],
+  [commandsDir, 'commands'],
+  [rulesDir, 'rules'],
+];
+
+// 9a. Ponteiros citados que não resolvem.
+// `anima.md` apontava para 8 ficheiros numa pasta `./gsap/` que nunca existiu no repo, e
+// `hyperframes.md` para mais 5. Um agente lê a skill, tenta o Read(), falha, e improvisa
+// sem avisar. Só se contam paths ANCORADOS na árvore do Brain: `docs/…` é do projecto-alvo,
+// não daqui, e `memory/{projects,feedback,knowledge}/` é estado gerado em runtime.
+const RE_PATH = /`((?:\.claude|\.agents|\.codex|memory)\/[A-Za-z0-9._/-]+\.(?:md|mjs|js|cjs|py|sh|json))`/g;
+const RUNTIME = /^memory\/(feedback|projects|knowledge|decisions|learnings|checkpoints)\//;
+// Um ponteiro CONDICIONAL nao e um ponteiro morto: a skill ja trata a ausencia ("se existir",
+// "if it exists"). Sem isto o check acusava 2 ficheiros que 15 skills citam de proposito como
+// opcionais — e um aviso que grita por um nao-defeito treina quem le a ignorar a seccao.
+// Bilingue de proposito: as skills importadas de terceiros estao em ingles.
+// A forma real nas skills e `If \`<path>\` exists (or …)` — o verbo vem DEPOIS do path, por isso
+// nao se procura uma frase contigua: basta a linha falar de existencia ou de verificar.
+const OPCIONAL = /\b(exists?|existir|exista|existe|houver|opcional|optional|if present|if available|check for|verifica se)\b/i;
+const mortos = new Map();
+let pathsVerificados = 0;
+for (const [dir, label] of DIRS_MD) {
+  for (const f of listMd(dir) || []) {
+    let texto;
+    try { texto = fs.readFileSync(path.join(dir, f), 'utf8'); } catch { continue; }
+    for (const m of texto.matchAll(RE_PATH)) {
+      const p = m[1];
+      if (/[<>*]/.test(p) || RUNTIME.test(p)) continue;   // placeholder/glob ou estado de runtime
+      // A linha onde o path aparece decide: citado como opcional -> nao e defeito.
+      const linha = texto.slice(texto.lastIndexOf('\n', m.index) + 1, (texto.indexOf('\n', m.index) + 1 || texto.length));
+      if (OPCIONAL.test(linha)) continue;
+      pathsVerificados++;
+      if (!fs.existsSync(path.join(BRAIN, p))) {
+        if (!mortos.has(p)) mortos.set(p, []);
+        mortos.get(p).push(`${label}/${f}`);
+      }
+    }
+  }
+}
+if (mortos.size) {
+  const linhas = [...mortos.entries()].slice(0, 6).map(([p, quem]) => `${p} (citado em ${quem.length}: ${quem.slice(0, 3).join(', ')}${quem.length > 3 ? '…' : ''})`);
+  warn(`${mortos.size} ponteiro(s) não resolvem em ${pathsVerificados} paths citados: ${linhas.join(' · ')}${mortos.size > 6 ? ` … (+${mortos.size - 6})` : ''}. Corrige o path, cria o ficheiro, ou escreve "se existir" se for opcional.`);
+} else {
+  ok(`${pathsVerificados} path(s) citados em skills/agents/commands/rules resolvem no disco`);
+}
+
+// 9b. Cobertura do trigger map.
+// Um pull do público removeu 14 linhas do trigger map com as skills todas presentes: 14
+// skills existentes ficaram inalcançáveis, sem erro nenhum. Contar ficheiros não detecta isto.
+const triggerAllow = path.join(BRAIN, '.claude', 'scripts', 'trigger-map-allowlist.json');
+let allow = [];
+if (fs.existsSync(triggerAllow)) {
+  try { allow = JSON.parse(fs.readFileSync(triggerAllow, 'utf8')); } catch (e) { warn(`trigger-map-allowlist.json ilegível (${e.message}) — ignorado.`); }
+}
+const allowSet = new Set(Array.isArray(allow) ? allow : allow.skills || []);
+try {
+  const claudeMd = fs.readFileSync(path.join(BRAIN, 'CLAUDE.md'), 'utf8');
+  const i = claudeMd.indexOf('### Trigger Map');
+  if (i < 0) {
+    warn('CLAUDE.md sem secção "### Trigger Map" — cobertura de skills não verificada.');
+  } else {
+    const mapa = claudeMd.slice(i);
+    const semTrigger = skillFiles
+      .map((f) => f.slice(0, -3))
+      .filter((n) => !allowSet.has(n))
+      .filter((n) => !new RegExp('`' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[`/ ]').test(mapa));
+    if (semTrigger.length) {
+      warn(`${semTrigger.length}/${skillFiles.length} skill(s) sem entrada no trigger map do CLAUDE.md — existem no disco mas nada as dispara: ${semTrigger.slice(0, 8).join(', ')}${semTrigger.length > 8 ? ` … (+${semTrigger.length - 8})` : ''}. Acrescenta a linha de trigger no CLAUDE.md (basta o nome entre crases numa linha de router, para sub-skills). Alternativa: cria .claude/scripts/trigger-map-allowlist.json com {"skills":["nome"],"motivos":{"nome":"porquê"}} para as que não se disparam sozinhas.`);
+    } else {
+      ok(`trigger map cobre as ${skillFiles.length} skills${allowSet.size ? ` (${allowSet.size} na allowlist)` : ''}`);
+    }
+  }
+} catch (e) {
+  warn(`CLAUDE.md ilegível (${e.message}) — cobertura do trigger map não verificada.`);
+}
+
+// 9c. Skill de execução sem agente gémeo.
+// Despachar `unity-ui-agent` falhou 3x porque a skill existia e o agente não. Custou um
+// turno inteiro. A lista curada vive no topo do skill-agents.mjs — lê-se de lá, não se copia.
+try {
+  const src = fs.readFileSync(path.join(BRAIN, '.claude', 'scripts', 'skill-agents.mjs'), 'utf8');
+  const bloco = src.match(/const EXECUTION_SKILLS = \{([\s\S]*?)\n\};/);
+  if (!bloco) {
+    warn('skill-agents.mjs sem bloco EXECUTION_SKILLS reconhecível — agentes gémeos não verificados.');
+  } else {
+    const exec = [];
+    for (const arr of bloco[1].matchAll(/\[([^\]]*)\]/g)) {
+      for (const q of arr[1].matchAll(/['"]([a-z0-9][a-z0-9-]*)['"]/g)) exec.push(q[1]);
+    }
+    const semSkill = exec.filter((s) => !fs.existsSync(path.join(skillsDir, `${s}.md`)));
+    const semAgente = exec.filter((s) => !fs.existsSync(path.join(agentsDir, `${s}-agent.md`)));
+    if (semSkill.length) warn(`skill-agents.mjs lista skill(s) que não existem: ${semSkill.join(', ')} — tira-as da lista curada.`);
+    if (semAgente.length) {
+      warn(`${semAgente.length} skill(s) de execução sem agente gémeo: ${semAgente.slice(0, 8).join(', ')}${semAgente.length > 8 ? ` … (+${semAgente.length - 8})` : ''}. Regenera: node .claude/scripts/skill-agents.mjs`);
+    } else if (!semSkill.length) {
+      ok(`${exec.length} skill(s) de execução têm agente gémeo`);
+    }
+  }
+} catch (e) {
+  warn(`skill-agents.mjs ilegível (${e.message}) — agentes gémeos não verificados.`);
+}
+
+// 9d. Line endings dos lançadores Windows.
+// O cmd.exe lê batch por offset de byte: um .bat gravado com LF sai truncado linha a linha
+// ('edelayedexpansion' is not recognized). Só aparece quando alguém tenta arrancar — e não
+// há gate nenhum entre a edição no Mac e o arranque no Windows.
+const bats = [];
+for (const d of [OS_DIR, ROOT]) {
+  try {
+    for (const f of fs.readdirSync(d)) if (/\.(bat|cmd)$/i.test(f)) bats.push(path.join(d, f));
+  } catch { /* dir inexistente */ }
+}
+if (!bats.length) {
+  ok('sem lançadores .bat/.cmd para verificar');
+} else {
+  const comLf = bats.filter((p) => {
+    const t = fs.readFileSync(p, 'utf8');
+    return /\n/.test(t) && /(^|[^\r])\n/.test(t);
+  });
+  if (!comLf.length) {
+    ok(`${bats.length} lançador(es) .bat/.cmd em CRLF`);
+  } else if (FIX) {
+    for (const p of comLf) fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(/\r?\n/g, '\r\n'));
+    ok(`--fix: ${comLf.length} lançador(es) convertidos para CRLF: ${comLf.map((p) => path.basename(p)).join(', ')}`);
+  } else {
+    // Só é FALHA na máquina que os corre. Fora do Windows é aviso: o `core.autocrlf` do
+    // git pode converter no checkout — o que não se pode é contar com isso, daí o
+    // `.gitattributes` (`*.bat eol=crlf`) ser a correcção durável.
+    const msg = `${comLf.length} lançador(es) .bat/.cmd com LF: ${comLf.map((p) => path.basename(p)).join(', ')} — no Windows o cmd.exe lê batch por offset de byte e trunca cada linha. Corre com --fix e fixa em .gitattributes: *.bat eol=crlf`;
+    if (IS_WIN) err(`${msg} (NÃO vão arrancar nesta máquina).`);
+    else warn(`${msg} (aviso: nesta máquina não corres .bat).`);
+  }
+}
+
 // ── Resumo ────────────────────────────────────────────────────────────────────
 console.log(`\nResumo: ${nOk} ✓ · ${nWarn} ⚠ · ${nErr} ✗${FIX ? ' (modo --fix)' : ''}`);
 if (nErr > 0) console.log('Há erros — vê as mensagens ✗ acima.');
