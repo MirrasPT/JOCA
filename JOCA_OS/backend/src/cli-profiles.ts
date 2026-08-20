@@ -1,13 +1,19 @@
 // Multi-CLI profiles — how to launch each supported coding agent inside a JOCA_OS PTY session.
 // Claude Code is the base; Codex CLI, Antigravity (agy) and OpenCode are alternatives selectable
-// per session / automation. Defaults below are best-effort for each CLI's current flags;
+// por sessao. Defaults below are best-effort for each CLI's current flags;
 // everything is overridable via DATA_DIR/cli-profiles.json (partial merge by id) so a flag rename
 // upstream is a config fix, not a code change.
 //
-// startupSequence: EVERY CLI boots inside JOCA_Brain (cwd) and receives a resume command with the
-// project folder — Claude Code understands the custom `/resume`; os outros CLIs não têm comandos
-// custom, por isso recebem `resume "<pasta>"` em texto simples (o AGENTS.md/GEMINI.md compilado no
-// JOCA_Brain diz-lhes o que isso significa).
+// startupSequence: correr a coreografia de arranque — esperar que a TUI esteja pronta e responder
+// aos diálogos que aparecem sozinhos ("trust this folder?", "Update available!"). NÃO envia nenhum
+// comando de contexto: o resume é MANUAL, pelo botão da barra do chat (ver session-manager).
+//   ⚠ O comentário anterior dizia que esta flag mandava um resume no arranque. Nunca mandou: a
+//   coreografia era disparada por haver resume ou brief, e a flag não era lida em lado nenhum.
+//   Deixar um terminal parado no diálogo de update é pior do que qualquer contexto em falta — um
+//   Enter cego nesse diálogo dispara um `npm install -g` e mata o terminal.
+// resumeCmd: a forma do comando que o BOTÃO manual compõe. Claude Code entende o `/resume` custom;
+// os outros CLIs não têm comandos custom e recebem `resume "<pasta>"` em texto simples (o
+// AGENTS.md/GEMINI.md compilado no JOCA_Brain diz-lhes o que isso significa).
 import path from 'path';
 import { DATA_DIR, readJsonFile } from './project-store';
 
@@ -21,7 +27,7 @@ export interface CliProfile {
   modelFlag?: string;        // e.g. '--model' → `--model <m>`; undefined = CLI has no model flag
   autonomousFlags: string[]; // appended when JOCA's skip-permissions/autonomous toggle is on
   extraFlags: string[];      // always appended (user-configurable)
-  startupSequence: boolean;  // run the boot choreography (trust prompt, update dialog, resume)
+  startupSequence: boolean;  // correr a coreografia de arranque (diálogos); ver nota no topo
   resumeCmd: string;         // how this CLI receives the project folder: '/resume' | 'resume'
 }
 

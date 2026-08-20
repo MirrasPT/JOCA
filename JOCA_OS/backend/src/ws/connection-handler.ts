@@ -10,7 +10,6 @@ interface ClientMessage {
   type: 'create_session' | 'close_session' | 'input' | 'resize' | 'get_buffer' | 'rename_session' | 'interrupt_session';
   sessionId?: string;
   cwd?: string;
-  resumePath?: string;
   sessionName?: string;
   projectId?: string;
   initialInput?: string;
@@ -72,7 +71,6 @@ export function attachConnectionHandler(wss: WebSocketServer) {
             }
             sessionManager.spawn({
               cwd: safeCwd,
-              resumePath: msg.resumePath,
               sessionName: msg.sessionName,
               projectId: msg.projectId,
               initialInput: msg.initialInput,

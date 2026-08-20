@@ -2,7 +2,7 @@
 // spawn/input/resize/kill, the rolling output buffer, and the idle→done heuristic. All timings
 // and constants are IDENTICAL to the original god-file (BUFFER_MAX, IDLE_DEBOUNCE_MS,
 // DONE_MIN_WORK_MS, MAX_SESSIONS). Shared state lives in the single exported `sessionManager`
-// singleton — server.ts and the automations runner both talk to that instance.
+// singleton — quem despacha trabalho programaticamente fala com essa instância.
 //
 // Eventing: extends EventEmitter and emits:
 //   'spawn'  { session }                     — session created (forwarded as 'session_created'); the
@@ -13,7 +13,7 @@
 //                                              é o buffer final já sem ANSI: quem ouvir isto não o
 //                                              consegue ir buscar depois, porque a sessão já saiu do mapa.
 //   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
-//                                              work burst ends; automations await this.
+//                                              work burst ends; quem despacha espera por isto.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -22,7 +22,6 @@ import * as pty from 'node-pty';
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { PATH_SAFE, safePath } from './security-fs';
 import { JOCA_LOGIC_ROOT } from './toolkit-registry';
 import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-store';
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
@@ -33,7 +32,7 @@ export interface Session {
   name: string;
   cwd: string;
   projectId?: string;
-  origin: 'user' | 'auto';   // who spawned it: 'user' (UI) or 'auto' (automations worker)
+  origin: 'user' | 'auto';   // quem a criou: 'user' (UI) ou 'auto' (spawn programático, ex.: `joca open`)
   cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
   // Etiqueta de área herdada da pool que o gestor de projecto usava. O gestor foi removido e nada
   // preenche isto hoje; fica no tipo por ser opcional e escrito no ficheiro de sessões antigo.
@@ -67,7 +66,6 @@ export interface SessionInfo {
 
 export interface SpawnOptions {
   cwd?: string;
-  resumePath?: string;
   sessionName?: string;
   projectId?: string;
   initialInput?: string;
@@ -252,22 +250,11 @@ export class SessionManager extends EventEmitter {
   listInfo(): SessionInfo[] { return this.list().map((s) => this.info(s)); }
 
   spawn(opts: SpawnOptions = {}): Session {
-    const { resumePath, sessionName, projectId, initialInput } = opts;
+    const { sessionName, projectId, initialInput } = opts;
     const origin = opts.origin ?? 'user';
     // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
     const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
-    // Resolve the resume folder once. TODOS os CLIs arrancam DENTRO do JOCA_Brain (cwd) — é lá que
-    // vivem as skills/regras que os tornam úteis — e recebem a pasta do projecto pelo comando de
-    // resume do perfil: `/resume "<pasta>"` no Claude Code, `resume "<pasta>"` em texto simples nos
-    // outros (codex/agy não reconhecem comandos custom com `/`).
-    let resumeResolved: string | null = null;
-    if (resumePath) {
-      try {
-        const r = safePath(resumePath);
-        if (PATH_SAFE.test(r) && fs.existsSync(r)) resumeResolved = r;
-      } catch { /* invalid resume path → ignored */ }
-    }
     const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
     this.sessionCounter++;
     const id = randomUUID();
@@ -331,39 +318,23 @@ export class SessionManager extends EventEmitter {
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
-    // Contexto de projecto no arranque. Duas regras, e a diferença é QUEM abriu o terminal:
+    // NENHUM comando de contexto é injectado no arranque. O `/resume` é MANUAL: o dono carrega no
+    // botão de resume da barra do chat quando quer carregar o contexto do projecto (o frontend
+    // compõe o comando a partir de `profile.resumeCmd`). Um terminal que arranca a gastar um turno
+    // inteiro a carregar contexto que ninguém pediu é trabalho por cima do dono.
     //
-    //   • aberto à MÃO (origin 'user') → `/resume "<pasta>"` sozinho, como submissão própria. É a
-    //     única coisa que o terminal recebe, e sem ela o utilizador ficava com um Claude Code cru
-    //     sem saber em que projecto está.
-    //   • aberto por um runner (origin 'auto') → o `/resume` NÃO vai à frente
-    //     sozinho: viaja colado ao brief, na mesma submissão. Quem despacha já sabe o projecto e
-    //     manda-o junto com o trabalho; um `/resume` automático antes disso é um turno inteiro
-    //     gasto a carregar contexto que a mensagem seguinte ia dar de qualquer forma.
-    //     (O `/resume` lê só o 1.º argumento — a pasta entre aspas —, portanto o brief a seguir
-    //     passa como texto normal e não é confundido com argumento.)
+    // `/init-project` também NUNCA é enviado daqui, pela mesma razão: abria um questionário por
+    // cima de trabalho que o utilizador nem pediu.
     //
-    // `/init-project` NUNCA é enviado daqui: um terminal a disparar `/init-project` sozinho abria
-    // um questionário por cima de trabalho que o utilizador nem pediu.
-    //
-    // Enviado só quando a TUI está mesmo pronta (ver runStartupSequence). Timers fixos foram o bug
-    // por trás de "às vezes não manda o /resume": num arranque lento, ou com o prompt "trust this
-    // folder?", o comando chegava antes de o CLI o poder receber e perdia-se. Todos os CLIs passam
-    // por aqui — a diferença é só a forma do comando (profile.resumeCmd).
-    let startupCmd: string | null = null;
-    let firstMessage = initialInput;
-    if (profile.startupSequence && resumeResolved) {
-      const resumeCmd = `${profile.resumeCmd} "${resumeResolved}"`;
-      // Com brief (tarefa, agente despachado) o `/resume` vai colado à frente dele: um turno só,
-      // em vez de dois, e o contexto chega antes do trabalho. SEM brief — o dono a abrir um
-      // terminal do projecto — vai sozinho, e é tudo o que o terminal recebe.
-      if (firstMessage) firstMessage = `${resumeCmd}\n\n${firstMessage}`;
-      else startupCmd = resumeCmd;
-    }
-
-    if (startupCmd || firstMessage) {
-      void this.runStartupSequence(session, startupCmd, firstMessage);
-    }
+    // A coreografia de arranque corre com ou sem brief: é ela que reconhece e responde ao "trust
+    // this folder?" e ao "Update available!" — deixar um terminal parado num desses diálogos é pior
+    // do que qualquer contexto em falta (ver limparDialogosDeArranque). Quem a desliga é o perfil
+    // do CLI (`startupSequence: false`), para um CLI que não tenha diálogos de arranque nenhuns.
+    // O que é ENVIADO é só o brief (initialInput) de quem criou a sessão — e só quando a TUI está
+    // pronta e os diálogos limpos. Timers fixos foram o bug por trás de "às vezes não manda a
+    // mensagem". Sem coreografia o brief vai à mesma, apenas sem a espera.
+    if (profile.startupSequence) void this.runStartupSequence(session, initialInput);
+    else if (initialInput) this.enqueueWrite(session, initialInput, true);
 
     ptyProcess.onData((data: string) => {
       session.buffer += data;
@@ -433,7 +404,7 @@ export class SessionManager extends EventEmitter {
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
-        // 'done' wakes whoever dispatched work programmatically (the automations runner).
+        // 'done' acorda quem despachou trabalho programaticamente (POST /sessions, `joca open`).
         // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
         if (dispatchDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
@@ -462,7 +433,7 @@ export class SessionManager extends EventEmitter {
     });
 
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
-    // single source of the broadcast — workers spawned programmatically (automations)
+    // single source of the broadcast — workers criados programaticamente (origin:'auto')
     // become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session, requestedBy: opts.requestedBy });
     return session;
@@ -562,8 +533,8 @@ export class SessionManager extends EventEmitter {
   }
 
   // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
-  // "trust this folder?" prompt if present, THEN send /resume (só em terminais abertos à mão),
-  // THEN submit any brief (que, nos automáticos, já traz o /resume colado à frente).
+  // "trust this folder?" prompt if present, THEN submit the brief. Nenhum `/resume` é injectado —
+  // o resume é manual, pelo botão da barra do chat.
   // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
   /**
    * Limpa os diálogos modais com que um CLI arranca, ANTES de lhe entregar trabalho.
@@ -597,20 +568,12 @@ export class SessionManager extends EventEmitter {
     }
   }
 
-  private async runStartupSequence(session: Session, startupCmd: string | null, initialInput?: string): Promise<void> {
-    const p = session.pty;
+  private async runStartupSequence(session: Session, initialInput?: string): Promise<void> {
     await this.waitForTuiReady(session, 25000);
     await this.limparDialogosDeArranque(session);
-    if (!this.sessions.has(session.id)) return;
-    if (startupCmd) {
-      if (!safePtyWrite(p, startupCmd)) return;   // terminal morreu a arrancar — nada a enviar
-      await new Promise((r) => setTimeout(r, 120)); // let the line register before the submit CR
-      safePtyWrite(p, '\r');
-      if (initialInput) await this.waitForQuiet(session, 900, 20000); // /resume loads context — let it settle
-    }
     if (initialInput && this.sessions.has(session.id)) {
       // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
-      // (this is what lets the automations runner await the worker's completion).
+      // (é isto que deixa quem despachou esperar pela conclusão do worker).
       session.notifyOnIdle = true;
       session.awaitingDone = true;
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
@@ -711,7 +674,7 @@ export class SessionManager extends EventEmitter {
     return this.sessions.get(sessionId)?.buffer;
   }
 
-  // Programmatic read (automations). strip=true removes ANSI escapes for plain-text consumption.
+  // Leitura programática. strip=true tira os escapes ANSI para consumo em texto simples.
   readBuffer(sessionId: string, opts: { strip?: boolean } = {}): string | undefined {
     const buf = this.sessions.get(sessionId)?.buffer;
     if (buf === undefined) return undefined;
@@ -720,7 +683,7 @@ export class SessionManager extends EventEmitter {
 
   // Await the completion of a programmatic dispatch on a session: resolves 'done' when the armed
   // work burst finishes, 'closed' if the PTY exits first, 'timeout' after timeoutMs. Used by the
-  // automations runner (the worker stays open — this only observes).
+  // quem despachou o trabalho (o worker fica aberto — isto só observa).
   waitForDone(sessionId: string, timeoutMs: number): Promise<'done' | 'closed' | 'timeout'> {
     return new Promise((resolve) => {
       if (!this.sessions.has(sessionId)) return resolve('closed');
