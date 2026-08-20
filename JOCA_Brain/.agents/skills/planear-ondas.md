@@ -86,6 +86,18 @@ Mantem-se: um agente por issue, um issue por branch, maximo duas branches em cur
 > maquina — e a capacidade de revisao de quem aprova. Trabalho paralelo nao acelera nada; so cria uma
 > fila maior a espera da mesma pessoa. Paraleliza apenas quando as pecas genuinamente nao precisam de
 > ser vistas em conjunto.
+>
+> ⚠ **Isto e sobre issues PRONTOS a espera de aprovacao — nao sobre criar issues nem sobre agentes.**
+> Tres coisas distintas, so a ultima e que este aviso trava:
+> 1. **Criar issues** — muitos e pequenos, sempre. E planeamento: nao custa tokens nem revisao, e e o
+>    que torna o paralelismo possivel (issue grande sem "Ficheiros provaveis" nao se paraleliza).
+> 2. **Resolver** — agentes em paralelo, incluindo em issues diferentes, desde que nao toquem nos
+>    mesmos ficheiros. O limite ai e colisao de ficheiros e tokens (ver `rules/task-intake.md`), nao
+>    o numero de issues.
+> 3. **Entregar para aprovacao** — e aqui que a fila se forma, porque quem aprova e uma pessoa so.
+>    Despachar muito e bom; despejar tudo pronto ao mesmo tempo e que nao acelera nada.
+>
+> Nenhum dos dois ficheiros revoga o outro.
 
 ## Custo de tokens — tres regras
 

@@ -136,24 +136,6 @@
   },
   {
     "type": "skill",
-    "name": "automations",
-    "category": "general",
-    "path": ".claude/skills/automations.md",
-    "description": "Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e gerir automacoes.json. Invocar quando o utilizador disser: automacao, automatizar, cron, agendar tare",
-    "triggers": [
-      "automacao",
-      "automatizar",
-      "cron",
-      "agendar tarefa",
-      "todos os dias as",
-      "a cada X horas",
-      "resumo automatico",
-      "agenda recorrente",
-      "tarefa repetitiva"
-    ]
-  },
-  {
-    "type": "skill",
     "name": "availability",
     "category": "general",
     "path": ".claude/skills/availability.md",
@@ -1275,7 +1257,7 @@
     "name": "joca-terminal",
     "category": "general",
     "path": ".claude/skills/joca-terminal.md",
-    "description": "Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais, ver automações e enviar notificações,",
+    "description": "Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais e enviar notificações, tudo contra o J",
     "triggers": [
       "comenta na tarefa",
       "fecha a tarefa",
@@ -1285,7 +1267,6 @@
       "abre um terminal",
       "fala com o outro terminal",
       "avisa-me quando acabares",
-      "ve as automacoes",
       "precisa de delegar a outro terminal"
     ]
   },
@@ -1789,7 +1770,7 @@
     "name": "prd",
     "category": "general",
     "path": ".claude/skills/prd.md",
-    "description": "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /init-project, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, ",
+    "description": "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, require",
     "triggers": [
       "PRD",
       "requirements doc",
@@ -2852,36 +2833,6 @@
       "logout",
       "register",
       "sanctum"
-    ]
-  },
-  {
-    "type": "agent",
-    "name": "automation-builder",
-    "category": "agents",
-    "path": ".claude/agents/automation-builder.md",
-    "description": "Traduz um pedido em linguagem natural numa automação estruturada (quando+o-quê+reportar), persiste em automacoes.json. Gere agendamento (cron), condicionais, retries. Triggers: automação, cron, todos ",
-    "triggers": [
-      "automação",
-      "cron",
-      "todos os dias às",
-      "recorrente",
-      "agendar tarefa",
-      "sempre que"
-    ]
-  },
-  {
-    "type": "agent",
-    "name": "automations-agent",
-    "category": "agents",
-    "path": ".claude/agents/automations-agent.md",
-    "description": "código · Traduzir pedido em linguagem natural numa automacao cron estruturada (QUANDO + O-QUE + REPORTAR) e. Despachar para trabalho isolável deste domínio, em paralelo.",
-    "triggers": [
-      "automacao",
-      "automatizar",
-      "cron",
-      "agendar tarefa",
-      "todos os dias as",
-      "a cada X horas"
     ]
   },
   {

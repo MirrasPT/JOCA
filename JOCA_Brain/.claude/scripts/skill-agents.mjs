@@ -39,7 +39,7 @@ const EXECUTION_SKILLS = {
     'frontend', 'react-composition', 'react-patterns', 'react-email', 'tailwind', 'shadcn',
     'component-system', 'mobile', 'laravel-specialist', 'laravel-react', 'filament', 'rest-api',
     'auth', 'caching', 'queues', 'mysql', 'search', 'webhooks', 'file-storage', 'saas-patterns',
-    'transactional-email', 'browser-automate', 'automations',
+    'transactional-email', 'browser-automate',
   ],
   'wordpress': [
     'wp-block-development', 'wp-block-themes', 'wp-interactivity-api', 'wp-plugin-development',

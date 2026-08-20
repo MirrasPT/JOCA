@@ -25,33 +25,30 @@ JOCA/
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
 │       ├── commands/        <- 25 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 101 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 131 skills flat (.md) — on-demand loading
+│       ├── agents/          <- 103 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 145 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
-└── JOCA_OS/                 <- Interface: terminais multi-sessao + automacoes/tarefas
+└── JOCA_OS/                 <- Interface: terminais multi-sessao
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- estado local (projectos, definicoes, tarefas) — nunca commitado
+    ├── data/                <- estado local (projectos, definicoes) — nunca commitado
     ├── start.sh             <- launcher macOS/Linux
     ├── start.bat            <- launcher Windows
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**257 componentes:** 131 skills + 101 agents + 25 commands.
+**275 componentes:** 145 skills + 103 agents + 27 commands.
 
 ---
 
 ## JOCA_OS — Interface Visual
 
 Um dashboard browser com terminais Claude Code multi-sessao, file browser e toolkit panel.
-Automacoes (cron) e um Kanban de tarefas correm sozinhos em workers dedicados — um worker
-sequencial por projecto, com notificacao quando terminam ou quando precisam de resposta.
-
-- **Automacoes:** cron diario/semanal/intervalo; cada corrida abre um worker dedicado que fica aberto com o resultado
-- **Tarefas / Kanban:** 5 colunas; as tarefas movem-se sozinhas; um juiz SDK classifica cada execucao (ok/erro/pergunta)
+Nada arranca sozinho: os terminais nascem quando o utilizador os abre, e a inbox avisa quando uma
+sessao acaba ou falha.
 
 - **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain status em tempo real
@@ -107,10 +104,10 @@ No inicio de cada sessao:
 /resume
 ```
 
-Para ligar um projecto existente:
+Para arrancar um projecto novo ou ligar um existente:
 
 ```
-/init-project
+/start
 ```
 
 ---
@@ -162,11 +159,11 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `wix-cli`
 
 ### Autonomia & Pessoal
-`knowledge-ingest` (/know) · `automations` · `personal-comms` (Fase 2/3)
+`knowledge-ingest` (/know) · `personal-comms` (Fase 2/3)
 
 ---
 
-## Agents (36)
+## Agents (35)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -189,16 +186,16 @@ Agentes correm em sub-processos isolados, em paralelo.
 `payment-integration` · `security-review` · `laravel-refactor` · `filament-builder` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
 
 ### Autonomia & Pessoal
-`knowledge-ingest` · `automation-builder` · `personal-comms` (Fase 2/3)
+`knowledge-ingest` · `personal-comms` (Fase 2/3)
 
 ---
 
-## Commands (25)
+## Commands (26)
 
 | Command | Funcao |
 |---------|--------|
 | `/install` | Setup interactivo numa maquina nova |
-| `/init-project` | Liga um projecto ao JOCA |
+| `/start` | Arranca um projecto novo ou liga um existente ao JOCA |
 | `/resume` | Carrega contexto no inicio da sessao |
 | `/save` | Guarda estado no fim da sessao |
 | `/plan` | Plan Mode — arquitectura |

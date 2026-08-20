@@ -258,7 +258,29 @@ const geminiExists = fs.existsSync(path.join(BRAIN, 'GEMINI.md'));
 const agentsMdExists = fs.existsSync(path.join(BRAIN, 'AGENTS.md'));
 if (geminiExists && agentsMdExists) ok('GEMINI.md e AGENTS.md existem');
 else warn(`${!geminiExists ? 'GEMINI.md ' : ''}${!agentsMdExists ? 'AGENTS.md ' : ''}em falta — corre: bash .claude/scripts/compile-bridges.sh`);
-warn('Nota: GEMINI.md/AGENTS.md são gerados por heredoc ESTÁTICO no compile-bridges.sh — o conteúdo não deriva do estado actual das skills/agents e pode estar dessincronizado. Revê manualmente se mudaste doutrina no CLAUDE.md.');
+
+// Desde 2026-08-20 os dois ficheiros são COMPILADOS do canónico (CLAUDE.md + soul.md +
+// rules/*) com contagens derivadas do disco. Verificar isso mesmo, em vez de avisar de
+// um heredoc estático que já não existe.
+for (const [file, exists] of [['GEMINI.md', geminiExists], ['AGENTS.md', agentsMdExists]]) {
+  if (!exists) continue;
+  const txt = fs.readFileSync(path.join(BRAIN, file), 'utf8');
+  if (!/FICHEIRO GERADO/.test(txt)) {
+    warn(`${file} sem cabeçalho "FICHEIRO GERADO" — foi editado à mão ou é de uma versão antiga. Corre: bash .claude/scripts/compile-bridges.sh`);
+    continue;
+  }
+  const declared = {
+    Skills: txt.match(/^\| Skills \| (\d+) \|/m),
+    Agentes: txt.match(/^\| Agentes \| (\d+) \|/m),
+    Comandos: txt.match(/^\| Comandos \| (\d+) \|/m),
+  };
+  const real = { Skills: skillFiles.length, Agentes: agentFiles.length, Comandos: commandFiles.length };
+  const bad = Object.entries(declared)
+    .filter(([k, m]) => !m || +m[1] !== real[k])
+    .map(([k, m]) => `${k}: ${m ? m[1] : 'ausente'} (real ${real[k]})`);
+  if (bad.length) warn(`${file} dessincronizado — ${bad.join('; ')}. Corre: bash .claude/scripts/compile-bridges.sh`);
+  else ok(`${file} compilado do canónico e em sincronia com o disco`);
+}
 
 // ── 7. memory/ ────────────────────────────────────────────────────────────────
 section('7. memory/');

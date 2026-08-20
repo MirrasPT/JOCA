@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
-Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-19:**
-**146 skills · 105 agentes (68 gerados + 37 curados) · 27 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
+Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-20:**
+**145 skills · 103 agentes (67 gerados + 36 curados) · 27 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -38,12 +38,12 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (27)
+## Commands (26)
 
 | Comando | Função |
 |---|---|
 | `/install` | setup do JOCA numa máquina nova — **conversa guiada**, não formulário |
-| `/init-project` | ligar um projecto ao JOCA — levantamento da pasta + só as perguntas que faltam |
+| `/start` | arranque de projecto — entrevista → PRD → stack → design; projecto existente liga-se pelo levantamento da pasta |
 | `/resume` | carregar contexto do projecto + grafo de conhecimento |
 | `/save` | guardar estado, memória, feedback auto-extraído e reindexar o toolkit |
 | `/plan` | Plan Mode — decisões de arquitectura |
@@ -68,15 +68,15 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
 
-## Agents (102 = 65 gerados + 37 curados)
+## Agents (103 = 67 gerados + 36 curados)
 
-**65 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
+**67 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
 por `node .claude/scripts/skill-agents.mjs` a partir das próprias skills. Cada um lê a sua skill como
 Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte → ler a skill inline;
 ≥2 partes independentes → despachar um agente por parte, no mesmo turno.
 **Não se editam à mão** — edita-se a skill e regenera-se.
 
-**37 agentes curados:**
+**36 agentes curados:**
 
 | Grupo | Agentes |
 |---|---|
@@ -86,18 +86,18 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 | Geração & media | `img-gen-google` · `img-gen-openai` · `gemini-brain` · `video-gen` · `watch` |
 | Backend / Laravel | `laravel-refactor` · `filament-builder` · `security-review` · `tech-debt-auditor` · `pr-repair` · `deploy-executor` |
 | Especialistas | `payment-integration` · `dependency-auditor` · `design-system-audit` · `skill-evaluator` · `skill-improver` · `a11y-fixer` |
-| Autonomia & pessoal | `knowledge-ingest` (`/know`) · `automation-builder` · `personal-comms` |
+| Autonomia & pessoal | `knowledge-ingest` (`/know`) · `personal-comms` |
 
-⚠ `automation-builder`, `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
+⚠ `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (146)
+## Skills (145)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o
 `SKILL_INDEX.json`. Não se duplica a lista aqui: duplicá-la é garantir que fica desactualizada.
 
 ## Projects
-<!-- Preenchido pelo /start (que absorveu o /init-project) — uma linha por projecto, detalhe em projects/<x>.md -->
+<!-- Preenchido pelo /start — uma linha por projecto, detalhe em projects/<x>.md -->
 _(vazio — o repositório público não traz memória de ninguém. Corre `/start` para registar o primeiro.)_
 
 ## Feedback
