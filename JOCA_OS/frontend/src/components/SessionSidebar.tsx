@@ -14,12 +14,18 @@ import { version as VERSAO_COMPLETA } from '../../package.json';
 
 /** Só `major.minor` na barra (`0.9`). O patch continua a viver no `package.json`, que é onde
  *  interessa; aqui é identidade, não número de build — e continua a derivar do ficheiro, para não
- *  voltar a divergir como aconteceu com o `0.8.1` escrito à mão. */
+ *  voltar a divergir como aconteceu com o `0.8.1` escrito à mão.
+ *
+ *  Quando o backend anuncia um `JOCA_ENV` (`PRD`, `DEV`, …), é ESSE o rótulo que aparece: com duas
+ *  instalações a correr ao mesmo tempo, saber QUAL se está a ver vale mais do que a versão, que é
+ *  a mesma nas duas. Sem `JOCA_ENV`, nada muda. */
 const VERSAO = VERSAO_COMPLETA.split('.').slice(0, 2).join('.');
 
 
 
 interface Props {
+  /** Rótulo da instância (`JOCA_ENV` no backend). `null` → mostra a versão. */
+  envLabel?: string | null;
   sessions: SessionInfo[];
   projects: Project[];
   projectGroups: ProjectGroupData[];
@@ -932,7 +938,7 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAgents, onShowProject,
+  envLabel, sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAgents, onShowProject,
   onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput: _onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRemoveProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
@@ -1135,7 +1141,7 @@ export default function SessionSidebar({
             {brand.logo
               ? <img className="sb-logo-img" src={brand.logo} alt="" aria-hidden />
               : <div className="sb-logo-rings" aria-hidden />}
-            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>{VERSAO}</span></span>
+            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>{envLabel || VERSAO}</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"

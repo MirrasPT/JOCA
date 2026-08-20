@@ -123,6 +123,16 @@ export default function App() {
   const [, setViewportWidth] = useState(() => window.innerWidth);
   const [runtimeInfo, setRuntimeInfo] = useState<RuntimeInfo | null>(null);
 
+  /**
+   * O separador do browser diz QUAL instalação é. Com duas a correr ao mesmo tempo (uma de
+   * trabalho e uma de desenvolvimento) os separadores eram indistinguíveis — e o título estava
+   * cravado como "JOCA - DEV" no `index.html`, portanto mentia num build de produção.
+   * Sem `JOCA_ENV` no backend fica só "JOCA".
+   */
+  useEffect(() => {
+    document.title = runtimeInfo?.env ? `JOCA · ${runtimeInfo.env}` : 'JOCA';
+  }, [runtimeInfo?.env]);
+
   // New UX States
   // pinOutput UI removida; o ref mantém-se porque o useSessionSocket o consome.
   const pinOutputRef = useRef(false);
@@ -761,6 +771,7 @@ export default function App() {
     <div className="app-shell">
     <div className="app">
       <SessionSidebar
+        envLabel={runtimeInfo?.env}
         sessions={sessions}
         projects={projects}
         projectGroups={projectGroups}

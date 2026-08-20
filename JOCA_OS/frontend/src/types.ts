@@ -77,6 +77,8 @@ export interface RuntimeInfo {
   cwd: string;
   uptimeMs: number;
   port: number;
+  /** Rótulo da instância (`JOCA_ENV`), ex. 'PRD' | 'DEV'. `null` = mostrar a versão. */
+  env: string | null;
   sessionCount: number;
   projectCount: number;
 }

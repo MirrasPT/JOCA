@@ -32,6 +32,10 @@ export function toolkitRouter(): Router {
       cwd: process.cwd(),
       uptimeMs: Date.now() - STARTED_AT,
       port: Number(process.env.PORT || 7491),
+      // Rótulo da instância, mostrado na barra ao lado do wordmark. Serve para distinguir duas
+      // instalações a correr ao mesmo tempo (uma de trabalho e uma de desenvolvimento), que de
+      // outra forma são idênticas no ecrã. Sem `JOCA_ENV` fica `null` e a barra mostra a versão.
+      env: (process.env.JOCA_ENV || '').trim().slice(0, 8).toUpperCase() || null,
       sessionCount: sessionManager.size,
       projectCount: projects.length,
       sessions: sessionManager.listInfo(),
