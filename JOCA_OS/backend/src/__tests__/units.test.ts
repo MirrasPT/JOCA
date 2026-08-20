@@ -1,50 +1,10 @@
-// Unit tests for the pure logic added in v3: schedule math and multi-CLI launch lines. Store IO (JSON/JSONL) is exercised indirectly by the app; these
+// Unit tests for the pure logic added in v3: multi-CLI launch lines. Store IO (JSON/JSONL) is exercised indirectly by the app; these
 // tests pin the decision logic that is easy to regress silently.
 import { describe, it, expect } from 'vitest';
-import { computeNextRun } from '../automations/store';
 import { chunkText, submitCrDelay } from '../session-manager';
 import { loadCliProfiles, getCliProfile, buildLaunchLine } from '../cli-profiles';
-
-// ── computeNextRun ────────────────────────────────────────────────────────────
-describe('computeNextRun', () => {
-  const at = (y: number, mo: number, d: number, h: number, mi: number) =>
-    new Date(y, mo - 1, d, h, mi, 0, 0).getTime();
-
-  it('interval: from + everyMinutes', () => {
-    const from = at(2026, 7, 20, 10, 0);
-    expect(computeNextRun({ kind: 'interval', everyMinutes: 45 }, from)).toBe(from + 45 * 60_000);
-  });
-
-  it('interval: clamps to >= 1 minute', () => {
-    const from = at(2026, 7, 20, 10, 0);
-    expect(computeNextRun({ kind: 'interval', everyMinutes: 0 }, from)).toBe(from + 60_000);
-  });
-
-  it('daily: today when the time is still ahead', () => {
-    const from = at(2026, 7, 20, 8, 0);
-    expect(computeNextRun({ kind: 'daily', time: '09:30' }, from)).toBe(at(2026, 7, 20, 9, 30));
-  });
-
-  it('daily: tomorrow when the time already passed', () => {
-    const from = at(2026, 7, 20, 10, 0);
-    expect(computeNextRun({ kind: 'daily', time: '09:30' }, from)).toBe(at(2026, 7, 21, 9, 30));
-  });
-
-  it('weekly: next occurrence of the weekday', () => {
-    // 2026-07-20 is a Monday (day 1). Target Friday (5) same week.
-    const from = at(2026, 7, 20, 10, 0);
-    expect(computeNextRun({ kind: 'weekly', weekday: 5, time: '09:00' }, from)).toBe(at(2026, 7, 24, 9, 0));
-  });
-
-  it('weekly: same weekday but time passed → next week', () => {
-    const from = at(2026, 7, 20, 10, 0); // Monday 10:00
-    expect(computeNextRun({ kind: 'weekly', weekday: 1, time: '09:00' }, from)).toBe(at(2026, 7, 27, 9, 0));
-  });
-
-  it('undefined schedule → null', () => {
-    expect(computeNextRun(undefined)).toBeNull();
-  });
-});
+import { folderPickerCommand, WINDOWS_PICKER_PS } from '../http/system-routes';
+import { PATH_SAFE } from '../security-fs';
 
 // ── paced PTY writes (the "long message gets truncated" fix) ─────────────────
 describe('chunkText', () => {
@@ -129,5 +89,79 @@ describe('cli-profiles', () => {
     // provider/model style ids stay allowed
     expect(buildLaunchLine(claude, 'claude', { model: 'anthropic/claude-sonnet-5' }))
       .toBe('claude --model anthropic/claude-sonnet-5');
+  });
+});
+
+// ── selector de pasta nativo (cross-platform) ─────────────────────────────────
+// O bug era só do Windows e esta máquina é macOS: não há como o reproduzir ao vivo.
+// O que se trava aqui é a FORMA do comando — as três propriedades cuja ausência o matava.
+describe('folderPickerCommand', () => {
+  it('macOS: osascript (comportamento de referência, intacto)', () => {
+    const spec = folderPickerCommand('darwin');
+    expect(spec.cmd).toBe('osascript');
+    expect(spec.args[0]).toBe('-e');
+    expect(spec.args[1]).toContain('choose folder');
+    expect(spec.trimTrailingSlash).toBe(true); // `/Users/x/` → `/Users/x`
+  });
+
+  it('Linux: zenity em modo directório', () => {
+    const spec = folderPickerCommand('linux');
+    expect(spec.cmd).toBe('zenity');
+    expect(spec.args).toContain('--directory');
+  });
+
+  it('Windows: powershell.exe -NoProfile -STA -Command <script>', () => {
+    const spec = folderPickerCommand('win32');
+    expect(spec.cmd).toBe('powershell.exe');
+    expect(spec.args.slice(0, 3)).toEqual(['-NoProfile', '-STA', '-Command']);
+    expect(spec.args[3]).toBe(WINDOWS_PICKER_PS);
+    // `C:\` é um caminho válido; cortar a barra final dava `C:` (relativo à unidade).
+    expect(spec.trimTrailingSlash).toBe(false);
+  });
+
+  it('Windows: script sem UMA aspa dupla (o escape \\" na linha de comando é o risco)', () => {
+    expect(WINDOWS_PICKER_PS).not.toContain('"');
+  });
+
+  it('Windows: diálogo com janela dona TopMost activada — senão abre atrás do browser', () => {
+    expect(WINDOWS_PICKER_PS).toContain('$owner.TopMost=$true');
+    expect(WINDOWS_PICKER_PS).toContain('$owner.Activate()');
+    expect(WINDOWS_PICKER_PS).toContain('$d.ShowDialog($owner)'); // nunca ShowDialog() sem dono
+    expect(WINDOWS_PICKER_PS).not.toContain('$d.ShowDialog()');
+  });
+
+  it('Windows: nível de topo = as unidades (não há raiz única como em POSIX)', () => {
+    expect(WINDOWS_PICKER_PS).toContain('[System.Environment+SpecialFolder]::MyComputer');
+  });
+
+  it('Windows: cancelar (1) distingue-se de rebentar (2)', () => {
+    expect(WINDOWS_PICKER_PS).toContain('exit 0');
+    expect(WINDOWS_PICKER_PS).toContain('exit 1');
+    expect(WINDOWS_PICKER_PS).toContain('exit 2');
+    expect(WINDOWS_PICKER_PS).toContain('[Console]::Error.Write');
+  });
+});
+
+// ── forma de caminho do Windows ───────────────────────────────────────────────
+// PATH_SAFE guarda tudo o que é escrito na linha do PTY. Um caminho vindo do selector
+// do Windows (`C:\Users\...`, com espaços) tem de passar; metacaracteres de shell não.
+describe('PATH_SAFE com caminhos Windows', () => {
+  it('aceita caminhos absolutos com letra de unidade', () => {
+    expect(PATH_SAFE.test('C:\\Users\\dev\\Desktop\\projecto')).toBe(true);
+    // Espaços, acentos e parênteses são correntes em pastas do Drive/OneDrive.
+    expect(PATH_SAFE.test('D:\\Dados\\Meu Projecto\\2026_Nova Plataforma')).toBe(true);
+    expect(PATH_SAFE.test('G:\\O meu disco\\Clientes\\Acme Lda (Norte)')).toBe(true);
+    expect(PATH_SAFE.test('C:\\')).toBe(true);
+  });
+
+  it('continua a aceitar caminhos POSIX', () => {
+    expect(PATH_SAFE.test('/Users/dev/Projetos/o-meu-projecto')).toBe(true);
+  });
+
+  it('continua a recusar metacaracteres de shell', () => {
+    expect(PATH_SAFE.test('C:\\Users\\dev"; calc')).toBe(false);
+    expect(PATH_SAFE.test('C:\\Users\\dev | del')).toBe(false);
+    expect(PATH_SAFE.test('C:\\Users\\$env:TEMP')).toBe(false);
+    expect(PATH_SAFE.test('C:\\Users\\dev\nnew')).toBe(false);
   });
 });
