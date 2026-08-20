@@ -157,6 +157,68 @@
   margin: 0 4px;
 }
 
+/* ── Menus da barra (Model · Effort) ─────────────────────────────────
+   Eram estilos inline no JSX, escritos uma vez. Com dois menus iguais lado a lado passaram a
+   classe — duplicar 8 declarações inline é como divergem em silêncio. O grupo é UM contentor
+   (é ele que tem o ref do clique-fora); cada menu posiciona-se contra o seu próprio botão. */
+.cmd-menu-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmd-menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cmd-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 132px;
+  padding: 4px;
+  gap: 2px;
+  background: var(--surface-panel, #1c1917);
+  border: 1px solid var(--border-bento, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Mesma pílula dos botões da barra, mas alinhada à esquerda e a ocupar a largura do menu — uma
+   lista de opções lê-se pela margem esquerda, não pelo centro de cada linha. */
+.cmd-menu-item {
+  height: 28px;
+  padding: 0 10px;
+  width: 100%;
+  justify-content: flex-start;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cmd-menu-item:hover {
+  color: var(--text-bright);
+  background: color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+
+.cmd-menu-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 /* ── Attachments ────────────────────────────────────────────────── */
 .attachment-row {
   display: flex;

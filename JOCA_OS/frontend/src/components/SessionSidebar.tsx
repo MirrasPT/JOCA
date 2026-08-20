@@ -29,7 +29,6 @@ interface Props {
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
-  onShowAutomations: () => void;
   /** Vista global de agentes (todos os projectos num sítio só). */
   onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
@@ -59,7 +58,7 @@ interface Props {
 type LucideName =
   | 'layout-dashboard' | 'plus' | 'folder-plus' | 'message-square'
   | 'terminal' | 'terminal-quick' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
-  | 'sparkles' | 'zap' | 'chevrons-left' | 'search' | 'x'
+  | 'sparkles' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
   | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'arrow-up-down' | 'link' | 'trash'
   | 'settings';
@@ -76,8 +75,6 @@ type LucideName =
 const OFFICE_ICONS: Partial<Record<LucideName, React.ReactNode>> = {
   // Caneca "World's Best Boss" — o painel principal.
   'layout-dashboard': <><path d="M4 8h11v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" /><path d="M15 10h2.2a2.4 2.4 0 0 1 0 4.8H15" /><path d="M7.5 3v2M11.5 3v2" /></>,
-  // Agrafador (o da gelatina) — as automações.
-  zap: <><path d="M3 15.5h18V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18Z" /><path d="M5.5 15.5V9.2l12-4.7v11" /></>,
   // Beterraba de Schrute Farms — os agentes.
   terminal: <><path d="M12 20.5c-3.2 0-5.5-2.3-5.5-5.2S9 9.5 12 9.5s5.5 2.9 5.5 5.8-2.3 5.2-5.5 5.2Z" /><path d="M12 9.5V5.5" /><path d="M12 6.5C10.8 4.3 9 3.8 7.4 4.4c.2 1.9 2 3 4.6 2.1ZM12 6.5c1.2-2.2 3-2.7 4.6-2.1-.2 1.9-2 3-4.6 2.1Z" /></>,
   // Lápis — a sessão rápida é o rascunho ao lado, não a lavoura dos agentes. Glifo PRÓPRIO para os
@@ -196,7 +193,6 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'folder-open') return <svg {...common}><path d="M6 17.5A2.5 2.5 0 0 1 3.5 15V6.5A2.5 2.5 0 0 1 6 4h3.5l2 2H18a2 2 0 0 1 2 2v1" /><path d="M4 17.5 6.2 10h15.3l-2.2 7.5A2 2 0 0 1 17.4 19H5.9A2 2 0 0 1 4 17.5Z" /></svg>;
   if (name === 'chevron-down') return <svg {...common}><path d="m6 9 6 6 6-6" /></svg>;
   if (name === 'sparkles') return <svg {...common}><path d="m12 3-1.8 5.2L5 10l5.2 1.8L12 17l1.8-5.2L19 10l-5.2-1.8Z" /><path d="M5 3v4M3 5h4M19 17v4M17 19h4" /></svg>;
-  if (name === 'zap') return <svg {...common}><path d="M13 2 4 14h7l-1 8 9-12h-7Z" /></svg>;
   if (name === 'chevrons-left') return <svg {...common}><path d="m11 17-5-5 5-5" /><path d="m18 17-5-5 5-5" /></svg>;
   if (name === 'chevrons-right') return <svg {...common}><path d="m13 17 5-5-5-5M6 17l5-5-5-5" /></svg>;
   if (name === 'chevron-left') return <svg {...common}><path d="m15 18-6-6 6-6" /></svg>;
@@ -936,7 +932,7 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAutomations, onShowAgents, onShowProject,
+  sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAgents, onShowProject,
   onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput: _onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRemoveProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
@@ -1168,16 +1164,6 @@ export default function SessionSidebar({
             <span>Dashboard</span>
           </button>
           <button
-            className={`nav-btn ${mainView === 'automations' ? 'active' : ''}`}
-            type="button"
-            onClick={onShowAutomations}
-            aria-label="Automações"
-            aria-current={mainView === 'automations' ? 'page' : undefined}
-          >
-            <span className="nav-icon"><LucideIcon name="zap" /></span>
-            <span>Automações</span>
-          </button>
-          <button
             className={`nav-btn ${mainView === 'agents' ? 'active' : ''}`}
             type="button"
             onClick={onShowAgents}
@@ -1388,6 +1374,10 @@ export default function SessionSidebar({
             ser filhos de flex do bento, exactamente como antes — e vira uma FILA na tira mobile,
             onde três blocos empilhados custavam 103px+gaps de altura a uma tira de 320px. */}
         <div className="sidebar-footer-row">
+        {/* Os dois botões partilham uma linha — dois blocos de largura inteira empilhados custavam
+            altura à lista de projectos sem a ganhar em legibilidade. O "Fechar inativas" fica de
+            fora do par: tem o rótulo mais longo e é a acção mais rara. */}
+        <div className="sidebar-footer-pair">
         <button
           type="button"
           className="sidebar-quick-session-btn"
@@ -1428,10 +1418,15 @@ export default function SessionSidebar({
               onClick={() => setConfirmCloseIdle(true)}
               data-tooltip="Fechar todas as sessões inativas"
               data-tooltip-position="bottom"
+              aria-label={`Fechar ${idleSessions.length} sessões inativas`}
             >
-              <LucideIcon name="x" /> Fechar inativas ({idleSessions.length})
+              {/* O rótulo por extenso esconde-se na fila compacta do rodapé (fica "✕ (2)"); o nome
+                  completo continua no tooltip e no aria-label. Por extenso não cabia: medido em
+                  77px de largura, saía cortado a meio de "INATIVA", sem sequer as reticências. */}
+              <LucideIcon name="x" /> <span className="bulk-select-label">Fechar inativas </span>({idleSessions.length})
             </button>
           )}
+        </div>
         </div>
         </div>
       </div>

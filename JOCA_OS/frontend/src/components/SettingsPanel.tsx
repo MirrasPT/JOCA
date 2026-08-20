@@ -39,10 +39,12 @@ const THEME_MODE_OPTIONS: { id: ThemeMode; label: string }[] = [
 ];
 
 
-function ChevronsRight() {
+// As Definições são um modal: fecha-se, não se colapsa para o lado. O `»` que aqui estava é o
+// gesto do ToolkitPanel (painel lateral que encolhe) e lia-se como "empurrar para a direita".
+function FecharX() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="m6 17 5-5-5-5M13 17l5-5-5-5" />
+      <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   );
 }
@@ -56,11 +58,8 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => readThemeSettings().mode);
   const [dayStart, setDayStart] = useState(() => readThemeSettings().dayStart);
   const [nightStart, setNightStart] = useState(() => readThemeSettings().nightStart);
-  const [optimizeProvider, setOptimizeProvider] = useState('claude');
-  const [optimizeModel, setOptimizeModel] = useState('');
   // Tema de marca activo (só aparência + nome).
   const [brandId, setBrandId] = useState(() => readBrand().id);
-  const [providers, setProviders] = useState<{ id: string; label: string; available: boolean; defaultModel: string; detail: string }[]>([]);
   // CLI por defeito para novas sessões (PATCH /ui-settings { defaultCli }).
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
   const [defaultCli, setDefaultCli] = useState<CliProfileInfo['id']>('claude');
@@ -86,8 +85,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
       setThemeMode(stored.mode);
       setDayStart(stored.dayStart);
       setNightStart(stored.nightStart);
-      setOptimizeProvider(s.optimizeProvider ?? 'claude');
-      setOptimizeModel(s.optimizeModel ?? '');
       // O localStorage é que manda no arranque (o index.html precisa dele antes do paint); o
       // servidor só reconcilia quem chega de outra máquina.
       if (typeof s.brandTheme === 'string' && s.brandTheme !== readBrand().id) {
@@ -95,7 +92,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         applyBrand(s.brandTheme);
       }
     }).catch(() => {});
-    fetch('/llm-providers').then(r => r.json()).then(setProviders).catch(() => {});
   }, []);
 
   const patchSettings = useCallback((patch: Record<string, unknown>) => {
@@ -107,7 +103,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
     applyBrand(id);
     patchSettings({ brandTheme: id });
   }, [patchSettings]);
-  const selectOptimizeProvider = useCallback((id: string) => { setOptimizeProvider(id); patchSettings({ optimizeProvider: id }); }, [patchSettings]);
 
   const selectDefaultCli = useCallback((id: CliProfileInfo['id']) => {
     setDefaultCli(id);
@@ -176,7 +171,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           <span className="files-view-subtitle">Esta máquina</span>
         </div>
         <button className="files-view-close" onClick={onClose} aria-label="Fechar definições" data-tooltip="Fechar" data-tooltip-position="bottom">
-          <ChevronsRight />
+          <FecharX />
         </button>
       </div>
       <div className="settings-panel-body">
@@ -314,46 +309,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             <span>Saltar os pedidos de permissão <code style={{ fontSize: '0.8em', opacity: 0.6 }}>--dangerously-skip-permissions</code></span>
           </label>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
-        </div>
-        <div className="settings-service-card">
-          <div className="settings-service-head">
-            <span className="status-pill status-pill--connected">optimizar</span>
-            <span>Optimizações — Provider</span>
-          </div>
-          <p style={{ fontSize: '0.76em', opacity: 0.55, margin: '0 0 10px' }}>
-            SDK + modelo do botão "Optimizar" (reescrita de texto). Sem ferramentas — só reescreve.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[{ id: 'claude', label: 'Claude · Agent SDK', detail: 'Subscrição, sem ferramentas' }, { id: 'ollama', label: 'Ollama · local', detail: 'Grátis, local' }].map((p) => {
-              const selectable = p.id === 'claude' || (providers.find((x) => x.id === 'ollama')?.available ?? false);
-              return (
-                <label
-                  key={p.id}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 'var(--r-md)',
-                    border: `1px solid ${optimizeProvider === p.id ? 'var(--accent-border)' : 'var(--border-subtle)'}`,
-                    background: optimizeProvider === p.id ? 'var(--accent-soft)' : 'transparent',
-                    cursor: selectable ? 'pointer' : 'not-allowed', opacity: selectable ? 1 : 0.45,
-                  }}
-                >
-                  <input type="radio" name="optimize-provider" value={p.id} checked={optimizeProvider === p.id} disabled={!selectable} onChange={() => selectOptimizeProvider(p.id)} />
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.9em', color: 'var(--text-bright)' }}>{p.label}</span>
-                    <span style={{ display: 'block', fontSize: '0.72em', opacity: 0.55 }}>{p.detail}{p.id === 'ollama' && !selectable ? ' — não detectado em :11434' : ''}</span>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
-            <span style={{ fontSize: '0.75em', opacity: 0.6 }}>Modelo (opcional)</span>
-            <input
-              type="text" value={optimizeModel} placeholder={optimizeProvider === 'ollama' ? 'ex: qwen2.5 · llama3.1' : 'ex: haiku · sonnet (default)'}
-              onChange={(e) => setOptimizeModel(e.target.value)}
-              onBlur={(e) => { const m = e.target.value.trim(); setOptimizeModel(m); patchSettings({ optimizeModel: m }); }}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--r-sm)', color: 'var(--text-bright)', padding: '6px 9px', fontSize: '0.85em', fontFamily: 'var(--font-mono)' }}
-            />
-          </label>
         </div>
         {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
         <div className="settings-service-card settings-service-card--cli">

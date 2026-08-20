@@ -107,6 +107,18 @@ function LinkIcon() {
   );
 }
 
+// Foguete — arrancar o projecto (`/start`). Distinto do Resume (play), que retoma o que já existe.
+function StartIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09Z" />
+      <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2Z" />
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+    </svg>
+  );
+}
+
 // Borracha — apagar o TEXTO da caixa, não o ecrã do terminal nem o processo.
 function EraserIcon() {
   return (
@@ -116,6 +128,25 @@ function EraserIcon() {
     </svg>
   );
 }
+
+/** Menus da barra. `/model` e `/effort` são comandos reais do Claude Code 2.1.237 (verificado no
+ *  binário); os níveis de esforço são os que o `claude --help` anuncia, mais o `auto` do default. */
+const MODELOS: { valor: string; label: string }[] = [
+  { valor: 'opus', label: 'Opus' },
+  { valor: 'sonnet', label: 'Sonnet' },
+  { valor: 'haiku', label: 'Haiku' },
+  { valor: 'fable', label: 'Fable' },
+  { valor: 'default', label: 'Default' },
+];
+
+const ESFORCOS: { valor: string; label: string }[] = [
+  { valor: 'auto', label: 'Auto' },
+  { valor: 'low', label: 'Low' },
+  { valor: 'medium', label: 'Medium' },
+  { valor: 'high', label: 'High' },
+  { valor: 'xhigh', label: 'X-High' },
+  { valor: 'max', label: 'Max' },
+];
 
 // Built-in Claude Code slash commands (shown alongside JOCA's own /commands).
 const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
@@ -151,7 +182,9 @@ const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
 
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
-  historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory,
+  // `projectMemory` ficou sem leitor quando a fila de comandos deixou de vir da memória do projecto
+  // e passou a ser fixa (save · resume · start). A prop mantém-se para não mexer nos dois callers.
+  historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory: _projectMemory,
   onSaveSession: _onSaveSession, onCompactSession: _onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
   onNewSessionWithCli, jocaItems, onLoadJocaItems
@@ -162,6 +195,22 @@ export default function TerminalView({
   );
 
   const inputAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * Entrar num terminal põe o cursor NA CAIXA DE MENSAGEM, não no xterm.
+   *
+   * A caixa é a via normal de falar com o CLI (tem histórico, menu de `/`, anexos); o xterm por
+   * baixo é para ler. Sem isto, abrir uma conversa e começar a escrever mandava as teclas
+   * directamente ao processo, à revelia de tudo isso.
+   *
+   * `preventScroll` porque focar um elemento no fundo da página faz o contentor saltar — o que
+   * empurrava o terminal para fora de vista no próprio gesto de o abrir.
+   */
+  useEffect(() => {
+    if (!activeId) return;
+    const t = window.setTimeout(() => inputAreaRef.current?.focus({ preventScroll: true }), 0);
+    return () => window.clearTimeout(t);
+  }, [activeId]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
 
@@ -174,23 +223,30 @@ export default function TerminalView({
     setAttachments((prev) => prev.filter((p) => p !== path));
   }, []);
 
-  // Model quick-switch (#20): sends `/model <alias>` straight into the active Claude Code terminal.
-  const [modelMenuOpen, setModelMenuOpen] = useState(false);
-  const modelWrapRef = useRef<HTMLDivElement>(null);
-  const setModel = useCallback((alias: string) => {
+  /**
+   * Model e Effort são o mesmo gesto: escolher de uma lista curta e mandar `/<cmd> <valor>` ao CLI.
+   * Um só estado guarda QUAL dos dois está aberto — abrir um fecha o outro, que é o que se espera
+   * de dois menus lado a lado (dois booleanos independentes deixavam-nos abertos ao mesmo tempo,
+   * sobrepostos).
+   */
+  const [barMenu, setBarMenu] = useState<null | 'model' | 'effort'>(null);
+  const barMenuWrapRef = useRef<HTMLDivElement>(null);
+  const sendBarMenuChoice = useCallback((cmd: string, valor: string) => {
     if (!activeId) return;
-    onInput(activeId, `/model ${alias}\r`);
-    setModelMenuOpen(false);
+    onInput(activeId, `/${cmd} ${valor}\r`);
+    setBarMenu(null);
   }, [activeId, onInput]);
-  // Close the model menu on an outside click.
+  // Fecha ao clicar fora, e no Escape — um menu aberto sem saída de teclado prende quem navega assim.
   useEffect(() => {
-    if (!modelMenuOpen) return;
+    if (!barMenu) return;
     const onDoc = (ev: MouseEvent) => {
-      if (modelWrapRef.current && !modelWrapRef.current.contains(ev.target as Node)) setModelMenuOpen(false);
+      if (barMenuWrapRef.current && !barMenuWrapRef.current.contains(ev.target as Node)) setBarMenu(null);
     };
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') setBarMenu(null); };
     document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [modelMenuOpen]);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
+  }, [barMenu]);
 
   // Split-button do empty state: "+ New Session" abre no claude; o "▾" ao lado deixa escolher o CLI
   // (codex/agy/opencode). Perfis são carregados lazy na primeira abertura do menu.
@@ -331,6 +387,16 @@ export default function TerminalView({
   }, [activeId, activeProjectPath, activeSession?.cli, cliProfiles, onInput]);
 
   /**
+   * `/start "<pasta do projecto>"` — o arranque de projecto (entrevista → PRD → stack → design).
+   * Leva a pasta pela mesma razão que o resume: é o que diz ao comando em que projecto está.
+   * Só existe com projecto activo; numa sessão solta não há pasta para lhe dar.
+   */
+  const startProject = useCallback(() => {
+    if (!activeId || !activeProjectPath) return;
+    onInput(activeId, `/start "${activeProjectPath}"\r`);
+  }, [activeId, activeProjectPath, onInput]);
+
+  /**
    * Liga o Remote Control NA conversa aberta: `/remote-control <nome do projecto>`.
    * Sem projecto activo vai só `/remote-control` — o comando não leva argumento a inventar.
    */
@@ -381,21 +447,13 @@ export default function TerminalView({
    */
   const rascunhoGuardado = useRef('');
 
-  // Fetch quick commands from project memory.
-  // O `clear` saiu da fila: apagava o ecrã do terminal a um clique. Filtra-se também o que vier da
-  // memória do projecto, senão os projectos que já o têm configurado continuavam a mostrá-lo.
-  const quickCommands = useMemo(() => {
-    const base = ['start', 'save', 'compact', 'plan'];
-    const list = activeSession?.projectId
-      ? projectMemory[activeSession.projectId]?.quickCommands ?? base
-      : base;
-    return list.filter((cmd) => cmd !== 'clear');
-  }, [activeSession, projectMemory]);
-
   /**
    * Um clique no acesso rápido ESCREVE o comando no campo de input — não o envia.
    * Quem carrega no Enter é sempre o utilizador: dá-lhe hipótese de acrescentar argumentos
-   * (`/save nota`, `/plan <objectivo>`) ou de desistir sem ter mandado nada ao CLI.
+   * (`/save arrumei os botões`) ou de desistir sem ter mandado nada ao CLI.
+   *
+   * O `Resume` e o `Start` são a excepção deliberada: levam a pasta do projecto e não há nada que
+   * lhes acrescentar, portanto vão logo (ver `resumeProject`/`startProject`).
    */
   const runQuickCommand = useCallback((cmd: string) => {
     if (!activeId) return;
@@ -524,11 +582,43 @@ export default function TerminalView({
       {activeSession && (
         <div className="terminal-command-bar">
           <div className="quick-command-row">
-            {quickCommands.map((cmd) => (
-              <button key={cmd} type="button" onClick={() => runQuickCommand(cmd)} className="quick-command-btn">
-                {cmd}
-              </button>
-            ))}
+            {/* ORDEM (decidida pelo dono, 2026-08-20):
+                  com projecto: Save · Resume · Start | Pull · Push | Model · Effort | Stop · Restart · Remote · Apagar texto | + · ↓
+                  sem projecto: Save | Model · Effort | Stop · Restart · Remote · Apagar texto | + · ↓
+                Os grupos separados por `|` são os `command-bar-divider`. O que depende de haver
+                projecto (pasta) desaparece nas sessões soltas em vez de ficar morto ao clique. */}
+
+            {/* Save escreve no campo em vez de enviar: `/save <nota>` é uso corrente, e enviar
+                sozinho tirava a hipótese de acrescentar a nota. Resume e Start já levam a pasta,
+                não têm nada a acrescentar, e vão logo. */}
+            <button type="button" onClick={() => runQuickCommand('save')} className="quick-command-btn" data-tooltip="Escrever /save no campo (podes juntar uma nota)">
+              save
+            </button>
+
+            {activeProjectPath && (
+              <>
+                {/* Rede de segurança para carregar o contexto do projecto: o envio automático no
+                    arranque foi removido, portanto este botão é agora a via normal do resume. */}
+                <button
+                  type="button"
+                  className="quick-command-btn"
+                  onClick={resumeProject}
+                  data-tooltip={`/resume "${basename(activeProjectPath)}" — carregar o contexto do projecto`}
+                  aria-label="Carregar o contexto do projecto"
+                >
+                  <ResumeIcon /> Resume
+                </button>
+                <button
+                  type="button"
+                  className="quick-command-btn"
+                  onClick={startProject}
+                  data-tooltip={`/start "${basename(activeProjectPath)}" — arrancar o projecto`}
+                  aria-label="Arrancar o projecto"
+                >
+                  <StartIcon /> Start
+                </button>
+              </>
+            )}
 
             {activeSession?.projectId && (
               <>
@@ -552,50 +642,83 @@ export default function TerminalView({
             )}
 
             <div className="command-bar-divider" />
-            <div ref={modelWrapRef} style={{ position: 'relative', display: 'inline-flex' }}>
-              <button
-                type="button"
-                className="quick-command-btn"
-                onClick={() => setModelMenuOpen((o) => !o)}
-                disabled={!activeId}
-                data-tooltip="Mudar o modelo do Claude (/model)"
-              >
-                Model ▾
-              </button>
-              {modelMenuOpen && (
-                <div
-                  role="menu"
-                  style={{
-                    position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 30,
-                    display: 'flex', flexDirection: 'column', minWidth: 120, padding: 4, gap: 2,
-                    background: 'var(--surface-panel, #1c1917)', border: '1px solid var(--border-bento, rgba(255,255,255,0.08))',
-                    borderRadius: 10, boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-                  }}
+            {/* Model e Effort partilham UM contentor com o ref: o clique-fora fecha quando sai do
+                par, e não a cada salto de um para o outro. */}
+            <div className="cmd-menu-group" ref={barMenuWrapRef}>
+              <div className="cmd-menu-wrap">
+                <button
+                  type="button"
+                  className="quick-command-btn"
+                  onClick={() => setBarMenu((m) => (m === 'model' ? null : 'model'))}
+                  disabled={!activeId}
+                  aria-haspopup="menu"
+                  aria-expanded={barMenu === 'model'}
+                  data-tooltip="Mudar o modelo (/model)"
                 >
-                  {[
-                    { alias: 'opus', label: 'Opus' },
-                    { alias: 'sonnet', label: 'Sonnet' },
-                    { alias: 'haiku', label: 'Haiku' },
-                    { alias: 'fable', label: 'Fable' },
-                    { alias: 'default', label: 'Default' },
-                  ].map((m) => (
-                    <button
-                      key={m.alias}
-                      type="button"
-                      role="menuitem"
-                      className="quick-command-btn"
-                      style={{ justifyContent: 'flex-start', width: '100%' }}
-                      onClick={() => setModel(m.alias)}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+                  Model ▾
+                </button>
+                {barMenu === 'model' && (
+                  <div role="menu" className="cmd-menu" aria-label="Modelo">
+                    {MODELOS.map((m) => (
+                      <button key={m.valor} type="button" role="menuitem" className="cmd-menu-item" onClick={() => sendBarMenuChoice('model', m.valor)}>
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="cmd-menu-wrap">
+                <button
+                  type="button"
+                  className="quick-command-btn"
+                  onClick={() => setBarMenu((m) => (m === 'effort' ? null : 'effort'))}
+                  disabled={!activeId}
+                  aria-haspopup="menu"
+                  aria-expanded={barMenu === 'effort'}
+                  data-tooltip="Mudar o nível de esforço (/effort)"
+                >
+                  Effort ▾
+                </button>
+                {barMenu === 'effort' && (
+                  <div role="menu" className="cmd-menu" aria-label="Esforço">
+                    {ESFORCOS.map((e) => (
+                      <button key={e.valor} type="button" role="menuitem" className="cmd-menu-item" onClick={() => sendBarMenuChoice('effort', e.valor)}>
+                        {e.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Adicionar comando ou skill" aria-label="Adicionar comando ou skill">+</button>
-
+            <div className="command-bar-divider" />
+            <button
+              type="button"
+              className="quick-command-btn quick-command-btn--stop"
+              onClick={interromperComAviso}
+              data-tooltip="Parar o que está a correr (Ctrl-C)"
+            >
+              <StopIcon /> Stop
+            </button>
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={restartComAviso}
+              data-tooltip="Reiniciar terminal (mata o processo e a conversa)"
+            >
+              <RefreshIcon /> Restart
+            </button>
+            {/* Manda `/remote-control <projecto>` na conversa ABERTA — não abre terminal novo. */}
+            <button
+              type="button"
+              className="quick-command-btn"
+              onClick={sendRemoteControl}
+              data-tooltip="Ligar Remote Control neste terminal"
+              aria-label="Ligar Remote Control neste terminal"
+            >
+              <RemoteIcon /> Remote
+            </button>
             {/* Limpa a linha de input DENTRO do terminal. Existe porque a alternativa habitual
                 (Ctrl-C) também mata o trabalho a correr. */}
             <button
@@ -609,54 +732,11 @@ export default function TerminalView({
               <EraserIcon /> Apagar texto
             </button>
 
-            {/* Vieram da barra de título, que foi removida por ocupar uma faixa inteira para
-                repetir o que já estava aqui. Só estes três: `Save` e `Compact` de lá eram os
-                mesmos `save`/`compact` que abrem esta fila. */}
             <div className="command-bar-divider" />
-            {/* Rede de segurança para quando o `/resume` do arranque não chega ao CLI (TUI lenta,
-                prompt "trust this folder?"): reenvia o mesmo comando, com a mesma pasta. */}
-            {activeProjectPath && (
-              <button
-                type="button"
-                className="quick-command-btn"
-                onClick={resumeProject}
-                data-tooltip={`Carregar o contexto do projecto (${basename(activeProjectPath)}) — se o resume automático falhou`}
-                aria-label="Reenviar o resume do projecto"
-              >
-                <ResumeIcon /> Resume
-              </button>
-            )}
+            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Comandos, skills e agentes" aria-label="Comandos, skills e agentes">+</button>
             <button
               type="button"
-              className="quick-command-btn"
-              onClick={restartComAviso}
-              data-tooltip="Reiniciar terminal"
-            >
-              <RefreshIcon /> Restart
-            </button>
-            <button
-              type="button"
-              className="quick-command-btn quick-command-btn--stop"
-              onClick={interromperComAviso}
-              data-tooltip="Parar processo (Ctrl-C)"
-            >
-              <StopIcon /> Stop
-            </button>
-            {/* Manda `/remote-control <projecto>` na conversa ABERTA — não abre terminal novo.
-                (A versão anterior lançava uma sessão com a flag de arranque `--remote-control`,
-                o que obrigava a deixar a conversa em curso para trás.) */}
-            <button
-              type="button"
-              className="quick-command-btn"
-              onClick={sendRemoteControl}
-              data-tooltip="Ligar Remote Control neste terminal"
-              aria-label="Ligar Remote Control neste terminal"
-            >
-              <RemoteIcon /> Remote
-            </button>
-            <button
-              type="button"
-              className="quick-command-btn"
+              className="quick-command-btn quick-command-btn--plus"
               onClick={() => activeId && termRefs.current.get(activeId)?.scrollToBottom?.()}
               data-tooltip="Ir para o fim do terminal"
               aria-label="Ir para o fim do terminal"
