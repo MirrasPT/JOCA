@@ -1,6 +1,6 @@
 ---
 name: start
-description: "O inicio de qualquer projeto. Entrevista completa por formularios interactivos — tipo de produto (website, app movel, jogo, SaaS, software), fluxos, PRD inicial, stack por camadas, infraestrutura e direccao de design (com pagina interactiva de direccoes visuais) — e termina a engatar na execucao. Absorve o /init-project: projectos existentes ligam-se ao JOCA sem questionario, com as respostas derivadas do disco. MUST be invoked when the user says: /start, novo projeto, comecar projeto, arrancar projeto, criar produto novo, iniciar projeto. SHOULD also invoke when: comecar do zero, quero construir uma app, quero fazer um site, tenho uma ideia de produto, ligar projecto ao JOCA, init project."
+description: "O inicio de qualquer projeto. Entrevista completa por formularios interactivos — tipo de produto (website, app movel, jogo, SaaS, software), fluxos, PRD inicial, stack por camadas, infraestrutura e direccao de design (com pagina interactiva de direccoes visuais) — e termina a engatar na execucao. Projectos existentes ligam-se ao JOCA com o mesmo questionario, pre-preenchido a partir do disco (PRD, README, manifestos, docs/) — o utilizador confirma em vez de escrever. MUST be invoked when the user says: /start, novo projeto, comecar projeto, arrancar projeto, criar produto novo, iniciar projeto. SHOULD also invoke when: comecar do zero, quero construir uma app, quero fazer um site, tenho uma ideia de produto, ligar projecto ao JOCA, init project."
 triggers: start, novo projeto, comecar projeto, arrancar projeto, criar produto novo, iniciar projeto, comecar do zero, quero construir uma app, quero fazer um site, tenho uma ideia, ligar projecto ao JOCA, init project
 argument-hint: "[nome-do-projeto]"
 chain: executar-projeto, prd
@@ -11,19 +11,35 @@ Entrevista → PRD inicial → stack → infra → direccao de design → **enga
 (`executar-projeto`). Esta skill **nao executa nada**: no fim tens os documentos e as decisoes; a
 skill seguinte constroi.
 
+> A **forma de trabalho** que esta skill instala (issue antes de codigo · design validado antes de
+> UI · testes em sessao separada · `PROGRESSO.md` + `docs/DECISIONS.md` · ondas com portao) e
+> **regra global** — vale em todos os projectos, com ou sem `/start`: `rules/pipelines.md`
+> §Doutrina de projecto. O que so vive aqui e o **arranque**: entrevista, direccoes de design,
+> scaffold e ponto de situacao.
+
 **Referencias:** `<JOCA_ROOT>/JOCA_Brain/.claude/reference/start/` — daqui para a frente `$REF`.
 
 # REGRAS
 
-1. **Formularios, nao interrogatorios.** Toda a escolha fechada usa `AskUserQuestion` — 2-4 opcoes
-   concretas, `description` em cada, um **recomendado em primeiro**, `multiSelect` quando as opcoes
-   nao se excluem. Texto livre so para o que e mesmo aberto.
+1. **Tudo por formulario.** **Qualquer** pergunta — fechada, aberta, ou um simples sim/nao — vai em
+   `AskUserQuestion`. Nunca escrevas uma pergunta no chat a espera de resposta escrita. 2-4 opcoes
+   concretas, `description` em cada, o **recomendado em primeiro**, `multiSelect` quando as opcoes
+   nao se excluem. Resposta que so o utilizador sabe → mesma coisa: opcoes derivadas do que ja
+   sabes + a opcao livre do formulario para ele escrever por cima.
 2. **Uma decisao de cada vez.** Nunca despejes um questionario inteiro em texto.
-3. **Nao pecas o que o disco responde.** A Fase 0 corre antes de qualquer pergunta.
+3. **Nao pecas o que o disco responde — pre-preenche.** A Fase 0 corre antes de qualquer pergunta, e
+   o que ela apurar entra nos formularios **como opcao recomendada em primeiro**, marcada
+   `(do disco: <ficheiro>)`. Projecto com documentos leva as **mesmas** perguntas de um projecto
+   novo — a diferenca e que ele confirma em vez de escrever.
 4. **Nao pecas o que consegues propor.** Deriva sugestoes das respostas anteriores e apresenta-as
    como opcoes com um recomendado — o utilizador corrige mais depressa do que inventa.
 5. **Insiste quando a resposta for vaga**, sobretudo no "o que NAO e".
 6. **Nao inventes conteudo de produto.** O problema, o publico e as fronteiras sao do utilizador.
+   Pre-preencher a partir de um ficheiro do projecto **nao e inventar** — mas cita a fonte na
+   `description` da opcao, e se nao houver fonte a opcao nao existe.
+7. **Assume sempre que ele quer avancar.** Fim de fase → passa a seguinte sem pedir licenca. Onde a
+   fase seguinte for cara ou irreversivel e a confirmacao for mesmo precisa, e um formulario de
+   **Sim/Nao com o "Sim, avancar" em primeiro** — nunca uma pergunta aberta em texto.
 
 ---
 
@@ -37,27 +53,64 @@ cat CLAUDE.md 2>/dev/null | head -30; cat README.md 2>/dev/null | head -20
 ls package.json composer.json pubspec.yaml go.mod requirements.txt 2>/dev/null
 gh auth status; gh --version; git config user.email
 php -v 2>/dev/null | head -1; node -v 2>/dev/null; flutter --version 2>/dev/null | head -1
+# ambiente local — nao perguntar o que isto responde
+uname -s; sw_vers -productVersion 2>/dev/null; echo "${WSL_DISTRO_NAME:+WSL: $WSL_DISTRO_NAME}"
+ls -d ~/Library/Application\ Support/Herd /Applications/Herd.app /c/laragon /opt/lampp /Applications/XAMPP /Applications/MAMP 2>/dev/null
+command -v herd docker mysql mysqld psql valet 2>/dev/null
+ls -d ~/.nvm ~/.asdf ~/.config/nvm 2>/dev/null
+test -f docker-compose.yml && grep -nE "image:|mysql|pgsql|postgres" docker-compose.yml | head -5
+grep -E "^(APP_URL|DB_CONNECTION|DB_HOST|DB_PORT)=" .env 2>/dev/null
+# documentos que respondem a entrevista (fonte do pre-preenchimento)
+ls docs/ 2>/dev/null
+for f in docs/PRD.md PRD.md docs/DECISIONS.md docs/DESIGN.md docs/BRAND.md docs/ECRAS.md docs/ARCHITECTURE.md; do test -f "$f" && echo "--- $f" && head -60 "$f"; done
 # memoria do Brain para esta pasta (exacta, mae e filhas)
 grep -rln "$(pwd)" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null
 grep -rn "^directorio" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null | grep -F "$(basename "$(pwd)")"
 ```
+
+## Fase 0b — Derivar as respostas (zero perguntas)
+
+Antes de abrir o primeiro formulario, converte o que a Fase 0 leu numa **tabela de respostas por
+omissao**. Cada linha tem: campo · valor derivado · **ficheiro de onde saiu**. Sem ficheiro, nao ha
+valor — fica `<sem fonte>` e a pergunta vai sem recomendado.
+
+| Campo da entrevista | Onde se le |
+|---|---|
+| Nome | `composer.json`/`package.json` `name` · `pubspec.yaml` `name` · titulo do `README.md` |
+| Problema / 1-2 frases | 1o paragrafo do `README.md` · `description` do manifesto · `docs/PRD.md` |
+| Publico | seccao de publico/utilizadores do `docs/PRD.md` ou `README.md` |
+| O que NAO e | seccao "O que NAO e"/"Non-goals"/"Out of scope" do `docs/PRD.md` |
+| Tipo de produto | manifesto: `pubspec.yaml`→movel · `next` nas deps→website/SaaS · `laravel/framework`→SaaS/API · `ProjectSettings/`→jogo |
+| Stack (Fase 3) | dependencias reais do manifesto + `php -v`/`node -v`/`flutter --version` |
+| Ambiente local (Fase 3.6) | Herd/Laragon/XAMPP/MAMP detectados · `docker-compose.yml` · `.env` (`APP_URL`, `DB_*`) · `uname -s` |
+| Infra (Fase 4) | `git remote -v` (repo ja existe → nao se cria) · `.env.example` · `docs/DECISIONS.md` |
+| Design (Fase 5) | `docs/DESIGN.md`/`docs/BRAND.md`/`tailwind.config`/`@theme`/`ThemeData` |
+
+Regra: **cada valor derivado vira a 1a opcao do formulario dessa pergunta**, com a `description` a
+citar o ficheiro (ex.: `"Gestores de frota — do docs/PRD.md, seccao Publico"`). As outras opcoes sao
+alternativas plausiveis. Assim ele carrega uma tecla em vez de reescrever o projecto todo.
 
 ## As tres portas
 
 | Estado da pasta | Via |
 |---|---|
 | **Vazia** (ou so `.git`) | Projecto novo → Fase 1 |
-| **Tem `PROGRESSO.md`** | **Retoma** — le as fases, confirma cada uma pelo criterio de saida (tabela abaixo), entra na primeira por fazer. Nao repete a entrevista do que ja esta em `docs/PRD.md` |
-| **Tem projecto, sem `PROGRESSO.md`** | **Ligar ao JOCA** (o antigo `/init-project`) — ver caixa |
+| **Tem `PROGRESSO.md`** | **Retoma** — le as fases, confirma cada uma pelo criterio de saida (tabela abaixo), entra na primeira por fazer. Nao repete a entrevista do que ja esta em `docs/PRD.md`. **Maquina cujo SO nao esta na tabela Ambiente local** → corre so a Fase 3.6 para essa maquina e acrescenta a linha; nao repete nada do resto |
+| **Tem projecto, sem `PROGRESSO.md`** | **Ligar ao JOCA** — entrevista na mesma, **pre-preenchida** pela Fase 0b. Ver caixa |
 
-> ### Ligar um projecto existente — sem questionario
-> As perguntas do antigo `/init-project` (tipo, stack, estado) **respondem-se do disco**: o
-> `composer.json`/`package.json`/`pubspec.yaml` diz a stack, o git diz o historico, o README diz o
-> objectivo. Faz o levantamento, escreve/actualiza `memory/projects/<nome>.md` no Brain, cria o
-> `PROGRESSO.md` com o estado real observado, e pergunta **uma** coisa so: *"o que queres fazer a
-> seguir neste projecto?"*. Se ja existir memoria no Brain para a pasta (ou para a pasta-mae),
-> **mostra-a primeiro** e pergunta se e actualizar, criar sub-entrada, ou guarda-chuva — nunca
-> comecar como se fosse novo.
+> ### Ligar um projecto existente — questionario pre-preenchido
+> **Nao saltas as perguntas: saltas o trabalho de as responder.** O `composer.json`/`package.json`/
+> `pubspec.yaml` da a stack, o git da o historico, o `README.md` e o `docs/` dao o objectivo, o
+> publico e as fronteiras. Corre as Fases 1-5 **na integra**, mas cada formulario abre com a
+> resposta ja derivada em primeiro lugar e a `description` a citar o ficheiro — ele confirma em vez
+> de escrever. Uma fase inteira cujos campos vieram todos do disco resolve-se num unico formulario
+> de confirmacao em bloco ("Confirmas isto tudo?" → *Sim* · *Quero corrigir* → so entao as
+> perguntas uma a uma).
+> Nada derivado (`<sem fonte>`) → a pergunta corre normal, sem recomendado.
+> No fim: escreve/actualiza `memory/projects/<nome>.md` no Brain e cria o `PROGRESSO.md` com o
+> estado real observado. Se ja existir memoria no Brain para a pasta (ou para a pasta-mae),
+> **mostra-a primeiro** e pergunta — em formulario — se e *actualizar* · *criar sub-entrada* ·
+> *guarda-chuva*. Nunca comecar como se fosse novo.
 
 ## Criterios de saida por fase (usados na retoma)
 
@@ -65,7 +118,7 @@ grep -rn "^directorio" <JOCA_ROOT>/JOCA_Brain/memory/projects/ 2>/dev/null | gre
 |---|---|
 | S1 Produto | `docs/PRD.md` existe; seccao "O que NAO e" com >= 5 pontos |
 | S2 Fluxos | 3-6 fluxos no PRD + lista de ecras + entidades + capacidades marcadas |
-| S3 Stack | seccao Stack do PRD preenchida, sem `<...>` |
+| S3 Stack | seccao Stack do PRD preenchida, sem `<...>`, **incluindo a tabela Ambiente local** (1 linha por maquina) |
 | S4 Infra | repo GitHub decidido (nome + visibilidade) + deploy decidido/adiado em `docs/DECISIONS.md` |
 | S5 Design | direccao registada em `docs/DESIGN.md` (ou "existe em X" ou "explorar na execucao") |
 | E* Execucao | ver `executar-projeto` — fases E1-E4 tem os seus criterios la |
@@ -91,18 +144,20 @@ Se `$ARGUMENTS` trouxer um nome, usa-o. Senao, pede-o na primeira pergunta.
 
 (6 opcoes nao cabem numa pergunta de 4 — divide em 2 perguntas ou usa as 4 mais provaveis + "Other".)
 
-**1.2 — Texto livre, uma de cada vez** (aqui nao ha opcoes a propor):
-1. **Nome** e, em 1-2 frases, que problema resolve.
-2. **Para quem** — insiste num utilizador concreto. "Empresas" nao serve; "o responsavel de
-   operacoes numa equipa de 5-20 pessoas" serve.
-3. **Como e resolvido hoje**, e porque e que isso e mau.
-4. **O que NAO e** — pede 5 pontos. Menos que isso: propoe candidatos a partir do que ja disse
-   ("presumo que nao leve facturacao nem app movel — confirmas?") e valida-os um a um. **Nao avances
-   com menos de cinco.**
-5. **Primeira versao utilizavel** — a menor coisa que alguem usaria a serio.
+**1.2 — Cinco perguntas, cinco formularios, uma de cada vez.** Nenhuma vai em texto solto: mesmo
+onde o conteudo e do utilizador, o formulario abre com candidatos derivados (Fase 0b, ou da resposta
+anterior) e ele escolhe ou escreve por cima na opcao livre.
 
-O objectivo desta fase e o utilizador **descrever o maximo possivel** — regista tudo, mesmo o que
-nao couber nas perguntas; vai para o PRD.
+| # | Pergunta | Como montar o formulario |
+|---|---|---|
+| 1 | **Nome** + 1-2 frases do problema | Opcoes: nome do manifesto/README (`(do disco: <ficheiro>)`) · nome da pasta · `$ARGUMENTS` · escrever outro |
+| 2 | **Para quem** | Propoe 3 utilizadores **concretos** deduzidos do problema. "Empresas" nao e opcao; "o responsavel de operacoes numa equipa de 5-20 pessoas" e. Ele escolhe ou corrige |
+| 3 | **Como e resolvido hoje** e porque e mau | Opcoes tipicas: Excel/folha de calculo · ferramenta generica mal encaixada · a mao/papel · concorrente directo · outro |
+| 4 | **O que NAO e** — 5 pontos | `multiSelect: true` com 6-8 candidatos derivados do que ele ja disse (facturacao, app movel, multi-idioma, marketplace, chat, BI, offline…). **Nao avances com menos de cinco** — se o primeiro formulario der menos, abre um segundo com candidatos novos |
+| 5 | **Primeira versao utilizavel** | Propoe 3 cortes de ambito, do mais pequeno ao mais completo, derivados dos fluxos ja falados; recomendado = o mais pequeno |
+
+O objectivo continua a ser ele **descrever o maximo possivel** — o campo livre de cada formulario
+serve para isso, e regista-se tudo, mesmo o que nao couber nas opcoes; vai para o PRD.
 
 ---
 
@@ -166,6 +221,32 @@ opcoes ja excluidas):
    > o modo estrito do MySQL; os erros so aparecem no deploy. Se producao = MySQL, o CI corre MySQL.
 4. **Backoffice**: Filament v5 (so com Laravel) · nenhum
 5. **App movel** (se aplicavel): Flutter · nenhuma nesta versao
+6. **Ambiente local** — onde e que isto corre na maquina de quem desenvolve. Nao e detalhe: decide o
+   URL de dev, o motor de BD real e metade dos bugs de "so acontece aqui". A Fase 0 ja detectou o
+   que da para detectar — **pergunta so o que faltar**, e mostra o detectado como recomendado.
+
+| Sistema | Opcoes (recomendado primeiro) |
+|---|---|
+| macOS | **Laravel Herd** · Docker/Sail · nativo (`php artisan serve` + Homebrew) · MAMP |
+| Windows | **Laragon** · Herd Windows · WSL2 (+ Sail) · XAMPP · nativo |
+| Next.js / Flutter | nao ha "ambiente": `npm run dev` / `flutter run`. Perguntar so as versoes de Node/Flutter e o gestor (nvm · fnm · asdf · nenhum) |
+
+   Perguntas em cascata (`AskUserQuestion`), so as que a Fase 0 nao respondeu:
+   a) **Ambiente** da tabela acima.
+   b) **Motor de BD local** — tem de ser **o mesmo motor da producao** (pergunta 3). Herd e Laragon
+      trazem MySQL; Sail traz o que estiver no `docker-compose.yml`. SQLite em dev com MySQL em
+      producao **so com decisao registada** em `docs/DECISIONS.md`.
+   c) **Onde responde o servidor de dev** — `https://<nome>.test` (Herd/Laragon) · `http://localhost:8000`
+      · `http://localhost:3000` · porta propria. Pergunta tambem se ha **portas reservadas** nesta
+      maquina (outro projecto, outro servico) — colisao de porta e falha silenciosa.
+   d) **Versoes de PHP e Node** e de onde vem (do ambiente, ou instaladas a parte com nvm/asdf).
+   e) **Mais do que uma maquina?** Se sim: uma linha de ambiente **por maquina**, e o scaffold (E1)
+      leva `.gitattributes` com `* text=auto eol=lf` — sem isso o mesmo commit produz builds
+      diferentes em Windows e macOS.
+
+   **Registo:** tabela **Ambiente local** em `docs/PRD.md` §Stack (a E1 propaga-a para
+   `.ai/guidelines/00-projeto.md`) · divergencia dev↔producao em `docs/DECISIONS.md` · paths,
+   portas e versoes exactas na memoria do Brain (Fase 6.4) — **nunca no `PROGRESSO.md`**.
 
 **Jogos:** movel → **Unity 6** e a via da casa (as skills `unity-*` entram quando disponiveis na
 instalacao — verifica `memory/SKILL_INDEX.json`; sem elas, a execucao trata o Unity como stack
@@ -237,9 +318,17 @@ variantes dentro da direccao escolhida).
    outra, nunca duplicam conteudo.)
 4. **Memoria do Brain** — cria/actualiza `memory/projects/<nome>.md` com `directorio:`, stack,
    estado "entrevista feita, execucao por comecar" e o ponteiro `**Fase de arranque:** ver
-   PROGRESSO.md`. (E isto que o `/init-project` fazia — aqui sai de graca, sem perguntas.)
-5. **Resumo final** ao utilizador: o que ficou decidido, o que a execucao vai fazer, e a pergunta
-   unica: **"Avanco para a execucao?"**
+   PROGRESSO.md`. (Sai de graca do levantamento, sem perguntas.) Acrescenta a linha
+   `**Maquina:** <SO> · <ambiente> · PHP <v> · Node <v> · BD local <motor> · dev em <URL> · portas
+   reservadas <lista>` — **e aqui que vivem os paths e as portas**, porque o `PROGRESSO.md` os
+   proibe. Segunda maquina = segunda linha, nao substituicao.
+5. **Resumo final** ao utilizador: o que ficou decidido e o que a execucao vai fazer. **O avanco e
+   assumido** — nao perguntes se ele quer continuar. O unico gate e um `AskUserQuestion` de duas
+   opcoes, com a primeira em recomendado:
+   > **Avanco para a execucao?**
+   > 1. **Sim, avancar** (recomendado) — corre `executar-projeto` a partir da E1
+   > 2. **Nao — so queria o plano** — fica tudo em `docs/` + `PROGRESSO.md`
+   Sem resposta util, a via 1 e a que vale.
 
 ## Proximo passo (chain)
 

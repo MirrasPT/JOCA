@@ -34,6 +34,20 @@ Detalhe em `docs/PRODUTO.md`.
 - Testes: `flutter test` · Análise: `flutter analyze --fatal-infos`
 - Formatação: `dart format .` · Dev: `flutter run`
 
+## Ambiente local
+
+Onde é que isto corre na máquina de quem desenvolve. Uma linha por máquina.
+
+| Máquina / SO | Ambiente | BD local | URL de dev |
+|---|---|---|---|
+| macOS | Laravel Herd | MySQL 8.4 (do Herd) | https://<nome>.test |
+| Windows | Laragon | MySQL 8.4 (do Laragon) | https://<nome>.test |
+
+- **O motor de BD local é o mesmo da produção.** Divergência só com entrada em `docs/DECISIONS.md`.
+- Versões: PHP `<v>` · Node `<v>`. Sem gestor declarado, é o que o ambiente traz.
+- Máquina nova: acrescenta a tua linha, não substituas a de ninguém.
+- **Sem paths pessoais nem portas de terceiros aqui** — isso vive na memória do JOCA de cada um.
+
 ## Documentos de referência
 
 Ler quando o trabalho os tocar — não estão colados aqui de propósito:

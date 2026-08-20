@@ -39,6 +39,11 @@ const SPLIT_MARKERS = [
 // Escala: o mesmo trabalho repetido em N sítios é o caso mais rentável de fan-out.
 const SCALE_MARKERS = /\b(?:todos|todas|cada|várias|varias|vários|varios|em todo|por todo|uma a uma|um a um)\b/gi;
 
+// Sinais que EXIGEM plano antes de executar (rules/task-intake.md → "Plano antes de executar").
+// Irreversível sozinho activa; scope grande activa por si.
+const IRREVERSIBLE_MARKERS = /\b(?:migration|migrations|migrate|migra|deploy|deployar|publicar|produção|producao|apaga|apagar|elimina|eliminar|drop|reset|force[- ]push|pagamento|pagamentos|payment|stripe|checkout|auth|autenticação|autenticacao)\b/i;
+const SCOPE_MARKERS = /\b(?:feature|funcionalidade|plataforma|refactor|refactoriza|refatoriza|reestrutura|arquitectura|arquitetura|migrar|integra|integrar|do zero|de raiz)\b/i;
+
 // Pedidos que NÃO são trabalho: perguntas, decisões, conversa. Escalar aqui é desperdício.
 const QUESTION_START = /^\s*(?:o que|qual|quais|quando|onde|porque|porquê|porque|como|quem|será|sera|achas|podes explicar|explica|mostra|lista|vale a pena|devo|posso)\b/i;
 
@@ -110,6 +115,15 @@ function analyse(prompt) {
   return { via: 'directa', motivo: 'trabalho pequeno e indivisível' };
 }
 
+// Anexa o motivo de plano ao resultado da triagem (null-safe; a via não muda).
+function comPlano(a, irreversivel, scopeGrande) {
+  if (!a) return a;
+  if (irreversivel) a.plano = 'acção irreversível detectada';
+  else if (a.via === 'fan-out') a.plano = 'fan-out: fronteiras de ficheiro por agente';
+  else if (scopeGrande) a.plano = 'scope de feature/arquitectura';
+  return a;
+}
+
 try {
   const chunks = [];
   process.stdin.on('data', (c) => chunks.push(c));
@@ -120,7 +134,7 @@ try {
       prompt = payload.prompt || payload.user_prompt || '';
     } catch { /* sem payload utilizável → nudge genérico */ }
 
-    const a = analyse(prompt);
+    const a = comPlano(analyse(prompt), IRREVERSIBLE_MARKERS.test(prompt), SCOPE_MARKERS.test(prompt));
     let context;
 
     if (!a) {
@@ -135,6 +149,12 @@ try {
         + `se o trabalho for isolável e longo, despacha <skill>-agent em vez de o fazer inline.`;
     } else {
       context = `[task-intake] Sinal: ${a.motivo}. → Responde directamente; não escales.`;
+    }
+
+    // Gate de plano: acrescenta-se ao sinal de via, não o substitui.
+    if (a && a.plano) {
+      context += ` [plano] ${a.plano} → escreve o plano visível (objectivo · ficheiros por agente · `
+        + `critério de sucesso) ANTES do primeiro Write/Agent. rules/task-intake.md.`;
     }
 
     process.stdout.write(JSON.stringify({

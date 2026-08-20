@@ -9,7 +9,7 @@ O projecto DEVE ter pelo menos um destes ficheiros:
 - `TECH_SPEC.md` — especificação técnica
 - `TASKS.md` — decomposição de tarefas
 
-Se nenhum existir: sugerir `/init-project` ou `/plan` primeiro. Não prosseguir sem documentação.
+Se nenhum existir: sugerir `/start` ou `/plan` primeiro. Não prosseguir sem documentação.
 
 ## Fluxo
 
@@ -74,7 +74,7 @@ Resultado: Lê PRD, decompõe em streams (DB → API → Frontend), dispatcha ag
 
 ## Quando NÃO Usar
 
-- Projecto sem documentação (usar `/plan` ou `/init-project` primeiro)
+- Projecto sem documentação (usar `/plan` ou `/start` primeiro)
 - Bug fix simples (usar `/debug`)
 - Tarefa de 1 ficheiro (fazer directamente)
 - Refactor sem spec (usar `/plan` para definir scope primeiro)

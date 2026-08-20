@@ -30,6 +30,11 @@ A partir da descrição NL, derivar:
 
 Não inventar nomes de skills/agentes — só os que constam do índice.
 
+**O plano é visível, não in-memory.** Antes do passo 4, imprimir em 5-15 linhas: GOAL · critérios de
+aceitação · um bloco por work-stream com *ficheiros que lhe pertencem* e *critério de sucesso*. Não é
+um gate (não se espera aprovação em trabalho reversível) — é o que torna verificável que dois agentes
+não escrevem no mesmo ficheiro, e o que o utilizador corrige em 1 linha antes de gastar ~15x tokens.
+
 ### 3. Gate de segurança
 Detectar acções irreversíveis no GOAL (auth/payments/migrations/deletes/deploy/push/git destrutivo).
 Se houver → **1 linha de confirmação** antes de disparar. Caso contrário, prosseguir.

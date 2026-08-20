@@ -19,7 +19,7 @@ JOCA — Referência rápida
 SESSÃO
 /resume              Carrega contexto e knowledge graph do projecto
 /save                Guarda estado da sessão e actualiza memory
-/init-project        Inicializa entrada de projecto novo em memory
+/start               Arranca um projecto novo ou liga um existente ao JOCA
 /install             Setup ou reconfiguração do JOCA
 /migrate             Migração v1-legacy → v2.0
 

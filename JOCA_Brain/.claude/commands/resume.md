@@ -37,7 +37,7 @@ outra máquina). Só sugerir substituição quando o path antigo já não existe
 
 > Exemplo (por caminho): `/resume <YOUR_PROJECTS_DIR>\MeuProjecto` → umbrella `meu-projecto-geral.md` (`directorio` == pasta-mãe). `/resume <YOUR_PROJECTS_DIR>\MeuProjecto\2026_Nova_Plataforma` → `meu-projecto.md` (`directorio` == subdir da plataforma). Nunca o inverso.
 
-**Nenhuma relação nem por caminho nem por nome** → sugerir correr `/init-project` primeiro.
+**Nenhuma relação nem por caminho nem por nome** → sugerir correr `/start` primeiro.
 
 ### 1b. Arg opcional: `<git-remote-url>`
 
@@ -83,7 +83,8 @@ Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.:
 
 #### 2b-bis. PROGRESSO.md — o estado partilhado
 
-Se a pasta do projecto tiver `PROGRESSO.md` (projectos arrancados pelo `/start`): lê-lo **antes** da
+Se a pasta do projecto tiver `PROGRESSO.md` (qualquer projecto — o `/start` cria-o de raiz, o
+`/save` cria-o em projectos a meio): lê-lo **antes** da
 memória do Brain e mostrar a fase actual no resumo. É a versão partilhada do estado — pode ter sido
 actualizado por outro colaborador ou outra máquina desde a tua última sessão, e nesse caso **ganha
 ao Brain** no que toca a fases/estado do projecto (o Brain guarda o teu contexto pessoal, não o

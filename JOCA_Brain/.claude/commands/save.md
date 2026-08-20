@@ -34,7 +34,7 @@ dia numeram-se com sufixo `(a)`/`(b)`/`(c)` para não colidirem.
 
 ## PASSO 2a-bis — PROGRESSO.md (estado partilhado por git)
 
-Se a raiz do projecto tiver `PROGRESSO.md` (criado pelo `/start` — formato em
+Se a raiz do projecto tiver `PROGRESSO.md` (formato em
 `.claude/reference/start/progresso-formato.md`):
 1. Actualizar **Estado actual** (1-3 linhas) e a tabela de **Fases** se alguma mudou — sempre com a
    coluna Prova (caminho/comando), nunca so o ✅.
@@ -42,6 +42,9 @@ Se a raiz do projecto tiver `PROGRESSO.md` (criado pelo `/start` — formato em
 3. **Commitar junto com o resto do trabalho** — e a memoria PARTILHADA: o que nao for commitado nao
    existe para os outros colaboradores. (A memoria do Brain continua individual; as duas apontam uma
    para a outra, nao se duplicam.)
+4. **Se NAO existir** e o projecto ja levou trabalho de mais do que uma sessao: cria-o com o estado
+   observado (git + docs + issues), sem entrevista. E o estado partilhado; a sua ausencia e a razao
+   por que o proximo colaborador pergunta o que ja esta escrito.
 
 ## PASSO 2b — Check de Conceito (projectos com regras mutáveis)
 
@@ -198,7 +201,7 @@ node   .claude/scripts/joca-doctor.mjs         # apanha paths/indices mortos (ex
 
 Depois, edicao cirurgica em `memory/INDEX.md` (contagens + a linha do componente novo) e, se for um comando novo, na tabela `## Commands` do `JOCA_Brain/CLAUDE.md`. **Um componente que nenhum indice expoe e um componente invisivel** — o matching por relevancia nunca lhe chega.
 
-> Nota historica: isto era o antigo `/sync-questionnaires`, que auditava questionarios de formulario. Os questionarios deixaram de existir (o levantamento passou a ser conversa — ver `/init-project`), portanto o que sobra e reindexar, e o sitio certo e aqui.
+> Nota historica: isto era o antigo `/sync-questionnaires`, que auditava questionarios de formulario. Os questionarios deixaram de existir (o levantamento passou a ser conversa — ver `/start`), portanto o que sobra e reindexar, e o sitio certo e aqui.
 
 ---
 

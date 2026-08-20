@@ -172,7 +172,7 @@ ls -la
 
 ```bash
 ls .claude/commands/
-# Deve incluir: install.md, resume.md, save.md, init-project.md, etc.
+# Deve incluir: install.md, resume.md, save.md, plan.md, etc.
 
 ls .claude/skills/
 # Estrutura FLAT: só ficheiros *.md, sem subpastas (base/design/dev nested = v1-legacy)
@@ -395,7 +395,7 @@ Ler o `~/CLAUDE.md` existente. Actualizar a secção JOCA sem apagar dados pesso
 ```markdown
 ## JOCA
 Toolkit instalado em: [caminho]
-Comandos: /install · /init-project · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
+Comandos: /install · /start · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
 
 Skills activas:
 - Base: caveman, karpathy-guidelines, agent-context, create-skill

@@ -1,12 +1,11 @@
 # /retro — Retrospectiva (aprendizagens da janela → acções)
 
-Adaptado do `retro` do gstack. Lê as aprendizagens/decisões recentes do projecto (Brain log), resume ganhos/problemas/padrões e **propõe acções concretas**. Pode correr manualmente OU como **automação cron** (semanal) via o motor de automações do JOCA_OS.
+Adaptado do `retro` do gstack. Lê as aprendizagens/decisões recentes do projecto (Brain log), resume ganhos/problemas/padrões e **propõe acções concretas**.
 
 ---
 
 ## Quando usar
 - "retro", "retrospectiva", "o que correu bem/mal", revisão semanal, fim de marco.
-- Como automação: "todas as segundas às 9h faz retro do projecto X" → `automation-builder`.
 
 ## Passos
 
@@ -20,7 +19,7 @@ node .claude/scripts/joca-brain.mjs active
 2. **Sintetizar** (3 blocos, terso):
    - **Ganhos** — o que correu bem, padrões a repetir.
    - **Problemas** — bugs recorrentes, fricção, retrabalho.
-   - **Padrões** — o que se repete (≥2x) e devia virar regra/skill/automação.
+   - **Padrões** — o que se repete (≥2x) e devia virar regra ou skill.
 
 3. **Propor acções** — cada problema/padrão → 1 acção concreta:
    - Lição reutilizável → `node .claude/scripts/joca-brain.mjs learn --text "..." --tags retro`.
@@ -38,4 +37,4 @@ printf '## Retro <data>\n<síntese>' | node .claude/scripts/joca-checkpoint.mjs 
 - Acções accionáveis, não genéricas ("adicionar índice X em Y", não "melhorar performance").
 
 ## Próximo passo (chain)
-- Acções de melhoria do JOCA → `/upgrade-joca`. Padrão novo → `/create-skill`. Automatizar o retro → `automation-builder`.
+- Acções de melhoria do JOCA → `/upgrade-joca`. Padrão novo → `/create-skill`.

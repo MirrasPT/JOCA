@@ -91,7 +91,7 @@ Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria p
 skills que o utilizador viria a precisar.
 
 O que e especifico de um projecto (stack, plataforma, CLIs desse projecto) e decidido pelo
-`/start`, que ve a pasta (absorveu o antigo `/init-project`). Aqui trata-se so da maquina.
+`/start`, que ve a pasta. Aqui trata-se so da maquina.
 
 ---
 
@@ -564,7 +564,8 @@ Usar `/` mesmo em Windows.
       {
         "hooks": [
           { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-checkpoint.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-test-dispatch.js\"" }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-test-dispatch.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-continuar.js\"" }
         ]
       }
     ]
@@ -573,7 +574,7 @@ Usar `/` mesmo em Windows.
 ```
 
 Notas:
-- **Ordem no array Stop importa:** `stop-checkpoint.js` corre ANTES de `auto-test-dispatch.js` (este limpa a `.joca/test-queue.jsonl`).
+- **Ordem no array Stop importa:** `stop-checkpoint.js` → `auto-test-dispatch.js` → `stop-continuar.js`. O checkpoint corre ANTES do dispatch (este limpa a `.joca/test-queue.jsonl`); o `stop-continuar.js` corre **por último**, porque é o único que pode bloquear o fim do turno — e bloqueia **uma vez** por turno (guarda `stop_hook_active`; ver `rules/chaining.md`).
 - Runtime `node` para todos os hooks excepto `check-skill-paths.sh` (bash, vive em `.claude/scripts/`).
 - Hooks flag-file (`check-freeze`, `check-careful`, `check-tdd`) são no-op sem a flag `.joca/*.flag` — armados pelas skills `freeze`/`careful`/`tdd`, desarmados por `unfreeze`.
 

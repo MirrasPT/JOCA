@@ -26,10 +26,13 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 1. **Reversible?** yes → execute without asking · no → confirm 1 line
 2. **Skill OR agente OR workflow?** Classificar a tarefa (ver `rules/task-intake.md`):
    - 0 ficheiros / pergunta pura → **resposta directa**.
-   - 1 domínio + 1-2 ficheiros + reversível + skill match ≥60% → **Read() a skill ANTES de escrever código**. Notify: `[skill: <name>]`.
-   - 1 domínio especialista + trabalho isolável (review/debug/research/deploy) → **delegar a 1 agente** com brief obrigatório.
-   - ≥2 domínios em paralelo OU ≥3 ficheiros OU feature completa OU cross-stack → **workflow** via `/goal` (master-orchestrator com GOAL + loop). Se casar uma **pipeline nomeada** → o **auto-runner** corre-a a fundo (`rules/pipelines.md`): cada passo a fundo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:` (`rules/chaining.md`). Irreversível → 1 linha de confirmação primeiro.
+   - 1 domínio + **1 ficheiro** + reversível + skill match ≥60% → **Read() a skill ANTES de escrever código**. Notify: `[skill: <name>]`.
+   - 1 domínio especialista + trabalho isolável (review/debug/research/deploy) **ou 2 ficheiros isolados** → **delegar a 1 agente** com brief obrigatório.
+   - ≥2 domínios em paralelo OU ≥2 ficheiros paralelizáveis OU feature completa OU cross-stack → **workflow** via `/goal` (**default do sistema**: na dúvida, delegar — o principal orquestra, os agentes escrevem o código) (master-orchestrator com GOAL + loop). Se casar uma **pipeline nomeada** → o **auto-runner** corre-a a fundo (`rules/pipelines.md`): cada passo a fundo, auto-decide reversíveis, gate só em irreversível, encadeia via `chain:` (`rules/chaining.md`). Irreversível → 1 linha de confirmação primeiro.
    Check trigger map abaixo — Laravel/Filament/frontend/etc. têm skills.
+2b. **Plano?** Via D · acção irreversível · ≥3 ficheiros · feature nova → **plano visível ANTES** do primeiro `Write`/`Agent()` (tabela em `rules/task-intake.md` → "Plano antes de executar"). Via A/B reversível → não planeia, age.
+   ⚠ **Dois limiares diferentes, de propósito:** fan-out a partir de **≥2 ficheiros paralelizáveis**; plano escrito só a partir de **≥3 ficheiros** (ou irreversível/feature nova). Um fan-out de 2 streams delega-se sem redigir plano — a fronteira de ficheiros por agente vai no brief. Fonte de verdade dos números: `rules/task-intake.md` §Thresholds + §Plano antes de executar.
+2c. **Doutrina de projecto** — em qualquer projecto (não só nos do `/start`): issue antes de código · design antes de UI · testes em sessão separada · `PROGRESSO.md` + `docs/DECISIONS.md` actualizados. Tabela em `rules/pipelines.md` §Doutrina de projecto.
 3. **Scope clear?** yes → execute · ambiguous → 2 interpretations, ask choice
 4. **Token cost?** <100 tokens → inline · >100 + agent available → delegate
 5. **Validation?** code changed → queue auto-test · config changed → show diff
@@ -51,7 +54,7 @@ Flat in `.claude/skills/`. Activate via `Read(".claude/skills/<name>.md")`. Lazy
 
 ### Skill inline OU agente de execução
 Cada skill de **execução** tem um agente gémeo em `.claude/agents/<skill>-agent.md` (65). O agente lê a skill como Step 0 — mesma doutrina, contexto próprio. Para o mesmo trabalho:
-- **1 parte** → `Read()` a skill, faz inline (barato, imediato).
+- **1 parte trivial** → `Read()` a skill, faz inline (barato, imediato).
 - **≥2 partes independentes** → despacha `<skill>-agent` para cada, **no mesmo turno** (paralelo real, ~15x tokens cada, principal fica livre).
 
 Escolher de propósito: serializar trabalho paralelizável custa tempo em cada pedido; despachar um agente para mudar uma cor custa 15x por nada. Gate de valor + armadilhas em `rules/task-intake.md`. Regenerar agentes: `node .claude/scripts/skill-agents.mjs` (a lista curada de skills de execução vive no topo do script).
@@ -117,14 +120,14 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | S3 · R2 · upload · CDN | `file-storage` |
 | SaaS · multi-tenant · tenancy | `saas-patterns` |
 | PRD · requirements | `prd` |
-| /start · projecto novo · arrancar do zero · criar produto novo · ligar projecto ao JOCA | `start` (entrevista por formularios + PRD + stack da casa + direccao de design; absorve o /init-project) |
+| /start · projecto novo · arrancar do zero · criar produto novo · ligar projecto ao JOCA | `start` (entrevista por formularios + PRD + stack da casa + direccao de design; entrada unica de qualquer projecto, novo ou existente). ⚠ A **forma de trabalho** que ela instala e global e nao depende deste comando — `rules/pipelines.md` §Doutrina de projecto |
 | executar projeto · constroi o projecto · avanca para a execucao | `executar-projeto` (fundacao → design 2 vias → gate → desenvolvimento em ondas) |
 | novo issue · criterios de aceitacao · abrir issue · backlog | `novo-issue` |
 | planear ondas · organizar backlog · milestones · por onde comeco | `planear-ondas` |
 | desenhar ecra · mockup · briefing de design · ecra novo | `preparar-design` (entrega o mockup como Artifact) |
 | validar mockup · o design bate certo · posso implementar este ecra | `validar-design` |
 | escrever testes do issue · testes a partir dos criterios | `escrever-testes` (sessao separada da implementacao) |
-| plan · architecture · migrate | `plan` (auto) |
+| plan · architecture · migrate · feature nova · ≥3 ficheiros · migration/deploy/delete | `plan` (auto — gate em `rules/task-intake.md`) |
 | claude-agent-sdk · agent sdk · programmatic claude · subscription claude · zero-cost claude · JOCA_OS backend · createSdkMcpServer | `agent-sdk` |
 | enqueue_workflow not running · comfyui mcp bug · workflow crashes via MCP · start_comfyui fails · comfy plugin | `comfy-mcp-workarounds` |
 | JOCA_OS no Windows · node-pty · PowerShell PTY · install/upgrade Windows | `joca-os-windows` |
@@ -148,7 +151,6 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | mapear conhecimento · como tudo se liga · grafo de skills/agentes/projectos · mapa do JOCA | `/map-joca` |
 | o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube | `/last30days` (plugin externo) |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
-| automação · cron · todos os dias às · recorrente · agendar tarefa | `automation-builder` (agent + skill `automations`) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
 | deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
@@ -158,6 +160,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | corrigir a11y · WCAG fix · acessibilidade | `a11y-fixer` (agent) |
 | dívida técnica · tech debt · medir ganho · LOC poupado | `tech-debt-auditor` (agent) |
 | simplificar · YAGNI · menos dependências · código mínimo | `yagni` |
+| GitHub Actions · CI · workflow yml · gh pr · branch protection · Dependabot · release | `github` |
 | auto-orquestração · quando disparar workflow · subagentes | `orchestration-patterns` (rule) |
 
 ### Pipelines
@@ -173,7 +176,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | Command | Function |
 |---|---|
 | `/install` | JOCA setup on new machine |
-| `/init-project` | fundido no `/start` — redirect |
+| `/start` | arranque de projecto: entrevista → PRD → stack → direcção de design → `executar-projeto` (entrada única, novo ou existente) |
 | `/resume` | load context + knowledge graph |
 | `/save` | save state + update graph + auto-feedback |
 | `/plan` | Plan Mode — architecture |
@@ -182,7 +185,7 @@ PostToolUse (Write|Edit) → fila `.joca/test-queue.jsonl` → Stop lê e recome
 | `/goal` | auto-orquestração a partir de tarefa NL (sem PRD) → master-orchestrator em loop |
 | `/autoplan` | plano completo auto-revisto (produto → design → eng) — corre a pipeline a fundo, gate final |
 | `/learn` | memória institucional do Brain (decisões/aprendizagens event-sourced + recall) |
-| `/retro` | retrospectiva: aprendizagens da janela → acções (manual ou automação cron) |
+| `/retro` | retrospectiva: aprendizagens da janela → acções |
 | `/gauntlet-loop` | reformula qualquer pedido num workflow contra uma referência real: fan-out + crítico severo + comparação cega, sem paragem automática |
 | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
 | `/map-joca` | mapa de conhecimento (skills/agentes/comandos/projectos + chains) → graph.html interactivo via graphify |

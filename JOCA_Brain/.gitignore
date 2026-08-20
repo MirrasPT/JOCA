@@ -7,7 +7,7 @@ __pycache__/
 # Memoria de trabalho — ESTE REPO E PUBLICO (github.com/MirrasPT/JOCA).
 # decisions/learnings/checkpoints ja estavam cobertos; faltavam knowledge/projects/feedback,
 # que sao exactamente onde o /know e o /save escrevem. Um PDF de cliente ingerido pelo /know, ou
-# um /init-project num projecto privado, ia parar ao repo publico sem nada a travar.
+# um /start num projecto privado, ia parar ao repo publico sem nada a travar.
 memory/decisions/
 memory/learnings/
 memory/checkpoints/

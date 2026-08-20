@@ -1,8 +1,7 @@
 # Pipelines — auto-runner de sequências nomeadas
 
-Catálogo de pipelines que o JOCA **corre sozinho** (não só nomeia). Carregado em todas as sessões. Terso por design.
-
-Adaptado do gstack (`autoplan` lê os SKILL.md filhos do disco e corre-os a fundo, auto-decidindo as perguntas intermédias e levantando só "taste"/irreversível no fim). É o mecanismo que torna o JOCA autónomo: **o user diz o objectivo, o JOCA conduz a sequência inteira**.
+Catálogo de pipelines que o JOCA **corre sozinho** (não só nomeia). Carregado em todas as sessões.
+Terso por design. **O user diz o objectivo, o JOCA conduz a sequência inteira.**
 
 ---
 
@@ -10,50 +9,62 @@ Adaptado do gstack (`autoplan` lê os SKILL.md filhos do disco e corre-os a fund
 
 Quando o task-intake classifica uma tarefa como **D (workflow)** OU a tarefa casa uma pipeline nomeada abaixo, o **main loop** (ou `/goal`/`master-orchestrator`) corre-a assim:
 
-1. **Selecciona a pipeline** pelo objectivo (match de domínio/triggers).
-2. **Para cada passo:** `Read()` a skill / despacha o agente do passo, executa **a fundo** (não superficial).
-3. **Auto-decide** as escolhas intermédias **reversíveis** pelos princípios de decisão (soul.md autonomy 0.95) — não pára a perguntar.
-4. **Gate:** num passo **irreversível** (deploy/push/migration/delete/payment/auth) → 1 linha de confirmação antes.
-5. **Encadeia** para o passo seguinte via `chain:` (ver `rules/chaining.md`).
-6. **Travão:** profundidade ≤ `loop_max_iterations` (default 4); 3x sem progresso → parar e reportar.
-7. **Final gate:** decisões de "taste" / ambíguas acumuladas → levantar de uma vez no fim (como o `autoplan`), não a meio.
+1. **Selecciona** a pipeline pelo objectivo (match de domínio/triggers).
+2. **Cada passo a fundo:** `Read()` a skill / despacha o agente — nunca superficial.
+3. **Auto-decide** as intermédias **reversíveis** (soul.md autonomy 0.95); irreversível (deploy/push/migration/delete/payment/auth) → **gate** de 1 linha antes.
+4. **Encadeia** via `chain:` (`rules/chaining.md`). Travão: profundidade ≤ `loop_max_iterations` (4); 3x sem progresso → parar e reportar.
+5. **Final gate:** decisões de "taste"/ambíguas acumulam-se e levantam-se de uma vez no fim, não a meio.
 
 O runner é **steward, não initiator** (`orchestration-patterns.md`): só corre passos da pipeline declarada — não inventa scope.
 
 ---
 
+## Doutrina de projecto — vale SEMPRE, com ou sem `/start`
+
+Modo por omissão de **qualquer** projecto (novo, herdado, a meio); o `/start` instala-a, a ausência
+dele não a dispensa. Unidade = **issue** · gate = **GitHub Actions** · estado = **`PROGRESSO.md`** ·
+porquês = **`docs/DECISIONS.md`**.
+
+| Momento | Acção |
+|---|---|
+| 1ª sessão sem `PROGRESSO.md` | levantamento do disco → criar `PROGRESSO.md` com o estado **observado** (formato: `.claude/reference/start/progresso-formato.md`). Uma pergunta só: "o que fazemos a seguir?" — a entrevista completa é o `/start` |
+| Trabalho novo (ideia, bug, ecrã) | `novo-issue` **antes** de código. Sem "Ficheiros prováveis" o issue não está pronto — é o que decide o paralelismo |
+| Ecrã/UI que ainda não existe | `preparar-design` → `validar-design` (porteiro) → implementar |
+| ≥3 issues abertos sem plano | `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
+| ≥2 issues a implementar | loop de onda: implementar (paralelo só com ficheiros disjuntos) → `escrever-testes` **noutra sessão** → `tester-code` → PR `Closes #N` → varredura transversal → gate de runtime → portão humano |
+| Decisão técnica (stack, schema, fora-da-casa) | 1 entrada em `docs/DECISIONS.md` — decisão sem registo repete-se |
+| Repo sem `.github/workflows/` | criar o CI (`github`) antes de fechar a onda seguinte |
+| Fecho · fim de sessão | `/ship` → PR (o issue fecha por `Closes #N`); `PROGRESSO.md` actualizado e commitado |
+
+⚠ **Não inventar documentos** (`docs/PRD.md` só a pedido ou pelo `/start`). O **arranque** (entrevista,
+página de direcções, scaffold E1, ponto E3) não se globaliza — num projecto a meio o que já existe
+adopta-se, não se recria. CI verde não substitui o gate de runtime. Detalhe e porquês:
+`.claude/reference/doutrina-projecto.md`.
+
 ## Gates: estático ≠ runtime
 
-`tsc`/`npm run build`/`php -l` verdes provam que **compila**, não que **funciona**. Dois exemplos
-reais: um `<Check>` (lucide) usado em JSX sem import passou o build do Vite e só rebentou quando o
-utilizador abriu o modal; e uma app inteira foi dada como feita com `tsc`+`build` verdes quando o
-`next dev` nem sequer hidratava — nada interactivo, e nenhum gate estático o apanharia.
+`tsc`/`npm run build`/`php -l` verdes provam que **compila**, não que **funciona**: uma app inteira
+foi dada como feita com os dois verdes quando o `next dev` nem sequer hidratava.
 
-**Gate estático (mínimo, sempre):** `tsc --noEmit` · `npm run build` · `php -l` · **`eslint`**.
-O eslint não é opcional em projectos JS/TS: `react/jsx-no-undef` e `no-undef` são a única coisa que
-apanha identificadores de componente indefinidos, que o Vite deixa passar.
+**Quem escreve o código não assina o gate.** Verificador ≠ produtor — se o produtor foi o main loop,
+a verificação delega-se. Ledger em `.joca/loop.json`, imposto pelo `stop-continuar.js`.
 
-**Gate de runtime (obrigatório, não recomendado)** — nenhuma fase que toque nestas categorias fecha
-sem evidência ao vivo:
+**Gate estático (mínimo, sempre):** `tsc --noEmit` · `npm run build` · `php -l` · **`eslint`** — o
+eslint não é opcional em JS/TS: é o único que apanha componente indefinido em JSX (`jsx-no-undef`).
 
-| Categoria | Evidência mínima |
-|---|---|
-| Navegação · header · overlay · modal | `document.elementFromPoint(cx,cy)` no centro de cada link/botão, em carga limpa (`goto` fresco). Auditar `href` **não é** testar o clique — este bug chegou ao utilizador em duas sessões seguidas |
-| Mobile / responsivo | sangramento horizontal medido por `getBoundingClientRect().right` vs `innerWidth` por elemento de texto. `scrollWidth - clientWidth` dá **0 falso** com `overflow-x:clip\|hidden` num ancestral — escondeu um defeito real durante 5 auditorias |
-| Auth · sessão | login completo end-to-end, não só o 200 da página de login (uma BD com 0 users devolve `/admin/login → 200` na mesma) |
-| Playback · media · streaming | reproduzir e observar; o ciclo de vida de streams não se prova a compilar |
-| Deploy | dependências derivadas do **HTML publicado**, não da lista do que foi enviado (ver pipeline Deploy) |
+**Gate de runtime (obrigatório)** — evidência ao vivo por categoria: navegação/overlay/modal
+(`document.elementFromPoint` no centro, em carga limpa — auditar `href` não é testar o clique) ·
+mobile (`getBoundingClientRect().right` vs `innerWidth`; `scrollWidth-clientWidth` dá **0 falso** com
+`overflow-x:clip|hidden`) · auth (login end-to-end, não o 200 da página de login) · media (reproduzir
+e observar) · deploy (dependências derivadas do **HTML publicado**). Casos e detalhe:
+`.claude/reference/gates-runtime.md`.
 
-**Diagnóstico é um passo com gate próprio:** um passo que afirma "X está partido" só produz output
-**depois de ler o código de X**, com citação de ficheiro:linha por afirmação. Comparar nomes e
-tamanhos de ficheiros não é ler. Um `WORKFLOW.md` commitado antes da leitura trouxe 2 de 3
-"regressões" mal diagnosticadas (o failover existia e funcionava; o leak tinha sweeper por TTL) e
-mandou o trabalho seguinte para o sítio errado.
+**Diagnóstico é passo com gate próprio:** afirmar "X está partido" só depois de **ler o código de X**,
+com ficheiro:linha por afirmação. Comparar nomes e tamanhos de ficheiros não é ler.
 
-**Resolver conflitos é código, não texto:** depois de qualquer merge/porte/`git apply --3way`,
-**correr o artefacto**. Um `build-skill-index.py` saiu de um 3-way sem marcadores e sintacticamente
-plausível, e rebentava à primeira execução (`match` fora de escopo, constantes perdidas porque hunks
-vizinhos foram resolvidos para lados diferentes). Foram precisas 3 execuções para o pôr de pé.
+**Resolver conflitos é código, não texto:** depois de merge/porte/`git apply --3way`, **correr o
+artefacto** — um 3-way sem marcadores já deu ficheiro plausível que rebentava à 1ª execução.
+
 
 ## Princípios de auto-decisão (intermédias reversíveis)
 
@@ -110,16 +121,14 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | **Ecrã novo em projecto existente** | `preparar-design` (Artifact) → `validar-design` → `novo-issue` se houver componentes novos → implementar → `escrever-testes` |
 | **Backlog → plano** | `novo-issue` (×N) → `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
 
-⚠ **O `escrever-testes` corre em sessão separada da que implementou** — testes escritos a seguir ao
-código verificam o código, não o requisito: passam sempre e não provam nada. Se a mesma sessão fizer
-as duas coisas, a rede de segurança é uma ilusão e o CI verde confirma-a.
+⚠ **Em qualquer projecto** (ver §Doutrina): `escrever-testes` corre em sessão separada da que
+implementou — testes escritos a seguir ao código verificam o código, não o requisito.
 
-### Conhecimento / automação
+### Conhecimento
 | Pipeline | Sequência |
 |---|---|
 | **Knowledge ingest** (`/know`) | `knowledge-ingest` (markitdown → resumo → tags → `memory/knowledge/`) |
 | **Research de mercado/recência** | `/last30days <tópico>` (sinal social pontuado por engagement, plugin externo) + `deep-research` (profundidade+citações) → fundir → `competitor-profiling`/`content-strategy`/`launch-strategy` |
-| **Automação** | `automation-builder` (NL → `automacoes.json` → cron) |
 | **Self-improvement** (`/upgrade-joca`) | `self-improver` → `gemini-auditor` → aplicar |
 
 ---

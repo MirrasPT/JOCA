@@ -78,6 +78,10 @@
           {
             "type": "command",
             "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/auto-test-dispatch.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/stop-continuar.js\""
           }
         ]
       }

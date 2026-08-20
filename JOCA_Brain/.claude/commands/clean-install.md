@@ -146,7 +146,7 @@ for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "impor
 
 Depois de cada projecto: confirmar que `<projecto>/graphify-out/graph.json` foi criado/actualizado
 (`mtime` recente). Se um projecto não tiver código (só design/conteúdo/marketing), sinalizar e
-saltar — mesma regra do `/init-project`.
+saltar — mesma regra do `/start`.
 
 **No fim, correr também sobre o próprio JOCA_Brain** (conhecimento + código, não só um dos dois):
 

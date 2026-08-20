@@ -315,7 +315,7 @@ node   .claude/scripts/joca-doctor.mjs         # gate: exit 1 on dead paths/inde
 
 Then edit by hand, surgically: the counts and the component's line in `memory/INDEX.md`, the Trigger Map / `## Commands` table in `JOCA_Brain/CLAUDE.md`, and `README.md`.
 
-> There used to be a `/sync-questionnaires` command here, whose job was keeping form-style questionnaires in `/install` and `/init-project` aligned with the inventory. Those questionnaires are gone — onboarding is a conversation now (see `/init-project`), so nothing has to be kept in sync with a hardcoded list. Only the derived indexes above remain.
+> There used to be a `/sync-questionnaires` command here, whose job was keeping form-style questionnaires in `/install` and project onboarding aligned with the inventory. Those questionnaires are gone — onboarding is a conversation now (see `/start`), so nothing has to be kept in sync with a hardcoded list. Only the derived indexes above remain.
 
 ---
 
@@ -408,7 +408,7 @@ Next steps:
 
 ## Modo `--auto` (headless — skill loop à Hermes)
 
-`/upgrade-joca --auto` corre o ciclo SEM interacção — pensado para a automação semanal do JOCA_OS (worker dedicado) ou para sessões em que o user pediu explicitamente rotina autónoma. O gate humano da Phase 3.2 é substituído por um perímetro conservador:
+`/upgrade-joca --auto` corre o ciclo SEM interacção — pensado para sessões em que o user pediu explicitamente rotina autónoma. O gate humano da Phase 3.2 é substituído por um perímetro conservador:
 
 **Pode aplicar sozinho (allowlist):**
 - `IMPROVE_SKILL` — melhorar skill existente (loop improver/evaluator, threshold 8.0/10 mantém-se)

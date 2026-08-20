@@ -74,7 +74,7 @@ Create independent work streams that can execute in parallel:
 
 Ler `memory/SKILL_INDEX.json`. Mapear o GOAL aos triggers das skills/agentes disponiveis
 (qualquer dominio — nao so web-dev). Gerar work-streams independentes a partir desse match.
-Para GOALs nao-web (automacoes, /know, research, acoes) usar os agentes de dominio correspondentes.
+Para GOALs nao-web (/know, research, acoes) usar os agentes de dominio correspondentes.
 
 ### Phase 3: Dispatch
 - Launch parallel agents via `Agent()` tool for independent streams

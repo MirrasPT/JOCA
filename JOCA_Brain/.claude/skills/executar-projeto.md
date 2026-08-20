@@ -33,10 +33,10 @@ ve onde isto esta).
 
 | # | Passo | Skills / agentes JOCA |
 |---|---|---|
-| 1 | Scaffold da stack (`$REF/stacks/<stack>.md`) | `laravel-specialist` · `frontend` (Next) · delta Flutter/Unity |
+| 1 | Scaffold da stack (`$REF/stacks/<stack>.md`) + `.env` com o motor/URL do **Ambiente local** do PRD; `.gitattributes` (`* text=auto eol=lf`) se houver >1 maquina | `laravel-specialist` · `frontend` (Next) · delta Flutter/Unity |
 | 2 | Laravel Boost ⏸ (interactivo — o utilizador corre `boost:install`) | — |
 | 3 | Testes: Pest 5 / Vitest / flutter_test + smoke test | `test-master` |
-| 4 | Contexto: `$REF/templates/` → `.ai/guidelines/`, `.claude/rules/`, hooks, `revisor` | — |
+| 4 | Contexto: `$REF/templates/` → `.ai/guidelines/`, `.claude/rules/`, hooks, `revisor` + copiar a tabela **Ambiente local** do PRD para `.ai/guidelines/00-projeto.md` (a partir daqui e a copia canonica) | — |
 | 5 | Exportar skills de trabalho: `$REF/exportar-skills.sh . <JOCA_ROOT>/JOCA_Brain` | — |
 | 6 | Docs de design (esqueleto): `docs/DESIGN.md` a partir da direccao do /start | `design-system` (le, nao executa ainda) |
 | 7 | CI da stack (`$REF/templates/github/workflows/ci-<stack>.yml`) + issue forms | `github` |
@@ -50,7 +50,8 @@ a `main` onde o commit inicial e feito) · `--phpunit` no `laravel new` mesmo in
 branch" es tu a cumpri-la, nao a rede.
 
 **Criterio de saida E1:** testes a passar · CI verde num PR real · labels e issues abertos ·
-`PROGRESSO.md` com E1 fechado.
+**servidor de dev a responder no URL registado** (`curl -sI <URL>` + corpo, nao so a porta aberta;
+Laravel: migrations a correr contra o motor local declarado) · `PROGRESSO.md` com E1 fechado.
 
 ---
 
@@ -86,7 +87,10 @@ plausiveis. So depois se bifurca.
    + todos os ecras de `ECRAS.md`, **cada ecra com os 4 estados**, HTML/CSS/JS autonomo, tokens em
    custom properties.
 2. ⏸ **Pausa.** O utilizador cria o design no Claude Design e poe os ficheiros exportados em
-   `design/claude-design/`. Diz-lhe exactamente isso e espera.
+   `design/claude-design/`. Diz-lhe exactamente isso, e retoma com `AskUserQuestion`:
+   *"Ja estao os ficheiros em `design/claude-design/`?"* → **Sim, continua** (recomendado) ·
+   *Ainda nao* · *Mudei de ideias — faz design directo (Via 2)*. Antes de perguntares, confirma tu
+   com `ls design/claude-design/` — se ja la estiverem, nao ha pergunta nenhuma: avanca.
 3. **Validar o que chegou**: inventaria a pasta contra `ECRAS.md` (ecra a ecra — o que falta
    lista-se, nao se assume), e corre `validar-design` a cada ecra (tokens vs `DESIGN.md`, 4 estados,
    a11y).
@@ -124,12 +128,18 @@ Apresenta, **com provas** (links/paths, nao afirmacoes):
 - ✅/❌ Fundacao (CI verde, hooks, issues abertos)
 - ⚠ Riscos e decisoes em aberto (de `docs/DECISIONS.md`)
 
-**Espera pela confirmacao explicita.** E o ultimo momento barato para mudar de ideias — depois disto
-e desenvolvimento a fundo. Regista a confirmacao no `PROGRESSO.md`.
+**Espera pela confirmacao explicita — em formulario, nunca em texto aberto.** `AskUserQuestion`:
+*"Avanco para o desenvolvimento (E4)?"* → **Sim, avancar** (recomendado) · *Quero corrigir o design
+primeiro* · *Quero mudar o ambito da 1a versao*. E o ultimo momento barato para mudar de ideias —
+depois disto e desenvolvimento a fundo. Regista a escolha no `PROGRESSO.md`.
 
 ---
 
 # PARTE E4 — Desenvolvimento final (ondas + loops)
+
+> **Este loop nao e exclusivo do arranque.** E a forma normal de tratar >=2 issues em qualquer
+> projecto (`rules/pipelines.md` §Doutrina de projecto). Num projecto a meio, entra-se aqui
+> directamente: `planear-ondas` sobre os issues que existem, e o loop abaixo corre igual.
 
 O motor e o que o JOCA ja tem — esta parte **conduz**, nao reinventa:
 
@@ -155,7 +165,8 @@ para cada onda:
   PROGRESSO.md actualizado (log da onda: o que fechou, o que ficou)
 ```
 
-3. **Regras do loop** (as do JOCA, nao opcionais): gate estatico minimo em cada PR (`tsc`/build/
+3. **Regras do loop** (as do JOCA, nao opcionais): contrato `.joca/loop.json` com um passo por issue
+   (`produtor`/`verificador`) para a onda correr sem paragens · gate estatico minimo em cada PR (`tsc`/build/
    lint/`php -l` **+ eslint em JS**) · gate de runtime por categoria antes de fechar fase ·
    travao anti-loop (`loop_max_iterations`, 3x-sem-progresso → parar e reportar) · `git add` por
    caminho explicito com agentes vivos · custo anunciado antes de fan-outs grandes (>=6 agentes).

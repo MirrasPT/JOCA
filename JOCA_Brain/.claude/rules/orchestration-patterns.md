@@ -48,25 +48,12 @@ Cada worker grava o output em ficheiro (ex.: `.joca/intermediate/<stream>.md`) e
 
 ### 5b. Sessões paralelas (dois Claude no mesmo repo)
 
-Não são subagentes — são **pares**, cada um com o seu main loop. Já aconteceu várias vezes (JOCA_OS
-multi-worker, duas sessões no `Meu-Site`, duas no `JOCA_FINAL`) e correu bem só porque as sessões
-inventaram, sozinhas e por acaso, o mesmo protocolo. Codificado:
-
-- **Handshake ao descobrir um par:** path onde estou · o que vou fazer · ficheiros que tenho sujos.
-- **Fronteira por directório.** Leitura livre; escrita só no meu território. Tocar em ficheiro alheio
-  exige aviso antes. Dois workers na mesma árvore já reverteram trabalho intencional um do outro
-  (`AppShell.jsx` acabou com edições dos dois misturadas — e o build compilava à mesma).
-- **Estado partilhado avisa-se sempre:** BD, portas, ficheiros de configuração, `~/CLAUDE.md`.
-- **Ficheiro partilhado edita-se com `Edit` cirúrgico, nunca `Write`.** Reler antes de escrever. Um
-  `Write` no `memory/projects/<x>.md` teria apagado o trabalho da outra sessão — só se soube porque o
-  `Edit` avisou "the file had been modified on disk".
-- **Endereçar: os nomes do `ListAgents` são opacos** (`joca-brain-be`, `joca-brain-dc`) e **não**
-  identificam projecto nem sessão — uma mensagem endereçada por nome foi parar à sessão errada. O
-  endereço fiável é o socket do `from=` de quem escreveu (`uds:/tmp/cc-socks/NNNNN.sock`). Responder
-  sempre por aí; usar o nome só para iniciar contacto, e confirmar quem é antes de assumir contexto.
-- **Artefactos por sessão, não por repo.** Checkpoints, filas e `.joca/intermediate/` derivados do
-  repo do cwd colidem entre sessões — o `latest` passa a devolver o da outra. Derivar do **projecto**.
-
+Pares, não subagentes — cada um com o seu main loop. Protocolo mínimo: **handshake** ao descobrir um
+par (path · o que vou fazer · ficheiros sujos) · **fronteira por directório** (leitura livre, escrita
+só no meu território) · estado partilhado (BD, portas, config, `~/CLAUDE.md`) avisa-se sempre ·
+ficheiro partilhado edita-se com `Edit` cirúrgico, **nunca** `Write` · endereçar pelo socket do
+`from=`, não pelos nomes opacos do `ListAgents` · artefactos derivados do **projecto**, não do cwd.
+Casos e detalhe: `.claude/reference/sessoes-paralelas.md`.
 ### 5. Doutrina Agent / Skill / Workflow
 Quando usar cada um:
 
@@ -78,6 +65,12 @@ Quando usar cada um:
 
 Hierarquia de selecção: skill especializada > agente > resposta genérica (ver `CLAUDE.md`).
 Sequência determinística não-paralelizável + git destrutivo → **script versionado**, não workflow (ver `workflows-and-tooling.md`).
+
+### 6. Varredura transversal pós-fan-out
+Depois de N agentes escreverem em paralelo, correr **um** agente que audita o **sistema todo** — não
+os âmbitos individuais. Cada peça correcta, a junção partida, é o buraco típico do trabalho paralelo.
+Esse agente **não pode ser nenhum dos produtores**. Cobre contradições de conteúdo (interface vs
+documento, copy vs regra implementada), não só de código.
 
 ---
 
@@ -112,3 +105,4 @@ Sequência determinística não-paralelizável + git destrutivo → **script ver
 | Router que também executa | Router devolve JSON e pára; caller executa |
 | Inventar thresholds quando `task-intake.md` falta | Fallback heurístico + dizê-lo no `justificacao` |
 | Workflow para sequência git destrutiva | Script versionado |
+| Fan-out fecha quando o último worker devolve | Varredura transversal no fim: 1 agente (não-produtor) audita a junção |

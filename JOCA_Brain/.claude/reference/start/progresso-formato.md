@@ -25,7 +25,7 @@ conflitos resolvem-se como qualquer merge.
 |---|---|---|
 | S1 Produto (PRD inicial)        | ✅ 2026-08-19 | docs/PRD.md |
 | S2 Fluxos e capacidades         | ✅ 2026-08-19 | PRD §Fluxos |
-| S3 Stack                        | ✅ 2026-08-19 | PRD §Stack + docs/DECISIONS.md |
+| S3 Stack + ambiente local       | ✅ 2026-08-19 | PRD §Stack (inclui tabela Ambiente local) + docs/DECISIONS.md |
 | S4 Infraestrutura               | ✅ 2026-08-19 | repo <owner>/<nome> · deploy: <alvo> |
 | S5 Direccao de design           | ✅ 2026-08-19 | docs/DESIGN.md |
 | E1 Fundacao (scaffold+CI+hooks) | ⏳ em curso | — |
@@ -48,4 +48,6 @@ conflitos resolvem-se como qualquer merge.
   `/start` verifica a prova, nao o simbolo.
 - O **Diario** e append-only, 1 linha por sessao de trabalho. Nao e changelog de codigo (isso e o
   git) — e o "quem fez o que e onde ficou".
-- Nada de segredos, tokens ou paths de maquina pessoal — o ficheiro e publico dentro do repo.
+- Nada de segredos, tokens ou paths de maquina pessoal — o ficheiro e publico dentro do repo. O
+  **ambiente local** (Herd · Laragon · Sail · nativo) vive em `.ai/guidelines/00-projeto.md` — aqui
+  entra so a prova de que a fase fechou.

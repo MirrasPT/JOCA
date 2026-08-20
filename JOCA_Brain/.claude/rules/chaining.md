@@ -2,21 +2,14 @@
 
 Como uma skill/agente passa o trabalho à **próxima** sem o user pedir. Carregado em todas as sessões. Terso por design.
 
-Adaptado do gstack (`autoplan` lê os SKILL.md filhos e corre-os a fundo; pipelines encadeiam por ficheiro). Princípio central do JOCA autónomo: **o user diz uma coisa, o JOCA conduz a sequência inteira** — classifica a via (task-intake), corre o passo, e **encadeia para o passo seguinte** parando só em decisões irreversíveis.
-
----
+Princípio: **o user diz uma coisa, o JOCA conduz a sequência inteira** — classifica a via
+(task-intake), corre o passo, encadeia para o seguinte, pára só em irreversível.
 
 ## A convenção `chain:`
 
-Skills e agentes declaram o(s) próximo(s) passo(s) de duas formas (complementares):
-
-1. **Frontmatter `chain:`** — lista curta dos próximos skills/agentes prováveis (machine-readable):
-   ```yaml
-   chain: design-review, tester-ui-ux
-   ```
-2. **Secção `## Próximo passo (chain)`** no corpo — a regra humana: *quando* disparar cada próximo, e qual o **gate** (se irreversível).
-
-O `chain:` é um **mapa de sugestão**, não execução automática cega. Quem executa é o **main loop** (ou o command/orchestrator), seguindo a Regra de Encadeamento abaixo.
+Duas formas complementares: frontmatter `chain: design-review, tester-ui-ux` (lista dos próximos
+prováveis, machine-readable) + secção `## Próximo passo (chain)` no corpo (a condição e o gate). É um
+**mapa de sugestão**, não execução cega — quem executa é o **main loop** (ou command/orchestrator).
 
 ---
 
@@ -33,12 +26,38 @@ O encadeamento **não** inventa scope novo (steward, não initiator — ver `orc
 
 ---
 
+## Continuidade — um empurrão por turno, não um loop
+
+Mecanismo: `.joca/loop.json` (passos + `produtor` + `verificador` + `estado`), lido pelo `Stop` hook
+`stop-continuar.js`, que bloqueia o fim do turno quando há passo `pendente` ou `feito` por verificar.
+
+⚠ **Bloqueia UMA vez por turno**, não em ciclo: o guarda `stop_hook_active` (obrigatório no contrato
+de hooks do Claude Code) cala o hook no bloco seguinte — subir o limite é `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`.
+Logo os travões `iteracao > max_iteracoes` e `sem_progresso >= 3` são rede de segurança, não o
+mecanismo normal de paragem: **levar o contrato até `verificado` é do modelo, não do hook**.
+
+| Situação | Acção |
+|---|---|
+| Via C/D ou pipeline | escrever o contrato antes de começar; actualizar a cada passo |
+| Passo fechado | `estado: feito` + `produtor` preenchido — nunca `verificado` pelo próprio |
+| Gate irreversível ou pergunta ao user | `"aguarda_utilizador": true` → o turno termina; o hook não insiste |
+| Bloqueio real | apagar o contrato ou `touch .joca/loop-off.flag`, e reportar |
+
+Travões inalterados: `loop_max_iterations` · 3x-sem-progresso · expiração 6 h · `stop_hook_active`.
+Continuar ≠ inventar: o contrato tem os passos que existiam quando foi escrito (steward).
+
+## Verificação: quem produz não assina
+
+O verificador é **sempre outro agente** que não o produtor — inclusive quando o produtor foi o main
+loop. Vale para código, design, dados e conteúdo, não só testes. O `stop-continuar.js` recusa passos
+com `verificador === produtor`.
+
 ## Subagentes são skill-aware (garantido)
 
-Um agente despachado via `Agent()` **não herda** `soul.md` nem as skills — só o brief. Por isso:
-- **Step 0 obrigatório no brief** de cada agente: `Read()` das skills relevantes ANTES de agir (o campo `skills:` no frontmatter NÃO carrega a skill — a garantia é o Read no corpo/brief).
-- Quem despacha (main loop / `master-orchestrator`) inclui no brief: as skills a ler + o `chain:` do agente (o que ele deve sugerir ao devolver).
-- Um agente, ao terminar, **devolve no relatório** o próximo passo sugerido (ex.: "recomendo re-correr `tester-ui-ux`") — o caller decide e dispara. Agentes não fazem spawn de agentes (regra crítica `orchestration-patterns.md`).
+Um agente despachado via `Agent()` **não herda** `soul.md` nem as skills — só o brief. Logo:
+- **Step 0 obrigatório no brief**: `Read()` das skills relevantes ANTES de agir (o campo `skills:` do frontmatter NÃO carrega a skill).
+- Quem despacha inclui no brief as skills a ler + o `chain:` do agente.
+- O agente devolve no relatório o próximo passo sugerido; o **caller** decide e dispara. Agentes não fazem spawn de agentes (`orchestration-patterns.md`).
 
 ---
 
@@ -51,6 +70,9 @@ Um agente despachado via `Agent()` **não herda** `soul.md` nem as skills — s�
 | `laravel-specialist` | `tester-code` → `tester-api` | após feature; api se houve endpoints |
 | `rest-api` (`api-design`) | `tester-api` | após desenhar endpoints |
 | `plan` | skill/agente do domínio | implementar o plano |
+| `novo-issue` | `preparar-design` · `planear-ondas` | ecrã novo · ≥3 issues sem plano |
+| `preparar-design` | `validar-design` | sempre — o mockup não vai a código sem porteiro |
+| implementação de um issue | `escrever-testes` (**sessão nova**) → `tester-code` | sempre; nunca na sessão que implementou |
 | `log-debugger` | `query-debugger` | se a causa é SQL |
 | `security` (skill) | `security-review` (agente) | review profundo |
 | `freeze`/`careful`/`guard` | `unfreeze` | desligar no fim |
@@ -70,3 +92,5 @@ Pipelines multi-passo nomeadas (cross-stack) vivem em `rules/pipelines.md` e cor
 | Encadear em loop infinito "a ajudar" | Travão: profundidade `loop_max_iterations`, 3x-nada → parar |
 | Inventar próximos passos fora do scope | Só chains declaradas / pipelines nomeadas (steward) |
 | Encadear a partir do **relatório** de um passo que produziu output visual/binário (imagem, PDF, vector, build) | Verificar o **artefacto**: abrir/rasterizar e comparar com a referência antes de aceitar. Um agente pode reportar sucesso e descrever mal o que produziu; um build sem erros pode ter 3 bugs visuais |
+| Terminar o turno com passos do contrato por fechar | `.joca/loop.json` manda: continuar até `verificado`, ou marcar `aguarda_utilizador`/apagar o contrato |
+| O mesmo agente que escreveu a assinar a verificação | Verificador ≠ produtor, sempre — inclusive quando o produtor foi o main loop |

@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /init-project, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requirements doc, product spec."
+description: "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requirements doc, product spec."
 metadata:
   type: skill
   category: base
@@ -11,7 +11,7 @@ chain: tech-spec
 
 ## Activation
 
-- Always on `/init-project` — ask if user wants PRD
+- Always on `/start` — ask if user wants PRD
 - Explicit request: "create PRD", "requirements doc", "product spec"
 - New feature or scope change without documentation
 - `/save` when `PRD.md` exists and scope changed during session
@@ -182,7 +182,7 @@ Rollback: error rate > [X]% → auto rollback. [Critical metric] < [threshold] �
 
 ---
 
-## Generation in /init-project
+## Generation in /start
 
 After Phase 1 (context gathered), before execution:
 

@@ -1,6 +1,6 @@
 ---
 name: joca-terminal
-description: Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais, ver automações e enviar notificações, tudo contra o JOCA_OS em execução e sem o reiniciar. MUST be invoked when the user says: comenta na tarefa, fecha a tarefa, marca como feito, cria uma tarefa, move a tarefa, abre um terminal, fala com o outro terminal, avisa-me quando acabares, ve as automacoes. SHOULD also invoke when: o agente acaba um trabalho que veio de uma tarefa do quadro, precisa de delegar a outro terminal, ou quer registar progresso para o utilizador ver.
+description: Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais e enviar notificações, tudo contra o JOCA_OS em execução e sem o reiniciar. MUST be invoked when the user says: comenta na tarefa, fecha a tarefa, marca como feito, cria uma tarefa, move a tarefa, abre um terminal, fala com o outro terminal, avisa-me quando acabares. SHOULD also invoke when: o agente acaba um trabalho que veio de uma tarefa do quadro, precisa de delegar a outro terminal, ou quer registar progresso para o utilizador ver.
 origin: local
 chain: task-router
 ---
@@ -79,7 +79,6 @@ acaba quando o utilizador não está a olhar. Não uses para progresso trivial.
 ## Consultar
 
 ```bash
-node "$JOCA_CLI" automations     # automações, próxima execução e último estado
 node "$JOCA_CLI" projects        # projectos ligados ao JOCA
 node "$JOCA_CLI" runs --limit 20 # histórico de execuções (estado, duração, custo)
 ```
