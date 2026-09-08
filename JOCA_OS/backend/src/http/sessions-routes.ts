@@ -14,6 +14,7 @@ import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { safePath } from '../security-fs';
 import { HOME } from './helpers';
 import { loadProjects } from '../project-store';
+import { recoveredSessions, recoveredTail, clearRecovered } from '../sessions-snapshot';
 
 // Resolve a project by id OR by (case-insensitive) name — agents think in names, not uuids.
 function resolveProject(ref: string | undefined) {
@@ -53,6 +54,31 @@ function crossProjectDenial(req: Request, targetId: string): string | undefined 
 
 export function sessionsRouter(): Router {
   const r = Router();
+
+  // ── Sessões da instância ANTERIOR do backend (ver sessions-snapshot.ts) ────────────────────
+  // Registadas ANTES das rotas `/sessions/:id`: sem esta ordem, `DELETE /sessions/recovered`
+  // casaria com `DELETE /sessions/:id` e "recovered" seria tratado como o id de um terminal.
+  //
+  // Nada disto reata processos — os PTYs morreram com o backend anterior. É o retrato do que lá
+  // estava, para o dono não ficar sem explicação nenhuma.
+
+  // Metadados apenas. O `tail` fica de fora de propósito: são até 256 KB por sessão.
+  r.get('/sessions/recovered', (_req, res) => {
+    res.json(recoveredSessions());
+  });
+
+  // A cauda raw (com ANSI) de uma sessão morta — texto simples, pronto a escrever num xterm.
+  r.get('/sessions/recovered/:id/tail', (req, res) => {
+    const tail = recoveredTail(req.params.id);
+    if (tail === undefined) return res.status(404).json({ error: 'sessão recuperada não encontrada' });
+    res.type('text/plain; charset=utf-8').send(tail);
+  });
+
+  // Dispensar o aviso.
+  r.delete('/sessions/recovered', (_req, res) => {
+    clearRecovered();
+    res.status(204).end();
+  });
 
   // Listing doubles as DISCOVERY for agents: besides the terminal itself, each entry carries the
   // talking to without opening every buffer.

@@ -17,6 +17,7 @@ import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
 import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
 import { setNotificationsBroadcaster } from './notifications/store';
+import { installSessionsSnapshot } from './sessions-snapshot';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
@@ -39,6 +40,12 @@ sessionManager.on('status', ({ sessionId, status, isDone }: { sessionId: string;
 sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
 });
+
+// Retrato periódico das sessões vivas em `data/sessions-snapshot.json`, mais o flush em
+// SIGTERM/SIGINT. Quando este processo morre, os PTYs morrem com ele — isto é o que permite à
+// instância seguinte dizer ao dono o que estava aberto, em vez de a lista aparecer vazia sem
+// explicação. Instalado DEPOIS dos broadcasts para não se meterem à frente deles.
+installSessionsSnapshot();
 
 // New persistent notifications reach connected clients live; offline clients pick them up from the
 // inbox (GET /notifications) on reconnect.

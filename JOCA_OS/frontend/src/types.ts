@@ -8,6 +8,43 @@ export interface SessionInfo {
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
 }
 
+/**
+ * Uma conversa que MORREU quando o backend reiniciou. Os PTYs não sobrevivem ao reinício do
+ * servidor; isto é o retrato que ficou dela — o suficiente para a reabrir igual e para ler o que
+ * ela tinha escrito (`GET /sessions/recovered/:id/tail`).
+ */
+export interface RecoveredSession {
+  id: string;
+  name: string;
+  cwd: string;
+  projectId?: string;
+  cli?: string;
+  origin?: 'user' | 'auto';
+  status?: 'working' | 'idle';
+  /**
+   * Geometria do terminal quando morreu. É com ela que o output guardado se repinta: um TUI
+   * (o `claude`) desenha por posição, e reproduzi-lo noutro tamanho parte o desenho.
+   * Ausente = retrato de um backend anterior a estes campos; ver `GEOMETRIA_FALLBACK`.
+   */
+  cols?: number;
+  rows?: number;
+  /** Tamanho do output guardado. 0 (ou ausente) = não há nada para ler. */
+  tailBytes?: number;
+}
+
+/**
+ * O retrato do arranque anterior. `bootId` identifica ESTE arranque do backend — é o mesmo valor
+ * que vem no `sessions_list`, e é a mudança dele que denuncia um reinício com a app aberta.
+ * Sem retrato anterior, `sessions` vem vazio.
+ */
+export interface RecoveredSnapshot {
+  bootId: string;
+  previousBootId?: string;
+  /** Quando o retrato foi guardado (epoch ms). */
+  savedAt?: number;
+  sessions: RecoveredSession[];
+}
+
 
 /**
  * Ícone de um projecto ou grupo (espelha backend/src/project-store.ts).

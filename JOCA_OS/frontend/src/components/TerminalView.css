@@ -282,6 +282,14 @@
   padding-top: 4px;
 }
 
+/* Caixa de escrita colapsada — sobra a fila de atalhos rapidos, que e o que se quer ver quando o
+   terminal esta so a ser lido. `display: none` em vez de desmontar o bloco: o rascunho, os anexos
+   e a altura ja medida do textarea ficam intactos, e reabrir devolve exactamente o que la estava.
+   Tambem tira a caixa da ordem de tabulacao, que e o que se espera de algo escondido. */
+.terminal-command-input-wrap--oculta {
+  display: none;
+}
+
 .terminal-command-prompt {
   display: none;
 }

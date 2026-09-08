@@ -19,6 +19,13 @@ graceful_kill() {
   done
 }
 
+# Quem é que está À ESCUTA nesta porta? `lsof -ti:<porta>` devolve o servidor E todos os clientes
+# ligados a ele (o browser na interface, o vite ligado por proxy ao backend). Uma ligação de cliente
+# não pode escolher a vítima de um `kill` — só o listener conta.
+listeners_on() {
+  lsof -ti:"$1" -sTCP:LISTEN 2>/dev/null
+}
+
 # Só matamos processos DESTA árvore. Duas instalações do JOCA na mesma máquina partilham o número da
 # porta com facilidade; sem esta verificação, parar uma parava a outra.
 is_ours() {
@@ -29,7 +36,7 @@ is_ours() {
 }
 
 for PORT_TO_STOP in $BACKEND_PORT $FRONTEND_PORT; do
-  for pid in $(lsof -ti:$PORT_TO_STOP 2>/dev/null); do
+  for pid in $(listeners_on "$PORT_TO_STOP"); do
     if is_ours "$pid"; then
       graceful_kill "$pid"
     else

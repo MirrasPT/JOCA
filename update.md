@@ -6,6 +6,9 @@ Actualiza o JOCA a partir do repositório oficial. Lê este ficheiro e segue as 
 
 **Sentido único: GitHub → local. Nunca push, nunca commit, nunca alterar o remote.**
 
+> **Só queres a interface?** `update-os.md` traz o `JOCA_OS/` sem tocar no `JOCA_Brain/` — é o
+> caminho normal para uma instalação de trabalho, cujo motor diverge do público de propósito.
+
 ---
 
 ## Passo 1 — Localizar JOCA

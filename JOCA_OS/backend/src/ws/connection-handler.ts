@@ -4,6 +4,7 @@ import fs from 'fs';
 import { safePath } from '../security-fs';
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { HOME } from '../http/helpers';
+import { BOOT_ID } from '../sessions-snapshot';
 import { addClient, removeClient, broadcast, send } from './broadcast';
 
 interface ClientMessage {
@@ -31,9 +32,13 @@ export function attachConnectionHandler(wss: WebSocketServer) {
   wss.on('connection', (ws) => {
     addClient(ws);
 
+    // `bootId` é ADITIVO: identifica esta instância do backend. Um cliente que reencontre um
+    // bootId diferente do que tinha sabe que o backend reiniciou — e que os terminais que estava a
+    // ver morreram (ver sessions-snapshot.ts e GET /sessions/recovered).
     send(ws, {
       type: 'sessions_list',
       sessions: sessionManager.listInfo(),
+      bootId: BOOT_ID,
     });
 
     ws.on('message', (raw) => {

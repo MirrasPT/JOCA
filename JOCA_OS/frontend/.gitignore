@@ -1,1 +1,5 @@
 tsconfig.tsbuildinfo
+
+# Saídas geradas pelo bench — regeneram-se a cada corrida.
+bench/last-run.json
+bench/*.png

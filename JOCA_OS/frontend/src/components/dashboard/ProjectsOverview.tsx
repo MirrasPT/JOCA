@@ -1,10 +1,15 @@
+import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { JocaLogicInfo, Project, SessionInfo } from '../../types';
 import { shortPath } from '../../lib/paths';
 import { projectColor } from '../../lib/projectColor';
 import { FolderIcon, TerminalIcon, ActivityIcon, ShuffleIcon, BrainIcon } from './icons';
 import InlineName from '../InlineName';
+import { SaveAllButton, SaveAllConfirm, mensagemSaveAll, planoSaveAll } from './SaveAll';
 import type { RateLimits } from './RateBar';
+
+/** Quanto tempo fica no ecrã o resultado do Save all antes de se apagar sozinho. */
+const RESULTADO_MS = 8000;
 
 interface Props {
   projects: Project[];
@@ -18,6 +23,8 @@ interface Props {
   onOpenProject: (project: Project) => void;
   onSwitchSession: (id: string) => void;
   onNewSession: () => void;
+  /** Manda `/save` (com Enter) às conversas indicadas. Quem escolhe quais é o `planoSaveAll`. */
+  onSaveAll: (sessionIds: string[]) => void;
   onRenameProject?: (id: string, name: string) => void;
   onRenameSession?: (id: string, name: string) => void;
 }
@@ -27,12 +34,25 @@ interface Props {
 // bloco duplicado na dashboard era a mesma informação com outra pintura a envelhecer à parte.
 export default function ProjectsOverview({
   projects, sessions, jocaLogicInfo,
-  onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession,
+  onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession, onSaveAll,
   onRenameProject, onRenameSession,
 }: Props) {
   const workingSessions = sessions.filter((s) => s.status === 'working');
   const looseSessions = sessions.filter((s) => !s.projectId);
   const visibleProjects = projects.filter((p) => !p.archived);
+
+  // Save all: o plano conta-se a partir da lista viva, e o diálogo é o único caminho até ao envio.
+  const plano = useMemo(() => planoSaveAll(sessions), [sessions]);
+  const [confirmarSaveAll, setConfirmarSaveAll] = useState(false);
+  const [resultadoSaveAll, setResultadoSaveAll] = useState('');
+
+  // O resultado é um aviso, não um estado permanente: sem isto ficava a dizer "enviado a 4
+  // conversas" horas depois, a descrever uma coisa que já não é verdade.
+  useEffect(() => {
+    if (!resultadoSaveAll) return;
+    const t = setTimeout(() => setResultadoSaveAll(''), RESULTADO_MS);
+    return () => clearTimeout(t);
+  }, [resultadoSaveAll]);
 
   return (
     <div className="dashboard-view">
@@ -41,12 +61,30 @@ export default function ProjectsOverview({
           <h1 className="vp-title">Projectos_</h1>
           <p className="vp-desc">Panorama dos projectos, agentes activos e do motor local.</p>
         </div>
-        <div className="dashboard-header-actions">
-          <button className="f-btn" type="button" onClick={onCreateProject}>
-            <FolderIcon /> Novo projecto
-          </button>
+        <div className="dashboard-header-side">
+          <div className="dashboard-header-actions">
+            <SaveAllButton plano={plano} onClick={() => setConfirmarSaveAll(true)} />
+            <button className="f-btn" type="button" onClick={onCreateProject}>
+              <FolderIcon /> Novo projecto
+            </button>
+          </div>
+          {/* Vive sempre no DOM (mesmo vazio) porque uma região viva só é anunciada se já lá
+              estiver quando o texto muda — e o espaço reservado evita o salto do cabeçalho. */}
+          <p className="db-saveall-result" role="status">{resultadoSaveAll}</p>
         </div>
       </div>
+
+      {confirmarSaveAll && (
+        <SaveAllConfirm
+          plano={plano}
+          onCancel={() => setConfirmarSaveAll(false)}
+          onConfirm={() => {
+            setConfirmarSaveAll(false);
+            onSaveAll(plano.ids);
+            setResultadoSaveAll(mensagemSaveAll(plano));
+          }}
+        />
+      )}
 
       <div className="db-stats-grid">
         <div className="db-stat-card">

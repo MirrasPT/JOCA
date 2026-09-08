@@ -20,6 +20,8 @@ interface Props {
   onOpenProject: (project: Project) => void;
   onSwitchSession: (id: string) => void;
   onNewSession: () => void;
+  /** Manda `/save` (com Enter) às conversas indicadas — o "Save all" do cabeçalho. */
+  onSaveAll: (sessionIds: string[]) => void;
   onRenameProject?: (id: string, name: string) => void;
   onRenameSession?: (id: string, name: string) => void;
 }

@@ -1070,3 +1070,24 @@
   width: 100%;
   cursor: pointer;
 }
+
+/* ─── Save all (cabeçalho) ──────────────────────────────────────────
+   O botão vive ao lado do "Novo projecto" e o resultado do envio fica por baixo, na mesma coluna:
+   uma acção que escreve em N terminais tem de dizer em quantos escreveu, e o sítio para isso é
+   onde o dedo acabou de estar — não uma notificação do sistema que ele pode nem ter autorizado. */
+.dashboard-header-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+}
+
+.db-saveall-result {
+  /* Slot fixo: reservado mesmo vazio, senão o cabeçalho salta quando a mensagem aparece. */
+  min-height: 14px;
+  margin: 0;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  text-align: right;
+}

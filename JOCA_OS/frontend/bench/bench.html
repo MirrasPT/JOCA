@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>xterm renderer bench</title>
+    <link rel="stylesheet" href="/node_modules/@xterm/xterm/css/xterm.css" />
+    <script src="/node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="/node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+    <script src="/node_modules/@xterm/addon-webgl/lib/addon-webgl.js"></script>
+    <style>
+      html, body { margin: 0; padding: 0; background: #0c0c0c; overflow: hidden; }
+      #term { width: 100vw; height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="term"></div>
+    <script src="/bench/bench-page.js"></script>
+  </body>
+</html>

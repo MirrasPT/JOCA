@@ -33,7 +33,9 @@ function pruneMap<T>(map: Map<string, T>, alive: Set<string>): boolean {
 }
 
 export type ServerMessage =
-  | { type: 'sessions_list'; sessions: SessionInfo[] }
+  /** `bootId` identifica ESTE arranque do backend. Mudou entre dois `sessions_list` → o servidor
+   *  que estava ali morreu e voltou, e as conversas de antes já não existem. */
+  | { type: 'sessions_list'; sessions: SessionInfo[]; bootId?: string }
   | { type: 'session_created'; session: SessionInfo; requestedBy?: string }
   | { type: 'session_closed'; sessionId: string }
   | { type: 'session_renamed'; sessionId: string; name: string }
@@ -79,6 +81,8 @@ export interface SessionSocketDeps {
   processOutput: (sessionId: string, data: string) => void;
   reloadProjects: () => void;
   reloadProjectMemory: () => void;
+  /** Qual arranque do backend está do outro lado. Só notifica; a poda abaixo não muda por isto. */
+  onServerBoot?: (bootId?: string) => void;
 }
 
 // Owns the WebSocket lifecycle (connect / reconnect / message routing) and exposes a stable `send`.
@@ -127,6 +131,10 @@ export function useSessionSocket(deps: SessionSocketDeps) {
 
       switch (msg.type) {
         case 'sessions_list': {
+          // Primeiro de tudo: dizer QUEM está do outro lado. Se o backend reiniciou, a poda que
+          // acontece mais abaixo vai apagar as sessões antigas — e quem ouve isto é quem depois
+          // consegue explicar ao utilizador para onde é que elas foram.
+          d.onServerBoot?.(msg.bootId);
           d.setSessions(msg.sessions);
           const alive = new Set(msg.sessions.map((s) => s.id));
           msg.sessions.forEach((s) => d.activateSession(s.id));

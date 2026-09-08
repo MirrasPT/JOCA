@@ -1,0 +1,327 @@
+/* Aviso de conversas perdidas num reinício do backend + leitor do output que elas deixaram.
+   Só tokens da app — nada de valores novos de cor, espaço ou raio.
+
+   Onde vive: topo, ao centro. Não é canto inferior direito porque os toasts já lá estão e os dois
+   podem coexistir (uma sessão termina no mesmo instante em que o servidor volta); e não é modal
+   porque um reinício não é uma decisão a tomar. */
+
+.rec-notice {
+  position: fixed;
+  top: var(--sp-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 210;              /* acima dos toasts (200), abaixo do modal de definições (1200) */
+  width: min(520px, calc(100vw - 2 * var(--sp-4)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-3);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r-md);
+  background: var(--surface-panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+  animation: rec-notice-in 160ms ease-out;
+}
+
+@keyframes rec-notice-in {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ─── Cabeçalho ────────────────────────────────────────────────────── */
+
+.rec-notice-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+}
+
+/* Tinta de fundo, não barra à esquerda: a barra de acento é o tell visual que a casa não usa. */
+.rec-notice-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+  /* --accent-text e não --accent: o laranja puro não passa AA sobre fundo claro. */
+  color: var(--accent-text);
+}
+
+.rec-notice-titles { flex: 1; min-width: 0; }
+
+.rec-notice-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-bright);
+}
+
+.rec-notice-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-dim);
+}
+
+.rec-notice-x {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+
+.rec-notice-x:hover { color: var(--text-bright); background: var(--surface-soft); }
+
+.rec-notice-explain {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* ─── Lista de conversas ───────────────────────────────────────────── */
+
+.rec-notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-height: 38vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.rec-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface-soft);
+}
+
+.rec-row-info { flex: 1; min-width: 0; }
+
+.rec-row-name {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rec-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.rec-row-cli {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.rec-row-cwd {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-ghost);
+  white-space: nowrap;
+  overflow: hidden;
+  /* Sem `direction: rtl` para cortar pelo princípio: a barra inicial de um caminho saltaria para o
+     fim (regra bidi), e um caminho ao contrário é pior do que um caminho cortado. O caminho
+     completo vive no `title` da linha. */
+  text-overflow: ellipsis;
+}
+
+.rec-row-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+/* ─── Botões ──────────────────────────────────────────────────────── */
+
+.rec-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-bright);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+
+.rec-btn:hover:not(:disabled) { background: var(--surface-soft); border-color: var(--border-strong); }
+.rec-btn:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.rec-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* --on-accent é a tinta medida para ficar POR CIMA do accent da marca activa (o accent claro de
+   alguns temas torna o branco cravado ilegível). */
+
+
+.rec-notice-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding-top: var(--sp-1);
+  border-top: 1px solid var(--border-faint);
+}
+
+.rec-notice-foot .rec-btn { min-height: 36px; padding: 0 14px; font-size: 12px; }
+
+/* ─── Leitor do output ────────────────────────────────────────────── */
+
+.rec-tail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1210;             /* por cima do aviso que o abriu */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6) var(--sp-5);
+  background: color-mix(in srgb, var(--surface-base, #000) 62%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+/* Mais larga que os outros diálogos da app de propósito: o que está lá dentro é um terminal
+   reproduzido na largura ORIGINAL (120 colunas de série, mais quando a janela era grande), e
+   estreitar a caixa não estreita o terminal — só acrescenta scroll horizontal a quem lê. */
+.rec-tail {
+  display: flex;
+  flex-direction: column;
+  width: min(1200px, 100%);
+  /* Mais alta que o normal pela mesma razão que é mais larga: o ecrã de uma sessão tem 30 a 50
+     linhas, e cortar a barra de estado ao meio é cortar a parte que diz o que a conversa estava
+     a fazer. Passando disto, a caixa faz scroll. */
+  max-height: min(88vh, 1000px);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--surface-panel);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+}
+
+.rec-tail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.rec-tail-titles { flex: 1; min-width: 0; }
+
+.rec-tail-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.rec-tail-cwd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-ghost);
+  word-break: break-all;
+}
+
+.rec-tail-x {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+
+.rec-tail-x:hover { color: var(--text-bright); background: var(--surface-soft); }
+.rec-tail-x:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+.rec-tail-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--sp-3);
+  background: var(--bg-terminal);
+}
+
+.rec-tail-body:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+
+/* O terminal repintado. `max-content` porque a largura vem da geometria da sessão morta, não do
+   espaço disponível: deixá-lo encolher no flex da caixa seria reproduzi-lo noutra largura, que é
+   exactamente o que parte o desenho de um TUI. Não cabendo, é a caixa que faz scroll. */
+.rec-tail-term {
+  width: max-content;
+}
+
+.rec-tail-msg {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.rec-tail-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--border-faint);
+}
+
+.rec-tail-note {
+  font-size: 11px;
+  color: var(--text-ghost);
+}
+
+.rec-tail-foot .rec-btn { min-height: 36px; padding: 0 14px; font-size: 12px; }
+
+@media (max-width: 620px) {
+  .rec-row { flex-wrap: wrap; }
+  .rec-row-actions { width: 100%; justify-content: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-notice { animation: none; }
+}

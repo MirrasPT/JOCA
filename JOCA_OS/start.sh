@@ -27,6 +27,15 @@ else
   echo "⚠ JOCA_Brain not found at $LOGIC_DIR — running in standalone mode"
 fi
 
+# Quem é que está À ESCUTA nesta porta? `lsof -ti:<porta>` devolve o servidor E todos os clientes
+# ligados a ele — o browser aberto na interface, o vite ligado por proxy ao backend. Um cliente não
+# é dono da porta: decidir por ele fazia o arranque recusar-se com uma mensagem falsa ("ocupada por
+# um processo que NÃO é desta instalação", quando era), e fazia um `kill` escolher o vite em vez do
+# backend. Só o listener conta — tanto para decidir a propriedade como para escolher quem morre.
+listeners_on() {
+  lsof -ti:"$1" -sTCP:LISTEN 2>/dev/null
+}
+
 # O processo que está nesta porta é NOSSO? Compara o cwd do processo com esta árvore.
 # Sem isto, arrancar esta instalação matava outro JOCA (ou outro serviço qualquer) que estivesse
 # na porta — foi assim que um clone do repo público quase derrubou a instalação de trabalho.
@@ -38,7 +47,7 @@ is_ours() {
 }
 
 port_is_ours() {
-  local pids; pids=$(lsof -ti:"$1" 2>/dev/null)
+  local pids; pids=$(listeners_on "$1")
   [ -z "$pids" ] && return 1
   for p in $pids; do is_ours "$p" || return 1; done
   return 0
@@ -54,7 +63,7 @@ if port_is_ours "$BACKEND_PORT" && port_is_ours "$FRONTEND_PORT"; then
 fi
 
 for PORT_TO_FREE in $BACKEND_PORT $FRONTEND_PORT; do
-  PIDS=$(lsof -ti:$PORT_TO_FREE 2>/dev/null)
+  PIDS=$(listeners_on "$PORT_TO_FREE")
   [ -z "$PIDS" ] && continue
   for pid in $PIDS; do
     if ! is_ours "$pid"; then

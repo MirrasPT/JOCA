@@ -6,11 +6,14 @@ import ToastNotification, { type ToastItem } from './components/ToastNotificatio
 import { type WorkflowState, emptyWorkflow, parseWorkflowLine } from './components/WorkflowPanel';
 import SettingsPanel from './components/SettingsPanel';
 import DashboardView, { type RateLimits } from './components/DashboardView';
+import { COMANDO_SAVE } from './components/dashboard/SaveAll';
 import ProjectWorkspace from './components/project-workspace/ProjectWorkspace';
 import TerminalView from './components/TerminalView';
 import CommandPalette from './components/CommandPalette';
 import AgentsView from './components/AgentsView';
+import RecoveredSessionsNotice from './components/RecoveredSessionsNotice';
 import { useSessionSocket } from './hooks/useSessionSocket';
+import { useRecoveredSessions } from './hooks/useRecoveredSessions';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
 import StatusBar from './components/StatusBar';
@@ -311,6 +314,11 @@ export default function App() {
     });
   }, []);
 
+  // Conversas que morreram num reinício do backend. O `sessions_list` que chega a seguir poda-as
+  // (e faz bem — é o retrato autoritativo do servidor); isto é o que sobra delas para se poder
+  // explicar o que aconteceu e ler o que elas tinham escrito.
+  const recovered = useRecoveredSessions();
+
   // WebSocket lifecycle (connect / reconnect / message routing) lives in the hook; it returns a
   // stable `send`. All parent state it touches is passed in and read through a ref, so the socket
   // is created once on mount.
@@ -319,6 +327,7 @@ export default function App() {
     setUnreadIds, setActivatedIds,
     termRefs, outputBuffers, workflowRef, sessionsRef, activeIdRef, pinOutputRef, focusNewSessionRef,
     activateSession, addToast, addNotificationToast, processOutput, reloadProjects, reloadProjectMemory,
+    onServerBoot: recovered.noteBootId,
   });
 
   // Claro/escuro/dinâmico: no modo dinâmico troca sozinho à hora marcada, com a app aberta.
@@ -373,6 +382,12 @@ export default function App() {
     send({ type: 'input', sessionId, data });
     setUnreadIds((prev) => { if (!prev.has(sessionId)) return prev; const n = new Set(prev); n.delete(sessionId); return n; });
   }, [send]);
+
+  // "Save all" da dashboard. Quem decide QUAIS conversas recebem é o `planoSaveAll` (dashboard/SaveAll);
+  // aqui só se escreve o comando em cada uma, pela mesma via por onde entra o que o dono escreve.
+  const handleSaveAllSessions = useCallback((sessionIds: string[]) => {
+    sessionIds.forEach((id) => handleInput(id, COMANDO_SAVE));
+  }, [handleInput]);
 
   const handleRunCommand = useCallback((command: string) => {
     const line = command.endsWith('\r') ? command : `${command}\r`;
@@ -858,6 +873,7 @@ export default function App() {
             onOpenProject={handleOpenProject}
             onSwitchSession={handleOpenSessionInContext}
             onNewSession={handleNewSession}
+            onSaveAll={handleSaveAllSessions}
             onRenameProject={handleRenameProject}
             onRenameSession={handleRenameSession}
           />
@@ -917,6 +933,14 @@ export default function App() {
         onDismiss={handleDismissToast}
         onSelect={handleSwitchSession}
         onOpenTarget={handleOpenNotificationTarget}
+      />
+
+      {/* Não aparece quando não há nada a recuperar: o próprio componente devolve `null` com o
+          retrato vazio (encerramento limpo) ou já dispensado. */}
+      <RecoveredSessionsNotice
+        snapshot={recovered.snapshot}
+        onDismiss={recovered.dismiss}
+        onLoadTail={recovered.loadTail}
       />
 
       {settingsOpen && (

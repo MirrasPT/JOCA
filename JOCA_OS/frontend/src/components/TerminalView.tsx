@@ -39,6 +39,13 @@ interface Props {
 // diferente abaixo dele (ver o efeito que ajusta a altura do textarea).
 const ECRA_ESTREITO = '(max-width: 860px)';
 
+/**
+ * Caixa de escrita colapsada — preferencia GLOBAL (nao por terminal) e guardada no browser.
+ * Vai para `localStorage` e nao para `/ui-settings` de proposito: e uma escolha de vista, do
+ * tamanho da ordenacao de projectos na barra lateral, e nao precisa de viajar entre maquinas.
+ */
+const CAIXA_COLAPSADA_KEY = 'joca.composer.colapsado';
+
 // ── Lucide SVG Icons ───────────────────────────────────────────────
 
 function StopIcon() {
@@ -197,6 +204,36 @@ export default function TerminalView({
   const inputAreaRef = useRef<HTMLTextAreaElement>(null);
 
   /**
+   * Colapsar a caixa de escrita deixa a fila de atalhos rapidos sozinha e devolve ~110px ao
+   * terminal — o modo de quem esta so a LER o que o CLI faz. Nao desmonta nada (ver a classe
+   * `--oculta` no CSS): o rascunho, os anexos e a altura medida ficam onde estavam.
+   */
+  const [caixaColapsada, setCaixaColapsada] = useState<boolean>(() => {
+    try { return localStorage.getItem(CAIXA_COLAPSADA_KEY) === '1'; } catch { return false; }
+  });
+
+  const alternarCaixa = useCallback(() => {
+    setCaixaColapsada((prev) => {
+      const proximo = !prev;
+      try { localStorage.setItem(CAIXA_COLAPSADA_KEY, proximo ? '1' : '0'); } catch { /* ignore */ }
+      return proximo;
+    });
+  }, []);
+
+  /**
+   * Qualquer coisa que ESCREVA na caixa reabre-a primeiro. Sem isto, carregar em `save` ou largar
+   * um ficheiro com a caixa fechada punha texto/anexos num sitio invisivel — o gesto parecia nao
+   * ter feito nada.
+   */
+  const abrirCaixa = useCallback(() => {
+    setCaixaColapsada((prev) => {
+      if (!prev) return prev;
+      try { localStorage.setItem(CAIXA_COLAPSADA_KEY, '0'); } catch { /* ignore */ }
+      return false;
+    });
+  }, []);
+
+  /**
    * Entrar num terminal põe o cursor NA CAIXA DE MENSAGEM, não no xterm.
    *
    * A caixa é a via normal de falar com o CLI (tem histórico, menu de `/`, anexos); o xterm por
@@ -207,17 +244,20 @@ export default function TerminalView({
    * empurrava o terminal para fora de vista no próprio gesto de o abrir.
    */
   useEffect(() => {
-    if (!activeId) return;
+    // Com a caixa colapsada nao ha onde por o cursor — focar um `display:none` e um no-op que
+    // deixava o teclado sem dono. Reabrir volta a passar aqui e devolve o foco a caixa.
+    if (!activeId || caixaColapsada) return;
     const t = window.setTimeout(() => inputAreaRef.current?.focus({ preventScroll: true }), 0);
     return () => window.clearTimeout(t);
-  }, [activeId]);
+  }, [activeId, caixaColapsada]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<string[]>([]);
 
 
   const addAttachment = useCallback((path: string) => {
+    abrirCaixa();
     setAttachments((prev) => prev.includes(path) ? prev : [...prev, path]);
-  }, []);
+  }, [abrirCaixa]);
 
   const removeAttachment = useCallback((path: string) => {
     setAttachments((prev) => prev.filter((p) => p !== path));
@@ -344,7 +384,9 @@ export default function TerminalView({
     const mq = window.matchMedia(ECRA_ESTREITO);
     mq.addEventListener('change', ajusta);
     return () => mq.removeEventListener('change', ajusta);
-  }, [terminalDraft]);
+    // `caixaColapsada` esta nas dependencias porque reabrir com um rascunho longo nao mexe no
+    // `terminalDraft`: sem isto a caixa voltava com a altura de repouso e cortava o texto.
+  }, [terminalDraft, caixaColapsada]);
 
   const sendSelectedPath = useCallback(() => {
     if (!activeId || !selectedPath) return;
@@ -457,9 +499,10 @@ export default function TerminalView({
    */
   const runQuickCommand = useCallback((cmd: string) => {
     if (!activeId) return;
+    abrirCaixa();
     setTerminalDraft(`/${cmd} `);
     inputAreaRef.current?.focus();
-  }, [activeId, setTerminalDraft]);
+  }, [activeId, setTerminalDraft, abrirCaixa]);
 
   return (
     <div
@@ -743,6 +786,21 @@ export default function TerminalView({
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12l7 7 7-7"/></svg>
             </button>
+            {/* Colapsar/mostrar a caixa de escrita. Fica no fim da fila porque e um controlo da
+                VISTA, nao um comando para o CLI — e porque o que ele esconde comeca logo abaixo. */}
+            <button
+              type="button"
+              className="quick-command-btn quick-command-btn--plus"
+              onClick={alternarCaixa}
+              aria-expanded={!caixaColapsada}
+              aria-controls="caixa-de-escrita"
+              data-tooltip={caixaColapsada ? 'Mostrar a caixa de escrita' : 'Esconder a caixa de escrita (ficam so os atalhos)'}
+              aria-label={caixaColapsada ? 'Mostrar a caixa de escrita' : 'Esconder a caixa de escrita'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d={caixaColapsada ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
+              </svg>
+            </button>
 
             {/* O estado vivia no canto da barra de título; sem ele não se via daqui se o terminal
                 está a trabalhar. Empurrado para a direita, longe dos botões. */}
@@ -763,7 +821,10 @@ export default function TerminalView({
             </div>
           )}
 
-          <div className="terminal-command-input-wrap">
+          <div
+            id="caixa-de-escrita"
+            className={`terminal-command-input-wrap${caixaColapsada ? ' terminal-command-input-wrap--oculta' : ''}`}
+          >
             <input
               ref={fileInputRef}
               type="file"
