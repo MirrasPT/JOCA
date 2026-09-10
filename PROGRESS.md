@@ -6,10 +6,15 @@
 ## Current state
 
 Mature toolkit, in use. Published in waves out of the working installation: each wave is a commit on
-`main` with what has already been verified live. The most recent wave (`cc3d6b0`, 2026-09-08) was
-`JOCA_OS` only — `JOCA_Brain` was not touched.
+`main` with what has already been verified live.
 
-Next step: port the 2026-09-08 wave to the working installations with `update-os.md`.
+**The toolkit is now fully in English — on a branch, not on `main`.** `feat/english-translation`
+(`c64c9bd`) carries 710 files across 3 commits; `main` is still Portuguese at `cc3d6b0`. Nothing a
+contributor has cloned changes until the branch is merged.
+
+Next step: decide what happens to that branch. While the two coexist, porting between the working
+installation and this repo stops being a clean merge — 32 files were renamed and nearly every file
+changed content, so the port becomes a cherry-pick of the delta.
 
 > This project was born before `/start`, so it does not have the S1-S5/E1-E4 phases of a guided
 > startup. The table below is what actually exists, with the evidence for each row.
@@ -29,6 +34,14 @@ Next step: port the 2026-09-08 wave to the working installations with `update-os
 
 ## Diary (most recent first)
 
+- 2026-09-10 · macOS · **The whole toolkit translated to English** on `feat/english-translation`.
+  710 files, 37 translation workers against a shared contract and glossary, 32 renames with ~300
+  references rewritten, mirrors regenerated. What the translation exposed, all pre-existing:
+  `prompt-triage.js` matched Portuguese only (an English prompt never triggered a fan-out),
+  `compile-bridges.sh` was already broken on disk because it extracts sections by literal heading,
+  five skills had frontmatter no strict YAML parser could read, and `joca-terminal` documents CLI
+  commands this build does not implement. Gates: backend 67/67, frontend build and eslint clean,
+  UI verified live in a browser. → `317b647` · `f64fbba` · `c64c9bd`
 - 2026-09-08 · macOS · `JOCA_OS`: sessions snapshotted to disk — restarting the backend no longer
   makes conversations vanish without explanation, and the output they had stays readable. Collapsible
   composer, `Save all` on the dashboard, `start.sh`/`stop.sh` no longer confusing a port's clients
