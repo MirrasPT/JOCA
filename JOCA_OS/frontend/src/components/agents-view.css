@@ -1,8 +1,8 @@
-/* ─── Vista global de Agentes + acções na linha do agente ─────────────────────
-   Duas coisas, uma folha: a vista `AgentsView` (todos os agentes de todos os projectos) e as
-   acções/estado das linhas `.pw-worker*`, que são partilhadas com o painel Agentes do workspace.
-   As linhas base (`.pw-workers`, `.pw-worker`, `-dot`, `-area`, `-job`, `-time`) continuam no
-   App.css: aqui só se ACRESCENTA — é a mesma entidade visual, não um segundo vocabulário. */
+/* ─── Global Agents view + actions on the agent row ───────────────────────────
+   Two things, one sheet: the `AgentsView` view (every agent of every project) and the
+   actions/state of the `.pw-worker*` rows, which are shared with the workspace Agents panel.
+   The base rows (`.pw-workers`, `.pw-worker`, `-dot`, `-area`, `-job`, `-time`) stay in
+   App.css: here we only ADD — it is the same visual entity, not a second vocabulary. */
 
 .dashboard-view.agents-view {
   display: flex;
@@ -28,8 +28,8 @@
   font: 600 12px var(--font-ui);
 }
 
-/* O cabeçalho fica fixo e a lista scrolla dentro de si — com 20 agentes abertos, perder o botão
-   "novo agente" para fora do ecrã era o comportamento errado. */
+/* The header stays fixed and the list scrolls inside itself — with 20 agents open, losing the
+   "new agent" button off screen was the wrong behavior. */
 .ag-body {
   flex: 1;
   min-height: 0;
@@ -57,7 +57,7 @@
   font-weight: 700;
 }
 
-/* Marcas na linha: que CLI corre e quem a abriu. */
+/* Markers on the row: which CLI runs and who opened it. */
 .ag-cli, .ag-origin {
   flex: 0 0 auto;
   padding: 1px 7px;
@@ -73,7 +73,7 @@
   color: var(--badge-blue);
   border-color: color-mix(in srgb, var(--badge-blue) 34%, transparent);
 }
-/* Área da pool (design/backend/…): é por aqui que se percebe o papel do agente no projecto. */
+/* Pool area (design/backend/…): this is where the agent's role in the project shows. */
 .ag-area {
   flex: 0 0 auto;
   padding: 1px 7px;
@@ -86,14 +86,14 @@
   text-transform: capitalize;
 }
 
-/* "+" da secção Agentes do projecto — a acção de abrir um agente vive onde os agentes estão, e
-   não num botão no cabeçalho do projecto (era esse o botão que saiu do topo-direito). */
+/* "+" of the project's Agents section — the action of opening an agent lives where the agents
+   are, not in a button in the project header (that was the button that left the top right). */
 .pw-side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pw-side-head .section-title { margin: 0; }
 .pw-add-agent {
   flex: 0 0 auto;
-  /* Alvo de toque: o quadrado visível tem 22px, mas o ::before estende a área clicável a 44px
-     sem empurrar o cabeçalho da secção. */
+  /* Touch target: the visible square is 22px, but the ::before extends the clickable area to
+     44px without pushing the section header. */
   position: relative;
   width: 22px;
   height: 22px;
@@ -121,17 +121,17 @@
   background: var(--accent-soft);
 }
 
-/* ── A trabalhar: movimento, não só cor ───────────────────────────────────────
-   Duas camadas que dizem a mesma coisa a distâncias diferentes: o ponto pulsa (lê-se de perto,
-   com o nome do agente) e uma luz atravessa a linha devagar (lê-se de relance, sem olhar).
-   Ambas param com prefers-reduced-motion — aí fica a cor, como antes. */
+/* ── Working: movement, not just color ────────────────────────────────────────
+   Two layers saying the same thing at different distances: the dot pulses (read from up close,
+   with the agent's name) and a light crosses the row slowly (read at a glance, without looking).
+   Both stop with prefers-reduced-motion — there the color stays, as before. */
 .pw-worker-dot--working { animation: pw-dot-pulse 1.6s ease-in-out infinite; }
 @keyframes pw-dot-pulse {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-working) 55%, transparent); }
   55%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--status-working) 0%, transparent); }
 }
 
-/* `position`/`overflow` só na linha que anima — não se toca na regra base `.pw-worker`. */
+/* `position`/`overflow` only on the row that animates — the base `.pw-worker` rule is untouched. */
 .pw-worker.is-working {
   position: relative;
   overflow: hidden;
@@ -160,8 +160,8 @@
   .pw-worker.is-working::after { animation: none; opacity: 0; }
 }
 
-/* Acções da linha: aparecem no hover/foco para não sujar a leitura, mas ficam sempre no DOM (e
-   visíveis por foco de teclado — `opacity` e não `display:none`). */
+/* Row actions: they appear on hover/focus so as not to clutter the reading, but they always stay
+   in the DOM (and visible on keyboard focus — `opacity` and not `display:none`). */
 .pw-worker-btn {
   flex: 0 0 auto;
   position: relative;
@@ -179,7 +179,7 @@
   opacity: 0;
   transition: opacity var(--t-fast), color var(--t-fast), background var(--t-fast);
 }
-/* Área de toque de 44px sem alargar a linha (o quadrado pintado continua com 24px). */
+/* 44px touch target without widening the row (the painted square stays at 24px). */
 .pw-worker-btn::before {
   content: '';
   position: absolute;
@@ -198,13 +198,13 @@
   color: var(--red);
   background: color-mix(in srgb, var(--red) 14%, transparent);
 }
-/* Toque não tem hover: sem isto as acções eram inalcançáveis num telemóvel. */
+/* Touch has no hover: without this the actions were unreachable on a phone. */
 @media (hover: none) {
   .pw-worker-btn { opacity: 1; }
 }
 
-/* Confirmação na própria linha (fechar mata trabalho a meio, não é reversível como trocar de
-   vista) — em vez de um modal, que tiraria o contexto de qual agente se está a fechar. */
+/* Confirmation on the row itself (closing kills work mid-flight, not reversible like switching
+   view) — instead of a modal, which would remove the context of which agent is being closed. */
 .pw-worker.is-confirming { border-color: color-mix(in srgb, var(--red) 45%, transparent); }
 .pw-worker-confirm {
   margin-left: auto;
@@ -237,8 +237,8 @@
   .agents-view .ag-new { flex: 1 1 100%; }
 }
 
-/* Renome inline do agente: mesma altura e tipo da linha, para a lista não saltar ao entrar em
-   edição. Herda a largura do slot do nome — um input de largura fixa desalinhava as colunas. */
+/* Inline rename of the agent: same height and type as the row, so the list does not jump when
+   entering edit. It inherits the name slot's width — a fixed-width input misaligned the columns. */
 .pw-worker-name-input {
   flex: 1;
   min-width: 0;

@@ -121,7 +121,7 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 </div>
 ```
 - Fluid type/space with `clamp()` in a token rather than many breakpoint steps when it reads better.
-- Escapar para CSS nativo quando a plataforma ja resolve (scroll-driven animations, `:has()`,
+- Escape to native CSS when the platform already handles it (scroll-driven animations, `:has()`,
   `color-mix()`, `content-visibility`) → `Read(".claude/reference/frontend/modern-css.md")`.
 
 ---
@@ -139,22 +139,22 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
 | `!important` / `!` overrides | Fix specificity / order via `cn()`+`twMerge` |
 | `space-x/y` on flex-wrap or RTL | `gap-*` |
 | Disabling content-detection / safelisting huge lists | Keep class names static & complete strings (purge needs literals) |
-| Arbitrary feature media query `[@media(hover:hover)and(pointer:fine)]:block` | **CSS inválido** → ecrã branco. Definir `@custom-variant` no globals.css |
+| Arbitrary feature media query `[@media(hover:hover)and(pointer:fine)]:block` | **Invalid CSS** → white screen. Define `@custom-variant` in globals.css |
 
 **Purge rule:** class names must be complete static strings. `bg-${color}-500` won't be detected — map to full class names in an object instead.
 
-### ⚠ v4: media-queries de feature + scan de `.md`/comentários (branqueiam a página)
+### ⚠ v4: feature media queries + scan of `.md`/comments (they turn the page white)
 
-Dois tells de Tailwind v4 que **passam `tsc` E `next build`** e só rebentam no dev/runtime (500 / ecrã branco):
+Two Tailwind v4 tells that **pass `tsc` AND `next build`** and only blow up at dev/runtime (500 / white screen):
 
-1. **Arbitrary media query com `and` sem espaços = CSS inválido.** `[@media(hover:hover)and(pointer:fine)]:block` gera `@media (hover:hover)and(pointer:fine)` → "Unexpected token Function(and)" → derruba a página INTEIRA. `_and_` é frágil. **Fix:** declarar uma variant nomeada no globals.css e usá-la como classe:
+1. **Arbitrary media query with `and` without spaces = invalid CSS.** `[@media(hover:hover)and(pointer:fine)]:block` produces `@media (hover:hover)and(pointer:fine)` → "Unexpected token Function(and)" → takes down the ENTIRE page. `_and_` is fragile. **Fix:** declare a named variant in globals.css and use it as a class:
    ```css
    @custom-variant fine-hover (@media (hover: hover) and (pointer: fine));
    ```
    ```html
    <div class="fine-hover:block">…</div>
    ```
-2. **v4 faz content-scan de `.md` e de COMENTÁRIOS** à procura de candidatos a classes. Uma classe partida citada num comentário, num `.md` de docs, ou num resumo `.joca/intermediate/*.md` **regenera** a classe inválida e mantém o site branco MESMO depois de corrigir o `.tsx`. Sintoma traiçoeiro: corriges o componente e continua branco. **Fix:** sanitizar a string em qualquer ficheiro escaneado; excluir resumos/docs do content-scan (`@source not "..."`) ou escrevê-los fora da árvore do projecto. (Irmão do tell "adblock token branqueia site" do `frontend.md`. Fonte: caso real 2026-06-23.)
+2. **v4 content-scans `.md` and COMMENTS** looking for class candidates. A broken class quoted in a comment, in a docs `.md`, or in a `.joca/intermediate/*.md` summary **regenerates** the invalid class and keeps the site white EVEN after fixing the `.tsx`. Treacherous symptom: you fix the component and it stays white. **Fix:** sanitize the string in any scanned file; exclude summaries/docs from the content-scan (`@source not "..."`) or write them outside the project tree. (Sibling of the "adblock token turns the site white" tell in `frontend.md`. Source: real case 2026-06-23.)
 
 ---
 

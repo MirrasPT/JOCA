@@ -32,9 +32,9 @@ export function toolkitRouter(): Router {
       cwd: process.cwd(),
       uptimeMs: Date.now() - STARTED_AT,
       port: Number(process.env.PORT || 7491),
-      // Rótulo da instância, mostrado na barra ao lado do wordmark. Serve para distinguir duas
-      // instalações a correr ao mesmo tempo (uma de trabalho e uma de desenvolvimento), que de
-      // outra forma são idênticas no ecrã. Sem `JOCA_ENV` fica `null` e a barra mostra a versão.
+      // Instance label, shown on the bar next to the wordmark. It serves to tell apart two
+      // installations running at the same time (a work one and a development one), which are
+      // otherwise identical on screen. Without `JOCA_ENV` it stays `null` and the bar shows the version.
       env: (process.env.JOCA_ENV || '').trim().slice(0, 8).toUpperCase() || null,
       sessionCount: sessionManager.size,
       projectCount: projects.length,
@@ -65,8 +65,8 @@ export function toolkitRouter(): Router {
     if ('themeMode' in body) {
       updated.themeMode = body.themeMode === 'light' || body.themeMode === 'auto' ? body.themeMode : 'dark';
     }
-    // Horários do modo dinâmico. Só se guarda "HH:MM" válido — uma hora inválida vinda do cliente
-    // deixaria o tema preso no escuro sem o utilizador perceber porquê.
+    // Dynamic-mode schedules. Only a valid "HH:MM" is stored — an invalid time coming from the
+    // client would leave the theme stuck on dark without the user understanding why.
     for (const key of ['themeDayStart', 'themeNightStart'] as const) {
       if (!(key in body)) continue;
       const v = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
@@ -75,13 +75,13 @@ export function toolkitRouter(): Router {
         updated[key] = `${m[1].padStart(2, '0')}:${m[2]}`;
       }
     }
-    // Tema de marca. Guardado como texto simples (o catálogo vive no cliente), mas sanitizado —
-    // este valor acaba num atributo do `<html>`.
+    // Brand theme. Stored as plain text (the catalog lives on the client), but sanitized —
+    // this value ends up in an attribute of the `<html>`.
     if ('brandTheme' in body) {
       const v = typeof body.brandTheme === 'string' ? body.brandTheme.trim().slice(0, 40) : '';
       updated.brandTheme = /^[a-z0-9-]+$/.test(v) ? v : undefined;
     }
-    // CLI used by new terminals when none is specified (Settings → CLI por defeito).
+    // CLI used by new terminals when none is specified (Settings → Default CLI).
     if ('defaultCli' in body) {
       updated.defaultCli = CLI_IDS.includes(body.defaultCli as CliId) ? (body.defaultCli as CliId) : undefined;
     }

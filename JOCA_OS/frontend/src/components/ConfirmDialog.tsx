@@ -1,19 +1,20 @@
-// ConfirmDialog — a paragem obrigatória antes de uma acção que não se desfaz.
+// ConfirmDialog — the mandatory stop before an action that cannot be undone.
 //
-// Existe porque a barra lateral passou a poder remover projectos: ali não há "Zona perigosa" a
-// enquadrar o botão, e um caixote do lixo a um clique de distância, encostado ao arquivar, apaga
-// trabalho por engano. O diálogo diz O QUE se perde e O QUE fica ANTES do clique — a diferença tem
-// de ser visível antes, não depois.
+// It exists because the sidebar can now remove projects: there is no "Danger zone" there framing
+// the button, and a trash can one click away, right next to archiving, deletes work by mistake.
+// The dialog says WHAT is lost and WHAT stays BEFORE the click — the difference has to be visible
+// before, not after.
 //
-// Acessibilidade tratada como no modal de projecto: `role="alertdialog"` (é um aviso, não um
-// formulário), foco inicial no botão SEGURO (Cancelar) e não no destrutivo, focus-trap real no Tab
-// — `aria-modal` promete que o resto fica inerte mas não o implementa — e Escape/clique fora a
-// cancelar. Enter num diálogo destes nunca confirma sozinho: quem confirma carrega no botão.
+// Accessibility handled as in the project modal: `role="alertdialog"` (it is a warning, not a
+// form), initial focus on the SAFE button (Cancel) and not on the destructive one, a real Tab
+// focus-trap — `aria-modal` promises the rest goes inert but does not implement it — and
+// Escape/click outside to cancel. Enter in a dialog like this never confirms by itself: whoever
+// confirms presses the button.
 import { useCallback, useEffect, useRef } from 'react';
 import './confirm-dialog.css';
 
 export default function ConfirmDialog({
-  title, children, confirmLabel = 'Confirmar', cancelLabel = 'Cancelar', onConfirm, onCancel,
+  title, children, confirmLabel = 'Confirm', cancelLabel = 'Cancel', onConfirm, onCancel,
 }: {
   title: string;
   children: React.ReactNode;
@@ -24,8 +25,8 @@ export default function ConfirmDialog({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  // Em refs para o efeito do teclado correr uma vez só: sem isto, um handler recriado a cada
-  // render tira e repõe o listener e o foco salta.
+  // In refs so the keyboard effect runs only once: without this, a handler recreated on every
+  // render removes and re-adds the listener and the focus jumps.
   const onCancelRef = useRef(onCancel);
   onCancelRef.current = onCancel;
 

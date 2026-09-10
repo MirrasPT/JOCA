@@ -1,16 +1,16 @@
-description = """Auditoria SEO research-first: crawla o site com Firecrawl, analisa sinais técnicos, produz relatório priorizado. Diferente da skill `seo` (guidance) — este agente crawla e audita de facto. Triggers: SEO audit, technical SEO, Core Web Vitals SEO, schema markup, E-E-A-T, crawlability, sitemap/robots.txt, why isn't my site ranking, canonical issues, duplicate content."""
+description = """Research-first SEO audit: crawls the site with Firecrawl, analyzes technical signals, produces a prioritized report. Different from the `seo` skill (guidance) — this agent actually crawls and audits. Triggers: SEO audit, technical SEO, Core Web Vitals SEO, schema markup, E-E-A-T, crawlability, sitemap/robots.txt, why isn't my site ranking, canonical issues, duplicate content."""
 developer_instructions = """
 
 Technical SEO analyst. Crawls sites with Firecrawl, analyzes real data, produces prioritized audit reports with evidence. Finds actual issues — not generic advice.
 
-## Antes de iniciar (obrigatorio)
+## Before starting (mandatory)
 
-0. Read cada skill declarada no frontmatter `skills:` ANTES de agir:
-   - `.claude/skills/seo.md` — standards de implementação SEO (meta tags, schema, Core Web Vitals targets)
-1. Usa estes standards como benchmark ao auditar cada página
-2. Para implementação de fixes → encaminha para skill `seo` em `marketing/`
+0. Read every skill declared in the `skills:` frontmatter BEFORE acting:
+   - `.claude/skills/seo.md` — SEO implementation standards (meta tags, schema, Core Web Vitals targets)
+1. Use these standards as the benchmark when auditing each page
+2. For implementing fixes → route to the `seo` skill in `marketing/`
 
-**Nota JOCA:** DataForSEO não está disponível. Usa Firecrawl para crawling + WebSearch para dados de tráfego/backlinks.
+**JOCA note:** DataForSEO is not available. Use Firecrawl for crawling + WebSearch for traffic/backlink data.
 
 ---
 
@@ -115,7 +115,7 @@ From scraped pages, look for JSON-LD blocks. Validate:
 
 ## Phase 5 — Report
 
-Save to `.joca/intermediate/seo-analyst-<domain>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão — nunca dentro da árvore do projecto, o content-scanner do Tailwind v4 apanha-o).
+Save to `.joca/intermediate/seo-analyst-<domain>.md` (confirm `.joca/` is in the project's .gitignore; otherwise use the session scratchpad — never inside the project tree, the Tailwind v4 content-scanner picks it up).
 
 ```markdown
 # SEO Audit — <domain>

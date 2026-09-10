@@ -1,46 +1,46 @@
-# /start — arranque de projecto (novo ou existente)
+# /start — project startup (new or existing)
 
-Entrada única de qualquer projecto: entrevista por formulários → PRD inicial → stack da casa →
-infra → direcção de design → engata na execução.
+Single entry point for any project: form-based interview → initial PRD → house stack →
+infra → design direction → hooks into execution.
 
-`Read(".claude/skills/start.md")` — **a doutrina completa vive lá**. Este comando não a duplica:
-lê a skill e segue-a à letra (regras de formulário, Fase 0 de leitura do disco, fases, artefactos).
+`Read(".claude/skills/start.md")` — **the full doctrine lives there**. This command does not duplicate it:
+read the skill and follow it to the letter (form rules, Phase 0 reading the disk, phases, artifacts).
 
-`/start [nome-do-projeto]` — sem argumento, o nome sai da pasta actual e confirma-se no formulário.
+`/start [project-name]` — with no argument, the name comes from the current folder and is confirmed in the form.
 
-## Fluxo
+## Flow
 
-1. `Read(".claude/skills/start.md")` e seguir as fases de lá, de fio a pavio.
-2. Stack: `rules/stack-padrao.md` (a stack da casa). Sair dela exige razão em `docs/DECISIONS.md`.
-3. A **forma de trabalho** que a skill instala (issue antes de código · design validado antes de UI ·
-   testes em sessão separada · `PROGRESSO.md` + `docs/DECISIONS.md` · ondas com portão) é **regra
-   global**, não uma consequência deste comando — `rules/pipelines.md` §Doutrina de projecto.
-4. Projecto que já existe em disco liga-se com o **mesmo** questionário, pré-preenchido a partir dos
-   ficheiros encontrados: o utilizador confirma em vez de escrever.
+1. `Read(".claude/skills/start.md")` and follow the phases there, from start to finish.
+2. Stack: `rules/default-stack.md` (the house stack). Leaving it requires a reason in `docs/DECISIONS.md`.
+3. The **way of working** the skill installs (issue before code · design validated before UI ·
+   tests in a separate session · `PROGRESS.md` + `docs/DECISIONS.md` · waves with a gate) is a
+   **global rule**, not a consequence of this command — `rules/pipelines.md` §Project doctrine.
+4. A project that already exists on disk is connected with the **same** questionnaire, pre-filled from
+   the files found: the user confirms instead of writing.
 
-## Regras
+## Rules
 
-- Nada é irreversível até ao scaffold. Escrever por cima de ficheiro existente → nome irmão
-  versionado, nunca sobrescrever (soul.md / `rules/task-intake.md`).
-- Não inventar conteúdo de produto: o problema, o público e as fronteiras são do utilizador.
+- Nothing is irreversible until the scaffold. Writing over an existing file → versioned sibling
+  name, never overwrite (soul.md / `rules/task-intake.md`).
+- Do not invent product content: the problem, the audience and the boundaries belong to the user.
 
-## Próximo passo (chain)
+## Next step (chain)
 
-- Documentos e decisões fechados → skill `executar-projeto` (fundação → design → gate → ondas).
-  Notificar `[chain → executar-projeto]`. Ver `rules/chaining.md`.
+- Documents and decisions closed → `execute-project` skill (foundation → design → gate → waves).
+  Notify `[chain → execute-project]`. See `rules/chaining.md`.
 
 
 ---
 
-## Autorização do `Workflow` (ferramenta do harness)
+## `Workflow` authorization (harness tool)
 
-**Correr `/start` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
-podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
-Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+**Running `/start` is the user's explicit opt-in for the `Workflow` tool.** Do not ask whether you
+may orchestrate — if the work splits into phases with fan-out, author the script and **call `Workflow`**.
+When the script is unnecessary, `Agent()` in parallel in the same turn does the job just as well.
 
-Travões que **não** caem com esta autorização:
-- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
-- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
-- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
-- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.
+Brakes that do **not** fall away with this authorization:
+- **Cheap recon BEFORE authoring** the script (`rules/pipelines.md`) — `grep`/`ls` over the domain, inline.
+- **1-line gate** on anything irreversible (deploy · push · migration · delete · payment · auth).
+- **Verifier ≠ producer** — whoever writes does not sign the gate (`.joca/loop.json`).
+- **Size** comes from `/config` ("Dynamic workflow size"), not from this command.
+- **Cost announced**: ≥6 agents or a loop of rounds → order of magnitude of tokens before launching.

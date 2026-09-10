@@ -1,6 +1,6 @@
 ---
 name: plan
-description: "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução. Invoke on: planeia, arquitectura de, migra, reestrutura, tarefa multi-ficheiro/irreversível."
+description: "Structured planning in 7 phases (OODA, assumption surfacing, pre-mortem) before execution. Invoke on: plan, architecture for, migrate, restructure, multi-file/irreversible task."
 chain: design-review, frontend, laravel-specialist
 metadata:
   type: skill
@@ -9,198 +9,198 @@ metadata:
 
 # Skill: plan
 
-## Quando auto-activar
+## When to auto-activate
 
-Activar **antes de execução** quando a tarefa tiver >= 2 sinais — ou **imediatamente** com sinal ★:
+Activate **before execution** when the task has >= 2 signals — or **immediately** on a ★ signal:
 
-| Sinal | Prioridade |
+| Signal | Priority |
 |-------|-----------|
-| Operação irreversível: migration, delete dados, deploy, reset ★ | Máxima — sozinha activa |
-| >= 3 ficheiros ou módulos envolvidos | Alta |
-| Passos com dependências (falhar A → B falha) | Alta |
-| Decisão de arquitectura com tradeoffs reais | Alta |
-| Pedido com múltiplos sistemas ou stakeholders | Alta |
-| Feature nova sem precedente no codebase | Média |
-| Pedido ambíguo ou mais curto que a complexidade implicada | Média |
-| Scope estimado > 5 passos atómicos ou > 20 min | Média |
+| Irreversible operation: migration, data delete, deploy, reset ★ | Maximum — it activates on its own |
+| >= 3 files or modules involved | High |
+| Steps with dependencies (A fails → B fails) | High |
+| Architecture decision with real tradeoffs | High |
+| Request with multiple systems or stakeholders | High |
+| New feature with no precedent in the codebase | Medium |
+| Ambiguous request, or shorter than the complexity it implies | Medium |
+| Estimated scope > 5 atomic steps or > 20 min | Medium |
 
-**Sinais verbais:** "planeia", "arquitectura de", "como faríamos", "implementa X e Y e Z", "migra", "reestrutura", "refactora tudo", "integra com".
-
----
-
-## Protocolo — 7 Fases Sequenciais
-
-### Fase 0: Orient (OODA)
-
-*Interno — não mostrar ao utilizador.*
-
-Interpretar o pedido antes de planear:
-- Qual é o problema real (não o pedido literal)?
-- Que contexto do codebase é relevante mas não mencionado?
-- Que informação implícita é relevante para sucesso?
-- Se 2 formas radicalmente diferentes satisfazem o pedido → ambíguo → Fase 1.
+**Verbal signals:** "plan", "architecture for", "how would we do", "implement X and Y and Z", "migrate", "restructure", "refactor everything", "integrate with".
 
 ---
 
-### Fase 1: Ambiguidade Check
+## Protocol — 7 Sequential Phases
 
-*Só se detectada ambiguidade na Fase 0.*
+### Phase 0: Orient (OODA)
 
-Fazer **2-3 perguntas específicas**. Foco em:
-- Edge cases: "o que deve acontecer quando X?"
-- Navegação: "qual é o módulo responsável por Y?"
-- Abordagem: "preferes A ou B dado o tradeoff [...]?"
+*Internal — do not show it to the user.*
 
-Limite: **3 ciclos de clarificação**. Depois avançar com assumptions explícitas.
+Interpret the request before planning:
+- What is the real problem (not the literal request)?
+- What context from the codebase is relevant but not mentioned?
+- What implicit information is relevant to success?
+- If 2 radically different forms satisfy the request → ambiguous → Phase 1.
 
 ---
 
-### Fase 2: Assumptions Explícitas
+### Phase 1: Ambiguity Check
 
-**Bloqueante** — utilizador confirma antes de ver o plano.
+*Only if ambiguity was detected in Phase 0.*
+
+Ask **2-3 specific questions**. Focus on:
+- Edge cases: "what should happen when X?"
+- Navigation: "which module is responsible for Y?"
+- Approach: "do you prefer A or B given the tradeoff [...]?"
+
+Limit: **3 clarification cycles**. Then move on with explicit assumptions.
+
+---
+
+### Phase 2: Explicit Assumptions
+
+**Blocking** — the user confirms before seeing the plan.
 
 ```
-Assumptions a validar:
+Assumptions to validate:
 
-[ ] Assumption: [o que estou a assumir]
-    Impacto se errada: [o que muda no plano]
-    Como verificar: [como confirmar — agora ou durante execução]
+[ ] Assumption: [what I am assuming]
+    Impact if wrong: [what changes in the plan]
+    How to check: [how to confirm — now or during execution]
 
 [ ] Assumption: [...]
-    Impacto se errada: [...]
-    Como verificar: [...]
+    Impact if wrong: [...]
+    How to check: [...]
 ```
 
-Aguardar confirmação. Assumption errada → corrigir antes de avançar.
+Wait for confirmation. Wrong assumption → fix it before moving on.
 
 ---
 
-### Fase 3: Abordagens e Tradeoffs
+### Phase 3: Approaches and Tradeoffs
 
-*Só para decisões de arquitectura com múltiplas opções válidas.*
+*Only for architecture decisions with multiple valid options.*
 
-Apresentar 2-3 abordagens com tradeoffs:
+Present 2-3 approaches with tradeoffs:
 
 ```
-Abordagem A: [descrição]
-  + [vantagem 1]
-  - [desvantagem 1]
+Approach A: [description]
+  + [advantage 1]
+  - [disadvantage 1]
   Trade-off: [X vs Y]
 
-Abordagem B: [descrição]
-  + [vantagem 1]
-  - [desvantagem 1]
+Approach B: [description]
+  + [advantage 1]
+  - [disadvantage 1]
   Trade-off: [X vs Y]
 
-→ Recomendo A porque [razão em 1 linha]
+→ I recommend A because [reason in 1 line]
 ```
 
 ---
 
-### Fase 4: Plano Verificável
+### Phase 4: Verifiable Plan
 
-Cada passo no formato PAUL — sem verificação = passo incompleto:
+Each step in the PAUL format — no verification = incomplete step:
 
 ```
-Plano: [nome da tarefa]
-Critério de sucesso: [verificável, não vago]
+Plan: [task name]
+Success criterion: [verifiable, not vague]
 
-[ ] 1. [Acção]
-       Ficheiros: [lista explícita]
-       Verificar: [como confirmar]
-       Done quando: [critério observável]
+[ ] 1. [Action]
+       Files: [explicit list]
+       Check: [how to confirm]
+       Done when: [observable criterion]
 
-[ ] 2. [Acção]
-       Ficheiros: [lista explícita]
-       Verificar: [como confirmar]
-       Done quando: [critério observável]
+[ ] 2. [Action]
+       Files: [explicit list]
+       Check: [how to confirm]
+       Done when: [observable criterion]
 ```
 
 **Boundaries:**
-- Sempre: [o que será feito]
-- Perguntar primeiro se: [situações que requerem confirmação]
-- Nunca tocar: [ficheiros/áreas fora de scope]
+- Always: [what will be done]
+- Ask first if: [situations that require confirmation]
+- Never touch: [files/areas out of scope]
 
-Tarefas atómicas completáveis em <= 15 min. Acima disso, subdividir.
-
----
-
-### Fase 5: Pre-Mortem Mínimo
-
-Duas perspectivas internas — resultado adicionado ao plano:
-
-**Sabotador:** "Este plano falhou. O que correu mal?"
-→ Failure mode mais provável + mitigação.
-
-**Outsider:** "O que assume este plano que alguém sem contexto veria?"
-→ Assumption mais perigosa não listada na Fase 2.
-
-```
-Riscos identificados:
-- [risco 1] → Mitigação: [acção]
-- [risco 2] → Mitigação: [acção]
-```
+Atomic tasks completable in <= 15 min. Above that, subdivide.
 
 ---
 
-### Fase 6: Calibração de Confiança
+### Phase 5: Minimal Pre-Mortem
 
-No fim do plano, antes de apresentar:
+Two internal perspectives — the result is added to the plan:
+
+**Saboteur:** "This plan failed. What went wrong?"
+→ Most likely failure mode + mitigation.
+
+**Outsider:** "What does this plan assume that someone without context would see?"
+→ Most dangerous assumption not listed in Phase 2.
 
 ```
-Incerteza máxima:
-- [área 1]: [porquê baixa confiança] — reduziria com [X]
-- [área 2]: [porquê baixa confiança] — reduziria com [Y]
+Risks identified:
+- [risk 1] → Mitigation: [action]
+- [risk 2] → Mitigation: [action]
 ```
-
-Sinaliza onde o plano é mais frágil sem bloquear execução.
 
 ---
 
-## Apresentação ao Utilizador
+### Phase 6: Confidence Calibration
 
-Formato compacto — artefacto verificável, não documento:
+At the end of the plan, before presenting it:
 
 ```
-Plano: [nome]
+Maximum uncertainty:
+- [area 1]: [why low confidence] — would be reduced with [X]
+- [area 2]: [why low confidence] — would be reduced with [Y]
+```
 
-Assumptions confirmadas: [lista ou "nenhuma — pedido claro"]
-Critério de sucesso: [verificável]
+It flags where the plan is most fragile without blocking execution.
 
-Passos:
-1. [acção] | Ficheiros: [lista] | Done: [critério]
-2. [acção] | Ficheiros: [lista] | Done: [critério]
+---
+
+## Presentation to the User
+
+Compact format — a verifiable artifact, not a document:
+
+```
+Plan: [name]
+
+Confirmed assumptions: [list or "none — clear request"]
+Success criterion: [verifiable]
+
+Steps:
+1. [action] | Files: [list] | Done: [criterion]
+2. [action] | Files: [list] | Done: [criterion]
 ...
 
 Boundaries:
-  Sempre: [lista]
-  Perguntar: [situações]
-  Nunca tocar: [lista]
+  Always: [list]
+  Ask: [situations]
+  Never touch: [list]
 
-Riscos: [lista com mitigações]
-Incerteza: [áreas com baixa confiança]
+Risks: [list with mitigations]
+Uncertainty: [areas with low confidence]
 ```
 
-**Aprovação:** "ok" / "avança" / silêncio → executar. Feedback negativo → ajustar.
+**Approval:** "ok" / "go ahead" / silence → execute. Negative feedback → adjust.
 
 ---
 
-## Durante Execução
+## During Execution
 
-- Completar cada passo antes do seguinte
-- Notificar: `✓ Passo 1 — [feito] — [critério verificado]`
-- Assumption invalidada → **parar, reportar, pedir confirmação antes de adaptar**
-- Tarefas > 5 passos: **checkpoint de re-planeamento** a ~50% dos passos
+- Complete each step before the next one
+- Notify: `✓ Step 1 — [done] — [criterion checked]`
+- Invalidated assumption → **stop, report, ask for confirmation before adapting**
+- Tasks > 5 steps: **re-planning checkpoint** at ~50% of the steps
 
 ---
 
-## Distinção com /plan
+## Distinction from /plan
 
-| | `plan` skill | `/plan` comando |
+| | `plan` skill | `/plan` command |
 |---|---|---|
-| Activação | Auto — detecção de complexidade | Manual — utilizador invoca |
-| Aprovação | Implícita (ok / silêncio) | Explícita obrigatória (ExitPlanMode) |
-| Persistência | Inline na conversa | Ficheiro `.cursor/plans/` ou equivalente |
-| Uso | Dev normal, features, refactors | Arquitectura crítica, produção, irreversível |
+| Activation | Auto — complexity detection | Manual — the user invokes it |
+| Approval | Implicit (ok / silence) | Explicit, mandatory (ExitPlanMode) |
+| Persistence | Inline in the conversation | File in `.cursor/plans/` or equivalent |
+| Use | Normal dev, features, refactors | Critical architecture, production, irreversible |
 
-Operações em produção / dados / infraestrutura → preferir `/plan`.
+Operations on production / data / infrastructure → prefer `/plan`.

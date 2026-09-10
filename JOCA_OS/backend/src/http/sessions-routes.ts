@@ -44,37 +44,37 @@ function callerScope(req: Request): { sessionId: string; projectId?: string } | 
 // Returns the refusal message, or undefined when the call is allowed.
 function crossProjectDenial(req: Request, targetId: string): string | undefined {
   const caller = callerScope(req);
-  if (!caller?.projectId) return undefined;          // humano, Joca, ou terminal sem projecto
+  if (!caller?.projectId) return undefined;          // human, Joca, or a terminal with no project
   if (targetId === caller.sessionId) return undefined;
   const target = sessionManager.get(targetId);
-  if (!target) return undefined;                     // deixa a rota devolver o 404 dela
+  if (!target) return undefined;                     // let the route return its own 404
   if (target.projectId === caller.projectId) return undefined;
-  return 'esse terminal é de outro projecto — só podes falar com terminais do teu projecto';
+  return 'that terminal belongs to another project — you can only talk to terminals of your own project';
 }
 
 export function sessionsRouter(): Router {
   const r = Router();
 
-  // ── Sessões da instância ANTERIOR do backend (ver sessions-snapshot.ts) ────────────────────
-  // Registadas ANTES das rotas `/sessions/:id`: sem esta ordem, `DELETE /sessions/recovered`
-  // casaria com `DELETE /sessions/:id` e "recovered" seria tratado como o id de um terminal.
+  // ── Sessions from the PREVIOUS backend instance (see sessions-snapshot.ts) ─────────────────
+  // Registered BEFORE the `/sessions/:id` routes: without this order, `DELETE /sessions/recovered`
+  // would match `DELETE /sessions/:id` and "recovered" would be treated as a terminal's id.
   //
-  // Nada disto reata processos — os PTYs morreram com o backend anterior. É o retrato do que lá
-  // estava, para o dono não ficar sem explicação nenhuma.
+  // None of this resumes processes — the PTYs died with the previous backend. It is the snapshot of
+  // what was there, so the owner is not left with no explanation at all.
 
-  // Metadados apenas. O `tail` fica de fora de propósito: são até 256 KB por sessão.
+  // Metadata only. The `tail` is left out deliberately: it is up to 256 KB per session.
   r.get('/sessions/recovered', (_req, res) => {
     res.json(recoveredSessions());
   });
 
-  // A cauda raw (com ANSI) de uma sessão morta — texto simples, pronto a escrever num xterm.
+  // The raw tail (with ANSI) of a dead session — plain text, ready to write into an xterm.
   r.get('/sessions/recovered/:id/tail', (req, res) => {
     const tail = recoveredTail(req.params.id);
-    if (tail === undefined) return res.status(404).json({ error: 'sessão recuperada não encontrada' });
+    if (tail === undefined) return res.status(404).json({ error: 'recovered session not found' });
     res.type('text/plain; charset=utf-8').send(tail);
   });
 
-  // Dispensar o aviso.
+  // Dismiss the warning.
   r.delete('/sessions/recovered', (_req, res) => {
     clearRecovered();
     res.status(204).end();
@@ -103,7 +103,7 @@ export function sessionsRouter(): Router {
       name?: unknown; cli?: unknown; model?: unknown; project?: unknown; cwd?: unknown; prompt?: unknown;
     };
     if (sessionManager.size >= MAX_SESSIONS) {
-      return res.status(429).json({ error: `limite de ${MAX_SESSIONS} sessões atingido` });
+      return res.status(429).json({ error: `limit of ${MAX_SESSIONS} sessions reached` });
     }
     const project = resolveProject(typeof b.project === 'string' ? b.project : undefined);
 
@@ -112,15 +112,15 @@ export function sessionsRouter(): Router {
       try {
         const raw = b.cwd.trim();
         if (raw.startsWith('~') && raw.length > 1 && raw[1] !== '/') {
-          return res.status(400).json({ error: 'só ~/caminho é suportado' });
+          return res.status(400).json({ error: 'only ~/path is supported' });
         }
         const resolved = safePath(raw.startsWith('~') ? path.join(HOME, raw.slice(1)) : raw);
         if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
-          return res.status(400).json({ error: 'cwd tem de ser uma pasta existente' });
+          return res.status(400).json({ error: 'cwd has to be an existing folder' });
         }
         cwd = resolved;
       } catch {
-        return res.status(400).json({ error: 'cwd inválido' });
+        return res.status(400).json({ error: 'invalid cwd' });
       }
     }
 
@@ -139,13 +139,13 @@ export function sessionsRouter(): Router {
   // Send a message into a terminal (paced/chunked submit — same path the UI uses).
   r.post('/sessions/:id/input', express.json({ limit: '2mb' }), (req, res) => {
     const b = (req.body ?? {}) as { text?: unknown; submit?: unknown };
-    if (typeof b.text !== 'string' || !b.text) return res.status(400).json({ error: 'text obrigatorio' });
+    if (typeof b.text !== 'string' || !b.text) return res.status(400).json({ error: 'text required' });
     const denial = crossProjectDenial(req, req.params.id);
     if (denial) return res.status(403).json({ error: denial });
     const ok = b.submit === false
       ? sessionManager.input(req.params.id, b.text)
       : sessionManager.submitMessage(req.params.id, b.text);
-    if (!ok) return res.status(404).json({ error: 'sessão não encontrada' });
+    if (!ok) return res.status(404).json({ error: 'session not found' });
     res.json({ ok: true });
   });
 
@@ -155,12 +155,12 @@ export function sessionsRouter(): Router {
     if (denial) return res.status(403).json({ error: denial });
     const raw = req.query.raw === '1';
     const buffer = sessionManager.readBuffer(req.params.id, { strip: !raw });
-    if (buffer === undefined) return res.status(404).json({ error: 'sessão não encontrada' });
+    if (buffer === undefined) return res.status(404).json({ error: 'session not found' });
     const tail = Math.max(1, Math.min(Number(req.query.tail) || 4000, 200_000));
     res.json({ sessionId: req.params.id, text: buffer.slice(-tail), truncated: buffer.length > tail });
   });
 
-  // Interromper e fechar são mais destrutivos que ler — valem a mesma fronteira de projecto.
+  // Interrupting and closing are more destructive than reading — they earn the same project boundary.
   r.post('/sessions/:id/interrupt', (req, res) => {
     const denial = crossProjectDenial(req, req.params.id);
     if (denial) return res.status(403).json({ error: denial });

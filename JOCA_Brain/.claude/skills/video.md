@@ -1,7 +1,7 @@
 ---
 name: video
-description: "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
-triggers: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, fazer vídeo, criar vídeo
+description: "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
+triggers: video, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, make video, create video
 ---
 
 # Video
@@ -65,7 +65,7 @@ Silent video = unfinished. Viewers perceive silence as cheap even with excellent
 ```
 HTML animation (Playwright recording)
     ↓  render-video.js — 25fps base MP4
-    ↓  convert-formats.sh — 60fps MP4 + palette-optimised GIF
+    ↓  convert-formats.sh — 60fps MP4 + palette-optimized GIF
     ↓  add-music.sh — BGM layer (6 scene-matched tracks)
     ↓  SFX layer — cue-based sound effects (37 pre-built assets)
     →  Final: MP4 with dual audio track (BGM low freq + SFX high freq)
@@ -73,7 +73,7 @@ HTML animation (Playwright recording)
 
 **Scripts** (copy to project `scripts/`):
 - `render-video.js` — Playwright HTML recorder, 25fps, outputs base MP4 (intermediate only)
-- `convert-formats.sh` — derives 60fps MP4 + palette-optimised GIF from base
+- `convert-formats.sh` — derives 60fps MP4 + palette-optimized GIF from base
 - `add-music.sh` — BGM selection + ffmpeg mix
 
 ```bash
@@ -88,21 +88,21 @@ bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 
 **6 BGM tracks** (scene-matched):
 
-| Tema | Contexto |
+| Theme | Context |
 |------|---------|
 | `tech` | Product launch, SaaS |
-| `ad` | Campanha, promo |
-| `educational` | Tutorial, curso |
+| `ad` | Campaign, promo |
+| `educational` | Tutorial, course |
 | `tutorial` | How-to, demo |
-| `tech-alt` | Variante tech mais suave |
-| `ad-alt` | Variante ad mais energética |
+| `tech-alt` | Softer tech variant |
+| `ad-alt` | More energetic ad variant |
 
 **SFX cue list** — define timeline in `sfx-cues.md`:
 
 ```markdown
-0.0s — whoosh (entrada de elemento)
-0.8s — click (acção)
-1.5s — success-chime (resultado)
+0.0s — whoosh (element entrance)
+0.8s — click (action)
+1.5s — success-chime (result)
 ```
 
 **SFX density by type:**
@@ -126,7 +126,7 @@ bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 |---|---|
 | MP4 25fps | Web embed, email |
 | MP4 60fps | Social (TikTok, Reels, X) where smoothness matters |
-| GIF (palette-optimised) | Inline in docs, GitHub READMEs, messaging apps |
+| GIF (palette-optimized) | Inline in docs, GitHub READMEs, messaging apps |
 
 ---
 

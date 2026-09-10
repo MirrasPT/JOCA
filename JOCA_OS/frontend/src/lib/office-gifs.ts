@@ -1,47 +1,47 @@
-// GIFs do tema "The Office" — substituem os ícones da barra lateral, e SÓ com `data-brand="office"`.
+// GIFs of the "The Office" theme — they replace the sidebar icons, and ONLY with `data-brand="office"`.
 //
-// NÃO se edita código para os pôr. Largam-se ficheiros em `public/brand/office/` com estes nomes:
+// You do NOT edit code to put them in. You drop files in `public/brand/office/` with these names:
 //
 //     dashboard · agentes · definicoes · projectos
 //
-// A extensão pode ser `.webp`, `.gif` ou `.png`, por essa ordem de preferência. O Giphy serve
-// `.webp` animado, que é o formato mais leve dos três (e o que o "copiar link" de lá dá), por isso
-// vem primeiro — não vale a pena converter para GIF para o ficheiro ficar maior.
+// The extension can be `.webp`, `.gif` or `.png`, in that order of preference. Giphy serves
+// animated `.webp`, which is the lightest of the three (and what its "copy link" gives), so it
+// comes first — it is not worth converting to GIF to make the file bigger.
 //
-// Cada um que exista passa a ser o ícone; os que faltarem continuam com o glifo desenhado. Não é
-// preciso reiniciar nada — basta recarregar a página.
+// Each one that exists becomes the icon; the missing ones keep the drawn glyph. Nothing needs
+// restarting — just reload the page.
 //
-// ⚠ Porquê ficheiros locais e não links do Giphy cravados aqui: este repositório é PÚBLICO, e os
-// GIFs da série são obra de terceiros. Um link no código publicado faz com que TODA a gente que
-// clonar passe a distribuí-los; um ficheiro na pasta abaixo fica só nesta máquina — a pasta está no
-// `.gitignore`. Como efeito lateral, funciona offline, coisa que o hotlink não faz.
+// ⚠ Why local files and not Giphy links hardcoded here: this repository is PUBLIC, and the
+// GIFs from the show are third-party work. A link in the published code makes EVERYONE who
+// clones it distribute them; a file in the folder below stays on this machine only — the folder is in
+// `.gitignore`. As a side effect, it works offline, which the hotlink does not.
 const DIR = '/brand/office/';
-/** Ordem de tentativa. Primeiro o que o Giphy dá e é mais leve. */
+/** Order of attempts. First what Giphy gives and is lightest. */
 const EXT = ['webp', 'gif', 'png'];
 
-/** Nome do ícone na barra → nome do ficheiro. Só estes cinco é que aceitam GIF. */
+/** Icon name in the sidebar → filename. Only these five accept a GIF. */
 export const OFFICE_GIF_FILES: Record<string, string> = {
   'layout-dashboard': 'dashboard',
   terminal: 'agentes',
-  // Chave à parte da dos Agentes de propósito: partilhá-la punha o mesmo GIF nos dois sítios.
+  // A key separate from the Agents one deliberately: sharing it put the same GIF in both places.
   'terminal-quick': 'sessao',
   settings: 'definicoes',
   folder: 'projectos',
 };
 
 /**
- * Cache do resultado da sondagem, por nome de ícone. Sem isto havia um pedido por CADA instância do
- * ícone (a barra desenha o mesmo ícone em várias linhas) e o 404 dos que não existem repetia-se em
- * todos os renders.
- *   undefined = ainda não sondado · null = não existe · string = URL bom
+ * Cache of the probe result, by icon name. Without this there was one request per EACH instance of the
+ * icon (the sidebar draws the same icon on several rows) and the 404 of the ones that do not exist
+ * repeated on every render.
+ *   undefined = not probed yet · null = does not exist · string = good URL
  */
 const cache = new Map<string, string | null>();
 const emCurso = new Map<string, Promise<string | null>>();
 
 /**
- * Tenta `base.webp`, `base.gif`, `base.png` e devolve o primeiro que carregue.
- * `new Image()` em vez de fetch: não precisa de CORS e é o mesmo pedido que o `<img>` faria a
- * seguir, portanto o browser serve-o do cache e não há segunda ida à rede.
+ * Tries `base.webp`, `base.gif`, `base.png` and returns the first one that loads.
+ * `new Image()` instead of fetch: it does not need CORS and it is the same request the `<img>` would
+ * make next, so the browser serves it from cache and there is no second trip to the network.
  */
 function primeiraQueCarrega(base: string, i = 0): Promise<string | null> {
   if (i >= EXT.length) return Promise.resolve(null);
@@ -54,7 +54,7 @@ function primeiraQueCarrega(base: string, i = 0): Promise<string | null> {
   }).then((r) => r ?? primeiraQueCarrega(base, i + 1));
 }
 
-/** Sonda o ficheiro uma vez e devolve o URL se ele existir. */
+/** Probes the file once and returns the URL if it exists. */
 export function probeOfficeGif(name: string): Promise<string | null> {
   const ficheiro = OFFICE_GIF_FILES[name];
   if (!ficheiro) return Promise.resolve(null);
@@ -71,18 +71,18 @@ export function probeOfficeGif(name: string): Promise<string | null> {
   return p;
 }
 
-// ── Pool: um GIF por projecto / por sessão ─────────────────────────────────────────────────────
+// ── Pool: one GIF per project / per session ────────────────────────────────────────────────────
 //
-// Ficheiros em `public/brand/office/pool/` numerados a partir de `01`: `01.webp`, `02.webp`, …
-// (também aceita `.gif` e `.png`). A sondagem pára no primeiro número que falte, portanto o
-// tamanho da pool é o que estiver na pasta — acrescentar ou tirar ficheiros não exige tocar aqui.
+// Files in `public/brand/office/pool/` numbered from `01`: `01.webp`, `02.webp`, …
+// (it also accepts `.gif` and `.png`). The probing stops at the first missing number, so the
+// size of the pool is whatever is in the folder — adding or removing files requires no change here.
 const POOL_DIR = '/brand/office/pool/';
-/** Tecto da sondagem. Só existe para o ciclo não ser infinito se a pasta tiver algo estranho. */
+/** Ceiling of the probing. It only exists so the loop is not infinite if the folder has something odd. */
 const POOL_MAX = 60;
 
 let poolPromise: Promise<string[]> | null = null;
 
-/** URLs da pool, por ordem. Sondada UMA vez por carregamento da página. */
+/** Pool URLs, in order. Probed ONCE per page load. */
 export function loadOfficePool(): Promise<string[]> {
   if (poolPromise) return poolPromise;
   poolPromise = (async () => {
@@ -98,12 +98,12 @@ export function loadOfficePool(): Promise<string[]> {
 }
 
 /**
- * Escolha ESTÁVEL: o mesmo id dá sempre o mesmo GIF.
+ * A STABLE choice: the same id always gives the same GIF.
  *
- * "Aleatório" aqui não pode ser `Math.random()` — com um valor novo a cada render o ícone mudava a
- * cada repintura da barra e nunca se aprendia a reconhecer um projecto pela imagem. O que se quer é
- * imprevisível ENTRE projectos e fixo PARA um projecto: um hash do id dá exactamente isso, e
- * sobrevive a recarregar a página sem guardar estado nenhum.
+ * "Random" here cannot be `Math.random()` — with a new value on every render the icon changed on
+ * every repaint of the sidebar and you never learned to recognize a project by its image. What you want is
+ * unpredictable BETWEEN projects and fixed FOR a project: a hash of the id gives exactly that, and
+ * it survives a page reload without storing any state.
  */
 export function poolIndex(id: string, total: number): number {
   if (total <= 0) return 0;
@@ -113,12 +113,12 @@ export function poolIndex(id: string, total: number): number {
 }
 
 /**
- * URL do fotograma PARADO que acompanha um animado (`x.webp` → `x-still.webp`).
+ * URL of the STILL frame that goes with an animated one (`x.webp` → `x-still.webp`).
  *
- * Gerado por script a partir do primeiro fotograma. É o que se mostra em repouso: um GIF não se
- * pausa por CSS nem por atributo, portanto "estático até ao hover" só se faz com duas imagens.
- * Efeito lateral que vale por si: a barra passa a carregar ~20 KB por ícone em vez de 0,5-2 MB, e o
- * ficheiro animado só é pedido à rede quando o rato lá passa.
+ * Generated by a script from the first frame. It is what is shown at rest: a GIF cannot be
+ * paused by CSS nor by attribute, so "static until hover" is only done with two images.
+ * A side effect worth having on its own: the sidebar now loads ~20 KB per icon instead of 0.5-2 MB, and
+ * the animated file is only requested from the network when the mouse passes over it.
  */
 export function stillFor(url: string): string {
   return url.replace(/\.(webp|gif|png)$/i, '-still.webp');

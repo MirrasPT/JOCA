@@ -17,16 +17,16 @@
   --border-strong:  color-mix(in srgb, var(--on-surface) 16%, transparent);
 
   --accent:         #ff4500;
-  /* Accent quando é TEXTO sobre um fundo accent-soft. O #ff4500 tem luminância alta demais para
-     ler em claro (≈2.8:1 sobre creme); no escuro é o próprio accent (≈4.7:1). Ver o override no
-     bloco do tema claro — mesma razão por que --red/--badge-* já lá são re-afinados. */
+  /* Accent when it is TEXT over an accent-soft background. #ff4500 has far too much luminance to
+     read in light mode (≈2.8:1 over cream); in dark mode it is the accent itself (≈4.7:1). See the
+     override in the light theme block — same reason --red/--badge-* are already re-tuned there. */
   --accent-text:    #ff4500;
-  /* Texto/ícone POR CIMA de um fundo --accent (≠ --accent-text, que é accent COMO texto). Existe
-     porque `color:#fff` cravado é ilegível assim que o accent da marca é claro: no Office escuro
-     (#f2f2f2) dava 1,12:1 — branco sobre branco — e no Alfredo (#ffd230) 1,45:1. Tinta escura por
-     omissão: passa AA nos accents laranja/amarelo/azul-claro (5,5 · 13,1 · 6,9). As marcas cujo
-     accent é escuro o bastante invertem-no para #fff no próprio bloco (kitt/r2d2 claros, hal, office
-     claro). Qualquer marca nova tem de medir o par antes de escolher. */
+  /* Text/icon ON TOP of an --accent background (≠ --accent-text, which is accent AS text). It exists
+     because a hardcoded `color:#fff` is illegible as soon as the brand accent is light: in Office dark
+     (#f2f2f2) it gave 1.12:1 — white on white — and in Alfredo (#ffd230) 1.45:1. Dark ink by
+     default: passes AA on the orange/yellow/light-blue accents (5.5 · 13.1 · 6.9). The brands whose
+     accent is dark enough invert it to #fff in their own block (kitt/r2d2 light, hal, office
+     light). Any new brand has to measure the pair before choosing. */
   --on-accent:      #12100e;
   --accent-amber:   #fbbf24;
   --accent-soft:    rgba(255,69,0,0.08);
@@ -91,8 +91,8 @@
   /* Generic "add substance to a surface" tint — white in dark mode, black in
      light mode. Component CSS uses color-mix(in srgb, var(--on-surface) N%, transparent)
      instead of rgba(255,255,255,N) so highlight/bevel overlays invert correctly per theme. */
-  /* Ícones por tipo de ficheiro (navegador). Pastéis afinados para fundo preto — as variantes
-     escurecidas para o claro estão no bloco do tema claro, mesma razão que os --badge-*. */
+  /* Icons by file type (browser). Pastels tuned for a black background — the darkened variants
+     for light mode live in the light theme block, same reason as the --badge-*. */
   --fb-code:   #60c8b8;
   --fb-img:    #c080d0;
   --fb-doc:    #a090d0;
@@ -129,7 +129,7 @@
   --accent-soft:    rgba(255,69,0,0.08);
   --accent-glow:    rgba(255,69,0,0.22);
   --accent-border:  rgba(255,69,0,0.3);
-  --accent-text:    #9a3412;  /* laranja escurecido: 5.9:1 sobre accent-soft no claro (AA) */
+  --accent-text:    #9a3412;  /* darkened orange: 5.9:1 over accent-soft in light mode (AA) */
 
   /* Status/badge hues re-tuned for a light background — the dark-mode values
      above read fine on #080808 but drop under ~2:1 contrast on white. */
@@ -146,8 +146,8 @@
   --text-normal:  #3c382f;
   --text-dim:     #625d54;
   --text-muted:   #625d54;
-  /* Era #7a756b: 4.02:1 sobre o painel claro (#f1f0ec) — abaixo dos 4.5:1 do AA, e é a cor de
-     dezenas de rótulos de 10-11px. #6b6659 dá 5.02:1 e mantém o tom "esbatido". */
+  /* It was #7a756b: 4.02:1 over the light panel (#f1f0ec) — below AA's 4.5:1, and it is the color of
+     dozens of 10-11px labels. #6b6659 gives 5.02:1 and keeps the "muted" tone. */
   --text-ghost:   #6b6659;
 
   --text-primary:   #17140f;
@@ -162,7 +162,7 @@
   --border-bento-strong: rgba(0,0,0,0.15);
   --shadow-bento:  0 20px 48px rgba(0,0,0,0.09), inset 0 1px color-mix(in srgb, var(--on-surface) 4%, transparent);
 
-  /* Ícones do navegador de ficheiros: os pastéis de cima caem para ~2:1 sobre branco. */
+  /* File browser icons: the pastels above drop to ~2:1 on white. */
   --fb-code:   #0f766e;
   --fb-img:    #9333ea;
   --fb-doc:    #7c3aed;
@@ -506,7 +506,7 @@ html, body, #root {
 .fb-list::-webkit-scrollbar-thumb {
   background:color-mix(in srgb, var(--on-surface) 14%, transparent);
   border-radius:99px;
-  /* Borda do lado do fundo em vez de largura menor: o polegar fica fino a ver mas largo a agarrar. */
+  /* Border on the background side instead of a narrower width: the thumb looks thin but grabs wide. */
   border:3px solid transparent;
   background-clip:content-box;
 }
@@ -538,8 +538,8 @@ html, body, #root {
   line-height:1;
 }
 .fb-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px; line-height:1.35; }
-/* `on-surface` a 15% é branco-sobre-preto no escuro (legível) mas PRETO a 15% sobre branco no
-   claro (~#dedede) — texto invisível. Cor de texto pede token de texto, não véu de superfície. */
+/* `on-surface` at 15% is white-on-black in dark mode (legible) but BLACK at 15% on white in
+   light mode (~#dedede) — invisible text. A text color needs a text token, not a surface veil. */
 .fb-meta { margin-left:auto; font-size:9.5px; font-family:var(--font-mono); color:var(--text-ghost); opacity:0.75; flex-shrink:0; white-space:nowrap; }
 
 /* Directories */
@@ -553,7 +553,7 @@ html, body, #root {
 .fb-up .fb-name { color:var(--text-ghost); font-family:var(--font-mono); font-size:10.5px; }
 .fb-up:hover .fb-name { color:var(--text-dim); }
 
-/* File types — icon colours */
+/* File types — icon colors */
 .fb-file-code   .fb-icon { color:var(--fb-code); }
 .fb-file-img    .fb-icon { color:var(--fb-img); }
 .fb-file-doc    .fb-icon { color:var(--fb-doc); }
@@ -568,7 +568,7 @@ html, body, #root {
 .fb-file-shell  .fb-icon { color:var(--fb-shell); }
 .fb-file-default .fb-icon { color:var(--text-dim); }
 
-/* File name colours */
+/* File name colors */
 .fb-file-code .fb-name, .fb-file-img .fb-name, .fb-file-doc .fb-name,
 .fb-file-style .fb-name, .fb-file-markup .fb-name, .fb-file-media .fb-name,
 .fb-file-pdf .fb-name, .fb-file-shell .fb-name { color:var(--text-normal); }
@@ -1286,12 +1286,12 @@ html, body, #root {
 .project-group-actions { display:flex; gap:6px; flex-shrink:0; opacity:0; max-width:0; overflow:hidden; transition:opacity var(--t-fast), max-width var(--t-fast); }
 .project-group-header:hover .project-group-actions,
 .project-group-header:focus-within .project-group-actions { opacity:1; max-width:140px; }
-/* 140px, não 100: com o botão Remover são 4 acções num projecto agrupado (4×28 + 3×6 = 130px);
-   a 100px o flex esmagava os alvos de 28px para 21px (medido em iPhone 13, hover:none). */
+/* 140px, not 100: with the Remove button there are 4 actions on a grouped project (4×28 + 3×6 = 130px);
+   at 100px flex crushed the 28px targets down to 21px (measured on iPhone 13, hover:none). */
 @media (hover:none) { .project-group-actions { opacity:1; max-width:140px; } }
 
 .project-group-action {
-  flex-shrink:0; /* o alvo de toque não encolhe — se não couber, transborda, não esmaga */
+  flex-shrink:0; /* the touch target does not shrink — if it does not fit, it overflows, it does not crush */
   background:none;
   border:none;
   color:var(--text-ghost);
@@ -1301,8 +1301,8 @@ html, body, #root {
   border-radius:var(--r-sm);
   transition:all var(--t-fast);
   line-height:1.3;
-  /* 28px visual (não 44px — 3 acções coladas, o alvo-cheio exigiria overflow-menu, fora de
-     escopo agora); ainda uma melhoria real sobre os 22px/3px anteriores. */
+  /* 28px visual (not 44px — 3 actions side by side, the full target would require an overflow-menu, out
+     of scope for now); still a real improvement over the previous 22px/3px. */
   width:28px;
   height:28px;
   display:inline-flex;
@@ -1853,9 +1853,9 @@ html, body, #root {
   border-radius:50%;
 }
 
-/* Logo em imagem (temas de marca que trazem ficheiro). Dimensionado pela ALTURA com largura auto:
-   as marcas têm rácios muito diferentes (o morcego é 2:1, o KITT é 1.8:1) e uma caixa quadrada
-   encolhia as largas a um selo ilegível. `width:auto` mantém o rácio do ficheiro — nunca esticar. */
+/* Image logo (brand themes that ship a file). Sized by HEIGHT with auto width:
+   the brands have very different ratios (the bat is 2:1, KITT is 1.8:1) and a square box
+   shrank the wide ones to an illegible stamp. `width:auto` keeps the file's ratio — never stretch. */
 .sb-logo-img {
   height:24px;
   width:auto;
@@ -2773,10 +2773,10 @@ background:var(--surface-main);
   display:inline-block;
 }
 
-/* Navegação compacta: são 6 entradas fixas no topo da barra, e cada pixel que gastam aqui é um
-   projecto que deixa de caber na lista por baixo. 44px x6 + gaps comiam ~330px; assim ficam ~200px.
-   Em ecrã táctil voltam aos 44px (regra no fim do ficheiro) — aí a barra é uma tira temporária,
-   não o painel permanente que rouba altura à lista. */
+/* Compact navigation: 6 fixed entries at the top of the sidebar, and every pixel they spend here is a
+   project that no longer fits in the list below. 44px x6 + gaps ate ~330px; this way they take ~200px.
+   On a touch screen they go back to 44px (rule at the end of the file) — there the sidebar is a
+   temporary strip, not the permanent panel that steals height from the list. */
 .nav-menu {
   gap:2px;
 }
@@ -4069,9 +4069,9 @@ background:var(--surface-panel);
   line-height:1.45;
 }
 
-/* ── Tema: claro · escuro · dinâmico ─────────────────────────────────────────
-   Três estados exclusivos = segmented control, não uma checkbox (era o que havia quando só
-   existiam dois). Os horários só aparecem no dinâmico — noutro modo não fazem nada. */
+/* ── Theme: light · dark · dynamic ───────────────────────────────────────────
+   Three exclusive states = segmented control, not a checkbox (which is what there was when only
+   two existed). The schedules only show up in dynamic — in any other mode they do nothing. */
 .theme-mode-row {
   display:grid;
   grid-template-columns:repeat(3, 1fr);
@@ -4084,7 +4084,7 @@ background:var(--surface-panel);
 }
 
 .theme-mode-btn {
-  min-height:44px;  /* alvo de toque */
+  min-height:44px;  /* touch target */
   padding:7px 4px;
   border:none;
   border-radius:8px;
@@ -4295,13 +4295,13 @@ background:var(--bg-input);
   font:inherit;
 }
 
-/* Os crumbs não encolhem. Sendo flex items com `white-space:nowrap`, encolher a caixa não encolhe
-   o texto — as etiquetas montavam-se umas nas outras ("homeprojectos my-project"). Quando não
-   cabem, a barra desliza na horizontal e mostra o fim, que é a pasta onde se está. */
-/* `> *` e não `.fb-crumb`: cada segmento vem dentro de um wrapper sem classe, e era esse que
-   encolhia (min-width:0 + overflow visível) enquanto o texto mantinha o tamanho original — daí as
-   etiquetas montarem-se umas nas outras ("homeprojectos my-project"). Agora o que não couber
-   corta-se: os segmentos do meio cedem espaço, o "~" (home) e a pasta actual nunca encolhem. */
+/* The crumbs do not shrink. Being flex items with `white-space:nowrap`, shrinking the box does not
+   shrink the text — the labels piled on top of each other ("homeprojectos my-project"). When they
+   do not fit, the bar slides horizontally and shows the end, which is the folder you are in. */
+/* `> *` and not `.fb-crumb`: each segment comes inside a class-less wrapper, and that was the one
+   shrinking (min-width:0 + visible overflow) while the text kept its original size — hence the
+   labels piling on top of each other ("homeprojectos my-project"). Now whatever does not fit
+   gets clipped: the middle segments give up space, the "~" (home) and the current folder never shrink. */
 .fb-breadcrumb { overflow-x:auto; scrollbar-width:none; }
 .fb-breadcrumb::-webkit-scrollbar { display:none; }
 .fb-breadcrumb > * { flex:0 1 auto; min-width:0; overflow:hidden; }
@@ -5227,9 +5227,9 @@ background:var(--bg-input);
   border-radius:999px;
 }
 
-/* ─── Palete de comandos: procura + lista agrupada ───────────────── */
-/* O modal deixa de ser o elemento que faz scroll: só a grelha rola, para que a
-   caixa de procura, o contador e o botão de fechar fiquem sempre no sítio. */
+/* ─── Command palette: search + grouped list ─────────────────────── */
+/* The modal stops being the element that scrolls: only the grid scrolls, so that the
+   search box, the counter and the close button always stay in place. */
 .command-palette-modal {
   position:relative;
   display:flex;
@@ -5326,7 +5326,7 @@ background:var(--bg-input);
   padding:0;
 }
 
-/* A grelha é a única zona que rola; o resto do modal fica fixo. */
+/* The grid is the only area that scrolls; the rest of the modal stays fixed. */
 .command-palette-grid {
   flex:1 1 auto;
   min-height:0;
@@ -5374,7 +5374,7 @@ background:var(--bg-input);
   white-space:nowrap;
 }
 
-/* Excerto da descricao: so aparece quando a procura bateu na descricao e nao no nome. */
+/* Description excerpt: only shows when the search matched the description and not the name. */
 .command-palette-item-why {
   display:-webkit-box;
   -webkit-box-orient:vertical;
@@ -5525,8 +5525,8 @@ background: var(--surface-panel);
 }
 
 [data-tooltip]:not(.nav-item):hover::after,
-/* Também no foco de teclado: um botão só-ícone cujo nome vive num tooltip de :hover é anónimo
-   para quem navega por Tab. */
+/* On keyboard focus too: an icon-only button whose name lives in a :hover tooltip is anonymous
+   to anyone navigating by Tab. */
 [data-tooltip]:not(.nav-item):focus-visible::after {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
@@ -5579,18 +5579,18 @@ background: var(--surface-panel);
     max-height:38dvh;
   }
 
-  /* Pesquisar ou ordenar acrescenta uma linha de controlo ao cabeçalho, e nos 38dvh da tira isso
-     empurrava a lista toda para fora do fold — 28px de lista visíveis com o menu de ordenar
-     fechado (menos de uma linha de 48px) e 0px com ele aberto, medido a 390×844. A tira cresce
-     só enquanto o gesto dura: assim que a pesquisa é limpa e o menu fecha, volta aos 38dvh. */
+  /* Searching or sorting adds a control row to the header, and within the strip's 38dvh that
+     pushed the whole list out of the fold — 28px of list visible with the sort menu
+     closed (less than one 48px row) and 0px with it open, measured at 390×844. The strip grows
+     only while the gesture lasts: as soon as the search is cleared and the menu closes, it is back to 38dvh. */
   .session-sidebar--filtering,
   .session-sidebar--filtering .sidebar-main-bento {
     max-height:62dvh;
   }
 
-  /* Nos ecrãs baixos (~600px de altura) 62dvh ainda não chega para uma linha inteira — aí a tira
-     vale mais do que os controlos de cima, que já cumpriram o seu papel quando o filtro está
-     escrito. Não se esconde o cabeçalho: só se aperta o que é folga. */
+  /* On short screens (~600px tall) 62dvh is still not enough for a whole row — there the strip
+     is worth more than the controls above it, which have already done their job once the filter is
+     typed. The header is not hidden: only the slack is squeezed. */
   .session-sidebar--filtering .sidebar-search-row { margin-bottom:4px; }
   .session-sidebar--filtering .sidebar-sort-row { padding-top:2px; padding-bottom:4px; }
 
@@ -5758,15 +5758,15 @@ background: var(--surface-panel);
 .login-submit:hover:not(:disabled) { opacity:0.88; }
 .login-submit:disabled { opacity:0.45; cursor:not-allowed; }
 
-/* ─── Notifications inbox (4º separador do rail direito) ───
-   O sino flutuante e o seu popover (.inbox-wrap/.inbox-bell/.inbox-panel*) foram removidos: as
-   notificações passaram a abrir na mesma coluna dos outros painéis. O contentor e as correcções
-   que a mudança obriga vivem em `components/notifications-inbox.css`; aqui ficam só as regras de
-   item, que se mantiveram intactas. */
+/* ─── Notifications inbox (4th tab of the right rail) ──────
+   The floating bell and its popover (.inbox-wrap/.inbox-bell/.inbox-panel*) were removed: the
+   notifications now open in the same column as the other panels. The container and the fixes
+   the change forces live in `components/notifications-inbox.css`; only the item rules stay here,
+   and they were left intact. */
 
-/* O `.inbox-badge` redondo do contador do sino desapareceu com ele. Os badges que restam são os
-   rótulos em linha do título ("precisa de ti", "×N"), definidos no bloco v5 mais abaixo — em
-   forma de pastilha com padding, não de círculo de altura fixa. */
+/* The round `.inbox-badge` of the bell counter went away with it. The badges that remain are the
+   inline labels in the title ("needs you", "×N"), defined in the v5 block further down — shaped
+   as a padded pill, not as a fixed-height circle. */
 
 .inbox-mark-all {
   background:none;
@@ -5927,12 +5927,12 @@ background: var(--surface-panel);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   ORDENAÇÃO (projectos + ficheiros) & CLI POR DEFEITO
-   Controlos compactos acrescentados a SessionSidebar, FileBrowser e
-   SettingsPanel. Mantêm a linguagem visual das barras existentes.
+   SORTING (projects + files) & DEFAULT CLI
+   Compact controls added to SessionSidebar, FileBrowser and
+   SettingsPanel. They keep the visual language of the existing bars.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Sidebar: ordenar projectos ──────────────────────────────────── */
+/* ── Sidebar: sort projects ──────────────────────────────────────── */
 
 .sidebar-sort-row {
   display:flex;
@@ -5998,10 +5998,10 @@ background: var(--surface-panel);
   background:var(--accent-soft);
 }
 
-/* Colapsada não tem largura para o controlo — a preferência mantém-se guardada. */
+/* Collapsed there is no width for the control — the preference stays saved. */
 .session-sidebar--collapsed .sidebar-sort-row { display:none; }
 
-/* ── Sidebar: pesquisar projectos ────────────────────────────────── */
+/* ── Sidebar: search projects ────────────────────────────────────── */
 
 .sidebar-search-row {
   display:flex;
@@ -6045,8 +6045,8 @@ background: var(--surface-panel);
 
 .sidebar-search-input::placeholder { color:var(--text-ghost); }
 
-/* O "x" nativo do type=search duplica o nosso botão de limpar, e em cada motor tem um look
-   diferente — fica só o nosso, que é o que está tematizado. */
+/* The native "x" of type=search duplicates our own clear button, and in each engine it has a
+   different look — only ours stays, which is the one that is themed. */
 .sidebar-search-input::-webkit-search-cancel-button { display:none; }
 
 .sidebar-search-clear {
@@ -6099,18 +6099,18 @@ background: var(--surface-panel);
   background:var(--accent-soft);
 }
 
-/* Colapsada não há sítio para a caixa — o filtro fica limpo ao reabrir, que é o esperado. */
+/* Collapsed there is no room for the box — the filter is cleared on reopen, which is expected. */
 .session-sidebar--collapsed .sidebar-search-row,
 .session-sidebar--collapsed .sidebar-search-empty { display:none; }
 
-/* Gatilho da caixa de pesquisa: existe SÓ na tira mobile (ganha display no breakpoint ≤860px).
-   Aqui em cima a caixa está sempre aberta e o botão não teria função nenhuma. */
+/* Search box trigger: it exists ONLY in the mobile strip (it gains display at the ≤860px breakpoint).
+   Up here the box is always open and the button would have no function at all. */
 .sidebar-search-toggle { display:none; }
 
-/* ── File browser: ordenar ficheiros ─────────────────────────────── */
+/* ── File browser: sort files ────────────────────────────────────── */
 
-/* A linha de pesquisa passa a ter 3 colunas (pesquisa · ordenação · favorito).
-   No modo embedded o botão de favorito não existe e a coluna extra fica vazia. */
+/* The search row now has 3 columns (search · sorting · favorite).
+   In embedded mode the favorite button does not exist and the extra column is left empty. */
 .fb-search-row {
   grid-template-columns:minmax(0, 1fr) auto auto;
 }
@@ -6138,7 +6138,7 @@ background: var(--surface-panel);
 
 .fb-sort-select option:disabled { opacity:0.45; }
 
-/* ── Settings: CLI por defeito + feedback de gravação ────────────── */
+/* ── Settings: default CLI + save feedback ───────────────────────── */
 
 .settings-default-cli {
   margin:12px 0 4px;
@@ -6207,22 +6207,22 @@ background: var(--surface-panel);
 .settings-save-flag--saved  { color:var(--badge-teal); border-color:color-mix(in srgb, var(--badge-teal) 35%, transparent); background:color-mix(in srgb, var(--badge-teal) 10%, transparent); }
 .settings-save-flag--error  { color:#ff6b5e; border-color:rgba(255,107,94,0.35); background:rgba(255,107,94,0.10); }
 
-/* Sem space-between o rótulo fica junto ao pill e o flag encosta à direita,
-   evitando que o título salte quando o estado de gravação aparece. */
+/* Without space-between the label sits next to the pill and the flag hugs the right,
+   keeping the title from jumping when the save state appears. */
 
-/* Estado vazio reaproveitado pelo workspace e pela vista de Agentes. */
+/* Empty state reused by the workspace and by the Agents view. */
 .tk-drawer-empty { margin:0; color:var(--text-dim); font-size:13px; font-style:italic; }
 
-/* ── v4: chat do gestor de projecto ───────────────────────────────────────────
-   A vista de projecto passou a ter uma hierarquia clara: falar com o gestor primeiro, terminais
-   (as máquinas dele) e detalhes técnicos fechados por defeito. */
+/* ── v4: project manager chat ─────────────────────────────────────────────────
+   The project view now has a clear hierarchy: talk to the manager first, terminals
+   (his machines) and technical details closed by default. */
 
-/* ── Cabeçalho do workspace ───────────────────────────────────────────────── */
-/* O .vp-header é space-between com 3 filhos — sem grow no bloco do título, o espaço livre caía
-   ENTRE as estatísticas e o botão de settings e os contadores ficavam a meio da barra. O título
-   come o espaço livre; stats e settings encostam à direita como um só grupo. */
+/* ── Workspace header ─────────────────────────────────────────────────────── */
+/* .vp-header is space-between with 3 children — without grow on the title block, the free space fell
+   BETWEEN the stats and the settings button and the counters ended up mid-bar. The title
+   eats the free space; stats and settings hug the right as a single group. */
 .project-workspace .pw-head-main { min-width:0; flex:1 1 auto; }
-/* O .vp-header genérico usa 46px — folga de dashboard, a mais quando logo a seguir vêm as tabs. */
+/* The generic .vp-header uses 46px — dashboard slack, too much when the tabs come right after. */
 .project-workspace .vp-header { gap:16px; margin-bottom:18px; }
 .project-workspace .pw-head-stats { margin-left:auto; }
 .pw-name-input {
@@ -6243,7 +6243,7 @@ background: var(--surface-panel);
   white-space:pre-wrap; overflow-wrap:anywhere;
 }
 
-/* ── O chat: o bloco com o espaço nobre da página ─────────────────────────── */
+/* ── The chat: the block with the page's prime space ──────────────────────── */
 .mgr-chat {
   display:flex; flex-direction:column; gap:14px;
   margin-bottom:22px;
@@ -6253,11 +6253,11 @@ background: var(--surface-panel);
   border-radius:var(--radius-bento);
   box-shadow:var(--shadow-bento, 0 8px 32px rgba(0,0,0,0.3));
 }
-/* O parágrafo descritivo do cabeçalho saiu com o redesenho do chat em bolhas — o texto que
-   explicava o gestor passou para o estado vazio da conversa, que é onde ele é mesmo lido. */
+/* The header's descriptive paragraph went away with the bubble chat redesign — the text that
+   explained the manager moved to the conversation's empty state, which is where it actually gets read. */
 .mgr-chat-head-side { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 
-/* Altura generosa mas limitada: a conversa scrolla dentro dela, a página continua a scrollar. */
+/* Generous but bounded height: the conversation scrolls inside it, the page keeps scrolling. */
 .mgr-chat-thread {
   display:flex; flex-direction:column; gap:12px;
   min-height:220px; max-height:min(56vh, 620px);
@@ -6268,7 +6268,7 @@ background: var(--surface-panel);
 
 .mgr-note-cost { font-family:var(--font-mono); font-size:10.5px; color:var(--text-ghost); }
 
-/* Traço do que ele fez neste turno — informação de rodapé, nunca protagonista. */
+/* Trace of what it did this turn — footer information, never the protagonist. */
 .mgr-note-actions {
   display:flex; flex-wrap:wrap; gap:10px;
   margin-top:8px; padding-top:7px;
@@ -6276,16 +6276,16 @@ background: var(--surface-panel);
   font-size:11.5px; color:var(--text-dim);
 }
 
-/* Markdown dentro de uma bolha: compacto, sem os espaçamentos de página do .pv-markdown. */
+/* Markdown inside a bubble: compact, without the page spacings of .pv-markdown. */
 .mgr-md > :first-child { margin-top:0; }
 @keyframes mgr-blink { 0%,80%,100% { opacity:.25; } 40% { opacity:1; } }
 @media (prefers-reduced-motion: reduce) {
 }
 
-/* ── Lista de workers/terminais ───────────────────────────────────────────── */
+/* ── Workers/terminals list ───────────────────────────────────────────────── */
 .pw-workers { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-/* A linha é um contentor flex: a área clicável (`.pw-worker-hit`) e os botões de acção são IRMÃOS
-   — controlo interactivo dentro de controlo interactivo é inválido (axe: serious). */
+/* The row is a flex container: the clickable area (`.pw-worker-hit`) and the action buttons are SIBLINGS
+   — an interactive control inside an interactive control is invalid (axe: serious). */
 .pw-worker {
   width:100%;
   display:flex; align-items:center; gap:8px;
@@ -6338,7 +6338,7 @@ background: var(--surface-panel);
   background:rgba(0,0,0,0.16);
 }
 .project-hascode-option.active { border-color:rgba(255,69,0,0.46); background:var(--accent-soft); }
-/* Anula o `.project-field input` (que é para caixas de texto de 42px) sem lhe mexer. */
+/* Cancels `.project-field input` (which is for 42px text boxes) without touching it. */
 .project-hascode-option input {
   width:15px; height:15px; margin-top:2px; padding:0; flex:0 0 auto;
   appearance:auto; border:none; background:none; border-radius:0;
@@ -6354,8 +6354,8 @@ background: var(--surface-panel);
 @media (max-width: 820px) {
 }
 
-/* ── v5: notificações com prioridade e agrupamento ── */
-/* Uma notificação que espera decisão tua não pode ler-se igual a uma que só informa. */
+/* ── v5: notifications with priority and grouping ── */
+/* A notification waiting on a decision of yours cannot read the same as one that only informs. */
 .inbox-item--action {
   border-left: 3px solid var(--warn, #f59e0b);
   background: color-mix(in srgb, var(--warn, #f59e0b) 7%, transparent);
@@ -6375,19 +6375,19 @@ background: var(--surface-panel);
   background: var(--warn, #f59e0b);
   color: #1a1205;
 }
-/* ×N = o mesmo evento repetiu-se; discreto, é contexto e não alarme. */
+/* ×N = the same event repeated; discreet, it is context and not an alarm. */
 .inbox-badge--count {
   background: color-mix(in srgb, currentColor 14%, transparent);
   color: inherit;
   opacity: 0.75;
 }
 
-/* ─── Sidebar colapsada: rail de projectos (ícone-só) ────────────────────────
-   A regra genérica esconde .session-sidebar-list por completo quando colapsado — certo para uma
-   lista de sessões, errado para um rail de projectos (ficavam inalcançáveis). Reabre-a aqui e
-   comprime cada .project-group a um quadrado com só a cor — nome/badge/acções escondidos, clique
-   continua a abrir o workspace. Fica no fim do ficheiro de propósito: a mesma especificidade da
-   regra que esconde, mas depois dela na cascata. */
+/* ─── Collapsed sidebar: project rail (icon-only) ────────────────────────────
+   The generic rule hides .session-sidebar-list entirely when collapsed — right for a
+   session list, wrong for a project rail (they became unreachable). Reopen it here and
+   compress each .project-group down to a square with only the color — name/badge/actions hidden, a
+   click still opens the workspace. It sits at the end of the file deliberately: the same specificity
+   as the rule that hides it, but after it in the cascade. */
 .session-sidebar--collapsed .session-sidebar-list {
   display: flex;
   flex-direction: column;
@@ -6397,7 +6397,7 @@ background: var(--surface-panel);
   overflow-x: hidden;
 }
 
-/* ── Agentes rápidos (sessões sem projecto), à cabeça da barra ─────────────────────────────── */
+/* ── Quick agents (sessions with no project), at the head of the sidebar ───────────────────── */
 .sidebar-loose {
   display: flex;
   flex-direction: column;
@@ -6446,9 +6446,9 @@ background: var(--surface-panel);
 }
 .sidebar-loose-dot[data-on='true'] { background: var(--accent); opacity: 1; }
 
-/* Em edição a linha deixa de ser botão e passa a caixa — mesma altura, para a lista não saltar. */
+/* While editing the row stops being a button and becomes a box — same height, so the list does not jump. */
 .sidebar-loose-item.is-editing { cursor: default; }
-/* O X só aparece ao passar/focar — em repouso a linha é nome + ponto de estado. */
+/* The X only shows on hover/focus — at rest the row is name + status dot. */
 .sidebar-loose-close {
   display: none;
   align-items: center;
@@ -6467,7 +6467,7 @@ background: var(--surface-panel);
 .sidebar-loose-item:hover .sidebar-loose-close,
 .sidebar-loose-item:focus-within .sidebar-loose-close { display: inline-flex; }
 .sidebar-loose-close:hover { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
-/* Com o X visível o ponto sai — os dois juntos empurravam o nome. */
+/* With the X visible the dot goes away — the two together pushed the name. */
 .sidebar-loose-item:hover .sidebar-loose-dot,
 .sidebar-loose-item:focus-within .sidebar-loose-dot { display: none; }
 .sidebar-loose-input {
@@ -6484,7 +6484,7 @@ background: var(--surface-panel);
 }
 .sidebar-loose-input:focus { border-color: var(--accent-border); }
 
-/* Fechada, a linha vira um quadrado como as dos projectos — só o ícone e o ponto de estado. */
+/* Closed, the row turns into a square like the project ones — only the icon and the status dot. */
 .session-sidebar--collapsed .sidebar-loose { align-items: center; gap: 4px; }
 .session-sidebar--collapsed .sidebar-loose-title,
 .session-sidebar--collapsed .sidebar-loose-name { display: none; }
@@ -6523,26 +6523,26 @@ background: var(--surface-panel);
 .session-sidebar--collapsed .project-group-icon { color: var(--project-color, var(--accent)); }
 .session-sidebar--collapsed .project-group-color { display: none; }
 
-/* A tira mobile (≤860px, session-sidebar a max-height:38dvh) colapsava .session-sidebar-list a
-   0px de altura sempre, mesmo com 1 projecto só e espaço de sobra visível na tira — o flex-shrink:1
-   default (herdado do flex:1 shorthand) estava a encolher o item a zero em vez de lhe dar o espaço
-   livre via grow (confirmado em depuração ao vivo: flex-shrink:0 sozinho já resolve, min-height:0
-   sozinho não). flex-shrink:0 dá-lhe sempre o tamanho natural do conteúdo — cresce com mais
-   projectos e o próprio overflow-y:auto do elemento assume o scroll interno. */
+/* The mobile strip (≤860px, session-sidebar at max-height:38dvh) collapsed .session-sidebar-list to
+   0px of height every time, even with a single project and spare space visible in the strip — the default
+   flex-shrink:1 (inherited from the flex:1 shorthand) was shrinking the item to zero instead of giving it
+   the free space via grow (confirmed in live debugging: flex-shrink:0 alone already fixes it, min-height:0
+   alone does not). flex-shrink:0 always gives it the natural size of the content — it grows with more
+   projects and the element's own overflow-y:auto takes over the internal scroll. */
 @media (max-width: 860px) {
-  /* `flex-shrink:0` era a defesa contra o colapso a 0px descrito acima, mas tratava a causa errada:
-     o que empurrava a lista para fora do fold era a MOLDURA ser maior do que a tira (497px de
-     chrome em 319px úteis — ver o bloco de orçamento vertical mais acima neste ficheiro). Com a
-     moldura em 149px a lista volta a poder encolher, e quem scrolla passa a ser ela e não a tira
-     inteira — o que devolve o rodapé (Sessão rápida · Definições) ao fold. O `min-height` trava o
-     colapso a zero: garante sempre uma linha de projecto inteira, que é o mínimo aceitável. */
+  /* `flex-shrink:0` was the defense against the collapse to 0px described above, but it treated the wrong
+     cause: what pushed the list out of the fold was the FRAME being bigger than the strip (497px of
+     chrome in 319px of usable space — see the vertical budget block further up in this file). With the
+     frame at 149px the list can shrink again, and what scrolls is the list and not the whole
+     strip — which gives the footer (Quick session · Settings) back to the fold. The `min-height` brakes the
+     collapse to zero: it always guarantees one whole project row, which is the acceptable minimum. */
   .session-sidebar-list { flex: 1 1 auto; min-height: 44px; overflow-y: auto; }
-  /* Rede de segurança: se ainda assim o conteúdo passar dos 38dvh (ecrã muito baixo, rodapé em
-     duas filas), a tira scrolla por dentro em vez de derramar sobre o conteúdo principal. */
+  /* Safety net: if the content still goes past 38dvh (very short screen, footer in
+     two rows), the strip scrolls internally instead of spilling over the main content. */
   .sidebar-main-bento { overflow-y: auto; }
 }
 
-/* ─── Botão de ordenar: gatilho compacto, a barra de ordenação já não fica sempre visível ──── */
+/* ─── Sort button: compact trigger, the sort bar is no longer always visible ───────────────── */
 .sidebar-btn-sort {
   width: 32px;
   height: 32px;
@@ -6563,16 +6563,16 @@ background: var(--surface-panel);
 
 .pw-worker-open-icon { flex: 0 0 auto; color: var(--text-ghost); transition: color var(--t-fast); }
 
-/* ─── Agrupamento de projectos (categorias estilo Discord) ──────────────────────────────────── */
+/* ─── Project grouping (Discord-style categories) ───────────────────────────────────────────── */
 .project-group--indented { margin-left: 16px; }
 .project-group-color--dragover {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 999px;
 }
-/* A bolinha em si é 7x7px (partilhada com .db-project-color-dot no Dashboard, por isso o alvo
-   maior fica só aqui via ::before, sem mexer no tamanho visual) — alarga a área que o navegador
-   considera "sobre a bolinha" durante o arrasto, para não exigir precisão de pixel. */
+/* The dot itself is 7x7px (shared with .db-project-color-dot in the Dashboard, which is why the bigger
+   target lives only here via ::before, without touching the visual size) — it widens the area the browser
+   considers "over the dot" during the drag, so it does not demand pixel precision. */
 .project-group-color { position: relative; }
 .project-group-color::before {
   content: ''; position: absolute; inset: -9px;
@@ -6614,17 +6614,17 @@ background: var(--surface-panel);
 .sidebar-add-project-row svg { width: 14px; height: 14px; }
 .session-sidebar--collapsed .sidebar-add-project-row { display: none; }
 
-/* Rodapé da barra (Sessão rápida · Definições · Fechar inativas). `display:contents` = o wrapper
-   não existe para o layout: os três botões continuam a ser filhos de flex do `.sidebar-main-bento`,
-   com os mesmos gaps de sempre. Só a tira mobile lhe dá caixa própria, para os pôr em fila. */
+/* Sidebar footer (Quick session · Settings · Close inactive). `display:contents` = the wrapper
+   does not exist for layout: the three buttons remain flex children of `.sidebar-main-bento`,
+   with the same gaps as always. Only the mobile strip gives it a box of its own, to put them in a row. */
 .sidebar-footer-row { display: contents; }
 
-/* Rodapé compacto: "Sessão rápida" · "Definições" · "Fechar inativas" numa SÓ linha.
-   Três blocos de largura inteira empilhados comiam ~100px de altura ao fundo da barra — altura
-   que a lista de projectos não tinha. A caixa carrega as margens que os botões tinham sozinhos
-   (6px em cima, 10px de cada lado) e os três dividem a linha. Colapsada volta a
-   `display:contents`: as ~40 declarações de `.session-sidebar--collapsed` foram escritas para os
-   botões como filhos directos do bento. */
+/* Compact footer: "Quick session" · "Settings" · "Close inactive" on a SINGLE row.
+   Three full-width blocks stacked ate ~100px of height at the bottom of the sidebar — height
+   the project list did not have. The box carries the margins the buttons had on their own
+   (6px on top, 10px on each side) and the three of them split the row. Collapsed it goes back to
+   `display:contents`: the ~40 declarations of `.session-sidebar--collapsed` were written for the
+   buttons as direct children of the bento. */
 .sidebar-footer-pair {
   display: flex; align-items: stretch; gap: 4px;
   margin: 6px 10px 0;
@@ -6635,8 +6635,8 @@ background: var(--surface-panel);
   padding: 6px 4px;
   gap: 4px;
 }
-/* Os rótulos encolhem antes de o botão encolher — sem isto, três pílulas a 11px empurram a fila
-   para fora da barra em vez de se apertarem. */
+/* The labels shrink before the button shrinks — without this, three 11px pills push the row
+   out of the sidebar instead of squeezing themselves. */
 .sidebar-footer-pair .sidebar-quick-session-btn,
 .sidebar-footer-pair .sidebar-settings-btn,
 .sidebar-footer-pair .bulk-select-btn {
@@ -6646,8 +6646,8 @@ background: var(--surface-panel);
 .sidebar-footer-pair .sidebar-settings-btn svg,
 .sidebar-footer-pair .bulk-select-btn svg { flex-shrink: 0; }
 
-/* "Fechar inativas" entra na mesma linha. É a acção mais rara das três e some quando está
-   desactivada (sem sessões inativas não há nada para fechar), devolvendo a largura às outras. */
+/* "Close inactive" joins the same row. It is the rarest of the three actions and disappears when it is
+   disabled (with no inactive sessions there is nothing to close), giving the width back to the others. */
 .sidebar-footer-pair .session-bulk-actions {
   flex: 1 1 0; min-width: 0; width: auto; margin: 0;
 }
@@ -6655,12 +6655,12 @@ background: var(--surface-panel);
 .sidebar-footer-pair .bulk-select-btn {
   width: 100%; min-width: 0; padding: 0 4px; justify-content: center;
 }
-/* Na fila compacta fica só "✕ (2)" — o nome vive no tooltip e no aria-label. */
+/* In the compact row only "✕ (2)" is left — the name lives in the tooltip and in the aria-label. */
 .sidebar-footer-pair .bulk-select-label { display: none; }
-/* Sem rótulo, este botão precisa de muito menos largura do que os outros dois. */
+/* With no label, this button needs far less width than the other two. */
 .sidebar-footer-pair .session-bulk-actions { flex: 0 0 auto; }
-/* Colapsada: o par sai do layout e os botões voltam a ser filhos da COLUNA do bento — o `flex:1 1 0`
-   que os divide na horizontal passaria a esticá-los na vertical (medido: 32×187 em vez de 32×36). */
+/* Collapsed: the pair leaves the layout and the buttons go back to being children of the bento COLUMN — the `flex:1 1 0`
+   that splits them horizontally would start stretching them vertically (measured: 32×187 instead of 32×36). */
 .session-sidebar--collapsed .sidebar-footer-pair { display: contents; }
 .session-sidebar--collapsed .sidebar-footer-pair .sidebar-quick-session-btn,
 .session-sidebar--collapsed .sidebar-footer-pair .sidebar-settings-btn { flex: 0 0 auto; }
@@ -6678,7 +6678,7 @@ background: var(--surface-panel);
 .session-sidebar--collapsed .sidebar-quick-session-btn svg { flex-shrink: 0; }
 .pw-worker:hover .pw-worker-open-icon { color: var(--accent); }
 
-/* ─── Settings extra (Git / Skills / Zona perigosa) dentro de CreateProjectModal ────────────── */
+/* ─── Extra settings (Git / Skills / Danger zone) inside CreateProjectModal ─────────────────── */
 .project-modal-extra {
   display: flex; flex-direction: column; gap: 16px;
   padding: 18px 30px; margin: 0 30px 6px;
@@ -6686,7 +6686,7 @@ background: var(--surface-panel);
 }
 .project-modal-extra .project-field { gap: 8px; }
 
-/* ─── Cabeçalho do workspace: chips de estado ao vivo + botão de settings ───────────────────── */
+/* ─── Workspace header: live status chips + settings button ─────────────────────────────────── */
 .pw-head-stats { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
 .pw-head-stat {
   display: flex; align-items: center; gap: 5px;
@@ -6698,20 +6698,20 @@ background: var(--surface-panel);
 .pw-settings-btn { padding: 0; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; }
 .pw-settings-btn svg { width: 16px; height: 16px; }
 
-/* ─── Chat do gestor: anexos (attach/paste/drag-drop) ───────────────────────────────────────── */
+/* ─── Manager chat: attachments (attach/paste/drag-drop) ────────────────────────────────────── */
 .mgr-compose { position: relative; border-radius: 10px; transition: box-shadow var(--t-fast); }
 
-/* ─── Casca da app: coluna com o rodapé permanente (StatusBar) por baixo do layout ─────────── */
-/* O `.app` mantém-se a linha sidebar/conteúdo/painel; deixa de fixar a altura à viewport para
-   ceder os 28px do rodapé. Sem `overflow:hidden` aqui — o popover da StatusBar sobe para fora. */
+/* ─── App shell: column with the permanent footer (StatusBar) below the layout ─────────────── */
+/* `.app` remains the sidebar/content/panel row; it stops pinning its height to the viewport so it can
+   give up the footer's 28px. No `overflow:hidden` here — the StatusBar popover rises out of it. */
 .app-shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background: var(--bg-void);
 }
-/* Especificidade maior do que o `.app { height:100dvh }` do breakpoint móvel — de propósito: a
-   altura passa a ser do `.app-shell` e o `.app` só ocupa o que sobra do rodapé. */
+/* Higher specificity than the mobile breakpoint's `.app { height:100dvh }` — deliberately: the
+   height now belongs to `.app-shell` and `.app` only takes what the footer leaves over. */
 .app-shell > .app {
   flex: 1 1 auto;
   height: auto;
@@ -6722,29 +6722,29 @@ background: var(--surface-panel);
   .app-shell { height: 100dvh; }
 }
 
-/* O flutuante ancorado em baixo passa a contar com os 28px do rodapé — sem isto ficava
-   por cima dele. */
+/* The floating element anchored at the bottom now accounts for the footer's 28px — without this it sat
+   on top of it. */
 .toast-container { bottom: calc(24px + 28px); }
 
-/* ─── Temas de marca ("Custom Temas") ────────────────────────────────────────────────────────
-   Eixo independente do claro/escuro: `data-brand` × `data-theme`. Cada marca redefine só TOKENS —
-   nenhuma regra de componente aqui, senão um tema novo passava a exigir tocar no CSS todo.
-   O default (JOCA) não tem bloco: é o `:root` de cima.
+/* ─── Brand themes ("Custom Themes") ─────────────────────────────────────────────────────────
+   An axis independent of light/dark: `data-brand` × `data-theme`. Each brand redefines only TOKENS —
+   no component rule here, otherwise a new theme would start requiring touching the whole CSS.
+   The default (JOCA) has no block: it is the `:root` above.
 
-   Ficam no fim do ficheiro de propósito. `:root[data-brand]` tem a mesma especificidade que
-   `:root[data-theme="light"]`, por isso é a ORDEM que desempata; a variante clara de cada marca
-   junta os dois atributos (especificidade maior) e ganha ao bloco claro genérico.
+   They sit at the end of the file deliberately. `:root[data-brand]` has the same specificity as
+   `:root[data-theme="light"]`, so it is the ORDER that breaks the tie; each brand's light variant
+   joins the two attributes (higher specificity) and beats the generic light block.
 
-   ⚠ REGRA DOS TEMAS DE MARCA — os dois modos são OBRIGATÓRIOS, e cada um escreve-se no seu bloco:
-     :root[data-brand="x"]:not([data-theme="light"])  → paleta escura
-     :root[data-brand="x"][data-theme="light"]        → paleta clara
-   Escrever fundos num bloco `:root[data-brand="x"]` sem escopo parece funcionar no escuro e PARTE
-   o claro: como estes blocos vêm depois do `:root[data-theme="light"]`, os fundos escuros da marca
-   sobrevivem à troca de modo enquanto o texto passa a escuro — preto sobre preto. Foi exactamente
-   o que aconteceu ao Alfredo. Se a marca só quiser mexer no acento, um bloco sem escopo é seguro;
-   a partir do momento em que toca em `--bg-*`/`--surface-*`/`--text-*`, tem de ter os dois. */
+   ⚠ BRAND THEME RULE — both modes are MANDATORY, and each one is written in its own block:
+     :root[data-brand="x"]:not([data-theme="light"])  → dark palette
+     :root[data-brand="x"][data-theme="light"]        → light palette
+   Writing backgrounds in an unscoped `:root[data-brand="x"]` block looks like it works in dark mode and BREAKS
+   light mode: since these blocks come after `:root[data-theme="light"]`, the brand's dark backgrounds
+   survive the mode switch while the text turns dark — black on black. That is exactly
+   what happened to Alfredo. If the brand only wants to touch the accent, an unscoped block is safe;
+   the moment it touches `--bg-*`/`--surface-*`/`--text-*`, it has to have both. */
 
-/* Alfredo escuro — o mordomo de Gotham. Amarelo-morcego sobre preto de cave. */
+/* Alfredo dark — Gotham's butler. Bat-yellow over basement black. */
 :root[data-brand="alfredo"]:not([data-theme="light"]) {
   --accent:         #ffd230;
   --accent-text:    #ffd230;
@@ -6771,12 +6771,12 @@ background: var(--surface-panel);
   --badge-orange: #ffd230;
 }
 
-/* Alfredo claro — Gotham de dia: cinzentos frios em vez do creme do JOCA, para a marca continuar a
-   ler-se. O amarelo é ilegível como TEXTO sobre claro (mesmo problema documentado no `--accent-text`
-   do JOCA), por isso fica só no preenchimento; o texto de acento passa a castanho-tostado. */
+/* Alfredo light — Gotham by day: cool grays instead of JOCA's cream, so the brand keeps
+   reading. The yellow is illegible as TEXT on light (the same problem documented in JOCA's `--accent-text`),
+   so it stays in the fill only; the accent text becomes toasted brown. */
 :root[data-brand="alfredo"][data-theme="light"] {
   --accent:         #d9a900;
-  --accent-text:    #6b5000;  /* ~7:1 sobre accent-soft — AA com folga */
+  --accent-text:    #6b5000;  /* ~7:1 over accent-soft — AA with room to spare */
   --accent-amber:   #8a6a00;
   --accent-soft:    rgba(217,169,0,0.15);
   --accent-glow:    rgba(217,169,0,0.28);
@@ -6808,15 +6808,15 @@ background: var(--surface-panel);
   --badge-orange: #8a6a00;
 }
 
-/* O wordmark do Alfredo lê-se melhor como texto normal do tema do que a amarelo sobre preto —
-   o amarelo fica para o logo e para os acentos da interface. */
+/* Alfredo's wordmark reads better as the theme's normal text than as yellow on black —
+   the yellow is left for the logo and for the interface accents. */
 :root[data-brand="alfredo"] .sb-logo-text { color: var(--text-bright); letter-spacing: 0.08em; }
 
-/* K.I.T.T. escuro — Trans Am preto com o scanner vermelho a varrer. O vermelho é o acento; os
-   fundos são pretos puros com um toque quente, para o scanner ser a única coisa que salta. */
+/* K.I.T.T. dark — black Trans Am with the red scanner sweeping. The red is the accent; the
+   backgrounds are pure blacks with a warm touch, so the scanner is the only thing that pops. */
 :root[data-brand="kitt"]:not([data-theme="light"]) {
   --accent:         #ff2d2d;
-  --accent-text:    #ff5c5c;  /* o #ff2d2d puro cansa em corpo de texto; este lê 6.4:1 sobre o fundo */
+  --accent-text:    #ff5c5c;  /* pure #ff2d2d is tiring in body text; this one reads 6.4:1 over the background */
   --accent-amber:   #ff7a45;
   --accent-soft:    rgba(255,45,45,0.10);
   --accent-glow:    rgba(255,45,45,0.34);
@@ -6840,12 +6840,12 @@ background: var(--surface-panel);
   --badge-orange: #ff5c5c;
 }
 
-/* K.I.T.T. claro — o painel do Knight Industries com as luzes acesas de dia: cinzentos quentes,
-   e o vermelho puxado para carmim escuro, que o scanner sobre branco era impossível de ler. */
+/* K.I.T.T. light — the Knight Industries dashboard with the lights on by day: warm grays,
+   and the red pulled toward a dark crimson, because the scanner on white was impossible to read. */
 :root[data-brand="kitt"][data-theme="light"] {
   --accent:         #d11f1f;
-  --accent-text:    #8e1212;  /* 7.4:1 sobre accent-soft */
-  --on-accent:      #ffffff;  /* 5.4:1 sobre o accent — melhor que a tinta escura (3,6:1) */
+  --accent-text:    #8e1212;  /* 7.4:1 over accent-soft */
+  --on-accent:      #ffffff;  /* 5.4:1 over the accent — better than dark ink (3.6:1) */
   --accent-amber:   #9a4a10;
   --accent-soft:    rgba(209,31,31,0.09);
   --accent-glow:    rgba(209,31,31,0.24);
@@ -6877,9 +6877,9 @@ background: var(--surface-panel);
   --badge-orange: #9a4a10;
 }
 
-/* R2-D2 escuro — o astromecânico no hangar: cinzentos de casco frios e o azul dos painéis a
-   marcar. Único tema em que o claro é o modo "natural" (o droide é branco), por isso o escuro
-   assume-se como a versão nocturna e não o contrário. */
+/* R2-D2 dark — the astromech in the hangar: cool hull grays and the panel blue doing the
+   marking. The only theme where light is the "natural" mode (the droid is white), so dark
+   presents itself as the night version and not the other way round. */
 :root[data-brand="r2d2"]:not([data-theme="light"]) {
   --accent:         #4a9eff;
   --accent-text:    #7ab8ff;
@@ -6907,12 +6907,12 @@ background: var(--surface-panel);
   --badge-orange: #ffb340;
 }
 
-/* R2-D2 claro — o casco: branco sujo e prateado, com o azul dos painéis escurecido para servir de
-   texto. É o modo que se parece mesmo com o droide. */
+/* R2-D2 light — the hull: dirty white and silver, with the panel blue darkened to serve as
+   text. It is the mode that really does look like the droid. */
 :root[data-brand="r2d2"][data-theme="light"] {
   --accent:         #2b6cb8;
-  --accent-text:    #1a4c85;  /* 7.1:1 sobre accent-soft */
-  --on-accent:      #ffffff;  /* 5.3:1 sobre o accent */
+  --accent-text:    #1a4c85;  /* 7.1:1 over accent-soft */
+  --on-accent:      #ffffff;  /* 5.3:1 over the accent */
   --accent-amber:   #8a5a00;
   --accent-soft:    rgba(43,108,184,0.10);
   --accent-glow:    rgba(43,108,184,0.22);
@@ -6945,16 +6945,16 @@ background: var(--surface-panel);
   --badge-orange: #8a5a00;
 }
 
-/* HAL 9000 escuro — a lente. Carmim FRIO sobre ardósia azulada, ao contrário do KITT, que é
-   vermelho vivo sobre preto quente: sem essa separação os dois temas vermelhos confundiam-se.
-   O amarelo do ponto central da lente fica como cor secundária. */
+/* HAL 9000 dark — the lens. COLD crimson over bluish slate, unlike KITT, which is
+   bright red over warm black: without that separation the two red themes were mistaken for each other.
+   The yellow of the lens's central dot stays as the secondary color. */
 :root[data-brand="hal"]:not([data-theme="light"]) {
   --accent:         #e01313;
   --accent-text:    #ff6a6a;
-  --on-accent:      #ffffff;  /* 4.9:1 sobre o accent */
-  --accent-amber:   #ffe600;  /* o pinpoint no meio da lente */
+  --on-accent:      #ffffff;  /* 4.9:1 over the accent */
+  --accent-amber:   #ffe600;  /* the pinpoint in the middle of the lens */
   --accent-soft:    rgba(224,19,19,0.12);
-  --accent-glow:    rgba(224,19,19,0.42);  /* halo mais forte: a lente brilha, não pinta */
+  --accent-glow:    rgba(224,19,19,0.42);  /* stronger halo: the lens glows, it does not paint */
   --accent-border:  rgba(224,19,19,0.30);
 
   --bg-void:      #08090c;
@@ -6975,12 +6975,12 @@ background: var(--surface-panel);
   --badge-orange: #ff6a6a;
 }
 
-/* HAL claro — a sala de controlo da Discovery: brancos clínicos, cinzento azulado, e o carmim
-   escurecido para se ler como texto. */
+/* HAL light — the Discovery's control room: clinical whites, bluish gray, and the crimson
+   darkened so it reads as text. */
 :root[data-brand="hal"][data-theme="light"] {
   --accent:         #b81212;
-  --accent-text:    #8a0e0e;  /* 8.4:1 sobre accent-soft */
-  --on-accent:      #ffffff;  /* 6.7:1 sobre o accent */
+  --accent-text:    #8a0e0e;  /* 8.4:1 over accent-soft */
+  --on-accent:      #ffffff;  /* 6.7:1 over the accent */
   --accent-amber:   #7a6a00;
   --accent-soft:    rgba(184,18,18,0.09);
   --accent-glow:    rgba(184,18,18,0.26);
@@ -7012,16 +7012,16 @@ background: var(--surface-panel);
   --badge-orange: #8a0e0e;
 }
 
-/* The Office — preto e branco, sem cor nenhuma. Segue o pictograma do tema: tinta sobre papel.
-   O acento deixa de ser uma cor e passa a ser CONTRASTE — preto no claro, branco no escuro — o que
-   obriga os dois blocos a inverter tudo, não só a escurecer. Cinzentos neutros de propósito (sem
-   bege, sem azul), para não reintroduzir um matiz pela porta das traseiras.
-   Contrastes medidos: accent 17,4:1 sobre papel no claro; 17,2:1 sobre o fundo no escuro;
-   o texto mais fraco (ghost) fica em 5,35:1. */
+/* The Office — black and white, no color at all. It follows the theme's pictogram: ink on paper.
+   The accent stops being a color and becomes CONTRAST — black in light mode, white in dark mode — which
+   forces both blocks to invert everything, not just to darken. Neutral grays deliberately (no
+   beige, no blue), so as not to bring a hue back in through the back door.
+   Measured contrasts: accent 17.4:1 over paper in light mode; 17.2:1 over the background in dark mode;
+   the weakest text (ghost) lands at 5.35:1. */
 :root[data-brand="office"]:not([data-theme="light"]) {
   --accent:         #f2f2f2;
   --accent-text:    #ffffff;
-  --accent-amber:   #cfcfcf;  /* o "âmbar" também é cinzento — senão voltava a cor ao tema */
+  --accent-amber:   #cfcfcf;  /* the "amber" is gray too — otherwise color would come back to the theme */
   --accent-soft:    rgba(255,255,255,0.10);
   --accent-glow:    rgba(255,255,255,0.26);
   --accent-border:  rgba(255,255,255,0.28);
@@ -7043,8 +7043,8 @@ background: var(--surface-panel);
 
   --badge-orange: #cfcfcf;
 
-  /* Sem matiz, o estado passa a distinguir-se por LUMINOSIDADE — é a única variável que sobra.
-     A trabalhar = branco, parado = cinzento médio. */
+  /* With no hue, status is told apart by LIGHTNESS — it is the only variable left.
+     Working = white, idle = medium gray. */
   --status-working:      #ffffff;
   --status-idle:         #8f8f8f;
   --status-working-glow: rgba(255,255,255,0.26);
@@ -7055,20 +7055,20 @@ background: var(--surface-panel);
   --badge-blue:   #bdbdbd;
   --badge-teal:   #a6a6a6;
 
-  /* ÚNICA cor do tema, e é deliberada: o vermelho de perigo. Num interface sem matiz, apagar e
-     destruir passavam a parecer-se com tudo o resto — e a cor é o aviso, não decoração. Tijolo
-     dessaturado, para avisar sem estragar o preto e branco. */
+  /* The ONLY color in the theme, and it is deliberate: danger red. In an interface with no hue, delete
+     and destroy ended up looking like everything else — and the color is the warning, not decoration.
+     Desaturated brick, to warn without ruining the black and white. */
   --red:        #c96a6a;
   --dot-red:    #c96a6a;
   --dot-yellow: #b0b0b0;
   --dot-green:  #6b6b6b;
 }
 
-/* The Office claro — a folha branca com a tinta preta. */
+/* The Office light — the white sheet with the black ink. */
 :root[data-brand="office"][data-theme="light"] {
   --accent:         #1a1a1a;
   --accent-text:    #000000;
-  --on-accent:      #ffffff;  /* 17,4:1 — a tinta preta sobre tinta preta era o mesmo defeito ao contrário */
+  --on-accent:      #ffffff;  /* 17.4:1 — black ink over black ink was the same defect in reverse */
   --accent-amber:   #3a3a3a;
   --accent-soft:    rgba(0,0,0,0.07);
   --accent-glow:    rgba(0,0,0,0.18);
@@ -7099,7 +7099,7 @@ background: var(--surface-panel);
 
   --badge-orange: #2b2b2b;
 
-  /* Mesma lógica invertida: a trabalhar = tinta preta, parado = cinzento. */
+  /* The same logic inverted: working = black ink, idle = gray. */
   --status-working:      #111111;
   --status-idle:         #7a7a7a;
   --status-working-glow: rgba(0,0,0,0.22);
@@ -7110,18 +7110,18 @@ background: var(--surface-panel);
   --badge-blue:   #4d4d4d;
   --badge-teal:   #444444;
 
-  /* Mesma excepção do bloco escuro: o perigo mantém cor. Escurecido para ler sobre papel. */
+  /* Same exception as the dark block: danger keeps its color. Darkened to read on paper. */
   --red:        #a33a3a;
   --dot-red:    #a33a3a;
   --dot-yellow: #6b6b6b;
   --dot-green:  #9a9a9a;
 }
 
-/* Nem toda a cor da app vem de tokens: cinco regras trazem o verde e o âmbar cravados no CSS, e
-   num tema sem matiz sobreviviam como um halo colorido por cima do preto e branco. Reescrevem-se
-   para os tokens de acento — que JÁ são por modo, portanto isto serve claro e escuro sem duplicar.
-   Os pontos de cor DO PROJECTO são escolha do utilizador e ficam guardados: em vez de os
-   reescrever, tira-se-lhes a saturação, para a cor voltar intacta quando ele mudar de tema. */
+/* Not all of the app's color comes from tokens: five rules carry green and amber hardcoded in the CSS, and
+   in a theme with no hue they survived as a colored halo on top of the black and white. They are rewritten
+   to the accent tokens — which ALREADY vary per mode, so this serves light and dark without duplicating.
+   The PROJECT color dots are the user's choice and stay saved: instead of rewriting them,
+   their saturation is stripped, so the color comes back intact when he switches theme. */
 :root[data-brand="office"] .status-pill--active,
 :root[data-brand="office"] .status-pill--connected,
 :root[data-brand="office"] .status-pill--paused,
@@ -7131,9 +7131,9 @@ background: var(--surface-panel);
   background: var(--accent-soft);
 }
 :root[data-brand="office"] .settings-cli-card--installed { border-color: var(--accent-border); }
-/* As mesmas cravadas, mas nos CSS dos componentes (Dashboard e Terminal). Ficam aqui e não lá
-   porque `:root[data-brand]` + classe ganha em especificidade, portanto a ordem de import não
-   conta — e assim o tema inteiro lê-se num sítio só. */
+/* The same hardcoded ones, but in the component CSS (Dashboard and Terminal). They sit here and not there
+   because `:root[data-brand]` + class wins on specificity, so the import order does not
+   count — and this way the whole theme reads in a single place. */
 :root[data-brand="office"] .db-project-session-status--working,
 :root[data-brand="office"] .db-project-session-status--idle,
 :root[data-brand="office"] .quick-command-btn--highlight,
@@ -7148,15 +7148,15 @@ background: var(--surface-panel);
 }
 :root[data-brand="office"] .project-group-color,
 :root[data-brand="office"] .db-project-color-dot { filter: grayscale(1); }
-/* A cor do projecto entra por `--project-color` escrita no atributo `style` do elemento, e tinge
-   degradês e bordas por toda a app. Uma declaração inline só se vence com `!important` — é a
-   excepção que este caso justifica. O valor guardado do projecto não é tocado: volta ao mudar de
-   tema. */
+/* The project color comes in through `--project-color` written on the element's `style` attribute, and it
+   tints gradients and borders all over the app. An inline declaration is only beaten with `!important` — it is
+   the exception this case justifies. The project's saved value is not touched: it comes back on a theme
+   switch. */
 :root[data-brand="office"] [style*="--project-color"] { --project-color: var(--accent) !important; }
 
-/* GIF no lugar de um ícone (tema The Office). Quadrado, do tamanho do glifo que substitui, com o
-   canto redondo para não brigar com a linha de texto. `object-fit:cover` porque os GIFs vêm em
-   rácios variados e um 16:9 esmagado num quadrado fica ilegível. */
+/* GIF in place of an icon (The Office theme). Square, the size of the glyph it replaces, with a
+   rounded corner so it does not fight with the text line. `object-fit:cover` because the GIFs come in
+   varied ratios and a 16:9 crushed into a square is illegible. */
 .office-gif-icon {
   width: 1.25em; height: 1.25em;
   object-fit: cover;
@@ -7164,13 +7164,13 @@ background: var(--surface-panel);
   flex-shrink: 0;
   display: block;
 }
-/* Na posição de avatar (projecto / sessão) o GIF preenche a caixa quadrada que o ícone ocupava,
-   em vez de ficar do tamanho da linha de texto. */
+/* In the avatar position (project / session) the GIF fills the square box the icon used to occupy,
+   instead of being the size of the text line. */
 .office-gif-icon--avatar { width: 100%; height: 100%; border-radius: inherit; }
 
-/* Rato EM CIMA do próprio GIF: cresce para se perceber o que lá está. A 20px um fotograma de vídeo
-   é uma mancha; ampliado lê-se. `position:relative` + `z-index` para passar por cima das linhas
-   vizinhas em vez de ser cortado por elas, e a sombra separa-o do fundo enquanto está por cima. */
+/* Mouse ON TOP of the GIF itself: it grows so you can tell what is in there. At 20px a video frame
+   is a smudge; enlarged it reads. `position:relative` + `z-index` to pass over the neighboring
+   rows instead of being clipped by them, and the shadow separates it from the background while it is on top. */
 .office-gif-icon {
   position: relative;
   z-index: 1;
@@ -7183,32 +7183,32 @@ background: var(--surface-panel);
   box-shadow: 0 8px 26px rgba(0,0,0,0.55);
 }
 
-/* O crescimento não pode ser cortado por NENHUMA das caixas por cima do ícone, e nos projectos
-   havia duas a cortar: a caixa do logótipo (`.project-icon--image`, que recorta a imagem ao
-   quadrado arredondado) e a linha inteira (`.project-group`). Por isso o zoom funcionava na
-   navegação e não nos projectos.
-   ⚠ A regra que ganhava vinha de `components/sidebar-icons.css` com TRÊS classes; um selector com a
-   mesma contagem que a nossa empatava e ganhava por vir depois na cascata. Daí o `.session-sidebar`
-   também aqui — não é decoração, é o que desempata. */
+/* The growth cannot be clipped by ANY of the boxes above the icon, and on the projects
+   there were two doing the clipping: the logo box (`.project-icon--image`, which crops the image to the
+   rounded square) and the whole row (`.project-group`). That is why the zoom worked in the
+   navigation and not on the projects.
+   ⚠ The rule that was winning came from `components/sidebar-icons.css` with THREE classes; a selector with the
+   same count as ours tied and won by coming later in the cascade. Hence the `.session-sidebar`
+   here too — it is not decoration, it is what breaks the tie. */
 :root[data-brand="office"] .project-group-icon,
 :root[data-brand="office"] .sidebar-loose-icon,
 :root[data-brand="office"] .nav-icon,
 :root[data-brand="office"] .project-group,
 :root[data-brand="office"] .session-sidebar .project-group-icon.project-icon--image { overflow: visible; }
 
-/* A caixa do ícone de sessão rápida nunca teve tamanho próprio: com um SVG dentro não fazia falta
-   (o SVG traz o seu), mas uma imagem sem caixa assume o tamanho NATURAL do ficheiro — 480×400 — e
-   ocupava a barra inteira. Fixa-se ao mesmo quadrado do ícone de projecto. */
+/* The quick session icon box never had a size of its own: with an SVG inside it was not needed
+   (the SVG brings its own), but an image with no box takes the file's NATURAL size — 480×400 — and
+   took over the whole sidebar. It is pinned to the same square as the project icon. */
 :root[data-brand="office"] .sidebar-loose-icon {
   width: 18px; height: 18px; flex: 0 0 18px;
   display: inline-flex; align-items: center; justify-content: center;
-  /* Mesmo raio do ícone de projecto (`.project-icon--image`, 5px). O avatar herda o raio do pai;
-     sem ele aqui, `border-radius: inherit` resolvia para 0 e as sessões ficavam de cantos vivos ao
-     lado de projectos arredondados. */
+  /* Same radius as the project icon (`.project-icon--image`, 5px). The avatar inherits the radius from the
+     parent; without it here, `border-radius: inherit` resolved to 0 and the sessions ended up with sharp
+     corners next to rounded projects. */
   border-radius: 5px;
 }
 
-/* Selector de Custom Temas (Definições → Tema). */
+/* Custom Themes selector (Settings → Theme). */
 .brand-theme-block { margin-top:16px; padding-top:14px; border-top:1px solid var(--border-faint); }
 .brand-theme-label { display:block; font-size:0.78em; font-weight:600; color:var(--text-bright); }
 .brand-theme-hint { margin:3px 0 10px; font-size:0.74em; line-height:1.45; opacity:0.55; }
@@ -7225,9 +7225,9 @@ background: var(--surface-panel);
   display:inline-flex; align-items:center; justify-content:center;
   width:44px; height:28px; flex-shrink:0;
 }
-/* Altura fixa, largura pelo rácio — mesma razão que em `.sb-logo-img`. */
+/* Fixed height, width by ratio — same reason as in `.sb-logo-img`. */
 .brand-theme-opt-mark img { height:100%; width:auto; max-width:100%; object-fit:contain; }
-/* Eco dos anéis do logo original, para o tema default também ter marca no selector. */
+/* An echo of the original logo's rings, so the default theme also has a mark in the selector. */
 .brand-theme-opt-rings {
   width:20px; height:11px; border-radius:50%; border:1.5px solid var(--accent);
   display:flex; align-items:center; justify-content:center;
@@ -7239,21 +7239,21 @@ background: var(--surface-panel);
 .brand-theme-opt-name { font-size:0.88em; color:var(--text-bright); }
 .brand-theme-opt-detail { font-size:0.72em; opacity:0.55; }
 
-/* Navegação: no rato os botões são compactos (ver `.nav-btn` acima), mas num ecrã táctil 30px é
-   menos de metade do alvo mínimo — aqui voltam aos 44px. `pointer:coarse` e não largura: um
-   portátil estreito continua a ser rato, e um tablet largo continua a ser dedo. */
+/* Navigation: on a mouse the buttons are compact (see `.nav-btn` above), but on a touch screen 30px is
+   less than half the minimum target — here they go back to 44px. `pointer:coarse` and not width: a
+   narrow laptop is still a mouse, and a wide tablet is still a finger. */
 @media (pointer: coarse) {
   .nav-btn { min-height: 44px; }
   .nav-menu { gap: 4px; }
 }
 
-/* ─── Dashboard global: também não scrolla como página ────────────────────────
-   Mesma invariante do workspace do projecto (ver project-workspace.css): a vista tem a altura do
-   ecrã e quem scrolla é a LISTA, não o ecrã todo. Sem isto, num portátil o cabeçalho, as
-   estatísticas e o estado do Brain saíam do ecrã ao procurar um projecto — e são precisamente o
-   que se quer sempre à vista.
+/* ─── Global dashboard: it does not scroll like a page either ─────────────────
+   Same invariant as the project workspace (see project-workspace.css): the view is the height of the
+   screen and what scrolls is the LIST, not the whole screen. Without this, on a laptop the header, the
+   stats and the Brain status went off screen while looking for a project — and they are precisely what
+   you always want in view.
 
-   `:not(.project-workspace)` porque o workspace já tem o seu tratamento e é outro conteúdo. */
+   `:not(.project-workspace)` because the workspace already has its own treatment and is other content. */
 .dashboard-view:not(.project-workspace) {
   overflow: hidden;
   min-height: 0;
@@ -7262,14 +7262,14 @@ background: var(--surface-panel);
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  align-content: start;   /* sem isto o grid estica as linhas para encher a altura nova */
+  align-content: start;   /* without this the grid stretches the rows to fill the new height */
   scrollbar-width: thin;
   scrollbar-color: var(--text-ghost) transparent;
-  padding-right: 4px;     /* a barra não fica colada aos cartões */
+  padding-right: 4px;     /* the bar does not end up glued to the cards */
 }
 
-/* Em ecrãs baixos o que cede é a moldura: cabeçalho, cartões de estatística e o bloco de estado.
-   O conteúdo — a lista de projectos — fica com o que sobra. */
+/* On short screens what gives way is the frame: header, stat cards and the status block.
+   The content — the project list — gets what is left. */
 @media (max-height: 800px) {
   .dashboard-view:not(.project-workspace) { padding: 14px 22px; gap: 12px; }
   .dashboard-view:not(.project-workspace) .vp-header { margin-bottom: 10px; align-items: center; }
@@ -7280,14 +7280,14 @@ background: var(--surface-panel);
 @media (max-height: 620px) {
   .dashboard-view:not(.project-workspace) { padding: 10px 16px; }
   .dashboard-view:not(.project-workspace) .vp-title { font-size: 18px; }
-  .dashboard-view:not(.project-workspace) .db-stats-grid { display: none; }  /* números cabem no rodapé; a lista é que importa */
+  .dashboard-view:not(.project-workspace) .db-stats-grid { display: none; }  /* numbers fit in the footer; it is the list that matters */
 }
 
-/* ═══ Polish de acessibilidade (auditoria 2026-08-06) ═══════════════════════
-   #7  — foco de teclado invisível em ~40% da navegação principal (WCAG 2.4.7):
-         replica a regra já usada nos outros componentes da app.
-   #16 — alvos de toque abaixo de 44×44px nos botões pequenos mais usados.
-   #15 — botão primário do modal: texto escuro sobre o laranja (4.5:1). */
+/* ═══ Accessibility polish (2026-08-06 audit) ═══════════════════════════════
+   #7  — invisible keyboard focus on ~40% of the main navigation (WCAG 2.4.7):
+         replicates the rule already used in the app's other components.
+   #16 — touch targets below 44×44px on the most used small buttons.
+   #15 — modal primary button: dark text over the orange (4.5:1). */
 
 .nav-btn:focus-visible,
 .db-project-card-btn:focus-visible,
@@ -7303,7 +7303,7 @@ background: var(--surface-panel);
   outline-offset: 2px;
 }
 
-/* Alvo de toque confortável sem mudar o aspecto: área clicável cresce por padding/min-height. */
+/* Comfortable touch target without changing the look: the clickable area grows via padding/min-height. */
 .db-project-card-btn { min-height: 32px; }
 .sidebar-quick-session-btn { min-height: 36px; }
 .archived-item-restore { min-width: 32px; min-height: 32px; }
@@ -7314,14 +7314,14 @@ background: var(--surface-panel);
   .archived-item-restore { min-width: 44px; min-height: 44px; }
 }
 
-/* Branco sobre #ff4500 ≈ 3.1:1 — chumba WCAG 1.4.3. Texto escuro passa com folga. */
+/* White over #ff4500 ≈ 3.1:1 — fails WCAG 1.4.3. Dark text passes with room to spare. */
 .project-modal-primary { color: #1a120c; font-weight: 700; }
 .pw-composer-send { color: #1a120c; }
 
-/* ─── Definições em modal ────────────────────────────────────────────────────────
-   O rail direito (notificações + definições) foi removido; as definições passaram a
-   abrir num modal, pelo ícone no fundo da coluna esquerda. O painel por dentro é o
-   mesmo componente de sempre — só muda onde é desenhado. */
+/* ─── Settings in a modal ────────────────────────────────────────────────────────
+   The right rail (notifications + settings) was removed; settings now open
+   in a modal, from the icon at the bottom of the left column. The panel inside is the
+   same component as always — only where it is drawn changes. */
 .settings-modal-backdrop {
   position: fixed; inset: 0; z-index: 1200;
   display: flex; align-items: center; justify-content: center;
@@ -7340,7 +7340,7 @@ background: var(--surface-panel);
   background: var(--surface-panel);
   box-shadow: 0 24px 64px rgba(0,0,0,0.42);
 }
-/* O painel foi desenhado para encher uma coluna; dentro do modal enche o modal. */
+/* The panel was designed to fill a column; inside the modal it fills the modal. */
 .settings-modal .settings-panel {
   height: 100%;
   min-height: 0;
@@ -7357,7 +7357,7 @@ background: var(--surface-panel);
   .settings-modal-backdrop { animation: none; }
 }
 
-/* Botão das definições, no fundo da sidebar — mesma linguagem do "Sessão rápida" logo acima. */
+/* Settings button, at the bottom of the sidebar — same language as the "Quick session" right above. */
 .sidebar-settings-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   width: calc(100% - 20px); margin: 6px 10px 0; padding: 6px 0;
@@ -7370,38 +7370,38 @@ background: var(--surface-panel);
 .session-sidebar--collapsed .sidebar-settings-btn {
   width: 32px; height: 32px; margin: 6px auto 0; padding: 0;
 }
-/* Colapsada mostra só o ícone — `font-size:0` no botão apagaria também o SVG herdado. */
+/* Collapsed it shows only the icon — `font-size:0` on the button would erase the inherited SVG too. */
 .session-sidebar--collapsed .sidebar-settings-label { display: none; }
 .session-sidebar--collapsed .sidebar-settings-btn svg { flex-shrink: 0; }
 
-/* ═══ Tira mobile (≤860px): orçamento vertical ══════════════════════════════════════════════════
-   Em repouso não se via UMA linha de projecto. Medido a 390×844: o `.sidebar-main-bento` tinha
-   319px úteis e o conteúdo pedia 838px — 0px de lista visível nos três viewports (390×844, 390×667
-   e 360×640), com `elementFromPoint` a aterrar no Dashboard por trás das linhas cortadas.
+/* ═══ Mobile strip (≤860px): vertical budget ════════════════════════════════════════════════════
+   At rest you could not see ONE project row. Measured at 390×844: `.sidebar-main-bento` had
+   319px of usable space and the content asked for 838px — 0px of list visible in the three viewports
+   (390×844, 390×667 and 360×640), with `elementFromPoint` landing on the Dashboard behind the clipped rows.
 
-   A caixa de pesquisa, o suspeito inicial, valia 38 dos 519px em falta (7%) — recolhê-la não chega
-   nem perto. O que come a tira é a MOLDURA, e é ela que encolhe aqui:
+   The search box, the initial suspect, was worth 38 of the 519px missing (7%) — collapsing it does not come
+   anywhere near. What eats the strip is the FRAME, and it is the frame that shrinks here:
 
-     antes  → 40 (marca) + 188 (nav em 4 filas) + 32 (título) + 26+6 (pesquisa)
-              + 103+24 (3 botões de rodapé empilhados) + 84 (gaps) + 24 (padding) = 497px
-     depois → 23 + 46 (nav em fila) + 0 (título fora do fluxo) + 0 (pesquisa recolhida)
-              + 44 (rodapé em fila) + 18 (gaps) + 18 (padding) = 149px
+     before → 40 (brand) + 188 (nav in 4 rows) + 32 (title) + 26+6 (search)
+              + 103+24 (3 stacked footer buttons) + 84 (gaps) + 24 (padding) = 497px
+     after  → 23 + 46 (nav in one row) + 0 (title out of flow) + 0 (search collapsed)
+              + 44 (footer in one row) + 18 (gaps) + 18 (padding) = 149px
 
-   Medido em repouso depois: 3 · 2 · 2 linhas inteiras (era 0 · 0 · 0). Os estados de pesquisa e de
-   ordenação não regridem — todos iguais ou melhores. O desktop não é tocado por nada disto.
+   Measured at rest afterwards: 3 · 2 · 2 whole rows (it was 0 · 0 · 0). The search and sorting
+   states do not regress — all equal or better. The desktop is not touched by any of this.
 
-   ⚠ Este bloco vive no FIM do ficheiro de propósito, como o rail colapsado e a casca da app já
-   fazem: `.sidebar-search-toggle`, `.sidebar-footer-row`, `.sidebar-quick-session-btn` e
-   `.sidebar-settings-btn` têm regras-base DEPOIS do breakpoint principal (linha ~5350) e, com a
-   mesma especificidade, ganhavam-lhe na cascata. Escrito lá em cima, metade destas regras não
-   pegava — e o build não dizia nada. */
+   ⚠ This block lives at the END of the file deliberately, as the collapsed rail and the app shell already
+   do: `.sidebar-search-toggle`, `.sidebar-footer-row`, `.sidebar-quick-session-btn` and
+   `.sidebar-settings-btn` have base rules AFTER the main breakpoint (line ~5350) and, with the
+   same specificity, were beating it in the cascade. Written up there, half of these rules would not
+   take — and the build said nothing. */
 @media (max-width: 860px) {
-  /* Cada pixel de moldura é uma linha de projecto que não cabe: a folga é o que cede. */
+  /* Every pixel of frame is a project row that does not fit: the slack is what gives way. */
   .sidebar-main-bento { padding:10px 8px 8px; gap:6px; position:relative; }
 
-  /* As 4 entradas passam de 4 filas de 44px a UMA fila de 4 colunas — 188px → 46px. O alvo de
-     toque continua acima dos 44px: o que muda é a direcção, não o tamanho.
-     Selector com 2 classes para ganhar ao `@media (pointer:coarse) .nav-btn` mais acima. */
+  /* The 4 entries go from 4 rows of 44px to ONE row of 4 columns — 188px → 46px. The touch
+     target stays above 44px: what changes is the direction, not the size.
+     Selector with 2 classes to beat the `@media (pointer:coarse) .nav-btn` further up. */
   .nav-menu { flex-direction:row; gap:6px; }
 
   .nav-menu .nav-btn {
@@ -7418,7 +7418,7 @@ background: var(--surface-panel);
     letter-spacing:0;
   }
 
-  /* "Tarefas Globais" não cabe a 360px — trunca, não empurra a coluna do lado. */
+  /* "Global Tasks" does not fit at 360px — it truncates, it does not push the column next to it. */
   .nav-menu .nav-btn > span:not(.nav-icon) {
     max-width:100%;
     overflow:hidden;
@@ -7426,9 +7426,9 @@ background: var(--surface-panel);
     white-space:nowrap;
   }
 
-  /* O título "Projects" é redundante com a lista logo por baixo, e uma faixa inteira só para os
-     dois ícones custava 32px+gap. Vão para a linha da marca, que ficou meia vazia quando o botão de
-     colapsar saiu (ver mais abaixo) — fora do fluxo, sem mexer na ordem do DOM nem na de tabulação. */
+  /* The "Projects" title is redundant with the list right below it, and a whole band just for the
+     two icons cost 32px+gap. They move to the brand row, which was left half empty when the collapse
+     button went away (see further down) — out of flow, without touching the DOM order or the tab order. */
   .session-sidebar .sidebar-title { display:none; }
 
   .session-sidebar .session-sidebar-header {
@@ -7442,9 +7442,9 @@ background: var(--surface-panel);
     border-bottom:0;
   }
 
-  /* A caixa de pesquisa recolhe atrás da lupa: eram 26px+gap sempre ocupados por um campo que só
-     serve quando se está mesmo a procurar. Abri-la conta como filtragem (a tira sobe para 62dvh),
-     senão abrir a pesquisa voltava a empurrar a lista para fora do fold. */
+  /* The search box collapses behind the magnifier: it was 26px+gap always taken up by a field that only
+     serves when you are actually searching. Opening it counts as filtering (the strip goes up to 62dvh),
+     otherwise opening the search pushed the list out of the fold again. */
   .sidebar-header-actions .sidebar-search-toggle {
     display:inline-flex;
     align-items:center;
@@ -7466,7 +7466,7 @@ background: var(--surface-panel);
   .session-sidebar:not(.session-sidebar--search-open) .sidebar-search-row { display:none; }
   .session-sidebar .sidebar-search-row { margin-left:0; margin-right:0; }
 
-  /* Rodapé em fila: três blocos empilhados custavam 103px+gaps numa tira de 320px. */
+  /* Footer in one row: three stacked blocks cost 103px+gaps in a 320px strip. */
   .sidebar-main-bento .sidebar-footer-row {
     display:flex;
     flex-wrap:wrap;
@@ -7474,7 +7474,7 @@ background: var(--surface-panel);
     gap:6px;
   }
 
-  /* O par já é uma linha por si; aqui só larga as margens do desktop e ocupa a fila toda. */
+  /* The pair is already a row by itself; here it just drops the desktop margins and takes the whole row. */
   .sidebar-footer-row .sidebar-footer-pair { flex:1 1 100%; margin:0; gap:6px; }
 
   .sidebar-footer-row .sidebar-quick-session-btn,
@@ -7487,12 +7487,12 @@ background: var(--surface-panel);
     padding:0 6px;
   }
 
-  /* "Fechar inativas" tem o rótulo mais longo dos três e é a acção mais rara: a 360px ficava
-     cortado a meio de uma palavra. Leva fila própria — e desaparece quando está desactivado, que é
-     o estado normal (sem sessões inativas não há nada para fechar) e o que devolve a fila à lista. */
-  /* O "Fechar inativas" já vive DENTRO do par e sem rótulo (só "✕ (2)"), portanto não precisa da
-     fila própria que tinha quando era irmão dos outros dois — a `flex-basis:100%` de então dava-lhe
-     metade da barra e cortava o "Sessão rápida" ao lado. Aqui pede só o que ocupa. */
+  /* "Close inactive" has the longest label of the three and is the rarest action: at 360px it was
+     clipped in the middle of a word. It gets a row of its own — and it disappears when it is disabled, which
+     is the normal state (with no inactive sessions there is nothing to close) and what gives the row back to the list. */
+  /* "Close inactive" already lives INSIDE the pair and without a label (only "✕ (2)"), so it does not need the
+     row of its own it had when it was a sibling of the other two — the `flex-basis:100%` of back then gave it
+     half the sidebar and clipped the "Quick session" next to it. Here it asks only for what it takes. */
   .sidebar-footer-row .session-bulk-actions { flex:0 0 auto; min-width:0; width:auto; }
   .sidebar-footer-row .session-bulk-actions:has(.bulk-select-btn:disabled) { display:none; }
   .sidebar-footer-row .bulk-select-btn { min-height:44px; padding:0 8px; }
@@ -7501,12 +7501,12 @@ background: var(--surface-panel);
   .sidebar-footer-row .sidebar-settings-btn,
   .sidebar-footer-row .bulk-select-btn { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  /* Colapsar não faz nada nesta largura e faz parecer avariado: as ~40 declarações de
-     `.session-sidebar--collapsed` foram escritas para o rail de ícones do desktop e nenhuma delas
-     vive neste breakpoint. Medido a 390×844: colapsar deixava a caixa exterior pixel a pixel igual
-     (top 10, bottom 331, altura 321 antes e depois — zero altura recuperada), enquanto os botões de
-     navegação subiam de 30px para 44px e o cartão perdia fundo e borda.
-     Só se esconde o botão, não se desfaz o estado: `sidebarCollapsed` arranca sempre em `false` e
-     não persiste (App.tsx), portanto numa carga a esta largura o estado é inalcançável. */
+  /* Collapsing does nothing at this width and makes it look broken: the ~40 declarations of
+     `.session-sidebar--collapsed` were written for the desktop icon rail and none of them
+     lives in this breakpoint. Measured at 390×844: collapsing left the outer box pixel for pixel identical
+     (top 10, bottom 331, height 321 before and after — zero height recovered), while the navigation
+     buttons went up from 30px to 44px and the card lost its background and border.
+     Only the button is hidden, the state is not undone: `sidebarCollapsed` always starts at `false` and
+     does not persist (App.tsx), so on a load at this width the state is unreachable. */
   .sb-header .sidebar-collapse-btn { display:none; }
 }

@@ -1,10 +1,10 @@
 # Delta — Laravel 13 + Livewire 4 + Flux UI (+ Filament v5)
 
-Versoes verificadas Agosto 2026: Laravel 13.26.1 · Livewire 4.4.1 · Flux UI 2.17.0 ·
+Versions verified August 2026: Laravel 13.26.1 · Livewire 4.4.1 · Flux UI 2.17.0 ·
 Filament 5.7.6 · Pest 5.1.1.
 
-Esta e a via **por omissao** do `executar-projeto` — a Parte E1 da skill descreve ja esta stack.
-Aqui ficam so os extras.
+This is `execute-project`'s **default** route — Part E1 of the skill already describes this stack.
+Only the extras go here.
 
 ## Filament v5
 
@@ -14,26 +14,26 @@ php artisan filament:install --panels
 php artisan make:filament-user
 ```
 
-**Criar o utilizador nao e opcional.** Uma BD com 0 users devolve `/admin/login → 200` na mesma — a
-porta esta la, falta a chave. Ja houve documentacao a anunciar durante meses um admin que nao
-existia. Verificar pelo **efeito**: fazer login a serio, nao so ver o formulario.
+**Creating the user is not optional.** A DB with 0 users returns `/admin/login → 200` all the same —
+the door is there, the key is missing. Documentation has already announced, for months, an admin that
+did not exist. Check by **effect**: actually log in, not just look at the form.
 
-Gate de runtime do painel: submeter o login **e** confirmar que `window.Livewire` inicializa.
-Renderizar o formulario nao e prova. Pos-deploy, verificar o `content-type` dos assets JS servidos.
+Runtime gate for the panel: submit the login **and** confirm that `window.Livewire` initializes.
+Rendering the form is not evidence. Post-deploy, check the `content-type` of the JS assets served.
 
 ## Flux UI
 
-O Flux e **so Blade** — nao renderiza em HTML solto. Os mockups aproximam-no com HTML+Tailwind e
-marcam em comentario o componente real (`<!-- flux:button variant=primary -->`). Sem essas marcas,
-quem implementa reconstroi a decisao a partir do aspecto.
+Flux is **Blade only** — it does not render in standalone HTML. Mockups approximate it with
+HTML+Tailwind and mark the real component in a comment (`<!-- flux:button variant=primary -->`).
+Without those marks, whoever implements it rebuilds the decision from the looks.
 
-A versao paga (Flux Pro) tem componentes que a gratuita nao tem — confirmar qual esta licenciada
-antes de a listar no `docs/DESIGN.md` como disponivel.
+The paid version (Flux Pro) has components the free one does not — confirm which one is licensed
+before listing it in `docs/DESIGN.md` as available.
 
-## Armadilhas
+## Pitfalls
 
-- **`--phpunit` no `laravel new`** e obrigatorio mesmo indo usar Pest (senao instala Pest 4 e o
-  upgrade entra em conflito).
-- **`php -d memory_limit=1G`** se a suite crescer — o Larastan e a suite estouram o default.
-- **SQLite em dev, MySQL em producao** e a armadilha mais cara: `VARCHAR`, modo estrito e tipos de
-  data so falham no deploy. Correr migrations+seeders contra o motor de producao antes de publicar.
+- **`--phpunit` on `laravel new`** is mandatory even when you are going to use Pest (otherwise it
+  installs Pest 4 and the upgrade conflicts).
+- **`php -d memory_limit=1G`** if the suite grows — Larastan and the suite blow past the default.
+- **SQLite in dev, MySQL in production** is the most expensive pitfall: `VARCHAR`, strict mode and
+  date types only fail at deploy. Run migrations+seeders against the production engine before publishing.

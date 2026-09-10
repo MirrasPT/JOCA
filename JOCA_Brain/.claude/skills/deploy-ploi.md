@@ -1,7 +1,7 @@
 ---
 name: deploy-ploi
-description: "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD also invoke when: site setup, deploy script, zero downtime, atomic deploy, production, producao."
-triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
+description: "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, server, provision. SHOULD also invoke when: site setup, deploy script, zero downtime, atomic deploy, production."
+triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, server, provision, site setup, deploy script, zero downtime, atomic deploy, production, publish, put online, go to production, push to server, launch
 chain: deploy-executor
 ---
 # Deploy — Ploi.io
@@ -155,13 +155,13 @@ ploi login   # API token
 
 ## Common pitfalls
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |----------|-------|-----|
-| Deploy bloqueado | Comando interactivo | `--force` em migrate |
-| Zero downtime nao funciona | Plano Free/Basic | Requer Pro ou Unlimited |
-| Horizon nao reinicia | Falta terminate | `php artisan horizon:terminate` no deploy script |
-| Codigo antigo apos deploy | OPcache | `sudo -S service php8.3-fpm reload` no deploy script |
-| Storage perdido em atomic deploy | Sem symlink | Criar shared storage folder |
+| Deploy blocked | Interactive command | `--force` on migrate |
+| Zero downtime does not work | Free/Basic plan | Requires Pro or Unlimited |
+| Horizon does not restart | Missing terminate | `php artisan horizon:terminate` in the deploy script |
+| Stale code after deploy | OPcache | `sudo -S service php8.3-fpm reload` in the deploy script |
+| Storage lost on atomic deploy | No symlink | Create a shared storage folder |
 
 ---
 
@@ -176,8 +176,8 @@ ploi login   # API token
 - [ ] Scheduler configured
 - [ ] GitHub webhook configured for auto-deploy
 - [ ] `APP_ENV=production` and `APP_DEBUG=false`
-- [ ] **Teste negativo corrido**: `.git/config`, `.env`, logs, docs internos e versoes antigas do
-      entregavel dao **403/404** no URL publico (200 = credencial exposta, deploy falhado)
-- [ ] **Health-check pelo CORPO**, nao so pelo status — rota de API devolve JSON, nao o fallback HTML
-- [ ] Tamanho remoto de cada entry point (HTML, bundle JS/CSS) bate com o local
-> Bloco completo dos 4 passos de verificacao: agente `deploy-executor`, Step 4.
+- [ ] **Negative test run**: `.git/config`, `.env`, logs, internal docs and old versions of the
+      deliverable return **403/404** on the public URL (200 = exposed credential, failed deploy)
+- [ ] **Health-check on the BODY**, not just on the status — an API route returns JSON, not the HTML fallback
+- [ ] The remote size of every entry point (HTML, JS/CSS bundle) matches the local one
+> Full block of the 4 verification steps: `deploy-executor` agent, Step 4.

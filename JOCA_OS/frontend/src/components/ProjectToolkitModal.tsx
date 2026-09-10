@@ -19,9 +19,9 @@ function XIcon() {
   );
 }
 
-// Gestão do kit exclusivo do projecto (skills/agentes só dele) — nível 2 dentro de Settings, por
-// decisão explícita: ninguém precisa de acesso rápido a isto, fica a 2 cliques (Settings → Skills).
-// Conteúdo levantado tal-qual do antigo canal Overview.
+// Management of the project's exclusive kit (skills/agents that are its own) — level 2 inside
+// Settings, by explicit decision: nobody needs quick access to this, it sits 2 clicks away
+// (Settings → Skills). Content lifted as-is from the old Overview channel.
 export default function ProjectToolkitModal({ open, project, onClose, onCreateProjectSkill }: Props) {
   const [toolkit, setToolkit] = useState<Toolkit | null>(null);
   const [newToolName, setNewToolName] = useState('');
@@ -35,10 +35,10 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
     setCreationError('');
   }, [open, project.id]);
 
-  // Trap + Escape + restauro de foco próprios — não pode depender do modal por baixo (Settings),
-  // que fica em silêncio enquanto este está aberto (ver CreateProjectModal.tsx). Dois efeitos
-  // separados (capturar+focar vs. keydown) para a mesma razão que lá: nenhum re-executa por causa
-  // de uma prop `onClose` de identidade instável (fica numa ref).
+  // Its own trap + Escape + focus restore — it cannot depend on the modal underneath (Settings),
+  // which stays silent while this one is open (see CreateProjectModal.tsx). Two separate effects
+  // (capture+focus vs. keydown) for the same reason as there: neither re-runs because of an
+  // `onClose` prop with an unstable identity (it lives in a ref).
   const modalRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
@@ -87,16 +87,16 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
         <div className="project-modal-header">
           <div>
             <span className="project-modal-kicker">{project.name}</span>
-            <h2 id="toolkit-modal-title">Skills &amp; Agentes exclusivos</h2>
+            <h2 id="toolkit-modal-title">Exclusive Skills &amp; Agents</h2>
           </div>
-          <button className="project-modal-close" type="button" onClick={onClose} aria-label="Fechar"><XIcon /></button>
+          <button className="project-modal-close" type="button" onClick={onClose} aria-label="Close"><XIcon /></button>
         </div>
 
         <div className="project-toolkit-section">
           <div className="project-toolkit-cols">
             <div className="project-toolkit-col">
               <div className="project-toolkit-col-header">
-                <span>Skills Exclusivas</span>
+                <span>Exclusive Skills</span>
                 <span className="count-badge">{toolkit?.skills.length || 0}</span>
               </div>
               <div className="project-toolkit-list">
@@ -112,14 +112,14 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                   </div>
                 ))}
                 {(toolkit?.skills.length || 0) === 0 && (
-                  <div className="memory-empty-text">Nenhuma skill exclusiva.</div>
+                  <div className="memory-empty-text">No exclusive skill.</div>
                 )}
               </div>
             </div>
 
             <div className="project-toolkit-col">
               <div className="project-toolkit-col-header">
-                <span>Agentes Exclusivos</span>
+                <span>Exclusive Agents</span>
                 <span className="count-badge">{toolkit?.agents.length || 0}</span>
               </div>
               <div className="project-toolkit-list">
@@ -135,14 +135,14 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                   </div>
                 ))}
                 {(toolkit?.agents.length || 0) === 0 && (
-                  <div className="memory-empty-text">Nenhum agente exclusivo.</div>
+                  <div className="memory-empty-text">No exclusive agent.</div>
                 )}
               </div>
             </div>
           </div>
 
           <div className="add-toolkit-form">
-            <div className="add-toolkit-title">Criar Nova Ferramenta Exclusiva</div>
+            <div className="add-toolkit-title">Create New Exclusive Tool</div>
             <div className="memory-input-row">
               <select
                 value={newToolType}
@@ -150,13 +150,13 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                 className="project-toolkit-select"
               >
                 <option value="skills">Skill</option>
-                <option value="agents">Agente</option>
+                <option value="agents">Agent</option>
               </select>
               <input
                 type="text"
                 value={newToolName}
                 onChange={(e) => setNewToolName(e.target.value)}
-                placeholder={newToolType === 'skills' ? 'ex: php-refactor' : 'ex: reviewer-git'}
+                placeholder={newToolType === 'skills' ? 'e.g. php-refactor' : 'e.g. reviewer-git'}
                 className="project-toolkit-input"
               />
               <button
@@ -172,7 +172,7 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                       setNewToolName('');
                       onClose();
                     } else {
-                      setCreationError('Erro: callback para criar skill não fornecido.');
+                      setCreationError('Error: callback to create the skill not provided.');
                     }
                     return;
                   }
@@ -184,7 +184,7 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                     });
                     if (!res.ok) {
                       const err = await res.json();
-                      throw new Error(err.error || 'Erro desconhecido');
+                      throw new Error(err.error || 'Unknown error');
                     }
                     const data = await res.json();
                     setToolkit(data.items);
@@ -194,7 +194,7 @@ export default function ProjectToolkitModal({ open, project, onClose, onCreatePr
                   }
                 }}
               >
-                Criar
+                Create
               </button>
             </div>
             {creationError && <div className="toolkit-creation-error">{creationError}</div>}

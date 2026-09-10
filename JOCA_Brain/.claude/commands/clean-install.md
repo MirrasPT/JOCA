@@ -1,189 +1,189 @@
-# /clean-install — auditar, optimizar e consolidar instalações JOCA
+# /clean-install — audit, optimize and consolidate JOCA installations
 
-Para quando alguém já usa JOCA há tempo (possivelmente com várias cópias/versões na mesma
-máquina) e se queixa de **consumo excessivo de tokens**. Este comando não copia nada às cegas:
-audita tudo o que existe, compara com o baseline actual do `Joca-Open-Source`, propõe uma tabela de
-optimizações, e só depois de aprovada consolida a memória, arquiva as instalações antigas numa
-pasta `Old` e promove uma instalação nova, limpa e optimizada a produção.
+For when someone has been using JOCA for a while (possibly with several copies/versions on the
+same machine) and complains about **excessive token consumption**. This command copies nothing
+blindly: it audits everything that exists, compares it against the current `Joca-Open-Source` baseline,
+proposes a table of optimizations, and only once approved does it consolidate the memory, archive the
+old installations in an `Old` folder and promote a new, clean and optimized installation to production.
 
-**Objectivo em cada fase: reduzir tokens sem perder memória.** Nunca apagar — arquivar. Nunca
-aplicar sem mostrar a tabela e esperar aprovação explícita. Termina sempre com o **graphify**
-instalado e correndo sobre TODOS os projectos ligados ao JOCA + o próprio JOCA_Brain — é a peça
-final que torna a memória (de código E de conhecimento) barata de consultar dali em diante.
+**Objective in every phase: reduce tokens without losing memory.** Never delete — archive. Never
+apply without showing the table and waiting for explicit approval. It always ends with **graphify**
+installed and running over ALL the projects connected to JOCA + JOCA_Brain itself — it is the final
+piece that makes the memory (of code AND of knowledge) cheap to consult from then on.
 
-Scope: a máquina do utilizador (instalações JOCA + config/MCPs/CLIs relacionados + todos os
-projectos que o JOCA já conhece via `memory/projects/`). Não toca em ficheiros fora disto.
+Scope: the user's machine (JOCA installations + related config/MCPs/CLIs + every project that JOCA
+already knows via `memory/projects/`). It touches no files outside that.
 
 ---
 
-## Fase -1 — Onde é que isto está a correr (ler primeiro, sempre)
+## Phase -1 — Where this is running (read first, always)
 
-Este comando **nunca deve correr de dentro de uma instalação JOCA já existente e madura**
-(`memory/soul.md` já calibrado, sem sinais de acabar de ser clonada). Se corresse lá, estaria a
-tentar arquivar/mover a própria pasta de onde o Claude Code está a correr — self-reference, risco
-de estado inconsistente a meio. O fluxo correcto (documentado em `clean-install.md` da raiz do
-`Joca-Open-Source` + no `README.md` público): o utilizador cria uma pasta nova e vazia, abre um
-terminal Claude Code lá, e o bootstrap clona o `Joca-Open-Source` PARA DENTRO dela antes de este
-comando arrancar.
+This command **must never run from inside an already existing, mature JOCA installation**
+(`memory/soul.md` already calibrated, with no sign of having just been cloned). If it ran there, it
+would be trying to archive/move the very folder Claude Code is running from — self-reference, a risk
+of inconsistent state mid-flight. The correct flow (documented in the `clean-install.md` at the root of
+`Joca-Open-Source` + in the public `README.md`): the user creates a new, empty folder, opens a Claude
+Code terminal there, and the bootstrap clones `Joca-Open-Source` INTO it before this command
+starts.
 
-**Verificar ao arrancar:**
-- Se `memory/soul.md` do cwd já está calibrado (sem placeholders `<YOUR_*>`) e o repo tem histórico
-  de mais de poucos commits desde o clone → provável instalação madura, não bootstrap. PARAR e
-  instruir o utilizador a criar uma pasta nova vazia e recomeçar pelo `clean-install.md` da raiz.
-- Caso normal (bootstrap): cwd é uma cópia fresca do `Joca-Open-Source`, acabada de clonar — **esta
-  pasta é a instalação NOVA a partir de agora, e nunca entra na lista de "instalações antigas" que
-  a Fase 0/1 vai descobrir noutros sítios da máquina.** Não se move mais tarde (ver Fase 4).
+**Check at startup:**
+- If the cwd's `memory/soul.md` is already calibrated (no `<YOUR_*>` placeholders) and the repo has a
+  history of more than a few commits since the clone → probably a mature installation, not a bootstrap.
+  STOP and instruct the user to create a new empty folder and start again from the root `clean-install.md`.
+- Normal case (bootstrap): the cwd is a fresh copy of `Joca-Open-Source`, just cloned — **this
+  folder is the NEW installation from now on, and it never enters the list of "old installations"
+  that Phase 0/1 will discover elsewhere on the machine.** It is not moved later (see Phase 4).
 
-## Fase 0+1 — Descoberta e auditoria (delegada, read-only)
+## Phase 0+1 — Discovery and audit (delegated, read-only)
 
-Despachar `Agent(subagent_type="clean-install-audit")` com o brief:
-- Objectivo: encontrar TODAS as instalações JOCA nesta máquina **excepto o cwd actual** (é a
-  instalação nova, ver Fase -1 — não é um achado, é o baseline), inventariar MCPs/CLIs
-  relacionados, e comparar cada instalação encontrada contra ESTE cwd (já é o baseline mais
-  recente do `Joca-Open-Source`, clonado no bootstrap — não precisa de clonar outro).
-- Step 0 obrigatório: `Read(".claude/agents/clean-install-audit.md")` já traz a doutrina completa
-  (o agente lê-a a si próprio como primeiro passo).
-- Não aplicar nada. Não apagar nada. Só ler, comparar, e escrever o relatório.
-- Devolver: path do relatório (`~/joca-clean-install-report-<data>.md`) + resumo de 3-5 linhas
-  (quantas instalações encontradas, achado mais grave, poupança estimada de tokens).
+Dispatch `Agent(subagent_type="clean-install-audit")` with the brief:
+- Objective: find ALL the JOCA installations on this machine **except the current cwd** (it is the
+  new installation, see Phase -1 — it is not a finding, it is the baseline), inventory the related
+  MCPs/CLIs, and compare each installation found against THIS cwd (it is already the most recent
+  `Joca-Open-Source` baseline, cloned in the bootstrap — there is no need to clone another).
+- Mandatory Step 0: `Read(".claude/agents/clean-install-audit.md")` already carries the complete
+  doctrine (the agent reads it to itself as its first step).
+- Apply nothing. Delete nothing. Only read, compare, and write the report.
+- Return: the report's path (`~/joca-clean-install-report-<date>.md`) + a 3-5 line summary
+  (how many installations found, the most serious finding, the estimated token saving).
 
-Enquanto não houver relatório, não avançar para a Fase 2.
+While there is no report, do not advance to Phase 2.
 
-## Fase 2 — Tabela de recomendação + gate único
+## Phase 2 — Recommendation table + single gate
 
-Ler o relatório do agente. Apresentar ao utilizador uma tabela numerada:
+Read the agent's report. Present the user with a numbered table:
 
-| # | Categoria | Item | Estado actual | Recomendação | Impacto (tokens) | Risco |
+| # | Category | Item | Current state | Recommendation | Impact (tokens) | Risk |
 |---|---|---|---|---|---|---|
 
-Categorias: **OPTIMIZAR** (cortar bloat sem mudar comportamento — descriptions de agentes,
-CLAUDE.md/soul.md inchados) · **ACTUALIZAR** (skill/agente/regra atrás do baseline) · **APAGAR**
-(skill morta, MCP banido instalado, instalação duplicada) · **MCP→CLI** (trocar um MCP caro por um
-CLI equivalente) · **SUBSTITUIR** (ferramenta/plataforma diferente reduz custo) · **MANTER**
-(já está bem — lista para transparência, não para acção).
+Categories: **OPTIMIZE** (cut bloat without changing behavior — agent descriptions, bloated
+CLAUDE.md/soul.md) · **UPDATE** (skill/agent/rule behind the baseline) · **DELETE**
+(dead skill, banned MCP installed, duplicate installation) · **MCP→CLI** (swap an expensive MCP for an
+equivalent CLI) · **REPLACE** (a different tool/platform cuts the cost) · **KEEP**
+(already fine — listed for transparency, not for action).
 
-Perguntar também, explicitamente, separado da tabela: **o `soul.md`/`CLAUDE.md` actuais ainda
-reflectem quem a pessoa é?** Mostrar os valores actuais (autonomy_level, communication_mode,
-alignment do utilizador) e perguntar via `AskUserQuestion` — manter tal como está, ou recalibrar
-(mesmas 4 perguntas do `/migrate` Fase 4: autonomia, comunicação, tratamento de erros, auto-test).
+Also ask, explicitly and separately from the table: **do the current `soul.md`/`CLAUDE.md` still
+reflect who the person is?** Show the current values (autonomy_level, communication_mode, the
+user's alignment) and ask via `AskUserQuestion` — keep it as it is, or recalibrate
+(the same 4 questions as `/migrate` Phase 4: autonomy, communication, error handling, auto-test).
 
-**Gate obrigatório** — aceitar resposta em qualquer destas formas:
-- `all` — aplica tudo o que está na tabela.
-- `1,3,5` — só os números indicados.
-- `all except 4` — tudo menos o indicado.
-- `cancel` — pára aqui, nada muda, relatório fica guardado para revisão posterior.
+**Mandatory gate** — accept an answer in any of these forms:
+- `all` — applies everything in the table.
+- `1,3,5` — only the numbers given.
+- `all except 4` — everything but the one given.
+- `cancel` — stops here, nothing changes, the report is kept for later review.
 
-Nada da Fase 3 em diante corre sem esta resposta.
+Nothing from Phase 3 onwards runs without this answer.
 
-## Fase 3 — Aplicar (só após aprovação)
+## Phase 3 — Apply (only after approval)
 
-Esta pasta (cwd) já é um clone fresco do `Joca-Open-Source` — não há checkout/clone novo a fazer
-aqui, isso já aconteceu no bootstrap (Fase -1). Só falta aplicar por cima:
+This folder (cwd) is already a fresh clone of `Joca-Open-Source` — there is no new checkout/clone to
+do here, that already happened in the bootstrap (Phase -1). All that is left is to apply on top:
 
-1. Aplicar só os itens aprovados na Fase 2, por esta ordem de prioridade: paths mortos/segurança
-   primeiro, depois optimizações (cortes de bloat), depois actualizações, depois MCP→CLI/substituições.
-2. **Consolidar memória de TODAS as instalações antigas encontradas** (esta instalação, por ser
-   fresca, ainda não tem `memory/projects/`, `memory/tools/`, `memory/feedback/` populados):
-   - `memory/projects/*.md` — por nome de ficheiro; em conflito (mesmo nome, conteúdo diferente em
-     2+ instalações antigas), o `mtime` mais recente vence — anexar uma nota "conteúdo mais antigo
-     substituído, ver arquivo em `Old/`" para não perder rasto.
-   - `memory/tools/*.md` — idem.
-   - `memory/feedback/*` — **nunca se descarta**: agregar tudo; em conflito de NOME de ficheiro
-     (não de conteúdo), renomear com sufixo da instalação de origem em vez de sobrescrever.
-   - `memory/soul.md` — recalibrado (se decidido na Fase 2) ou copiado tal e qual da instalação
-     antiga mais recente.
-3. Regenerar `SKILL_INDEX.json` (`python3 .claude/scripts/build-skill-index.py`) e os agentes-espelho
-   (`node .claude/scripts/skill-agents.mjs`) sobre esta instalação.
-4. **Graphify é OBRIGATÓRIO nesta instalação** (ver `memory/tools/clis.md`) — se não estiver
-   instalado na máquina, instalar agora: `uv tool install graphifyy` (entrypoint `graphify`) +
-   `bash .claude/scripts/graphify-patch.sh`. Sem isto a Fase 6 abaixo não tem o que correr.
+1. Apply only the items approved in Phase 2, in this order of priority: dead paths/security
+   first, then optimizations (bloat cuts), then updates, then MCP→CLI/replacements.
+2. **Consolidate the memory of ALL the old installations found** (this installation, being
+   fresh, does not yet have `memory/projects/`, `memory/tools/`, `memory/feedback/` populated):
+   - `memory/projects/*.md` — by filename; on conflict (same name, different content in
+     2+ old installations), the most recent `mtime` wins — append a note "older content
+     replaced, see the archive in `Old/`" so the trail is not lost.
+   - `memory/tools/*.md` — likewise.
+   - `memory/feedback/*` — **never discarded**: aggregate everything; on a FILENAME conflict
+     (not a content one), rename with the source installation's suffix instead of overwriting.
+   - `memory/soul.md` — recalibrated (if so decided in Phase 2) or copied exactly as it is from the
+     most recent old installation.
+3. Regenerate `SKILL_INDEX.json` (`python3 .claude/scripts/build-skill-index.py`) and the mirror agents
+   (`node .claude/scripts/skill-agents.mjs`) over this installation.
+4. **Graphify is MANDATORY in this installation** (see `memory/tools/clis.md`) — if it is not
+   installed on the machine, install it now: `uv tool install graphifyy` (entrypoint `graphify`) +
+   `bash .claude/scripts/graphify-patch.sh`. Without this, Phase 6 below has nothing to run.
 
-## Fase 4 — Arquivar as instalações antigas + apontar produção para aqui (confirmação curta)
+## Phase 4 — Archive the old installations + point production here (short confirmation)
 
-**Esta instalação (cwd) NÃO se move** — o utilizador já escolheu este local de propósito ao criar
-a pasta no bootstrap (Fase -1). Só as instalações antigas se mexem, e só para arquivo. 1 linha de
-confirmação antes de mover seja o que for (soul.md: nunca irreversível/sem-volta-fácil sem
-confirmação explícita, mesmo sendo "mover" e não "apagar").
+**This installation (cwd) is NOT moved** — the user already chose this location deliberately when
+creating the folder in the bootstrap (Phase -1). Only the old installations move, and only to the
+archive. 1 line of confirmation before moving anything at all (soul.md: never irreversible/hard-to-undo
+without explicit confirmation, even when it is "move" and not "delete").
 
-1. Criar `Old/` (default: `$HOME/Old`, ou perguntar se já existir algo com esse nome).
-2. Mover (nunca apagar) CADA instalação antiga encontrada na Fase 0 para
-   `Old/<nome-original>-<data>` — preservar tudo, incluindo `.git/`.
-3. Actualizar `~/CLAUDE.md` (secção JOCA) para apontar para o path desta instalação (cwd) como a
-   produção — é o único "apontar produção para aqui" que este comando faz; nenhuma pasta se move
-   para nenhum outro sítio.
+1. Create `Old/` (default: `$HOME/Old`, or ask if something with that name already exists).
+2. Move (never delete) EACH old installation found in Phase 0 to
+   `Old/<original-name>-<date>` — preserve everything, including `.git/`.
+3. Update `~/CLAUDE.md` (the JOCA section) to point at this installation's path (cwd) as the
+   production one — it is the only "point production here" this command does; no folder is moved
+   anywhere else.
 
-## Fase 5 — Verificação final
+## Phase 5 — Final verification
 
-1. `node .claude/scripts/joca-doctor.mjs` na instalação nova — tem de sair limpo (exit 0).
-2. Se houver `JOCA_OS`: `npm run setup` + arrancar + `curl` ao health-check (mesmo padrão do
-   `/migrate` Fase 6).
+1. `node .claude/scripts/joca-doctor.mjs` on the new installation — it has to come out clean (exit 0).
+2. If there is a `JOCA_OS`: `npm run setup` + start it + `curl` the health-check (the same pattern as
+   `/migrate` Phase 6).
 
-## Fase 6 — Graphify em todos os projectos (obrigatória, corre sempre no fim)
+## Phase 6 — Graphify on every project (mandatory, always runs at the end)
 
-Só depois de tudo o resto estar feito (memória consolidada, instalação promovida, `joca-doctor.mjs`
-limpo): percorrer TODOS os projectos ligados ao JOCA (um `.md` por projecto em
-`memory/projects/*.md`, cada um com um campo `directorio:`/`path:` no frontmatter) e correr o
-graphify em cada um — este é o motivo de todo o resto: dar ao JOCA/Claude Code uma memória de
-código barata de consultar em vez de reabrir ficheiros gigantes.
+Only after everything else is done (memory consolidated, installation promoted, `joca-doctor.mjs`
+clean): walk through ALL the projects connected to JOCA (one `.md` per project in
+`memory/projects/*.md`, each with a `directorio:`/`path:` field in the frontmatter) and run
+graphify on each one — this is the reason for all the rest: giving JOCA/Claude Code a code
+memory that is cheap to consult instead of reopening giant files.
 
-Para cada projecto (path do frontmatter, ler um a um):
+For each project (the path from the frontmatter, read one by one):
 
 ```bash
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-do-projecto>'))"
-"$PY" .claude/scripts/graphify-deps.py "<path-do-projecto>"
+"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<project-path>'))"
+"$PY" .claude/scripts/graphify-deps.py "<project-path>"
 ```
 
-**Política de inclusão/exclusão (obrigatória, não alterar por projecto):**
-- **Incluir tudo o que é conteúdo**: código (html/css/js/ts/php/py/etc.), texto (com o conteúdo,
-  não só o nome do ficheiro), imagens (jpg/png/webp/svg/etc.), ficheiros de media (vídeo/áudio).
-  O graphify v0.8.5+ já mapeia código + docs/PDF/imagens/vídeo nativamente — não restringir tipos.
-- **Excluir só infra/dependências**: `node_modules/`, `vendor/`, `.venv/`, build output
-  (`dist/`, `build/`, `.next/`), lockfiles (`package-lock.json`, `*.lock`), cache, `.git/` — é
-  exactamente o que os `.graphifyignore` do repo já fazem (raiz + `JOCA_Brain/`); **não inventar
-  um `.graphifyignore` novo por projecto** a menos que o projecto tenha ruído próprio óbvio.
-- Nunca excluir por SER imagem/media/texto — só por SER infra/dependência/build.
+**Inclusion/exclusion policy (mandatory, do not change it per project):**
+- **Include everything that is content**: code (html/css/js/ts/php/py/etc.), text (with the content,
+  not just the filename), images (jpg/png/webp/svg/etc.), media files (video/audio).
+  graphify v0.8.5+ already maps code + docs/PDF/images/video natively — do not restrict types.
+- **Exclude only infra/dependencies**: `node_modules/`, `vendor/`, `.venv/`, build output
+  (`dist/`, `build/`, `.next/`), lockfiles (`package-lock.json`, `*.lock`), cache, `.git/` — it is
+  exactly what the repo's `.graphifyignore` files already do (root + `JOCA_Brain/`); **do not invent
+  a new `.graphifyignore` per project** unless the project has obvious noise of its own.
+- Never exclude something for BEING an image/media/text — only for BEING infra/dependency/build.
 
-Depois de cada projecto: confirmar que `<projecto>/graphify-out/graph.json` foi criado/actualizado
-(`mtime` recente). Se um projecto não tiver código (só design/conteúdo/marketing), sinalizar e
-saltar — mesma regra do `/start`.
+After each project: confirm that `<project>/graphify-out/graph.json` was created/updated
+(recent `mtime`). If a project has no code (only design/content/marketing), flag it and
+skip it — the same rule as `/start`.
 
-**No fim, correr também sobre o próprio JOCA_Brain** (conhecimento + código, não só um dos dois):
+**At the end, run it over JOCA_Brain itself too** (knowledge + code, not just one of the two):
 
 ```bash
-node .claude/scripts/joca-graph.mjs                # grafo de conhecimento (skills/agents/commands/projects)
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"   # código do próprio Brain
+node .claude/scripts/joca-graph.mjs                # knowledge graph (skills/agents/commands/projects)
+"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"   # the Brain's own code
 ```
 
-Relatório final desta fase: quantos projectos tinham grafo desactualizado/inexistente e foram
-(re)gerados, quantos foram saltados (sem código), e confirmação de que o grafo do próprio
-`JOCA_Brain` está fresco.
+Final report of this phase: how many projects had a stale/non-existent graph and were
+(re)generated, how many were skipped (no code), and confirmation that `JOCA_Brain`'s own graph
+is fresh.
 
-## Fase 7 — Relatório final do comando
+## Phase 7 — Final report of the command
 
-- o que foi arquivado (paths dentro de `Old/`);
-- o que foi fundido (memória consolidada, com nota de qualquer conflito resolvido por mtime);
-- o que foi optimizado (com estimativa antes/depois de tokens — CLAUDE.md+soul.md, descriptions
-  de agentes, MCPs trocados);
-- estado do graphify: instalado/actualizado, quantos projectos ganharam grafo novo, JOCA_Brain
-  incluído;
-- o que ficou pendente para a pessoa decidir à mão (ex.: skills sinalizadas como "possivelmente
-  mortas" mas não apagadas automaticamente).
+- what was archived (paths inside `Old/`);
+- what was merged (consolidated memory, with a note on any conflict resolved by mtime);
+- what was optimized (with a before/after token estimate — CLAUDE.md+soul.md, agent
+  descriptions, MCPs swapped);
+- graphify state: installed/updated, how many projects gained a new graph, JOCA_Brain
+  included;
+- what was left pending for the person to decide by hand (e.g.: skills flagged as "possibly
+  dead" but not deleted automatically).
 
 ---
 
-## Regras (não negociáveis)
+## Rules (non-negotiable)
 
-- **Nunca correr este comando de dentro de uma instalação JOCA já existente e madura** (ver Fase
-  -1) — só a partir de uma pasta nova, vazia, clonada de fresco no bootstrap. Se detectado o
-  cenário errado, parar e redirigir para o bootstrap, não continuar.
-- **Esta instalação (cwd) nunca se move** — só as antigas vão para `Old/`. Não há "promover
-  movendo", há "arquivar as outras e apontar `~/CLAUDE.md` para aqui".
-- Nunca apagar uma instalação antiga — só mover para `Old/`.
-- Nunca aplicar uma recomendação sem ela ter passado pela tabela da Fase 2 e pelo gate.
-- Nunca copiar `memory/` às cegas — sempre passar pela consolidação por `mtime` da Fase 3.
-- `browser-use` e o MCP do Playwright (`@playwright/mcp`) são achados de categoria **APAGAR**
-  sempre que encontrados — política vigente desde 2026-08-05 (ver `memory/tools/clis.md`).
-- `graphify` é **obrigatório** — instalar se faltar (Fase 3), nunca saltar a Fase 6.
-- A Fase 6 nunca corre antes da Fase 4/5 — só faz sentido gerar grafos sobre a instalação já
-  verificada, não sobre a antiga que vai para `Old/`.
+- **Never run this command from inside an already existing, mature JOCA installation** (see Phase
+  -1) — only from a new, empty folder, freshly cloned in the bootstrap. If the wrong scenario is
+  detected, stop and redirect to the bootstrap, do not continue.
+- **This installation (cwd) never moves** — only the old ones go to `Old/`. There is no "promote by
+  moving", there is "archive the others and point `~/CLAUDE.md` here".
+- Never delete an old installation — only move it to `Old/`.
+- Never apply a recommendation without it having gone through the Phase 2 table and the gate.
+- Never copy `memory/` blindly — always go through the Phase 3 consolidation by `mtime`.
+- `browser-use` and the Playwright MCP (`@playwright/mcp`) are **DELETE**-category findings
+  whenever they are found — policy in force since 2026-08-05 (see `memory/tools/clis.md`).
+- `graphify` is **mandatory** — install it if missing (Phase 3), never skip Phase 6.
+- Phase 6 never runs before Phase 4/5 — it only makes sense to generate graphs over the already
+  verified installation, not over the old one that goes to `Old/`.

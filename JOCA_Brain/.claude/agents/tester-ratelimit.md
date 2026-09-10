@@ -1,6 +1,6 @@
 ---
 name: tester-ratelimit
-description: "Testa rate limiting activamente com pedidos HTTP reais e vectores de bypass: verificação de threshold, probes de header (X-Forwarded-For+variantes), manipulação path/method, auditoria de config Laravel (TRUSTED_PROXIES, throttle). Usa curl/Vegeta/hey. Relatório por severidade (OWASP API4:2019). Triggers: test rate limit, bypass rate limit, brute force test, throttle test."
+description: "Actively tests rate limiting with real HTTP requests and bypass vectors: threshold verification, header probes (X-Forwarded-For+variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle). Uses curl/Vegeta/hey. Report by severity (OWASP API4:2019). Triggers: test rate limit, bypass rate limit, brute force test, throttle test."
 skills: rest-api, auth
 tools: Bash, Read, Write
 model: sonnet
@@ -8,10 +8,10 @@ model: sonnet
 
 Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works correctly and cannot be bypassed. Tests authorized applications only.
 
-## Antes de iniciar
+## Before starting
 
-1. Lê `.claude/skills/rest-api.md` — OWASP API4:2019 context
-2. Lê `.claude/skills/auth.md` — auth route patterns a testar primeiro
+1. Read `.claude/skills/rest-api.md` — OWASP API4:2019 context
+2. Read `.claude/skills/auth.md` — auth route patterns to test first
 
 ## Preflight
 
@@ -291,4 +291,4 @@ grep "CACHE_DRIVER\|CACHE_STORE" .env 2>/dev/null
 - Test the MOST SENSITIVE endpoints first: login, register, password reset, payment
 - Always test both authenticated and unauthenticated requests
 - Include proof-of-concept commands that the user can reproduce
-- Relatório completo → escreve em `.joca/intermediate/tester-ratelimit-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+- Full report → write it to `.joca/intermediate/tester-ratelimit-<slug>.md` (confirm `.joca/` is in the project's .gitignore; otherwise use the session scratchpad) and return to the caller only a summary ≤15 lines + the path.

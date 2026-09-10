@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Stop hook — auto-checkpoint light (memória de sessão sem /save manual).
-// Tem de correr ANTES do auto-test-dispatch.js no array Stop: este lê a
-// .joca/test-queue.jsonl que aquele consome/limpa.
-// Salvaguardas anti-ruído: (a) só dispara com ≥1 ficheiro de código na queue;
-// (b) throttle 10 min entre auto-checkpoints; (c) poda própria: mantém só os
-// 4 auto- mais recentes (não empurra os checkpoints manuais para fora do KEEP=12).
-// Fail-open: qualquer erro → exit 0 silencioso. Complementa o /save (prosa/feedback
-// continuam exclusivos do /save) — isto é só o snapshot machine-readable p/ /resume.
+// Stop hook — light auto-checkpoint (session memory without a manual /save).
+// Must run BEFORE auto-test-dispatch.js in the Stop array: this one reads the
+// .joca/test-queue.jsonl that the other one consumes/clears.
+// Anti-noise safeguards: (a) only fires with ≥1 code file in the queue;
+// (b) 10 min throttle between auto-checkpoints; (c) its own pruning: keeps only the
+// 4 most recent auto- ones (does not push the manual checkpoints out of KEEP=12).
+// Fail-open: any error → silent exit 0. It complements /save (prose/feedback
+// remain exclusive to /save) — this is only the machine-readable snapshot for /resume.
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -28,19 +28,19 @@ try {
       const e = JSON.parse(l);
       const f = e.file || e.path || e.file_path;
       if (f && !files.includes(f)) files.push(f);
-    } catch (_) { /* linha partida — ignora */ }
+    } catch (_) { /* broken line — ignore */ }
   }
   const code = files.filter((f) => /\.(php|ts|tsx|js|jsx|mjs|cjs|py|cs|vue|go|rb|css|html|blade\.php)$/i.test(f));
   if (!code.length) process.exit(0);
 
-  // slug igual ao do joca-checkpoint (git toplevel → basename; fallback cwd)
+  // slug identical to joca-checkpoint's (git toplevel → basename; fallback cwd)
   let slug;
   try {
     slug = path.basename(execFileSync('git', ['rev-parse', '--show-toplevel'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim());
   } catch (_) { slug = path.basename(cwd); }
   slug = slug.replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown';
 
-  // throttle + poda dos auto- antigos
+  // throttle + pruning of the old auto- ones
   const dir = path.join(MEM_CKPT, slug);
   if (fs.existsSync(dir)) {
     const autos = fs.readdirSync(dir).filter((f) => f.endsWith('-auto.md')).sort().reverse();
@@ -54,10 +54,10 @@ try {
   }
 
   const body =
-    `## Ficheiros tocados (auto)\n` +
+    `## Files touched (auto)\n` +
     files.slice(0, 30).map((f) => `- ${f}`).join('\n') +
     (files.length > 30 ? `\n- (+${files.length - 30})` : '') +
-    `\n## Nota\n- Checkpoint automático no Stop — para estado completo correr /save\n`;
+    `\n## Note\n- Automatic checkpoint on Stop — for the full state run /save\n`;
 
   execFileSync('node', [CKPT_SCRIPT, 'save', '--title', 'auto', '--status', 'wip'], {
     input: body,

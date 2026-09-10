@@ -1,4 +1,4 @@
-> Parte da skill `filament` — carregado on-demand via Read().
+> Part of the `filament` skill — loaded on-demand via Read().
 
 ## Testing (Pest + Livewire)
 
@@ -31,5 +31,5 @@ it('can create a product', function () {
 ## Deploy
 ```bash
 php artisan optimize
-php artisan filament:optimize   # SO PRODUCAO -- quebra dev local
+php artisan filament:optimize   # PRODUCTION ONLY -- breaks local dev
 ```

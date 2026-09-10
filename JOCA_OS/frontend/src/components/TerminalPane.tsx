@@ -80,8 +80,8 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
   const resizeObserver = useRef<ResizeObserver | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Aviso não-bloqueante: caminho original escondido pelo SO (sandbox do Explorer) OU upload
-  // recusado pelo backend. Sem o segundo caso, uma recusa não deixava rasto nenhum no ecrã.
+  // Non-blocking notice: original path hidden by the OS (Explorer sandbox) OR upload refused by the
+  // backend. Without the second case, a refusal left no trace at all on screen.
   const [dropHint, setDropHint] = useState<{ text: string; tone: 'info' | 'erro' } | null>(null);
   const dropHintTimer = useRef<number | null>(null);
   const flashDropHint = useCallback((text: string, tone: 'info' | 'erro' = 'info') => {
@@ -105,9 +105,9 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       cursorWidth: 2,
       scrollback: TERMINAL_SCROLLBACK_LINES,
       allowTransparency: false,
-      // Apps que imprimem branco truecolor/ANSI cru (fora da palette do theme) ficam
-      // invisíveis num fundo claro — xterm ajusta o foreground por célula para manter
-      // contraste mínimo, independente da cor pedida pela app.
+      // Apps that print raw truecolor/ANSI white (outside the theme's palette) end up invisible on
+      // a light background — xterm adjusts the foreground per cell to keep a minimum contrast,
+      // independent of the color the app asked for.
       minimumContrastRatio: 4.5,
     });
 
@@ -123,7 +123,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
 
     // Terminal-friendly Ctrl+C / Ctrl+V (Cmd on macOS):
     //  • Ctrl+C WITH a selection → copy to clipboard (don't send ^C). No selection → let ^C through
-    //    (interrupt), the standard Windows-Terminal behaviour.
+    //    (interrupt), the standard Windows-Terminal behavior.
     //  • Ctrl+Shift+V → paste clipboard text into the PTY (Ctrl+V alone stays free for xterm's own
     //    paste path, which also feeds the image-paste handler below).
     term.attachCustomKeyEventHandler((e) => {
@@ -219,10 +219,10 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       if (paths.length === 0) {
         if (dropHadFilesWithoutPath(cap)) {
           // Explorer drag (#3): no real path → upload a copy to JOCA_Drops and paste that path.
-          flashDropHint('Arrasta do painel Ficheiros do JOCA ou usa Ctrl+V para anexar');
+          flashDropHint('Drag from the JOCA Files panel or use Ctrl+V to attach');
           void resolveDrop(cap).then(({ paths: uploaded, errors }) => {
             if (uploaded.length) { onInput(sessionId, uploaded.map(quotePath).join(' ')); termRef.current?.focus(); }
-            if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+            if (errors.length) flashDropHint(`Not attached — ${errors.join(' · ')}`, 'erro');
           });
         }
         return;
@@ -243,7 +243,7 @@ export default function TerminalPane({ sessionId, isActive, onInput, onResize, o
       e.preventDefault();
       e.stopPropagation();
       const { paths, errors } = await uploadPastedImages(imgs, Date.now());
-      if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+      if (errors.length) flashDropHint(`Not attached — ${errors.join(' · ')}`, 'erro');
       if (paths.length === 0) return;
       onInput(sessionId, paths.map(quotePath).join(' '));
       termRef.current?.focus();

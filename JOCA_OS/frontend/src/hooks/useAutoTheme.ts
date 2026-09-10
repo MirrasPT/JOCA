@@ -3,28 +3,28 @@ import { applyStoredTheme, parseHM, readThemeSettings, writeThemeSettings } from
 import type { ThemeMode } from '../lib/theme';
 
 /**
- * Mantém o tema certo enquanto a app está aberta.
+ * Keeps the right theme while the app is open.
  *
- * O modo dinâmico só serve para alguma coisa se a troca acontecer sozinha com a app já aberta —
- * daí o tick. Não basta o `setInterval`: um portátil que adormece atravessa a fronteira das horas
- * com os timers congelados, por isso reavalia-se também ao voltar ao separador.
+ * The dynamic mode is only worth something if the switch happens on its own with the app already
+ * open — hence the tick. `setInterval` is not enough: a laptop that sleeps crosses the hour
+ * boundary with the timers frozen, so it is re-evaluated on coming back to the tab too.
  *
- * Vive no App (sempre montado) e lê o localStorage a cada tick, em vez de receber props: quem
- * muda as definições (SettingsPanel) escreve lá, e não é preciso passar estado por meia app.
+ * It lives in the App (always mounted) and reads localStorage on every tick instead of receiving
+ * props: whoever changes the settings (SettingsPanel) writes there, and no state travels half the app.
  */
 export function useAutoTheme() {
   useEffect(() => {
     applyStoredTheme();
 
-    // O servidor é a cópia que viaja entre browsers/máquinas: num browser novo o localStorage está
-    // vazio e só isto traz a escolha de volta.
+    // The server is the copy that travels between browsers/machines: in a new browser localStorage
+    // is empty and only this brings the choice back.
     fetch('/ui-settings')
       .then((r) => r.json())
       .then((s: { themeMode?: string; theme?: string; themeDayStart?: string; themeNightStart?: string }) => {
         const current = readThemeSettings();
         let mode: ThemeMode | null = null;
         if (s.themeMode === 'dark' || s.themeMode === 'light' || s.themeMode === 'auto') mode = s.themeMode;
-        else if (s.theme === 'light' || s.theme === 'dark') mode = s.theme; // definições anteriores ao modo dinâmico
+        else if (s.theme === 'light' || s.theme === 'dark') mode = s.theme; // settings from before the dynamic mode
         if (!mode) return;
         writeThemeSettings({
           mode,
@@ -35,7 +35,7 @@ export function useAutoTheme() {
       })
       .catch(() => {});
 
-    // 30s: a troca acontece no minuto certo sem custo nenhum (é uma comparação de inteiros).
+    // 30s: the switch happens on the right minute at no cost at all (it is an integer comparison).
     const timer = window.setInterval(applyStoredTheme, 30_000);
     const onWake = () => { if (!document.hidden) applyStoredTheme(); };
     document.addEventListener('visibilitychange', onWake);
@@ -48,15 +48,15 @@ export function useAutoTheme() {
   }, []);
 }
 
-/** Aplica e guarda uma escolha nova (local + servidor). Usado pelo painel de definições. */
+/** Applies and saves a new choice (local + server). Used by the settings panel. */
 export function saveThemeSettings(mode: ThemeMode, dayStart: string, nightStart: string) {
   writeThemeSettings({ mode, dayStart, nightStart });
   const resolved = applyStoredTheme();
   fetch('/ui-settings', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    // `theme` continua a ir com o valor resolvido: é o que o arranque do `index.html` lê como
-    // atalho e o que clientes antigos entendem.
+    // `theme` still goes with the resolved value: it is what `index.html`'s startup reads as a
+    // shortcut and what old clients understand.
     body: JSON.stringify({ themeMode: mode, themeDayStart: dayStart, themeNightStart: nightStart, theme: resolved }),
   }).catch(() => {});
 }

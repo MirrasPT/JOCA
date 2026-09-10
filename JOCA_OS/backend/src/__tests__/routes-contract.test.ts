@@ -1,11 +1,11 @@
-// Testes de contrato HTTP — análise 2026-08-19 §3: 54 endpoints, zero testes de rota.
-// Começa pelo maior risco por euro: /projects e /sessions. Montam-se os routers reais num
-// app Express de teste (sem auth — o requireAuth é middleware do server, testado à parte),
-// com JOCA_DATA_DIR num tmpdir para não tocar no data/ real.
+// HTTP contract tests — analysis 2026-08-19 §3: 54 endpoints, zero route tests.
+// Starts with the biggest risk per euro: /projects and /sessions. The real routers are mounted on
+// a test Express app (no auth — requireAuth is server middleware, tested separately),
+// with JOCA_DATA_DIR in a tmpdir so the real data/ is never touched.
 //
-// O isolamento do data/ real vem do setup global do vitest (JOCA_DATA_DIR → dir de teste
-// partilhado). Limpar SEMPRE via DATA_DIR importado — um tmpdir próprio aqui limpa o sítio
-// errado e os testes herdam estado uns dos outros (aconteceu na 1ª versão deste ficheiro).
+// The isolation of the real data/ comes from vitest's global setup (JOCA_DATA_DIR → shared test
+// dir). ALWAYS clean via the imported DATA_DIR — a tmpdir of our own here cleans the wrong
+// place and the tests inherit state from one another (it happened in the 1st version of this file).
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
@@ -23,7 +23,7 @@ function app() {
   return a;
 }
 
-// pasta real dentro da home — o safePath exige-o
+// real folder inside the home — safePath requires it
 const projectDir = fs.mkdtempSync(path.join(os.homedir(), '.joca-test-'));
 
 beforeEach(() => {
@@ -42,7 +42,7 @@ afterAll(() => {
 });
 
 describe('GET /projects', () => {
-  it('devolve uma lista, mesmo sem estado no disco', async () => {
+  it('returns a list, even with no state on disk', async () => {
     const res = await request(app()).get('/projects');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -50,35 +50,35 @@ describe('GET /projects', () => {
 });
 
 describe('POST /projects', () => {
-  it('400 sem path', async () => {
+  it('400 without path', async () => {
     const res = await request(app()).post('/projects').send({ name: 'x' });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/path/i);
   });
 
-  it('400 com path fora da home (traversal)', async () => {
+  it('400 with a path outside the home (traversal)', async () => {
     const res = await request(app()).post('/projects').send({ path: '/etc' });
     expect(res.status).toBe(400);
   });
 
-  it('400 com path que não existe', async () => {
-    const res = await request(app()).post('/projects').send({ path: path.join(os.homedir(), 'nao-existe-' + Date.now()) });
+  it('400 with a path that does not exist', async () => {
+    const res = await request(app()).post('/projects').send({ path: path.join(os.homedir(), 'does-not-exist-' + Date.now()) });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/exist/i);
   });
 
-  it('cria com path válido: devolve id, deriva o nome da pasta, e o duplicado dá 409', async () => {
+  it('creates with a valid path: returns id, derives the name from the folder, and the duplicate gives 409', async () => {
     const a = app();
     const res = await request(a).post('/projects').send({ path: projectDir });
     expect(res.status).toBe(200);
     expect(res.body.id).toBeTruthy();
     expect(res.body.name).toBe(path.basename(projectDir));
-    // contrato da memória: nasce com quick commands
+    // memory contract: it is born with quick commands
     const dup = await request(a).post('/projects').send({ path: projectDir });
     expect(dup.status).toBe(409);
   });
 
-  it('trunca nome a 120 chars e ignora hasCode não-booleano', async () => {
+  it('truncates the name to 120 chars and ignores non-boolean hasCode', async () => {
     const res = await request(app()).post('/projects').send({ path: projectDir, name: 'a'.repeat(300), hasCode: 'yes' });
     expect(res.status).toBe(200);
     expect(res.body.name.length).toBeLessThanOrEqual(120);
@@ -86,44 +86,44 @@ describe('POST /projects', () => {
   });
 });
 
-describe('PATCH e DELETE /projects/:id', () => {
-  it('PATCH dá 404 para id inexistente; DELETE é idempotente (200 sempre)', async () => {
+describe('PATCH and DELETE /projects/:id', () => {
+  it('PATCH gives 404 for a nonexistent id; DELETE is idempotent (always 200)', async () => {
     const a = app();
     expect((await request(a).patch('/projects/nope').send({ name: 'x' })).status).toBe(404);
-    // contrato real: o DELETE apaga-se-existir e devolve ok — repetir a remoção não é erro
+    // real contract: DELETE deletes-if-present and returns ok — repeating the removal is not an error
     expect((await request(a).delete('/projects/nope')).status).toBe(200);
     expect((await request(a).delete('/projects/nope')).body).toEqual({ ok: true });
   });
 
-  it('PATCH renomeia e persiste', async () => {
+  it('PATCH renames and persists', async () => {
     const a = app();
     const created = await request(a).post('/projects').send({ path: projectDir });
-    const res = await request(a).patch(`/projects/${created.body.id}`).send({ name: 'renomeado' });
+    const res = await request(a).patch(`/projects/${created.body.id}`).send({ name: 'renamed' });
     expect(res.status).toBe(200);
     const list = await request(a).get('/projects');
-    expect(list.body.find((p: { id: string }) => p.id === created.body.id)?.name).toBe('renomeado');
+    expect(list.body.find((p: { id: string }) => p.id === created.body.id)?.name).toBe('renamed');
   });
 });
 
 describe('GET /sessions', () => {
-  it('devolve lista sem lançar PTYs', async () => {
+  it('returns a list without spawning PTYs', async () => {
     const res = await request(app()).get('/sessions');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
 });
 
-describe('rotas de sessão com id inexistente', () => {
-  it('input valida o corpo ANTES de procurar a sessão (400 sem text, 404 com)', async () => {
+describe('session routes with a nonexistent id', () => {
+  it('input validates the body BEFORE looking up the session (400 without text, 404 with)', async () => {
     const a = app();
     expect((await request(a).post('/sessions/nope/input').send({})).status).toBe(400);
     expect((await request(a).post('/sessions/nope/input').send({ text: 'x' })).status).toBe(404);
   });
 
-  it('buffer dá 404; interrupt/delete são soft-fail (200 + ok:false)', async () => {
+  it('buffer gives 404; interrupt/delete are soft-fail (200 + ok:false)', async () => {
     const a = app();
     expect((await request(a).get('/sessions/nope/buffer')).status).toBe(404);
-    // contrato real: interromper/matar o que já não existe não é erro — reporta ok:false
+    // real contract: interrupting/killing what no longer exists is not an error — it reports ok:false
     const int = await request(a).post('/sessions/nope/interrupt');
     expect(int.status).toBe(200);
     expect(int.body.ok).toBe(false);

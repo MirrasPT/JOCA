@@ -1,53 +1,53 @@
-# Critérios de revisão
+# Review criteria
 
-O que se procura ao rever código neste projeto.
+What to look for when reviewing code in this project.
 
-Lido pelo subagente `revisor` (`.claude/agents/revisor.md`), que o carrega
-explicitamente. Se um dia tiverem Claude Code Review — research preview, só em
-subscrições Team ou Enterprise — este ficheiro também é lido por ele. O comando
-local `/code-review` **não** o lê.
+Read by the `reviewer` sub-agent (`.claude/agents/reviewer.md`), which loads it
+explicitly. If one day you have Claude Code Review — research preview, only on
+Team or Enterprise subscriptions — this file is read by it too. The local
+`/code-review` command does **not** read it.
 
-Manter curto: cada linha é lida em todas as revisões.
+Keep it short: every line is read on every review.
 
-## Prioridades, por esta ordem
+## Priorities, in this order
 
-1. **Cumprimento do requisito** — o código faz o que o issue pede, e nada que
-   estivesse declarado fora de âmbito?
-2. **Correção** — casos limite: vazio, nulo, zero, negativo, muito grande,
-   concorrente. Condições de erro sem tratamento.
-3. **Segurança** — input não validado, segredos no código, injeção,
-   autorização em falta em operações sensíveis.
-4. **Convenções** — as que estão escritas em `.ai/guidelines/`,
-   `.claude/rules/` e nos documentos de `docs/`. O `CLAUDE.md` também serve
-   para ler (é onde o Boost junta tudo) — o que não se faz é **editá-lo**,
-   porque é regenerado.
-5. **Interface** — quando o diff toca em views: cumpre o `docs/DESIGN.md`?
-   Usa os componentes existentes? Tem estado vazio e de erro?
-6. **Qualidade dos testes** — derivam dos critérios de aceitação do issue, ou
-   apenas confirmam o que o código já faz? Um teste que passaria com qualquer
-   implementação não é um teste.
+1. **Requirement compliance** — does the code do what the issue asks, and nothing
+   that was declared out of scope?
+2. **Correctness** — edge cases: empty, null, zero, negative, very large,
+   concurrent. Error conditions with no handling.
+3. **Security** — unvalidated input, secrets in the code, injection,
+   missing authorization on sensitive operations.
+4. **Conventions** — the ones written in `.ai/guidelines/`,
+   `.claude/rules/` and in the `docs/` documents. `CLAUDE.md` is also there
+   to read (it is where Boost gathers everything) — what you do not do is **edit it**,
+   because it is regenerated.
+5. **Interface** — when the diff touches views: does it comply with `docs/DESIGN.md`?
+   Does it use the existing components? Does it have an empty state and an error state?
+6. **Test quality** — do they derive from the issue's acceptance criteria, or do
+   they only confirm what the code already does? A test that would pass with any
+   implementation is not a test.
 
-## Específico de Laravel
+## Laravel-specific
 
-- **N+1 queries** — relações carregadas em ciclos sem `with()`
-- **Mass assignment** — `$fillable`/`$guarded` coerentes com o que o request aceita
-- **Autorização** — policies ou gates nas ações que tocam dados de outro utilizador
-- **Validação** — form requests, não validação manual espalhada pelo controlador
-- **Migrações** — reversíveis; nunca alterar uma migração já aplicada em produção
-- **Trabalho pesado em request** que devia ser job em fila
+- **N+1 queries** — relations loaded in loops without `with()`
+- **Mass assignment** — `$fillable`/`$guarded` consistent with what the request accepts
+- **Authorization** — policies or gates on the actions that touch another user's data
+- **Validation** — form requests, not manual validation scattered through the controller
+- **Migrations** — reversible; never change a migration already applied in production
+- **Heavy work in a request** that should be a queued job
 
-## Não comentar
+## Do not comment on
 
-- Formatação e estilo — é trabalho do Pint
-- Preferências pessoais sem justificação técnica
-- Reescritas de código que está correto
+- Formatting and style — that is Pint's job
+- Personal preferences with no technical justification
+- Rewrites of code that is correct
 
-## Formato
+## Format
 
-Para cada problema: ficheiro e linha, o que está errado, a consequência
-concreta, e uma sugestão.
+For each problem: file and line, what is wrong, the concrete
+consequence, and a suggestion.
 
-Classificar como **bloqueia** · **devia corrigir** · **nota**.
+Classify as **blocks** · **should fix** · **note**.
 
-Se não houver nada que bloqueie, dizê-lo claramente. Uma revisão que encontra
-sempre alguma coisa deixa de ser levada a sério.
+If there is nothing that blocks, say so clearly. A review that always finds
+something stops being taken seriously.

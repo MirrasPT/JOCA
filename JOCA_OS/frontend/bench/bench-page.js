@@ -22,7 +22,7 @@
 
   // --- corpus -------------------------------------------------------------
   // Output that looks like a coding CLI: file paths, diffs, log levels, spinners,
-  // 256-colour and truecolour SGR, bold/dim, the occasional box-drawing rule.
+  // 256-color and truecolour SGR, bold/dim, the occasional box-drawing rule.
   const WORDS = ['src', 'components', 'TerminalPane.tsx', 'server.ts', 'session', 'pty',
     'websocket', 'buffer', 'resize', 'chunk', 'render', 'commit', 'branch', 'ok', 'warn',
     'failed', 'passed', 'skipped', 'module', 'import', 'export', 'const', 'return', 'await',
@@ -40,7 +40,7 @@
         // box-drawing rule (wide-ish glyphs, exercises the glyph atlas)
         line = '\x1b[38;5;240m' + '─'.repeat(60 + ((rnd() * 30) | 0)) + '\x1b[0m';
       } else if (kind < 0.3) {
-        // log line with level colour + dim timestamp
+        // log line with level color + dim timestamp
         const lvl = pick([['\x1b[32m', 'INFO '], ['\x1b[33m', 'WARN '], ['\x1b[31m', 'ERROR'], ['\x1b[36m', 'DEBUG']]);
         let msg = '';
         for (let i = 0; i < 6 + ((rnd() * 8) | 0); i++) msg += pick(WORDS) + ' ';
@@ -53,7 +53,7 @@
         for (let i = 0; i < 4 + ((rnd() * 10) | 0); i++) body += pick(WORDS) + ' ';
         line = fg + ' ' + body + '\x1b[0m';
       } else if (kind < 0.6) {
-        // 256-colour segments, several SGR switches per line (worst case for cell attrs)
+        // 256-color segments, several SGR switches per line (worst case for cell attrs)
         let s = '';
         for (let i = 0; i < 5 + ((rnd() * 6) | 0); i++) {
           s += '\x1b[38;5;' + ((rnd() * 255) | 0) + 'm' + pick(WORDS) + ' ';

@@ -1,9 +1,9 @@
-// Tabs dos terminais de um projecto — a navegação entre agentes, no sítio onde toda a gente já
-// espera encontrá-la (em cima do que ela controla), em vez de uma coluna fixa ao lado.
+// Tabs for a project's terminals — navigation between agents, in the place everyone already
+// expects to find it (on top of what it controls), instead of a fixed column beside it.
 //
-// Substitui a antiga lista lateral `WorkersChannel`: com um agente, a coluna gastava 285px para
-// mostrar uma linha; com cinco, era uma lista onde se procurava. Uma tab por terminal resolve os
-// dois casos e devolve a largura ao terminal.
+// It replaces the old `WorkersChannel` side list: with one agent, the column spent 285px to show
+// a single row; with five, it was a list you had to search. One tab per terminal solves both
+// cases and gives the width back to the terminal.
 import { useEffect, useRef, useState } from 'react';
 import type { CliProfileInfo, SessionInfo } from '../../types';
 import InlineName from '../InlineName';
@@ -19,14 +19,14 @@ interface Props {
   activeId: string | null;
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
-  /** Renomear a sessão (duplo clique no nome da tab). Ausente = nome não editável. */
+  /** Rename the session (double click on the tab name). Absent = name not editable. */
   onRename?: (id: string, name: string) => void;
   onNew: (cli?: string) => void;
 }
 
 /**
- * Uma tab por terminal do projecto. Fonte única: as sessões do WebSocket. Havia aqui uma segunda
- * fonte — a pool de áreas do gestor de projecto —, removida com ele.
+ * One tab per project terminal. Single source: the WebSocket sessions. There used to be a second
+ * source here — the project manager's pool of areas —, removed along with it.
  */
 export function buildTabs(projectSessions: SessionInfo[]): TerminalTab[] {
   return projectSessions.map((s) => ({
@@ -47,8 +47,8 @@ function CloseIcon() {
 export default function TerminalTabs({
   tabs, activeId, onSelect, onClose, onRename, onNew,
 }: Props) {
-  // Fechar mata trabalho a meio — confirma-se na própria tab, como no resto da app, em vez de um
-  // modal por cima do terminal.
+  // Closing kills work mid-flight — it is confirmed on the tab itself, as in the rest of the app,
+  // instead of a modal on top of the terminal.
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cliMenuOpen, setCliMenuOpen] = useState(false);
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[] | null>(null);
@@ -74,13 +74,13 @@ export default function TerminalTabs({
 
   return (
     <div className="pw-tabbar">
-      <div className="pw-tabs" role="tablist" aria-label="Terminais do projecto">
+      <div className="pw-tabs" role="tablist" aria-label="Project terminals">
         {tabs.map((t) => {
           const active = t.id === activeId;
           return (
             <div key={t.id} className={`pw-tab ${active ? 'pw-tab--active' : ''}`}>
-              {/* `div[role=tab]` e não `<button>`: o nome é editável e um <input> não pode viver
-                  dentro de um botão. O comportamento de teclado é reposto à mão. */}
+              {/* `div[role=tab]` and not `<button>`: the name is editable and an <input> cannot live
+                  inside a button. The keyboard behavior is restored by hand. */}
               <div
                 role="tab"
                 tabIndex={active ? 0 : -1}
@@ -90,10 +90,10 @@ export default function TerminalTabs({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(t.id); }
                 }}
-                // O estado vai no nome acessível (o ponto verde é decorativo) — esta app não tem
-                // classe utilitária de texto só-para-leitor, e um <span> escondido "à mão" aqui
-                // apareceu mesmo no ecrã.
-                aria-label={`${t.label}${t.working ? ' — a trabalhar' : ''}`}
+                // The state goes in the accessible name (the green dot is decorative) — this app has
+                // no screen-reader-only text utility class, and a <span> hidden "by hand" here
+                // actually showed up on screen.
+                aria-label={`${t.label}${t.working ? ' — working' : ''}`}
               >
                 <span className={`pw-tab-dot ${t.working ? 'pw-tab-dot--working' : ''}`} aria-hidden />
                 <InlineName
@@ -102,21 +102,21 @@ export default function TerminalTabs({
                   onActivate={() => onSelect(t.id)}
                   className="pw-tab-label"
                   inputClassName="pw-tab-name-input"
-                  title={`${t.label} — duplo-clique renomeia`}
+                  title={`${t.label} — double-click renames`}
                 />
               </div>
               {confirmId === t.id ? (
                 <span className="pw-tab-confirm">
-                  <button type="button" className="pw-tab-confirm-yes" onClick={() => { setConfirmId(null); onClose(t.id); }}>fechar</button>
-                  <button type="button" className="pw-tab-confirm-no" onClick={() => setConfirmId(null)}>não</button>
+                  <button type="button" className="pw-tab-confirm-yes" onClick={() => { setConfirmId(null); onClose(t.id); }}>close</button>
+                  <button type="button" className="pw-tab-confirm-no" onClick={() => setConfirmId(null)}>no</button>
                 </span>
               ) : (
                 <button
                   type="button"
                   className="pw-tab-close"
                   onClick={() => setConfirmId(t.id)}
-                  aria-label={`Fechar terminal ${t.label}`}
-                  title="Fechar este terminal"
+                  aria-label={`Close terminal ${t.label}`}
+                  title="Close this terminal"
                 >
                   <CloseIcon />
                 </button>
@@ -125,24 +125,24 @@ export default function TerminalTabs({
           );
         })}
 
-        {/* O "+" acompanha a última tab: com poucos terminais, o botão fixo à direita ficava longe
-            de onde se está a olhar. Este é só "abrir mais um" — a escolha do CLI vive no botão da
-            direita, que não é podado pelo scroll horizontal desta fila. */}
+        {/* The "+" follows the last tab: with few terminals, the fixed button on the right sat far
+            from where you are looking. This one is just "open one more" — the CLI choice lives in
+            the button on the right, which is not clipped by this row's horizontal scroll. */}
         <button
           type="button"
           className="pw-tab-add"
           onClick={() => onNew()}
-          title="Abrir um terminal novo"
-          aria-label="Abrir um terminal novo"
+          title="Open a new terminal"
+          aria-label="Open a new terminal"
         >+</button>
       </div>
 
-      {/* Fora da fila de tabs de propósito — ver a nota no `.pw-tabs` do CSS. */}
+      {/* Outside the tab row deliberately — see the note on `.pw-tabs` in the CSS. */}
       <div className="pw-tab-new-wrap" ref={newWrapRef}>
-        <button type="button" className="pw-tab-new" onClick={() => onNew()} title="Abrir um terminal novo (escolhe o CLI na seta ao lado)" aria-label="Abrir um terminal novo">+</button>
-        <button type="button" className="pw-tab-new-caret" onClick={openCliMenu} aria-haspopup="menu" aria-expanded={cliMenuOpen} aria-label="Escolher o CLI do terminal novo">▾</button>
+        <button type="button" className="pw-tab-new" onClick={() => onNew()} title="Open a new terminal (choose the CLI in the arrow beside it)" aria-label="Open a new terminal">+</button>
+        <button type="button" className="pw-tab-new-caret" onClick={openCliMenu} aria-haspopup="menu" aria-expanded={cliMenuOpen} aria-label="Choose the new terminal's CLI">▾</button>
         {cliMenuOpen && (
-          <div className="pw-cli-menu" role="menu" aria-label="CLIs disponíveis">
+          <div className="pw-cli-menu" role="menu" aria-label="Available CLIs">
             {(cliProfiles ?? []).map((p) => (
               <button
                 key={p.id}
@@ -152,11 +152,11 @@ export default function TerminalTabs({
                 disabled={!p.available}
                 onClick={() => { setCliMenuOpen(false); onNew(p.id); }}
               >
-                {p.label}{p.available ? '' : ' (não instalado)'}
+                {p.label}{p.available ? '' : ' (not installed)'}
               </button>
             ))}
-            {cliProfiles === null && <div className="pw-cli-item pw-cli-item--loading">A carregar…</div>}
-            {cliProfiles?.length === 0 && <div className="pw-cli-item pw-cli-item--loading">Sem perfis CLI.</div>}
+            {cliProfiles === null && <div className="pw-cli-item pw-cli-item--loading">Loading…</div>}
+            {cliProfiles?.length === 0 && <div className="pw-cli-item pw-cli-item--loading">No CLI profiles.</div>}
           </div>
         )}
       </div>

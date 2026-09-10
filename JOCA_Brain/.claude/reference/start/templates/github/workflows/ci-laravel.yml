@@ -1,14 +1,14 @@
-# Fase C3 — CI: formatação, análise estática e testes.
+# Phase C3 — CI: formatting, static analysis and tests.
 #
-# ⚠️ SUBSTITUI o .github/workflows/tests.yml que vem no starter kit.
-#    Apagar esse ficheiro — se ficarem os dois, o do starter kit corre em
-#    PHP 8.3 e parte assim que o Pest 5 entrar.
+# ⚠️ REPLACES the .github/workflows/tests.yml that comes in the starter kit.
+#    Delete that file — if both stay, the starter kit's one runs on
+#    PHP 8.3 and breaks as soon as Pest 5 comes in.
 #
-# Pressupõe: Pest 5 (PHP 8.4+), Pint e Larastan (já vêm no starter kit,
-# com phpstan.neon na raiz).
+# Assumes: Pest 5 (PHP 8.4+), Pint and Larastan (they already come in the
+# starter kit, with phpstan.neon at the root).
 #
-# Base de dados: SQLite em memória, como o phpunit.xml do starter kit define.
-# Se o projeto precisar de MySQL nos testes, ver a nota no fim do ficheiro.
+# Database: SQLite in memory, as the starter kit's phpunit.xml defines.
+# If the project needs MySQL in the tests, see the note at the end of the file.
 
 name: CI
 
@@ -30,7 +30,7 @@ jobs:
           extensions: pdo_sqlite, sqlite3
           coverage: none
 
-      - name: Localizar a cache do Composer
+      - name: Locate the Composer cache
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
@@ -42,18 +42,18 @@ jobs:
 
       - run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Preparar ambiente
+      - name: Prepare environment
         run: |
           cp .env.example .env
           php artisan key:generate
 
-      - name: Pint (formatação)
+      - name: Pint (formatting)
         run: ./vendor/bin/pint --test
 
-      - name: Larastan (análise estática)
+      - name: Larastan (static analysis)
         run: ./vendor/bin/phpstan analyse --no-progress
 
-      # Se o projeto tiver frontend a compilar (Vite), descomentar:
+      # If the project has a frontend to compile (Vite), uncomment:
       # - uses: actions/setup-node@v7
       #   with:
       #     node-version: '24'
@@ -67,8 +67,8 @@ jobs:
         run: ./vendor/bin/pest
 
 # ---------------------------------------------------------------------------
-# Se precisarem mesmo de MySQL (funcionalidades que dependem do motor:
-# JSON columns, full-text search, tipos específicos), acrescentar ao job:
+# If you really do need MySQL (features that depend on the engine:
+# JSON columns, full-text search, specific types), add to the job:
 #
 #     services:
 #       mysql:
@@ -81,11 +81,11 @@ jobs:
 #           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
 #           --health-interval=10s --health-timeout=5s --health-retries=5
 #
-# e trocar as variáveis do step do Pest para DB_CONNECTION=mysql,
+# and switch the Pest step's variables to DB_CONNECTION=mysql,
 # DB_HOST=127.0.0.1, DB_PORT=3306, DB_DATABASE=testing,
 # DB_USERNAME=root, DB_PASSWORD=root.
 #
-# Nota: as variáveis de ambiente do step ganham sobre o <env> do phpunit.xml
-# apenas porque este não define force="true". Se alterarem o phpunit.xml,
-# confirmar que continua assim.
+# Note: the step's environment variables win over phpunit.xml's <env>
+# only because it does not set force="true". If you change phpunit.xml,
+# confirm that it stays that way.
 # ---------------------------------------------------------------------------

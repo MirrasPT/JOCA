@@ -424,9 +424,9 @@
   border: 1px solid var(--border-faint);
   border-radius: 12px;
   overflow: hidden;
-  /* Preto fixo a 18% dava um poço no escuro e uma laje cinzenta no claro (o mesmo problema que a
-     nota abaixo já descrevia para o breadcrumb e o rodapé, mas o contentor tinha ficado de fora).
-     `--bg-input` é o token do "campo encaixado" e vira branco no claro. */
+  /* Fixed black at 18% gave a pit in dark and a grey slab in light (the same problem the note
+     below already described for the breadcrumb and the footer, but the container had been left out).
+     `--bg-input` is the "inset field" token and turns white in light. */
   background: var(--bg-input);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-surface) 2%, transparent);
 }
@@ -452,7 +452,7 @@
 .file-browser--embedded .fb-search-input {
   height: 30px;
 }
-/* Overlays por tema: um preto fixo funcionava no escuro e virava laje cinzenta no claro. */
+/* Overlays per theme: a fixed black worked in dark and turned into a grey slab in light. */
 .file-browser--embedded .fb-breadcrumb {
   background: var(--surface-soft);
 }
@@ -1071,10 +1071,10 @@
   cursor: pointer;
 }
 
-/* ─── Save all (cabeçalho) ──────────────────────────────────────────
-   O botão vive ao lado do "Novo projecto" e o resultado do envio fica por baixo, na mesma coluna:
-   uma acção que escreve em N terminais tem de dizer em quantos escreveu, e o sítio para isso é
-   onde o dedo acabou de estar — não uma notificação do sistema que ele pode nem ter autorizado. */
+/* ─── Save all (header) ─────────────────────────────────────────────
+   The button lives next to "New project" and the result of the send sits below it, in the same
+   column: an action that writes into N terminals has to say how many it wrote into, and the place
+   for that is where the finger has just been — not a system notification he may not even have allowed. */
 .dashboard-header-side {
   display: flex;
   flex-direction: column;
@@ -1083,7 +1083,7 @@
 }
 
 .db-saveall-result {
-  /* Slot fixo: reservado mesmo vazio, senão o cabeçalho salta quando a mensagem aparece. */
+  /* Fixed slot: reserved even when empty, otherwise the header jumps when the message appears. */
   min-height: 14px;
   margin: 0;
   font-size: 11px;

@@ -1,4 +1,4 @@
-> Parte da skill `filament` — carregado on-demand via Read().
+> Part of the `filament` skill — loaded on-demand via Read().
 
 ## Multi-tenancy -- CRITICAL
 
@@ -12,9 +12,9 @@ Select::make('team_id')
     ->searchable()
     ->preload()
 
-// Validacao tenant-aware:
-->scopedUnique()    // NAO ->unique()
-->scopedExists()    // NAO ->exists()
+// Tenant-aware validation:
+->scopedUnique()    // NOT ->unique()
+->scopedExists()    // NOT ->exists()
 ```
 
 Without this = **data leak between tenants**.

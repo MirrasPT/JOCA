@@ -15,10 +15,10 @@ origin: local
 npm install @anthropic-ai/claude-agent-sdk
 ```
 
-**After install:** read `.d.ts` files as source of truth. Never trust online docs alone — the SDK ships types that reflect actual runtime behaviour. Online docs lag or are incomplete.
+**After install:** read `.d.ts` files as source of truth. Never trust online docs alone — the SDK ships types that reflect actual runtime behavior. Online docs lag or are incomplete.
 
 ```bash
-# Os tipos vivem na RAIZ do pacote, nao em dist/ (sdk.d.ts tem ~7000 linhas)
+# The types live at the package ROOT, not in dist/ (sdk.d.ts has ~7000 lines)
 ls node_modules/@anthropic-ai/claude-agent-sdk/*.d.ts   # sdk.d.ts, sdk-tools.d.ts, bridge.d.ts
 grep -n "resume\|mcpServers\|createSdkMcpServer" node_modules/@anthropic-ai/claude-agent-sdk/sdk.d.ts
 ```
@@ -127,28 +127,28 @@ const server = createSdkMcpServer({
     tool(
       'tool_name',
       'Tool description for Claude',
-      { input: z.string() },          // zod raw shape (nao z.object(...))
-      async ({ input }) => ({          // handler — devolve CallToolResult
-        content: [{ type: 'text', text: `resultado: ${input}` }],
+      { input: z.string() },          // zod raw shape (not z.object(...))
+      async ({ input }) => ({          // handler — returns CallToolResult
+        content: [{ type: 'text', text: `result: ${input}` }],
       }),
-      // 5o parametro opcional: { annotations?, searchHint?, alwaysLoad? }
+      // optional 5th parameter: { annotations?, searchHint?, alwaysLoad? }
     ),
   ],
 });
 ```
 
-**Ligar ao modelo** — as tools chegam como `mcp__<server>__<tool>`:
+**Connect to the model** — the tools arrive as `mcp__<server>__<tool>`:
 
 ```ts
 query({ prompt, options: {
-  tools: [],                              // desliga TODOS os built-ins (Bash/Read/Write)
-  mcpServers: { joca: server },           // so as tuas tools existem
-  allowedTools: ['mcp__joca__tool_name'], // auto-aprova (NAO restringe — quem restringe e `tools`)
-  permissionMode: 'default',              // sem ferramentas de FS nao precisas de bypassPermissions
+  tools: [],                              // turns ALL built-ins off (Bash/Read/Write)
+  mcpServers: { joca: server },           // only your tools exist
+  allowedTools: ['mcp__joca__tool_name'], // auto-approves (does NOT restrict — `tools` is what restricts)
+  permissionMode: 'default',              // with no FS tools you don't need bypassPermissions
 }});
 ```
 
-⚠ **`permissionMode: 'bypassPermissions'` = `--dangerously-skip-permissions`**, que o CLI **recusa** quando corre como root. Um agente com `tools: []` nao precisa dele — usa `'default'` + `allowedTools`.
+⚠ **`permissionMode: 'bypassPermissions'` = `--dangerously-skip-permissions`**, which the CLI **refuses** when running as root. An agent with `tools: []` does not need it — use `'default'` + `allowedTools`.
 
 ---
 
@@ -171,40 +171,40 @@ function submitToPty(pty: IPty, text: string, delayMs = 80): void {
 
 ---
 
-## Conversa multi-turno (chat persistente)
+## Multi-turn conversation (persistent chat)
 
-O SDK **nao aceita** um array de mensagens. O historico vem de uma sessao dele:
+The SDK does **not accept** an array of messages. The history comes from one of its own sessions:
 
 ```ts
-// turno 1 — guarda o session_id que vem no evento result
+// turn 1 — save the session_id that comes in the result event
 let sessionId: string | undefined;
-for await (const msg of query({ prompt: 'ola', options })) {
+for await (const msg of query({ prompt: 'hello', options })) {
   if (msg.type === 'result') sessionId = msg.session_id;   // sdk.d.ts: SDKResultSuccess.session_id
 }
 
-// turno 2 — o SDK recarrega o historico daquela conversa
-query({ prompt: 'e antes disso?', options: { ...options, resume: sessionId } });
+// turn 2 — the SDK reloads the history of that conversation
+query({ prompt: 'and before that?', options: { ...options, resume: sessionId } });
 ```
 
-- `resume: string` — retoma uma sessao. `continue: true` retoma a mais recente do cwd (**exclusivo** com resume).
-- `sessionId` — forca um UUID teu; `forkSession` ramifica; `resumeSessionAt` retoma ate um uuid de mensagem.
-- **Nunca** reconstruas o historico colando o transcript no prompt: custa tokens em cada turno e degrada-se.
+- `resume: string` — resumes a session. `continue: true` resumes the most recent one for the cwd (**exclusive** with resume).
+- `sessionId` — forces a UUID of your own; `forkSession` branches; `resumeSessionAt` resumes up to a message uuid.
+- **Never** rebuild the history by pasting the transcript into the prompt: it costs tokens on every turn and degrades.
 
-### Streaming input (injectar sem forcar turno)
+### Streaming input (inject without forcing a turn)
 
-`prompt` tambem aceita `AsyncIterable<SDKUserMessage>`. Cada mensagem pode trazer:
-- `priority: 'now' | 'next' | 'later'` — prioridade da injeccao
-- **`shouldQuery: false`** — anexa ao transcript **sem** disparar um turno do assistente (funde na proxima)
+`prompt` also accepts `AsyncIterable<SDKUserMessage>`. Each message can carry:
+- `priority: 'now' | 'next' | 'later'` — injection priority
+- **`shouldQuery: false`** — appends to the transcript **without** firing an assistant turn (merges into the next one)
 
-Util para "o worker produziu output novo, mete no contexto mas nao acordes o agente ainda".
-Em streaming mode o objecto `Query` expoe ainda `interrupt()`, `setModel()`, `setPermissionMode()`,
-`setMcpServers()`, `getContextUsage()` e `close()`.
+Useful for "the worker produced new output, put it in the context but don't wake the agent yet".
+In streaming mode the `Query` object also exposes `interrupt()`, `setModel()`, `setPermissionMode()`,
+`setMcpServers()`, `getContextUsage()` and `close()`.
 
 ## Session spawn pattern (UI broadcast) — JOCA
 
-No JOCA_OS o `SessionManager` emite `'spawn'` com `{ session }`; e o `server.ts` que traduz isso para
-o broadcast WS `{ type: 'session_created', session: SessionInfo }`. Sem esse broadcast a sessao existe
-no backend mas nao aparece na UI.
+In JOCA_OS the `SessionManager` emits `'spawn'` with `{ session }`; it is `server.ts` that translates it
+into the WS broadcast `{ type: 'session_created', session: SessionInfo }`. Without that broadcast the
+session exists in the backend but does not appear in the UI.
 
 ---
 
@@ -219,7 +219,7 @@ This SDK has sparse public documentation. When a method or option is not confirm
 
 ## Pure text completion — disable tools (no side effects)
 
-**The Agent SDK is an AGENT, not a completer.** `query()` ships the built-in tools (Bash, Read, Edit, …) **ON by default** even when you pass no `mcpServers`. So using it as a plain "rewrite this text" / "summarise" call is dangerous: given an imperative prompt ("lê os meus emails com o gws e resume"), the model will **actually run the tools** (executes `gws`, returns real emails) instead of rewriting the instruction. A system prompt saying "don't execute" does **not** stop it — the model has the tools and uses them.
+**The Agent SDK is an AGENT, not a completer.** `query()` ships the built-in tools (Bash, Read, Edit, …) **ON by default** even when you pass no `mcpServers`. So using it as a plain "rewrite this text" / "summarize" call is dangerous: given an imperative prompt ("read my emails with gws and summarize"), the model will **actually run the tools** (executes `gws`, returns real emails) instead of rewriting the instruction. A system prompt saying "don't execute" does **not** stop it — the model has the tools and uses them.
 
 For a pure, side-effect-free text completion, **disable all tools**:
 

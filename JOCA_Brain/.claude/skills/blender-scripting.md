@@ -1,48 +1,48 @@
 ---
 name: blender-scripting
-description: "Escrever e correr scripts bpy headless: construir cenas, transformar objectos, modificadores, importar/exportar 3D, batch de .blend, hierarquia e custom properties. MUST be invoked when the user says: bpy, script blender, automatizar blender, batch blend, importar modelo, exportar modelo, converter 3d, glb, gltf, fbx, obj, stl, usd. SHOULD also invoke when: geometria por codigo, modificador, boolean, array, mirror, subdivision, renomear objectos em massa, limpar cena, hierarquia 3d."
-triggers: bpy, script blender, blender python, automatizar blender, headless blender, batch blend, importar modelo 3d, exportar modelo 3d, converter 3d, glb, gltf, fbx, obj, stl, usd, alembic, modificador, modifier, boolean, array modifier, mirror, subdivision surface, solidify, bevel, limpar cena, clear scene, renomear objectos, hierarquia 3d, parent, collection, custom property, mathutils, geometry nodes
+description: "Write and run headless bpy scripts: build scenes, transform objects, modifiers, 3D import/export, batch of .blend, hierarchy and custom properties. MUST be invoked when the user says: bpy, blender script, automate blender, batch blend, import model, export model, convert 3d, glb, gltf, fbx, obj, stl, usd. SHOULD also invoke when: geometry by code, modifier, boolean, array, mirror, subdivision, bulk rename objects, clear scene, 3d hierarchy."
+triggers: bpy, blender script, blender python, automate blender, headless blender, batch blend, import 3d model, export 3d model, convert 3d, glb, gltf, fbx, obj, stl, usd, alembic, modifier, boolean, array modifier, mirror, subdivision surface, solidify, bevel, clear scene, rename objects, 3d hierarchy, parent, collection, custom property, mathutils, geometry nodes
 chain: blender-render
 ---
 
 # Blender Scripting — bpy headless
 
-Construir e manipular cenas por código. Sem GUI, sem cliques, reprodutível.
+Build and manipulate scenes by code. No GUI, no clicks, reproducible.
 
-Entrada e contrato de execução: skill `blender` (binário, verificação de versão, loop de verificação).
-Deltas de API entre versões: `Read(".claude/reference/blender-api-5x.md")`.
+Entry point and execution contract: skill `blender` (binary, version check, verification loop).
+API deltas between versions: `Read(".claude/reference/blender-api-5x.md")`.
 
-## Os três namespaces
+## The three namespaces
 
 ```python
 import bpy
 
-bpy.data      # os dados do ficheiro — acesso directo, rápido, sem contexto. PREFERIR.
-bpy.context   # estado actual — objecto activo, selecção, cena
-bpy.ops       # operadores (o que um clique faz) — precisam de contexto correcto, mais frágeis
+bpy.data      # the file's data — direct access, fast, no context. PREFER THIS.
+bpy.context   # current state — active object, selection, scene
+bpy.ops       # operators (what a click does) — need the right context, more fragile
 ```
 
-**Regra:** `bpy.data` para ler e escrever propriedades; `bpy.ops` só quando não há equivalente
-(adicionar primitivas, aplicar modificadores, import/export). Um `bpy.ops` com o objecto errado
-activo falha em silêncio ou age no objecto errado — o erro mais comum em scripts headless.
+**Rule:** `bpy.data` to read and write properties; `bpy.ops` only when there is no equivalent
+(adding primitives, applying modifiers, import/export). A `bpy.ops` with the wrong object active
+fails silently or acts on the wrong object — the most common error in headless scripts.
 
 ```python
-# Antes de qualquer bpy.ops que dependa de selecção:
+# Before any bpy.ops that depends on selection:
 bpy.ops.object.select_all(action='DESELECT')
 obj.select_set(True)
 bpy.context.view_layer.objects.active = obj
 ```
 
-## Limpar a cena — sempre, antes de construir
+## Clear the scene — always, before building
 
-O ficheiro de arranque **já tem** Cube + Camera + Light. Não os apagar é a causa nº1 de renders
-"vazios" ou tapados: o cubo por omissão fica na origem, exactamente onde tu pões o teu objecto.
+The startup file **already has** Cube + Camera + Light. Not deleting them is the #1 cause of
+"empty" or covered renders: the default cube sits at the origin, exactly where you put your object.
 
 ```python
 import bpy
 
 def clear_scene():
-    """Cena vazia + dados órfãos removidos."""
+    """Empty scene + orphan data removed."""
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
     for coll in (bpy.data.meshes, bpy.data.materials, bpy.data.curves,
@@ -54,10 +54,10 @@ def clear_scene():
 def setup_units(system='METRIC', scale=1.0):
     s = bpy.context.scene
     s.unit_settings.system = system
-    s.unit_settings.scale_length = scale   # 1 unidade Blender = 1 metro
+    s.unit_settings.scale_length = scale   # 1 Blender unit = 1 metre
 ```
 
-## Criar e transformar
+## Create and transform
 
 ```python
 import bpy, math
@@ -65,28 +65,28 @@ from mathutils import Vector, Euler, Matrix
 
 bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 0))
 obj = bpy.context.active_object
-obj.name = "SM_Caixa"
+obj.name = "SM_Box"
 
 obj.location       = (3, 0, 1)
-obj.rotation_euler = (0, 0, math.radians(45))    # RADIANOS, sempre
+obj.rotation_euler = (0, 0, math.radians(45))    # RADIANS, always
 obj.scale          = (1, 2, 0.5)
 
-# Aplicar transformações (congelar no mesh) — necessário antes de exportar para engine
+# Apply transforms (freeze into the mesh) — required before exporting to an engine
 bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
-# Origem para a base (pivot no chão) — o que engines esperam em props
+# Origin at the base (pivot on the floor) — what engines expect for props
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
 obj.location.z += obj.dimensions.z / 2
 
-# Hierarquia sem mexer na posição visual
+# Hierarchy without moving the visual position
 child.parent = parent
 child.matrix_parent_inverse = parent.matrix_world.inverted()
 ```
 
-Primitivas: `primitive_cube_add` · `_uv_sphere_add` · `_ico_sphere_add` · `_cylinder_add` ·
+Primitives: `primitive_cube_add` · `_uv_sphere_add` · `_ico_sphere_add` · `_cylinder_add` ·
 `_cone_add` · `_torus_add` · `_plane_add` · `_grid_add` · `_monkey_add`.
 
-## Modificadores — não destrutivos até se aplicarem
+## Modifiers — non-destructive until applied
 
 ```python
 m = obj.modifiers.new(name="Bevel", type='BEVEL')
@@ -99,48 +99,48 @@ arr.count, arr.relative_offset_displace = 5, (1.1, 0, 0)
 boo = obj.modifiers.new(name="Cut", type='BOOLEAN')
 boo.operation, boo.object, boo.solver = 'DIFFERENCE', cutter, 'EXACT'
 
-# Aplicar (precisa do objecto activo)
+# Apply (needs the active object)
 bpy.context.view_layer.objects.active = obj
 bpy.ops.object.modifier_apply(modifier="Bevel")
 ```
 
-**Ordem importa:** a stack corre de cima para baixo. `Mirror → Array → Bevel → Subdivision` produz
-resultado diferente de `Bevel → Mirror`. Bevel depois de Subdivision quase nunca é o que se quer.
+**Order matters:** the stack runs top to bottom. `Mirror → Array → Bevel → Subdivision` produces a
+different result from `Bevel → Mirror`. Bevel after Subdivision is almost never what you want.
 
-Tipos úteis: `MIRROR` `ARRAY` `BEVEL` `SUBSURF` `SOLIDIFY` `BOOLEAN` `DECIMATE` `WELD` `REMESH`
+Useful types: `MIRROR` `ARRAY` `BEVEL` `SUBSURF` `SOLIDIFY` `BOOLEAN` `DECIMATE` `WELD` `REMESH`
 `SCREW` `CURVE` `SHRINKWRAP` `NODES` (geometry nodes).
 
 ## Import / export
 
-Os nomes dos operadores **mudaram entre versões** — os do glTF e FBX não vivem no mesmo sítio dos
-outros. Verificados em Blender 5.1:
+The operator names **changed between versions** — the glTF and FBX ones do not live in the same
+place as the others. Verified on Blender 5.1:
 
-| Formato | Import | Export |
+| Format | Import | Export |
 |---|---|---|
 | OBJ | `bpy.ops.wm.obj_import` | `bpy.ops.wm.obj_export` |
 | STL | `bpy.ops.wm.stl_import` | `bpy.ops.wm.stl_export` |
 | PLY | `bpy.ops.wm.ply_import` | `bpy.ops.wm.ply_export` |
 | USD | `bpy.ops.wm.usd_import` | `bpy.ops.wm.usd_export` |
 | Alembic | `bpy.ops.wm.alembic_import` | `bpy.ops.wm.alembic_export` |
-| FBX | `bpy.ops.wm.fbx_import` **ou** `bpy.ops.import_scene.fbx` | `bpy.ops.export_scene.fbx` |
+| FBX | `bpy.ops.wm.fbx_import` **or** `bpy.ops.import_scene.fbx` | `bpy.ops.export_scene.fbx` |
 | glTF/GLB | `bpy.ops.import_scene.gltf` | `bpy.ops.export_scene.gltf` |
 
-Confirmar na versão em uso antes de assumir:
+Confirm on the version in use before assuming:
 ```python
 print([o for o in dir(bpy.ops.wm) if 'import' in o or 'export' in o])
 print(dir(bpy.ops.import_scene), dir(bpy.ops.export_scene))
 ```
 
-### Eixos por destino — o erro que só se vê no engine
+### Axes by destination — the error you only see in the engine
 
-Blender é **Z-up**. Quase tudo o resto é **Y-up**. Exportar sem converter dá o modelo deitado, e
-isso não aparece em nenhum log.
+Blender is **Z-up**. Almost everything else is **Y-up**. Exporting without converting gives you the
+model lying down, and that shows up in no log.
 
 ```python
-# glTF/GLB — web, three.js, Godot. O exportador converte Y-up sozinho.
+# glTF/GLB — web, three.js, Godot. The exporter converts Y-up on its own.
 bpy.ops.export_scene.gltf(
     filepath="/out/asset.glb", export_format='GLB',
-    use_selection=True, export_apply=True,          # aplica modificadores
+    use_selection=True, export_apply=True,          # applies modifiers
     export_yup=True,
 )
 
@@ -160,27 +160,27 @@ bpy.ops.export_scene.fbx(
 )
 ```
 
-Verificar re-importando o ficheiro exportado numa cena limpa e renderizando — não pelo tamanho do
-ficheiro em disco.
+Verify by re-importing the exported file into a clean scene and rendering — not by the file size on
+disk.
 
-## Batch de .blend
+## Batch of .blend
 
 ```python
 import bpy, glob, os
 
-for filepath in sorted(glob.glob("/projectos/**/*.blend", recursive=True)):
+for filepath in sorted(glob.glob("/projects/**/*.blend", recursive=True)):
     bpy.ops.wm.open_mainfile(filepath=filepath)
     for obj in bpy.data.objects:
         if obj.type == 'MESH':
             print(f"{os.path.basename(filepath)}: {obj.name} — {len(obj.data.polygons)} faces")
-    out = filepath.replace(".blend", "_processado.blend")
+    out = filepath.replace(".blend", "_processed.blend")
     bpy.ops.wm.save_as_mainfile(filepath=out)
 ```
 
-**Nunca sobrescrever o original** sem o utilizador pedir substituição explícita — `open_mainfile`
-seguido de `save_mainfile` é destrutivo e não tem undo fora da GUI. Escrever para nome irmão.
+**Never overwrite the original** unless the user explicitly asks for replacement — `open_mainfile`
+followed by `save_mainfile` is destructive and has no undo outside the GUI. Write to a sibling name.
 
-## Args de linha de comandos
+## Command-line args
 
 ```python
 import sys
@@ -194,9 +194,9 @@ p.add_argument("--samples", type=int, default=64)
 args = p.parse_args(argv)
 ```
 
-## Inspeccionar antes de agir
+## Inspect before acting
 
-Sobre um `.blend` que não construíste, ler primeiro:
+On a `.blend` you did not build, read first:
 
 ```python
 import bpy
@@ -206,22 +206,22 @@ for o in bpy.data.objects:
     extra = f" — {len(o.data.vertices)}v" if o.type == 'MESH' else ""
     print(f"  {o.name} ({o.type}) loc={tuple(round(c, 3) for c in o.location)}{extra}")
 ```
-(`loop_triangles` precisa de `mesh.calc_loop_triangles()` antes, se o mesh não foi avaliado.)
+(`loop_triangles` needs `mesh.calc_loop_triangles()` first, if the mesh has not been evaluated.)
 
-## Gotchas medidos
+## Measured gotchas
 
-| Sintoma | Causa | Fix |
+| Symptom | Cause | Fix |
 |---|---|---|
-| Render mostra um cubo que não criaste | cena de arranque não limpa | `clear_scene()` primeiro |
-| `bpy.ops` age no objecto errado | objecto activo/selecção errados | `select_all(DESELECT)` + `select_set` + `objects.active` |
-| Rotação absurda | graus passados onde se esperam radianos | `math.radians()` |
-| Objecto some no engine | escala/rotação não aplicadas | `transform_apply(rotation=True, scale=True)` |
-| Modelo deitado no engine | Z-up vs Y-up | flags de eixo no exportador; verificar re-importando |
-| Modificadores não aparecem no export | `export_apply` a `False` | ligar, ou aplicar antes |
-| Memória a crescer no batch | datablocks órfãos acumulam | remover órfãos por iteração |
-| `print()` não aparece | GUI em vez de `-b` | correr com `--background` |
+| Render shows a cube you did not create | startup scene not cleared | `clear_scene()` first |
+| `bpy.ops` acts on the wrong object | wrong active object/selection | `select_all(DESELECT)` + `select_set` + `objects.active` |
+| Absurd rotation | degrees passed where radians are expected | `math.radians()` |
+| Object vanishes in the engine | scale/rotation not applied | `transform_apply(rotation=True, scale=True)` |
+| Model lying down in the engine | Z-up vs Y-up | axis flags in the exporter; verify by re-importing |
+| Modifiers do not show up in the export | `export_apply` set to `False` | turn it on, or apply beforehand |
+| Memory growing during the batch | orphan datablocks pile up | remove orphans each iteration |
+| `print()` does not show | GUI instead of `-b` | run with `--background` |
 
-## Próximo passo (chain)
+## Next step (chain)
 
-- Geometria pronta → `blender-render` (câmara, luz, material, preview).
-- Sempre, antes de dar por feito → loop de verificação da skill `blender`: renderizar e **olhar**.
+- Geometry ready → `blender-render` (camera, light, material, preview).
+- Always, before calling it done → the `blender` skill's verification loop: render and **look**.

@@ -83,7 +83,7 @@ Non-video is an order of magnitude cheaper:
 ## 3. Command surface
 
 ```bash
-gen-ai models                # catalogue (needs auth in current build)
+gen-ai models                # catalog (needs auth in current build)
 gen-ai generate -m <id> ...  # universal entry point
 gen-ai image | video | music | sfx | text-to-speech
 gen-ai image-to-video | talking-photo | extend | video-audio
@@ -106,7 +106,7 @@ Everything (including `gen-ai models`) fails with an auth error until login is d
 - Do not install the Picsart MCP server. The CLI does the same work; an always-on MCP costs tokens in every session (same reasoning as `browser-automate` preferring Playwright CLI).
 - Do not install `gen-ai-images` from the official bundle -- its AUTO-TRIGGER description hijacks every "generate an image" request away from `img-gen`.
 
-## Proximo passo (chain)
+## Next step (chain)
 
-- Asset visual gerado -> `design-review` (avaliar antes de entregar).
-- Vector saido de `vectorize` -> verificar o SVG (paths, cores) antes de o meter num design system.
+- Visual asset generated -> `design-review` (evaluate before delivering).
+- Vector coming out of `vectorize` -> check the SVG (paths, colors) before putting it into a design system.

@@ -1,13 +1,13 @@
-/* ─── Modal de criar/editar projecto — layout ────────────────────────────────────────────────
- * Antes havia DUAS áreas de scroll empilhadas: a grelha tinha `overflow:auto` própria e o bloco
- * de edição (Git, Kit, Zona perigosa) ficava fora dela. Resultado: a grelha scrollava sozinha e
- * cortava a descrição a meio enquanto sobrava espaço no diálogo. Agora o scroll é um só, o do
- * `.project-modal-body`.
+/* ─── Create/edit project modal — layout ─────────────────────────────────────────────────────
+ * There used to be TWO stacked scroll areas: the grid had its own `overflow:auto` and the edit
+ * block (Git, Kit, Danger zone) sat outside it. Result: the grid scrolled on its own and cut
+ * the description in half while there was space left in the dialog. Now there is a single
+ * scroll, that of `.project-modal-body`.
  *
- * As regras abaixo levam `.project-modal` à frente porque este ficheiro entra no bundle ANTES do
- * `App.css` (é importado por um componente, e o App.css é importado no `main.tsx`) — sem o
- * prefixo, empatavam em especificidade e o App.css ganhava. Pela mesma razão as media queries
- * daqui repetem o prefixo: têm de bater as do App.css, que também mexem na grelha.
+ * The rules below carry `.project-modal` up front because this file enters the bundle BEFORE
+ * `App.css` (it is imported by a component, and App.css is imported in `main.tsx`) — without the
+ * prefix they tied on specificity and App.css won. For the same reason the media queries here
+ * repeat the prefix: they have to beat App.css's, which also touch the grid.
  */
 
 .project-modal .project-modal-body {
@@ -26,8 +26,8 @@
   background: color-mix(in srgb, var(--on-surface) 16%, transparent);
 }
 
-/* Sem browser de pastas embutido (a escolha é pelo diálogo NATIVO do SO — /pick-folder), o
-   formulário fica em coluna única com todo o espaço. */
+/* With no embedded folder browser (the choice goes through the OS's NATIVE dialog —
+   /pick-folder), the form stays in a single column with all the space. */
 .project-modal .project-modal-body .project-modal-grid {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
@@ -39,7 +39,7 @@
   .project-modal .project-modal-body { padding: 0 20px 16px; }
 }
 
-/* ─── Campo Pasta: input + botão do explorador nativo ───────────────────────────────────────── */
+/* ─── Folder field: input + native explorer button ──────────────────────────────────────────── */
 .project-modal .project-path-row {
   display: flex;
   gap: 8px;
@@ -71,9 +71,9 @@
 .project-modal .project-pick-folder-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .project-modal .project-pick-folder-btn:disabled { opacity: 0.6; cursor: wait; }
 
-/* ─── Selector de ícone dentro do formulário ────────────────────────────────────────────────── */
-/* O `.project-field input` do App.css impõe altura 42px e tipo mono a QUALQUER input do campo —
-   incluindo a caixa do emoji, que precisa de ser quadrada e grande. */
+/* ─── Icon picker inside the form ───────────────────────────────────────────────────────────── */
+/* App.css's `.project-field input` forces height 42px and mono type on ANY input in the field —
+   including the emoji box, which needs to be square and large. */
 .project-modal .project-field--icon .icon-field-emoji-input input {
   width: 62px;
   height: auto;
@@ -91,16 +91,16 @@
   background: color-mix(in srgb, var(--on-surface) 2.6%, transparent);
 }
 
-/* ─── Bloco extra (Git / Kit / Zona perigosa) ───────────────────────────────────────────────── */
-/* Vive dentro do `-body`, que já tem o padding lateral — daí margens/paddings a zero na horizontal
-   (antes tinha `padding:18px 30px; margin:0 30px 6px`, do tempo em que estava fora da área de
-   scroll e tinha de repor o recuo do diálogo). */
+/* ─── Extra block (Git / Kit / Danger zone) ─────────────────────────────────────────────────── */
+/* It lives inside the `-body`, which already has the side padding — hence zero horizontal
+   margins/paddings (it used to have `padding:18px 30px; margin:0 30px 6px`, from when it was
+   outside the scroll area and had to restore the dialog's indent). */
 .project-modal .project-modal-extra {
   padding: 18px 0 0;
   margin: 18px 0 0;
 }
 
-/* Linha "o que é / o que faz / acção à direita" — o padrão do bloco de edição. */
+/* Row "what it is / what it does / action on the right" — the pattern of the edit block. */
 .project-modal .project-row-item {
   display: flex;
   align-items: center;
@@ -136,7 +136,7 @@
   flex-shrink: 0;
 }
 
-/* ─── Zona perigosa ─────────────────────────────────────────────────────────────────────────── */
+/* ─── Danger zone ───────────────────────────────────────────────────────────────────────────── */
 .project-modal .project-danger {
   display: flex;
   flex-direction: column;
@@ -218,9 +218,9 @@
   background: color-mix(in srgb, var(--red) 14%, transparent);
 }
 
-/* O passo que apaga mesmo — preenchido, para não se confundir com o "Cancelar" ao lado.
-   Vermelho fixo (não `--red`): o vermelho do tema escuro é claro de mais e branco por cima
-   ficava abaixo de 4.5:1. Este passa AA nos dois temas. */
+/* The step that really deletes — filled, so it is not confused with the "Cancel" beside it.
+   Fixed red (not `--red`): the dark theme's red is too light and white on top of it fell
+   below 4.5:1. This one passes AA in both themes. */
 .project-modal .project-danger-btn--go {
   background: #b91c1c;
   border-color: #b91c1c;

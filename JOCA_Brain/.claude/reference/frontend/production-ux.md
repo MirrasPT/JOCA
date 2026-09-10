@@ -1,4 +1,4 @@
-Parte da skill `frontend` — carregado on-demand. Stack de produção (#6), UX rules (#7), /components (#9), Expert Critique (#10), validação e quality gate.
+Part of the `frontend` skill — loaded on-demand. Production stack (#6), UX rules (#7), /components (#9), Expert Critique (#10), validation and quality gate.
 
 ## #6 Production stack (then delegate)
 
@@ -25,7 +25,7 @@ The director assembles sections and enforces direction; specialists own their la
 
 ### Multi-agent builds: FOUNDATION before fan-out
 
-When parallel agents build per-page or per-feature, shared components (player, card, layout primitives, nav) **MUST be defined and implemented in a sequential FOUNDATION phase** before any fan-out begins. Fan-out agents import from that foundation — they never recreate shared components independently. Classic failure: two agents each build a video player; result is two inconsistent implementations with divergent APIs, styles, and behaviour that cannot be merged without a rewrite. Foundation phase output = a locked shared-components module that all agents treat as read-only.
+When parallel agents build per-page or per-feature, shared components (player, card, layout primitives, nav) **MUST be defined and implemented in a sequential FOUNDATION phase** before any fan-out begins. Fan-out agents import from that foundation — they never recreate shared components independently. Classic failure: two agents each build a video player; result is two inconsistent implementations with divergent APIs, styles, and behavior that cannot be merged without a rewrite. Foundation phase output = a locked shared-components module that all agents treat as read-only.
 
 ## #7 UX Rules (apply always, without asking)
 

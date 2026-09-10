@@ -1,5 +1,5 @@
-// Análise 2026-08-19 §2. react-hooks apanha dependências erradas de useEffect/useMemo;
-// o resto é o recomendado TS sem type-checking (o tsc -b já corre no build).
+// Analysis 2026-08-19 §2. react-hooks catches wrong useEffect/useMemo dependencies;
+// the rest is the recommended TS without type-checking (tsc -b already runs in the build).
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -12,9 +12,9 @@ export default [
     plugins: { 'react-hooks': reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // As regras novas (era React Compiler) apontam refactors reais mas nao sao gate de hoje:
-      // 15 setState-em-effect pre-existentes. Ficam visiveis como warning; as classicas
-      // (rules-of-hooks, exhaustive-deps) continuam error.
+      // The new rules (formerly React Compiler) point at real refactors but are not today's gate:
+      // 15 pre-existing setState-in-effect. They stay visible as warning; the classic ones
+      // (rules-of-hooks, exhaustive-deps) remain error.
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/refs': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',

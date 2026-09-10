@@ -22,7 +22,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Requires Composer-based PH
 ## Procedure
 
 ### 0) Discover PHPStan entrypoints (deterministic)
-1. Inspect PHPStan setup manualmente: `phpstan.neon*`, baseline, scripts em `composer.json` — o script inspector não existe nesta instalação.
+1. Inspect PHPStan setup manually: `phpstan.neon*`, baseline, scripts in `composer.json` — the inspector script does not exist in this installation.
 
 Prefer the repo's existing `composer` script (e.g. `composer run phpstan`) when present.
 

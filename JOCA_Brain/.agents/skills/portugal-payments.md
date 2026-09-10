@@ -2,7 +2,7 @@
 name: portugal-payments
 origin: local
 description: "Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. MUST be invoked when the user says: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referência multibanco. SHOULD also invoke when: anti-phishing key, callback ifthenpay, mbWayKey, mbKey, entidade/referência."
-triggers: ifthenpay, Multibanco, MB WAY, MBWay, MBWAY, pagamento Portugal, referencia multibanco, referência multibanco, anti-phishing key, antiPhishingKey, callback ifthenpay, webhook ifthenpay, mbWayKey, mbKey, creditCardKey, entidade referencia, SPG, gateway portugues
+triggers: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referencia multibanco, referência multibanco, anti-phishing key, antiPhishingKey, callback ifthenpay, webhook ifthenpay, mbWayKey, mbKey, creditCardKey, entidade referencia, SPG, gateway portugues
 ---
 # Portugal Payments — ifthenpay
 

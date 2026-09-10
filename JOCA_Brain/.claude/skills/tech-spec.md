@@ -1,7 +1,7 @@
 ---
 name: tech-spec
-description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
-triggers: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
+description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, how to implement, data model, API design, component breakdown. SHOULD also invoke when: sequence diagram, technical architecture, technical design."
+triggers: tech spec, technical specification, how to implement, data model, API design, component breakdown, sequence diagram, technical architecture, technical design, spec.md, how to build
 chain: c4-diagram, task-breakdown
 ---
 
@@ -16,12 +16,12 @@ Bridge between PRD (what/why) and code (how). Produces `TECH_SPEC.md` at project
 ## TECH_SPEC.md Structure
 
 ```markdown
-# Tech Spec — [Nome do Projecto/Feature]
+# Tech Spec — [Project/Feature Name]
 
-**Versao:** 0.1
-**Estado:** Draft | Em review | Aprovado
-**PRD:** [link para PRD.md]
-**Ultima actualizacao:** [data]
+**Version:** 0.1
+**Status:** Draft | In review | Approved
+**PRD:** [link to PRD.md]
+**Last updated:** [date]
 
 ---
 
@@ -33,11 +33,11 @@ Bridge between PRD (what/why) and code (how). Produces `TECH_SPEC.md` at project
 
 ## 2. Data Model
 
-### Entidades
+### Entities
 
-| Entidade | Descricao | Campos chave |
+| Entity | Description | Key fields |
 |----------|-----------|-------------|
-| [Nome] | [responsabilidade] | [campos principais + tipos] |
+| [Name] | [responsibility] | [main fields + types] |
 
 ### ERD
 
@@ -50,8 +50,8 @@ erDiagram
 
 ### Schema decisions
 
-- [decisao 1 — ex: "soft deletes em orders para audit trail"]
-- [decisao 2 — ex: "JSONB para metadata flexivel em products"]
+- [decision 1 — e.g.: "soft deletes on orders for audit trail"]
+- [decision 2 — e.g.: "JSONB for flexible metadata on products"]
 
 ---
 
@@ -59,14 +59,14 @@ erDiagram
 
 ### Endpoints
 
-| Method | Path | Descricao | Auth | Request | Response |
+| Method | Path | Description | Auth | Request | Response |
 |--------|------|-----------|------|---------|----------|
-| POST | /api/v1/orders | Criar order | Bearer | CreateOrderRequest | OrderResource |
-| GET | /api/v1/orders/{id} | Detalhe order | Bearer | — | OrderResource |
+| POST | /api/v1/orders | Create order | Bearer | CreateOrderRequest | OrderResource |
+| GET | /api/v1/orders/{id} | Order detail | Bearer | — | OrderResource |
 
 ### Events (if event-driven)
 
-| Evento | Payload | Publicado por | Consumido por |
+| Event | Payload | Published by | Consumed by |
 |--------|---------|--------------|---------------|
 | OrderCreated | {order_id, user_id, total} | OrderService | NotificationService, InventoryService |
 
@@ -78,9 +78,9 @@ Follow RFC 9457 (Problem Details). See skill `rest-api` for full patterns.
 
 ## 4. Component Breakdown
 
-| Componente | Responsabilidade | Tecnologia | Depende de |
+| Component | Responsibility | Technology | Depends on |
 |-----------|-----------------|------------|-----------|
-| [nome] | [o que faz] | [stack] | [componentes] |
+| [name] | [what it does] | [stack] | [components] |
 
 ### Component diagram
 
@@ -96,7 +96,7 @@ graph TD
 
 ## 5. Sequence Diagrams — Critical Flows
 
-### [Flow name — ex: Checkout]
+### [Flow name — e.g.: Checkout]
 
 \```mermaid
 sequenceDiagram
@@ -123,36 +123,36 @@ sequenceDiagram
 
 ## 6. Integration Points
 
-| Sistema externo | Tipo | Auth | Rate limit | Fallback |
+| External system | Type | Auth | Rate limit | Fallback |
 |----------------|------|------|-----------|----------|
-| [nome] | REST/Webhook/SDK | [tipo] | [limite] | [o que fazer se falhar] |
+| [name] | REST/Webhook/SDK | [type] | [limit] | [what to do if it fails] |
 
 ---
 
 ## 7. Testing Strategy
 
-| Tipo | Scope | Framework | Cobertura alvo |
+| Type | Scope | Framework | Target coverage |
 |------|-------|-----------|---------------|
 | Unit | Models, Services, Actions | Pest | 80%+ |
-| Feature | Endpoints, fluxos | Pest + RefreshDatabase | Happy path + edge cases |
-| Browser | Fluxos criticos UI | Playwright | Checkout, auth, onboarding |
+| Feature | Endpoints, flows | Pest + RefreshDatabase | Happy path + edge cases |
+| Browser | Critical UI flows | Playwright | Checkout, auth, onboarding |
 
 ### Mock vs. real
 
-| Componente | Mock | Real | Razao |
+| Component | Mock | Real | Reason |
 |-----------|------|------|-------|
-| Database | Nunca | Sempre | Mock/prod divergence causes bugs |
-| Payment gateway | Sim (sandbox) | Em staging | Rate limits + costs |
-| Email | Sim (Mail::fake) | Em staging | No spam in tests |
-| Redis | Nunca | Sempre | Real cache behaviour needed |
+| Database | Never | Always | Mock/prod divergence causes bugs |
+| Payment gateway | Yes (sandbox) | In staging | Rate limits + costs |
+| Email | Yes (Mail::fake) | In staging | No spam in tests |
+| Redis | Never | Always | Real cache behavior needed |
 
 ---
 
 ## 8. Technical Decisions
 
-| Decisao | Alternativas | Razao |
+| Decision | Alternatives | Reason |
 |---------|-------------|-------|
-| [decisao] | [A, B] | [porque esta] |
+| [decision] | [A, B] | [why this one] |
 
 > Significant decisions should also have an ADR in `docs/adr/`. See skill `adr`.
 
@@ -172,9 +172,9 @@ sequenceDiagram
 
 ## 10. Open Questions
 
-| # | Questao | Owner | Prazo |
+| # | Question | Owner | Deadline |
 |---|---------|-------|-------|
-| Q1 | [questao tecnica] | [quem] | [data] |
+| Q1 | [technical question] | [who] | [date] |
 ```
 
 ---
@@ -229,4 +229,4 @@ Pipeline position in JOCA sequence:
 -> **during**: `adr` (capture significant decisions from sec. 8)
 -> **after**: `c4-diagram` (visualize components from sec. 4) -> `task-breakdown` (break into atomic work)
 
-Notify on completion: `-> proximo: c4-diagram`
+Notify on completion: `-> next: c4-diagram`

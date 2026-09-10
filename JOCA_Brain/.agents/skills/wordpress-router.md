@@ -2,7 +2,7 @@
 name: wordpress-router
 description: "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
-triggers: WordPress, WP, wp-content, plugin WP, tema WP, que tipo de projecto WordPress, migrar WordPress, wpress, ai1wm, All-in-One WP Migration, levar conteudo WP para staging
+triggers: WordPress, WP, wp-content, WP plugin, WP theme, what kind of WordPress project, migrate WordPress, wpress, ai1wm, All-in-One WP Migration, take WP content to staging
 ---
 
 # WordPress Router
@@ -22,8 +22,8 @@ Activate at the start of WordPress tasks to:
 
 ## Procedure
 
-1. Triage do repo:
-   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
+1. Triage the repo:
+   - Read(".claude/skills/wp-project-triage.md") and do the triage by hand (the script does not exist in this installation).
 2. Read output and classify:
    - primary project kind(s),
    - available tooling (PHP/Composer, Node, @wordpress/scripts),
@@ -45,28 +45,28 @@ Activate at the start of WordPress tasks to:
   - root `composer.json`, `package.json`, `style.css`, `block.json`, `theme.json`, `wp-content/`.
 - Huge repo -- narrow scanning scope or add ignore rules to triage script.
 
-## Migração de conteúdo (local → shared hosting, sem SSH/WP-CLI)
+## Content migration (local → shared hosting, no SSH/WP-CLI)
 
-Rota para quando o pedido é "levar o conteúdo do local/Docker para staging/produção" num alojamento
-partilhado (sem SSH nem WP-CLI). Pipeline validado ponta-a-ponta (2026-07-17) e reutilizável — a
-mesma conta FTP aloja ≥8 sites WP:
+Route for when the request is "take the content from local/Docker to staging/production" on shared
+hosting (no SSH, no WP-CLI). Pipeline validated end-to-end (2026-07-17) and reusable — the same FTP
+account hosts ≥8 WP sites:
 
-1. **Export** — All-in-One WP Migration, botão "Export to File" **na UI**. A CLI da versão free está
-   *gated*; a extensão S3 modificada, quando out-of-date, **trunca o backup em silêncio**. Validar o
-   `.wpress` comparando o **tamanho com o do original**, não por inspeccionar os zeros no fim do ficheiro.
-2. **Upload** — FTP do `.wpress` para `wp-content/ai1wm-backups/`. Os certificados destes hosts
-   obrigam a `curl -k --ftp-ssl-control` (sem estas duas flags o upload falha no handshake).
-3. **Restore** — pela wp-admin. O menu ⋮ da lista de backups é hover-hidden → em automação, clicar
-   por JS nativo em `a.ai1wm-backup-restore[data-archive]` (um click sintético no ⋮ não abre).
-4. **Pós-restore** — o restore **substitui também o utilizador admin** (repor a password). Se o site
-   vive numa subpasta, corrigir os URLs root-relative em **4 formatos**: `/wp-content`, escapado em
-   JSON (`\/wp-content`), URL-encoded (`%2Fwp-content`) e absoluto (`https://<host>/wp-content`).
-   Usar `str_replace` **idempotente**, nunca regex.
-5. **Caches que mascaram os fixes de BD** — limpar `_elementor_element_cache` (não só `_elementor_css`)
-   e purgar o LSCache (PHP que emita `header('X-LiteSpeed-Purge: *')`). Sem isto, uma correcção
-   correcta na base de dados **parece não ter efeito** e leva a "corrigir" o que já estava certo.
+1. **Export** — All-in-One WP Migration, "Export to File" button **in the UI**. The free version's CLI
+   is *gated*; the modified S3 extension, when out-of-date, **truncates the backup silently**. Validate
+   the `.wpress` by comparing its **size with the original's**, not by inspecting the zeros at the end of the file.
+2. **Upload** — FTP the `.wpress` to `wp-content/ai1wm-backups/`. These hosts' certificates
+   force `curl -k --ftp-ssl-control` (without those two flags the upload fails at the handshake).
+3. **Restore** — from wp-admin. The ⋮ menu on the backup list is hover-hidden → in automation, click
+   with native JS on `a.ai1wm-backup-restore[data-archive]` (a synthetic click on the ⋮ does not open it).
+4. **Post-restore** — the restore **also replaces the admin user** (reset the password). If the site
+   lives in a subfolder, fix the root-relative URLs in **4 formats**: `/wp-content`, escaped in
+   JSON (`\/wp-content`), URL-encoded (`%2Fwp-content`) and absolute (`https://<host>/wp-content`).
+   Use **idempotent** `str_replace`, never regex.
+5. **Caches that mask the DB fixes** — clear `_elementor_element_cache` (not just `_elementor_css`)
+   and purge LSCache (PHP that emits `header('X-LiteSpeed-Purge: *')`). Without this, a correct
+   fix in the database **appears to have no effect** and leads to "fixing" what was already right.
 
-Detalhe de Elementor/WooCommerce pós-restore → `Read(".claude/skills/woocommerce-elementor.md")`.
+Detail on Elementor/WooCommerce post-restore → `Read(".claude/skills/woocommerce-elementor.md")`.
 
 ## Escalation
 

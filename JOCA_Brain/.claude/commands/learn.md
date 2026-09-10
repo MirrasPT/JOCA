@@ -1,45 +1,45 @@
-# /learn — Memória institucional do Brain (decisões + aprendizagens)
+# /learn — The Brain's institutional memory (decisions + learnings)
 
-Registar, rever e pesquisar o que o JOCA aprendeu/decidiu por projecto. Event-sourced (JSONL append-only), "activo" computado, secret-scan na escrita, recall automático no arranque de sessão.
+Record, review and search what JOCA has learned/decided per project. Event-sourced (append-only JSONL), computed "active", secret-scan on write, automatic recall at session startup.
 
-Adaptado do `learn`/`gstack-decision` do gstack. Local-first (markdown/JSONL no Brain) — **não** usa Postgres.
+Adapted from gstack's `learn`/`gstack-decision`. Local-first (markdown/JSONL in the Brain) — does **not** use Postgres.
 
-CLI: `.claude/scripts/joca-brain.mjs` (slug = nome do repo git do cwd).
+CLI: `.claude/scripts/joca-brain.mjs` (slug = name of the cwd's git repo).
 
-⚠ **Sintaxe.** O texto vai **posicional**; `--text` também é aceite. `--help` por comando imprime a
-assinatura (`node .claude/scripts/joca-brain.mjs learn --help`). Formas válidas:
-`… learn "texto" [--tags a,b,c] [--slug X]` · `… decide "texto"` · `… learn --text "texto"`.
+⚠ **Syntax.** The text goes **positional**; `--text` is also accepted. `--help` per command prints the
+signature (`node .claude/scripts/joca-brain.mjs learn --help`). Valid forms:
+`… learn "text" [--tags a,b,c] [--slug X]` · `… decide "text"` · `… learn --text "text"`.
 
-⚠ **Passar sempre `--slug <projecto>`** quando o cwd não é o projecto do trabalho. O slug default é o
-repo git do cwd — a trabalhar noutro projecto a partir do `JOCA_Brain`, as decisões ficam carimbadas
-`(JOCA)` (aconteceu com decisões que eram do Livro de Elogios). `decide`, `learn`, `active`, `search`
-e `recall` aceitam todos `--slug`.
+⚠ **Always pass `--slug <project>`** when the cwd is not the project being worked on. The default slug is
+the cwd's git repo — working on another project from `JOCA_Brain`, the decisions end up stamped
+`(JOCA)` (this happened with decisions that belonged to Livro de Elogios). `decide`, `learn`, `active`, `search`
+and `recall` all accept `--slug`.
 
 ---
 
-## Quando usar
-- "regista esta decisão", "guarda esta aprendizagem", "o que decidimos sobre X", "didn't we fix this before?", "mostra o que aprendemos", "anota: …".
-- **Proactivo:** quando se toma uma decisão de arquitectura não-óbvia OU se resolve um bug que voltaria a morder → registar sem pedir (reversível).
+## When to use
+- "record this decision", "save this learning", "what did we decide about X", "didn't we fix this before?", "show what we learned", "note down: …".
+- **Proactive:** when a non-obvious architecture decision is taken OR a bug that would bite again is fixed → record without asking (reversible).
 
-## Acções
+## Actions
 
-| Intenção | Comando |
+| Intent | Command |
 |---|---|
-| Registar decisão | `node .claude/scripts/joca-brain.mjs decide --text "<decisão>" [--rationale "<porquê>"] [--scope repo\|branch] [--source user\|skill\|agent]` |
-| Registar aprendizagem | `node .claude/scripts/joca-brain.mjs learn --text "<lição>" [--tags a,b] [--file path]` |
-| Substituir decisão antiga | `node .claude/scripts/joca-brain.mjs supersede <id>` |
-| Expungir (segredo capturado) | `node .claude/scripts/joca-brain.mjs redact <id>` |
-| Ver decisões activas | `node .claude/scripts/joca-brain.mjs active` |
-| Pesquisar | `node .claude/scripts/joca-brain.mjs search "<query>"` |
+| Record a decision | `node .claude/scripts/joca-brain.mjs decide --text "<decision>" [--rationale "<why>"] [--scope repo\|branch] [--source user\|skill\|agent]` |
+| Record a learning | `node .claude/scripts/joca-brain.mjs learn --text "<lesson>" [--tags a,b] [--file path]` |
+| Supersede an old decision | `node .claude/scripts/joca-brain.mjs supersede <id>` |
+| Expunge (captured secret) | `node .claude/scripts/joca-brain.mjs redact <id>` |
+| View active decisions | `node .claude/scripts/joca-brain.mjs active` |
+| Search | `node .claude/scripts/joca-brain.mjs search "<query>"` |
 
-## Regras
-- **Nunca logar segredos** — o CLI rejeita HIGH-tier (AWS/JWT/GitHub/Slack/credential-shaped). Se rejeitar, remove o valor e re-regista.
-- **`source`** — `user` (o utilizador decidiu), `skill`/`agent` (auto). Decisões de `user` ganham peso no recall.
-- **Scope** — `repo` (sempre relevante) ou `branch` (só na branch). Default `repo`.
-- O recall (decisões activas + aprendizagens recentes) é injectado **automaticamente** no arranque de cada sessão pelo hook `session-intake.js`.
+## Rules
+- **Never log secrets** — the CLI rejects HIGH-tier (AWS/JWT/GitHub/Slack/credential-shaped). If it rejects, remove the value and record again.
+- **`source`** — `user` (the user decided), `skill`/`agent` (auto). `user` decisions gain weight in the recall.
+- **Scope** — `repo` (always relevant) or `branch` (only on the branch). Default `repo`.
+- The recall (active decisions + recent learnings) is injected **automatically** at the start of every session by the `session-intake.js` hook.
 
-## Relação com a memória markdown
-Complementa `memory/projects/<proj>.md` (prosa, narrativa de sessão), não a substitui. O log JSONL é para **factos atómicos pesquisáveis** (decisões/lições); a prosa é para contexto de sessão. `/save` continua a escrever a prosa.
+## Relationship with the markdown memory
+It complements `memory/projects/<proj>.md` (prose, session narrative), it does not replace it. The JSONL log is for **searchable atomic facts** (decisions/lessons); the prose is for session context. `/save` keeps writing the prose.
 
-## Próximo passo (chain)
-- Numa retrospectiva → `/retro` (lê as aprendizagens da janela e propõe acções).
+## Next step (chain)
+- In a retrospective → `/retro` (reads the learnings from the window and proposes actions).

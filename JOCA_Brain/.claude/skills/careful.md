@@ -1,26 +1,26 @@
 ---
 name: careful
-description: "Liga avisos antes de comandos Bash destrutivos (rm -rf, DROP/TRUNCATE, git push --force, git reset --hard, taskkill /F, format, dd) — o hook check-careful pede confirmação antes de executar (não bloqueia, podes confirmar). Usar quando o user disser: careful, modo cauteloso, avisa antes de apagar, cuidado com destrutivo, proteger contra enganos. Guard-rail adaptado do gstack."
-triggers: careful, modo cauteloso, avisa antes de apagar, cuidado destrutivo, proteger enganos, warn destructive, modo cuidado, safety warnings
+description: "Turns on warnings before destructive Bash commands (rm -rf, DROP/TRUNCATE, git push --force, git reset --hard, taskkill /F, format, dd) — the check-careful hook asks for confirmation before executing (it does not block, you can confirm). Use when the user says: careful, cautious mode, warn me before deleting, careful with destructive, protect against mistakes. Guard-rail adapted from gstack."
+triggers: careful, cautious mode, warn before deleting, careful with destructive, protect from mistakes, warn destructive, careful mode, safety warnings
 chain: unfreeze
 ---
-# /careful — Avisar antes de comandos destrutivos
+# /careful — Warn before destructive commands
 
-Activa avisos (`permissionDecision: "ask"`) antes de comandos Bash perigosos. Não bloqueia — pede confirmação e podes prosseguir. Para debug em prod / sistemas vivos.
+Enables warnings (`permissionDecision: "ask"`) before dangerous Bash commands. It does not block — it asks for confirmation and you can go ahead. For debugging in prod / live systems.
 
-## Mecanismo
-- O hook `check-careful.js` (PreToolUse Bash) corre em cada comando e lê `.joca/careful.flag` no cwd.
-- Se o flag existir e o comando casar um padrão destrutivo → `ask` (confirmação). Senão → allow.
-- Sem flag → no-op. Fail-open.
+## Mechanism
+- The `check-careful.js` hook (PreToolUse Bash) runs on every command and reads `.joca/careful.flag` in the cwd.
+- If the flag exists and the command matches a destructive pattern → `ask` (confirmation). Otherwise → allow.
+- No flag → no-op. Fail-open.
 
-## Padrões cobertos
-`rm -rf`, `Remove-Item -Recurse -Force`, `rmdir /s`, `del /s`, `git push --force`, `git reset --hard`, `git clean -f`, `git checkout -- .`, `DROP/TRUNCATE TABLE`, `DELETE FROM` sem `WHERE`, `taskkill /F`, `format`/`mkfs`, `dd of=/dev/`, fork bomb.
+## Patterns covered
+`rm -rf`, `Remove-Item -Recurse -Force`, `rmdir /s`, `del /s`, `git push --force`, `git reset --hard`, `git clean -f`, `git checkout -- .`, `DROP/TRUNCATE TABLE`, `DELETE FROM` without `WHERE`, `taskkill /F`, `format`/`mkfs`, `dd of=/dev/`, fork bomb.
 
-## Setup (executar)
+## Setup (run this)
 ```bash
 mkdir -p .joca && echo '{"on":true}' > .joca/careful.flag
 ```
-Confirmar: "Modo careful activo — comandos destrutivos pedem confirmação antes de correr. `/unfreeze` desliga."
+Confirm: "Careful mode active — destructive commands ask for confirmation before running. `/unfreeze` turns it off."
 
-## Próximo passo (chain)
-- Para também trancar edições a uma pasta → `/freeze` (ou `/guard` = careful+freeze de uma vez). Desligar → `/unfreeze`.
+## Next step (chain)
+- To also lock edits to a folder → `/freeze` (or `/guard` = careful+freeze in one go). Turn off → `/unfreeze`.

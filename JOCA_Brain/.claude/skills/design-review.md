@@ -59,17 +59,17 @@ Reuse `frontend` #4 ban table + these named tells (Garry Tan / OpenAI GPT-5.4 li
 ⬛ system-ui / Inter / Roboto / Arial / Space Grotesk as PRIMARY display font
 ```
 
-### Anti-slop hard-rules (auditoria) — adoptado de taste-skill (MIT)
+### Anti-slop hard-rules (audit) — adopted from taste-skill (MIT)
 
-Checklist binário. Cada item = ⬛ blocking se violado. Scan code/live UI, emite `path:line — regra`. (Origem: Leonxlnx/taste-skill, MIT — atribuir.)
+Binary checklist. Each item = ⬛ blocking if violated. Scan code/live UI, emit `path:line — rule`. (Source: Leonxlnx/taste-skill, MIT — attribute it.)
 
-- **Em-dash ban** — zero `—` (em-dash) e zero `–` (en-dash) em copy visível. É o tell #1 de texto gerado por LLM. Usar vírgula, parêntesis, ou dois pontos. Detectar literal `—`/`–` em strings/JSX/markdown de UI.
-- **Serif / Inter discipline** — `Inter` (e `system-ui`/`Roboto`/`Arial`/`Space Grotesk`) PROIBIDO como display/heading. Permitido só como body fallback. Display precisa de carácter — serif editorial, grotesque distintivo, ou face com personalidade. `font-family` de heading com Inter como primeiro nome → ⬛.
-- **Anti AI-purple/lila** — qualquer roxo/índigo/violeta como accent ou em gradiente é reject. Banir hue range ~`250–290` em HSL/OKLCH para accent/CTA/gradiente. Inclui `#6366f1` (indigo-500), `#7c3aed` (violet-600), `#8b5cf6` (violet-500), `#a855f7` (purple-500), `#818cf8`. Gradiente roxo→rosa em fundo branco = tell clássico.
-- **Paleta premium beige+brass banida** — a "luxury default" gerada por LLM (bege quente + dourado/latão) é tão slop como o roxo. Banir como par dominante: bege `#f5f0e8` / `#ede4d3` / `#e8dcc4` + brass/gold `#b8860b` / `#c9a227` / `#bfa46f` / `#d4af37`. Um pode existir como neutro; o PAR como identidade = ⬛. Forçar divergência de paleta deliberada.
-- **Color/shape consistency lock** — uma única decisão de cor e uma única linguagem de forma em toda a peça. Flag se: >1 accent compete; border-radius inconsistente entre componentes do mesmo nível (cards a `4px` e botões a `16px` sem razão); mistura de estilos de sombra/borda ad-hoc. A peça tem de parecer um sistema, não um sampler.
-- **Anti-center-hero** — hero com tudo centrado (texto + CTA + imagem no eixo vertical) é layout default de LLM. Exigir tensão: assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything no primeiro viewport → ⬛ (excepto se a marca pedir explicitamente simetria formal).
-- **Italic descender clearance** — texto em itálico precisa de folga para os descenders (`g`, `j`, `p`, `q`, `y`) e para a inclinação do glifo final. Flag itálico com `overflow: hidden`, `line-height` apertado que corta descenders, ou itálico colado à margem direita/borda do container (a inclinação corta). Dar `padding-right`/`line-height` suficiente.
+- **Em-dash ban** — zero `—` (em-dash) and zero `–` (en-dash) in visible copy. It is tell #1 of LLM-generated text. Use a comma, parentheses, or a colon. Detect the literal `—`/`–` in UI strings/JSX/markdown.
+- **Serif / Inter discipline** — `Inter` (and `system-ui`/`Roboto`/`Arial`/`Space Grotesk`) FORBIDDEN as display/heading. Allowed only as a body fallback. Display needs character — an editorial serif, a distinctive grotesque, or a face with personality. A heading `font-family` with Inter as the first name → ⬛.
+- **Anti AI-purple/lilac** — any purple/indigo/violet as an accent or in a gradient is a reject. Ban the hue range ~`250–290` in HSL/OKLCH for accent/CTA/gradient. Includes `#6366f1` (indigo-500), `#7c3aed` (violet-600), `#8b5cf6` (violet-500), `#a855f7` (purple-500), `#818cf8`. Purple→pink gradient on a white background = the classic tell.
+- **Premium beige+brass palette banned** — the LLM-generated "luxury default" (warm beige + gold/brass) is as much slop as the purple. Ban it as a dominant pair: beige `#f5f0e8` / `#ede4d3` / `#e8dcc4` + brass/gold `#b8860b` / `#c9a227` / `#bfa46f` / `#d4af37`. One may exist as a neutral; the PAIR as an identity = ⬛. Force a deliberate palette divergence.
+- **Color/shape consistency lock** — one single color decision and one single shape language across the whole piece. Flag if: >1 accent competes; border-radius inconsistent between components of the same level (cards at `4px` and buttons at `16px` for no reason); ad-hoc mix of shadow/border styles. The piece has to look like a system, not a sampler.
+- **Anti-center-hero** — a hero with everything centered (text + CTA + image on the vertical axis) is the LLM default layout. Demand tension: asymmetry, left alignment, overlap, grid-break. Center-everything in the first viewport → ⬛ (except when the brand explicitly asks for formal symmetry).
+- **Italic descender clearance** — italic text needs clearance for the descenders (`g`, `j`, `p`, `q`, `y`) and for the slant of the final glyph. Flag italics with `overflow: hidden`, a tight `line-height` that cuts descenders, or italics flush against the right margin/container border (the slant cuts). Give it enough `padding-right`/`line-height`.
 
 ### 7 hard-rejection patterns (instant fail)
 
@@ -115,22 +115,22 @@ Scan code for, emit `path:line — issue`:
 
 Per dimension, **0–10 → state why not a 10 → "a 10 would have X" → fix → re-rate.** Repeat until 10 or user says "good enough." Log initial→final delta.
 
-### Atomic-fix loop (com prova visual — adoptado do `design-review` do gstack)
+### Atomic-fix loop (with visual evidence — adopted from gstack's `design-review`)
 
-Quando o brief pede para **corrigir** (não só pontuar) numa UI viva/renderizável:
-1. **Issue** — identificar 1 problema visual concreto (file:line).
-2. **Screenshot ANTES** — capturar o estado actual (Playwright MCP, ou `Start-Process <url>` + pedir captura ao user se MCP ausente — ver `rules/workflows-and-tooling.md`).
-3. **Fix** — editar o CSS/markup (cirúrgico, via tokens do design system — nunca hardcode inventado).
-4. **Screenshot DEPOIS** — re-capturar.
-5. **Comparar** — confirmar que o issue desapareceu e não partiu o layout à volta. Se piorou → reverter.
-6. **Repetir** por severidade. 1 issue = 1 fix coeso (commit atómico se em repo).
-Sem capacidade de render (sem Playwright/sem URL) → NÃO inventar que "está corrigido": aplicar o fix, dizer que a prova visual ficou por confirmar, e pedir confirmação ao user.
+When the brief asks you to **fix** (not just score) on a live/renderable UI:
+1. **Issue** — identify 1 concrete visual problem (file:line).
+2. **BEFORE screenshot** — capture the current state (Playwright MCP, or `Start-Process <url>` + ask the user for a capture if the MCP is absent — see `rules/workflows-and-tooling.md`).
+3. **Fix** — edit the CSS/markup (surgical, through the design system tokens — never invented hardcoding).
+4. **AFTER screenshot** — re-capture.
+5. **Compare** — confirm the issue is gone and that it did not break the surrounding layout. If it got worse → revert.
+6. **Repeat** by severity. 1 issue = 1 cohesive fix (atomic commit if in a repo).
+No render capability (no Playwright/no URL) → do NOT pretend "it is fixed": apply the fix, say the visual evidence is still unconfirmed, and ask the user to confirm.
 
 ### Verification rules (what a green build never catches)
 
 - **Both themes, every time.** In a project with light + dark (inverted tokens), verify each visual change in **both** — grey slabs in light mode, mid-line clipping, box-inside-box and wrong hover states all shipped past a green `npm run build`. Grep fixed `rgba(0,0,0,…)`/`rgba(255,255,255,…)` as the signal of an overlay that doesn't invert.
-- **Recompute any contrast you cite.** Ratios copied from a brief/analysis/old manual are frequently wrong (a source claimed the turquoise failed at 2.1; measured it passes AA at 5.19 — the black half of the wordmark was the real failure). On multicolour wordmarks, compute **every** colour against the background, not just the accent.
-- **No browser? Say so, and use the static check.** Without a browser MCP: Chrome headless + the overflow diagnostic in `site-capture` §3 (`scrollWidth === clientWidth`, plus elements whose `getBoundingClientRect().right > clientWidth`). `--window-size=390` renders at ~485px, so right-side clipping in the shot is an artefact, not overflow. A review done by reading code only declares that in the **first** paragraph, not the last.
+- **Recompute any contrast you cite.** Ratios copied from a brief/analysis/old manual are frequently wrong (a source claimed the turquoise failed at 2.1; measured it passes AA at 5.19 — the black half of the wordmark was the real failure). On multicolour wordmarks, compute **every** color against the background, not just the accent.
+- **No browser? Say so, and use the static check.** Without a browser MCP: Chrome headless + the overflow diagnostic in `site-capture` §3 (`scrollWidth === clientWidth`, plus elements whose `getBoundingClientRect().right > clientWidth`). `--window-size=390` renders at ~485px, so right-side clipping in the shot is an artifact, not overflow. A review done by reading code only declares that in the **first** paragraph, not the last.
 - **Prove the fix live before editing the file** — `addStyleTag` the candidate CSS, re-measure, then write. See `site-capture` §7.
 
 ### Verdict
@@ -222,12 +222,12 @@ Builder to builder, not consultant. Lead with the point. Cite `file:line`/number
 - `design-system-audit` (agent) — token/component drift (hand off token checks)
 - `tester-performance` (agent) — Lighthouse/load
 - `anima` — motion principles referenced by the lint
-- `reference/frontend/motion-quality.md` — rubrica binária + tiers CRITICAL/HIGH/MEDIUM quando a review inclui movimento
-- `reference/frontend/visual-effects-vocab.md` — vocabulário para nomear efeitos de uma referência com precisão
+- `reference/frontend/motion-quality.md` — binary rubric + CRITICAL/HIGH/MEDIUM tiers when the review includes motion
+- `reference/frontend/visual-effects-vocab.md` — vocabulary for naming the effects of a reference precisely
 - Command `/review-design` — dispatches this + the agents by target type
 
-## Próximo passo (chain)
-Após a crítica (reversível → encadear sem perguntar, `[chain → x]`):
-- Se há violações de acessibilidade → `a11y-fixer` (aplica os fixes WCAG).
-- Para QA de flows/WCAG completo → `tester-ui-ux` (agente).
-Ver `rules/chaining.md`.
+## Next step (chain)
+After the critique (reversible → chain without asking, `[chain → x]`):
+- If there are accessibility violations → `a11y-fixer` (applies the WCAG fixes).
+- For full flow/WCAG QA → `tester-ui-ux` (agent).
+See `rules/chaining.md`.

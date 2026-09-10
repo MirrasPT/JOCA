@@ -20,12 +20,12 @@ export function projectGroupsRouter(): Router {
   r.post('/project-groups', express.json(), (req, res) => {
     const { name, projectIds } = req.body as { name?: string; projectIds?: unknown };
     const ids = Array.isArray(projectIds) ? projectIds.filter((x): x is string => typeof x === 'string') : [];
-    // Dedupe ANTES de validar a contagem — ["A","A"] tinha length 2 mas só 1 projecto real.
+    // Dedupe BEFORE validating the count — ["A","A"] had length 2 but only 1 real project.
     const uniqueIds = [...new Set(ids)];
-    if (uniqueIds.length < 2) return res.status(400).json({ error: 'projectIds precisa de pelo menos 2 ids diferentes' });
+    if (uniqueIds.length < 2) return res.status(400).json({ error: 'projectIds needs at least 2 different ids' });
     const projects = loadProjects();
     const targets = uniqueIds.map((id) => projects.find((p) => p.id === id));
-    if (targets.some((p) => !p)) return res.status(404).json({ error: 'Um ou mais projectos não existem' });
+    if (targets.some((p) => !p)) return res.status(404).json({ error: 'One or more projects do not exist' });
 
     const parsedIcon = req.body.icon === undefined ? { ok: true as const, icon: undefined } : parseIconInput(req.body.icon);
     if (!parsedIcon.ok) return res.status(400).json({ error: parsedIcon.error });
@@ -33,7 +33,7 @@ export function projectGroupsRouter(): Router {
     const groups = loadProjectGroups();
     const group = {
       id: randomUUID(),
-      name: (name?.trim().slice(0, 80)) || 'Grupo',
+      name: (name?.trim().slice(0, 80)) || 'Group',
       color: targets[0]?.color,
       icon: parsedIcon.icon,
       order: groups.length,
@@ -59,9 +59,9 @@ export function projectGroupsRouter(): Router {
     const prevGroupId = project.groupId;
     project.groupId = group.id;
     saveProjects(projects);
-    // Saltar directamente de um grupo para outro (arrastar um projecto já agrupado para uma bolinha
-    // doutro grupo) deixava o grupo antigo com 1 membro fantasma — nunca passava pelo caminho de
-    // "sair" que despoleta o prune (PATCH /projects/:id com groupId:null).
+    // Jumping straight from one group to another (dragging an already-grouped project onto a dot
+    // of another group) left the old group with 1 phantom member — it never went through the
+    // "leave" path that triggers the prune (PATCH /projects/:id with groupId:null).
     if (prevGroupId && prevGroupId !== group.id) pruneEmptyGroups();
     res.json(group);
   });
@@ -75,7 +75,7 @@ export function projectGroupsRouter(): Router {
       if (trimmed) group.name = trimmed;
     }
     if (typeof req.body.color === 'string') group.color = req.body.color.trim().slice(0, 50) || undefined;
-    // Mesma semântica do PATCH de projecto: objecto define, null/'' limpa.
+    // Same semantics as the project PATCH: an object sets, null/'' clears.
     const previousIcon = group.icon;
     let iconChanged = false;
     if (req.body.icon !== undefined) {

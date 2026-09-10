@@ -1,4 +1,4 @@
-Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/onboarding-flags-billing.md")`. Cobre §4-6: onboarding assíncrono, Laravel Pennant e tiers/billing.
+Part of the `saas-patterns` skill — loaded on-demand via `Read(".claude/reference/saas-patterns/onboarding-flags-billing.md")`. Covers §4-6: async onboarding, Laravel Pennant and tiers/billing.
 
 ## 4. Tenant Onboarding Workflow
 

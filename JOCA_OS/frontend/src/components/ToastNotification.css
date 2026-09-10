@@ -1,20 +1,20 @@
 /* ─── Toasts ──────────────────────────────────────────────────────────
-   Só o que é NOVO em relação ao bloco `.toast*` do App.css: o corpo clicável, a variante
-   "precisa de ti" e o fundo consciente do tema.
+   Only what is NEW relative to the `.toast*` block in App.css: the clickable body, the
+   "needs you" variant and the theme-aware background.
 
-   Os selectores levam `.toast-container` à frente de propósito. Este ficheiro é importado pelo
-   componente, o App.css pelo App — a ordem de cascata entre os dois depende do grafo de imports do
-   bundler, e não é coisa em que valha a pena confiar. Com um nível a mais de especificidade, estas
-   regras ganham sempre. */
+   The selectors carry `.toast-container` up front deliberately. This file is imported by the
+   component, App.css by the App — the cascade order between the two depends on the bundler's
+   import graph, and that is not a thing worth trusting. With one extra level of specificity, these
+   rules always win. */
 
-/* O fundo base do toast estava fixo em escuro; no tema claro o texto ficava escuro sobre escuro.
-   Aqui passa a sair das variáveis, e lê nos dois temas. */
+/* The toast's base background was fixed to dark; in the light theme the text ended up dark on
+   dark. Here it comes from the variables, and reads in both themes. */
 .toast-container .toast {
   background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
   border-color: var(--border-default);
 }
 
-/* ─── Corpo clicável ──────────────────────────────────────────────── */
+/* ─── Clickable body ──────────────────────────────────────────────── */
 
 .toast-container .toast-open {
   flex: 1;
@@ -23,7 +23,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  /* 44px de alvo, o mínimo confortável — o toast é pequeno mas não é para acertar à primeira. */
+  /* 44px target, the comfortable minimum — the toast is small but it is not for hitting first time. */
   min-height: 44px;
   justify-content: center;
   padding: 2px var(--sp-2);
@@ -43,7 +43,7 @@
   outline: 2px solid var(--accent-text);
   outline-offset: 1px;
 }
-/* Sem destino não há clique — e o cursor diz isso antes de o utilizador tentar. */
+/* With no target there is no click — and the cursor says so before the user tries. */
 .toast-container .toast-open:disabled { cursor: default; }
 
 .toast-container .toast-title {
@@ -53,8 +53,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   line-height: 1.2;
-  /* O título é a etiqueta ("TAREFA FALHOU: …"); a mensagem por baixo é a informação. Era ele que
-     crescia para três linhas enquanto a mensagem levava reticências. Uma linha chega. */
+  /* The title is the label ("TASK FAILED: …"); the message below is the information. It was the
+     title that grew to three lines while the message got an ellipsis. One line is enough. */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -66,16 +66,16 @@
   font-weight: 500;
   color: var(--text-bright);
   line-height: 1.3;
-  /* Duas linhas antes de cortar: "Sleep 25 bloq…" não dizia nada a ninguém. */
+  /* Two lines before cutting: "Sleep 25 bloq…" said nothing to anyone. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* ─── Variante "precisa de ti" ─────────────────────────────────────
-   Distingue-se pela cor da moldura e pela etiqueta, não por tamanho: um toast maior saltaria por
-   cima do conteúdo. Como não se auto-fecha, tem de conseguir ficar ali sem incomodar. */
+/* ─── "needs you" variant ──────────────────────────────────────────
+   It is told apart by the frame color and by the label, not by size: a bigger toast would jump over
+   the content. As it does not auto-close, it has to be able to sit there without bothering. */
 
 .toast-container .toast--action {
   border-color: var(--accent-border);
@@ -85,7 +85,7 @@
 .toast-container .toast--action .toast-icon {
   background: var(--accent-soft);
   border-color: var(--accent-border);
-  /* --accent-text e não --accent: o laranja puro não passa AA sobre fundo claro. */
+  /* --accent-text and not --accent: pure orange does not pass AA on a light background. */
   color: var(--accent-text);
 }
 
@@ -102,14 +102,14 @@
   white-space: nowrap;
 }
 
-/* ─── Fechar ──────────────────────────────────────────────────────── */
+/* ─── Close ───────────────────────────────────────────────────────── */
 
 .toast-container .toast-dismiss {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
-  height: 44px;             /* alto como o corpo: o alvo vertical é o que falha num toast estreito */
+  height: 44px;             /* as tall as the body: the vertical target is what fails on a narrow toast */
   padding: 0;
   background: none;
   border: none;

@@ -57,7 +57,7 @@ Apply the same structure for pytest (`def test_…`, `assert result == expected`
 - Use production data in tests — use fixtures or factories instead
 - Create order-dependent tests — each test must be independently runnable
 - Ignore flaky tests — quarantine and fix them; don't just re-run until green
-- Test implementation details (internal method calls) — test observable behaviour
+- Test implementation details (internal method calls) — test observable behavior
 
 ## Output Templates
 

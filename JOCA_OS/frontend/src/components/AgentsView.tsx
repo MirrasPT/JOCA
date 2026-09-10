@@ -1,13 +1,13 @@
-// AgentsView — todos os agentes/terminais numa vista só, fora de qualquer projecto.
+// AgentsView — every agent/terminal in a single view, outside any project.
 //
-// Até aqui os agentes só se viam dentro de um projecto (painel lateral do workspace) ou como
-// separadores soltos na barra lateral: não havia sítio para "quero um agente já, para uma coisa
-// avulsa" nem para ver de uma vez o que está a correr na máquina. Esta vista dá as duas coisas —
-// abrir um agente novo (com ou sem projecto, no CLI que se quiser) e gerir os que existem.
+// Until now agents were only visible inside a project (the workspace side panel) or as loose tabs
+// in the sidebar: there was no place for "I want an agent right now, for a one-off thing" nor to
+// see at a glance what is running on the machine. This view gives both — opening a new agent (with
+// or without a project, on whichever CLI you want) and managing the ones that exist.
 //
-// Reaproveita a linguagem visual das linhas de agente do workspace (.pw-worker*): mesmo ponto de
-// estado, mesma animação de "a trabalhar", mesmas acções. É a mesma entidade, não vale um segundo
-// vocabulário visual.
+// It reuses the visual language of the workspace agent rows (.pw-worker*): same status dot, same
+// "working" animation, same actions. It is the same entity, it does not deserve a second visual
+// vocabulary.
 import { useEffect, useMemo, useState } from 'react';
 import type { CliProfileInfo, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
@@ -17,14 +17,14 @@ import './agents-view.css';
 interface Props {
   sessions: SessionInfo[];
   projects: Project[];
-  /** Abre o terminal do agente em ecrã cheio. */
+  /** Opens the agent's terminal in full screen. */
   onOpenSession: (id: string) => void;
   onCloseSession: (id: string) => void;
-  /** Agente novo sem projecto; `cli` vazio = claude. */
+  /** New agent without a project; empty `cli` = claude. */
   onNewSession: (cli: string) => void;
-  /** Salta para o workspace do projecto (terminais). */
+  /** Jumps to the project workspace (terminals). */
   onOpenProject: (project: Project) => void;
-  /** Renomear um agente (duplo-clique no nome). */
+  /** Rename an agent (double-click on the name). */
   onRenameSession?: (id: string, name: string) => void;
 }
 
@@ -47,8 +47,8 @@ function CloseIcon() {
 export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cli, setCli] = useState('claude');
-  // Fonte única para "que CLIs existem" — respeita `available` (instalado ou não), em vez de uma
-  // lista fixa que inclui CLIs que a máquina nem tem.
+  // Single source for "which CLIs exist" — it respects `available` (installed or not), instead of
+  // a fixed list that includes CLIs the machine does not even have.
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[]>([]);
   useEffect(() => {
     fetch('/cli-profiles').then((r) => r.json())
@@ -66,9 +66,9 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
   );
   const working = sessions.filter((s) => s.status === 'working').length;
 
-  // A linha é `role="button"` e não `<button>` porque tem os botões de abrir/fechar como IRMÃOS
-  // interactivos — botão dentro de botão é HTML inválido (o browser fecha o de fora cedo) e a AT
-  // trata "controlo interactivo aninhado noutro" de forma inconsistente (axe-core: serious).
+  // The row is `role="button"` and not `<button>` because it has the open/close buttons as
+  // interactive SIBLINGS — a button inside a button is invalid HTML (the browser closes the outer
+  // one early) and AT handles "interactive control nested in another" inconsistently (axe-core: serious).
   const row = (s: SessionInfo) => {
     const confirming = confirmId === s.id;
     return (
@@ -79,7 +79,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
           className={`pw-worker${s.status === 'working' ? ' is-working' : ''}${confirming ? ' is-confirming' : ''}`}
           onClick={() => onOpenSession(s.id)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenSession(s.id); } }}
-          title="Abrir este agente"
+          title="Open this agent"
         >
           <span className={`pw-worker-dot pw-worker-dot--${s.status}`} aria-hidden />
           <InlineName
@@ -91,20 +91,20 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
           />
           {confirming ? (
             <span className="pw-worker-confirm" onClick={(e) => e.stopPropagation()}>
-              <span className="pw-worker-confirm-q">Fechar?</span>
-              <button type="button" className="pw-worker-confirm-yes" onClick={(e) => { e.stopPropagation(); setConfirmId(null); onCloseSession(s.id); }}>Sim</button>
-              <button type="button" onClick={(e) => { e.stopPropagation(); setConfirmId(null); }}>Não</button>
+              <span className="pw-worker-confirm-q">Close?</span>
+              <button type="button" className="pw-worker-confirm-yes" onClick={(e) => { e.stopPropagation(); setConfirmId(null); onCloseSession(s.id); }}>Yes</button>
+              <button type="button" onClick={(e) => { e.stopPropagation(); setConfirmId(null); }}>No</button>
             </span>
           ) : (
             <>
               {s.cli && s.cli !== 'claude' && <span className="ag-cli">{s.cli}</span>}
               <span className="pw-worker-job" title={s.cwd}>{shortPath(s.cwd)}</span>
-              <span className="pw-worker-time">{s.status === 'working' ? 'a trabalhar' : 'parado'}</span>
+              <span className="pw-worker-time">{s.status === 'working' ? 'working' : 'idle'}</span>
               <button
                 type="button"
                 className="pw-worker-btn"
-                title="Abrir em ecrã cheio"
-                aria-label={`Abrir ${s.name}`}
+                title="Open in full screen"
+                aria-label={`Open ${s.name}`}
                 onClick={(e) => { e.stopPropagation(); onOpenSession(s.id); }}
               >
                 <OpenIcon />
@@ -112,8 +112,8 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
               <button
                 type="button"
                 className="pw-worker-btn pw-worker-btn--close"
-                title="Fechar este agente"
-                aria-label={`Fechar ${s.name}`}
+                title="Close this agent"
+                aria-label={`Close ${s.name}`}
                 onClick={(e) => { e.stopPropagation(); setConfirmId(s.id); }}
               >
                 <CloseIcon />
@@ -129,27 +129,27 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
     <div className="dashboard-view agents-view">
       <div className="vp-header">
         <div className="pw-head-main">
-          <h1 className="vp-title">Agentes_</h1>
+          <h1 className="vp-title">Agents_</h1>
           <p className="vp-desc">
-            Todos os terminais abertos na máquina — com ou sem projecto. Para trabalho avulso, abre um aqui.
+            Every terminal open on the machine — with or without a project. For one-off work, open one here.
           </p>
         </div>
         <div className="pw-head-stats">
-          <span className="pw-head-stat">{sessions.length} aberto{sessions.length === 1 ? '' : 's'}</span>
-          <span className="pw-head-stat">{working} a trabalhar</span>
+          <span className="pw-head-stat">{sessions.length} open</span>
+          <span className="pw-head-stat">{working} working</span>
         </div>
         <div className="header-actions ag-new">
           <select
             className="ag-cli-select"
             value={cli}
             onChange={(e) => setCli(e.target.value)}
-            aria-label="CLI do agente novo"
-            title="Que CLI corre neste agente"
+            aria-label="CLI for the new agent"
+            title="Which CLI runs in this agent"
           >
             {cliProfiles.filter((p) => p.available).map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
           <button className="f-btn" type="button" onClick={() => onNewSession(cli)}>
-            + Novo agente
+            + New agent
           </button>
         </div>
       </div>
@@ -157,14 +157,14 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
       <div className="ag-body">
         {sessions.length === 0 && (
           <p className="tk-drawer-empty">
-            Nenhum agente aberto. Abre um acima — sem projecto, para uma coisa avulsa — ou entra num projecto e abre lá um terminal.
+            No agent open. Open one above — without a project, for a one-off thing — or go into a project and open a terminal there.
           </p>
         )}
 
         {loose.length > 0 && (
           <section className="ag-group">
             <div className="ag-group-head">
-              <span className="section-title">Sem projecto</span>
+              <span className="section-title">No project</span>
               <span className="ag-group-count">{loose.length}</span>
             </div>
             <ul className="pw-workers">{loose.map(row)}</ul>
@@ -174,7 +174,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
         {byProject.map(({ project, list }) => (
           <section className="ag-group" key={project.id}>
             <div className="ag-group-head">
-              <button type="button" className="ag-group-link" onClick={() => onOpenProject(project)} title="Abrir o workspace deste projecto">
+              <button type="button" className="ag-group-link" onClick={() => onOpenProject(project)} title="Open this project's workspace">
                 <span className="section-title">{project.name}</span>
               </button>
               <span className="ag-group-count">{list.length}</span>

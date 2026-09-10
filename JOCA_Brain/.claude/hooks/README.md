@@ -1,48 +1,48 @@
 # JOCA Hooks
 
-11 hooks ligados em `.claude/settings.json` (runtime `node`, excepto `check-skill-paths.sh` que é bash e vive em `.claude/scripts/`). Paths absolutos no settings — no Windows o cwd dos hooks não é garantidamente a raiz do repo.
+11 hooks wired in `.claude/settings.json` (runtime `node`, except `check-skill-paths.sh`, which is bash and lives in `.claude/scripts/`). Absolute paths in the settings — on Windows the cwd of the hooks is not guaranteed to be the repo root.
 
-| Hook | Evento (matcher) | Função | Armado por |
+| Hook | Event (matcher) | Function | Armed by |
 |---|---|---|---|
-| `check-freeze.js` | PreToolUse (Edit\|Write) | Bloqueia edições fora do scope trancado | flag `.joca/freeze.flag` — skill `freeze`; desarma `unfreeze` |
-| `check-tdd.js` | PreToolUse (Edit\|Write) | Guard test-first: código de produção sem teste tocado → `ask` (nunca deny) | flag `.joca/tdd.flag` — skill `tdd`; desarma `unfreeze` |
-| `check-careful.js` | PreToolUse (Bash) | Avisa/pede confirmação em comandos destrutivos | flag `.joca/careful.flag` — skills `careful`/`guard`; desarma `unfreeze` |
-| `session-intake.js` | SessionStart | Injecta contexto de arranque da sessão | sempre ligado |
-| `prompt-triage.js` | UserPromptSubmit | Injecta task-intake (4 vias) a cada prompt | sempre ligado |
-| `track-changes.js` | PostToolUse (Write\|Edit) | Regista ficheiro tocado + domínio em `.joca/test-queue.jsonl` | sempre ligado |
-| `check-skill-paths.sh` | PostToolUse (Write\|Edit) | Valida paths referenciados em skills (bash, em `.claude/scripts/`) | sempre ligado |
-| `skill-lint.js` | PostToolUse (Write\|Edit) | Lint de frontmatter quando o ficheiro é uma skill (não-bloqueante) | sempre ligado |
-| `stop-checkpoint.js` | Stop (1º do array) | Auto-checkpoint se a queue tem código (corre ANTES do dispatch, que limpa a queue) | sempre ligado |
-| `auto-test-dispatch.js` | Stop (2º do array) | Cruza a queue com `git status`, recomenda testers **uma vez** por conjunto, limpa a queue; cala-se com `.joca/loop.json` por fechar | sempre ligado |
-| `stop-continuar.js` | Stop (3º do array) | Bloqueia o fim do turno enquanto `.joca/loop.json` tiver passos pendentes ou feitos-por-verificar; recusa verificação assinada pelo produtor | contrato `.joca/loop.json`; kill-switch `.joca/loop-off.flag` |
+| `check-freeze.js` | PreToolUse (Edit\|Write) | Blocks edits outside the locked scope | flag `.joca/freeze.flag` — skill `freeze`; disarmed by `unfreeze` |
+| `check-tdd.js` | PreToolUse (Edit\|Write) | Test-first guard: production code with no test touched → `ask` (never deny) | flag `.joca/tdd.flag` — skill `tdd`; disarmed by `unfreeze` |
+| `check-careful.js` | PreToolUse (Bash) | Warns/asks for confirmation on destructive commands | flag `.joca/careful.flag` — skills `careful`/`guard`; disarmed by `unfreeze` |
+| `session-intake.js` | SessionStart | Injects the session startup context | always on |
+| `prompt-triage.js` | UserPromptSubmit | Injects task-intake (4 routes) on every prompt | always on |
+| `track-changes.js` | PostToolUse (Write\|Edit) | Records the touched file + domain in `.joca/test-queue.jsonl` | always on |
+| `check-skill-paths.sh` | PostToolUse (Write\|Edit) | Validates paths referenced in skills (bash, in `.claude/scripts/`) | always on |
+| `skill-lint.js` | PostToolUse (Write\|Edit) | Frontmatter lint when the file is a skill (non-blocking) | always on |
+| `stop-checkpoint.js` | Stop (1st in the array) | Auto-checkpoint if the queue has code (runs BEFORE the dispatch, which clears the queue) | always on |
+| `auto-test-dispatch.js` | Stop (2nd in the array) | Cross-checks the queue with `git status`, recommends testers **once** per set, clears the queue; goes quiet with `.joca/loop.json` still open | always on |
+| `stop-continue.js` | Stop (3rd in the array) | Blocks the end of the turn while `.joca/loop.json` has steps pending or done-but-unverified; refuses a verification signed by the producer | contract `.joca/loop.json`; kill-switch `.joca/loop-off.flag` |
 
-## Pipeline de auto-test
+## Auto-test pipeline
 
-1. Write/Edit → `track-changes.js` faz append a `.joca/test-queue.jsonl` (ficheiro + domínio).
-2. Stop → `stop-checkpoint.js` grava checkpoint se houver código na queue; depois `auto-test-dispatch.js` lê a queue e recomenda testers.
-3. O main loop despacha os testers sem perguntar. Queue limpa a cada Stop.
+1. Write/Edit → `track-changes.js` appends to `.joca/test-queue.jsonl` (file + domain).
+2. Stop → `stop-checkpoint.js` writes a checkpoint if there is code in the queue; then `auto-test-dispatch.js` reads the queue and recommends testers.
+3. The main loop dispatches the testers without asking. The queue is cleared on every Stop.
 
-Quatro travões contra a recomendação-em-loop (medido: 6-9 recusas iguais por sessão):
+Four brakes against looped recommendation (measured: 6-9 identical refusals per session):
 
-| Travão | Regra | Efeito na fila |
+| Brake | Rule | Effect on the queue |
 |---|---|---|
-| Trabalho em curso | `.joca/loop.json` (no cwd ou no Brain) com passo ≠ `verificado` | **não** limpa — a recomendação espera |
-| O que mudou | ficheiro ausente do disco, ou dentro do repo e ausente de `git status --porcelain --ignored`, não conta. Sem git → conta tudo (fail-open) | limpa |
-| Memória de recusa | mesmo conjunto de testers já recomendado nesta `session_id`, ou há < 15 min → silêncio (`.joca/test-dispatch-memo.json`) | limpa |
-| Saídas explícitas | a mensagem nomeia as 3 saídas de 1 linha, incluindo "a sessão proíbe despachar agentes" | — |
+| Work in progress | `.joca/loop.json` (in the cwd or in the Brain) with a step ≠ `verificado` | does **not** clear — the recommendation waits |
+| What changed | a file absent from disk, or inside the repo and absent from `git status --porcelain --ignored`, does not count. No git → everything counts (fail-open) | clears |
+| Refusal memory | the same set of testers already recommended in this `session_id`, or less than 15 min ago → silence (`.joca/test-dispatch-memo.json`) | clears |
+| Explicit exits | the message names the 3 one-line exits, including "the session forbids dispatching agents" | — |
 
-Ordem no array `Stop` (não trocar): `stop-checkpoint` lê a queue **antes** de o dispatch a limpar;
-`stop-continuar` vai a seguir porque é o único que emite `decision: block` — a recomendação do
-dispatch tem de estar já escrita quando o turno é bloqueado.
+Order in the `Stop` array (do not swap): `stop-checkpoint` reads the queue **before** the dispatch clears it;
+`stop-continue` comes next because it is the only one that emits `decision: block` — the dispatch
+recommendation has to be written already when the turn is blocked.
 
-## Contrato de continuidade (`.joca/loop.json`)
+## Continuity contract (`.joca/loop.json`)
 
-Escrito pelo main loop ao arrancar trabalho multi-passo (via C/D ou pipeline). Sem ele o
-`stop-continuar.js` é no-op — o loop nunca se auto-inicia.
+Written by the main loop when starting multi-step work (route C/D or a pipeline). Without it
+`stop-continue.js` is a no-op — the loop never starts itself.
 
 ```json
 {
-  "objectivo": "uma frase",
+  "objectivo": "one sentence",
   "criado": "2026-08-20T10:00:00Z",
   "max_iteracoes": 4,
   "aguarda_utilizador": false,
@@ -53,9 +53,9 @@ Escrito pelo main loop ao arrancar trabalho multi-passo (via C/D ou pipeline). S
 }
 ```
 
-`estado` só passa a `verificado` quando `verificador` ≠ `produtor` e há evidência. O hook escreve
-`iteracao`, `sem_progresso` e `assinatura`; apaga o ficheiro quando tudo fica verificado ou ao fim
-de 6 h. Kill-switch: `touch .joca/loop-off.flag`. Num projecto-alvo, garantir `.joca/` no
-`.gitignore` (no Brain já está: `JOCA_Brain/.gitignore:2`).
+`estado` only becomes `verificado` when `verificador` ≠ `produtor` and there is evidence. The hook writes
+`iteracao`, `sem_progresso` and `assinatura`; it deletes the file when everything is verified or after
+6 h. Kill-switch: `touch .joca/loop-off.flag`. In a target project, make sure `.joca/` is in the
+`.gitignore` (in the Brain it already is: `JOCA_Brain/.gitignore:2`).
 
-Hooks flag-file são no-op sem a flag respectiva — custo zero quando desarmados. Wiring completo: `install.md` FASE EXECUCAO 7.
+Flag-file hooks are no-ops without their respective flag — zero cost when disarmed. Full wiring: `install.md` EXECUTION PHASE 7.

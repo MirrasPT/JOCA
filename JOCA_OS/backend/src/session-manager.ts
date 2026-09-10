@@ -2,7 +2,7 @@
 // spawn/input/resize/kill, the rolling output buffer, and the idle→done heuristic. All timings
 // and constants are IDENTICAL to the original god-file (BUFFER_MAX, IDLE_DEBOUNCE_MS,
 // DONE_MIN_WORK_MS, MAX_SESSIONS). Shared state lives in the single exported `sessionManager`
-// singleton — quem despacha trabalho programaticamente fala com essa instância.
+// singleton — whoever dispatches work programmatically talks to that instance.
 //
 // Eventing: extends EventEmitter and emits:
 //   'spawn'  { session }                     — session created (forwarded as 'session_created'); the
@@ -10,10 +10,10 @@
 //   'output' { sessionId, data }            — every PTY chunk (server forwards to WS as 'output')
 //   'status' { sessionId, status, isDone }   — working↔idle transitions (forwarded as 'session_status')
 //   'closed' { sessionId, finalOutput }      — PTY exit (forwarded as 'session_closed'). `finalOutput`
-//                                              é o buffer final já sem ANSI: quem ouvir isto não o
-//                                              consegue ir buscar depois, porque a sessão já saiu do mapa.
+//                                              is the final buffer already without ANSI: whoever
+//                                              hears this cannot fetch it afterwards, because the session already left the map.
 //   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
-//                                              work burst ends; quem despacha espera por isto.
+//                                              work burst ends; the dispatcher waits for this.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -32,10 +32,10 @@ export interface Session {
   name: string;
   cwd: string;
   projectId?: string;
-  origin: 'user' | 'auto';   // quem a criou: 'user' (UI) ou 'auto' (spawn programático, ex.: `joca open`)
+  origin: 'user' | 'auto';   // who created it: 'user' (UI) or 'auto' (programmatic spawn, e.g. `joca open`)
   cli: CliId;                // which coding CLI runs inside the PTY (claude | codex | agy | opencode)
-  // Etiqueta de área herdada da pool que o gestor de projecto usava. O gestor foi removido e nada
-  // preenche isto hoje; fica no tipo por ser opcional e escrito no ficheiro de sessões antigo.
+  // Area label inherited from the pool the project manager used. The manager was removed and nothing
+  // fills this today; it stays in the type because it is optional and written in the old sessions file.
   area?: string;
   pty: pty.IPty;
   buffer: string;
@@ -72,13 +72,13 @@ export interface SpawnOptions {
   origin?: 'user' | 'auto';   // default 'user'
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
   model?: string;             // passed to the CLI's model flag when the profile has one
-  area?: string;              // ver `Session.area` — hoje nunca preenchido
-  /** Arranca o Claude Code com `--remote-control` (flag de arranque; só claude). */
+  area?: string;              // see `Session.area` — never filled today
+  /** Starts Claude Code with `--remote-control` (startup flag; claude only). */
   remoteControl?: boolean;
-  // Etiqueta OPACA de quem pediu esta sessão (o browser que carregou no "+"). Volta no evento
-  // 'spawn' e daí no broadcast: sem ela, o `session_created` chega igual a toda a gente e CADA
-  // cliente aberto salta para o terminal novo — um segundo separador era atirado para fora do que
-  // estava a fazer sempre que outro criava um terminal.
+  // OPAQUE label of whoever asked for this session (the browser that clicked "+"). It comes back in
+  // the 'spawn' event and from there in the broadcast: without it, `session_created` arrives the
+  // same for everyone and EVERY open client jumps to the new terminal — a second tab was thrown out
+  // of what it was doing every time someone else created a terminal.
   requestedBy?: string;
 }
 
@@ -123,30 +123,30 @@ function findBin(bin: string): string {
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]/g;
 
 /**
- * Esta rajada trouxe alguma coisa VISÍVEL, ou é só o terminal a pintar-se?
+ * Did this burst bring anything VISIBLE, or is it just the terminal painting itself?
  *
- * Tirando as sequências de escape e os caracteres de controlo, o que sobra é o que um humano leria.
- * Se não sobra nada, ninguém escreveu nada: foi cursor, cor, limpar linha, mudar de posição.
+ * Take away the escape sequences and the control characters and what is left is what a human would
+ * read. If nothing is left, nobody wrote anything: it was cursor, color, clear line, move position.
  *
- * Exportada para ser testável — é uma decisão que afecta TODO o sistema de estados (o `done`, o
- * juiz, o que a UI mostra), e uma regressão aqui é silenciosa.
+ * Exported so it is testable — it is a decision that affects the WHOLE state system (the `done`,
+ * the judge, what the UI shows), and a regression here is silent.
  */
 /**
- * O CLI está a pedir para confiar nesta pasta?
+ * Is the CLI asking to trust this folder?
  *
- * Duas armadilhas, ambas pagas em campo:
+ * Two pitfalls, both paid for in the field:
  *
- * 1. **Cada CLI escreve o pedido à sua maneira.** O Claude diz "Do you trust the files in this
- *    folder?", o codex diz "Do you trust the contents of this directory?". A versão anterior só
- *    conhecia a do Claude — e um worker codex ficava parado no diálogo para sempre, com o JOCA a
- *    reportá-lo como `idle`, isto é, livre.
- * 2. **O texto do TUI não tem espaços.** Estas interfaces posicionam cada palavra com movimentos
- *    de cursor em vez de escreverem espaços, portanto o buffer sem ANSI lê-se
- *    `Doyoutrustthecontentsofthisdirectory`. Qualquer padrão com espaços falha. Daí normalizar
- *    para só letras antes de comparar.
+ * 1. **Each CLI writes the request its own way.** Claude says "Do you trust the files in this
+ *    folder?", codex says "Do you trust the contents of this directory?". The previous version only
+ *    knew Claude's — and a codex worker sat stuck on the dialog forever, with JOCA reporting it
+ *    as `idle`, that is, free.
+ * 2. **The TUI text has no spaces.** These interfaces position each word with cursor movements
+ *    instead of writing spaces, so the buffer without ANSI reads
+ *    `Doyoutrustthecontentsofthisdirectory`. Any pattern with spaces fails. Hence normalizing
+ *    to letters only before comparing.
  *
- * Em ambos os CLIs o Enter aceita a opção segura por omissão (Claude: confiar; codex: "1. Yes,
- * continue" já seleccionada, "Press enter to continue"). São pastas que o dono abriu de propósito.
+ * In both CLIs Enter accepts the safe default option (Claude: trust; codex: "1. Yes, continue"
+ * already selected, "Press enter to continue"). These are folders the owner opened deliberately.
  */
 export function pedeConfiancaNaPasta(buffer: string): boolean {
   const t = buffer.replace(ANSI_RE, '').toLowerCase().replace(/[^a-z]/g, '');
@@ -157,12 +157,12 @@ export function pedeConfiancaNaPasta(buffer: string): boolean {
 }
 
 /**
- * O CLI está a oferecer-se para se ACTUALIZAR? Nunca se aceita a meio de um arranque.
+ * Is the CLI offering to UPDATE itself? It is never accepted mid-startup.
  *
- * Não é pedantismo: no codex a opção por omissão é "Update now", e aceitá-la corre um
- * `npm install -g` e mata a sessão a seguir ("Please restart Codex"). Uma actualização é uma
- * decisão do dono, num momento escolhido por ele — não um efeito secundário de despachar trabalho.
- * Mesma normalização sem espaços de `pedeConfiancaNaPasta`, e pela mesma razão.
+ * This is not pedantry: in codex the default option is "Update now", and accepting it runs an
+ * `npm install -g` and kills the session right after ("Please restart Codex"). An update is the
+ * owner's decision, at a moment chosen by them — not a side effect of dispatching work.
+ * Same space-less normalization as `pedeConfiancaNaPasta`, and for the same reason.
  */
 export function ofereceActualizacao(buffer: string): boolean {
   const t = buffer.replace(ANSI_RE, '').toLowerCase().replace(/[^a-z]/g, '');
@@ -170,7 +170,7 @@ export function ofereceActualizacao(buffer: string): boolean {
 }
 
 export function temConteudoVisivel(chunk: string): boolean {
-  // \r e \b são movimento (voltar ao início da linha, apagar atrás), não conteúdo.
+  // \r and \b are movement (back to the start of the line, delete backwards), not content.
   return chunk.replace(ANSI_RE, '').replace(/[\x00-\x08\x0b-\x1f\x7f\r]/g, '').trim().length > 0;
 }
 
@@ -213,13 +213,13 @@ export function submitCrDelay(payloadLength: number): number {
 
 
 /**
- * Escrita num PTY que pode já ter morrido.
+ * Writing to a PTY that may already be dead.
  *
- * Um worker que arranca mal (CLI em falta, pasta sem permissões, `claude` a sair logo) deixa o PTY
- * fechado, e escrever nele lança `EPIPE`. Quando essa escrita está dentro de um `setTimeout` ou de
- * um `async` sem `catch`, o erro sobe como excepção não-apanhada e o Node mata o PROCESSO — ou
- * seja: um terminal morto derrubava o backend todo, com todas as outras sessões atrás.
- * Devolve `false` em vez de rebentar; quem escreve decide o que fazer.
+ * A worker that starts badly (missing CLI, folder without permissions, `claude` exiting right away)
+ * leaves the PTY closed, and writing to it throws `EPIPE`. When that write is inside a `setTimeout`
+ * or an `async` without a `catch`, the error rises as an uncaught exception and Node kills the
+ * PROCESS — that is: one dead terminal took the whole backend down, with all the other sessions
+ * behind it. Returns `false` instead of blowing up; the writer decides what to do.
  */
 function safePtyWrite(pty: { write(d: string): void }, data: string): boolean {
   try { pty.write(data); return true; } catch { return false; }
@@ -252,7 +252,7 @@ export class SessionManager extends EventEmitter {
   spawn(opts: SpawnOptions = {}): Session {
     const { sessionName, projectId, initialInput } = opts;
     const origin = opts.origin ?? 'user';
-    // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
+    // Explicit cli wins; otherwise the user's configured default (Settings → Default CLI).
     const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
     const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
@@ -318,21 +318,21 @@ export class SessionManager extends EventEmitter {
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
-    // NENHUM comando de contexto é injectado no arranque. O `/resume` é MANUAL: o dono carrega no
-    // botão de resume da barra do chat quando quer carregar o contexto do projecto (o frontend
-    // compõe o comando a partir de `profile.resumeCmd`). Um terminal que arranca a gastar um turno
-    // inteiro a carregar contexto que ninguém pediu é trabalho por cima do dono.
+    // NO context command is injected at startup. `/resume` is MANUAL: the owner clicks the resume
+    // button on the chat bar when they want to load the project context (the frontend composes the
+    // command from `profile.resumeCmd`). A terminal that starts by spending a whole turn loading
+    // context nobody asked for is work piled on top of the owner.
     //
-    // `/init-project` também NUNCA é enviado daqui, pela mesma razão: abria um questionário por
-    // cima de trabalho que o utilizador nem pediu.
+    // `/init-project` is also NEVER sent from here, for the same reason: it opened a questionnaire
+    // on top of work the user did not even ask for.
     //
-    // A coreografia de arranque corre com ou sem brief: é ela que reconhece e responde ao "trust
-    // this folder?" e ao "Update available!" — deixar um terminal parado num desses diálogos é pior
-    // do que qualquer contexto em falta (ver limparDialogosDeArranque). Quem a desliga é o perfil
-    // do CLI (`startupSequence: false`), para um CLI que não tenha diálogos de arranque nenhuns.
-    // O que é ENVIADO é só o brief (initialInput) de quem criou a sessão — e só quando a TUI está
-    // pronta e os diálogos limpos. Timers fixos foram o bug por trás de "às vezes não manda a
-    // mensagem". Sem coreografia o brief vai à mesma, apenas sem a espera.
+    // The startup choreography runs with or without a brief: it is what recognizes and answers the
+    // "trust this folder?" and the "Update available!" — leaving a terminal stuck on one of those
+    // dialogs is worse than any missing context (see limparDialogosDeArranque). What turns it off
+    // is the CLI profile (`startupSequence: false`), for a CLI that has no startup dialogs at all.
+    // What IS SENT is only the brief (initialInput) of whoever created the session — and only when
+    // the TUI is ready and the dialogs cleared. Fixed timers were the bug behind "sometimes it does
+    // not send the message". Without the choreography the brief goes anyway, just without the wait.
     if (profile.startupSequence) void this.runStartupSequence(session, initialInput);
     else if (initialInput) this.enqueueWrite(session, initialInput, true);
 
@@ -340,11 +340,11 @@ export class SessionManager extends EventEmitter {
       session.buffer += data;
       if (session.buffer.length > BUFFER_MAX) {
         let cutAt = session.buffer.length - BUFFER_MAX;
-        // NUNCA cortar a meio de uma sequência de escape. `cutAt` é um índice arbitrário; se o
-        // `\x1b` inicial ficar do lado deitado fora, os parâmetros que sobram (`38;2;255;0;0m`)
-        // chegam ao xterm como TEXTO e o replay aparece com lixo e linhas repetidas. Alinhar ao
-        // próximo `\x1b` é sempre seguro — toda a sequência começa aí. Um TUI repinta com CSI de
-        // posicionamento, não com `\n`, por isso o alinhamento por linha (fallback) falha muito.
+        // NEVER cut in the middle of an escape sequence. `cutAt` is an arbitrary index; if the
+        // leading `\x1b` ends up on the discarded side, the parameters left over (`38;2;255;0;0m`)
+        // reach xterm as TEXT and the replay shows up with garbage and repeated lines. Aligning to
+        // the next `\x1b` is always safe — every sequence starts there. A TUI repaints with
+        // positioning CSI, not with `\n`, which is why line alignment (fallback) often fails.
         const escPos = session.buffer.indexOf('\x1b', cutAt);
         if (escPos !== -1 && escPos < cutAt + 2000) {
           cutAt = escPos;
@@ -356,15 +356,15 @@ export class SessionManager extends EventEmitter {
       }
       this.emit('output', { sessionId: id, data });
 
-      // Repintura não é trabalho. Um TUI mexe o cursor, repõe cores e apaga linhas sem nada de novo
-      // acontecer — e como o estado era "chegaram bytes = está a trabalhar", uma sessão parada num
-      // ecrã com cursor a piscar nunca voltava a `idle`: o silêncio de IDLE_DEBOUNCE_MS nunca
-      // chegava. Era esta a origem dos terminais eternamente "a trabalhar".
+      // Repainting is not work. A TUI moves the cursor, restores colors and clears lines with
+      // nothing new happening — and since the state was "bytes arrived = it is working", a session
+      // sitting on a screen with a blinking cursor never went back to `idle`: the IDLE_DEBOUNCE_MS
+      // silence never came. This was the origin of the eternally "working" terminals.
       //
-      // O que fica de fora: um spinner ou um relógio ESCREVEM caracteres visíveis, e continuam a
-      // contar como trabalho. Resolver isso obriga a comparar o ECRÃ ao longo do tempo, não o
-      // fluxo de bytes — outra empreitada. Isto apanha o caso barato e frequente sem tocar na
-      // detecção de fim.
+      // What is left out: a spinner or a clock DO WRITE visible characters, and still count as
+      // work. Solving that means comparing the SCREEN over time, not the byte stream — another
+      // undertaking. This catches the cheap and frequent case without touching the end-of-work
+      // detection.
       if (!temConteudoVisivel(data)) return;
 
       // Status: transition to working
@@ -388,42 +388,42 @@ export class SessionManager extends EventEmitter {
 
         session.status = 'idle';
         session.workingSince = null;
-        // `notifyOnIdle` é um toast: perdê-lo custa um aviso. `awaitingDone` é um RUNNER à espera:
-        // perdê-lo custa a fila inteira do projecto.
+        // `notifyOnIdle` is a toast: losing it costs a warning. `awaitingDone` is a RUNNER waiting:
+        // losing it costs the project's whole queue.
         //
-        // Ambos eram limpos aqui SEMPRE, mesmo quando a rajada era curta demais para contar como
-        // trabalho (`substantial`). Bastava um settle de menos de 2s — o eco do paste do brief, uma
-        // pausa entre duas ferramentas — para consumir o "arm" sem emitir `done`. A partir daí
-        // nenhuma rajada seguinte acordava o `waitForDone`, que só desistia ao fim de 1 HORA, com o
-        // lock `busy` presa todo esse tempo e nada mais a correr nesse projecto. Media-se em ~1 de
-        // cada 5 execuções.
+        // Both were cleared here ALWAYS, even when the burst was too short to count as work
+        // (`substantial`). A settle of under 2s was enough — the echo of the brief's paste, a pause
+        // between two tools — to consume the "arm" without emitting `done`. From then on no
+        // following burst woke `waitForDone`, which only gave up after 1 HOUR, with the `busy` lock
+        // held that whole time and nothing else running in that project. It was measured at ~1 in
+        // every 5 runs.
         //
-        // Só se desarma quem chegou a disparar.
+        // Only whoever did fire gets disarmed.
         session.notifyOnIdle = isDone ? false : session.notifyOnIdle;
         session.awaitingDone = dispatchDone ? false : session.awaitingDone;
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
-        // 'done' acorda quem despachou trabalho programaticamente (POST /sessions, `joca open`).
+        // 'done' wakes whoever dispatched work programmatically (POST /sessions, `joca open`).
         // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
         if (dispatchDone) this.emit('done', { sessionId: id });
       }, IDLE_DEBOUNCE_MS);
     });
 
-    // node-pty emite 'error' no socket interno quando o processo morre a meio de uma escrita. Um
-    // 'error' sem ouvinte é excepção não-apanhada em Node — mata o backend inteiro. Este ouvinte
-    // existe SÓ para o absorver; o fecho a sério continua a ser tratado no onExit abaixo.
+    // node-pty emits 'error' on the internal socket when the process dies mid-write. An 'error'
+    // with no listener is an uncaught exception in Node — it kills the whole backend. This listener
+    // exists ONLY to absorb it; the real close is still handled in the onExit below.
     const ptySocket = (ptyProcess as unknown as { _socket?: { on(e: string, f: (err: Error) => void): void } })._socket;
     ptySocket?.on('error', (err: Error) => {
-      console.warn(`[pty] socket da sessão ${session.id} falhou: ${err.message}`);
+      console.warn(`[pty] socket of session ${session.id} failed: ${err.message}`);
     });
 
     ptyProcess.onExit(() => {
-      // Atenção: isto cancela um `idleTimer` pendente, logo o 'done' desta rajada NUNCA sai. Um
-      // processo que acaba depressa (ou que morre) fecha sem nunca ter dito "terminei" — quem
-      // estivesse à espera do 'done' ficava à espera para sempre. Por isso o 'closed' leva o
-      // output final: é o único sítio onde ainda existe (o `sessions.delete` abaixo torna-o
-      // inalcançável), e é o que permite a quem ouve reportar o fecho em vez de o engolir.
+      // Careful: this cancels a pending `idleTimer`, so the 'done' of this burst NEVER goes out. A
+      // process that finishes fast (or that dies) closes without ever having said "I am done" —
+      // whoever was waiting for the 'done' waited forever. That is why 'closed' carries the final
+      // output: it is the only place where it still exists (the `sessions.delete` below makes it
+      // unreachable), and it is what lets the listener report the close instead of swallowing it.
       if (session.idleTimer) clearTimeout(session.idleTimer);
       if (session.writeTimer) clearTimeout(session.writeTimer);
       session.writeQueue.length = 0;
@@ -433,7 +433,7 @@ export class SessionManager extends EventEmitter {
     });
 
     // Announce creation so the WS layer broadcasts 'session_created' to all clients. This is the
-    // single source of the broadcast — workers criados programaticamente (origin:'auto')
+    // single source of the broadcast — workers created programmatically (origin:'auto')
     // become visible in the UI exactly like UI-created sessions.
     this.emit('spawn', { session, requestedBy: opts.requestedBy });
     return session;
@@ -503,21 +503,21 @@ export class SessionManager extends EventEmitter {
   }
 
   /**
-   * Espera que o TUI esteja MESMO pronto a receber texto.
+   * Waits until the TUI is REALLY ready to receive text.
    *
-   * O `waitForQuiet` sozinho não chega: durante o arranque de um CLI há pausas de mais de 700ms
-   * (a carregar, a resolver o modelo) em que o processo está vivo mas ainda não montou a caixa de
-   * input. Escrever aí é escrever para o vazio — o texto não aparece em lado nenhum e o terminal
-   * fica no prompt limpo. Como nada foi escrito, o `awaitingDone` nunca chega a armar e o runner
-   * que espera pela tarefa fica pendurado até ao timeout de uma hora, com a fila do projecto presa
-   * atrás dele. Foi assim que uma tarefa em cada cinco morria no arranque.
+   * `waitForQuiet` alone is not enough: during a CLI's startup there are pauses of more than 700ms
+   * (loading, resolving the model) in which the process is alive but has not yet mounted the input
+   * box. Writing there is writing into the void — the text shows up nowhere and the terminal stays
+   * on the clean prompt. Since nothing was written, `awaitingDone` never gets armed and the runner
+   * waiting for the task hangs until the one-hour timeout, with the project's queue stuck behind
+   * it. That is how one task in every five died at startup.
    *
-   * O sinal de "pronto" é o próprio prompt do CLI. Se não aparecer dentro do tecto, avança à mesma
-   * (um CLI que não conheçamos não pode bloquear o arranque para sempre) — daí o `capMs`.
+   * The "ready" signal is the CLI's own prompt. If it does not show up within the cap, it moves on
+   * anyway (a CLI we do not know cannot block startup forever) — hence the `capMs`.
    */
   private waitForTuiReady(session: Session, capMs: number): Promise<void> {
-    // `❯` cobre Claude Code e Codex; as outras duas são a barra de estado do Claude Code, que só
-    // aparece depois de a caixa de input existir.
+    // `❯` covers Claude Code and Codex; the other two are Claude Code's status bar, which only
+    // shows up after the input box exists.
     const PRONTO = /[❯›»]|bypass permissions|for agents|\? for shortcuts/;
     return new Promise((resolve) => {
       const start = Date.now();
@@ -533,21 +533,21 @@ export class SessionManager extends EventEmitter {
   }
 
   // Startup choreography for a freshly spawned Claude Code PTY: wait for the TUI to be ready, clear a
-  // "trust this folder?" prompt if present, THEN submit the brief. Nenhum `/resume` é injectado —
-  // o resume é manual, pelo botão da barra do chat.
+  // "trust this folder?" prompt if present, THEN submit the brief. No `/resume` is injected —
+  // the resume is manual, from the chat bar button.
   // Every step waits for the TUI to settle before the next — robust vs the old fixed-offset timers.
   /**
-   * Limpa os diálogos modais com que um CLI arranca, ANTES de lhe entregar trabalho.
+   * Clears the modal dialogs a CLI starts with, BEFORE handing it work.
    *
-   * Porque é que isto não é "carregar Enter": o Enter aceita a opção por OMISSÃO, e a opção por
-   * omissão nem sempre é inofensiva. Medido em campo com o codex 0.143.0: um Enter cego no
-   * diálogo "Update available!" escolhe **"1. Update now"** — o CLI correu `npm install -g`,
-   * alterou o sistema do dono e saiu com "Please restart Codex". O terminal ficava num prompt de
-   * shell, o JOCA reportava-o como `idle` (livre) e o trabalho nunca chegava a começar.
+   * Why this is not "press Enter": Enter accepts the DEFAULT option, and the default option is not
+   * always harmless. Measured in the field with codex 0.143.0: a blind Enter on the
+   * "Update available!" dialog picks **"1. Update now"** — the CLI ran `npm install -g`, changed
+   * the owner's system and exited with "Please restart Codex". The terminal was left on a shell
+   * prompt, JOCA reported it as `idle` (free) and the work never got started.
    *
-   * Por isso cada diálogo é RECONHECIDO e respondido à medida: confiar na pasta, sim (foi o dono
-   * que a abriu); actualizar-se sozinho a meio de um arranque, nunca. Em ciclo, porque vêm em
-   * série — a actualização aparece antes da confiança.
+   * That is why each dialog is RECOGNIZED and answered to measure: trust the folder, yes (the owner
+   * is the one who opened it); update itself mid-startup, never. In a loop, because they come in
+   * series — the update shows up before the trust.
    */
   private async limparDialogosDeArranque(session: Session): Promise<void> {
     const p = session.pty;
@@ -555,7 +555,7 @@ export class SessionManager extends EventEmitter {
       if (!this.sessions.has(session.id)) return;
       const tail = session.buffer.slice(-4000);
       if (ofereceActualizacao(tail)) {
-        // "2. Skip" nos dois formatos conhecidos; o dígito selecciona, o CR confirma.
+        // "2. Skip" in both known formats; the digit selects, the CR confirms.
         safePtyWrite(p, '2');
         await new Promise((r) => setTimeout(r, 120));
         safePtyWrite(p, '\r');
@@ -573,22 +573,22 @@ export class SessionManager extends EventEmitter {
     await this.limparDialogosDeArranque(session);
     if (initialInput && this.sessions.has(session.id)) {
       // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
-      // (é isto que deixa quem despachou esperar pela conclusão do worker).
+      // (this is what lets the dispatcher wait for the worker to finish).
       session.notifyOnIdle = true;
       session.awaitingDone = true;
       // Bracketed-paste submit: the brief is multi-line; raw newlines would submit only the first line
       // into the Claude TUI. Paced+chunked so a long brief isn't truncated by the pty buffer.
       this.enqueueWrite(session, initialInput, true);
 
-      // Rede de segurança: confirmar que o brief CHEGOU. Um paste perdido não dá erro nenhum — o
-      // terminal fica no prompt limpo e quem espera pela tarefa fica pendurado. Verifica-se por uma
-      // marca do próprio texto e, se não estiver lá, tenta-se UMA vez.
+      // Safety net: confirm the brief ARRIVED. A lost paste gives no error at all — the terminal
+      // stays on the clean prompt and whoever is waiting for the task hangs. It is checked by a
+      // marker from the text itself and, if it is not there, it is retried ONCE.
       const marca = initialInput.trim().split('\n')[0].slice(0, 40);
       await new Promise((r) => setTimeout(r, 3500));
       if (!this.sessions.has(session.id)) return;
       const visto = session.buffer.slice(-8000).replace(ANSI_RE, '').includes(marca);
       if (!visto) {
-        console.warn(`[session ${session.id.slice(0, 8)}] o brief não apareceu no terminal — a repetir`);
+        console.warn(`[session ${session.id.slice(0, 8)}] the brief did not show up in the terminal — retrying`);
         await this.waitForTuiReady(session, 10000);
         if (this.sessions.has(session.id)) this.enqueueWrite(session, initialInput, true);
       }
@@ -674,7 +674,7 @@ export class SessionManager extends EventEmitter {
     return this.sessions.get(sessionId)?.buffer;
   }
 
-  // Leitura programática. strip=true tira os escapes ANSI para consumo em texto simples.
+  // Programmatic read. strip=true removes the ANSI escapes for plain-text consumption.
   readBuffer(sessionId: string, opts: { strip?: boolean } = {}): string | undefined {
     const buf = this.sessions.get(sessionId)?.buffer;
     if (buf === undefined) return undefined;
@@ -683,7 +683,7 @@ export class SessionManager extends EventEmitter {
 
   // Await the completion of a programmatic dispatch on a session: resolves 'done' when the armed
   // work burst finishes, 'closed' if the PTY exits first, 'timeout' after timeoutMs. Used by the
-  // quem despachou o trabalho (o worker fica aberto — isto só observa).
+  // one who dispatched the work (the worker stays open — this only observes).
   waitForDone(sessionId: string, timeoutMs: number): Promise<'done' | 'closed' | 'timeout'> {
     return new Promise((resolve) => {
       if (!this.sessions.has(sessionId)) return resolve('closed');

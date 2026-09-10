@@ -1,73 +1,73 @@
 ---
 name: deploy-vps
-description: "Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, Caddyfile, SSH key setup VPS, Cloudflare DNS API, scp upload site, static site VPS. SHOULD invoke when: fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, site no ar, publicar no VPS, retirar site do ar, php_fastcgi, try_files, 403 no Caddy, publicar em subcaminho."
-triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA no VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publicar VPS, retirar site do ar, apagar site VPS, configurar servidor, caddy vhost, static hosting, 403 Caddy, basePath, subcaminho
+description: "Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, Caddyfile, SSH key setup VPS, Cloudflare DNS API, scp upload site, static site VPS. SHOULD invoke when: fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, site live, publish on the VPS, take a site offline, php_fastcgi, try_files, 403 in Caddy, publish under a subpath."
+triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA on VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publish to VPS, take a site offline, delete site VPS, configure server, caddy vhost, static hosting, 403 Caddy, basePath, subpath
 origin: local
 chain: deploy-executor
 ---
 # Deploy VPS — Caddy + Cloudflare
 
-Ubuntu VPS + Caddy v2 + Cloudflare DNS por API. **Um Caddyfile serve dezenas de sites** — quase todos
-os acidentes desta skill vêm daí ou de propriedade/permissões de ficheiros.
+Ubuntu VPS + Caddy v2 + Cloudflare DNS through the API. **One Caddyfile serves dozens of sites** — almost every
+accident in this skill comes from that, or from file ownership/permissions.
 
-**Ordem de leitura:** §0 (regra de ouro) → o padrão de vhost do teu caso (§3x) → §4 permissões →
-§6 verificação. Se estiveres a **retirar** um site, vai directo ao §8.
+**Reading order:** §0 (golden rule) → the vhost pattern for your case (§3x) → §4 permissions →
+§6 verification. If you are **taking a site down**, go straight to §8.
 
 ---
 
-## 0. Regra de ouro — o Caddyfile é infra partilhada
+## 0. Golden rule — the Caddyfile is shared infra
 
-Um erro de sintaxe num bloco derruba **todos** os sites do ficheiro. Sequência obrigatória, sempre:
+A syntax error in one block brings down **every** site in the file. Mandatory sequence, always:
 
 ```bash
-ssh <host> "cp /etc/caddy/Caddyfile /root/Caddyfile.bak-$(date +%F-%H%M)"   # 1. backup datado
-# 2. alterar UM bloco
-ssh <host> "caddy validate --config /etc/caddy/Caddyfile"                   # 3. valida ANTES de recarregar
+ssh <host> "cp /etc/caddy/Caddyfile /root/Caddyfile.bak-$(date +%F-%H%M)"   # 1. dated backup
+# 2. change ONE block
+ssh <host> "caddy validate --config /etc/caddy/Caddyfile"                   # 3. validate BEFORE reloading
 ssh <host> "systemctl reload caddy"                                         # 4. reload
-# 5. verificar N sites, não só o que mexeste
+# 5. check N sites, not just the one you touched
 ```
 
-**Conta o raio de impacto antes de mexer** (`grep -c '^\S.*{' /etc/caddy/Caddyfile` ≈ nº de blocos) e
-di-lo. Um `split_path` inválido já esteve a um reload de derrubar 22 sites; o `caddy validate`
-apanhou-o em segundos.
+**Count the blast radius before touching anything** (`grep -c '^\S.*{' /etc/caddy/Caddyfile` ≈ number of blocks) and
+say it out loud. An invalid `split_path` was once one reload away from taking down 22 sites; `caddy validate`
+caught it in seconds.
 
-> ⚠ **`split_path` não é subdirectiva de `php_fastcgi`** em todas as versões — parte o `validate`.
-> Qualquer directiva que não conheças: validar antes de acreditar.
+> ⚠ **`split_path` is not a sub-directive of `php_fastcgi`** in every version — it breaks `validate`.
+> Any directive you do not know: validate before believing it.
 
 ---
 
-## 1. Chave SSH ED25519 (macOS/Linux — via normal)
+## 1. ED25519 SSH key (macOS/Linux — the normal route)
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/<name>_id -N "" -C "joca@<host>"
-ssh-copy-id -i ~/.ssh/<name>_id.pub root@<ip>        # se já houver acesso por password
-ssh-keygen -R <ip>                                   # limpar known_hosts antigo
+ssh-copy-id -i ~/.ssh/<name>_id.pub root@<ip>        # if password access already exists
+ssh-keygen -R <ip>                                   # clear the old known_hosts entry
 ssh -i ~/.ssh/<name>_id -o StrictHostKeyChecking=accept-new root@<ip> "whoami"   # → root
 ```
 
-"ECDSA vs ED25519 mismatch" → `ssh-keygen -R <ip>` resolve sempre.
+"ECDSA vs ED25519 mismatch" → `ssh-keygen -R <ip>` always fixes it.
 
-Depois de a chave entrar, endurecer: `PasswordAuthentication no`, `PermitRootLogin prohibit-password`,
+Once the key is in, harden: `PasswordAuthentication no`, `PermitRootLogin prohibit-password`,
 `MaxAuthTries 3` + `fail2ban`.
 
-### 1b. Bootstrap a partir do Windows (só se não houver `ssh-copy-id`)
+### 1b. Bootstrap from Windows (only if there is no `ssh-copy-id`)
 
-Requer PuTTY (`winget install PuTTY.PuTTY`). O `plink` recusa ligar sem host key, e não é interactivo:
+Requires PuTTY (`winget install PuTTY.PuTTY`). `plink` refuses to connect without a host key, and it is not interactive:
 
 ```powershell
 ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\<name>_id" -N "" -C "joca@<host>"
 $pubkey = Get-Content "$env:USERPROFILE\.ssh\<name>_id.pub"
-plink -pw "<pass>" root@<ip> "echo test"        # falha, mas imprime o SHA256 do host
+plink -pw "<pass>" root@<ip> "echo test"        # fails, but prints the host SHA256
 plink -pw "<pass>" -batch -hostkey "SHA256:<fingerprint>" root@<ip> `
   "mkdir -p ~/.ssh && echo '$pubkey' >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 ssh-keygen -R <ip>
 ```
 
-Depois do bootstrap usa-se **OpenSSH** (`ssh`/`scp`), não `plink` — o plink só lê chaves `.ppk`.
+After the bootstrap you use **OpenSSH** (`ssh`/`scp`), not `plink` — plink only reads `.ppk` keys.
 
 ---
 
-## 2. Instalar Caddy (Ubuntu)
+## 2. Install Caddy (Ubuntu)
 
 ```bash
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
@@ -78,42 +78,42 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
 sudo apt update && sudo apt install caddy && sudo systemctl enable caddy
 ```
 
-Caddy trata do TLS (Let's Encrypt) sozinho. Corre como utilizador **`caddy`**.
+Caddy handles TLS (Let's Encrypt) on its own. It runs as the **`caddy`** user.
 
 ---
 
-## 3. Escolher o padrão de vhost
+## 3. Choosing the vhost pattern
 
-| O que estás a publicar | Secção | Sinal de que escolheste mal |
+| What you are publishing | Section | Sign you chose wrong |
 |---|---|---|
-| HTML/CSS/JS sem router | §3a estático | — |
-| SPA (React Router, Vue Router) | §3b `try_files` | **404 ao recarregar uma sub-rota** |
-| App em Docker, privada em `127.0.0.1:<porta>` | §3c reverse proxy | — |
-| App PHP no host (PHP-FPM + MySQL/MariaDB) | §3d LEMP | — |
-| Laravel/Filament **+** SPA no mesmo domínio | §3e mesmo origin | Livewire 404, `/images` trocado |
+| HTML/CSS/JS with no router | §3a static | — |
+| SPA (React Router, Vue Router) | §3b `try_files` | **404 when reloading a sub-route** |
+| App in Docker, private on `127.0.0.1:<port>` | §3c reverse proxy | — |
+| PHP app on the host (PHP-FPM + MySQL/MariaDB) | §3d LEMP | — |
+| Laravel/Filament **+** SPA on the same domain | §3e same origin | Livewire 404, `/images` mixed up |
 
-Escolher `root`+`file_server` para uma SPA é o erro mais frequente: `/` responde 200 e tudo o resto
-dá 404 em refresh directo ou link partilhado.
+Picking `root`+`file_server` for an SPA is the most frequent mistake: `/` answers 200 and everything else
+404s on a direct refresh or a shared link.
 
 ---
 
-## 3a. Vhost estático
+## 3a. Static vhost
 
 ```caddyfile
-subdominio.exemplo.com {
+subdomain.example.com {
     root * /var/www/mysite
     file_server
     encode gzip
 }
 ```
 
-Preview interno? Acrescentar `header X-Robots-Tag "noindex,nofollow,noarchive"` **e** um
-`/robots.txt` com `Disallow: /` — o header não viaja se houver CDN pelo meio.
+Internal preview? Add `header X-Robots-Tag "noindex,nofollow,noarchive"` **and** a
+`/robots.txt` with `Disallow: /` — the header does not travel if there is a CDN in between.
 
-## 3b. Vhost SPA — `try_files` obrigatório
+## 3b. SPA vhost — `try_files` is mandatory
 
 ```caddyfile
-app.exemplo.com {
+app.example.com {
     root * /var/www/app
     encode gzip
     try_files {path} /index.html
@@ -121,16 +121,16 @@ app.exemplo.com {
 }
 ```
 
-**Health-check da SPA testa uma sub-rota profunda** (`/wiki/cards`, `/admin/users`), nunca só `/`.
-Sem `try_files`, `/` está verde e a app está partida.
+**The SPA health-check tests a deep sub-route** (`/wiki/cards`, `/admin/users`), never just `/`.
+Without `try_files`, `/` is green and the app is broken.
 
-## 3c. App Docker atrás do Caddy do sistema
+## 3c. Docker app behind the system Caddy
 
-A app publica só em `127.0.0.1:<porta>` (nunca `0.0.0.0`) e o Caddy **do sistema** faz proxy + TLS —
-não o Caddy embutido no compose, que colidiria na 80/443. Páginas estáticas coexistem via `handle`:
+The app publishes only on `127.0.0.1:<port>` (never `0.0.0.0`) and the **system** Caddy does the proxy + TLS —
+not the Caddy embedded in the compose file, which would collide on 80/443. Static pages coexist via `handle`:
 
 ```caddyfile
-app.exemplo.com {
+app.example.com {
     encode gzip
     handle /privacy* {
         root * /var/www/app-static
@@ -142,32 +142,32 @@ app.exemplo.com {
 }
 ```
 
-> **HTTP 525/502 transitório com Cloudflare proxied:** o 1.º pedido enquanto o Caddy ainda emite o
-> cert devolve 525 por segundos. Confirmar passados 10-30 s antes de debugar. Atrás do proxy laranja
-> o `tls-alpn-01` nunca passa, e o `http-01` dá 404 enquanto os edges têm a origem antiga em cache —
-> esperar ~3 min depois de mudar a DNS e só então `systemctl reload caddy`.
+> **Transient HTTP 525/502 with Cloudflare proxied:** the 1st request while Caddy is still issuing the
+> cert returns 525 for a few seconds. Check again after 10-30 s before debugging. Behind the orange proxy
+> `tls-alpn-01` never passes, and `http-01` 404s while the edges still have the old origin cached —
+> wait ~3 min after changing DNS and only then `systemctl reload caddy`.
 
-## 3d. LEMP — app PHP + MySQL no host
+## 3d. LEMP — PHP app + MySQL on the host
 
-Provisionar:
+Provisioning:
 
 ```bash
 apt install -y mariadb-server php8.3-fpm php8.3-mysql php8.3-mbstring php8.3-xml \
                 php8.3-curl php8.3-intl php8.3-zip php8.3-bcmath php8.3-sqlite3
 mysql -e "CREATE DATABASE app; CREATE USER 'app'@'localhost' IDENTIFIED BY '<pass>';
           GRANT ALL ON app.* TO 'app'@'localhost'; FLUSH PRIVILEGES;"
-# password num ficheiro root-only, nunca no vhost nem no repo
+# password in a root-only file, never in the vhost or in the repo
 ```
 
-> ⚠ **`sql_mode` estrito rejeita schemas com zero-date.** Sintoma: o instalador corre em local (XAMPP
-> permissivo) e rebenta no servidor. Fixar por ficheiro em `/etc/mysql/mariadb.conf.d/99-<app>.cnf`
-> (`sql_mode=NO_ENGINE_SUBSTITUTION`), não por `SET GLOBAL` — que não sobrevive a reinício.
+> ⚠ **Strict `sql_mode` rejects schemas with zero-dates.** Symptom: the installer runs locally (permissive
+> XAMPP) and blows up on the server. Fix it with a file at `/etc/mysql/mariadb.conf.d/99-<app>.cnf`
+> (`sql_mode=NO_ENGINE_SUBSTITUTION`), not with `SET GLOBAL` — which does not survive a restart.
 
-Vhost — o `route{}` é o equivalente Caddy do `.htaccess`, e a **ordem importa**: os `respond 403`
-vêm antes do `php_fastcgi`, senão o PHP serve o que devia estar negado.
+Vhost — `route{}` is Caddy's equivalent of `.htaccess`, and the **order matters**: the `respond 403`s
+come before `php_fastcgi`, otherwise PHP serves what should have been denied.
 
 ```caddyfile
-app.exemplo.com {
+app.example.com {
     root * /var/www/app
     encode gzip
     route {
@@ -175,25 +175,25 @@ app.exemplo.com {
         respond /api/config/* 403
         respond /api/services/* 403
         php_fastcgi unix//run/php/php8.3-fpm.sock
-        try_files {path} /index.html      # SPA por cima da API PHP
+        try_files {path} /index.html      # SPA on top of the PHP API
         file_server
     }
 }
 ```
 
-Confirmar o socket real antes de o escrever: `ls /run/php/`. O nome tem a versão lá dentro e muda
-com um `apt upgrade`.
+Confirm the real socket before writing it down: `ls /run/php/`. The name has the version inside it and it changes
+with an `apt upgrade`.
 
-> ⚠ **`php artisan tinker` / PsySH pendura em `ssh` não-interactivo** (fica à espera de stdin;
-> `--execute` devolve vazio). Para correr PHP arbitrário no servidor: script que faz bootstrap do
-> framework com caminho **absoluto** (`__DIR__` resolve para `/tmp`, não para a app).
+> ⚠ **`php artisan tinker` / PsySH hangs over non-interactive `ssh`** (it waits on stdin;
+> `--execute` returns empty). To run arbitrary PHP on the server: a script that bootstraps the
+> framework with an **absolute** path (`__DIR__` resolves to `/tmp`, not to the app).
 
-## 3e. Laravel/Filament + SPA no mesmo origin
+## 3e. Laravel/Filament + SPA on the same origin
 
-Matcher nomeado com os prefixos do backend → `php_fastcgi`; tudo o resto → SPA.
+A named matcher with the backend prefixes → `php_fastcgi`; everything else → SPA.
 
 ```caddyfile
-app.exemplo.com {
+app.example.com {
     root * /var/www/app/spa
     encode gzip
     @laravel path /api/* /sanctum/* /admin* /livewire* /storage/* /build/* /up
@@ -208,98 +208,98 @@ app.exemplo.com {
 }
 ```
 
-Armadilhas medidas, todas específicas deste padrão:
+Measured pitfalls, all specific to this pattern:
 
-| Armadilha | Efeito | Fix |
+| Pitfall | Effect | Fix |
 |---|---|---|
-| `/livewire/*` no matcher | O Livewire serve o JS num caminho com hash (`/livewire/livewire.min.js?id=…`) que `/livewire/*` **não** apanha | usar o glob `/livewire*` |
-| `/images/*` existe nos dois lados | O logo do email/PDF do backend colide com os assets da SPA | copiar os do backend para dentro da SPA e servir tudo pela SPA |
-| Matchers do Caddy são **insensíveis** a maiúsculas; o disco Linux é sensível | `redir /design /Design` apanha também `/Design` → 301 para si próprio | resolver por **symlink no disco**, nunca por redirecção |
-| Painel de admin dado por verificado com 200 na página de login | O painel esteve inutilizável um dia inteiro | submeter o login e confirmar que `window.Livewire` inicializa; verificar o `content-type` dos assets JS servidos, não só o status |
+| `/livewire/*` in the matcher | Livewire serves its JS at a hashed path (`/livewire/livewire.min.js?id=…`) that `/livewire/*` does **not** catch | use the glob `/livewire*` |
+| `/images/*` exists on both sides | The backend's email/PDF logo collides with the SPA's assets | copy the backend ones into the SPA and serve everything from the SPA |
+| Caddy matchers are case-**insensitive**; the Linux disk is case-sensitive | `redir /design /Design` also catches `/Design` → a 301 to itself | solve it with a **symlink on disk**, never with a redirect |
+| Admin panel taken as verified because the login page returns 200 | The panel was unusable for a whole day | submit the login and confirm that `window.Livewire` initialises; check the `content-type` of the JS assets served, not just the status |
 
 ---
 
-## 4. Enviar ficheiros — e a seguir, propriedade e permissões
+## 4. Sending files — and then ownership and permissions
 
-### 4a. rsync (via normal)
+### 4a. rsync (the normal route)
 
 ```bash
 rsync -rlptzD --no-owner --no-group --delete --dry-run --itemize-changes local/ root@<ip>:/var/www/app/
 rsync -rlptzD --no-owner --no-group --delete local/ root@<ip>:/var/www/app/
 ```
 
-**`rsync -a` como root carimba o uid da origem** (501 do macOS) no destino: o `www-data` (uid 33)
-deixa de conseguir escrever e o CMS lê bem mas rebenta a gravar no painel. O `--dry-run
---itemize-changes` é obrigatório — apanha cache local e `.DS_Store` a viajar por engano.
+**`rsync -a` as root stamps the source uid** (macOS's 501) on the destination: `www-data` (uid 33)
+can no longer write, and the CMS reads fine but blows up when saving from the panel. `--dry-run
+--itemize-changes` is mandatory — it catches local cache and `.DS_Store` travelling by accident.
 
-### 4b. tar sobre ssh (bundles grandes)
+### 4b. tar over ssh (large bundles)
 
 ```bash
 tar czf - -C dist . | ssh -i ~/.ssh/<name>_id root@<ip> "cd /var/www/app && rm -rf assets && tar xzf -"
 ```
 
-### 4c. Propriedade e permissões — o bloco que resolve os 403
+### 4c. Ownership and permissions — the block that fixes the 403s
 
-Depois de **qualquer** transferência. Um bundle extraído com `tar` fica `501:root` modo 600 e o
-Caddy devolve **403 com os ficheiros todos no sítio certo**; o rsync a partir do macOS carimba
-directórios 700 e dá **403 em tudo**.
+After **any** transfer. A bundle extracted with `tar` ends up `501:root` mode 600 and
+Caddy returns **403 with every file in the right place**; rsync from macOS stamps
+directories 700 and gives **403 on everything**.
 
 ```bash
-# 1. modos — sempre
+# 1. modes — always
 find /var/www/app -type d -exec chmod 755 {} \;
 find /var/www/app -type f -exec chmod 644 {} \;
 
-# 2. dono — conforme o stack
-chown -R caddy:caddy /var/www/app                    # site estático / SPA pura
-chown -R www-data:www-data /var/www/app              # app servida por PHP-FPM
-chown -R 33:33 /dest                                 # container Linux (33 = www-data lá dentro)
+# 2. owner — depends on the stack
+chown -R caddy:caddy /var/www/app                    # static site / pure SPA
+chown -R www-data:www-data /var/www/app              # app served by PHP-FPM
+chown -R 33:33 /dest                                 # Linux container (33 = www-data inside it)
 
-# 3. escrita da app (Laravel)
+# 3. app writes (Laravel)
 chmod -R 775 /var/www/app/backend/storage /var/www/app/backend/bootstrap/cache
 ```
 
-> ⚠ **PHP-FPM corre como `www-data`, não como `caddy`.** Um `chown -R caddy:caddy` reflexo sobre uma
-> app PHP põe o `.env` em `caddy:caddy 640` → o `www-data` não o lê → **todos** os endpoints devolvem
-> "Database connection failed" via HTTP enquanto o CLI e o root funcionam. Fix:
+> ⚠ **PHP-FPM runs as `www-data`, not as `caddy`.** A reflex `chown -R caddy:caddy` over a
+> PHP app puts `.env` at `caddy:caddy 640` → `www-data` cannot read it → **every** endpoint returns
+> "Database connection failed" over HTTP while the CLI and root work fine. Fix:
 > `chown www-data:www-data <app>/.env && chmod 640`.
 
-> ⚠ **`.env` lido por `parse_ini_file` é INI:** comentários levam `;`, não `#`. Um `#` com parênteses
-> parte o ficheiro e derruba todas as credenciais de uma vez.
+> ⚠ **An `.env` read by `parse_ini_file` is INI:** comments take `;`, not `#`. A `#` with parentheses
+> breaks the file and takes down every credential at once.
 
 ---
 
-## 5. Publicar em subcaminho (`/algo` em vez da raiz)
+## 5. Publishing under a subpath (`/something` instead of the root)
 
-Dois defeitos próprios, ambos silenciosos:
+Two defects of its own, both silent:
 
-1. **O prefixo verifica-se no HTML gerado, não na configuração.** Se o `basePath` (Next) / `base`
-   (Vite) falhar, o build fica verde e a página publicada carrega **sem estilos**:
-   `curl -s https://host/sub/ | grep -o 'href="[^"]*\.css"'` tem de mostrar o prefixo.
-2. **Maiúsculas:** ver §3e — symlink no disco, nunca `redir`.
+1. **The prefix is verified in the generated HTML, not in the configuration.** If `basePath` (Next) / `base`
+   (Vite) fails, the build stays green and the published page loads **with no styles**:
+   `curl -s https://host/sub/ | grep -o 'href="[^"]*\.css"'` must show the prefix.
+2. **Capitals:** see §3e — symlink on disk, never `redir`.
 
 ---
 
-## 6. Verificação pós-deploy (não é opcional)
+## 6. Post-deploy verification (not optional)
 
-1. **Comparar tamanho remoto vs local por ficheiro** e abortar se divergir. Nunca confiar no exit
-   code do cliente de transferência: um `.css` de 41 KB já chegou com **0 bytes** e o `curl` deu
-   exit 0 — o staging ficou sem folha de estilos nenhuma.
-2. **Derivar as dependências do HTML publicado**, não da lista do que enviaste. Um script que
-   esqueceu `form.css`/`form.js` deu tudo verde com o site partido.
-3. **Health-check verifica o CORPO, nunca só o status** — o fallback da SPA devolve **200 com HTML**
-   para um endpoint de API que não existe.
-4. **Caminho novo na app ⇒ procurar no script de deploy o passo que o envia.** Se não existir, é um
-   deploy que passa e não entrega (aconteceu: `/api/v1/health` actualizado, `scp` da pasta `api/v1/`
-   esquecido).
-5. **Bootstrap de acesso:** um deploy pode ficar verde com o painel inacessível. Confirmar que existe
-   ≥1 utilizador com papel de admin e que **autentica** — um `200` no `/login` não prova que há conta.
-6. **Sub-rota profunda** na SPA (§3b) e **um asset** (não só a página).
+1. **Compare remote vs local size file by file** and abort if they diverge. Never trust the exit
+   code of the transfer client: a 41 KB `.css` has arrived with **0 bytes** and `curl` gave
+   exit 0 — staging was left with no stylesheet at all.
+2. **Derive the dependencies from the published HTML**, not from the list of what you sent. A script that
+   forgot `form.css`/`form.js` came out all green with the site broken.
+3. **The health-check checks the BODY, never just the status** — the SPA fallback returns **200 with HTML**
+   for an API endpoint that does not exist.
+4. **A new path in the app ⇒ look in the deploy script for the step that sends it.** If it does not exist, it is a
+   deploy that passes and does not deliver (it happened: `/api/v1/health` updated, the `scp` of the `api/v1/` folder
+   forgotten).
+5. **Access bootstrap:** a deploy can go green with the panel unreachable. Confirm that there is
+   ≥1 user with an admin role and that it **authenticates** — a `200` on `/login` does not prove an account exists.
+6. **A deep sub-route** in the SPA (§3b) and **one asset** (not just the page).
 
-### 6b. Cloudflare guarda 404 em cache (~4 h)
+### 6b. Cloudflare caches 404s (~4 h)
 
-Negative caching: um ficheiro **novo** pedido uma vez antes de existir continua a devolver 404 do
-edge depois de aterrar. "Nomes novos ⇒ sem purge" vale para **substituições** e é falso para
-**adições**. Sintoma: origin 200, público 404. Purgar por URL exige o URL **com** a query string.
+Negative caching: a **new** file requested once before it existed keeps returning the edge's 404
+after it lands. "New names ⇒ no purge" holds for **replacements** and is false for
+**additions**. Symptom: origin 200, public 404. Purging by URL requires the URL **with** the query string.
 
 ```bash
 curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/purge_cache" \
@@ -307,17 +307,17 @@ curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/purge_cach
   --data '{"purge_everything":true}'
 ```
 
-### 6c. Sondas que mentem
+### 6c. Probes that lie
 
-Comparar o deployado com o repo por `grep` a um bundle **minificado** não prova nada: comentários são
-removidos e identificadores minificados. Toda a sonda precisa de **controlo positivo** ("isto detecta
-algo que eu SEI que lá está?") — e de controlo negativo, porque um `respond 403` responde igual
-exista ou não o ficheiro. Sinal fiável = rebuildar o commit e comparar hashes, depois de normalizar
-line endings (CRLF muda o hash do mesmo código).
+Comparing what is deployed against the repo by `grep`ping a **minified** bundle proves nothing: comments are
+stripped and identifiers minified. Every probe needs a **positive control** ("does this detect
+something I KNOW is there?") — and a negative control, because a `respond 403` answers the same whether
+the file exists or not. A reliable signal = rebuild the commit and compare hashes, after normalizing
+line endings (CRLF changes the hash of the same code).
 
 ---
 
-## 7. DNS via Cloudflare API
+## 7. DNS through the Cloudflare API
 
 ```bash
 curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/dns_records" \
@@ -325,68 +325,68 @@ curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/dns_record
   --data '{"type":"A","name":"<sub>","content":"<ip>","ttl":1,"proxied":true}'
 ```
 
-`ZONE_ID`: dashboard → domínio → Overview → API (direita). Token: My Profile → API Tokens → "Edit
-zone DNS". Proxied `true` → CDN + DDoS; `false` → DNS puro (IP exposto).
+`ZONE_ID`: dashboard → domain → Overview → API (right-hand side). Token: My Profile → API Tokens → "Edit
+zone DNS". Proxied `true` → CDN + DDoS; `false` → pure DNS (IP exposed).
 
-> ⚠ **Ao apontar um domínio já existente, não tocar nos registos de EMAIL** (MX, SPF, `mail`,
-> `autoconfig`, SRV) — o correio costuma ser de outro fornecedor e desaparece em silêncio.
-> ⚠ **Listas de subdomínios escritas à mão envelhecem em silêncio.** Consultar a API antes de afirmar
-> o que existe.
-> ⚠ **Ao ler um ficheiro de credenciais, extrair só a chave de que precisas** — nunca imprimir a
-> estrutura. Um filtro por nome de chave falha em blocos aninhados.
+> ⚠ **When pointing an already existing domain, do not touch the EMAIL records** (MX, SPF, `mail`,
+> `autoconfig`, SRV) — the mail is usually with another provider and it vanishes silently.
+> ⚠ **Hand-written lists of subdomains go stale silently.** Query the API before claiming
+> what exists.
+> ⚠ **When reading a credentials file, extract only the key you need** — never print the
+> structure. A filter by key name fails on nested blocks.
 
 ---
 
-## 8. Retirar um site do ar (⛔ irreversível)
+## 8. Taking a site offline (⛔ irreversible)
 
-Toca em **4 sistemas independentes** e deixa órfãos se falhares um. **Ordem canónica** — do que grita
-para o que se apaga:
+It touches **4 independent systems** and leaves orphans if you miss one. **Canonical order** — from what shouts
+to what gets deleted:
 
-| # | Camada | Comando | Porquê nesta ordem |
+| # | Layer | Command | Why in this order |
 |---|---|---|---|
-| 1 | Monitor (Uptime Kuma / equivalente) | apagar o monitor | senão apita durante o resto do processo |
-| 2 | DNS (Cloudflare) | `DELETE .../dns_records/<id>` | tira o tráfego antes de o servidor deixar de responder |
-| 3 | Bloco no Caddyfile | backup → remover bloco → `caddy validate` → `reload` | §0 aplica-se: os outros sites estão neste ficheiro |
-| 4 | Ficheiros | `rm -rf /var/www/<site>` | último; é o que não se desfaz |
+| 1 | Monitor (Uptime Kuma / equivalent) | delete the monitor | otherwise it beeps for the rest of the process |
+| 2 | DNS (Cloudflare) | `DELETE .../dns_records/<id>` | takes the traffic away before the server stops answering |
+| 3 | Block in the Caddyfile | backup → remove block → `caddy validate` → `reload` | §0 applies: the other sites are in this file |
+| 4 | Files | `rm -rf /var/www/<site>` | last; it is the one that cannot be undone |
 
-**Antes:** inventariar o que cai com isto (docroot e tamanho, BD associada, cron, container, cert) e
-mostrar a lista. Um pedido tipo "apaga estes 5 URLs" é **operação destrutiva de infra em 4 camadas**,
-não uma tarefa de frontend — confirmar 1 linha antes de começar. Já se levou à frente, com decisão
-consciente, uma galeria de 366 MB que estava debaixo de um docroot a apagar.
+**Before:** inventory what falls with it (docroot and size, associated DB, cron, container, cert) and
+show the list. A request like "delete these 5 URLs" is a **destructive infra operation across 4 layers**,
+not a frontend task — confirm in 1 line before starting. A 366 MB gallery sitting under a docroot marked for
+deletion has already been taken out, with the decision made knowingly.
 
-**Depois:** verificar que os sites que ficaram continuam a 200.
+**After:** check that the sites left behind still return 200.
 
 ---
 
 ## Gotchas
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |---|---|---|
-| Caddy 403 com os ficheiros no sítio | `tar` deixou 501:root 600; rsync do macOS deixou dirs 700 | §4c (`find -type d/f -exec chmod`) |
-| "Database connection failed" só via HTTP | `chown caddy:caddy` no `.env` de app PHP-FPM | `chown www-data:www-data <app>/.env` |
-| 404 em sub-rotas da SPA | falta `try_files {path} /index.html` | §3b |
+| Caddy 403 with the files in place | `tar` left 501:root 600; rsync from macOS left dirs 700 | §4c (`find -type d/f -exec chmod`) |
+| "Database connection failed" only over HTTP | `chown caddy:caddy` on the `.env` of a PHP-FPM app | `chown www-data:www-data <app>/.env` |
+| 404 on SPA sub-routes | missing `try_files {path} /index.html` | §3b |
 | Livewire 404 | matcher `/livewire/*` | `/livewire*` |
-| `caddy reload` derruba todos os sites | sintaxe inválida (ex.: `split_path` fora de sítio) | `caddy validate` antes, sempre (§0) |
-| Página publicada sem estilos em subcaminho | `basePath`/`base` não aplicado | verificar o prefixo no HTML publicado (§5) |
-| 525/502 nos primeiros segundos | cert LE ainda a emitir atrás do proxy CF | esperar 10-30 s (§3c) |
-| Origin 200, público 404 | negative caching da CF em ficheiros novos | purga (§6b) |
-| plink recusa sem hostkey | TOFU não-interactivo | `-hostkey "SHA256:…"` do 1.º erro |
-| SSH falha após bootstrap | known_hosts com chave antiga | `ssh-keygen -R <ip>` |
-| `tinker` pendura por ssh | PsySH espera stdin | script de bootstrap com caminho absoluto |
+| `caddy reload` takes down every site | invalid syntax (e.g. `split_path` out of place) | `caddy validate` first, always (§0) |
+| Published page with no styles under a subpath | `basePath`/`base` not applied | check the prefix in the published HTML (§5) |
+| 525/502 in the first seconds | LE cert still being issued behind the CF proxy | wait 10-30 s (§3c) |
+| Origin 200, public 404 | CF negative caching on new files | purge (§6b) |
+| plink refuses without a hostkey | non-interactive TOFU | `-hostkey "SHA256:…"` from the 1st error |
+| SSH fails after the bootstrap | known_hosts with the old key | `ssh-keygen -R <ip>` |
+| `tinker` hangs over ssh | PsySH waits on stdin | bootstrap script with an absolute path |
 
 ---
 
-## Checklist deploy VPS
+## VPS deploy checklist
 
-- [ ] Chave ED25519 instalada; login por chave testado (`whoami` = root)
-- [ ] Caddy activo (`systemctl status caddy`)
-- [ ] Padrão de vhost escolhido pela tabela §3 (estático ≠ SPA ≠ LEMP ≠ mesmo origin)
-- [ ] Backup datado do Caddyfile + `caddy validate` **antes** do reload
-- [ ] `rsync --dry-run --itemize-changes` corrido antes do rsync real
-- [ ] Modos 755/644 + dono certo para o stack (§4c); `.env` a `www-data` se houver PHP-FPM
-- [ ] Tamanhos remotos comparados com os locais
-- [ ] Health-check pelo **corpo**: página + asset + sub-rota profunda + endpoint de API
-- [ ] Acesso ao painel provado com login real, não com 200 no formulário
-- [ ] Registo DNS criado; registos de email do domínio intactos
-- [ ] Purga da Cloudflare se houve ficheiros **novos**
-- [ ] Sites vizinhos do Caddyfile verificados a 200
+- [ ] ED25519 key installed; key login tested (`whoami` = root)
+- [ ] Caddy active (`systemctl status caddy`)
+- [ ] Vhost pattern picked from the §3 table (static ≠ SPA ≠ LEMP ≠ same origin)
+- [ ] Dated backup of the Caddyfile + `caddy validate` **before** the reload
+- [ ] `rsync --dry-run --itemize-changes` run before the real rsync
+- [ ] Modes 755/644 + the right owner for the stack (§4c); `.env` owned by `www-data` if there is PHP-FPM
+- [ ] Remote sizes compared with the local ones
+- [ ] Health-check on the **body**: page + asset + deep sub-route + API endpoint
+- [ ] Panel access proven with a real login, not with a 200 on the form
+- [ ] DNS record created; the domain's email records intact
+- [ ] Cloudflare purge if there were **new** files
+- [ ] Neighbouring sites in the Caddyfile checked at 200

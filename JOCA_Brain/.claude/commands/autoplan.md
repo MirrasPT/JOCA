@@ -1,45 +1,45 @@
-# /autoplan — Plano completo, auto-revisto (NL → plano aprovado)
+# /autoplan — Full plan, self-reviewed (NL → approved plan)
 
-Adaptado do `autoplan` do gstack. Pega num objectivo em linguagem natural e produz um **plano completo já revisto** correndo a pipeline `autoplan` (`rules/pipelines.md`) **a fundo e sozinho** — auto-decidindo as escolhas reversíveis e levantando só "taste"/ambiguidade no **gate final**.
+Adapted from gstack's `autoplan`. Takes an objective in natural language and produces a **plan that is already reviewed** by running the `autoplan` pipeline (`rules/pipelines.md`) **in depth and on its own** — auto-deciding the reversible choices and raising only "taste"/ambiguity at the **final gate**.
 
-Diferença para `/plan`: o `/plan` produz UM plano; o `/autoplan` corre a cadeia de revisões (produto → design → engenharia) automaticamente, como uma equipa, sem parar a cada passo.
-
----
-
-## Quando usar
-- "planeia isto a sério", "plano completo", "autoplan", "quero um plano revisto", feature grande antes de construir.
-- Para tarefas pequenas/1-ficheiro → `/plan` chega (autoplan é overkill).
-
-## Pipeline (auto-runner, a fundo)
-
-1. **Interrogar + orientar** — `Read(".claude/skills/plan.md")`. 7 fases: OODA orient, surfacing de assunções, ambiguidade, pre-mortem. Produz o plano-base.
-2. **Revisão de produto** (CEO-style) — desafia o problema: estamos a resolver o certo? scope a expandir/reduzir? Decide o scope.
-3. **Revisão de design** — `Read(".claude/skills/design-review.md")` em **plan-mode**: pontua as dimensões de UX/UI 0-10 e diz o que faltaria para 10. (Só se a tarefa tem superfície de UI.)
-4. **Revisão de engenharia** — arquitectura, fluxo de dados, edge cases, cobertura de testes, performance. Tranca o plano de execução.
-5. **Gate final** — levantar de uma vez as decisões de **taste** / ambíguas / irreversíveis acumuladas (não a meio). O user aprova/ajusta.
-
-## Auto-decisão (passos 2-4, reversíveis)
-Por `rules/pipelines.md`: decisão activa do Brain (`joca-brain active`) → convenção do projecto → default da skill → menor superfície (YAGNI). Não parar a perguntar em escolhas reversíveis — só acumular as de taste para o gate final.
-
-## Saída
-- Plano final aprovado (inline ou ficheiro, conforme o projecto).
-- Decisões de arquitectura não-óbvias → registar no Brain: `node .claude/scripts/joca-brain.mjs decide --text "..." --source user`.
-
-## Próximo passo (chain)
-- Plano aprovado → implementar: `frontend` / `laravel-specialist` / domínio (encadeia para `tester-*`). Cross-stack → `/goal` corre a pipeline de build.
-
+Difference from `/plan`: `/plan` produces ONE plan; `/autoplan` runs the chain of reviews (product → design → engineering) automatically, like a team, without stopping at every step.
 
 ---
 
-## Autorização do `Workflow` (ferramenta do harness)
+## When to use
+- "plan this properly", "full plan", "autoplan", "I want a reviewed plan", big feature before building.
+- For small/1-file tasks → `/plan` is enough (autoplan is overkill).
 
-**Correr `/autoplan` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
-podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
-Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+## Pipeline (auto-runner, in depth)
 
-Travões que **não** caem com esta autorização:
-- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
-- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
-- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
-- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.
+1. **Interrogate + orient** — `Read(".claude/skills/plan.md")`. 7 phases: OODA orient, surfacing assumptions, ambiguity, pre-mortem. Produces the base plan.
+2. **Product review** (CEO-style) — challenges the problem: are we solving the right one? scope to expand/reduce? Decides the scope.
+3. **Design review** — `Read(".claude/skills/design-review.md")` in **plan-mode**: scores the UX/UI dimensions 0-10 and says what would be missing to reach 10. (Only if the task has UI surface.)
+4. **Engineering review** — architecture, data flow, edge cases, test coverage, performance. Locks the execution plan.
+5. **Final gate** — raise in one go the accumulated **taste** / ambiguous / irreversible decisions (not mid-flight). The user approves/adjusts.
+
+## Auto-decision (steps 2-4, reversible)
+Per `rules/pipelines.md`: active Brain decision (`joca-brain active`) → project convention → skill default → smallest surface (YAGNI). Do not stop to ask on reversible choices — only accumulate the taste ones for the final gate.
+
+## Output
+- Final approved plan (inline or file, depending on the project).
+- Non-obvious architecture decisions → record in the Brain: `node .claude/scripts/joca-brain.mjs decide --text "..." --source user`.
+
+## Next step (chain)
+- Approved plan → implement: `frontend` / `laravel-specialist` / the domain (chains to `tester-*`). Cross-stack → `/goal` runs the build pipeline.
+
+
+---
+
+## `Workflow` authorization (harness tool)
+
+**Running `/autoplan` is the user's explicit opt-in to the `Workflow` tool.** Do not ask whether you
+may orchestrate — if the work splits into phases with fan-out, author the script and **call `Workflow`**.
+When the script is unnecessary, `Agent()` in parallel in the same turn serves just as well.
+
+Brakes that do **not** fall away with this authorization:
+- **Cheap recon BEFORE authoring** the script (`rules/pipelines.md`) — `grep`/`ls` on the domain, inline.
+- **1-line gate** on anything irreversible (deploy · push · migration · delete · payment · auth).
+- **Verifier ≠ producer** — whoever writes does not sign off the gate (`.joca/loop.json`).
+- **Size** comes from `/config` ("Dynamic workflow size"), not from this command.
+- **Cost announced**: ≥6 agents or a loop of rounds → order of magnitude of tokens before launching.

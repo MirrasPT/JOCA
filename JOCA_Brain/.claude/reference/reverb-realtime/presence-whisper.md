@@ -1,4 +1,4 @@
-> Parte da skill `reverb-realtime` — carregado on-demand via Read().
+> Part of the `reverb-realtime` skill — loaded on-demand via Read().
 
 ## Presence Channels
 

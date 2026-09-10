@@ -197,9 +197,9 @@ export default function ToolkitPanel({ items, onItemsChange, onLoad, onInsert, o
       <div className="files-view-header">
         <div>
           <span className="files-view-title toolkit-panel-title">Toolkit</span>
-          <span className="files-view-subtitle">Skills, agentes e comandos reais</span>
+          <span className="files-view-subtitle">Real skills, agents and commands</span>
         </div>
-        <button className="files-view-close" onClick={onClose} aria-label="Collapse toolkit" data-tooltip="Fechar painel" data-tooltip-position="bottom">
+        <button className="files-view-close" onClick={onClose} aria-label="Collapse toolkit" data-tooltip="Close panel" data-tooltip-position="bottom">
           <ChevronsRight />
         </button>
       </div>
@@ -243,8 +243,8 @@ export default function ToolkitPanel({ items, onItemsChange, onLoad, onInsert, o
             )}
 
             <div className="toolkit-list">
-              {!items && <div className="toolkit-empty">A carregar toolkit real...</div>}
-              {items && toolkitItems.length === 0 && <div className="toolkit-empty">Sem resultados. Cria um item ou limpa a pesquisa.</div>}
+              {!items && <div className="toolkit-empty">Loading real toolkit...</div>}
+              {items && toolkitItems.length === 0 && <div className="toolkit-empty">No results. Create an item or clear the search.</div>}
               {toolkitItems.map((item) => {
                 const Icon = item.type === 'commands' ? TerminalIcon : item.type === 'skills' ? WrenchIcon : BotIcon;
                 return (

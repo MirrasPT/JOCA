@@ -1,50 +1,50 @@
-# Handoff para o Claude Design (via 1 da Parte E2)
+# Handoff to Claude Design (route 1 of Part E2)
 
-O utilizador escolheu criar o design no **Claude Design** (claude.ai). O JOCA prepara o pacote,
-pausa, e converte o que voltar.
+The user chose to create the design in **Claude Design** (claude.ai). JOCA prepares the package,
+pauses, and converts whatever comes back.
 
-## 1. O pacote a entregar
+## 1. The package to deliver
 
-Criar `design/handoff/` com copias de:
+Create `design/handoff/` with copies of:
 
-| Ficheiro | Porque vai |
+| File | Why it goes |
 |---|---|
-| `PRD.md` | contexto do produto — o Claude Design compoe melhor com o porquê |
-| `BRAND.md` | identidade, tom, logotipo |
-| `DESIGN.md` | a direccao escolhida (tipografia, paleta, forma, densidade) — sao RESTRICOES |
-| `ECRAS.md` | a lista completa de ecras, cada um com proposito e estados |
+| `PRD.md` | product context — Claude Design composes better with the why |
+| `BRAND.md` | identity, tone, logo |
+| `DESIGN.md` | the chosen direction (typography, palette, shape, density) — these are CONSTRAINTS |
+| `SCREENS.md` | the full list of screens, each with purpose and states |
 
-Mais `PROMPT.md` — o texto pronto a colar, gerado a partir deste esqueleto:
+Plus `PROMPT.md` — the ready-to-paste text, generated from this skeleton:
 
 ```
-Vou dar-te 4 documentos de um produto chamado <nome>. Cria:
-1. O design system (tokens em CSS custom properties, componentes base) seguindo o DESIGN.md
-   a letra — e o contrato, nao inspiracao.
-2. Todos os ecras listados no ECRAS.md, um ficheiro HTML autonomo por ecra,
-   com OS QUATRO ESTADOS (vazio · a carregar · erro · cheio) separados por cabecalho.
-3. Dados de exemplo plausiveis do dominio — nunca lorem ipsum.
-4. Comentarios HTML a marcar que componente do design system cada bloco usa.
-Formato: HTML/CSS/JS autonomo, sem frameworks externas, tokens so via custom properties.
+I am going to give you 4 documents of a product called <name>. Create:
+1. The design system (tokens as CSS custom properties, base components) following DESIGN.md
+   to the letter — it is the contract, not inspiration.
+2. Every screen listed in SCREENS.md, one standalone HTML file per screen,
+   with THE FOUR STATES (empty · loading · error · full) separated by a heading.
+3. Plausible sample data from the domain — never lorem ipsum.
+4. HTML comments marking which design system component each block uses.
+Format: standalone HTML/CSS/JS, no external frameworks, tokens only via custom properties.
 ```
 
-Dizer ao utilizador: faz upload dos 4 + prompt no Claude Design; quando terminares, poe os
-ficheiros exportados em `design/claude-design/` e avisa-me.
+Tell the user: upload the 4 + the prompt to Claude Design; when you are done, put the exported
+files in `design/claude-design/` and let me know.
 
-## 2. Quando os ficheiros voltarem
+## 2. When the files come back
 
-1. **Inventariar contra `ECRAS.md`** — ecra a ecra, um `ls` nao chega: o que falta lista-se
-   explicitamente, nao se assume que veio tudo.
-2. **`validar-design` a cada ecra** — tokens vs `DESIGN.md` (bloqueia se divergirem), 4 estados,
-   acessibilidade. O Claude Design nao conhece o projecto; o porteiro e aqui.
-3. **Converter para a stack** — os HTML sao a REFERENCIA, a conversao e re-implementacao fiel:
-   - Laravel/Livewire → componentes Blade + Flux, tokens no `@theme` (`laravel-specialist` + `design-html`)
-   - Next.js → componentes React + Tailwind (`frontend` + `tailwind` + `design-html`)
-   - Flutter → `ThemeData` + widgets (`design-html` para ler, tema manual)
-4. Originais ficam em `docs/mockups/` (referencia versionada). `design/claude-design/` pode ser
-   apagada depois da conversao validada — pergunta primeiro.
+1. **Inventory against `SCREENS.md`** — screen by screen, an `ls` is not enough: what is missing is
+   listed explicitly, do not assume everything came.
+2. **`validate-design` on every screen** — tokens vs `DESIGN.md` (blocks if they diverge), 4 states,
+   accessibility. Claude Design does not know the project; the gatekeeper is here.
+3. **Convert to the stack** — the HTML is the REFERENCE, the conversion is a faithful re-implementation:
+   - Laravel/Livewire → Blade + Flux components, tokens in `@theme` (`laravel-specialist` + `design-html`)
+   - Next.js → React + Tailwind components (`frontend` + `tailwind` + `design-html`)
+   - Flutter → `ThemeData` + widgets (`design-html` to read, theme by hand)
+4. Originals stay in `docs/mockups/` (versioned reference). `design/claude-design/` can be deleted
+   after the conversion is validated — ask first.
 
-## Armadilha conhecida
+## Known pitfall
 
-O Claude Design gera CSS proprio por ecra. **Dois ecras com tokens ligeiramente diferentes e o
-defeito esperado**, nao a excepcao — por isso o `validar-design` corre ANTES da conversao: converter
-um ecra fora do sistema e pagar a conversao duas vezes.
+Claude Design generates its own CSS per screen. **Two screens with slightly different tokens is the
+expected defect**, not the exception — that is why `validate-design` runs BEFORE the conversion:
+converting a screen outside the system is paying for the conversion twice.

@@ -1,5 +1,5 @@
 // Notifications inbox — persistent, delivery-guaranteed layer over the ephemeral WS broadcast.
-// Every user-facing notification (sessao terminada, sistema) e
+// Every user-facing notification (session finished, system) is
 // appended here BEFORE being broadcast, so a closed browser tab never loses it: the UI loads the
 // inbox on connect and shows unread state. Source of truth = DATA_DIR/notifications.json (atomic
 // writes via project-store.writeJsonFile). Capped to the most recent MAX_NOTIFICATIONS.
@@ -10,7 +10,7 @@ import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 export type NotificationKind = 'session_done' | 'system';
 
 // What the notification wants from you. The inbox used to treat "a worker is blocked waiting for
-// your answer" exactly like "a job finished" — com várias tarefas a correr em projectos diferentes
+// your answer" exactly like "a job finished" — with several tasks running in different projects
 // at once, that flattening is what turns an inbox into noise you stop reading.
 //   action → nothing moves until you decide
 //   info   → happened, no decision needed
@@ -38,7 +38,7 @@ const MAX_NOTIFICATIONS = 500;
 
 // Window in which repeated events from the SAME source collapse into one entry. Three workers of
 // the same project finishing within a minute is one thing that happened, not three; before the
-// isto era raro; com a fila de tarefas a andar sozinha, passou a ser o caso normal.
+// this was rare; with the task queue moving on its own, it became the normal case.
 const GROUP_WINDOW_MS = 90_000;
 
 // Decoupled broadcaster: server.ts injects a fn that pushes the new notification over WS.
@@ -65,8 +65,8 @@ export function pushNotification(spec: {
   // Same key + inside GROUP_WINDOW_MS + still unread → folds into the existing entry instead of
   // adding a new one. Callers that omit it always get a separate notification.
   //
-  // The key must identify the same THING repeating, not merely the same source: dez avisos
-  // falhados porque o CLI esta em baixo sao um problema (group on project+reason), but two workers
+  // The key must identify the same THING repeating, not merely the same source: ten notices that
+  // failed because the CLI is down are one problem (group on project+reason), but two workers
   // blocked on different questions are two decisions, and folding those hides one. When in doubt,
   // omit it.
   groupKey?: string;
@@ -80,9 +80,9 @@ export function pushNotification(spec: {
       n.meta?.groupKey === spec.groupKey && !n.read && now - n.ts < GROUP_WINDOW_MS);
     if (prev) {
       prev.count = (prev.count ?? 1) + 1;
-      prev.ts = now;                                     // reordena para o topo
+      prev.ts = now;                                     // reorders it to the top
       prev.title = spec.title.slice(0, 200);
-      prev.text = `${spec.text}\n\n(+${prev.count - 1} antes disto, do mesmo sítio)`.slice(0, 8000);
+      prev.text = `${spec.text}\n\n(+${prev.count - 1} before this, from the same place)`.slice(0, 8000);
       saveNotifications(list);
       try { notificationsBroadcaster?.(prev); } catch { /* inbox already persisted */ }
       return prev;

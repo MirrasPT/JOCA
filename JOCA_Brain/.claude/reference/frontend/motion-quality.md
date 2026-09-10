@@ -1,124 +1,124 @@
-# Motion Quality — rubrica de auditoria de movimento
+# Motion Quality — motion audit rubric
 
-Referencia on-demand. Consumida por `skills/design-review.md` (quando a review inclui movimento) e
-pelo checklist de `skills/anima.md`. Adaptado de `LottieFiles/motion-design-skill` (MIT).
+On-demand reference. Consumed by `skills/design-review.md` (when the review includes motion) and by
+the checklist in `skills/anima.md`. Adapted from `LottieFiles/motion-design-skill` (MIT).
 
-Cada item e binario: passa ou nao passa. "Podia estar melhor" nao e um veredito.
+Every item is binary: it passes or it does not. "Could be better" is not a verdict.
 
 ---
 
-## Rubrica
+## Rubric
 
 **Visual**
-- [ ] Elementos >40px para movimento, >100px para detalhe
-- [ ] Legivel a velocidade real, sem slow-motion
-- [ ] 1/3 de distancia: nenhum movimento continuo >1/3 do container
-- [ ] 1/3 de densidade: no maximo 1/3 dos elementos activos ao mesmo tempo
-- [ ] Arcos naturais, salvo se mecanico for intencional
+- [ ] Elements >40px for movement, >100px for detail
+- [ ] Legible at real speed, without slow-motion
+- [ ] 1/3 of distance: no continuous movement >1/3 of the container
+- [ ] 1/3 of density: at most 1/3 of the elements active at the same time
+- [ ] Natural arcs, unless mechanical is intentional
 
-**Tecnica**
-- [ ] Sem easing linear em movimento espacial
-- [ ] Duracao proporcional a distancia e ao tipo de elemento
-- [ ] Ease-out nas entradas, ease-in nas saidas
-- [ ] Duracao de entrada ≥ duracao de saida
-- [ ] Mudancas de estado importantes nao sao so opacidade
-- [ ] Stagger total <500ms
-- [ ] Follow-through: elementos filhos desfasados 50-150ms
+**Technical**
+- [ ] No linear easing on spatial movement
+- [ ] Duration proportional to distance and to element type
+- [ ] Ease-out on entrances, ease-in on exits
+- [ ] Entrance duration ≥ exit duration
+- [ ] Important state changes are not opacity alone
+- [ ] Total stagger <500ms
+- [ ] Follow-through: child elements offset by 50-150ms
 
-**Emocional**
-- [ ] Arquetipo definido antes de escolher propriedades (ver `motion-personality.md`)
-- [ ] Estrutura setup → accao → resolucao
-- [ ] Intensidade proporcional a importancia da interaccao
-- [ ] Mesma interaccao = mesma animacao, sempre
-- [ ] Ainda aceitavel a centesima vez que se ve
+**Emotional**
+- [ ] Archetype defined before choosing properties (see `motion-personality.md`)
+- [ ] Structure setup → action → resolution
+- [ ] Intensity proportional to the importance of the interaction
+- [ ] Same interaction = same animation, always
+- [ ] Still acceptable the hundredth time it is seen
 
 **Performance**
-- [ ] Movimento principal em transform + opacity
-- [ ] <20 elementos animados por viewport
-- [ ] Nenhuma propriedade que dispara layout
-- [ ] 60fps (30fps aceitavel em ambiente)
+- [ ] Main movement on transform + opacity
+- [ ] <20 animated elements per viewport
+- [ ] No property that triggers layout
+- [ ] 60fps (30fps acceptable for ambient)
 
-**Acessibilidade**
-- [ ] Alternativa de `prefers-reduced-motion` que **substitui**, nao apaga
-- [ ] Sem gatilhos vestibulares sem alternativa
-- [ ] Informacao critica nunca so por movimento
-- [ ] Animacoes >5s sao pausaveis
+**Accessibility**
+- [ ] `prefers-reduced-motion` alternative that **replaces**, does not erase
+- [ ] No vestibular triggers without an alternative
+- [ ] Critical information never by movement alone
+- [ ] Animations >5s are pausable
 
 ---
 
-## Severidade
+## Severity
 
-| Tier | Falhas |
+| Tier | Failures |
 |---|---|
-| **CRITICAL** | easing linear em movimento espacial · so-opacidade em estados importantes · excede a regra de 1/3 do ecra · stagger >500ms · animacao de propriedade de layout a causar jank |
-| **HIGH** | duracao desalinhada do tipo de elemento · easing direccional errado · personalidade inconsistente · sem follow-through · **sem alternativa de reduced-motion** |
-| **MEDIUM** | overshoot desalinhado · arcos podiam ser melhores · sem counter-motion |
+| **CRITICAL** | linear easing on spatial movement · opacity-only on important states · exceeds the 1/3-of-screen rule · stagger >500ms · animation of a layout property causing jank |
+| **HIGH** | duration misaligned with the element type · wrong directional easing · inconsistent personality · no follow-through · **no reduced-motion alternative** |
+| **MEDIUM** | misaligned overshoot · arcs could be better · no counter-motion |
 
 ---
 
-## Diagnostico: sintoma → causa
+## Diagnosis: symptom → cause
 
-| Problema | Causa provavel | Correccao |
+| Problem | Likely cause | Fix |
 |---|---|---|
-| Parece robotico | easing linear ou sem arcos | curvas de easing + trajectorias em arco |
-| Parece lento demais | duracao longa para o tipo de elemento | ver a tabela de duracoes, usar ease-out |
-| Parece plano/barato | so existe a camada primaria | ver "tres camadas" abaixo |
-| Distrai demasiado | elementos a mais a mexer | aplicar a regra de 1/3, reduzir amplitude |
-| Sem personalidade | easing generico em todo o lado | aplicar o arquetipo de forma consistente |
+| Looks robotic | linear easing or no arcs | easing curves + arced trajectories |
+| Looks too slow | long duration for the element type | check the duration table, use ease-out |
+| Looks flat/cheap | only the primary layer exists | see "three layers" below |
+| Too distracting | too many elements moving | apply the 1/3 rule, reduce amplitude |
+| No personality | generic easing everywhere | apply the archetype consistently |
 
-### As tres camadas (ferramenta de diagnostico, nao regra)
+### The three layers (diagnostic tool, not a rule)
 
-| Camada | Papel | Amplitude |
+| Layer | Role | Amplitude |
 |---|---|---|
-| Primary | a accao que o olho segue | 100% |
-| Secondary | riqueza de apoio (sombras, elementos ligados) | 30-50%, desfasada 50-100ms, easing diferente |
-| Ambient | vida de fundo | 10-20%, continua, nunca pede atencao |
+| Primary | the action the eye follows | 100% |
+| Secondary | supporting richness (shadows, linked elements) | 30-50%, offset by 50-100ms, different easing |
+| Ambient | background life | 10-20%, continuous, never asks for attention |
 
-⚠ **Usar so para diagnosticar "parece plano".** A fonte manda ter sempre as tres camadas; nos nao.
-Isso colide com a regra de `anima.md` (se nao orienta, confirma ou narra, **nao animar**) e com
-`yagni`. Maximo 2-3 elementos activos.
+⚠ **Use it only to diagnose "looks flat".** The source insists on always having the three layers; we
+do not. That collides with the rule in `anima.md` (if it does not orient, confirm or narrate, **do not
+animate**) and with `yagni`. At most 2-3 active elements.
 
 ---
 
-## Adaptacao ao contexto
+## Adapting to context
 
-| Plataforma | Modificador de duracao | Complexidade |
+| Platform | Duration modifier | Complexity |
 |---|---|---|
-| Desktop | 1.0x (base) | completa |
+| Desktop | 1.0x (base) | full |
 | Tablet | 0.9x | standard |
-| Mobile | 0.8x | reduzida (1-2 propriedades) |
-| TV / Kiosk | 1.3x | completa |
+| Mobile | 0.8x | reduced (1-2 properties) |
+| TV / Kiosk | 1.3x | full |
 
-**Mobile:** preferir opacity + transform · feedback de toque <100ms · **orcamento de stagger −30%** ·
-evitar parallax.
-**Desktop:** hover, cursor tracking, stagger multi-coluna, coreografia espacial.
+**Mobile:** prefer opacity + transform · touch feedback <100ms · **stagger budget −30%** ·
+avoid parallax.
+**Desktop:** hover, cursor tracking, multi-column stagger, spatial choreography.
 
-**Deslocamento por largura de container:**
+**Displacement by container width:**
 
-| Largura | Deslocamento max | Duracao |
+| Width | Max displacement | Duration |
 |---|---|---|
-| <400px | 20% da largura | 0.8x |
-| 400-800px | 25% da largura | 1.0x |
-| 800-1200px | 20% da largura | 1.0x |
-| >1200px | 15% da largura | 1.1x |
+| <400px | 20% of the width | 0.8x |
+| 400-800px | 25% of the width | 1.0x |
+| 800-1200px | 20% of the width | 1.0x |
+| >1200px | 15% of the width | 1.1x |
 
-**Dark mode:** reduzir intensidade 10-20% (claro sobre escuro tem mais impacto); evitar flashes de branco puro.
+**Dark mode:** reduce intensity 10-20% (light on dark has more impact); avoid pure white flashes.
 
-**Orcamento por propriedade:**
+**Budget per property:**
 
-| Tier | Propriedades | Max elementos |
+| Tier | Properties | Max elements |
 |---|---|---|
-| Optimal | transform, opacity | ilimitado (GPU) |
+| Optimal | transform, opacity | unlimited (GPU) |
 | Good | + color, clip-path | 10-15 |
 | Acceptable | + width, height, margin | 5-8 |
-| Evitar | box-shadow, border-radius, filter | 1-3 |
+| Avoid | box-shadow, border-radius, filter | 1-3 |
 
-**Substituicoes de reduced-motion:**
+**Reduced-motion replacements:**
 
-| Movimento original | Alternativa |
+| Original movement | Alternative |
 |---|---|
-| Entrada em slide | so fade de opacidade |
-| Bounce / spring | instantaneo ou ease-out simples |
-| Parallax | posicao estatica |
-| Auto-play | pausado, iniciado pelo utilizador |
-| Coreografia complexa | um unico fade |
+| Slide entrance | opacity fade only |
+| Bounce / spring | instant or simple ease-out |
+| Parallax | static position |
+| Auto-play | paused, started by the user |
+| Complex choreography | a single fade |

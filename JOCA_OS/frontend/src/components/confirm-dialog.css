@@ -1,11 +1,11 @@
-/* ConfirmDialog — aviso a meio do ecrã antes de uma acção irreversível.
-   Mesmo overlay e mesma linguagem do modal de projecto; o que muda é o peso: caixa estreita, um
-   título, uma frase e dois botões. Nada de scroll, nada de campos — é uma decisão, não um ecrã. */
+/* ConfirmDialog — a warning in the middle of the screen before an irreversible action.
+   Same overlay and same language as the project modal; what changes is the weight: a narrow box, a
+   title, a sentence and two buttons. No scroll, no fields — it is a decision, not a screen. */
 
 .confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;   /* acima do modal de projecto (60): pode ser aberto por cima dele */
+  z-index: 80;   /* above the project modal (60): it can be opened on top of it */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,8 +58,8 @@
 
 .confirm-dialog-body strong { color: var(--text-bright); }
 
-/* O que fica intacto merece linha própria: a dúvida que trava a mão é sempre "isto apaga os meus
-   ficheiros?", e a resposta tem de estar à vista antes do clique. */
+/* What stays intact deserves a line of its own: the doubt that stops the hand is always "does this
+   delete my files?", and the answer has to be in sight before the click. */
 .confirm-dialog-body .confirm-note {
   display: block;
   margin-top: 8px;
@@ -87,8 +87,8 @@
 
 .confirm-btn:hover { background: var(--bg-input); }
 
-/* Vermelho fixo, não `--red`: o vermelho do tema escuro é claro de mais e branco por cima ficava
-   abaixo de 4.5:1. Mesma decisão (e mesmo valor) da Zona perigosa do modal de projecto. */
+/* Fixed red, not `--red`: the dark theme's red is too light and white on top of it fell
+   below 4.5:1. Same decision (and same value) as the project modal's Danger zone. */
 .confirm-btn--danger {
   background: #b91c1c;
   border-color: #b91c1c;

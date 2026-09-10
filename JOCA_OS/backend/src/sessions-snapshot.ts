@@ -1,22 +1,22 @@
-// Retrato em disco das sessões vivas — a rede que apanha o backend a morrer.
+// On-disk snapshot of the live sessions — the net that catches the backend dying.
 //
-// O problema: os PTYs vivem SÓ em memória (`SessionManager`). Quando o processo do backend morre
-// — crash, SIGKILL do `start.sh`, máquina a suspender — todos os terminais morrem com ele e as
-// conversas desaparecem da UI sem uma linha de explicação. Nada disto é recuperável a sério: um
-// PTY morto não se reata. O que SE consegue é não deixar o dono sem saber o que lá estava.
+// The problem: the PTYs live ONLY in memory (`SessionManager`). When the backend process dies
+// — crash, SIGKILL from `start.sh`, machine suspending — all the terminals die with it and the
+// conversations vanish from the UI without a line of explanation. None of it is really recoverable:
+// a dead PTY is not resumed. What CAN be done is not leaving the owner not knowing what was there.
 //
-// O que isto faz: escreve `data/sessions-snapshot.json` com os metadados de cada sessão viva mais
-// a CAUDA do output (RAW, com ANSI, para o xterm poder repintá-la). A instância seguinte lê esse
-// ficheiro ANTES de o reescrever e oferece o conteúdo pelas rotas `/sessions/recovered*` — o
-// cliente decide se mostra o aviso ou se o dispensa (DELETE).
+// What this does: writes `data/sessions-snapshot.json` with the metadata of each live session plus
+// the TAIL of the output (RAW, with ANSI, so xterm can repaint it). The next instance reads that
+// file BEFORE rewriting it and offers the content through the `/sessions/recovered*` routes — the
+// client decides whether to show the warning or to dismiss it (DELETE).
 //
-// O que isto NÃO faz: reatar processos. Não há reattach de PTY nem processos destacados — está
-// fora de âmbito e não funciona nesta arquitectura.
+// What this does NOT do: resume processes. There is no PTY reattach and no detached processes — it
+// is out of scope and does not work in this architecture.
 //
-// Ritmo de escrita: debounce de 5s (o `output` do PTY dispara centenas de vezes por segundo — uma
-// escrita por chunk era impensável) + flush IMEDIATO em SIGTERM, SIGINT e ao criar/fechar uma
-// sessão. O SIGTERM apanha o encerramento normal do `start.sh`; a escrita periódica é a única
-// coisa que cobre o SIGKILL 2s depois e o crash.
+// Write cadence: 5s debounce (the PTY's `output` fires hundreds of times per second — one write
+// per chunk was unthinkable) + IMMEDIATE flush on SIGTERM, SIGINT and when creating/closing a
+// session. SIGTERM catches the normal shutdown of `start.sh`; the periodic write is the only
+// thing that covers the SIGKILL 2s later and the crash.
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -33,26 +33,26 @@ export interface SnapshotSession {
   origin: 'user' | 'auto';
   status: 'working' | 'idle';
   /**
-   * Geometria do PTY no momento em que o retrato foi tirado.
+   * Geometry of the PTY at the moment the snapshot was taken.
    *
-   * Não é decoração: o output guardado é o de um TUI (o `claude` é o CLI por omissão), e um TUI
-   * redesenha o ecrã por POSIÇÃO — apaga linhas, sobe o cursor, escreve por cima. Reproduzir isso
-   * noutra largura parte o desenho ao meio, e noutra altura manda para fora do ecrã tudo o que a
-   * app posicionou em absoluto (medido: o mesmo retrato reproduzido a 180x32 dá o ecrã inteiro;
-   * a 180x24 sobram 6 linhas). Quem lê o retrato precisa das duas medidas ou não o sabe repintar.
+   * It is not decoration: the stored output is that of a TUI (`claude` is the default CLI), and a TUI
+   * redraws the screen by POSITION — deletes lines, moves the cursor up, writes over. Replaying that
+   * at another width breaks the drawing in half, and at another height sends off screen everything the
+   * app positioned absolutely (measured: the same snapshot replayed at 180x32 gives the whole screen;
+   * at 180x24 6 lines are left over). Whoever reads it needs both measurements or cannot repaint it.
    */
   cols: number;
   rows: number;
-  /** Últimos <= TAIL_MAX_BYTES do buffer, RAW (com ANSI) — é o que o xterm sabe repintar. */
+  /** Last <= TAIL_MAX_BYTES of the buffer, RAW (with ANSI) — it is what xterm knows how to repaint. */
   tail: string;
 }
 
 /**
- * Geometria de recurso, para retratos escritos por uma versão anterior a estes campos.
+ * Fallback geometry, for snapshots written by a version older than these fields.
  *
- * 120x30 e não 80x24: é o tamanho com que o `session-manager` cria cada PTY (`pty.spawn`), logo é
- * o que uma sessão que nunca foi redimensionada tem mesmo. Os limites são os mesmos do
- * `sessionManager.resize` — um ficheiro corrompido não pode pedir um terminal de um milhão de linhas.
+ * 120x30 and not 80x24: it is the size `session-manager` creates every PTY with (`pty.spawn`), so
+ * it is what a session that was never resized actually has. The limits are the same as
+ * `sessionManager.resize` — a corrupt file cannot ask for a terminal a million lines tall.
  */
 const COLS_FALLBACK = 120;
 const ROWS_FALLBACK = 30;
@@ -71,45 +71,45 @@ export interface SessionsSnapshot {
 export const SNAPSHOT_FILE = path.join(DATA_DIR, 'sessions-snapshot.json');
 
 /**
- * Retrato POR RECUPERAR, em ficheiro separado do retrato das sessões vivas.
+ * Snapshot STILL TO BE RECOVERED, in a file separate from the snapshot of the live sessions.
  *
- * Ter só um ficheiro perdia o caso mais provável de todos: `start.sh` corre num terminal, muitas
- * vezes sem browser aberto. Reiniciar duas vezes seguidas fazia o segundo arranque ler um ficheiro
- * que o primeiro já tinha reescrito com `sessions: []` — e o registo das conversas mortas, que é a
- * única razão de isto existir, desaparecia sem ninguém o ter visto.
+ * Having only one file lost the most likely case of all: `start.sh` runs in a terminal, very often
+ * with no browser open. Restarting twice in a row made the second startup read a file the first had
+ * already rewritten with `sessions: []` — and the record of the dead conversations, which is the
+ * only reason this exists, disappeared without anyone having seen it.
  *
- * Com dois ficheiros: o que morre com conversas vivas é PROMOVIDO a `.prev` no arranque seguinte, e
- * o `.prev` só sai daqui quando o utilizador dispensa o aviso. Arrancar não apaga nada.
+ * With two files: the one that dies with live conversations is PROMOTED to `.prev` on the next
+ * startup, and `.prev` only leaves here when the user dismisses the warning. Starting deletes nothing.
  */
 export const SNAPSHOT_PREV_FILE = path.join(DATA_DIR, 'sessions-snapshot.prev.json');
 
-/** Identidade desta instância do backend. Muda a cada arranque — é assim que o cliente distingue
- *  "as sessões que estão a correr" de "as sessões que morreram com o backend anterior". */
+/** Identity of this backend instance. Changes on every startup — this is how the client tells
+ *  "the sessions that are running" from "the sessions that died with the previous backend". */
 export const BOOT_ID = randomUUID();
 
 const FLUSH_DEBOUNCE_MS = 5000;
 const TAIL_MAX_BYTES = 256 * 1024;
 
 /**
- * Cauda do buffer, cortada em BYTES e em sítio seguro.
+ * Tail of the buffer, cut in BYTES and in a safe place.
  *
- * Duas armadilhas, as mesmas que o corte do `BUFFER_MAX` no `session-manager` já paga:
+ * Two pitfalls, the same ones the `BUFFER_MAX` cut in `session-manager` already pays:
  *
- * 1. **Nunca cortar a meio de um code point.** O corte é por bytes UTF-8; recuar até um byte
- *    inicial evita que a cauda comece com um caracter de substituição.
- * 2. **Nunca cortar a meio de uma sequência de escape.** Se o `\x1b` inicial ficar do lado deitado
- *    fora, os parâmetros que sobram (`38;2;255;0;0m`) chegam ao xterm como TEXTO e o replay
- *    aparece com lixo. Alinhar ao próximo `\x1b` é sempre seguro; o `\x1b[0m` à cabeça repõe o
- *    estado de cor que o corte deitou fora.
+ * 1. **Never cut in the middle of a code point.** The cut is by UTF-8 bytes; backing up to a
+ *    leading byte stops the tail from starting with a replacement character.
+ * 2. **Never cut in the middle of an escape sequence.** If the leading `\x1b` ends up on the
+ *    discarded side, the parameters left over (`38;2;255;0;0m`) reach xterm as TEXT and the replay
+ *    shows up with garbage. Aligning to the next `\x1b` is always safe; the `\x1b[0m` at the head
+ *    restores the color state the cut threw away.
  *
- * Exportada para ser testável — uma regressão aqui é silenciosa (o ficheiro escreve-se na mesma).
+ * Exported so it is testable — a regression here is silent (the file gets written all the same).
  */
 export function snapshotTail(buffer: string, maxBytes = TAIL_MAX_BYTES): string {
   if (Buffer.byteLength(buffer, 'utf8') <= maxBytes) return buffer;
 
   const bytes = Buffer.from(buffer, 'utf8');
   let start = bytes.length - maxBytes;
-  // 0b10xxxxxx = byte de continuação; avançar até ao início do code point seguinte.
+  // 0b10xxxxxx = continuation byte; advance to the start of the next code point.
   while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) start++;
   let tail = bytes.subarray(start).toString('utf8');
 
@@ -123,31 +123,31 @@ export function snapshotTail(buffer: string, maxBytes = TAIL_MAX_BYTES): string 
   return `\x1b[0m${tail}`;
 }
 
-// ── Snapshot da instância ANTERIOR ────────────────────────────────────────────────────────────
-// Lido UMA vez, no carregamento do módulo — antes de qualquer escrita poder acontecer. A partir
-// daqui o ficheiro passa a ser desta instância, e o que lá estava só existe nesta variável.
+// ── Snapshot of the PREVIOUS instance ────────────────────────────────────────────────────────
+// Read ONCE, at module load — before any write can happen. From here on the file belongs to this
+// instance, and what was in it exists only in this variable.
 let previous: SessionsSnapshot | null = promotePreviousSnapshot();
 
 /**
- * Corre UMA vez, no carregamento do módulo, antes de qualquer escrita.
+ * Runs ONCE, at module load, before any write.
  *
- * Se o retrato das sessões vivas que ficou em disco tem conversas, foi uma morte com trabalho lá
- * dentro: promove-se a `.prev`. Se está vazio (encerramento limpo, ou um arranque a seguir a
- * outro), o que estiver por recuperar fica onde está — arrancar o backend nunca deita fora o que
- * ninguém chegou a ver.
+ * If the snapshot of the live sessions left on disk has conversations, it was a death with work
+ * inside it: it is promoted to `.prev`. If it is empty (clean shutdown, or one startup right
+ * after another), whatever is still to be recovered stays where it is — starting the backend
+ * never throws away what nobody got to see.
  */
 function promotePreviousSnapshot(): SessionsSnapshot | null {
   const vivas = readSnapshotFile(SNAPSHOT_FILE);
   if (vivas && vivas.sessions.length > 0) {
     try {
       writeFileAtomic(SNAPSHOT_PREV_FILE, JSON.stringify(vivas));
-      // CONSUMIR o ficheiro das vivas faz parte da promoção, e tem de acontecer aqui — não à espera
-      // do `installSessionsSnapshot()`. Senão a promoção deixa de ser idempotente: quem carregue o
-      // módulo sem o instalar deixa o retrato antigo em disco, e o arranque seguinte promove-o
-      // OUTRA VEZ — inclusive um que o utilizador já tinha dispensado.
+      // CONSUMING the file of the live ones is part of the promotion, and has to happen here — not
+      // waiting for `installSessionsSnapshot()`. Otherwise the promotion stops being idempotent:
+      // whoever loads the module without installing it leaves the old snapshot on disk, and the
+      // next startup promotes it AGAIN — including one the user had already dismissed.
       writeFileAtomic(SNAPSHOT_FILE, JSON.stringify({ bootId: BOOT_ID, savedAt: Date.now(), sessions: [] }));
     } catch (e) {
-      console.warn('[sessions-snapshot] não consegui promover o retrato anterior:', e);
+      console.warn('[sessions-snapshot] could not promote the previous snapshot:', e);
     }
     return vivas;
   }
@@ -162,8 +162,8 @@ function readSnapshotFile(file: string): SessionsSnapshot | null {
   return {
     bootId: snap.bootId,
     savedAt: typeof snap.savedAt === 'number' ? snap.savedAt : 0,
-    // A geometria normaliza-se AQUI, uma vez: daqui para a frente (rotas, cliente) ela é sempre
-    // dois números utilizáveis, e não "às vezes indefinida porque o ficheiro é antigo".
+    // The geometry is normalized HERE, once: from here on (routes, client) it is always two
+    // usable numbers, and not "sometimes undefined because the file is old".
     sessions: snap.sessions
       .filter((s): s is SnapshotSession => !!s && typeof s.id === 'string')
       .map((s) => ({
@@ -174,7 +174,7 @@ function readSnapshotFile(file: string): SessionsSnapshot | null {
   };
 }
 
-/** Metadados das sessões da instância anterior — SEM o `tail` (é grande; vai à parte). */
+/** Metadata of the previous instance's sessions — WITHOUT the `tail` (it is big; it goes apart). */
 export function recoveredSessions(): {
   bootId: string;
   previousBootId?: string;
@@ -193,28 +193,28 @@ export function recoveredSessions(): {
   };
 }
 
-/** Cauda raw de uma sessão da instância anterior, ou `undefined` se não existir. */
+/** Raw tail of a session from the previous instance, or `undefined` if it does not exist. */
 export function recoveredTail(id: string): string | undefined {
   const found = previous?.sessions.find((s) => s.id === id);
   return found ? (found.tail ?? '') : undefined;
 }
 
 /**
- * Dispensar o aviso. Limpa a memória E o `.prev` — é o único sítio que o apaga, e é isso que faz
- * com que reiniciar o backend não perca o que ainda ninguém dispensou. O `SNAPSHOT_FILE` não se
- * toca: desde o arranque que ele é o retrato das sessões VIVAS, e apagá-lo só conseguiria perder
- * as conversas que estão a correr agora.
+ * Dismiss the warning. Clears the memory AND the `.prev` — it is the only place that deletes it,
+ * and that is what makes restarting the backend not lose what nobody has dismissed yet.
+ * `SNAPSHOT_FILE` is not touched: since startup it has been the snapshot of the LIVE sessions, and
+ * deleting it could only lose the conversations that are running right now.
  */
 export function clearRecovered(): void {
   previous = null;
   try {
     fs.rmSync(SNAPSHOT_PREV_FILE, { force: true });
   } catch (e) {
-    console.warn('[sessions-snapshot] não consegui apagar o retrato por recuperar:', e);
+    console.warn('[sessions-snapshot] could not delete the snapshot still to be recovered:', e);
   }
 }
 
-// ── Escrita ───────────────────────────────────────────────────────────────────────────────────
+// ── Writing ───────────────────────────────────────────────────────────────────────────────────
 let dirty = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let installed = false;
@@ -231,8 +231,8 @@ function currentSnapshot(): SessionsSnapshot {
       cli: s.cli,
       origin: s.origin,
       status: s.status,
-      // A geometria VIVA do PTY, não a de arranque: o browser redimensiona a sessão ao abrir o
-      // painel, e é a última medida que corresponde ao desenho que ficou no buffer.
+      // The LIVE geometry of the PTY, not the startup one: the browser resizes the session when it
+      // opens the panel, and it is the last measurement that matches the drawing left in the buffer.
       cols: geometriaValida(s.pty.cols, COLS_FALLBACK, 10, 500),
       rows: geometriaValida(s.pty.rows, ROWS_FALLBACK, 5, 200),
       tail: snapshotTail(s.buffer),
@@ -241,11 +241,11 @@ function currentSnapshot(): SessionsSnapshot {
 }
 
 /**
- * Escreve já, atomicamente (tmp + rename, via `project-store`). Sem sessões vivas o ficheiro fica
- * com `sessions: []` — um encerramento limpo sem conversas não gera aviso nenhum da próxima vez.
+ * Writes right away, atomically (tmp + rename, via `project-store`). With no live sessions the file
+ * is left with `sessions: []` — a clean shutdown with no conversations raises no warning next time.
  *
- * Síncrona de propósito: é o que a corre no handler de SIGTERM, e o `start.sh` dá SIGKILL 2s
- * depois.
+ * Synchronous deliberately: it is what runs it in the SIGTERM handler, and `start.sh` gives SIGKILL
+ * 2s later.
  */
 export function flushSessionsSnapshot(): void {
   dirty = false;
@@ -253,11 +253,11 @@ export function flushSessionsSnapshot(): void {
   try {
     writeFileAtomic(SNAPSHOT_FILE, JSON.stringify(currentSnapshot()));
   } catch (e) {
-    console.warn('[sessions-snapshot] não consegui escrever o retrato das sessões:', e);
+    console.warn('[sessions-snapshot] could not write the sessions snapshot:', e);
   }
 }
 
-/** Marca alterações; escreve no máximo 1x cada FLUSH_DEBOUNCE_MS. */
+/** Marks changes; writes at most 1x every FLUSH_DEBOUNCE_MS. */
 export function scheduleSessionsSnapshot(): void {
   if (!installed) return;
   dirty = true;
@@ -270,11 +270,11 @@ export function scheduleSessionsSnapshot(): void {
 }
 
 /**
- * Liga o snapshot ao ciclo de vida das sessões e aos sinais de encerramento.
+ * Wires the snapshot to the sessions' lifecycle and to the shutdown signals.
  *
- * O handler de sinal remove-se a si próprio (`once`) e volta a enviar o mesmo sinal, para o
- * processo morrer com o estado que morreria sem este código — um `process.exit(0)` mudava o código
- * de saída de quem estiver a ver.
+ * The signal handler removes itself (`once`) and sends the same signal again, so the process dies
+ * with the state it would die with without this code — a `process.exit(0)` would change the exit
+ * code for whoever is watching.
  */
 export function installSessionsSnapshot(): void {
   if (installed) return;
@@ -282,7 +282,7 @@ export function installSessionsSnapshot(): void {
 
   sessionManager.on('output', scheduleSessionsSnapshot);
   sessionManager.on('status', scheduleSessionsSnapshot);
-  // Criar e fechar são momentos raros e caros de perder → flush imediato.
+  // Creating and closing are rare moments and expensive to lose → immediate flush.
   sessionManager.on('spawn', flushSessionsSnapshot);
   sessionManager.on('closed', flushSessionsSnapshot);
 
@@ -293,7 +293,7 @@ export function installSessionsSnapshot(): void {
     });
   }
 
-  // Estado inicial em disco: sem isto, um backend que arranca e morre antes da primeira sessão
-  // deixava lá o retrato da instância anterior e a seguinte avisava outra vez pelo mesmo.
+  // Initial state on disk: without this, a backend that starts and dies before the first session
+  // left the previous instance's snapshot there and the next one warned about the same thing again.
   flushSessionsSnapshot();
 }

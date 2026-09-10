@@ -1,27 +1,27 @@
-// Temas de marca ("Custom Temas") — trocam a APARÊNCIA e o NOME do JOCA, nada mais.
+// Brand themes ("Custom Themes") — they swap JOCA's LOOK and NAME, nothing else.
 //
-// Fronteira deliberada: um tema de marca é 100% cosmético. Não toca no cérebro, na memória, nos
-// prompts do backend.
-// Só o que o utilizador VÊ muda. Trocar de tema é reversível e não deixa rasto no estado.
+// A deliberate boundary: a brand theme is 100% cosmetic. It does not touch the brain, the memory, the
+// backend prompts.
+// Only what the user SEES changes. Switching theme is reversible and leaves no trace in the state.
 //
-// Cada tema traz claro E escuro: o modo (claro/escuro/dinâmico) continua a ser escolha separada,
-// em `theme.ts`. Marca e modo são eixos independentes — `data-brand` × `data-theme`.
+// Every theme brings light AND dark: the mode (light/dark/dynamic) remains a separate choice,
+// in `theme.ts`. Brand and mode are independent axes — `data-brand` × `data-theme`.
 //
-// As cores vivem no CSS (`:root[data-brand="..."]` em App.css, um bloco por modo). Aqui fica só o
-// que o JS precisa de saber: como se chama e qual o logo.
+// The colors live in the CSS (`:root[data-brand="..."]` in App.css, one block per mode). Here stays
+// only what the JS needs to know: what it is called and which logo it uses.
 
 export interface BrandTheme {
-  /** Escrito em `document.documentElement.dataset.brand`. O default não escreve nada. */
+  /** Written to `document.documentElement.dataset.brand`. The default writes nothing. */
   id: string;
-  /** Nome do tema no selector das Definições. */
+  /** Name of the theme in the Settings selector. */
   label: string;
-  /** Palavra grande no topo da barra lateral (ao lado da versão). */
+  /** Big word at the top of the sidebar (next to the version). */
   wordmark: string;
-  /** Logo em imagem. Sem isto usam-se os anéis desenhados em CSS (`.sb-logo-rings`). */
+  /** Image logo. Without this the rings drawn in CSS are used (`.sb-logo-rings`). */
   logo?: string;
-  /** Ícone do separador. Quadrado, ao contrário do logo — ver `favicon-*.png`. */
+  /** Tab icon. Square, unlike the logo — see `favicon-*.png`. */
   favicon: string;
-  /** Uma linha no selector, para se perceber o que se está a escolher. */
+  /** One line in the selector, so you can tell what you are choosing. */
   detail: string;
 }
 
@@ -31,7 +31,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     label: 'JOCA',
     wordmark: 'JOCA',
     favicon: '/favicon.png',
-    detail: 'O tema de origem — laranja sobre preto.',
+    detail: 'The original theme — orange on black.',
   },
   {
     id: 'alfredo',
@@ -39,7 +39,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     wordmark: 'ALFREDO',
     logo: '/brand/alfredo.png',
     favicon: '/brand/favicon-alfredo.png',
-    detail: 'O mordomo de Gotham — amarelo-morcego sobre preto.',
+    detail: "Gotham's butler — bat-yellow on black.",
   },
   {
     id: 'kitt',
@@ -47,7 +47,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     wordmark: 'K.I.T.T.',
     logo: '/brand/kitt.png',
     favicon: '/brand/favicon-kitt.png',
-    detail: 'O carro que fala — vermelho scanner sobre preto Trans Am.',
+    detail: 'The car that talks — scanner red on Trans Am black.',
   },
   {
     id: 'r2d2',
@@ -55,7 +55,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     wordmark: 'R2-D2',
     logo: '/brand/r2d2.png',
     favicon: '/brand/favicon-r2d2.png',
-    detail: 'O astromecânico — azul e prata sobre branco de casco.',
+    detail: 'The astromech — blue and silver on hull white.',
   },
   {
     id: 'hal',
@@ -63,7 +63,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     wordmark: 'HAL 9000',
     logo: '/brand/hal9000.svg',
     favicon: '/brand/favicon-hal.png',
-    detail: 'A lente que não pisca — carmim frio sobre ardósia.',
+    detail: 'The lens that does not blink — cold crimson on slate.',
   },
   {
     id: 'office',
@@ -71,7 +71,7 @@ export const BRAND_THEMES: BrandTheme[] = [
     wordmark: 'DUNDER MIFFLIN',
     logo: '/brand/office.png',
     favicon: '/brand/favicon-office.png',
-    detail: 'Escritório de Scranton — preto e branco, tinta sobre papel.',
+    detail: 'Scranton office — black and white, ink on paper.',
   },
 ];
 
@@ -86,26 +86,26 @@ export function readBrand(): BrandTheme {
   try { return getBrand(localStorage.getItem(LS_BRAND)); } catch { return DEFAULT_BRAND; }
 }
 
-/** Escreve a marca no `<html>`. O default não põe atributo — é o que o CSS já assume. */
+/** Writes the brand on `<html>`. The default sets no attribute — that is what the CSS already assumes. */
 export function applyBrand(id: string) {
   const brand = getBrand(id);
   if (brand.id === DEFAULT_BRAND.id) delete document.documentElement.dataset.brand;
   else document.documentElement.dataset.brand = brand.id;
   applyFavicon(brand);
   try { localStorage.setItem(LS_BRAND, brand.id); } catch { /* ignore */ }
-  // Quem já está montado não observa o localStorage — este evento é o que lhes diz para relerem.
+  // Whatever is already mounted does not observe localStorage — this event is what tells it to re-read.
   window.dispatchEvent(new CustomEvent(BRAND_CHANGED));
 }
 
 export const BRAND_CHANGED = 'joca-brand-changed';
 
 /**
- * Troca o ícone do separador. O `<link rel="icon">` é reutilizado em vez de se criar um novo: o
- * Chrome fica com o PRIMEIRO que encontra, portanto acrescentar um segundo não mudava nada.
+ * Swaps the tab icon. The `<link rel="icon">` is reused instead of creating a new one: Chrome
+ * keeps the FIRST one it finds, so adding a second would change nothing.
  */
 export function applyFavicon(brand: BrandTheme) {
   const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
   if (!link) return;
-  // Só escreve se mudou — reatribuir o href faz o Chrome voltar a pedir o ficheiro.
+  // Only writes if it changed — reassigning the href makes Chrome request the file again.
   if (!link.href.endsWith(brand.favicon)) link.href = brand.favicon;
 }

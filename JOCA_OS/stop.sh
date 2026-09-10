@@ -1,7 +1,7 @@
 #!/bin/bash
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Mesmas variáveis do start.sh — se arrancaste noutras portas, pára com as mesmas:
+# Same variables as start.sh — if you started on other ports, stop with the same ones:
 #   JOCA_BACKEND_PORT=7591 JOCA_FRONTEND_PORT=7592 ./stop.sh
 BACKEND_PORT="${JOCA_BACKEND_PORT:-7491}"
 FRONTEND_PORT="${JOCA_FRONTEND_PORT:-7492}"
@@ -19,15 +19,15 @@ graceful_kill() {
   done
 }
 
-# Quem é que está À ESCUTA nesta porta? `lsof -ti:<porta>` devolve o servidor E todos os clientes
-# ligados a ele (o browser na interface, o vite ligado por proxy ao backend). Uma ligação de cliente
-# não pode escolher a vítima de um `kill` — só o listener conta.
+# Who is LISTENING on this port? `lsof -ti:<port>` returns the server AND every client connected
+# to it (the browser on the interface, the vite proxied to the backend). A client connection
+# cannot pick the victim of a `kill` — only the listener counts.
 listeners_on() {
   lsof -ti:"$1" -sTCP:LISTEN 2>/dev/null
 }
 
-# Só matamos processos DESTA árvore. Duas instalações do JOCA na mesma máquina partilham o número da
-# porta com facilidade; sem esta verificação, parar uma parava a outra.
+# We only kill processes from THIS tree. Two JOCA installations on the same machine share the port
+# number easily; without this check, stopping one stopped the other.
 is_ours() {
   local pid="$1" cwd
   cwd=$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | grep '^n' | sed 's/^n//')
@@ -40,7 +40,7 @@ for PORT_TO_STOP in $BACKEND_PORT $FRONTEND_PORT; do
     if is_ours "$pid"; then
       graceful_kill "$pid"
     else
-      echo "  ↷ PID $pid na porta $PORT_TO_STOP não é desta instalação — deixado a correr."
+      echo "  ↷ PID $pid on port $PORT_TO_STOP is not from this installation — left running."
     fi
   done
 done

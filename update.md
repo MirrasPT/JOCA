@@ -1,17 +1,17 @@
 # JOCA — Update
 
-Actualiza o JOCA a partir do repositório oficial. Lê este ficheiro e segue as instruções.
+Updates JOCA from the official repository. Read this file and follow the instructions.
 
-**Repositório oficial:** https://github.com/MirrasPT/JOCA.git
+**Official repository:** https://github.com/MirrasPT/JOCA.git
 
-**Sentido único: GitHub → local. Nunca push, nunca commit, nunca alterar o remote.**
+**One direction only: GitHub → local. Never push, never commit, never change the remote.**
 
-> **Só queres a interface?** `update-os.md` traz o `JOCA_OS/` sem tocar no `JOCA_Brain/` — é o
-> caminho normal para uma instalação de trabalho, cujo motor diverge do público de propósito.
+> **Only want the interface?** `update-os.md` brings in `JOCA_OS/` without touching `JOCA_Brain/` — it
+> is the normal path for a working installation, whose engine diverges from the public one on purpose.
 
 ---
 
-## Passo 1 — Localizar JOCA
+## Step 1 — Locate JOCA
 
 **macOS/Linux:**
 ```bash
@@ -26,18 +26,18 @@ $jocaDir = Split-Path $jocaLogic
 Write-Output "JOCA: $jocaDir"
 ```
 
-Se não encontrar: pedir ao utilizador o path.
+If it does not find it: ask the user for the path.
 
 ---
 
-## Passo 2 — Verificar git remote
+## Step 2 — Check the git remote
 
 ```bash
 cd "$JOCA_DIR"
-git remote get-url origin 2>/dev/null || echo "SEM_REMOTE"
+git remote get-url origin 2>/dev/null || echo "NO_REMOTE"
 ```
 
-**Se SEM_REMOTE ou não é git:**
+**If NO_REMOTE or it is not a git repo:**
 ```bash
 git init
 git remote add origin https://github.com/MirrasPT/JOCA.git
@@ -45,139 +45,140 @@ git remote add origin https://github.com/MirrasPT/JOCA.git
 
 ---
 
-## Passo 3 — Fetch e comparação
+## Step 3 — Fetch and compare
 
-**Resolver o ramo por defeito — nunca assumir `master`.** O repo usa `main`; um `origin/master`
-fixo compara contra uma ref que não existe e o update falha ou reporta "já actualizado" em falso.
+**Resolve the default branch — never assume `master`.** The repo uses `main`; a hardcoded
+`origin/master` compares against a ref that does not exist and the update either fails or falsely
+reports "already up to date".
 
 ```bash
 git fetch origin 2>&1
 BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
 [ -z "$BASE" ] && BASE=main
-echo "ramo: $BASE"
+echo "branch: $BASE"
 git log HEAD..origin/$BASE --oneline
 ```
 
-Se output vazio → **JOCA já está actualizado.** Parar.
+If the output is empty → **JOCA is already up to date.** Stop.
 
 ```bash
 git diff --name-status HEAD..origin/$BASE
 ```
 
-Categorizar ficheiros:
+Categorize files:
 
-| Categoria | Paths | Acção |
+| Category | Paths | Action |
 |-----------|-------|-------|
-| **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `install.md`, `update.md` | Actualizar (safe) |
-| **Pessoal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md`, `memory/soul.md` | **Proteger** — não sobrescrever |
-| **UI Data** | `JOCA_OS/data/` — `projects.json`, `project-groups.json`, `project-memory.json`, `ui-settings.json` (inclui tema de marca), `notifications.json`, `cli-profiles.json`, `auth.json`, `auth-tokens.json` | **Proteger** — dados do utilizador |
-| **Misto** | `memory/tools/`, `.claude/settings.json` | Verificar conflito antes |
-| **Local** | Ficheiros com `origin: local` no frontmatter | **NUNCA tocar** |
-| **UI Code** | `JOCA_OS/backend/`, `JOCA_OS/frontend/` | Actualizar (rebuild necessário) |
+| **Core** | `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, `.claude/scripts/`, `CLAUDE.md`, `README.md`, `install.md`, `update.md` | Update (safe) |
+| **Personal** | `memory/projects/`, `memory/feedback/`, `memory/INDEX.md`, `memory/soul.md` | **Protect** — do not overwrite |
+| **UI Data** | `JOCA_OS/data/` — `projects.json`, `project-groups.json`, `project-memory.json`, `ui-settings.json` (includes brand theme), `notifications.json`, `cli-profiles.json`, `auth.json`, `auth-tokens.json` | **Protect** — user data |
+| **Mixed** | `memory/tools/`, `.claude/settings.json` | Check for conflicts first |
+| **Local** | Files with `origin: local` in the frontmatter | **NEVER touch** |
+| **UI Code** | `JOCA_OS/backend/`, `JOCA_OS/frontend/` | Update (rebuild required) |
 
-### Proteger componentes locais
+### Protect local components
 
 ```bash
 grep -rl "^origin: local" .claude/skills/ .claude/agents/ .claude/commands/ 2>/dev/null
 ```
 
-Estes ficheiros foram criados localmente. NUNCA sobrescrever.
+These files were created locally. NEVER overwrite them.
 
 ---
 
-## Passo 4 — Apresentar resumo e confirmar
+## Step 4 — Present the summary and confirm
 
 ```
-UPDATE DISPONÍVEL — JOCA
-────────────────────────
+UPDATE AVAILABLE — JOCA
+───────────────────────
 
-N commits novos:
-  abc1234 <mensagem>
-  def5678 <mensagem>
+N new commits:
+  abc1234 <message>
+  def5678 <message>
 
-Core (safe):       [lista]
-Pessoais (skip):   [lista]
-Locais (skip):     [lista]
-Conflitos:         [lista ou "nenhum"]
-────────────────────────
-Aplicar? [S/n]
+Core (safe):       [list]
+Personal (skip):   [list]
+Local (skip):      [list]
+Conflicts:         [list or "none"]
+───────────────────────
+Apply? [Y/n]
 ```
 
 ---
 
-## Passo 5 — Aplicar
+## Step 5 — Apply
 
-### Sem conflitos locais:
+### With no local changes:
 ```bash
 git pull --ff-only origin "$BASE"
 ```
 
-### Com alterações locais:
+### With local changes:
 ```bash
 git stash push -m "update-joca backup $(date +%Y-%m-%d)"
 git pull origin "$BASE"
 git stash pop
 ```
 
-Se `stash pop` falhar: reportar quais ficheiros e instruir resolução manual.
+If `stash pop` fails: report which files and instruct manual resolution.
 
 ---
 
-## Passo 5b — Correções pendentes
+## Step 5b — Pending fixes
 
-Bugs apanhados na produção **depois** do último release, que o código publicado ainda não traz. O
-`CORRECOES.md` na raiz descreve cada um com o bloco exacto a substituir.
+Bugs caught in production **after** the last release, which the published code does not carry yet.
+`CORRECOES.md` at the root describes each one with the exact block to replace.
 
 ```bash
 ls CORRECOES.md 2>/dev/null
 ```
 
-**Se o ficheiro existir:** lê-o e aplica-o. Ele próprio traz, por correção, uma linha
-`Já está aplicada?` — corre-a primeiro e salta as que já estiverem feitas (um update repetido não
-pode aplicar a mesma coisa duas vezes). Se um bloco *Antes* não bater certo à letra, **não
-adivinhes**: salta essa correção e diz ao dono qual falhou.
+**If the file exists:** read it and apply it. It carries, per fix, an `Already applied?` line — run
+that first and skip the ones already done (a repeated update must not apply the same thing twice). If
+a *Before* block does not match to the letter, **do not guess**: skip that fix and tell the owner
+which one failed.
 
-Quando **todas** derem `aplicada`, o ficheiro cumpriu o seu papel — o release seguinte já traz as
-correções. Aí apaga o `CORRECOES.md` e este passo.
+When **all** of them come back `applied`, the file has done its job — the next release already
+carries the fixes. At that point delete `CORRECOES.md` and this step.
 
-**Se o ficheiro não existir:** salta este passo, não há nada pendente.
+**If the file does not exist:** skip this step, there is nothing pending.
 
 ---
 
-## Passo 6 — Pós-update
+## Step 6 — Post-update
 
-### Rebuild JOCA_OS (se ficheiros UI alterados):
+### Rebuild JOCA_OS (if UI files changed):
 ```bash
 cd JOCA_OS/backend  && npm install && npm run build && cd ../..
 cd JOCA_OS/frontend && npm install && npm run build && cd ../..
 ```
 
-⚠ O `npm run build` do **frontend** não é opcional — o backend serve `frontend/dist/`, e sem ele a
-interface fica na versão anterior apesar de os ficheiros novos já estarem no disco. Assets novos
-(ex.: `frontend/public/brand/`) também só entram no `dist` por aqui.
+⚠ The **frontend** `npm run build` is not optional — the backend serves `frontend/dist/`, and without
+it the interface stays on the previous version even though the new files are already on disk. New
+assets (e.g. `frontend/public/brand/`) also only reach `dist` this way.
 
-⚠ **O backend corre o build compilado, sem watch.** Alterações ao backend só ganham efeito depois de
-reiniciar o processo — e **reiniciar mata os agentes/terminais vivos**. Fecha o que estiveres a
-correr antes:
+⚠ **The backend runs the compiled build, with no watch.** Backend changes only take effect after
+restarting the process — and **restarting kills live agents/terminals**. Close whatever you are
+running first:
 ```bash
 bash JOCA_OS/stop.sh   # Windows: JOCA_OS\stop.bat
 bash JOCA_OS/start.sh  # Windows: JOCA_OS\start.bat
 ```
 
-### Actualizar StatusLine (se script alterado):
+### Update the StatusLine (if the script changed):
 ```bash
 cp JOCA_Brain/.claude/scripts/statusline-command.js ~/.claude/statusline-command.js
 ```
-(Há também `statusline-command.sh` para quem a tenha configurada em shell — copiar a que estiver
-referida no `~/.claude/settings.json`, não as duas às cegas.)
+(There is also `statusline-command.sh` for anyone who has it configured in shell — copy the one
+referenced in `~/.claude/settings.json`, not both blindly.)
 
-### Regenerar SKILL_INDEX:
+### Regenerate SKILL_INDEX:
 ```bash
 python3 JOCA_Brain/.claude/scripts/build-skill-index.py
 ```
 
-### Verificar hooks cross-platform (Node.js):
-Confirmar que `JOCA_Brain/.claude/settings.json` usa `node` nos hooks:
+### Check cross-platform hooks (Node.js):
+Confirm that `JOCA_Brain/.claude/settings.json` uses `node` in the hooks:
 ```json
 "command": "node .claude/hooks/track-changes.js \"$TOOL_INPUT_FILE_PATH\""
 "command": "node .claude/hooks/auto-test-dispatch.js"
@@ -185,18 +186,18 @@ Confirmar que `JOCA_Brain/.claude/settings.json` usa `node` nos hooks:
 
 ---
 
-## Passo 7 — Relatório
+## Step 7 — Report
 
 ```
-JOCA ACTUALIZADO
-────────────────
-✓ N ficheiros actualizados
-  Versão: <hash> — <mensagem>
-✓ JOCA_OS rebuilt (se aplicável)
-✓ StatusLine actualizada (se aplicável)
-✓ SKILL_INDEX regenerado
+JOCA UPDATED
+────────────
+✓ N files updated
+  Version: <hash> — <message>
+✓ JOCA_OS rebuilt (if applicable)
+✓ StatusLine updated (if applicable)
+✓ SKILL_INDEX regenerated
 
-Próximo:
-→ Rever alterações: git diff HEAD~N HEAD
-→ Se novos comandos: /help-joca
+Next:
+→ Review changes: git diff HEAD~N HEAD
+→ If there are new commands: /help-joca
 ```

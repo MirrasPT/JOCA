@@ -3,15 +3,15 @@ export interface SessionInfo {
   name: string;
   cwd: string;
   projectId?: string;
-  origin?: 'user' | 'auto';   // quem a criou: 'user' (UI) ou 'auto' (spawn programático, ex.: `joca open`)
+  origin?: 'user' | 'auto';   // who created it: 'user' (UI) or 'auto' (programmatic spawn, e.g. `joca open`)
   status: 'working' | 'idle';
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
 }
 
 /**
- * Uma conversa que MORREU quando o backend reiniciou. Os PTYs não sobrevivem ao reinício do
- * servidor; isto é o retrato que ficou dela — o suficiente para a reabrir igual e para ler o que
- * ela tinha escrito (`GET /sessions/recovered/:id/tail`).
+ * A conversation that DIED when the backend restarted. PTYs do not survive a server restart;
+ * this is the snapshot left of it — enough to reopen it the same way and to read what it had
+ * written (`GET /sessions/recovered/:id/tail`).
  */
 export interface RecoveredSession {
   id: string;
@@ -22,47 +22,47 @@ export interface RecoveredSession {
   origin?: 'user' | 'auto';
   status?: 'working' | 'idle';
   /**
-   * Geometria do terminal quando morreu. É com ela que o output guardado se repinta: um TUI
-   * (o `claude`) desenha por posição, e reproduzi-lo noutro tamanho parte o desenho.
-   * Ausente = retrato de um backend anterior a estes campos; ver `GEOMETRIA_FALLBACK`.
+   * Terminal geometry when it died. It is what the saved output is repainted with: a TUI
+   * (`claude`) draws by position, and reproducing it at another size breaks the drawing.
+   * Absent = snapshot from a backend older than these fields; see `GEOMETRIA_FALLBACK`.
    */
   cols?: number;
   rows?: number;
-  /** Tamanho do output guardado. 0 (ou ausente) = não há nada para ler. */
+  /** Size of the saved output. 0 (or absent) = there is nothing to read. */
   tailBytes?: number;
 }
 
 /**
- * O retrato do arranque anterior. `bootId` identifica ESTE arranque do backend — é o mesmo valor
- * que vem no `sessions_list`, e é a mudança dele que denuncia um reinício com a app aberta.
- * Sem retrato anterior, `sessions` vem vazio.
+ * The snapshot of the previous startup. `bootId` identifies THIS backend startup — it is the same
+ * value that comes in the `sessions_list`, and it is its change that gives away a restart with the
+ * app open. With no previous snapshot, `sessions` comes back empty.
  */
 export interface RecoveredSnapshot {
   bootId: string;
   previousBootId?: string;
-  /** Quando o retrato foi guardado (epoch ms). */
+  /** When the snapshot was saved (epoch ms). */
   savedAt?: number;
   sessions: RecoveredSession[];
 }
 
 
 /**
- * Ícone de um projecto ou grupo (espelha backend/src/project-store.ts).
- * `image` → `value` é o nome do ficheiro devolvido por `POST /icons`; renderiza-se em
- * `/icons/{value}`. `emoji` → `value` é o próprio emoji.
- * Sem ícone (undefined) a UI mostra as 2 primeiras letras do nome — ver `iconInitials`.
+ * Icon of a project or group (mirrors backend/src/project-store.ts).
+ * `image` → `value` is the filename returned by `POST /icons`; it is rendered at
+ * `/icons/{value}`. `emoji` → `value` is the emoji itself.
+ * With no icon (undefined) the UI shows the first 2 letters of the name — see `iconInitials`.
  */
 export interface ProjectIcon {
   type: 'image' | 'emoji';
   value: string;
 }
 
-/** URL para desenhar um ícone de imagem. Só para `type === 'image'`. */
+/** URL to draw an image icon. Only for `type === 'image'`. */
 export function projectIconUrl(icon: ProjectIcon): string {
   return `/icons/${encodeURIComponent(icon.value)}`;
 }
 
-/** Fallback textual quando não há ícone: 2 primeiras letras do nome, em maiúsculas. */
+/** Text fallback when there is no icon: the first 2 letters of the name, in uppercase. */
 export function iconInitials(name: string): string {
   return [...(name.trim() || '?')].slice(0, 2).join('').toUpperCase();
 }
@@ -77,15 +77,15 @@ export interface Project {
   githubRepo?: string;
   archived?: boolean;
   order?: number;
-  /** Agrupamento visual na sidebar (categorias estilo Discord) — sem efeito no projecto em si. */
+  /** Visual grouping in the sidebar (Discord-style categories) — no effect on the project itself. */
   groupId?: string;
-  /** O que o projecto é, por palavras do utilizador. */
+  /** What the project is, in the user's own words. */
   description?: string;
-  /** `true` = já existe código na pasta; `false`/undefined = projecto a começar do zero. */
+  /** `true` = there is already code in the folder; `false`/undefined = a project starting from scratch. */
   hasCode?: boolean;
 }
 
-/** Um grupo/pasta de projectos na sidebar (espelha backend/src/project-groups-store.ts). */
+/** A group/folder of projects in the sidebar (mirrors backend/src/project-groups-store.ts). */
 export interface ProjectGroup {
   id: string;
   name: string;
@@ -114,7 +114,7 @@ export interface RuntimeInfo {
   cwd: string;
   uptimeMs: number;
   port: number;
-  /** Rótulo da instância (`JOCA_ENV`), ex. 'PRD' | 'DEV'. `null` = mostrar a versão. */
+  /** Instance label (`JOCA_ENV`), e.g. 'PRD' | 'DEV'. `null` = show the version. */
   env: string | null;
   sessionCount: number;
   projectCount: number;
@@ -172,7 +172,7 @@ export interface JocaLogicInfo {
 
 export type NotificationKind = 'session_done' | 'system';
 
-// 'action' = nada avança sem tu decidires; 'info' = aconteceu, não precisa de ti.
+// 'action' = nothing moves forward without you deciding; 'info' = it happened, it does not need you.
 export type NotificationPriority = 'action' | 'info';
 
 export interface AppNotification {
@@ -183,7 +183,7 @@ export interface AppNotification {
   ts: number;
   read: boolean;
   priority?: NotificationPriority;
-  count?: number;      // >1 → repetições do mesmo evento, agrupadas
+  count?: number;      // >1 → repeats of the same event, grouped
   meta?: {
     sessionId?: string;
     projectId?: string; area?: string; groupKey?: string;
@@ -197,11 +197,11 @@ export interface CliProfileInfo {
   bin: string;
   available: boolean;
   startupSequence: boolean;
-  /** Forma do comando de resume deste CLI: `/resume` no claude, `resume` nos outros. */
+  /** Shape of this CLI's resume command: `/resume` in claude, `resume` in the others. */
   resumeCmd?: string;
 }
 
 export type ToolkitType = 'commands' | 'skills' | 'agents';
 export type ToolkitFilter = 'all' | ToolkitType;
-/** `agents` = vista global de agentes (todos os projectos num sítio só). */
+/** `agents` = global agents view (all projects in a single place). */
 export type MainView = 'dashboard' | 'project' | 'session' | 'agents';

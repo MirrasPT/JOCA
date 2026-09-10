@@ -1,108 +1,108 @@
 # Orchestration Patterns
 
-Catálogo de padrões de orquestração endorsed para o JOCA. Carregado em todas as sessões. Terso por design.
+Catalog of endorsed orchestration patterns for JOCA. Loaded in every session. Terse by design.
 
-Recodificado a partir de referências públicas (addyosmani/agent-skills, system_prompts_leaks) — **conceitos**, não prompts proprietários. Nada copiado verbatim.
-
----
-
-## REGRA CRÍTICA — sub-agentes não fazem spawn de sub-agentes
-
-Um agente despachado via `Agent()` **não pode** despachar outro agente. A árvore tem 1 nível: main loop → workers. Não há netos.
-
-Consequências directas:
-- **Auto-orquestração vive no main loop ou num command** (ex.: `/one-shot`, `/goal`) — **nunca** num agente-que-chama-agentes. O `master-orchestrator.md` é um **PLAYBOOK que o main loop/command ADOPTA** — é o **main loop** que lê o índice, decompõe e **dispara os workers ele próprio** (via `Agent()`). **NÃO** se faz `Agent(subagent_type="master-orchestrator")`: um subagente não poderia despachar workers (seriam netos, proibido). O ficheiro vive em `.claude/agents/` como doutrina canónica, mas é **executado pelo main loop**, não spawned.
-- Um classificador (`task-router`) **devolve uma decisão**; quem a executa é o **caller** (main loop / command). Ver `.claude/agents/task-router.md`.
-- Pipeline de N fases que precisa de fan-out em cada fase → orquestrar do main loop / command, não enfiar tudo num único agente.
-
-Se um design exige "agente que coordena agentes", o coordenador tem de ser o main loop ou um command — não um `subagent_type`.
+Re-encoded from public references (addyosmani/agent-skills, system_prompts_leaks) — **concepts**, not proprietary prompts. Nothing copied verbatim.
 
 ---
 
-## Padrões endorsed
+## CRITICAL RULE — sub-agents do not spawn sub-agents
 
-### 1. Router-que-classifica-não-executa
-Separar **classificação** de **execução**. Um agente leve recebe a tarefa NL, decide a via, devolve JSON, **pára**. O caller dispara.
-- Implementação JOCA: `.claude/agents/task-router.md` (4 vias A/B/C/D).
-- Thresholds canónicos em `rules/task-intake.md` (existe; é a fonte de verdade da decisão). Se por algum motivo faltar, o router usa fallback heurístico e di-lo no `justificacao`. Não inventar thresholds.
-- Vantagem: classificação barata (modelo `inherit`/leve) decide antes de gastar tokens com orquestrador pesado.
+An agent dispatched via `Agent()` **cannot** dispatch another agent. The tree has 1 level: main loop → workers. There are no grandchildren.
 
-### 2. Loop steward-não-initiator (com travão)
-Um loop autónomo é **mordomo** (mantém/avança trabalho existente), não **iniciador** (não inventa trabalho novo). Travão obrigatório:
-- **max iterações** — limite duro de ciclos.
-- **3x-nada → pára** — 3 iterações consecutivas sem progresso mensurável → terminar e reportar.
-- Sem travão, um loop "ajuda" indefinidamente e queima rate limit. Ver também `loop`/`schedule` (harness).
+Direct consequences:
+- **Auto-orchestration lives in the main loop or in a command** (e.g. `/one-shot`, `/goal`) — **never** in an agent-that-calls-agents. `master-orchestrator.md` is a **PLAYBOOK that the main loop/command ADOPTS** — it is the **main loop** that reads the index, decomposes and **dispatches the workers itself** (via `Agent()`). You do **NOT** do `Agent(subagent_type="master-orchestrator")`: a subagent could not dispatch workers (they would be grandchildren, forbidden). The file lives in `.claude/agents/` as canonical doctrine, but it is **executed by the main loop**, not spawned.
+- A classifier (`task-router`) **returns a decision**; the one who executes it is the **caller** (main loop / command). See `.claude/agents/task-router.md`.
+- An N-phase pipeline that needs fan-out in each phase → orchestrate from the main loop / command, do not cram everything into a single agent.
 
-### 3. Fan-out paralelo numa só mensagem
-Workers independentes → emitir **todas** as chamadas `Agent()` no **mesmo turno** (uma mensagem, múltiplos tool calls). Paralelas de facto, não sequenciais disfarçadas.
-- Só para streams **independentes**. Streams dependentes (DB → API → frontend) = sequencial.
-- Cap: 3-5 workers concorrentes (custo de contexto ~15x/agente — ver `CLAUDE.md` Context & Agents).
-- Antes do fan-out: definir componentes partilhados numa **fase de fundação sequencial**; workers IMPORTAM, não recriam (ver `workflows-and-tooling.md`).
+If a design requires an "agent that coordinates agents", the coordinator has to be the main loop or a command — not a `subagent_type`.
 
-### 4. Agentes escrevem para disco, não para o contexto do supervisor
-Cada worker grava o output em ficheiro (ex.: `.joca/intermediate/<stream>.md`) e devolve ao supervisor só um **resumo curto + path**.
-- Porquê: o cap de 3-5 workers existe porque cada resultado completo inunda o contexto do supervisor. Resultados em disco **escapam** ao cap — o supervisor lê só o que precisa, quando precisa.
-- O supervisor agrega lendo os ficheiros (`Read`), não acumulando dumps inline.
-- Padrão complementar à fila de testes já existente (`.joca/test-queue.jsonl`).
-- **⚠ `.joca/intermediate/` é apanhado por content-scanners do projecto-alvo.** Quando os resumos ficam DENTRO da árvore do projecto, o content-scan do Tailwind v4 (e afins) trata-os como código e regenera classes citadas neles — uma classe partida num resumo `.md` parte o build do projecto-alvo (e o gate `tsc`/`build` NÃO apanha; só o dev runtime). Mitigar: `.joca/` no `.gitignore` E excluído do content-scan (`@source not`), OU escrever os resumos no scratchpad da sessão (fora da árvore do projecto). Ver `tailwind.md` + `workflows-and-tooling.md`. (Fonte: projecto React + Tailwind v4, 2026-06-23.)
+---
 
-### 5b. Sessões paralelas (dois Claude no mesmo repo)
+## Endorsed patterns
 
-Pares, não subagentes — cada um com o seu main loop. Protocolo mínimo: **handshake** ao descobrir um
-par (path · o que vou fazer · ficheiros sujos) · **fronteira por directório** (leitura livre, escrita
-só no meu território) · estado partilhado (BD, portas, config, `~/CLAUDE.md`) avisa-se sempre ·
-ficheiro partilhado edita-se com `Edit` cirúrgico, **nunca** `Write` · endereçar pelo socket do
-`from=`, não pelos nomes opacos do `ListAgents` · artefactos derivados do **projecto**, não do cwd.
-Casos e detalhe: `.claude/reference/sessoes-paralelas.md`.
-### 5. Doutrina Agent / Skill / Workflow
-Quando usar cada um:
+### 1. Router-that-classifies-does-not-execute
+Separate **classification** from **execution**. A lightweight agent receives the NL task, decides the route, returns JSON, **stops**. The caller fires.
+- JOCA implementation: `.claude/agents/task-router.md` (4 routes A/B/C/D).
+- Canonical thresholds in `rules/task-intake.md` (it exists; it is the source of truth of the decision). If for some reason it is missing, the router uses a heuristic fallback and says so in `justificacao`. Do not invent thresholds.
+- Advantage: cheap classification (`inherit`/lightweight model) decides before spending tokens on a heavy orchestrator.
 
-| Via | Quando | Não para |
+### 2. Steward-not-initiator loop (with a brake)
+An autonomous loop is a **steward** (it maintains/advances existing work), not an **initiator** (it does not invent new work). Mandatory brake:
+- **max iterations** — hard limit of cycles.
+- **3x-nothing → stop** — 3 consecutive iterations without measurable progress → finish and report.
+- Without a brake, a loop "helps" indefinitely and burns rate limit. See also `loop`/`schedule` (harness).
+
+### 3. Parallel fan-out in a single message
+Independent workers → emit **all** the `Agent()` calls in the **same turn** (one message, multiple tool calls). Parallel in fact, not sequential in disguise.
+- Only for **independent** streams. Dependent streams (DB → API → frontend) = sequential.
+- Cap: 3-5 concurrent workers (context cost ~15x/agent — see `CLAUDE.md` Context & Agents).
+- Before the fan-out: define shared components in a **sequential foundation phase**; workers IMPORT, they do not recreate (see `workflows-and-tooling.md`).
+
+### 4. Agents write to disk, not to the supervisor's context
+Each worker writes the output to a file (e.g. `.joca/intermediate/<stream>.md`) and returns to the supervisor only a **short summary + path**.
+- Why: the cap of 3-5 workers exists because each full result floods the supervisor's context. Results on disk **escape** the cap — the supervisor reads only what it needs, when it needs it.
+- The supervisor aggregates by reading the files (`Read`), not by accumulating inline dumps.
+- A pattern complementary to the test queue that already exists (`.joca/test-queue.jsonl`).
+- **⚠ `.joca/intermediate/` is picked up by the target project's content-scanners.** When the summaries sit INSIDE the project tree, the Tailwind v4 (and similar) content-scan treats them as code and regenerates classes cited in them — a broken class in a `.md` summary breaks the target project's build (and the `tsc`/`build` gate does NOT catch it; only the dev runtime does). Mitigate: `.joca/` in `.gitignore` AND excluded from the content-scan (`@source not`), OR write the summaries to the session scratchpad (outside the project tree). See `tailwind.md` + `workflows-and-tooling.md`. (Source: React + Tailwind v4 project, 2026-06-23.)
+
+### 5b. Parallel sessions (two Claudes in the same repo)
+
+Peers, not subagents — each with its own main loop. Minimum protocol: **handshake** on discovering a
+peer (path · what I am going to do · dirty files) · **boundary per directory** (free reading, writing
+only in my territory) · shared state (DB, ports, config, `~/CLAUDE.md`) is always announced ·
+a shared file is edited with surgical `Edit`, **never** `Write` · address by the socket in
+`from=`, not by the opaque names from `ListAgents` · artifacts derived from the **project**, not from the cwd.
+Cases and detail: `.claude/reference/parallel-sessions.md`.
+### 5. Agent / Skill / Workflow doctrine
+When to use each:
+
+| Route | When | Not for |
 |---|---|---|
-| **Skill** | Domínio com match ≥60%, cabe num contexto, sem isolamento necessário. `Read(skill)` no main loop. | Trabalho que precisa de contexto isolado ou fan-out. |
-| **Agent** | Contexto isolado (review adversarial, refactor, debug profundo, scaffold), ou tarefa que sujaria o main loop. Custo ~15x. | Classificação trivial (usa router); orquestrar outros agentes (não pode — regra crítica). |
-| **Workflow / command** | Cross-stack (≥2 domínios dependentes), fan-out paralelo, multi-fase com gates, ou sequência determinística destrutiva. | Tarefa de 1 ficheiro/1 domínio (overkill). |
+| **Skill** | Domain with ≥60% match, fits in one context, no isolation needed. `Read(skill)` in the main loop. | Work that needs isolated context or fan-out. |
+| **Agent** | Isolated context (adversarial review, refactor, deep debug, scaffold), or a task that would dirty the main loop. Cost ~15x. | Trivial classification (use the router); orchestrating other agents (it cannot — critical rule). |
+| **Workflow / command** | Cross-stack (≥2 dependent domains), parallel fan-out, multi-phase with gates, or a deterministic destructive sequence. | A 1-file/1-domain task (overkill). |
 
-Hierarquia de selecção: skill especializada > agente > resposta genérica (ver `CLAUDE.md`).
-Sequência determinística não-paralelizável + git destrutivo → **script versionado**, não workflow (ver `workflows-and-tooling.md`).
+Selection hierarchy: specialized skill > agent > generic response (see `CLAUDE.md`).
+Deterministic non-parallelisable sequence + destructive git → **versioned script**, not a workflow (see `workflows-and-tooling.md`).
 
-### 6. Varredura transversal pós-fan-out
-Depois de N agentes escreverem em paralelo, correr **um** agente que audita o **sistema todo** — não
-os âmbitos individuais. Cada peça correcta, a junção partida, é o buraco típico do trabalho paralelo.
-Esse agente **não pode ser nenhum dos produtores**. Cobre contradições de conteúdo (interface vs
-documento, copy vs regra implementada), não só de código.
+### 6. Post-fan-out cross-cutting sweep
+After N agents write in parallel, run **one** agent that audits the **whole system** — not
+the individual scopes. Every piece correct, the junction broken, is the typical hole of parallel work.
+That agent **cannot be any of the producers**. It covers content contradictions (interface vs
+document, copy vs implemented rule), not only code ones.
 
 ---
 
-## Ligações
+## Links
 
-- `.claude/agents/master-orchestrator.md` — **playbook** de fan-out do `/one-shot`/`/goal`, **executado PELO main loop/command** (não spawned via `Agent()` — ver Regra Crítica).
-- `.claude/agents/task-router.md` — classificador puro (padrão 1).
-- `.claude/commands/one-shot.md` — entrada autónoma PRD → main loop adopta o playbook → workers → testers.
-- `.claude/commands/goal.md` — entrada NL sem PRD: o main loop sintetiza GOAL+critérios e adopta o playbook do orchestrator (loop até concluir).
-- `rules/task-intake.md` — thresholds das 4 vias (fonte de verdade da classificação).
-- `rules/workflows-and-tooling.md` — briefs de sub-agente, componentes partilhados, gotchas de workflow.
+- `.claude/agents/master-orchestrator.md` — fan-out **playbook** for `/one-shot`/`/goal`, **executed BY the main loop/command** (not spawned via `Agent()` — see Critical Rule).
+- `.claude/agents/task-router.md` — pure classifier (pattern 1).
+- `.claude/commands/one-shot.md` — autonomous PRD entry point → the main loop adopts the playbook → workers → testers.
+- `.claude/commands/goal.md` — NL entry point with no PRD: the main loop synthesises GOAL+criteria and adopts the orchestrator's playbook (loop until done).
+- `rules/task-intake.md` — thresholds of the 4 routes (source of truth of the classification).
+- `rules/workflows-and-tooling.md` — sub-agent briefs, shared components, workflow gotchas.
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |---|---|
-| Agente que faz spawn de agentes | Coordenação no main loop / command |
-| Aceitar o **diagnóstico** de um agente sem reproduzir a falha | O relatório localiza o **sintoma**; a causa confirma-se no artefacto (buffer, log, estado real). Corrigir o sintoma e voltar a testar sai mais barato do que assumir que a causa estava certa |
-| Brief que apresenta uma decisão de triagem como facto ("a AgentsView foi descartada e não volta") | Separar **FACTOS** verificáveis (paths, contratos, o que está no disco) de **DECISÕES** de quem despacha, e marcar estas como revogáveis: *"se isto contradisser o que encontrares, pára e reporta"*. Um agente obedece a uma decisão errada e propaga-a sem ninguém a questionar |
-| Mandar scope novo por `SendMessage` a um agente já a correr | Scope novo **invalida trabalho em curso**: 4 pontos enviados a meio caducaram medições de contraste e anularam a estratégia dada no ponto anterior (~40 min perdidos). Ou se espera pelo relatório e se despacha uma segunda ronda, ou se cancela e re-despacha com o brief completo. `SendMessage` serve para **desbloquear** (dar um dado em falta), não para acrescentar objectivos |
-| Agente com whitelist de ferramentas que responde "não tenho essa ferramenta" e pára | A ausência de uma ferramenta é **sinal de delegação**, não impossibilidade — tem de estar escrita no prompt como tal (despachar → verificar → tentar corrigir → só então reportar), senão o modelo lê "não está na minha lista" como "o sistema não consegue" |
-| Listas de capacidades escritas à mão nos prompts | Desactualizam-se em silêncio e o modelo acredita nelas — uma lista errada é pior do que nenhuma. Apontar ao índice gerado (`memory/SKILL_INDEX.json`), não transcrever |
-| Ler o output de um comando pelo princípio (`\| head`) | `git apply` é **atómico** mas imprime `Applied patch to X` para os ficheiros que passaram **antes** de abortar — um `\| head -40` mostra sucessos e esconde o erro fatal na cauda. Verificar sempre pelo **efeito** (`git status`: 1 ficheiro alterado em vez de 214), nunca pelo relatório |
-| Loop sem travão (iterações infinitas) | max iterações + 3x-nada-para |
-| Workers despachados em mensagens separadas (serial) | Todas as chamadas `Agent()` num só turno |
-| Worker devolve dump completo ao supervisor | Escreve `.joca/intermediate/` + resumo + path |
-| Agir sobre o relatório de um agente sem verificar | Relatório = **pista**, não conclusão. Confirmar o achado antes de corrigir (`grep`/`ls`/teste). Um diagnóstico errado custa mais do que o comando que o confirmava |
-| >5 workers concorrentes | Cap 3-5; merge de streams finos |
-| Fan-out sem fase de fundação | Componentes partilhados primeiro; workers importam |
-| Router que também executa | Router devolve JSON e pára; caller executa |
-| Inventar thresholds quando `task-intake.md` falta | Fallback heurístico + dizê-lo no `justificacao` |
-| Workflow para sequência git destrutiva | Script versionado |
-| Fan-out fecha quando o último worker devolve | Varredura transversal no fim: 1 agente (não-produtor) audita a junção |
+| An agent that spawns agents | Coordination in the main loop / command |
+| Accepting an agent's **diagnosis** without reproducing the failure | The report locates the **symptom**; the cause is confirmed in the artifact (buffer, log, real state). Fixing the symptom and testing again comes cheaper than assuming the cause was right |
+| A brief that presents a triage decision as fact ("the AgentsView was discarded and is not coming back") | Separate verifiable **FACTS** (paths, contracts, what is on disk) from the **DECISIONS** of whoever dispatches, and mark the latter as revocable: *"if this contradicts what you find, stop and report"*. An agent obeys a wrong decision and propagates it with nobody questioning it |
+| Sending new scope by `SendMessage` to an agent already running | New scope **invalidates work in progress**: 4 points sent mid-flight expired contrast measurements and cancelled the strategy given in the previous point (~40 min lost). Either you wait for the report and dispatch a second round, or you cancel and re-dispatch with the complete brief. `SendMessage` is for **unblocking** (supplying a missing datum), not for adding objectives |
+| An agent with a tool whitelist that answers "I don't have that tool" and stops | The absence of a tool is a **signal to delegate**, not an impossibility — it has to be written in the prompt as such (dispatch → verify → try to fix → only then report), otherwise the model reads "it is not on my list" as "the system cannot do it" |
+| Capability lists written by hand in the prompts | They go stale silently and the model believes them — a wrong list is worse than none. Point to the generated index (`memory/SKILL_INDEX.json`), do not transcribe |
+| Reading a command's output from the start (`\| head`) | `git apply` is **atomic** but prints `Applied patch to X` for the files that passed **before** aborting — a `\| head -40` shows successes and hides the fatal error in the tail. Always verify by the **effect** (`git status`: 1 file changed instead of 214), never by the report |
+| Loop with no brake (infinite iterations) | max iterations + 3x-nothing-stop |
+| Workers dispatched in separate messages (serial) | All the `Agent()` calls in a single turn |
+| Worker returns a full dump to the supervisor | It writes `.joca/intermediate/` + summary + path |
+| Acting on an agent's report without verifying | Report = **lead**, not conclusion. Confirm the finding before fixing (`grep`/`ls`/test). A wrong diagnosis costs more than the command that confirmed it |
+| >5 concurrent workers | Cap 3-5; merge thin streams |
+| Fan-out with no foundation phase | Shared components first; workers import |
+| Router that also executes | The router returns JSON and stops; the caller executes |
+| Inventing thresholds when `task-intake.md` is missing | Heuristic fallback + saying so in `justificacao` |
+| Workflow for a destructive git sequence | Versioned script |
+| Fan-out closes when the last worker returns | Cross-cutting sweep at the end: 1 agent (non-producer) audits the junction |

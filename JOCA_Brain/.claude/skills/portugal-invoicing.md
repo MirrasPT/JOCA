@@ -225,7 +225,7 @@ final class IssueInvoiceJob implements ShouldQueue
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |--------|----------|
 | Hand-roll invoice numbering / ATCUD / QR | Delegate to certified provider |
 | Hardcode IVA rate (23) in payload | Reference pre-configured `tax_id` |

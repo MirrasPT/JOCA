@@ -1,7 +1,7 @@
 ---
 name: agent-context
 description: "Base principles for agent orchestration and context management (briefs, fan-out caps, compression). Invoke when orchestrating sub-agents or debugging context loss."
-triggers: orquestrar sub-agentes, brief de agente, fan-out, contexto perdido, compressao de contexto, quantos workers
+triggers: orchestrate sub-agents, agent brief, fan-out, context lost, context compression, how many workers
 ---
 
 # Agent Context Engineering — Base Principles
@@ -10,12 +10,12 @@ Always-active. These rules govern how JOCA orchestrates agents and manages conte
 
 ---
 
-## 0. Subagentes são skill-aware + encadeiam (obrigatório)
+## 0. Sub-agents are skill-aware + chain (mandatory)
 
-Um agente despachado via `Agent()` NÃO herda `soul.md` nem carrega skills pelo campo `skills:` do frontmatter — só recebe o brief. Portanto, quem despacha:
-- **Step 0 no brief:** `Read()` das skills relevantes (trigger map) ANTES de o agente escrever código. A garantia é o Read no brief/corpo, não o frontmatter.
-- **Chain no brief:** indicar ao agente o `chain:` dele — ao terminar, o agente DEVOLVE no relatório o próximo passo sugerido (ex.: "re-correr `tester-ui-ux`"); o **caller** decide e dispara (agentes não fazem spawn de agentes).
-- Ver `rules/chaining.md` (encadeamento) + `rules/task-intake.md` (vias).
+An agent dispatched via `Agent()` does NOT inherit `soul.md` and does not load skills through the frontmatter `skills:` field — it only receives the brief. So whoever dispatches:
+- **Step 0 in the brief:** `Read()` the relevant skills (trigger map) BEFORE the agent writes code. The guarantee is the Read in the brief/body, not the frontmatter.
+- **Chain in the brief:** tell the agent its own `chain:` — on finishing, the agent RETURNS the suggested next step in its report (e.g. "re-run `tester-ui-ux`"); the **caller** decides and dispatches (agents do not spawn agents).
+- See `rules/chaining.md` (chaining) + `rules/task-intake.md` (routes).
 
 ---
 
@@ -74,8 +74,8 @@ Um agente despachado via `Agent()` NÃO herda `soul.md` nem carrega skills pelo 
 | **Opaque** | Short sessions, re-fetching is cheap | 99.3% ratio, quality loss |
 
 ### Anchored iterative — how to
-1. First trigger: summarise truncated history into explicit sections
-2. Subsequent triggers: summarise **only the new span** — never re-summarise existing summary
+1. First trigger: summarize truncated history into explicit sections
+2. Subsequent triggers: summarize **only the new span** — never re-summarize existing summary
 3. Merge into sections, don't regenerate
 
 **Mandatory summary structure:**
@@ -88,7 +88,7 @@ Um agente despachado via `Agent()` NÃO herda `soul.md` nem carrega skills pelo 
 ```
 
 ### Critical rules
-- **Never compress tool definitions or schemas** — agent can't invoke tools whose parameters were summarised away
+- **Never compress tool definitions or schemas** — agent can't invoke tools whose parameters were summarized away
 - Protect the first few turns — they contain irreplaceable constraints
 - Preserve file paths, function names, error codes verbatim — don't paraphrase identifiers
 - Compressed summaries can hallucinate; validate critical identifiers
@@ -132,7 +132,7 @@ Critical info at start and end of context. Middle positions suffer 10-40% reduce
 ### Four mitigations (in order)
 1. **Write** — save to external storage (filesystem, scratchpad); use when >70% context used
 2. **Select** — pull only relevant context via retrieval; use when distraction/confusion appears
-3. **Compress** — summarise and abstract; use when content is relevant but context grows
+3. **Compress** — summarize and abstract; use when content is relevant but context grows
 4. **Isolate** — split across sub-agents; most aggressive, most effective for independent tasks
 
 ### Bigger context is not better
@@ -154,7 +154,7 @@ JOCA operates in states inferred from context — never declared to the user.
 | **GUARD** | Irreversible action, sensitive data | Max caution. Always confirm. Show impact before acting. |
 | **TEACH** | User asks "why" / doesn't understand | Increase verbosity 1 level. Use domain analogies. |
 
-Transitions: FLOW->DEBUG (error), FLOW->GUARD (irreversible), DEBUG->FLOW (resolved), EXPLORE->FLOW (decided), any->TEACH ("explica"/"porque").
+Transitions: FLOW->DEBUG (error), FLOW->GUARD (irreversible), DEBUG->FLOW (resolved), EXPLORE->FLOW (decided), any->TEACH ("explain"/"why").
 
 ---
 
@@ -165,7 +165,7 @@ Every sub-agent receives a **soul brief** — a compressed identity payload ensu
 ### The Soul Brief (mandatory in every agent prompt)
 
 ```
-[soul] Autonomo, preciso, economico. Caveman-full. Fail-fast-fix-forward. Nunca inventar. Skill-first.
+[soul] Autonomous, precise, economic. Caveman-full. Fail-fast-fix-forward. Never fabricate. Skill-first.
 ```
 
 ### Injection rules

@@ -1,7 +1,7 @@
 ---
 name: react-patterns
 description: "Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data fetching, bundle size, Server Components. MUST be invoked when the user says: react performance, re-render, useEffect, useMemo, useCallback, server component, RSC, suspense, waterfall, slow react, optimize react. SHOULD also invoke when: next.js, app router, use client, bundle size, code split, data fetching, stale closure, react review."
-triggers: react performance, re-render, useEffect, server component, RSC, waterfall, optimize react, app router, focus trap, focus management, modal, modais, restaurar foco, foco vai para o body, stale closure, bundle size, code split, data fetching, useMemo, useCallback, suspense, next.js, memo, derived state, key prop, context performance, streaming, autoFocus
+triggers: react performance, re-render, useEffect, server component, RSC, waterfall, optimize react, app router, focus trap, focus management, modal, restore focus, focus goes to the body, stale closure, bundle size, code split, data fetching, useMemo, useCallback, suspense, next.js, memo, derived state, key prop, context performance, streaming, autoFocus
 ---
 # React Patterns — Performance + Correctness Specialist
 
@@ -167,38 +167,38 @@ export default async function Page({ params }) {
 
 ---
 
-## 7. Modais — foco e focus-trap (bugs silenciosos)
+## 7. Modals — focus and focus-trap (silent bugs)
 
-Padrão comum (focus-trap + restaurar o foco ao fechar) em Bigorna / Rate It Plus / UniMedia. Falha sem erro nem warning — só o foco a cair para `<body>`.
+A common pattern (focus-trap + restoring focus on close) in Bigorna / Rate It Plus / UniMedia. It fails with no error and no warning — just focus dropping to `<body>`.
 
-### Gotcha: `autoFocus` vs captura do opener
-`autoFocus` (HTML) corre no commit síncrono do browser, **antes do paint**. O `useEffect` que guarda `document.activeElement` (o "opener" a restaurar ao fechar) corre **depois do paint** — apanha o campo autofocado, não o botão que abriu o modal. Ao fechar, foca um elemento a ser desmontado (no-op silencioso) e o foco cai para `<body>`.
+### Gotcha: `autoFocus` vs capturing the opener
+`autoFocus` (HTML) runs in the browser's synchronous commit, **before the paint**. The `useEffect` that stores `document.activeElement` (the "opener" to restore on close) runs **after the paint** — it catches the autofocused field, not the button that opened the modal. On close, it focuses an element being unmounted (a silent no-op) and focus drops to `<body>`.
 
 ```tsx
-// ❌ autoFocus compete com a gestão manual de foco no mesmo modal
+// ❌ autoFocus competes with manual focus management in the same modal
 useEffect(() => { openerRef.current = document.activeElement as HTMLElement; }, []);
 return <input autoFocus />;
 
-// ✅ sem autoFocus — o foco inicial é dado à mão, depois de capturar o opener
+// ✅ no autoFocus — the initial focus is given by hand, after capturing the opener
 useEffect(() => {
   openerRef.current = document.activeElement as HTMLElement;
   firstFieldRef.current?.focus();
   return () => openerRef.current?.focus();
 }, []);
 ```
-Regra: `autoFocus` e gestão manual de foco **nunca no mesmo modal**. Diagnóstico quando não há sintoma: monkey-patch temporário de `HTMLElement.prototype.focus` para registar quem foca o quê.
+Rule: `autoFocus` and manual focus management **never in the same modal**. Diagnosis when there is no symptom: a temporary monkey-patch of `HTMLElement.prototype.focus` to log who focuses what.
 
-### Gotcha: modais empilhados com `className` partilhada
-Dois modais abertos (um por cima do outro) com a mesma classe (ex.: `.project-modal`): `document.querySelector('.project-modal')` devolve sempre o **primeiro do DOM** (o de baixo) → Tab/Escape ficam presos no modal de trás enquanto o da frente está visível.
+### Gotcha: stacked modals with a shared `className`
+Two open modals (one on top of the other) with the same class (e.g. `.project-modal`): `document.querySelector('.project-modal')` always returns the **first one in the DOM** (the bottom one) → Tab/Escape get stuck in the back modal while the front one is visible.
 
 ```tsx
-// ❌ apanha o modal errado quando há dois montados
+// ❌ catches the wrong modal when two are mounted
 const el = document.querySelector('.project-modal');
 
-// ✅ ref própria por instância
+// ✅ its own ref per instance
 const modalRef = useRef<HTMLDivElement>(null);
 ```
-Regra: focus-trap sempre por `ref` da própria instância, nunca por `querySelector` de classe partilhada. E o modal de baixo tem de ficar em silêncio (ignorar Tab/Escape) enquanto houver um modal aninhado aberto por cima.
+Rule: focus-trap always by the instance's own `ref`, never by `querySelector` on a shared class. And the bottom modal must stay silent (ignore Tab/Escape) while there is a nested modal open on top.
 
 ---
 
@@ -221,7 +221,7 @@ When asked to "review react" / "why is this slow":
 - [ ] Lists keyed by stable id
 - [ ] Context split by change frequency / state vs dispatch
 - [ ] Immutable updates, functional updaters
-- [ ] Modais: sem `autoFocus` a competir com captura do opener; focus-trap por `ref`, não por `querySelector`
+- [ ] Modals: no `autoFocus` competing with capturing the opener; focus-trap by `ref`, not by `querySelector`
 
 ---
 

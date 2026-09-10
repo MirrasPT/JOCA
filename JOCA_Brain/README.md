@@ -2,81 +2,81 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-MirrasPT%2FJOCA-blue?logo=github)](https://github.com/MirrasPT/JOCA)
 
-Toolkit centralizado de skills, agentes, memoria e workflows para Claude Code — com interface visual browser integrada. Instala uma vez, usa em qualquer projecto. macOS e Windows.
+Centralized toolkit of skills, agents, memory and workflows for Claude Code — with an integrated visual browser interface. Install once, use in any project. macOS and Windows.
 
-**Problema que resolve:** cada projecto novo recomeca do zero — sem contexto, sem ferramentas, sem comportamento consistente. O JOCA e a camada persistente que vive acima dos projectos.
+**The problem it solves:** every new project starts over from zero — no context, no tooling, no consistent behavior. JOCA is the persistent layer that lives above the projects.
 
 ---
 
-## Arquitectura
+## Architecture
 
-O JOCA e composto por dois modulos que funcionam em conjunto:
+JOCA is made up of two modules that work together:
 
 ```
 JOCA/
-├── install.md               <- bootstrap de instalacao (maquina nova)
-├── JOCA_Brain/              <- Motor Agentico (skills, agents, commands, memory)
-│   ├── CLAUDE.md            <- comportamento base
+├── install.md               <- install bootstrap (new machine)
+├── JOCA_Brain/              <- Agentic Engine (skills, agents, commands, memory)
+│   ├── CLAUDE.md            <- base behavior
 │   ├── memory/
-│   │   ├── INDEX.md         <- catalogo de componentes
-│   │   ├── soul.md          <- personalidade e decision filters
-│   │   ├── SKILL_INDEX.json <- indice lazy-loading
-│   │   ├── projects/        <- estado por projecto (/save)
+│   │   ├── INDEX.md         <- component catalog
+│   │   ├── soul.md          <- personality and decision filters
+│   │   ├── SKILL_INDEX.json <- lazy-loading index
+│   │   ├── projects/        <- state per project (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 25 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 103 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 145 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 25 commands (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 103 agents (tester-*, debug, research, media, orchestration, ...)
+│       ├── skills/          <- 145 flat skills (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
-└── JOCA_OS/                 <- Interface: terminais multi-sessao
+└── JOCA_OS/                 <- Interface: multi-session terminals
     ├── backend/             <- Node.js + Express + WebSocket + node-pty
     ├── frontend/            <- React + Vite + xterm.js
-    ├── data/                <- estado local (projectos, definicoes) — nunca commitado
-    ├── start.sh             <- launcher macOS/Linux
-    ├── start.bat            <- launcher Windows
-    └── stop.sh              <- stop macOS/Linux
+    ├── data/                <- local state (projects, settings) — never committed
+    ├── start.sh             <- macOS/Linux launcher
+    ├── start.bat            <- Windows launcher
+    └── stop.sh              <- macOS/Linux stop
 ```
 
-**281 componentes:** 149 skills + 103 agents + 29 commands.
+**281 components:** 149 skills + 103 agents + 29 commands.
 
 ---
 
-## JOCA_OS — Interface Visual
+## JOCA_OS — Visual Interface
 
-Um dashboard browser com terminais Claude Code multi-sessao, file browser e toolkit panel.
-Nada arranca sozinho: os terminais nascem quando o utilizador os abre, e a inbox avisa quando uma
-sessao acaba ou falha.
+A browser dashboard with multi-session Claude Code terminals, file browser and toolkit panel.
+Nothing starts on its own: the terminals are born when the user opens them, and the inbox warns when a
+session ends or fails.
 
-- **Terminal multi-sessao:** cada sessao corre Claude Code real via node-pty
-- **Dashboard:** projectos, sessoes activas, JOCA_Brain status em tempo real
-- **Toolkit panel:** browse/search/edit dos componentes do JOCA_Brain
-- **File browser:** filesystem real com auto-refresh, preview, drag-to-terminal
+- **Multi-session terminal:** each session runs a real Claude Code via node-pty
+- **Dashboard:** projects, active sessions, real-time JOCA_Brain status
+- **Toolkit panel:** browse/search/edit of the JOCA_Brain components
+- **File browser:** real filesystem with auto-refresh, preview, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), JOCA_Brain engine status
-- **Slash autocomplete:** ao digitar `/` no terminal emulado aparece um dropdown com commands, skills e agents
-- **Cross-platform:** macOS (zsh) e Windows (PowerShell) via deteccao automatica de OS
+- **Slash autocomplete:** typing `/` in the emulated terminal brings up a dropdown with commands, skills and agents
+- **Cross-platform:** macOS (zsh) and Windows (PowerShell) via automatic OS detection
 
-O JOCA_OS detecta automaticamente o `JOCA_Brain` como directorio irmao — zero configuracao.
+JOCA_OS automatically detects `JOCA_Brain` as a sibling directory — zero configuration.
 
-> **Plataforma de desenvolvimento:** o JOCA_OS foi desenvolvido e validado em **macOS**. O codigo suporta Windows (deteccao automatica de OS, PowerShell, `%TEMP%`), mas o Windows nao e continuamente testado. Ao **instalar ou actualizar no Windows**, o JOCA activa a skill `joca-os-windows`, que testa, verifica e corrige numa so passagem os pontos sensiveis (build do node-pty, PTY PowerShell, paths, statusline/Keychain, launchers).
+> **Development platform:** JOCA_OS was developed and validated on **macOS**. The code supports Windows (automatic OS detection, PowerShell, `%TEMP%`), but Windows is not continuously tested. When **installing or updating on Windows**, JOCA activates the `joca-os-windows` skill, which tests, checks and fixes the sensitive points in a single pass (node-pty build, PowerShell PTY, paths, statusline/Keychain, launchers).
 
 ---
 
-## Inicio rapido
+## Quick start
 
-### Maquina nova — bootstrap completo
+### New machine — full bootstrap
 
-Cola no Claude Code:
+Paste into Claude Code:
 
 ```
-Le o ficheiro install.md em https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md e segue as instrucoes.
+Read the file install.md at https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md and follow the instructions.
 ```
 
-O assistente clona o repo, configura identidade, personalidade (soul), skills, CLIs externos e instala o JOCA_OS.
+The wizard clones the repo, configures identity, personality (soul), skills, external CLIs and installs JOCA_OS.
 
-### Iniciar a interface
+### Start the interface
 
 ```bash
 # macOS / Linux
@@ -86,25 +86,25 @@ bash JOCA_OS/start.sh
 JOCA_OS\start.bat
 ```
 
-Backend em `http://localhost:7491`, interface em `http://localhost:7492`.
+Backend at `http://localhost:7491`, interface at `http://localhost:7492`.
 
-### Actualizar o JOCA
+### Update JOCA
 
 ```
 /update-joca
 ```
 
-Compara a instalacao local com o repositorio GitHub, mostra o que e novo e aplica updates apos confirmacao. Nunca sobrescreve memoria de projectos ou feedback pessoal.
+Compares the local installation with the GitHub repository, shows what is new and applies updates after confirmation. It never overwrites project memory or personal feedback.
 
-### Sessao de trabalho
+### Work session
 
-No inicio de cada sessao:
+At the start of each session:
 
 ```
 /resume
 ```
 
-Para arrancar um projecto novo ou ligar um existente:
+To start a new project or connect an existing one:
 
 ```
 /start
@@ -114,7 +114,7 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ## Skills (151)
 
-Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
+Skills are activated on-demand — they only load when invoked. Flat format: one `.md` per skill in `.claude/skills/`, with RFC 2119 triggers (MUST/SHOULD/MAY).
 
 ### Base & JOCA
 `caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `context-pack` · `pt-pt-translator` · `joca-os-windows` · `browser-automate` · `yagni` · `agent-sdk` · `comfy-mcp-workarounds`
@@ -122,7 +122,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 ### Guard-rails
 `freeze` · `careful` · `guard` · `tdd` · `unfreeze`
 
-### Planeamento & Specs
+### Planning & Specs
 `plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
 
 ### Design & Frontend
@@ -138,7 +138,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `deploy-cpanel` · `deploy-docker` · `deploy-ploi` · `deploy-vps`
 
 ### Portugal
-`portugal-payments` (ifthenpay/MB WAY/Multibanco) · `portugal-invoicing` (Moloni/faturacao certificada)
+`portugal-payments` (ifthenpay/MB WAY/Multibanco) · `portugal-invoicing` (Moloni/certified invoicing)
 
 ### Marketing
 `marketing` · `paid-ads` · `seo` · `seo-local` · `copywriting` · `content-strategy` · `content-calendar` · `social-content` · `email-sequence` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling` · `lead-capture`
@@ -158,14 +158,14 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 ### Wix
 `wix-cli`
 
-### Autonomia & Pessoal
-`knowledge-ingest` (/know) · `personal-comms` (Fase 2/3)
+### Autonomy & Personal
+`knowledge-ingest` (/know) · `personal-comms` (Phase 2/3)
 
 ---
 
 ## Agents (105)
 
-Agentes correm em sub-processos isolados, em paralelo.
+Agents run in isolated sub-processes, in parallel.
 
 ### Review & Testing
 `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api` · `tester-ratelimit` · `codex-review` · `prd-reviewer` · `design-system-audit`
@@ -185,63 +185,63 @@ Agentes correm em sub-processos isolados, em paralelo.
 ### Specialists
 `payment-integration` · `security-review` · `laravel-refactor` · `filament-builder` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
 
-### Autonomia & Pessoal
-`knowledge-ingest` · `personal-comms` (Fase 2/3)
+### Autonomy & Personal
+`knowledge-ingest` · `personal-comms` (Phase 2/3)
 
 ---
 
 ## Commands (29)
 
-| Command | Funcao |
+| Command | Function |
 |---------|--------|
-| `/install` | Setup interactivo numa maquina nova |
-| `/start` | Arranca um projecto novo ou liga um existente ao JOCA |
-| `/resume` | Carrega contexto no inicio da sessao |
-| `/save` | Guarda estado no fim da sessao |
-| `/plan` | Plan Mode — arquitectura |
-| `/debug` | Triage de erros + skill do stack detectado |
+| `/install` | Interactive setup on a new machine |
+| `/start` | Starts a new project or connects an existing one to JOCA |
+| `/resume` | Loads context at the start of the session |
+| `/save` | Saves state at the end of the session |
+| `/plan` | Plan Mode — architecture |
+| `/debug` | Error triage + skill for the detected stack |
 | `/review-code` | Code review + adversarial via Codex |
-| `/review-design` | UI/UX + acessibilidade em paralelo |
-| `/one-shot` | Dev autonomo end-to-end: PRD -> orchestrator -> parallel -> tests |
-| `/goal` | Auto-orquestracao a partir de tarefa NL (sem PRD) -> orchestrator em loop |
-| `/know` | Ingerir conteudo na Knowledge Base (markitdown -> resumo -> tags) |
-| `/build-plan` | Build supervisionado por fases: plano em docs -> tasks -> loop com gate de testes |
-| `/create-skill` | Pipeline self-improving para criar skills |
-| `/upgrade-joca` | Le feedback e implementa melhorias |
-| `/update-joca` | Sync com repositorio GitHub |
-| `/migrate` | Guia de migracao v1-legacy -> v2.0 |
-| `/status` | Mostra rate limits, modelo e contexto |
-| `/wp-perf-review` | Code review WP completo |
-| `/wp-perf` | Quick triage WP |
-| `/help-joca` | Referencia rapida de comandos |
+| `/review-design` | UI/UX + accessibility in parallel |
+| `/one-shot` | Autonomous end-to-end dev: PRD -> orchestrator -> parallel -> tests |
+| `/goal` | Auto-orchestration from an NL task (no PRD) -> orchestrator in a loop |
+| `/know` | Ingest content into the Knowledge Base (markitdown -> summary -> tags) |
+| `/build-plan` | Phased supervised build: plan in docs -> tasks -> loop with a test gate |
+| `/create-skill` | Self-improving pipeline for creating skills |
+| `/upgrade-joca` | Reads feedback and implements improvements |
+| `/update-joca` | Sync with the GitHub repository |
+| `/migrate` | v1-legacy -> v2.0 migration guide |
+| `/status` | Shows rate limits, model and context |
+| `/wp-perf-review` | Full WP code review |
+| `/wp-perf` | Quick WP triage |
+| `/help-joca` | Quick command reference |
 
 ---
 
 ## Pipelines
 
-Sequencias pre-definidas activadas automaticamente:
+Pre-defined sequences activated automatically:
 
-| Workflow | Sequencia |
+| Workflow | Sequence |
 |----------|-----------|
-| Nova feature Laravel | `plan` -> `laravel-specialist` -> `tester-code` -> `tester-api` |
+| New Laravel feature | `plan` -> `laravel-specialist` -> `tester-code` -> `tester-api` |
 | SaaS / multi-tenant | `plan` -> `saas-patterns` -> `laravel-specialist` -> `tester-security` |
-| E-commerce full-stack | `plan` -> `saas-patterns` -> `laravel-specialist` -> `filament-builder` -> `laravel-react` -> `frontend`+`shadcn` -> `payment-integration` |
-| Frontend producao | `design-system` -> `frontend` -> `react-composition`+`tailwind`+`react-patterns` -> `anima` -> `design-review`+`tester-ui-ux` |
+| Full-stack e-commerce | `plan` -> `saas-patterns` -> `laravel-specialist` -> `filament-builder` -> `laravel-react` -> `frontend`+`shadcn` -> `payment-integration` |
+| Production frontend | `design-system` -> `frontend` -> `react-composition`+`tailwind`+`react-patterns` -> `anima` -> `design-review`+`tester-ui-ux` |
 | One-shot | `master-orchestrator` -> parallel agents -> `tester-*` (auto) |
-| Debug | `log-debugger` -> `query-debugger` (se SQL) |
+| Debug | `log-debugger` -> `query-debugger` (if SQL) |
 | Deploy | `deploy-docker`/`deploy-ploi`/`deploy-cpanel` -> `tester-security` |
-| Nova skill | `deep-research` -> `create-skill` |
+| New skill | `deep-research` -> `create-skill` |
 | Self-improvement | `self-improver` -> `gemini-auditor` -> apply |
 
 ---
 
 ## Cross-CLI Bridge
 
-O JOCA funciona com 3 CLIs. Source of truth: `.claude/` — compilado para formatos externos via `compile-bridges.sh`:
+JOCA works with 3 CLIs. Source of truth: `.claude/` — compiled to external formats via `compile-bridges.sh`:
 
 | CLI | Model | Bridge |
 |-----|-------|--------|
-| Claude Code | Claude (Opus) | `.claude/` (nativo) |
+| Claude Code | Claude (Opus) | `.claude/` (native) |
 | Codex CLI | OpenAI GPT | `.agents/skills/` + `.codex/agents/` |
 | Antigravity (agy) | Google Gemini | `GEMINI.md` + `AGENTS.md` |
 
@@ -251,22 +251,22 @@ bash .claude/scripts/compile-bridges.sh
 
 ---
 
-## Requisitos
+## Requirements
 
-- **Claude Code** instalado e autenticado
-- **Node.js 18+** (para JOCA_OS)
-- **macOS** ou **Windows** (Linux experimental)
-- No Windows: Visual Studio Build Tools + Python 3.x (build do node-pty)
-- Opcional: Python 3.10+ (graphify), Docker (Firecrawl)
-
----
-
-## Creditos
-
-Skills e agentes construidos sobre trabalho de: Anthropic, Corey Haines, Jeffallan, VoltAgent, iSerter, rshah515, WordPress Foundation, HeyGen, alchaincyf, e outros. Lista completa em [`CREDITOS.md`](JOCA_Brain/CREDITOS.md).
+- **Claude Code** installed and authenticated
+- **Node.js 18+** (for JOCA_OS)
+- **macOS** or **Windows** (Linux experimental)
+- On Windows: Visual Studio Build Tools + Python 3.x (node-pty build)
+- Optional: Python 3.10+ (graphify), Docker (Firecrawl)
 
 ---
 
-**Repositorio:** [github.com/MirrasPT/JOCA](https://github.com/MirrasPT/JOCA)
+## Credits
 
-> Licenca dos componentes individuais pertence aos autores originais. JOCA como sistema de integracao: MIT.
+Skills and agents built on the work of: Anthropic, Corey Haines, Jeffallan, VoltAgent, iSerter, rshah515, WordPress Foundation, HeyGen, alchaincyf, and others. Full list in [`CREDITS.md`](JOCA_Brain/CREDITS.md).
+
+---
+
+**Repository:** [github.com/MirrasPT/JOCA](https://github.com/MirrasPT/JOCA)
+
+> The license of the individual components belongs to their original authors. JOCA as an integration system: MIT.

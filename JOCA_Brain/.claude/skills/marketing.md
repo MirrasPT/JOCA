@@ -1,7 +1,7 @@
 ---
 name: marketing
-description: "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do. SHOULD also invoke when: marketing funnel, marketing workflow, plano de marketing, estrategia de marketing, como crescer."
-triggers: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do, marketing funnel, marketing workflow, plano de marketing, estrategia de marketing, como crescer
+description: "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do. SHOULD also invoke when: marketing funnel, marketing workflow, how to grow."
+triggers: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing help, where do I start with marketing, what marketing should I do, marketing funnel, marketing workflow, how to grow
 ---
 
 # Marketing Router
@@ -97,14 +97,14 @@ launch-strategy (announce new things)
 
 | Completed | Suggest next |
 |---|---|
-| `brand-positioning` | "-> next: `content-strategy` para planear conteudo." |
-| `landing-page` | "-> next: `lead-capture` para opt-in form + lead magnet." |
-| `lead-capture` | "-> next: `email-sequence` para nurture sequence." |
-| `email-sequence` | "-> next: `paid-ads` para trazer mais trafego ao funil." |
-| `paid-ads` | "-> next: `page-cro` para optimizar conversao." |
-| `page-cro` | "-> next: `ab-test-setup` para testar variantes." |
-| `content-strategy` | "-> next: `seo` para garantir que o conteudo posiciona." |
-| `seo` | "-> next: `analytics-tracking` para medir resultados." |
+| `brand-positioning` | "-> next: `content-strategy` to plan content." |
+| `landing-page` | "-> next: `lead-capture` for opt-in form + lead magnet." |
+| `lead-capture` | "-> next: `email-sequence` for the nurture sequence." |
+| `email-sequence` | "-> next: `paid-ads` to bring more traffic to the funnel." |
+| `paid-ads` | "-> next: `page-cro` to optimize conversion." |
+| `page-cro` | "-> next: `ab-test-setup` to test variants." |
+| `content-strategy` | "-> next: `seo` to make sure the content ranks." |
+| `seo` | "-> next: `analytics-tracking` to measure results." |
 
 ## Skill Activation
 

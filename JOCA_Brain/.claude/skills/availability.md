@@ -1,7 +1,7 @@
 ---
 name: availability
 description: "Availability and disaster recovery for Laravel. MUST be invoked when the user says: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA. SHOULD also invoke when: uptime, downtime, zero downtime, maintenance mode, artisan down, restore."
-triggers: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA, uptime, downtime, zero downtime, maintenance mode, artisan down, restore, recovery, RTO, RPO, redundancy, resilience, spatie backup, laravel backup, database backup, Redis Sentinel, MySQL replication, rolling deploy, blue green, disponibilidade, recuperacao, desastre
+triggers: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA, uptime, downtime, zero downtime, maintenance mode, artisan down, restore, recovery, RTO, RPO, redundancy, resilience, spatie backup, laravel backup, database backup, Redis Sentinel, MySQL replication, rolling deploy, blue green, availability, disaster
 chain: tester-security
 ---
 
@@ -41,14 +41,14 @@ Backups, failover, zero-downtime deploys and recovery for Laravel.
 
 ---
 
-## Referências (carregar on-demand)
+## References (load on-demand)
 
-| Tema | Reference | Carregar quando |
+| Topic | Reference | Load when |
 |---|---|---|
-| Backups (spatie/laravel-backup: setup, config, S3/R2 disk, schedule, monitoring, .env) | `Read(".claude/reference/availability/backups.md")` | configurar/rever backups |
-| Replicação (MySQL read replicas, sticky, force writer, Redis Sentinel) | `Read(".claude/reference/availability/replication.md")` | read replicas, failover Redis |
-| Zero-downtime deploy (Envoy symlink, instant rollback, maintenance mode + bypass) | `Read(".claude/reference/availability/zero-downtime-deploy.md")` | deploy sem downtime, artisan down, rollback |
-| Recovery runbook (queue resilience/retries/Horizon, restore DB/full, incident timeline) | `Read(".claude/reference/availability/recovery-runbook.md")` | incidente, restore, failed jobs |
+| Backups (spatie/laravel-backup: setup, config, S3/R2 disk, schedule, monitoring, .env) | `Read(".claude/reference/availability/backups.md")` | configure/review backups |
+| Replication (MySQL read replicas, sticky, force writer, Redis Sentinel) | `Read(".claude/reference/availability/replication.md")` | read replicas, Redis failover |
+| Zero-downtime deploy (Envoy symlink, instant rollback, maintenance mode + bypass) | `Read(".claude/reference/availability/zero-downtime-deploy.md")` | deploy with no downtime, artisan down, rollback |
+| Recovery runbook (queue resilience/retries/Horizon, restore DB/full, incident timeline) | `Read(".claude/reference/availability/recovery-runbook.md")` | incident, restore, failed jobs |
 
 ---
 
@@ -102,4 +102,4 @@ MAINTENANCE_ALLOWED_IPS=1.2.3.4,5.6.7.8
 ---
 
 ## Quality gate
-After implementing availability: "Queres `tester-security`?" (verify backups don't expose data, health endpoints are protected)
+After implementing availability: "Want `tester-security`?" (verify backups don't expose data, health endpoints are protected)

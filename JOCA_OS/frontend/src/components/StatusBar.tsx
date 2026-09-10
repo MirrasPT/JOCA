@@ -4,39 +4,39 @@ import type { RateLimits } from './dashboard/RateBar';
 import './StatusBar.css';
 
 interface Props {
-  /** Mesmo objecto que o App já obtém de GET /rate-limits e passa ao DashboardView. */
+  /** The same object the App already gets from GET /rate-limits and passes to DashboardView. */
   rateLimits: RateLimits | null;
   /**
-   * Sessões vivas, para o indicador de actividade. Quando o App as passa (tem-nas já do
-   * WebSocket), o rodapé não faz pedido nenhum — é a via preferida. Sem elas, cai para um GET
-   * lento (ver ACTIVITY_POLL_MS).
+   * Live sessions, for the activity indicator. When the App passes them (it already has them from
+   * the WebSocket), the footer makes no request at all — that is the preferred route. Without them,
+   * it falls back to a slow GET (see ACTIVITY_POLL_MS).
    */
   sessions?: SessionInfo[];
 }
 
 interface Slot {
   key: string;
-  /** Etiqueta curta na barra (o nome por extenso fica no detalhe). */
+  /** Short label in the bar (the full name stays in the detail). */
   label: string;
   full: string;
   pct: number | null;
   resetsAt?: number | null;
-  /** Fora da forma compacta: só aparece no detalhe. */
+  /** Out of the compact form: it only shows in the detail. */
   detailOnly?: boolean;
 }
 
 interface ProviderRow {
   id: string;
   name: string;
-  /** Plano/modelo — informação de contexto, só no detalhe. */
+  /** Plan/model — context information, in the detail only. */
   meta?: string | null;
   slots: Slot[];
 }
 
 /**
- * Relógio ao minuto sem gastar 60 ticks por minuto: um timeout que se realinha ao segundo 0.
- * Pára com o separador escondido (nada disto é visível) e re-sincroniza ao voltar — um portátil
- * que adormece congela o timeout e voltaria com a hora errada.
+ * A clock to the minute without burning 60 ticks a minute: a timeout that realigns itself to second
+ * 0. It stops with the tab hidden (none of this is visible) and re-syncs on return — a laptop that
+ * goes to sleep freezes the timeout and would come back with the wrong time.
  */
 function useMinuteTick(): Date {
   const [now, setNow] = useState(() => new Date());
@@ -70,11 +70,11 @@ function useMinuteTick(): Date {
 }
 
 /**
- * Cadência de recurso, só usada quando o App NÃO passa os dados por props.
+ * Fallback cadence, only used when the App does NOT pass the data by props.
  *
- * O rodapé é permanente: um intervalo curto aqui seria um pedido de fundo eterno. 20s é lento o
- * suficiente para não pesar e rápido o suficiente para "quem está a trabalhar" não mentir. Pára
- * com o separador escondido e re-sincroniza ao voltar.
+ * The footer is permanent: a short interval here would be an eternal background request. 20s is
+ * slow enough not to weigh and fast enough for "who is working" not to lie. It stops with the tab
+ * hidden and re-syncs on return.
  */
 const ACTIVITY_POLL_MS = 20_000;
 
@@ -89,7 +89,7 @@ function useFallbackActivity(enabled: boolean, url: string, onData: (raw: unknow
       fetch(url)
         .then((r) => r.json())
         .then((d) => { if (!cancelado) onData(d); })
-        .catch(() => { /* backend em baixo — o rodapé mantém o último estado conhecido */ });
+        .catch(() => { /* backend down — the footer keeps the last known state */ });
     };
 
     const ciclo = () => { buscar(); timer = window.setTimeout(ciclo, ACTIVITY_POLL_MS); };
@@ -104,17 +104,17 @@ function useFallbackActivity(enabled: boolean, url: string, onData: (raw: unknow
       document.removeEventListener('visibilitychange', aoVoltar);
       window.removeEventListener('focus', aoVoltar);
     };
-    // `onData` é estável por construção (setState de useState) — não entra nas dependências para
-    // o ciclo não se reconstruir a cada render.
+    // `onData` is stable by construction (a useState setState) — it does not go into the
+    // dependencies so the loop is not rebuilt on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, url]);
 }
 
-/** Contagem decrescente até ao reset (epoch em SEGUNDOS), na mesma forma compacta do RateBar. */
+/** Countdown to the reset (epoch in SECONDS), in the same compact form as the RateBar. */
 function formatReset(epochSec: number | null | undefined, now: Date): string | null {
   if (epochSec == null) return null;
   const diff = epochSec - Math.floor(now.getTime() / 1000);
-  if (diff <= 0) return 'agora';
+  if (diff <= 0) return 'now';
   const d = Math.floor(diff / 86400);
   const h = Math.floor((diff % 86400) / 3600);
   const m = Math.floor((diff % 3600) / 60);
@@ -136,7 +136,7 @@ function level(pct: number | null): 'none' | 'low' | 'mid' | 'high' {
   return 'low';
 }
 
-// Um provedor sem dados continua na barra, apagado — desaparecer ou mostrar 0% seria mentira.
+// A provider with no data stays in the bar, dimmed — disappearing or showing 0% would be a lie.
 function buildRows(rl: RateLimits | null): ProviderRow[] {
   const claude = rl?.claude;
   const codex = rl?.codex;
@@ -148,12 +148,12 @@ function buildRows(rl: RateLimits | null): ProviderRow[] {
       name: 'Claude',
       meta: claude?.model ?? null,
       slots: [
-        { key: '5h', label: '5h', full: 'Janela de 5 horas', pct: claude?.five_hour?.used_pct ?? null, resetsAt: claude?.five_hour?.resets_at },
-        { key: '7d', label: '7d', full: 'Janela semanal', pct: claude?.seven_day?.used_pct ?? null, resetsAt: claude?.seven_day?.resets_at },
+        { key: '5h', label: '5h', full: '5-hour window', pct: claude?.five_hour?.used_pct ?? null, resetsAt: claude?.five_hour?.resets_at },
+        { key: '7d', label: '7d', full: 'Weekly window', pct: claude?.seven_day?.used_pct ?? null, resetsAt: claude?.seven_day?.resets_at },
         {
           key: 'sonnet7d',
           label: '7d S',
-          full: 'Semanal (Sonnet)',
+          full: 'Weekly (Sonnet)',
           pct: claude?.sonnet_seven_day?.used_pct ?? null,
           resetsAt: claude?.sonnet_seven_day?.resets_at,
           detailOnly: true,
@@ -165,24 +165,24 @@ function buildRows(rl: RateLimits | null): ProviderRow[] {
       name: 'Codex',
       meta: codex?.plan ?? null,
       slots: [
-        { key: '5h', label: '5h', full: 'Janela de 5 horas', pct: codex?.five_hour?.used_pct ?? null, resetsAt: codex?.five_hour?.resets_at },
-        { key: '7d', label: '7d', full: 'Janela semanal', pct: codex?.seven_day?.used_pct ?? null, resetsAt: codex?.seven_day?.resets_at },
+        { key: '5h', label: '5h', full: '5-hour window', pct: codex?.five_hour?.used_pct ?? null, resetsAt: codex?.five_hour?.resets_at },
+        { key: '7d', label: '7d', full: 'Weekly window', pct: codex?.seven_day?.used_pct ?? null, resetsAt: codex?.seven_day?.resets_at },
       ],
     },
     {
       id: 'agy',
       name: 'agy',
       meta: agy?.plan ?? agy?.model ?? null,
-      // O agy não reporta janelas de tempo — só a ocupação da janela de contexto.
-      slots: [{ key: 'ctx', label: 'ctx', full: 'Janela de contexto', pct: agy?.context?.used_pct ?? null }],
+      // agy does not report time windows — only how full the context window is.
+      slots: [{ key: 'ctx', label: 'ctx', full: 'Context window', pct: agy?.context?.used_pct ?? null }],
     },
   ];
 }
 
 /**
- * Rodapé permanente: consumo das três CLIs (janela de 5h e semanal) + hora local.
- * Discreto por omissão; os números completos aparecem em popover no hover, no foco de teclado
- * (Tab chega lá, é um botão) ou fixos por clique.
+ * Permanent footer: usage of the three CLIs (5h and weekly window) + local time.
+ * Discreet by default; the full numbers appear in a popover on hover, on keyboard focus (Tab gets
+ * there, it is a button) or pinned by click.
  */
 export default function StatusBar({
   rateLimits, sessions,
@@ -191,7 +191,7 @@ export default function StatusBar({
   const [pinned, setPinned] = useState<string | null>(null);
   const rows = buildRows(rateLimits);
 
-  // Recurso: só quando o App ainda não passa a informação por props.
+  // Fallback: only when the App does not yet pass the information by props.
   const [fetchedSessions, setFetchedSessions] = useState<SessionInfo[]>([]);
   useFallbackActivity(sessions === undefined, '/sessions', (raw) => {
     setFetchedSessions(Array.isArray(raw) ? (raw as SessionInfo[]) : []);
@@ -199,8 +199,8 @@ export default function StatusBar({
 
   const vivas = sessions ?? fetchedSessions;
 
-  // Agentes = terminais abertos programaticamente ('auto'). Os que o utilizador abriu à mão
-  // são dele, não "trabalho a decorrer sem supervisão" — juntá-los tornaria o número inútil.
+  // Agents = terminals opened programmatically ('auto'). The ones the user opened by hand are his,
+  // not "work under way unsupervised" — lumping them in would make the number useless.
   const agentes = vivas.filter((s) => s.origin === 'auto');
   const agentesActivos = agentes.filter((s) => s.status === 'working').length;
 
@@ -208,11 +208,11 @@ export default function StatusBar({
   const fullDate = now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' });
 
   const resumoActividade = [
-    `${agentesActivos} de ${agentes.length} agente(s) a trabalhar`,
+    `${agentesActivos} of ${agentes.length} agent(s) working`,
   ].filter(Boolean).join(' · ');
 
   return (
-    <footer className="statusbar" aria-label="Actividade, consumo das CLIs e hora">
+    <footer className="statusbar" aria-label="Activity, CLI usage and time">
       <div className="sb-providers">
         {rows.map((row) => {
           const compact = row.slots.filter((s) => !s.detailOnly);
@@ -220,7 +220,7 @@ export default function StatusBar({
           const isPinned = pinned === row.id;
           const summary = known.length
             ? known.map((s) => `${s.full}: ${formatPct(s.pct)}`).join(', ')
-            : 'sem dados';
+            : 'no data';
 
           return (
             <div key={row.id} className={`sb-provider${known.length ? '' : ' sb-provider--empty'}${isPinned ? ' is-pinned' : ''}`}>
@@ -249,7 +249,7 @@ export default function StatusBar({
                   {row.meta && <span className="sb-pop-meta">{row.meta}</span>}
                 </div>
                 {known.length === 0 ? (
-                  <p className="sb-pop-empty">Sem dados de consumo.</p>
+                  <p className="sb-pop-empty">No usage data.</p>
                 ) : (
                   <ul className="sb-pop-list">
                     {known.map((slot) => {
@@ -258,7 +258,7 @@ export default function StatusBar({
                         <li key={slot.key} className="sb-pop-row" data-level={level(slot.pct)}>
                           <span className="sb-pop-label">{slot.full}</span>
                           <span className="sb-pop-value">{formatPct(slot.pct)}</span>
-                          {reset && <span className="sb-pop-reset">reinicia em {reset}</span>}
+                          {reset && <span className="sb-pop-reset">resets in {reset}</span>}
                         </li>
                       );
                     })}
@@ -271,15 +271,15 @@ export default function StatusBar({
       </div>
 
       <div className="sb-right">
-        {/* Quem está a trabalhar. Deliberadamente mudo: números pequenos, cinzento, e o único
-            movimento é um ponto a pulsar quando há mesmo alguém a trabalhar — o rodapé está
-            sempre à vista, não pode competir com o conteúdo. */}
+        {/* Who is working. Deliberately mute: small numbers, grey, and the only movement is a dot
+            pulsing when someone really is working — the footer is always in sight, it cannot
+            compete with the content. */}
         <div
           className={`sb-activity${agentesActivos ? ' is-live' : ''}`}
           role="group"
-          aria-label={`Actividade: ${resumoActividade}`}
+          aria-label={`Activity: ${resumoActividade}`}
         >
-          <span className="sb-act-chip" title={`${agentesActivos} de ${agentes.length} agente(s) a trabalhar`}>
+          <span className="sb-act-chip" title={`${agentesActivos} of ${agentes.length} agent(s) working`}>
             <span className="sb-act-dot" data-on={agentesActivos > 0} aria-hidden />
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />

@@ -1,60 +1,60 @@
 ---
 name: gdpr-compliance
 origin: local
-description: "Cookie consent banners, RGPD/GDPR checklists, gating de scripts de terceiros (Google Analytics, Microsoft Clarity) por consentimento, consentimento de formulário validado no servidor com prova em BD, e direitos do titular (acesso/rectificação/apagamento/portabilidade/oposição) para sites de cliente portugueses. MUST be invoked when the user says: RGPD, GDPR, consentimento de cookies, cookie banner, política de privacidade, CNPD, direito ao apagamento, dados pessoais, opt-in. SHOULD also invoke when: formulário de contacto com consentimento, Google Analytics sem consentimento, Microsoft Clarity, DPO, violação de dados, portabilidade de dados."
-triggers: RGPD, GDPR, consentimento, cookie banner, cookies, banner de cookies, política de privacidade, CNPD, titular dos dados, direito ao apagamento, dados pessoais, opt-in, cookie wall, consentimento de formulário, Google Analytics consentimento, Microsoft Clarity, DPO, encarregado de protecção de dados, violação de dados, data breach, portabilidade de dados, direito de acesso, direito de oposição, gating de scripts terceiros, consent management
+description: "Cookie consent banners, RGPD/GDPR checklists, gating third-party scripts (Google Analytics, Microsoft Clarity) behind consent, server-validated form consent with evidence in the DB, and data-subject rights (access/rectification/erasure/portability/objection) for Portuguese client sites. MUST be invoked when the user says: RGPD, GDPR, cookie consent, cookie banner, privacy policy, CNPD, right to erasure, personal data, opt-in. SHOULD also invoke when: contact form with consent, Google Analytics without consent, Microsoft Clarity, DPO, data breach, data portability."
+triggers: RGPD, GDPR, consent, cookie banner, cookies, privacy policy, CNPD, data subject, right to erasure, personal data, opt-in, cookie wall, form consent, Google Analytics consent, Microsoft Clarity, DPO, data protection officer, data breach, data portability, right of access, right to object, third-party script gating, consent management
 chain: security-review, tester-code
 ---
 # GDPR / RGPD Compliance
 
-Doutrina para conformidade RGPD em sites de cliente PT (Laravel+React ou estáticos) com formulário e/ou analytics. Recorrente: qualquer site com formulário de contacto + Google Analytics/Clarity precisa exactamente disto.
+Doctrine for RGPD compliance on PT client sites (Laravel+React or static) with a form and/or analytics. Recurring: any site with a contact form + Google Analytics/Clarity needs exactly this.
 
-Invocada por `frontend`/`laravel-specialist` quando o pedido envolve cookies/consentimento/formulário com dados pessoais, ou directamente pelo user.
-
----
-
-## Quando usar
-
-- Site novo ou existente com **formulário** (contacto, newsletter, checkout) que recolhe dados pessoais.
-- Site com **Google Analytics, Microsoft Clarity**, pixels de ads, ou qualquer script de terceiros que grava cookies.
-- Pedido de **cookie banner**, "estamos conformes com o RGPD?", auditoria de privacidade.
-- Implementação de **direito ao apagamento** ou exportação de dados a pedido de um titular.
+Invoked by `frontend`/`laravel-specialist` when the request involves cookies/consent/a form with personal data, or directly by the user.
 
 ---
 
-## 1 — Checklist de recolha (por cada ponto de recolha de dados)
+## When to use it
 
-Preencher **antes** de escrever código. Uma linha por ponto de recolha (formulário, cookie, integração).
+- New or existing site with a **form** (contact, newsletter, checkout) that collects personal data.
+- Site with **Google Analytics, Microsoft Clarity**, ad pixels, or any third-party script that writes cookies.
+- Request for a **cookie banner**, "are we GDPR compliant?", a privacy audit.
+- Implementation of the **right to erasure** or a data export at a data subject's request.
 
-| Dado | Finalidade | Fundamento legal | Prazo de conservação |
+---
+
+## 1 — Collection checklist (for each data-collection point)
+
+Fill this in **before** writing code. One line per collection point (form, cookie, integration).
+
+| Data | Purpose | Legal basis | Retention period |
 |---|---|---|---|
-| Nome + email (contacto) | Responder ao pedido | Consentimento / interesse legítimo pré-contratual | Ex.: 12 meses após último contacto |
-| Email (newsletter) | Marketing directo | Consentimento (opt-in próprio, separado do formulário de contacto) | Até revogação |
-| Cookies de analytics | Medir tráfego/uso | Consentimento | Conforme retenção do vendor (confirmar na consola GA4/Clarity) |
-| Dados de encomenda | Execução de contrato + obrigações fiscais | Execução de contrato / obrigação legal | Prazo legal de conservação fiscal (confirmar com contabilista do cliente) |
+| Name + email (contact) | Reply to the request | Consent / pre-contractual legitimate interest | E.g.: 12 months after last contact |
+| Email (newsletter) | Direct marketing | Consent (its own opt-in, separate from the contact form) | Until revoked |
+| Analytics cookies | Measure traffic/usage | Consent | As per the vendor's retention (confirm in the GA4/Clarity console) |
+| Order data | Contract performance + tax obligations | Contract performance / legal obligation | Legal tax retention period (confirm with the client's accountant) |
 
-**Fundamentos legais possíveis** (escolher o correcto, não assumir sempre "consentimento"): consentimento, execução de um contrato, cumprimento de obrigação legal, interesse legítimo. Newsletter e analytics quase sempre exigem **consentimento** — nunca reutilizar o email de um formulário de contacto para newsletter sem um opt-in próprio e separado.
+**Possible legal bases** (pick the right one, do not always assume "consent"): consent, performance of a contract, compliance with a legal obligation, legitimate interest. Newsletter and analytics almost always require **consent** — never reuse the email from a contact form for a newsletter without its own, separate opt-in.
 
-**Prazos de conservação:** nunca "para sempre" por defeito. Se o cliente não tem um número, propor um prazo razoável por finalidade e documentá-lo — não inventar um artigo legal para o justificar.
+**Retention periods:** never "forever" by default. If the client does not have a number, propose a reasonable period per purpose and document it — do not invent a legal article to justify it.
 
 ---
 
-## 2 — Banner de consentimento (padrão)
+## 2 — Consent banner (pattern)
 
-Regras não-negociáveis:
-- **Opt-in prévio** — scripts não-essenciais (analytics, marketing) NÃO correm antes de haver consentimento explícito.
-- **Recusar com o mesmo peso visual do Aceitar** — mesmo tamanho, cor, contraste, posição. Nunca "Aceitar" como botão grande colorido e "Recusar" como link cinzento escondido.
-- **Granular por categoria** — necessários sempre on (não desligáveis); analytics/marketing off por defeito, ligáveis um a um.
-- **Revogável** — link "Preferências de cookies" acessível (footer) a qualquer momento, sem ter de apagar cookies manualmente.
-- **Sem cookie-wall** — o site funciona (navega, lê conteúdo, usa formulários essenciais) mesmo com tudo recusado.
+Non-negotiable rules:
+- **Prior opt-in** — non-essential scripts (analytics, marketing) do NOT run before there is explicit consent.
+- **Reject with the same visual weight as Accept** — same size, color, contrast, position. Never "Accept" as a big colored button and "Reject" as a hidden grey link.
+- **Granular by category** — necessary always on (not toggleable); analytics/marketing off by default, toggleable one by one.
+- **Revocable** — a "Cookie preferences" link accessible (footer) at any time, without having to delete cookies by hand.
+- **No cookie wall** — the site works (navigates, reads content, uses essential forms) even with everything rejected.
 
 ```js
-// consent.js — estado de consentimento, versionado
-const CONSENT_KEY = 'consent_v1'; // subir a versão (v2, v3...) sempre que as categorias mudarem — força re-pergunta
+// consent.js — consent state, versioned
+const CONSENT_KEY = 'consent_v1'; // bump the version (v2, v3...) whenever the categories change — forces a re-ask
 
 function getConsent() {
   const raw = localStorage.getItem(CONSENT_KEY);
-  return raw ? JSON.parse(raw) : null; // null = ainda não decidiu, banner deve aparecer
+  return raw ? JSON.parse(raw) : null; // null = has not decided yet, banner should appear
 }
 
 function setConsent(categories) {
@@ -65,35 +65,35 @@ function setConsent(categories) {
   if (!categories.marketing) purgeCookiesByCategory('marketing');
 }
 
-// ao carregar a página: se já há decisão guardada, disparar o evento (liga scripts já aceites)
+// on page load: if a decision is already stored, fire the event (turns on already-accepted scripts)
 const existing = getConsent();
 if (existing) document.dispatchEvent(new CustomEvent('consent:updated', { detail: existing }));
 ```
 
-Banner: 3 acções visíveis — **Aceitar todos**, **Recusar todos** (mesmo peso), **Personalizar** (abre o painel granular). Nunca só 2 opções em que uma delas é "aceitar ou fechar sem decidir" (fechar o banner sem escolher não conta como recusa nem como aceitação — não persistir nada nesse caso).
+Banner: 3 visible actions — **Accept all**, **Reject all** (same weight), **Customize** (opens the granular panel). Never just 2 options where one of them is "accept or close without deciding" (closing the banner without choosing counts as neither rejection nor acceptance — persist nothing in that case).
 
 ---
 
-## 3 — Gating de scripts de terceiros + limpeza ao revogar
+## 3 — Gating third-party scripts + cleanup on revocation
 
-**Nunca** injectar `<script src="googletagmanager.com/...">` ou o snippet do Clarity directo no `<head>`. Carregar só depois do consentimento:
+**Never** inject `<script src="googletagmanager.com/...">` or the Clarity snippet directly in the `<head>`. Load only after consent:
 
 ```html
 <script>
 document.addEventListener('consent:updated', (e) => {
-  if (e.detail.analytics) loadGoogleAnalytics();   // injecta o <script> só aqui
-  if (e.detail.marketing) loadMicrosoftClarity();  // idem
+  if (e.detail.analytics) loadGoogleAnalytics();   // injects the <script> only here
+  if (e.detail.marketing) loadMicrosoftClarity();  // same
 });
 </script>
 ```
 
-⚠ **Se o cliente usa Google Ads/remarketing além do GA4, o gate por evento não chega.** A Google exige o próprio sinal (Consent Mode v2: `gtag('consent','default',{...})` antes de qualquer tag, depois `gtag('consent','update',{...})` quando o utilizador decide) para tráfego do EEE/RU. Sem ele o gate parece conforme e as tags continuam a comportar-se como se houvesse consentimento. Verifica na doc actual da Google quais os sinais em vigor — mudam.
+⚠ **If the client uses Google Ads/remarketing on top of GA4, gating by event is not enough.** Google requires its own signal (Consent Mode v2: `gtag('consent','default',{...})` before any tag, then `gtag('consent','update',{...})` when the user decides) for EEA/UK traffic. Without it the gate looks compliant and the tags keep behaving as if there were consent. Check Google's current docs for which signals are in force — they change.
 
-Ao **revogar** consentimento previamente dado, além de parar de carregar o script, **limpar os cookies já gravados** dessa categoria — o script deixar de correr não apaga o que já lá está:
+When consent previously given is **revoked**, besides stopping the script from loading, **clear the cookies already written** for that category — the script no longer running does not delete what is already there:
 
 ```js
 function purgeCookiesByCategory(category) {
-  // Prefixos documentados pelos vendors — confirmar na doc actual antes de assumir, mudam sem aviso.
+  // Prefixes documented by the vendors — check the current docs before assuming, they change without notice.
   const patterns = {
     analytics: [/^_ga/, /^_gid/, /^_gat/],                          // Google Analytics
     marketing: [/^_clck/, /^_clsk/, /^CLID/, /^MUID/, /^ANONCHK/, /^SM/], // Microsoft Clarity
@@ -103,27 +103,27 @@ function purgeCookiesByCategory(category) {
     if ((patterns[category] || []).some((re) => re.test(name))) {
       const expire = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
       document.cookie = `${name}=; ${expire}; path=/; domain=${location.hostname}`;
-      document.cookie = `${name}=; ${expire}; path=/`; // sem domain também — cookies gravados sem domain explícito só morrem assim
+      document.cookie = `${name}=; ${expire}; path=/`; // without domain too — cookies written without an explicit domain only die this way
     }
   });
 }
 ```
 
-Cookies `httpOnly` (sessão do servidor, CSRF) não são visíveis a `document.cookie` — não entram nesta purge; classificar como **necessários**, nunca como analytics/marketing.
+`httpOnly` cookies (server session, CSRF) are not visible to `document.cookie` — they are not part of this purge; classify them as **necessary**, never as analytics/marketing.
 
 ---
 
-## 4 — Consentimento em formulário (validado no servidor, com prova em BD)
+## 4 — Form consent (server-validated, with evidence in the DB)
 
-Validação **só no cliente (JS) não conta** — tem de ser reforçada no servidor, com prova persistida.
+Validation **client-side only (JS) does not count** — it has to be enforced on the server, with persisted evidence.
 
 ```php
 // Migration
 Schema::create('consent_records', function (Blueprint $table) {
     $table->id();
-    $table->nullableMorphs('consentable'); // liga a submissão de formulário, lead, user, etc.
+    $table->nullableMorphs('consentable'); // links to the form submission, lead, user, etc.
     $table->string('email')->nullable();
-    $table->string('policy_version');      // versão do texto de privacidade aceite nesse momento
+    $table->string('policy_version');      // version of the privacy text accepted at that moment
     $table->string('ip_address', 45);
     $table->text('user_agent')->nullable();
     $table->timestamp('consented_at');
@@ -136,14 +136,14 @@ Schema::create('consent_records', function (Blueprint $table) {
 public function rules(): array
 {
     return [
-        'consent' => ['required', 'accepted'], // checkbox nunca pré-marcada — opt-in real
-        // ... resto dos campos
+        'consent' => ['required', 'accepted'], // checkbox never pre-ticked — real opt-in
+        // ... the rest of the fields
     ];
 }
 ```
 
 ```php
-// Controller/Action — persistir prova ao aceitar o pedido
+// Controller/Action — persist evidence when accepting the request
 ConsentRecord::create([
     'consentable_type' => $submission::class,
     'consentable_id'   => $submission->id,
@@ -155,69 +155,69 @@ ConsentRecord::create([
 ]);
 ```
 
-Regras:
-- Checkbox de consentimento **nunca pré-marcada** — `accepted` falha em branco/false, só passa marcada explicitamente.
-- `policy_version` sobe **sempre** que o texto de privacidade muda — sem isto a prova aponta para um texto que já não existe.
-- Uma conta/lead pode ter múltiplos `consent_records` (contacto ≠ newsletter ≠ marketing) — não colapsar num único booleano `consented`.
+Rules:
+- Consent checkbox **never pre-ticked** — `accepted` fails on blank/false, it only passes when explicitly ticked.
+- `policy_version` goes up **every** time the privacy text changes — without this the evidence points at a text that no longer exists.
+- An account/lead can have several `consent_records` (contact ≠ newsletter ≠ marketing) — do not collapse them into a single `consented` boolean.
 
 ---
 
-## 5 — Direitos do titular
+## 5 — Data-subject rights
 
-| Direito | Implementação |
+| Right | Implementation |
 |---|---|
-| **Acesso** | Endpoint/acção admin que exporta todos os dados pessoais ligados ao titular (JSON) |
-| **Rectificação** | Formulário de edição de perfil, ou fluxo manual de actualização a pedido |
-| **Apagamento** | Anonimizar/apagar em **todas** as tabelas relacionadas — soft-delete da tabela principal não chega (ver gotcha §6) |
-| **Portabilidade** | Export estruturado (JSON/CSV), legível por máquina, não um PDF de imagem |
-| **Oposição** | Opt-out de marketing sem apagar a conta — flag própria, separada de "conta apagada" |
+| **Access** | Admin endpoint/action that exports all personal data linked to the data subject (JSON) |
+| **Rectification** | Profile edit form, or a manual update flow on request |
+| **Erasure** | Anonymise/delete in **all** related tables — a soft-delete on the main table is not enough (see gotcha §6) |
+| **Portability** | Structured export (JSON/CSV), machine-readable, not an image PDF |
+| **Objection** | Marketing opt-out without deleting the account — its own flag, separate from "account deleted" |
 
-Prazo de resposta a pedidos: o RGPD dá **1 mês** a contar da recepção, prorrogável até **3 meses** em pedidos complexos (com aviso ao titular dentro do primeiro mês). Trata isto como o tecto legal, não como o SLA — define um SLA interno mais curto e documenta-o com o cliente/DPO. Casos de fronteira (pedidos repetitivos, identidade por confirmar) → DPO.
+Deadline for responding to requests: the GDPR gives **1 month** from receipt, extendable to **3 months** on complex requests (with notice to the data subject within the first month). Treat this as the legal ceiling, not as the SLA — set a shorter internal SLA and document it with the client/DPO. Borderline cases (repetitive requests, unconfirmed identity) → DPO.
 
 ---
 
-## 6 — Gotcha caro: JOIN a tabelas com flag de consentimento/visibilidade
+## 6 — Expensive gotcha: JOIN to tables with a consent/visibility flag
 
-**Modo de falha real, já aconteceu:** uma flag (`consent_given`, `visible`, `deleted_at`, `anonymized_at`) é respeitada na rota óbvia e **ignorada** noutra rota que faz JOIN à mesma tabela — export admin, endpoint de API, índice de pesquisa, relatório.
+**Real failure mode, it has already happened:** a flag (`consent_given`, `visible`, `deleted_at`, `anonymized_at`) is respected on the obvious route and **ignored** on another route that JOINs the same table — admin export, API endpoint, search index, report.
 
-Antes de dar a feature por fechada, **auditar TODAS as rotas/queries que tocam a tabela**:
+Before calling the feature done, **audit ALL routes/queries that touch the table**:
 
 ```bash
 grep -rn "consent_records\|->join('.*consent\|whereHas('consent" app/
 ```
 
-Uma flag que só é respeitada em metade dos sítios é pior do que não ter flag nenhuma — passa a auditoria superficial e falha na real.
+A flag that is only respected in half the places is worse than having no flag at all — it passes the superficial audit and fails the real one.
 
 ---
 
-## 7 — Enquadramento CNPD (Portugal)
+## 7 — CNPD framing (Portugal)
 
-- **CNPD** é a autoridade nacional de controlo em Portugal; o RGPD é regulamento europeu directamente aplicável, a CNPD fiscaliza e recebe queixas em PT (cnpd.pt).
-- Princípios a respeitar no código, sem citar artigo específico: **minimização de dados** (recolher só o necessário), **limitação da finalidade** (não reutilizar dados de um propósito para outro sem consentimento próprio), **limitação do prazo de conservação** (apagar/anonimizar findo o prazo da checklist §1).
-- **Violação de dados (data breach):** notificação à autoridade de controlo (CNPD) em **72 horas** a contar do momento em que se toma conhecimento; passado esse prazo, a notificação tem de vir acompanhada da justificação do atraso. Se houver risco elevado para os titulares, estes também são notificados. O canal e o responsável por carregar no botão confirmam-se com o cliente/DPO **antes** de haver incidente, não durante.
-- **DPO (Encarregado de Protecção de Dados):** obrigatório em certos cenários (entidades públicas, monitorização em larga escala, tratamento em larga escala de categorias especiais de dados) — confirmar aplicabilidade caso a caso; a maioria dos sites de cliente pequenos **não** precisa de DPO formal, mas precisa sempre de um contacto de privacidade.
-- **Nunca citar número de artigo do RGPD nem número de deliberação da CNPD de memória** — um número errado lê-se exactamente como um verdadeiro e é o erro mais caro possível numa peça de conformidade. Escrever o princípio; se o cliente precisa do número exacto, confirmar a fonte antes de publicar.
+- **CNPD** is the national supervisory authority in Portugal; the GDPR is a European regulation that applies directly, and the CNPD supervises and receives complaints in PT (cnpd.pt).
+- Principles to respect in the code, without citing a specific article: **data minimization** (collect only what is needed), **purpose limitation** (do not reuse data from one purpose for another without its own consent), **storage limitation** (delete/anonymize once the period from the §1 checklist is up).
+- **Data breach:** notification to the supervisory authority (CNPD) within **72 hours** of becoming aware of it; past that deadline, the notification has to come with a justification for the delay. If there is a high risk to the data subjects, they are notified too. The channel and who is responsible for pressing the button are confirmed with the client/DPO **before** there is an incident, not during.
+- **DPO (Encarregado de Protecção de Dados):** mandatory in certain scenarios (public bodies, large-scale monitoring, large-scale processing of special categories of data) — confirm applicability case by case; most small client sites do **not** need a formal DPO, but they always need a privacy contact.
+- **Never cite a GDPR article number or a CNPD deliberation number from memory** — a wrong number reads exactly like a true one and is the most expensive possible error in a compliance piece. Write the principle; if the client needs the exact number, confirm the source before publishing.
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |---|---|
-| GA/Clarity carregados directo no `<head>`, sem gate | Injectar só depois de `consent:updated` com a categoria activa |
-| "Recusar" como link cinzento pequeno, "Aceitar" como botão grande colorido | Mesmo peso visual — tamanho, cor, contraste, posição |
-| Site degradado/bloqueado até aceitar (cookie-wall) | Site funciona igual com tudo recusado |
-| Checkbox de consentimento pré-marcada | `checked` nunca por defeito |
-| Consentimento só validado em JS no cliente | `required\|accepted` no servidor + registo persistido em BD |
-| Fechar o banner sem escolher = tratado como aceitação | Sem decisão explícita, banner reaparece; nada se persiste |
-| Apagar só a linha principal ao satisfazer "direito ao apagamento" | Auditar todas as tabelas/rotas ligadas por JOIN (§6) |
-| Prova de consentimento sem `policy_version` | Guardar a versão do texto aceite; subi-la a cada mudança |
-| Reutilizar email de contacto para newsletter sem opt-in próprio | Consentimento separado por finalidade |
-| Citar artigo do RGPD/deliberação CNPD de memória | Escrever o princípio; confirmar o número antes de publicar |
-| Purga de cookies só sem `domain=` (ou só com) | Tentar as duas variantes — cookies gravados com domain explícito sobrevivem à purga sem domain |
+| GA/Clarity loaded directly in the `<head>`, without a gate | Inject only after `consent:updated` with the category active |
+| "Reject" as a small grey link, "Accept" as a big colored button | Same visual weight — size, color, contrast, position |
+| Site degraded/blocked until you accept (cookie wall) | Site works the same with everything rejected |
+| Consent checkbox pre-ticked | `checked` never by default |
+| Consent validated only in client-side JS | `required\|accepted` on the server + a record persisted in the DB |
+| Closing the banner without choosing = treated as acceptance | Without an explicit decision, the banner reappears; nothing is persisted |
+| Deleting only the main row when satisfying the "right to erasure" | Audit every table/route linked by JOIN (§6) |
+| Consent evidence without `policy_version` | Store the version of the text accepted; bump it on every change |
+| Reusing a contact email for a newsletter without its own opt-in | Separate consent per purpose |
+| Citing a GDPR article/CNPD deliberation from memory | Write the principle; confirm the number before publishing |
+| Cookie purge only without `domain=` (or only with it) | Try both variants — cookies written with an explicit domain survive a purge without domain |
 
 ---
 
 ## Quality gate
 
-Depois de implementar: dispatch `security-review` (validação server-side do consentimento, exposição de PII em exports/logs, e confirmação de que **todas** as rotas que fazem JOIN à tabela de consentimento/visibilidade respeitam a flag — §6). Se houve formulário novo com endpoint, `tester-code` para o `FormRequest` + persistência do `ConsentRecord`.
+After implementing: dispatch `security-review` (server-side validation of the consent, PII exposure in exports/logs, and confirmation that **all** routes JOINing the consent/visibility table respect the flag — §6). If there was a new form with an endpoint, `tester-code` for the `FormRequest` + `ConsentRecord` persistence.

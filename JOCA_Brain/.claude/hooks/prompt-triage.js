@@ -1,56 +1,59 @@
 #!/usr/bin/env node
-// UserPromptSubmit hook — triagem do pedido a cada turno.
+// UserPromptSubmit hook — triage of the request on every turn.
 //
-// A versão anterior era um nudge cego: injectava sempre a mesma frase ("classifica a tarefa") sem
-// olhar para o pedido. Um lembrete constante e idêntico deixa de ser lido — e não dizia NADA sobre
-// o pedido concreto, portanto a decisão de escalar ficava inteiramente ao critério do momento.
+// The previous version was a blind nudge: it always injected the same sentence ("classify the task")
+// without looking at the request. A constant, identical reminder stops being read — and it said NOTHING
+// about the concrete request, so the decision to escalate was left entirely to the judgement of the moment.
 //
-// Esta versão lê o prompt e conta sinais objectivos: partes de trabalho independentes, domínios
-// envolvidos, marcas de escala. Devolve uma recomendação concreta com o motivo. Continua a ser o
-// modelo a decidir — o hook não bloqueia nem obriga — mas decide com dados em vez de com um slogan.
+// This version reads the prompt and counts objective signals: independent parts of work, domains
+// involved, marks of scale. It returns a concrete recommendation with the reason. The model still
+// decides — the hook neither blocks nor forces — but it decides with data instead of with a slogan.
 //
-// Regra calibrada pelo utilizador: a partir de 2 partes independentes, vale a pena paralelizar.
-// Fail-silent, exit 0 sempre: um erro aqui nunca pode impedir o turno.
+// Rule calibrated by the user: from 2 independent parts on, it is worth parallelizing.
+// Fail-silent, always exit 0: an error here can never stop the turn.
 
-const PARALLEL_THRESHOLD = 2;   // partes independentes a partir das quais se recomenda fan-out
+const PARALLEL_THRESHOLD = 2;   // independent parts from which a fan-out is recommended
 
-// Domínios com agente de execução dedicado (.claude/agents/<x>-agent.md). Palavra → domínio.
+// Domains with a dedicated execution agent (.claude/agents/<x>-agent.md). Word → domain.
 const DOMAINS = {
   frontend: ['frontend', 'react', 'ui', 'interface', 'componente', 'component', 'tailwind', 'css', 'shadcn', 'landing', 'página', 'pagina', 'page'],
   backend: ['backend', 'api', 'endpoint', 'laravel', 'servidor', 'server', 'base de dados', 'database', 'mysql', 'queue', 'fila', 'webhook', 'auth', 'login'],
-  design: ['design', 'mockup', 'visual', 'layout', 'cor', 'cores', 'paleta', 'tipografia', 'logo', 'ícone', 'icone', 'animação', 'animacao'],
-  conteúdo: ['copy', 'texto', 'conteúdo', 'conteudo', 'artigo', 'post', 'newsletter', 'email', 'seo', 'traduz', 'escreve'],
-  deploy: ['deploy', 'publicar', 'vps', 'servidor', 'docker', 'cpanel', 'dns', 'produção', 'producao'],
+  design: ['design', 'mockup', 'visual', 'layout', 'cor', 'cores', 'color', 'colors', 'paleta', 'palette', 'tipografia', 'typography', 'logo', 'ícone', 'icone', 'icon', 'animação', 'animacao', 'animation'],
+  content: ['copy', 'texto', 'text', 'conteúdo', 'conteudo', 'content', 'artigo', 'article', 'post', 'newsletter', 'email', 'seo', 'traduz', 'translate', 'escreve', 'write'],
+  deploy: ['deploy', 'publicar', 'publish', 'vps', 'servidor', 'server', 'docker', 'cpanel', 'dns', 'produção', 'producao', 'production'],
   wordpress: ['wordpress', 'wp', 'gutenberg', 'plugin', 'woocommerce', 'elementor'],
-  shopify: ['shopify', 'liquid', 'loja'],
-  testes: ['teste', 'testes', 'test', 'vitest', 'phpunit', 'cobertura'],
+  shopify: ['shopify', 'liquid', 'loja', 'store'],
+  testing: ['teste', 'testes', 'test', 'vitest', 'phpunit', 'cobertura', 'coverage'],
 };
 
-// Marcas de que o pedido contém MAIS DO QUE UMA coisa a fazer.
+// Marks that the request contains MORE THAN ONE thing to do.
 const SPLIT_MARKERS = [
   /\be\s+(?:também|tambem|depois|a seguir|ainda)\b/gi,
+  /\band\s+(?:also|then|next|too)\b/gi,
   /\b(?:além disso|alem disso|para além|para alem|e ainda|e depois)\b/gi,
+  /\b(?:besides|in addition|furthermore|and also|and then)\b/gi,
   /\b(?:primeiro|segundo|terceiro|por fim|finalmente)\b/gi,
+  /\b(?:first|second|third|lastly|finally)\b/gi,
   /^\s*[-*•]\s+/gm,              // bullets
-  /^\s*\d+[.)]\s+/gm,            // listas numeradas
-  /;/g,                          // ponto e vírgula separa cláusulas de trabalho
+  /^\s*\d+[.)]\s+/gm,            // numbered lists
+  /;/g,                          // a semicolon separates work clauses
 ];
 
-// Escala: o mesmo trabalho repetido em N sítios é o caso mais rentável de fan-out.
-const SCALE_MARKERS = /\b(?:todos|todas|cada|várias|varias|vários|varios|em todo|por todo|uma a uma|um a um)\b/gi;
+// Scale: the same work repeated in N places is the most profitable case for a fan-out.
+const SCALE_MARKERS = /\b(?:todos|todas|cada|várias|varias|vários|varios|em todo|por todo|uma a uma|um a um|all|every|each|several|throughout|one by one)\b/gi;
 
-// Sinais que EXIGEM plano antes de executar (rules/task-intake.md → "Plano antes de executar").
-// Irreversível sozinho activa; scope grande activa por si.
-const IRREVERSIBLE_MARKERS = /\b(?:migration|migrations|migrate|migra|deploy|deployar|publicar|produção|producao|apaga|apagar|elimina|eliminar|drop|reset|force[- ]push|pagamento|pagamentos|payment|stripe|checkout|auth|autenticação|autenticacao)\b/i;
-const SCOPE_MARKERS = /\b(?:feature|funcionalidade|plataforma|refactor|refactoriza|refatoriza|reestrutura|arquitectura|arquitetura|migrar|integra|integrar|do zero|de raiz)\b/i;
+// Signals that REQUIRE a plan before executing (rules/task-intake.md → "Plan before executing").
+// Irreversible arms it on its own; large scope arms it by itself.
+const IRREVERSIBLE_MARKERS = /\b(?:migration|migrations|migrate|migra|deploy|deployar|publicar|publish|produção|producao|production|apaga|apagar|delete|elimina|eliminar|remove|drop|reset|force[- ]push|pagamento|pagamentos|payment|payments|stripe|checkout|auth|autenticação|autenticacao|authentication)\b/i;
+const SCOPE_MARKERS = /\b(?:feature|funcionalidade|plataforma|platform|refactor|refactoriza|refatoriza|reestrutura|restructure|arquitectura|arquitetura|architecture|migrar|integra|integrar|integrate|do zero|de raiz|from scratch)\b/i;
 
-// Pedidos que NÃO são trabalho: perguntas, decisões, conversa. Escalar aqui é desperdício.
-const QUESTION_START = /^\s*(?:o que|qual|quais|quando|onde|porque|porquê|porque|como|quem|será|sera|achas|podes explicar|explica|mostra|lista|vale a pena|devo|posso)\b/i;
+// Requests that are NOT work: questions, decisions, conversation. Escalating here is a waste.
+const QUESTION_START = /^\s*(?:o que|qual|quais|quando|onde|porque|porquê|porque|como|quem|será|sera|achas|podes explicar|explica|mostra|lista|vale a pena|devo|posso|what|which|when|where|why|how|who|is it|is it worth|do you think|can you explain|explain|show|list|should i|can i)\b/i;
 
-// Verbos de acção. Servem para distinguir DOIS TRABALHOS de UM trabalho que por acaso menciona
-// vocabulário de dois domínios: "refactoriza o componente de login em react" toca frontend e
-// backend no léxico, mas tem um só verbo — é uma tarefa, não duas.
-const ACTION_VERBS = /\b(?:cria|criar|faz|fazer|muda|mudar|altera|alterar|actualiza|actualizar|atualiza|escreve|escrever|refactoriza|refatoriza|adiciona|adicionar|remove|remover|apaga|apagar|corrige|corrigir|implementa|implementar|instala|instalar|configura|configurar|testa|testar|publica|publicar|traduz|traduzir|migra|migrar|integra|integrar|optimiza|otimiza|revê|rever|constrói|constroi|gera|gerar)\b/gi;
+// Action verbs. They serve to tell TWO JOBS apart from ONE job that happens to mention
+// vocabulary from two domains: "refactor the login component in react" touches frontend and
+// backend in the lexicon, but has a single verb — it is one task, not two.
+const ACTION_VERBS = /\b(?:cria|criar|create|faz|fazer|make|muda|mudar|change|altera|alterar|actualiza|actualizar|atualiza|update|escreve|escrever|write|refactoriza|refatoriza|refactor|adiciona|adicionar|add|remove|remover|apaga|apagar|delete|corrige|corrigir|fix|implementa|implementar|implement|instala|instalar|install|configura|configurar|configure|testa|testar|test|publica|publicar|publish|traduz|traduzir|translate|migra|migrar|migrate|integra|integrar|integrate|optimiza|otimiza|optimize|revê|rever|review|constrói|constroi|build|gera|gerar|generate)\b/gi;
 
 function analyse(prompt) {
   const text = (prompt || '').trim();
@@ -58,8 +61,8 @@ function analyse(prompt) {
 
   const words = text.split(/\s+/).length;
 
-  // Domínios mencionados, ordenados por quantas palavras-chave cada um acertou: quando uma frase
-  // toca vários domínios no léxico ("componente de login em react"), o dominante é o que interessa.
+  // Domains mentioned, ordered by how many keywords each one hit: when a sentence
+  // touches several domains in the lexicon ("login component in react"), the dominant one is what matters.
   const lower = text.toLowerCase();
   const scored = Object.entries(DOMAINS)
     .map(([d, kws]) => [d, kws.filter((k) => lower.includes(k)).length])
@@ -67,31 +70,31 @@ function analyse(prompt) {
     .sort((a, b) => b[1] - a[1]);
   const domains = scored.map(([d]) => d);
 
-  // Partes independentes
+  // Independent parts
   let splits = 0;
   for (const re of SPLIT_MARKERS) splits += (text.match(re) || []).length;
 
   const scale = (text.match(SCALE_MARKERS) || []).length > 0;
   const isQuestion = QUESTION_START.test(text) || (text.includes('?') && words < 30);
 
-  // Uma pergunta curta é conversa, não trabalho — não escalar.
+  // A short question is conversation, not work — do not escalate.
   if (isQuestion && splits === 0 && !scale) {
-    return { via: 'directa', motivo: 'pergunta sem trabalho decomponível' };
+    return { via: 'directa', motivo: 'question with no decomposable work' };
   }
 
   const actions = (text.match(ACTION_VERBS) || []).length;
 
-  // Partes independentes. Marcas de divisão explícitas ("e também", bullets) são prova directa.
-  // Domínios distintos só contam como partes separadas se houver mais do que uma acção pedida ou
-  // uma divisão explícita — caso contrário é uma tarefa que menciona vocabulário de vários lados.
+  // Independent parts. Explicit split marks ("and also", bullets) are direct evidence.
+  // Distinct domains only count as separate parts if there is more than one action requested or
+  // an explicit split — otherwise it is one task that mentions vocabulary from several sides.
   const domainParts = (actions >= 2 || splits > 0) ? domains.length : 1;
   const parts = Math.max(splits > 0 ? splits + 1 : 0, domainParts);
 
   if (scale) {
     return {
       via: 'fan-out',
-      motivo: `trabalho repetido em vários sítios${domains.length ? ` (${domains.join(', ')})` : ''}`,
-      sugestao: 'um agente por sítio ou ficheiro, em paralelo',
+      motivo: `work repeated in several places${domains.length ? ` (${domains.join(', ')})` : ''}`,
+      sugestao: 'one agent per place or file, in parallel',
       domains,
     };
   }
@@ -99,28 +102,28 @@ function analyse(prompt) {
   if (parts >= PARALLEL_THRESHOLD) {
     return {
       via: 'fan-out',
-      motivo: `${parts} partes independentes${domains.length > 1 ? ` em ${domains.length} domínios (${domains.join(', ')})` : ''}`,
+      motivo: `${parts} independent parts${domains.length > 1 ? ` in ${domains.length} domains (${domains.join(', ')})` : ''}`,
       sugestao: domains.length > 1
-        ? `despachar ${domains.map((d) => `${d}`).join(' + ')} em paralelo`
-        : 'despachar as partes em paralelo',
+        ? `dispatch ${domains.map((d) => `${d}`).join(' + ')} in parallel`
+        : 'dispatch the parts in parallel',
       domains,
     };
   }
 
-  // Uma tarefa só, mas com domínio identificado → a skill desse domínio deve ser lida na mesma.
+  // Only one task, but with an identified domain → the skill of that domain must be read all the same.
   if (domains.length >= 1) {
-    return { via: 'skill-ou-agente', motivo: `domínio único (${domains[0]})`, domains };
+    return { via: 'skill-ou-agente', motivo: `single domain (${domains[0]})`, domains };
   }
 
-  return { via: 'directa', motivo: 'trabalho pequeno e indivisível' };
+  return { via: 'directa', motivo: 'small, indivisible work' };
 }
 
-// Anexa o motivo de plano ao resultado da triagem (null-safe; a via não muda).
+// Attaches the plan reason to the triage result (null-safe; the route does not change).
 function comPlano(a, irreversivel, scopeGrande) {
   if (!a) return a;
-  if (irreversivel) a.plano = 'acção irreversível detectada';
-  else if (a.via === 'fan-out') a.plano = 'fan-out: fronteiras de ficheiro por agente';
-  else if (scopeGrande) a.plano = 'scope de feature/arquitectura';
+  if (irreversivel) a.plano = 'irreversible action detected';
+  else if (a.via === 'fan-out') a.plano = 'fan-out: file boundaries per agent';
+  else if (scopeGrande) a.plano = 'feature/architecture scope';
   return a;
 }
 
@@ -132,29 +135,29 @@ try {
     try {
       const payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
       prompt = payload.prompt || payload.user_prompt || '';
-    } catch { /* sem payload utilizável → nudge genérico */ }
+    } catch { /* no usable payload → generic nudge */ }
 
     const a = comPlano(analyse(prompt), IRREVERSIBLE_MARKERS.test(prompt), SCOPE_MARKERS.test(prompt));
     let context;
 
     if (!a) {
-      context = '[task-intake] Classifica antes de responder: directa / skill / agente / fan-out (rules/task-intake.md).';
+      context = '[task-intake] Classify before answering: direct / skill / agent / fan-out (rules/task-intake.md).';
     } else if (a.via === 'fan-out') {
-      context = `[task-intake] Sinal: ${a.motivo}. → Vale fan-out: ${a.sugestao}. `
-        + `Despacha os agentes NUM SÓ turno (paralelos de facto). `
-        + `Agentes de execução por domínio: .claude/agents/<skill>-agent.md. `
-        + `Se decidires fazer inline, é escolha válida — mas fá-la de propósito.`;
+      context = `[task-intake] Signal: ${a.motivo}. → Worth a fan-out: ${a.sugestao}. `
+        + `Dispatch the agents IN A SINGLE turn (parallel in fact). `
+        + `Execution agents by domain: .claude/agents/<skill>-agent.md. `
+        + `If you decide to do it inline, that is a valid choice — but make it deliberately.`;
     } else if (a.via === 'skill-ou-agente') {
-      context = `[task-intake] Sinal: ${a.motivo}. → Lê a skill do domínio antes de escrever código; `
-        + `se o trabalho for isolável e longo, despacha <skill>-agent em vez de o fazer inline.`;
+      context = `[task-intake] Signal: ${a.motivo}. → Read the domain skill before writing code; `
+        + `if the work is isolable and long, dispatch <skill>-agent instead of doing it inline.`;
     } else {
-      context = `[task-intake] Sinal: ${a.motivo}. → Responde directamente; não escales.`;
+      context = `[task-intake] Signal: ${a.motivo}. → Answer directly; do not escalate.`;
     }
 
-    // Gate de plano: acrescenta-se ao sinal de via, não o substitui.
+    // Plan gate: it is added to the route signal, it does not replace it.
     if (a && a.plano) {
-      context += ` [plano] ${a.plano} → escreve o plano visível (objectivo · ficheiros por agente · `
-        + `critério de sucesso) ANTES do primeiro Write/Agent. rules/task-intake.md.`;
+      context += ` [plan] ${a.plano} → write the visible plan (objective · files per agent · `
+        + `success criterion) BEFORE the first Write/Agent. rules/task-intake.md.`;
     }
 
     process.stdout.write(JSON.stringify({
@@ -162,7 +165,7 @@ try {
     }));
     process.exit(0);
   });
-  // Se o stdin nunca fechar, não pendurar o turno.
+  // If stdin never closes, do not hang the turn.
   setTimeout(() => { try { process.stdout.write('{}'); } catch (_) {} process.exit(0); }, 1500).unref?.();
 } catch (_) {
   process.exit(0);

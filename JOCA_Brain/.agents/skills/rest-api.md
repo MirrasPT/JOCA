@@ -1,7 +1,7 @@
 ---
 name: rest-api
 description: "REST API design specialist. MUST be invoked when the user says: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination. SHOULD also invoke when: API error, rate limit, throttle, CORS, API documentation, api route."
-triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination, API error, rate limit, throttle, CORS, API documentation, api route, api resource, API contract, problema+json, RFC 9457, RFC 7807, API endpoint, desenhar API, definir endpoints, API architecture
+triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination, API error, rate limit, throttle, CORS, API documentation, api route, api resource, API contract, problem+json, RFC 9457, RFC 7807, API endpoint, define endpoints, API architecture
 chain: tester-api, tester-ratelimit
 ---
 
@@ -16,40 +16,40 @@ Auto-invoked by `laravel-specialist` for endpoint design or contract definition.
 ## URL design -- resources, not verbs
 
 ```
-GET    /api/v1/team-members          # listar
+GET    /api/v1/team-members          # list
 GET    /api/v1/team-members/{id}     # single
-POST   /api/v1/team-members          # criar
+POST   /api/v1/team-members          # create
 PUT    /api/v1/team-members/{id}     # full replace
 PATCH  /api/v1/team-members/{id}     # partial update
-DELETE /api/v1/team-members/{id}     # remover
+DELETE /api/v1/team-members/{id}     # remove
 
-# Nested para relacoes:
+# Nested for relations:
 GET    /api/v1/posts/{postId}/comments
 POST   /api/v1/posts/{postId}/comments
 
-# Accoes nao-CRUD -- nomes, nao verbos:
-POST   /api/v1/orders/{id}/cancellation      # nao /cancelOrder
-POST   /api/v1/users/{id}/email-verification  # nao /verifyEmail
+# Non-CRUD actions -- nouns, not verbs:
+POST   /api/v1/orders/{id}/cancellation      # not /cancelOrder
+POST   /api/v1/users/{id}/email-verification  # not /verifyEmail
 ```
 
-**Convencoes:** plural, kebab-case, `/v1/` from day 1.
+**Conventions:** plural, kebab-case, `/v1/` from day 1.
 
 ---
 
 ## Status codes -- Symfony constants
 
 ```php
-Response::HTTP_OK                    // 200 GET sucesso
-Response::HTTP_CREATED               // 201 POST cria recurso
+Response::HTTP_OK                    // 200 GET success
+Response::HTTP_CREATED               // 201 POST creates resource
 Response::HTTP_ACCEPTED              // 202 job async dispatched
-Response::HTTP_NO_CONTENT            // 204 DELETE sucesso
-Response::HTTP_BAD_REQUEST           // 400 pedido malformado
-Response::HTTP_UNAUTHORIZED          // 401 nao autenticado
-Response::HTTP_FORBIDDEN             // 403 autenticado mas sem permissao
-Response::HTTP_NOT_FOUND             // 404 recurso nao encontrado
-Response::HTTP_UNPROCESSABLE_ENTITY  // 422 validacao falhou
+Response::HTTP_NO_CONTENT            // 204 DELETE success
+Response::HTTP_BAD_REQUEST           // 400 malformed request
+Response::HTTP_UNAUTHORIZED          // 401 not authenticated
+Response::HTTP_FORBIDDEN             // 403 authenticated but no permission
+Response::HTTP_NOT_FOUND             // 404 resource not found
+Response::HTTP_UNPROCESSABLE_ENTITY  // 422 validation failed
 Response::HTTP_TOO_MANY_REQUESTS     // 429 rate limit
-Response::HTTP_INTERNAL_SERVER_ERROR // 500 erro inesperado
+Response::HTTP_INTERNAL_SERVER_ERROR // 500 unexpected error
 ```
 
 Never bare integers (422). Always `Response::HTTP_*`.
@@ -93,7 +93,7 @@ Prevents HTML error responses in API routes.
 ## Versioning -- URL path + Sunset header
 
 ```php
-// Ambas as versoes coexistem:
+// Both versions coexist:
 Route::prefix('v1/posts')
     ->middleware(['auth:sanctum', 'throttle:api', 'sunset:2026-12-31'])
     ->group(function (): void { ... });
@@ -112,10 +112,10 @@ Route::prefix('v2/posts')
 ## Pagination -- simplePaginate always
 
 ```php
-// simplePaginate(): sem COUNT(*), mais eficiente
+// simplePaginate(): no COUNT(*), more efficient
 $posts = Post::query()->simplePaginate(20);
 
-// Resposta:
+// Response:
 {
     "data": [...],
     "links": {
@@ -141,13 +141,13 @@ $posts = Post::query()->cursorPaginate(20);
 
 ```
 GET /api/v1/products?status=active&sort=-created_at
-    # prefixo - = descendente
+    # - prefix = descending
 
 GET /api/v1/products?price[gte]=10&price[lte]=100
-    # bracket notation para comparacoes
+    # bracket notation for comparisons
 
 GET /api/v1/products?include=category,tags
-    # controlo de eager loading
+    # eager loading control
 ```
 
 ---
@@ -158,7 +158,7 @@ GET /api/v1/products?include=category,tags
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 87
 X-RateLimit-Reset: 1718000000
-Retry-After: 60       # incluido na resposta 429
+Retry-After: 60       # included in the 429 response
 ```
 
 Tiers:
@@ -178,25 +178,25 @@ Sanctum stateless tokens for APIs. Never session-based for pure APIs.
 ```php
 // config/cors.php
 'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '*')),
-// Em producao: explicitar origens
+// In production: make origins explicit
 ```
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |--------|----------|
-| Verbos em URLs: `/getUser` | Resource-based: `/users/{id}` |
-| Inteiros bare para status | `Response::HTTP_CREATED` |
+| Verbs in URLs: `/getUser` | Resource-based: `/users/{id}` |
+| Bare integers for status | `Response::HTTP_CREATED` |
 | JSON error ad-hoc | RFC 9457 ProblemResponse |
-| Breaking changes sem migracao | Sunset header + 6 meses |
-| Envelope inconsistente | `JsonResource::withoutWrapping()` global |
-| IDs auto-increment em URLs | ULIDs (previne enumeration) |
+| Breaking changes with no migration | Sunset header + 6 months |
+| Inconsistent envelope | `JsonResource::withoutWrapping()` global |
+| Auto-increment IDs in URLs | ULIDs (prevents enumeration) |
 | `paginate()` | `simplePaginate()` |
-| Rate limiting in-memory | Redis ou gateway |
-| Erros HTML em rotas API | `ForceJsonResponse` middleware |
-| Route group sem `throttle:api` | Incluir sempre |
+| Rate limiting in-memory | Redis or gateway |
+| HTML errors in API routes | `ForceJsonResponse` middleware |
+| Route group without `throttle:api` | Always include it |
 
 ---
 

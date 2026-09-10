@@ -1,151 +1,151 @@
-# Pipelines — auto-runner de sequências nomeadas
+# Pipelines — auto-runner for named sequences
 
-Catálogo de pipelines que o JOCA **corre sozinho** (não só nomeia). Carregado em todas as sessões.
-Terso por design. **O user diz o objectivo, o JOCA conduz a sequência inteira.**
-
----
-
-## O Auto-Runner (como uma pipeline corre)
-
-Quando o task-intake classifica uma tarefa como **D (workflow)** OU a tarefa casa uma pipeline nomeada abaixo, o **main loop** (ou `/goal`/`master-orchestrator`) corre-a assim:
-
-1. **Selecciona** a pipeline pelo objectivo (match de domínio/triggers).
-2. **Cada passo a fundo:** `Read()` a skill / despacha o agente — nunca superficial.
-3. **Auto-decide** as intermédias **reversíveis** (soul.md autonomy 0.95); irreversível (deploy/push/migration/delete/payment/auth) → **gate** de 1 linha antes.
-4. **Encadeia** via `chain:` (`rules/chaining.md`). Travão: profundidade ≤ `loop_max_iterations` (4); 3x sem progresso → parar e reportar.
-5. **Final gate:** decisões de "taste"/ambíguas acumulam-se e levantam-se de uma vez no fim, não a meio.
-
-**Casar uma pipeline nomeada é ordem de execução, não sugestão.** Não se pergunta se corre nem se
-anuncia a intenção à espera de "sim" — corre-se, e o único gate é o **irreversível** do passo 3.
-Perguntar "queres que eu corra a pipeline X?" gasta a decisão do utilizador numa coisa já decidida
-por esta regra.
-
-O runner é **steward, não initiator** (`orchestration-patterns.md`): só corre passos da pipeline declarada — não inventa scope.
+Catalog of pipelines that JOCA **runs on its own** (not just names). Loaded in every session.
+Terse by design. **The user says the objective, JOCA drives the whole sequence.**
 
 ---
 
-## Doutrina de projecto — vale SEMPRE, com ou sem `/start`
+## The Auto-Runner (how a pipeline runs)
 
-Modo por omissão de **qualquer** projecto (novo, herdado, a meio); o `/start` instala-a, a ausência
-dele não a dispensa. Unidade = **issue** · gate = **GitHub Actions** · estado = **`PROGRESSO.md`** ·
-porquês = **`docs/DECISIONS.md`**.
+When task-intake classifies a task as **D (workflow)** OR the task matches a named pipeline below, the **main loop** (or `/goal`/`master-orchestrator`) runs it like this:
 
-| Momento | Acção |
+1. **Select** the pipeline by objective (domain/trigger match).
+2. **Every step in depth:** `Read()` the skill / dispatch the agent — never superficially.
+3. **Auto-decide** the **reversible** intermediates (soul.md autonomy 0.95); irreversible (deploy/push/migration/delete/payment/auth) → a 1-line **gate** first.
+4. **Chain** via `chain:` (`rules/chaining.md`). Brake: depth ≤ `loop_max_iterations` (4); 3x without progress → stop and report.
+5. **Final gate:** "taste"/ambiguous decisions accumulate and are raised all at once at the end, not mid-flight.
+
+**Matching a named pipeline is an order to execute, not a suggestion.** You do not ask whether to run it nor
+announce the intention waiting for a "yes" — you run it, and the only gate is the **irreversible** one of step 3.
+Asking "do you want me to run pipeline X?" spends the user's decision on something already decided
+by this rule.
+
+The runner is a **steward, not an initiator** (`orchestration-patterns.md`): it only runs steps of the declared pipeline — it does not invent scope.
+
+---
+
+## Project doctrine — it ALWAYS holds, with or without `/start`
+
+Default mode of **any** project (new, inherited, mid-flight); `/start` installs it, its absence
+does not waive it. Unit = **issue** · gate = **GitHub Actions** · state = **`PROGRESS.md`** ·
+whys = **`docs/DECISIONS.md`**.
+
+| Moment | Action |
 |---|---|
-| 1ª sessão sem `PROGRESSO.md` | levantamento do disco → criar `PROGRESSO.md` com o estado **observado** (formato: `.claude/reference/start/progresso-formato.md`). Uma pergunta só: "o que fazemos a seguir?" — a entrevista completa é o `/start` |
-| Trabalho novo (ideia, bug, ecrã) | `novo-issue` **antes** de código. Sem "Ficheiros prováveis" o issue não está pronto — é o que decide o paralelismo |
-| Ecrã/UI que ainda não existe | `preparar-design` → `validar-design` (porteiro) → implementar |
-| ≥3 issues abertos sem plano | `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
-| ≥2 issues a implementar | loop de onda: implementar (paralelo só com ficheiros disjuntos) → `escrever-testes` **noutra sessão** → `tester-code` → PR `Closes #N` → varredura transversal → gate de runtime → portão humano |
-| Decisão técnica (stack, schema, fora-da-casa) | 1 entrada em `docs/DECISIONS.md` — decisão sem registo repete-se |
-| Repo sem `.github/workflows/` | criar o CI (`github`) antes de fechar a onda seguinte |
-| Fecho · fim de sessão | `/ship` → PR (o issue fecha por `Closes #N`); `PROGRESSO.md` actualizado e commitado |
+| 1st session with no `PROGRESS.md` | survey of the disk → create `PROGRESS.md` with the **observed** state (format: `.claude/reference/start/progress-format.md`). One question only: "what do we do next?" — the full interview is `/start` |
+| New work (idea, bug, screen) | `new-issue` **before** code. Without "Likely files" the issue is not ready — that is what decides the parallelism |
+| Screen/UI that does not exist yet | `prepare-design` → `validate-design` (gatekeeper) → implement |
+| ≥3 open issues with no plan | `plan-waves` (milestones + `blocked-by` + `docs/WAVES.md`) |
+| ≥2 issues to implement | wave loop: implement (parallel only with disjoint files) → `write-tests` **in another session** → `tester-code` → PR `Closes #N` → cross-cutting sweep → runtime gate → human gate |
+| Technical decision (stack, schema, outside-the-house) | 1 entry in `docs/DECISIONS.md` — a decision with no record repeats itself |
+| Repo with no `.github/workflows/` | create the CI (`github`) before closing the next wave |
+| Closing · end of session | `/ship` → PR (the issue closes through `Closes #N`); `PROGRESS.md` updated and committed |
 
-⚠ **Não inventar documentos** (`docs/PRD.md` só a pedido ou pelo `/start`). O **arranque** (entrevista,
-página de direcções, scaffold E1, ponto E3) não se globaliza — num projecto a meio o que já existe
-adopta-se, não se recria. CI verde não substitui o gate de runtime. Detalhe e porquês:
-`.claude/reference/doutrina-projecto.md`.
+⚠ **Do not invent documents** (`docs/PRD.md` only on request or through `/start`). The **startup** (interview,
+directions page, E1 scaffold, E3 checkpoint) is not generalised — in a mid-flight project what already exists
+is adopted, not recreated. Green CI does not replace the runtime gate. Detail and whys:
+`.claude/reference/project-doctrine.md`.
 
-## Gates: estático ≠ runtime
+## Gates: static ≠ runtime
 
-`tsc`/`npm run build`/`php -l` verdes provam que **compila**, não que **funciona**: uma app inteira
-foi dada como feita com os dois verdes quando o `next dev` nem sequer hidratava.
+Green `tsc`/`npm run build`/`php -l` prove that it **compiles**, not that it **works**: an entire app
+was called done with both green when `next dev` did not even hydrate.
 
-**Quem escreve o código não assina o gate.** Verificador ≠ produtor — se o produtor foi o main loop,
-a verificação delega-se. Ledger em `.joca/loop.json`, imposto pelo `stop-continuar.js`.
+**Whoever writes the code does not sign off the gate.** Verifier ≠ producer — if the producer was the main loop,
+the verification is delegated. Ledger in `.joca/loop.json`, enforced by `stop-continue.js`.
 
-**Gate estático (mínimo, sempre):** `tsc --noEmit` · `npm run build` · `php -l` · **`eslint`** — o
-eslint não é opcional em JS/TS: é o único que apanha componente indefinido em JSX (`jsx-no-undef`).
+**Static gate (minimum, always):** `tsc --noEmit` · `npm run build` · `php -l` · **`eslint`** —
+eslint is not optional in JS/TS: it is the only one that catches an undefined component in JSX (`jsx-no-undef`).
 
-**Gate de runtime (obrigatório)** — evidência ao vivo por categoria: navegação/overlay/modal
-(`document.elementFromPoint` no centro, em carga limpa — auditar `href` não é testar o clique) ·
-mobile (`getBoundingClientRect().right` vs `innerWidth`; `scrollWidth-clientWidth` dá **0 falso** com
-`overflow-x:clip|hidden`) · auth (login end-to-end, não o 200 da página de login) · media (reproduzir
-e observar) · deploy (dependências derivadas do **HTML publicado**). Casos e detalhe:
+**Runtime gate (mandatory)** — live evidence per category: navigation/overlay/modal
+(`document.elementFromPoint` at the center, on a clean load — auditing `href` is not testing the click) ·
+mobile (`getBoundingClientRect().right` vs `innerWidth`; `scrollWidth-clientWidth` gives a **false 0** with
+`overflow-x:clip|hidden`) · auth (end-to-end login, not the 200 of the login page) · media (play
+and watch) · deploy (dependencies derived from the **published HTML**). Cases and detail:
 `.claude/reference/gates-runtime.md`.
 
-**Não reescrever o gate por projecto:** `node .claude/scripts/gate-runtime.mjs --base <url>
-[--rotas /,/precos] [--clicar "<seletor>"]` mede contraste sobre o pixel pintado,
-`elementFromPoint`, sangramento com filtro de scrollers, nome acessível, erros de consola e
-HTTP >=400. Sem `--clicar` mede só o **repouso** — overlays e modais exigem accionar o gatilho.
+**Do not rewrite the gate per project:** `node .claude/scripts/gate-runtime.mjs --base <url>
+[--rotas /,/precos] [--clicar "<selector>"]` measures contrast over the painted pixel,
+`elementFromPoint`, bleed with a scroller filter, accessible name, console errors and
+HTTP >=400. Without `--clicar` it measures only the **resting state** — overlays and modals require firing the trigger.
 
-**Diagnóstico é passo com gate próprio:** afirmar "X está partido" só depois de **ler o código de X**,
-com ficheiro:linha por afirmação. Comparar nomes e tamanhos de ficheiros não é ler.
+**Diagnosis is a step with a gate of its own:** claim "X is broken" only after **reading X's code**,
+with file:line per claim. Comparing file names and sizes is not reading.
 
-**Resolver conflitos é código, não texto:** depois de merge/porte/`git apply --3way`, **correr o
-artefacto** — um 3-way sem marcadores já deu ficheiro plausível que rebentava à 1ª execução.
+**Resolving conflicts is code, not text:** after a merge/port/`git apply --3way`, **run the
+artifact** — a 3-way with no markers has already produced a plausible file that blew up on the 1st run.
 
 
-## Princípios de auto-decisão (intermédias reversíveis)
+## Auto-decision principles (reversible intermediates)
 
-Ao decidir sozinho uma escolha intermédia, por esta ordem:
-1. **Decisão activa do Brain** (`joca-brain active`) — se já foi decidido, segue.
-2. **Convenção do projecto** (CLAUDE.md do projecto, código existente, padrões à volta).
-3. **Default da skill** do passo (a skill especializada manda).
-4. **Menor superfície** (YAGNI — `skills/yagni.md`).
-5. Sem base nenhuma + **irreversível** → gate. Sem base + reversível → escolhe e regista (`joca-brain decide --source agent`).
+When deciding an intermediate choice on your own, in this order:
+1. **Active Brain decision** (`joca-brain active`) — if it has already been decided, follow it.
+2. **Project convention** (the project's CLAUDE.md, existing code, surrounding patterns).
+3. **The step's skill default** (the specialized skill rules).
+4. **Smallest surface** (YAGNI — `skills/yagni.md`).
+5. No basis at all + **irreversible** → gate. No basis + reversible → choose and record it (`joca-brain decide --source agent`).
 
 ---
 
-## Catálogo de pipelines
+## Pipeline catalog
 
-Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irreversível.)
+Each pipeline = sequence of steps + gates. (⛔ = irreversible confirmation gate.)
 
-### Produto / planeamento
-| Pipeline | Sequência |
+### Product / planning
+| Pipeline | Sequence |
 |---|---|
-| **autoplan** (NL → plano aprovado) | `plan` (interrogar+OODA) → `design-review` (plan-mode, dimensões 0-10) → revisão de eng (arquitectura/edge/test) → **final gate** (taste/scope) |
-| **PRD → prod** (`/one-shot`) | `master-orchestrator` → agentes paralelos → `tester-*` (auto) → ⛔ deploy |
+| **autoplan** (NL → approved plan) | `plan` (interrogate+OODA) → `design-review` (plan-mode, dimensions 0-10) → eng review (architecture/edge/test) → **final gate** (taste/scope) |
+| **PRD → prod** (`/one-shot`) | `master-orchestrator` → parallel agents → `tester-*` (auto) → ⛔ deploy |
 
 ### Frontend
-| Pipeline | Sequência |
+| Pipeline | Sequence |
 |---|---|
-| **Design (variantes → produção)** | `design-shotgun` (N variantes paralelas) → `design-review` (escolher) → `design-html` (mockup → HTML) → `frontend` (React, se interactivo) |
-| **UI nova** | `frontend` → `design-review` → (`a11y-fixer` se WCAG) → `tester-ui-ux` |
-| **Frontend produção** | `design-system` → `frontend` → `react-composition`+`tailwind`+`react-patterns` → `anima` → `design-review`+`tester-ui-ux`+`tester-performance` |
+| **Design (variants → production)** | `design-shotgun` (N parallel variants) → `design-review` (choose) → `design-html` (mockup → HTML) → `frontend` (React, if interactive) |
+| **New UI** | `frontend` → `design-review` → (`a11y-fixer` if WCAG) → `tester-ui-ux` |
+| **Frontend production** | `design-system` → `frontend` → `react-composition`+`tailwind`+`react-patterns` → `anima` → `design-review`+`tester-ui-ux`+`tester-performance` |
 
 ### Backend
-| Pipeline | Sequência |
+| Pipeline | Sequence |
 |---|---|
-| **Feature Laravel** | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
-| **Admin Filament** | `laravel-specialist` → `filament`/`filament-builder` → `tester-code` |
+| **Laravel feature** | `plan` → `laravel-specialist` → `tester-code` → `tester-api` |
+| **Filament admin** | `laravel-specialist` → `filament`/`filament-builder` → `tester-code` |
 | **API design** | `plan` → `rest-api` → `laravel-specialist` → `tester-api` |
-| **Hardening backend** | `laravel-refactor` + `query-debugger` + `security-review` (paralelo) → `tech-debt-auditor` |
-| **E-commerce full-stack** | `plan` → `saas-patterns` → `laravel-specialist` → `filament-builder` → `laravel-react` → `frontend`+`shadcn` → `payment-integration` ⛔ → hardening |
+| **Backend hardening** | `laravel-refactor` + `query-debugger` + `security-review` (parallel) → `tech-debt-auditor` |
+| **Full-stack e-commerce** | `plan` → `saas-patterns` → `laravel-specialist` → `filament-builder` → `laravel-react` → `frontend`+`shadcn` → `payment-integration` ⛔ → hardening |
 
-### Qualidade / operações
-| Pipeline | Sequência |
+### Quality / operations
+| Pipeline | Sequence |
 |---|---|
-| **Debug** | `log-debugger` (Iron Law: causa-raiz primeiro) → `query-debugger` (se SQL) |
-| **QA loop** | `tester-*` test→fix→verify+commit atómico, repetir até verde |
-| **Ship** (`/ship`) | sync base → testes → review diff (`tester-code`) → version/CHANGELOG → ⛔ push → PR (`github`) |
-| **Segurança CSO** (`cso`) | secrets → deps (`dependency-auditor`) → OWASP/STRIDE (`security-review`+`tester-security`) → gate de confiança |
-| **Deploy** | `deploy-executor` (detecta alvo, corre `deploy-*`, health-check **derivado do HTML publicado**, purga CF se houve adições) ⛔ |
-| **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
-| **Retro** | `/retro` → lê aprendizagens da janela → propõe acções |
+| **Debug** | `log-debugger` (Iron Law: root cause first) → `query-debugger` (if SQL) |
+| **QA loop** | `tester-*` test→fix→verify+atomic commit, repeat until green |
+| **Ship** (`/ship`) | sync base → tests → review diff (`tester-code`) → version/CHANGELOG → ⛔ push → PR (`github`) |
+| **CSO security** (`cso`) | secrets → deps (`dependency-auditor`) → OWASP/STRIDE (`security-review`+`tester-security`) → trust gate |
+| **Deploy** | `deploy-executor` (detects the target, runs `deploy-*`, health-check **derived from the published HTML**, purges CF if there were additions) ⛔ |
+| **Repair PR** | `pr-repair` (conflicts → bot reviews → CI → ⛔ push 1x at the end) |
+| **Retro** | `/retro` → reads the window's learnings → proposes actions |
 
-### Arranque de produto
-| Pipeline | Sequência |
+### Product startup
+| Pipeline | Sequence |
 |---|---|
-| **Produto novo (0 → producao)** | `/start` (entrevista + PRD + stack + direccao de design) → `executar-projeto`: E1 fundacao ⛔ push → E2 design (via Claude Design c/ conversao, OU directo: `design-system`→`design-shotgun` se frontend→`preparar-design`/`validar-design` por ecra) → E3 ponto de situacao ⏸ → E4 `planear-ondas` → loop por onda (implementar c/ agentes de dominio → `escrever-testes` **sessao separada** → `tester-code` → gate runtime → portao) → `security-review` → ⛔ deploy |
-| **Ecrã novo em projecto existente** | `preparar-design` (Artifact) → `validar-design` → `novo-issue` se houver componentes novos → implementar → `escrever-testes` |
-| **Backlog → plano** | `novo-issue` (×N) → `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
+| **New product (0 → production)** | `/start` (interview + PRD + stack + design direction) → `execute-project`: E1 foundation ⛔ push → E2 design (via Claude Design w/ conversion, OR direct: `design-system`→`design-shotgun` if frontend→`prepare-design`/`validate-design` per screen) → E3 status checkpoint ⏸ → E4 `plan-waves` → loop per wave (implement w/ domain agents → `write-tests` **separate session** → `tester-code` → runtime gate → gate) → `security-review` → ⛔ deploy |
+| **New screen in an existing project** | `prepare-design` (Artifact) → `validate-design` → `new-issue` if there are new components → implement → `write-tests` |
+| **Backlog → plan** | `new-issue` (×N) → `plan-waves` (milestones + `blocked-by` + `docs/WAVES.md`) |
 
-⚠ **Em qualquer projecto** (ver §Doutrina): `escrever-testes` corre em sessão separada da que
-implementou — testes escritos a seguir ao código verificam o código, não o requisito.
+⚠ **In any project** (see §Doctrine): `write-tests` runs in a session separate from the one that
+implemented — tests written right after the code verify the code, not the requirement.
 
-### Conhecimento
-| Pipeline | Sequência |
+### Knowledge
+| Pipeline | Sequence |
 |---|---|
-| **Knowledge ingest** (`/know`) | `knowledge-ingest` (markitdown → resumo → tags → `memory/knowledge/`) |
-| **Research de mercado/recência** | `/last30days <tópico>` (sinal social pontuado por engagement, plugin externo) + `deep-research` (profundidade+citações) → fundir → `competitor-profiling`/`content-strategy`/`launch-strategy` |
-| **Self-improvement** (`/upgrade-joca`) | `self-improver` → `gemini-auditor` → aplicar |
+| **Knowledge ingest** (`/know`) | `knowledge-ingest` (markitdown → summary → tags → `memory/knowledge/`) |
+| **Market/recency research** | `/last30days <topic>` (social signal scored by engagement, external plugin) + `deep-research` (depth+citations) → merge → `competitor-profiling`/`content-strategy`/`launch-strategy` |
+| **Self-improvement** (`/upgrade-joca`) | `self-improver` → `gemini-auditor` → apply |
 
 ---
 
-## Ligações
-- `rules/task-intake.md` — classifica a via; via D dispara o runner.
-- `rules/chaining.md` — encadeamento passo-a-passo (`chain:`).
-- `rules/orchestration-patterns.md` — fan-out, cap 3-5, agentes-escrevem-disco, steward.
-- `.claude/agents/master-orchestrator.md` — motor de fan-out do runner.
-- `.claude/commands/autoplan.md`, `/goal`, `/one-shot` — entradas que correm pipelines.
+## Links
+- `rules/task-intake.md` — classifies the route; route D fires the runner.
+- `rules/chaining.md` — step-by-step chaining (`chain:`).
+- `rules/orchestration-patterns.md` — fan-out, cap 3-5, agents-write-to-disk, steward.
+- `.claude/agents/master-orchestrator.md` — the runner's fan-out engine.
+- `.claude/commands/autoplan.md`, `/goal`, `/one-shot` — entry points that run pipelines.

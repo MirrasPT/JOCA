@@ -1,7 +1,7 @@
 ---
 name: caching
 description: "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache. SHOULD also invoke when: HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags."
-triggers: cache, caching, Redis, redis, Cache::remember, cache invalidation, CDN, Cloudflare cache, HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags, cache stampede, thundering herd, TTL, cache warming, config:cache, route:cache, opcache, performance cache, lento, slow, rapido, fast, optimizar, optimize
+triggers: cache, caching, Redis, Cache::remember, cache invalidation, CDN, Cloudflare cache, HTTP cache, Cache-Control, ETag, stale-while-revalidate, responsecache, cache tags, cache stampede, thundering herd, TTL, cache warming, config:cache, route:cache, opcache, performance cache, slow, fast, optimize
 chain: tester-performance
 ---
 # Caching
@@ -27,8 +27,8 @@ Run on EVERY deploy. After `config:cache`, `.env` is not read -- `env()` works o
 CACHE_STORE=redis
 REDIS_CLIENT=phpredis
 REDIS_DB=0          # default
-REDIS_CACHE_DB=1    # cache isolado
-REDIS_SESSION_DB=2  # sessions isoladas
+REDIS_CACHE_DB=1    # isolated cache
+REDIS_SESSION_DB=2  # isolated sessions
 ```
 
 phpredis required in production (2-3x faster than predis).
@@ -42,7 +42,7 @@ $products = Cache::remember('products.featured', now()->addHour(), function () {
 
 ### flexible() -- stale-while-revalidate (Laravel 11+)
 ```php
-// Fresh 30s, stale ate 120s (refresh em background), expira apos 120s
+// Fresh 30s, stale up to 120s (background refresh), expires after 120s
 $listings = Cache::flexible('listings.active', [30, 120], function () {
     return Listing::active()->paginate(20);
 });
@@ -51,26 +51,26 @@ Use when 30-120s staleness is acceptable (listings, feeds, dashboards).
 
 ### Cache tags -- grouped invalidation
 ```php
-// Guardar com tags
+// Store with tags
 Cache::tags(['products', "category:{$catId}"])
     ->put("product:{$id}", $product, 3600);
 
-// Invalidar por tag (so Redis/Memcached)
-Cache::tags(['products'])->flush();         // todos os produtos
-Cache::tags(["category:{$catId}"])->flush(); // so uma categoria
+// Invalidate by tag (Redis/Memcached only)
+Cache::tags(['products'])->flush();         // all products
+Cache::tags(["category:{$catId}"])->flush(); // only one category
 ```
 
 ### rememberForever() + explicit invalidation
 ```php
 Cache::rememberForever('app.settings', fn() => Setting::all()->pluck('value', 'key'));
 
-// No observer: invalidar quando muda
+// In the observer: invalidate when it changes
 Cache::forget('app.settings');
 ```
 
 ### Null values -- TRAP
 ```php
-// BAD: null nunca e guardado -> query a cada request
+// BAD: null is never stored -> query on every request
 Cache::remember('user.404', 3600, fn() => User::find(9999));
 
 // GOOD: sentinel value
@@ -147,15 +147,15 @@ Cache::tags(["tenant:{$tenantId}"])->flush();
 
 ## TTL by data type
 
-| Dados | TTL | Strategy |
+| Data | TTL | Strategy |
 |-------|-----|----------|
-| Stock, saldo, inventario | 0-30s ou sem cache | DB + query optimization |
-| Dados por utilizador | 60-300s | `remember()` + private HTTP |
+| Stock, balance, inventory | 0-30s or no cache | DB + query optimization |
+| Per-user data | 60-300s | `remember()` + private HTTP |
 | Feature flags | 300s | `flexible(30, 300)` |
-| Catalogo, listagens | 900-3600s | `remember()` + tags |
+| Catalog, listings | 900-3600s | `remember()` + tags |
 | Dashboards analytics | 60-300s | `flexible(60, 300)` |
-| Categorias, paises | 86400s | `rememberForever()` + observer |
-| Settings app | 86400s | `rememberForever()` + forget |
+| Categories, countries | 86400s | `rememberForever()` + observer |
+| App settings | 86400s | `rememberForever()` + forget |
 
 ---
 
@@ -163,8 +163,8 @@ Cache::tags(["tenant:{$tenantId}"])->flush();
 
 ```conf
 maxmemory 512mb
-maxmemory-policy allkeys-lfu   # best para SaaS com hot keys
-save ""                         # desactivar RDB para cache puro
+maxmemory-policy allkeys-lfu   # best for SaaS with hot keys
+save ""                         # disable RDB for pure cache
 ```
 
 Monitoring:
@@ -231,7 +231,7 @@ THEN: Cache, Edge TTL = use origin headers
 
 **Rule 3 (P3) -- Public API:**
 ```
-IF URI starts with /api/ (excluindo Rule 1)
+IF URI starts with /api/ (excluding Rule 1)
 THEN: Cache, Edge TTL = 60s
 ```
 
@@ -241,7 +241,7 @@ THEN: Cache, Edge TTL = 60s
 CloudflareCache::purgeByUrls([route('products.index')]);
 CloudflareCache::purgeByTags(['products']);
 
-// Directo via API
+// Direct via API
 Http::withToken(config('services.cloudflare.token'))
     ->delete("https://api.cloudflare.com/client/v4/zones/{$zoneId}/purge_cache", [
         'files' => [$url],
@@ -275,15 +275,15 @@ location = /index.html {
 
 ## Anti-patterns
 
-| Errado | Problema | Fix |
+| Wrong | Problem | Fix |
 |--------|----------|-----|
-| `Cache::remember` com null | Null nunca e guardado, query a cada request | Sentinel value (`?? false`) |
-| TTL uniforme para tudo | Stock stale 1h, settings recalculados a cada request | TTL por volatilidade |
-| `rememberForever` sem invalidacao | Dados stale para sempre | Observer/event + forget |
-| `Cache::flush()` em SaaS | Limpa TODOS os tenants | Tags + flush scoped |
-| Cache sem lock em hot keys | Stampede: N workers recomputing | `Cache::lock()->block()` |
-| `public` em respostas autenticadas | CDN serve dados de um user a outro | `private, no-store` |
-| `env()` fora de config/*.php | Null apos `config:cache` | Usar `config()` |
+| `Cache::remember` with null | Null is never stored, query on every request | Sentinel value (`?? false`) |
+| Uniform TTL for everything | Stock stale for 1h, settings recomputed on every request | TTL by volatility |
+| `rememberForever` without invalidation | Stale data forever | Observer/event + forget |
+| `Cache::flush()` in SaaS | Clears ALL tenants | Tags + scoped flush |
+| Cache without a lock on hot keys | Stampede: N workers recomputing | `Cache::lock()->block()` |
+| `public` on authenticated responses | CDN serves one user's data to another | `private, no-store` |
+| `env()` outside config/*.php | Null after `config:cache` | Use `config()` |
 
 ---
 
@@ -311,13 +311,13 @@ Add to deploy: `php artisan cache:warm`
 
 ## Packages
 
-| Package | Funcao |
+| Package | Function |
 |---------|--------|
 | `spatie/laravel-responsecache` | Full HTTP response cache (200ms -> 5ms) |
-| `yediyuz/laravel-cloudflare-cache` | Purge CDN por URL/tag no model observer |
-| `werk365/etagconditionals` | ETag middleware automatico |
+| `yediyuz/laravel-cloudflare-cache` | Purge the CDN by URL/tag in the model observer |
+| `werk365/etagconditionals` | Automatic ETag middleware |
 
 ---
 
 ## Quality gate
-After implementing caching: "Queres `tester-performance`?" (Lighthouse + load test to verify impact)
+After implementing caching: "Do you want `tester-performance`?" (Lighthouse + load test to verify impact)

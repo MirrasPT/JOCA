@@ -1,133 +1,135 @@
 ---
 name: public-release-audit
-description: "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Varre por git e não por disco, apanha espelhos compilados, symlinks, metadados de autor e dependências da montagem pessoal do dono. MUST be invoked when the user says: publicar no repo público, open source release, preparar release público, scrub antes de publicar, auditar o que vai sair, sanitizar repo, push para repo de cliente, entregar código a terceiros, repo da org do cliente. SHOULD also invoke when: um push vai para um remote que não é o repo de trabalho (público, de cliente, de outra organização), ou quando se faz `git remote add` seguido de push para esse remote novo."
-triggers: publicar repo público, open source release, release público, scrub PII, sanitizar repo, preparar publicação, o que vai sair no push, auditar release, público vs privado, PII scan, push para repo de cliente, entregar código a terceiros, repo da org do cliente, primeiro push para remote novo, adicionar segundo remote, repo internal, entrega ao cliente
+description: "Prepare and audit a repo before pushing it to a remote that is NOT the work one — public, a client's, or another organization's (even private/internal). Sweeps by git and not by disk, catches compiled mirrors, symlinks, author metadata and dependencies on the owner's personal setup. MUST be invoked when the user says: publish to the public repo, open source release, prepare public release, scrub before publishing, audit what is going out, sanitize repo, push to a client repo, hand code to third parties, the client's org repo. SHOULD also invoke when: a push is going to a remote that is not the work repo (public, a client's, another organization's), or when a `git remote add` is followed by a push to that new remote."
+triggers: publish public repo, open source release, public release, scrub PII, sanitize repo, prepare publication, what goes out in the push, audit release, public vs private, PII scan, push to a client repo, hand code to third parties, the client's org repo, first push to a new remote, add a second remote, internal repo, delivery to the client
 chain: ship
 metadata:
   origin: user
 ---
-# public-release-audit — o que sai daqui serve a quem clona?
+# public-release-audit — does what goes out of here serve whoever clones it?
 
-Auditar um repo antes de o empurrar para um remote que não é o de trabalho. Improvisar isto já custou
-caro três vezes: 44 dos 52 achados de uma auditoria eram o mesmo dado a sobreviver num espelho
-compilado, incluindo **host, utilizador e nome de chave SSH reais**; o `/sync-brain` foi publicado
-sanitizado de PII e inútil na mesma, porque dependia da montagem pessoal do dono; e um `CLAUDE.md`
-interno foi parar ao repo **internal** de um cliente, com infra, ponteiro para o repo privado e a
-descrição de um token por rotacionar.
+Audit a repo before pushing it to a remote that is not the work one. Improvising this has already
+cost dearly three times: 44 of the 52 findings of one audit were the same data surviving in a
+compiled mirror, including **real host, user and SSH key name**; `/sync-brain` was published
+sanitized of PII and useless all the same, because it depended on the owner's personal setup; and an
+internal `CLAUDE.md` ended up in a client's **internal** repo, with infra, a pointer to the private
+repo and the description of a token pending rotation.
 
-> **O scrub acontece antes do PRIMEIRO push. Depois disso não há desfazer limpo** — force-push tira
-> a referência, não o objecto (ver "Já publicaste" no fim).
+> **The scrub happens before the FIRST push. After that there is no clean undo** — force-push
+> removes the reference, not the object (see "You already published" at the end).
 
-## Passo 0 — para onde é que isto vai?
+## Step 0 — where is this going?
 
-Antes de qualquer coisa, saber o destino. "Público" não é o critério: o critério é **não é o meu repo
-de trabalho**. Um repo `internal` de um cliente é a mesma classe de risco.
+Before anything else, know the destination. "Public" is not the criterion: the criterion is **it is
+not my work repo**. A client's `internal` repo is the same class of risk.
 
 ```bash
-git remote -v                      # que remotes existem, e qual é o alvo do push
-git rev-parse --abbrev-ref @{u}    # para onde o branch actual empurra hoje
+git remote -v                      # which remotes exist, and which is the push target
+git rev-parse --abbrev-ref @{u}    # where the current branch pushes today
 ```
 
-Remote novo, segundo remote, org de terceiros, ou qualquer alvo diferente do de trabalho → correr a
-checklist inteira. **Publicar por aviso ≠ publicar por varredura:** um aviso na memória sobre um
-ficheiro concreto não delimita o âmbito — o item assinalado foi tratado com rigor e tudo o resto
-passou intacto.
+New remote, second remote, third-party org, or any target different from the work one → run the
+whole checklist. **Publishing by warning ≠ publishing by sweep:** a warning in memory about one
+specific file does not delimit the scope — the flagged item was handled rigorously and everything
+else went through intact.
 
-## Os dois critérios (o segundo é o que escapa)
+## The two criteria (the second one is the one that escapes)
 
-1. **Tem PII/segredos?** — nomes, emails, hosts, IPs, chaves, paths `/Users/<user>`, `C:\Users\<user>`.
-2. **Depende da montagem pessoal do dono?** — duas máquinas nomeadas, um repo privado específico, uma
-   pasta de cloud própria, um cliente real. Passa em qualquer varredura de PII **e continua a não
-   servir a quem clona**. É este que falha em silêncio.
+1. **Does it have PII/secrets?** — names, emails, hosts, IPs, keys, `/Users/<user>` paths,
+   `C:\Users\<user>`.
+2. **Does it depend on the owner's personal setup?** — two named machines, one specific private
+   repo, a cloud folder of their own, a real client. It passes any PII sweep **and still does not
+   serve whoever clones it**. This is the one that fails silently.
 
-## Checklist dura
+## Hard checklist
 
-**1. Ship-list contra o release anterior.** Diff do que vai sair vs o que já saiu — decidir ficheiro a
-ficheiro, não por pasta.
+**1. Ship-list against the previous release.** Diff what is going out vs what already went out —
+decide file by file, not by folder.
 
-**2. Varrer por `git`, nunca por disco.** O que publica é o que está no índice; `find`/`ls` mostram
-coisas que não vão e escondem coisas que vão.
+**2. Sweep by `git`, never by disk.** What publishes is what is in the index; `find`/`ls` show things
+that are not going and hide things that are.
 ```bash
-git ls-tree -r HEAD --name-only          # o que existe mesmo no commit
-git grep -n '<termo>' -- $(git ls-files)  # grep no tracked, não no working dir
-git ls-files | grep -vFxf <(find . -type f | sed 's|^\./||')   # tracked que não está em disco
+git ls-tree -r HEAD --name-only          # what really exists in the commit
+git grep -n '<term>' -- $(git ls-files)  # grep the tracked files, not the working dir
+git ls-files | grep -vFxf <(find . -type f | sed 's|^\./||')   # tracked that is not on disk
 ```
 
-**3. Espelhos compilados.** `.claude/` é canónico; **`.agents/` e `.codex/` são espelhos gerados** e
-publicam à mesma. Editar skills/agentes sem correr `compile-bridges.sh` faz os espelhos divergirem em
-silêncio — e foi lá que sobreviveram host + utilizador + chave SSH do `cpanel.md`.
+**3. Compiled mirrors.** `.claude/` is canonical; **`.agents/` and `.codex/` are generated mirrors**
+and publish all the same. Editing skills/agents without running `compile-bridges.sh` makes the
+mirrors diverge silently — and that is where host + user + SSH key from `cpanel.md` survived.
 ```bash
-bash .claude/scripts/compile-bridges.sh   # recompilar ANTES de auditar, senão auditas a versão velha
+bash .claude/scripts/compile-bridges.sh   # recompile BEFORE auditing, otherwise you audit the old version
 ```
 
-**4. Symlinks.** O `git grep` não os segue.
+**4. Symlinks.** `git grep` does not follow them.
 ```bash
 git ls-tree -r HEAD | awk '$1=="120000" {print $4}'
 ```
 
-**5. Metadados de autor.** Viajam com os commits.
+**5. Author metadata.** It travels with the commits.
 ```bash
-git log --format='%an <%ae>' | sort -u     # esperar só o noreply do GitHub
+git log --format='%an <%ae>' | sort -u     # expect only the GitHub noreply
 ```
 
-**6. Paths absolutos expandidos em runtime.** Alguns ficheiros são reescritos pela própria app com o
-path da máquina. **Nomear explicitamente `JOCA_Brain/.claude/settings.json`** — expande `<JOCA_ROOT>`
-para `/Users/<user>/...` quando a app corre, e já esteve pronto a ser publicado com o nome do dono
-lá dentro (apanhado por sorte, e era a segunda vez). Melhor do que varrer: manter a expansão em
-runtime e não persistir o path expandido no ficheiro versionado.
+**6. Absolute paths expanded at runtime.** Some files are rewritten by the app itself with the
+machine's path. **Name `JOCA_Brain/.claude/settings.json` explicitly** — it expands `<JOCA_ROOT>` to
+`/Users/<user>/...` when the app runs, and it has already been ready to be published with the owner's
+name inside (caught by luck, and it was the second time). Better than sweeping: keep the expansion at
+runtime and do not persist the expanded path in the versioned file.
 
-**7. Varredura de PII do diff staged** (não do repo inteiro — o que interessa é o que vai sair).
-**A varredura cobre código e testes, não só documentação** — fixtures, seeders, snapshots e ficheiros
-de teste carregam paths pessoais e nomes de clientes reais, e ninguém os lê antes de publicar:
+**7. PII sweep of the staged diff** (not of the whole repo — what matters is what is going out).
+**The sweep covers code and tests, not just documentation** — fixtures, seeders, snapshots and test
+files carry personal paths and real client names, and nobody reads them before publishing:
 ```bash
 git diff --cached | grep -nE '/Users/[a-z]|C:\\\\Users\\\\|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}|sk-[A-Za-z0-9]|ghp_[A-Za-z0-9]|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY'
 ```
 
-**8. História nova, não `--orphan`.** O `--orphan` **preserva o index** — o que se pensava ter ficado
-para trás vai no primeiro commit. Fazer `rm -rf .git && git init`.
+**8. New history, not `--orphan`.** `--orphan` **preserves the index** — what you thought had been
+left behind goes in the first commit. Do `rm -rf .git && git init`.
 
-**9. Verificar por clone fresco, nunca pelo local.** Clonar o público para uma pasta temporária e
-correr os passos 2, 4, 5 e 7 lá. O local tem ficheiros gitignored que mascaram o resultado.
+**9. Verify with a fresh clone, never with the local one.** Clone the public repo into a temporary
+folder and run steps 2, 4, 5 and 7 there. The local one has gitignored files that mask the result.
 
-## Já publicaste — o que ainda dá para fazer
+## You already published — what can still be done
 
-Chegar aqui já é a falha. O que resta é contenção, e a primeira coisa é não reportar como resolvido o
-que não está.
+Getting here is already the failure. What is left is containment, and the first thing is not to
+report as resolved what is not.
 
-1. **Force-push tira a referência, não o objecto.** O commit antigo fica pendurado no GitHub e é
-   servido **por SHA** até haver garbage-collect. O branch dá 404 e parece resolvido — não está.
-2. **Verificar pelo SHA antigo, nunca pelo branch:**
+1. **Force-push removes the reference, not the object.** The old commit stays dangling on GitHub and
+   is served **by SHA** until there is a garbage-collect. The branch gives a 404 and looks resolved —
+   it is not.
+2. **Verify by the old SHA, never by the branch:**
    ```bash
-   gh api "repos/<org>/<repo>/contents/<ficheiro>?ref=<sha-antigo>"   # 200 = ainda é servido
+   gh api "repos/<org>/<repo>/contents/<file>?ref=<old-sha>"   # 200 = still served
    ```
-3. **As duas únicas saídas reais:** apagar e recriar o repo (exige o scope `delete_repo`, que o token
-   normal do `gh` **não** tem — confirmar antes de prometer: `gh auth status`), ou pedir
-   garbage-collect ao GitHub Support.
-4. **Limpar também o local:** o `filter-branch` deixa `refs/original/` a segurar a história antiga.
+3. **The only two real ways out:** delete and recreate the repo (requires the `delete_repo` scope,
+   which the normal `gh` token does **not** have — confirm before promising: `gh auth status`), or
+   ask GitHub Support for a garbage-collect.
+4. **Clean the local one too:** `filter-branch` leaves `refs/original/` holding the old history.
 
-Receita que funcionou (⚠ `git filter-branch` **recusa correr com árvore suja** — `Cannot rewrite
-branches: You have unstaged changes` — mesmo que as alterações não tenham nada a ver com o alvo):
+A recipe that worked (⚠ `git filter-branch` **refuses to run with a dirty tree** — `Cannot rewrite
+branches: You have unstaged changes` — even if the changes have nothing to do with the target):
 ```bash
-git stash            # ou commit — a árvore TEM de estar limpa
-git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <alvo>' <branch>
-git rev-list <branch> | head          # confirmar que a história mudou
+git stash            # or commit — the tree MUST be clean
+git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <target>' <branch>
+git rev-list <branch> | head          # confirm the history changed
 git push --force-with-lease <remote> <branch>
-# e só então: verificar o SHA antigo pela API (ponto 2)
+# and only then: verify the old SHA via the API (point 2)
 ```
 
-## Relatório
+## Report
 
 ```
-RELEASE AUDIT — <repo> → <remote alvo> (público | cliente | outra org)
-Ship-list: N ficheiros (+X novos, −Y removidos vs release anterior)
-PII: N achados  [ficheiro:linha — tipo]
-Dependências da montagem pessoal: N  [ficheiro — o que assume]
-Espelhos: .agents/.codex recompilados ✓ | DIVERGENTES ✗
-Symlinks: N | Autores: <lista>
-Verificado por clone fresco: ✓ | ✗
-VEREDICTO: pronto a publicar | NÃO publicar — <razão>
+RELEASE AUDIT — <repo> → <target remote> (public | client | other org)
+Ship-list: N files (+X new, −Y removed vs previous release)
+PII: N findings  [file:line — type]
+Dependencies on the personal setup: N  [file — what it assumes]
+Mirrors: .agents/.codex recompiled ✓ | DIVERGENT ✗
+Symlinks: N | Authors: <list>
+Verified by fresh clone: ✓ | ✗
+VERDICT: ready to publish | DO NOT publish — <reason>
 ```
 
-## Próximo passo (chain)
-- Auditoria limpa → `/ship` (gate de push).
-- Achados de dependência pessoal → corrigir o componente para ser genérico, ou tirá-lo da ship-list.
+## Next step (chain)
+- Clean audit → `/ship` (push gate).
+- Personal-dependency findings → fix the component to be generic, or take it out of the ship-list.

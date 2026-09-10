@@ -2,13 +2,13 @@
 """
 graphify-global.py — Global JOCA knowledge graph
 
-Constrói um grafo estrutural do JOCA (skills, agents, commands, memory)
-+ grafos dos projectos activos, e faz merge num único grafo consultável.
+Builds a structural graph of JOCA (skills, agents, commands, memory)
++ graphs of the active projects, and merges them into a single queryable graph.
 
-Uso:
+Usage:
     python3 .claude/scripts/graphify-global.py
-    python3 .claude/scripts/graphify-global.py --refresh   # re-gera tudo
-    python3 .claude/scripts/graphify-global.py --joca-only # só JOCA
+    python3 .claude/scripts/graphify-global.py --refresh   # regenerates everything
+    python3 .claude/scripts/graphify-global.py --joca-only # JOCA only
 """
 from __future__ import annotations
 
@@ -26,11 +26,11 @@ JOCA_ONLY = "--joca-only" in sys.argv
 
 
 # ──────────────────────────────────────────────
-# Leitura de frontmatter YAML básico
+# Basic YAML frontmatter reading
 # ──────────────────────────────────────────────
 
 def parse_frontmatter(text: str) -> dict:
-    """Extrai frontmatter YAML simples (key: value) de um ficheiro Markdown."""
+    """Extract simple YAML frontmatter (key: value) from a Markdown file."""
     m = re.match(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
     if not m:
         return {}
@@ -47,18 +47,18 @@ def node_id(label: str) -> str:
 
 
 # ──────────────────────────────────────────────
-# Construção do grafo estrutural JOCA
+# Building the JOCA structural graph
 # ──────────────────────────────────────────────
 
 def build_joca_graph() -> dict:
-    """Constrói grafo estrutural do JOCA a partir de ficheiros e frontmatter."""
+    """Build JOCA's structural graph from files and frontmatter."""
     nodes: list[dict] = []
     links: list[dict] = []
     seen_ids: set[str] = set()
 
     def add_node(label: str, ntype: str, source_file: str = "", description: str = "", **extra) -> str:
         nid = node_id(label)
-        # Desambiguar IDs duplicados
+        # Disambiguate duplicate IDs
         base = nid
         i = 2
         while nid in seen_ids:
@@ -97,7 +97,7 @@ def build_joca_graph() -> dict:
         add_edge(skills_root, cat_id, "contains")
 
         for skill_file in sorted(cat_dir.rglob("*.md")):
-            # Só SKILL.md ou ficheiros directos (não references/)
+            # Only SKILL.md or direct files (not references/)
             if "references" in skill_file.parts:
                 continue
             text = skill_file.read_text(errors="ignore")
@@ -178,34 +178,34 @@ def build_joca_graph() -> dict:
 
 
 def save_joca_graph() -> Path:
-    """Gera e guarda o grafo JOCA. Retorna caminho para graph.json."""
+    """Generate and save the JOCA graph. Returns the path to graph.json."""
     out_dir = JOCA / "graphify-out"
     out_dir.mkdir(exist_ok=True)
     graph_path = out_dir / "graph.json"
 
     if graph_path.exists() and not REFRESH:
         size_kb = graph_path.stat().st_size // 1024
-        print(f"  ✓ graph existente ({size_kb}KB) — passa --refresh para re-gerar")
+        print(f"  ✓ existing graph ({size_kb}KB) — pass --refresh to regenerate")
         return graph_path
 
-    print(f"  → a construir grafo JOCA ...", end=" ", flush=True)
+    print(f"  → building the JOCA graph ...", end=" ", flush=True)
     graph = build_joca_graph()
     graph_path.write_text(json.dumps(graph, indent=2, ensure_ascii=False))
     size_kb = graph_path.stat().st_size // 1024
-    print(f"✓ ({len(graph['nodes'])} nós, {len(graph['links'])} edges, {size_kb}KB)")
+    print(f"✓ ({len(graph['nodes'])} nodes, {len(graph['links'])} edges, {size_kb}KB)")
     return graph_path
 
 
 # ──────────────────────────────────────────────
-# Descoberta de projectos
+# Project discovery
 # ──────────────────────────────────────────────
 
 def find_project_dirs() -> list[tuple[str, Path]]:
-    """Lê caminhos de projectos de memory/projects/*.md."""
+    """Read project paths from memory/projects/*.md."""
     dirs = []
     for f in sorted(MEMORY_PROJECTS.glob("*.md")):
         text = f.read_text(errors="ignore")
-        # Suporta múltiplos formatos:
+        # Supports several formats:
         #   directorio: /path
         #   **Directório:** `/path`
         #   **Directório:** /path
@@ -219,23 +219,23 @@ def find_project_dirs() -> list[tuple[str, Path]]:
             if p.exists():
                 dirs.append((f.stem, p))
             else:
-                print(f"  ⚠  {f.stem}: directório não encontrado ({p})")
+                print(f"  ⚠  {f.stem}: directory not found ({p})")
         else:
-            print(f"  ⚠  {f.stem}: sem campo 'directorio' reconhecido")
+            print(f"  ⚠  {f.stem}: no recognized 'directorio' field")
     return dirs
 
 
 # ──────────────────────────────────────────────
-# Graph de projecto via graphify update
+# Project graph via graphify update
 # ──────────────────────────────────────────────
 
 def get_project_graph(name: str, path: Path) -> Path | None:
-    """Retorna graph.json do projecto — usa existente ou gera via graphify update."""
+    """Return the project's graph.json — uses the existing one or generates it via graphify update."""
     graph = path / "graphify-out" / "graph.json"
 
     if graph.exists() and not REFRESH:
         size_kb = graph.stat().st_size // 1024
-        print(f"  ✓ graph existente ({size_kb}KB) — passa --refresh para re-gerar")
+        print(f"  ✓ existing graph ({size_kb}KB) — pass --refresh to regenerate")
         return graph
 
     print(f"  → graphify update ...", end=" ", flush=True)
@@ -261,7 +261,7 @@ def get_project_graph(name: str, path: Path) -> Path | None:
 def merge_graphs(graphs: list[Path]) -> Path | None:
     GLOBAL_OUT.mkdir(parents=True, exist_ok=True)
     merged = GLOBAL_OUT / "graph.json"
-    print(f"\n→ merge-graphs ({len(graphs)} grafos) ...", end=" ", flush=True)
+    print(f"\n→ merge-graphs ({len(graphs)} graphs) ...", end=" ", flush=True)
     r = subprocess.run(
         ["graphify", "merge-graphs", *[str(g) for g in graphs], "--out", str(merged)],
         capture_output=True, text=True,
@@ -275,15 +275,15 @@ def merge_graphs(graphs: list[Path]) -> Path | None:
 
 
 def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -> int:
-    """Constrói pontes filesystem entre project-ref (JOCA) e todos os ficheiros de cada projecto.
+    """Build filesystem bridges between project-ref (JOCA) and every file of each project.
 
-    Para cada projecto:
-      1. Agrupa nós por componente conectada → hub de cada componente (= nó-raiz do ficheiro)
-      2. Constrói árvore de directórios a partir dos source_file paths
-      3. Injeta nós de directório (prefixados com o nome do projecto)
-      4. Liga: project_ref → root_dir → subdirs → file_hubs
+    For each project:
+      1. Groups nodes by connected component → hub of each component (= the file's root node)
+      2. Builds a directory tree from the source_file paths
+      3. Injects directory nodes (prefixed with the project name)
+      4. Links: project_ref → root_dir → subdirs → file_hubs
 
-    Retorna número total de edges injectados.
+    Returns the total number of injected edges.
     """
     import re as _re
     from collections import defaultdict, Counter
@@ -300,7 +300,7 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
         deg[lnk["source"]] += 1
         deg[lnk["target"]] += 1
 
-    # Union-find para componentes conectadas
+    # Union-find for connected components
     uf: dict[str, str] = {n["id"]: n["id"] for n in nodes_list}
 
     def uf_find(x: str) -> str:
@@ -345,34 +345,34 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
         if proj_ref_id not in existing_ids:
             continue
 
-        # Nós deste projecto
+        # Nodes of this project
         proj_nodes = [n for n in nodes_list if n.get("repo") == repo_name]
         if not proj_nodes:
             continue
 
-        # Hub por componente conectada (nó com mais edges no componente)
+        # Hub per connected component (the node with the most edges in the component)
         comp_members: dict[str, list[dict]] = defaultdict(list)
         for n in proj_nodes:
             comp_members[uf_find(n["id"])].append(n)
 
-        # file_hubs: source_file → [hub_node_ids]  (um ficheiro pode ter vários hubs
-        # se foi indexado com paths absolutos e relativos na mesma run)
+        # file_hubs: source_file → [hub_node_ids]  (one file can have several hubs
+        # if it was indexed with absolute and relative paths in the same run)
         file_hubs: dict[str, list[str]] = defaultdict(list)
-        orphan_hubs: list[str] = []  # hubs sem source_file útil (ex: graphify-out/)
+        orphan_hubs: list[str] = []  # hubs with no useful source_file (e.g. graphify-out/)
         for _root, members in comp_members.items():
             hub = max(members, key=lambda n: deg.get(n["id"], 0))
             sf = hub.get("source_file", "").strip()
             if not sf or sf.startswith("graphify-out"):
                 orphan_hubs.append(hub["id"])
                 continue
-            # Normalizar: remover prefixo absoluto do projecto se presente
+            # Normalize: strip the project's absolute prefix if present
             try:
                 sf_rel = str(Path(sf).relative_to(proj_path))
             except ValueError:
                 sf_rel = sf
             file_hubs[sf_rel].append(hub["id"])
 
-        # Directórios únicos (derivados de todos os source_files)
+        # Unique directories (derived from all the source_files)
         dirs: set[str] = set()
         for sf in file_hubs:
             for ancestor in Path(sf).parents:
@@ -385,7 +385,7 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
             slug = _re.sub(r"[^a-z0-9]+", "_", path_str.lower()).strip("_")
             return f"fs_{prefix}_{slug}"
 
-        # Verificar se projecto já tem nó-raiz filesystem (grafos gerados de dentro da pasta)
+        # Check whether the project already has a filesystem root node (graphs generated from inside the folder)
         existing_root = next(
             (n for n in proj_nodes if n.get("label") == "." and n.get("file_type") == "dir"),
             None
@@ -395,12 +395,12 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
         else:
             root_nid = f"fs_{prefix}__"
             emit_node(root_nid, repo_name, "dir", str(proj_path),
-                      f"Raiz do projecto: {repo_name}", repo=repo_name)
+                      f"Project root: {repo_name}", repo=repo_name)
 
         # project_ref → root
         emit_edge(proj_ref_id, root_nid)
 
-        # Criar nós de directório e ligar parent → child
+        # Create directory nodes and link parent → child
         for d in sorted(dirs, key=lambda x: x.count("/")):
             nid = dir_nid(d)
             emit_node(nid, Path(d).name, "dir", d,
@@ -412,7 +412,7 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
                 parent_nid = dir_nid(parent_str)
                 emit_edge(parent_nid if parent_nid in existing_ids else root_nid, nid)
 
-        # Ligar TODOS os hubs de cada ficheiro ao directório pai
+        # Link ALL of each file's hubs to the parent directory
         for sf, hub_ids in file_hubs.items():
             parent_str = str(Path(sf).parent)
             for hub_id in hub_ids:
@@ -422,7 +422,7 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
                     parent_nid = dir_nid(parent_str)
                     emit_edge(parent_nid if parent_nid in existing_ids else root_nid, hub_id)
 
-        # Ligar orphans (ex: graphify-out/) directamente ao root
+        # Link orphans (e.g. graphify-out/) directly to the root
         for hub_id in orphan_hubs:
             emit_edge(root_nid, hub_id)
 
@@ -433,7 +433,7 @@ def build_project_bridges(merged_path: Path, projects: list[tuple[str, Path]]) -
 
 
 def rebuild_report():
-    """Regenera clustering + GRAPH_REPORT.md via Python API (evita path issue do cluster-only CLI)."""
+    """Regenerate clustering + GRAPH_REPORT.md via the Python API (avoids the cluster-only CLI path issue)."""
     print(f"→ cluster-only + report ...", end=" ", flush=True)
     try:
         import sys as _sys
@@ -499,11 +499,11 @@ def main():
     if g:
         graphs.append(g)
 
-    # 2. Projectos
+    # 2. Projects
     if not JOCA_ONLY:
         projects = find_project_dirs()
         if not projects:
-            print("\n  ⚠  Nenhum projecto com 'directorio' em memory/projects/")
+            print("\n  ⚠  No project with 'directorio' in memory/projects/")
         for i, (name, path) in enumerate(projects, 2):
             print(f"\n{i}. {name}  ({path})")
             g = get_project_graph(name, path)
@@ -511,10 +511,10 @@ def main():
                 graphs.append(g)
 
     if len(graphs) < 2:
-        print(f"\n⚠  Apenas {len(graphs)} graph(s) — nada para fazer merge")
+        print(f"\n⚠  Only {len(graphs)} graph(s) — nothing to merge")
         if graphs:
             report = graphs[0].parent / "GRAPH_REPORT.md"
-            print(f"  Grafo: {graphs[0]}")
+            print(f"  Graph: {graphs[0]}")
         sys.exit(0)
 
     # 3. Merge + cross-edges + report
@@ -524,13 +524,13 @@ def main():
     if not JOCA_ONLY and projects:
         print(f"→ filesystem bridges ...", end=" ", flush=True)
         n = build_project_bridges(merged, projects)
-        print(f"  + {n} edges/nós injectados")
+        print(f"  + {n} edges/nodes injected")
     rebuild_report()
 
     print(f"\n{'─' * 50}")
-    print(f"✓ Grafo global:  {merged}")
+    print(f"✓ Global graph:  {merged}")
     print(f"  Report:        {GLOBAL_OUT}/GRAPH_REPORT.md")
-    print(f"\nConsultar no Claude: graphify-out/global/GRAPH_REPORT.md")
+    print(f"\nQuery it in Claude: graphify-out/global/GRAPH_REPORT.md")
 
 
 if __name__ == "__main__":

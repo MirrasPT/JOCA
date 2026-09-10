@@ -1,15 +1,15 @@
 ---
 name: google-analytics
-description: "Google Analytics 4 — setup gtag em sites (snippet, eventos custom, consent mode), verificação (DebugView/Realtime) e query de dados via GA4 Data API REST. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
+description: "Google Analytics 4 — gtag setup on sites (snippet, custom events, consent mode), verification (DebugView/Realtime) and data queries via the GA4 Data API REST. MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4."
 ---
 
 # Google Analytics 4
 
-Conhecimento GA4: instalar tracking num site, verificar que dispara, e consultar dados via Data API REST.
+GA4 knowledge: install tracking on a site, verify it fires, and query data via the Data API REST.
 
-## Setup — gtag.js num site
+## Setup — gtag.js on a site
 
-Snippet base no `<head>`, o mais cedo possível:
+Base snippet in the `<head>`, as early as possible:
 ```html
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
@@ -21,18 +21,18 @@ Snippet base no `<head>`, o mais cedo possível:
 </script>
 ```
 - `G-XXXXXXXXXX` = Measurement ID (GA4 Admin → Data Streams → Web).
-- SPAs: o `page_view` automático só dispara no load inicial — em route change enviar `gtag('event', 'page_view', {page_location, page_title})` ou usar o Enhanced Measurement (history changes).
+- SPAs: the automatic `page_view` only fires on the initial load — on route change send `gtag('event', 'page_view', {page_location, page_title})` or use Enhanced Measurement (history changes).
 
-### Eventos custom
+### Custom events
 ```js
 gtag('event', 'sign_up', { method: 'email' });
 gtag('event', 'purchase', { currency: 'EUR', value: 49.90, transaction_id: 'T-1001' });
 ```
-- Preferir nomes de eventos recomendados GA4 (`sign_up`, `login`, `purchase`, `generate_lead`, …) — ganham relatórios standard.
-- Parâmetros custom só aparecem nos relatórios depois de registados como custom dimensions (Admin → Custom definitions).
+- Prefer GA4 recommended event names (`sign_up`, `login`, `purchase`, `generate_lead`, …) — they get standard reports.
+- Custom parameters only show up in reports after being registered as custom dimensions (Admin → Custom definitions).
 
-### Consent mode (obrigatório com banner de cookies UE)
-Antes do snippet gtag:
+### Consent mode (mandatory with an EU cookie banner)
+Before the gtag snippet:
 ```html
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -43,21 +43,21 @@ Antes do snippet gtag:
   });
 </script>
 ```
-Após consentimento do user: `gtag('consent', 'update', { analytics_storage: 'granted' });`
+After the user consents: `gtag('consent', 'update', { analytics_storage: 'granted' });`
 
-## Verificação
+## Verification
 
-- **DebugView** (Admin → DebugView): eventos em tempo real com `?debug_mode=1` no URL, `gtag('config', ID, {debug_mode: true})`, ou a extensão GA Debugger.
-- **Realtime report**: confirma page_views ~30s depois do deploy.
-- Sem dados? Confirmar Measurement ID, desligar ad-blockers no teste, e verificar que o consent mode concede `analytics_storage`.
+- **DebugView** (Admin → DebugView): real-time events with `?debug_mode=1` in the URL, `gtag('config', ID, {debug_mode: true})`, or the GA Debugger extension.
+- **Realtime report**: confirms page_views ~30s after the deploy.
+- No data? Check the Measurement ID, turn off ad-blockers while testing, and verify that consent mode grants `analytics_storage`.
 
-## Query de dados — GA4 Data API (REST)
+## Data queries — GA4 Data API (REST)
 
-Precisa de OAuth ou service account com acesso à property (papel Viewer no GA4 Admin → Property access management). **Se a credencial faltar: deixar `TODO: credencial em falta` e reportar — nunca inventar chaves/IDs (Hard Limit soul.md).**
+Requires OAuth or a service account with access to the property (Viewer role in GA4 Admin → Property access management). **If the credential is missing: leave `TODO: missing credential` and report — never invent keys/IDs (Hard Limit soul.md).**
 
-Com gcloud autenticado (ADC):
+With gcloud authenticated (ADC):
 ```bash
-# 1x, para obter ADC com scope de leitura Analytics
+# 1x, to get ADC with the Analytics read scope
 gcloud auth application-default login --scopes=https://www.googleapis.com/auth/analytics.readonly
 
 TOKEN=$(gcloud auth application-default print-access-token)
@@ -71,11 +71,11 @@ curl -s -X POST \
     "limit": 20
   }'
 ```
-- `PROPERTY_ID` = número da property (Admin → Property details) — **não** é o Measurement ID `G-…`.
-- Realtime: endpoint `:runRealtimeReport` (mesmo shape, sem `dateRanges`).
-- Service account: key JSON no GCP + dar acesso Viewer ao email da SA na property; depois `GOOGLE_APPLICATION_CREDENTIALS=/path/key.json gcloud auth application-default print-access-token`.
+- `PROPERTY_ID` = the property number (Admin → Property details) — it is **not** the `G-…` Measurement ID.
+- Realtime: `:runRealtimeReport` endpoint (same shape, no `dateRanges`).
+- Service account: JSON key in GCP + give Viewer access to the SA email on the property; then `GOOGLE_APPLICATION_CREDENTIALS=/path/key.json gcloud auth application-default print-access-token`.
 
-## Referência de métricas & dimensões (runReport)
+## Metrics & dimensions reference (runReport)
 
 **Metrics**: `totalUsers` `newUsers` `sessions` `screenPageViews` `averageSessionDuration` `bounceRate` `engagementRate` `conversions` `eventCount` `activeUsers`
 

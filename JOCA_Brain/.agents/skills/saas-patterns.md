@@ -28,14 +28,14 @@ Skip multi-DB unless compliance demands it on day one.
 
 ---
 
-## Referências (carregar on-demand)
+## References (load on-demand)
 
-| Tema | Reference | Carregar quando |
+| Topic | Reference | Load when |
 |---|---|---|
-| Tenancy setup (§1-3: install stancl, Tenant model, modos auto/manual, bootstrappers, identificação, isolamento `BelongsToTenant` + leak-prevention checklist) | `Read(".claude/reference/saas-patterns/tenancy-setup.md")` | montar tenancy, scoping, isolamento de dados |
-| Onboarding + flags + billing (§4-6: `OnboardTenant` async, Pennant, PlanGate, Cashier) | `Read(".claude/reference/saas-patterns/onboarding-flags-billing.md")` | onboarding de tenant, feature flags, planos/limites/billing |
-| Queues + segurança (§7-8: tenant context em jobs, queue isolation, Horizon, audit log, GDPR, security rules) | `Read(".claude/reference/saas-patterns/tenant-queues-security.md")` | jobs tenant-aware, audit, GDPR, rate limiting |
-| Testes multi-tenant (§9: trait Pest, isolation test em CI, flag tests, factory) | `Read(".claude/reference/saas-patterns/testing.md")` | escrever testes de isolamento/flags |
+| Tenancy setup (§1-3: install stancl, Tenant model, auto/manual modes, bootstrappers, identification, `BelongsToTenant` isolation + leak-prevention checklist) | `Read(".claude/reference/saas-patterns/tenancy-setup.md")` | setting up tenancy, scoping, data isolation |
+| Onboarding + flags + billing (§4-6: `OnboardTenant` async, Pennant, PlanGate, Cashier) | `Read(".claude/reference/saas-patterns/onboarding-flags-billing.md")` | tenant onboarding, feature flags, plans/limits/billing |
+| Queues + security (§7-8: tenant context in jobs, queue isolation, Horizon, audit log, GDPR, security rules) | `Read(".claude/reference/saas-patterns/tenant-queues-security.md")` | tenant-aware jobs, audit, GDPR, rate limiting |
+| Multi-tenant tests (§9: Pest trait, isolation test in CI, flag tests, factory) | `Read(".claude/reference/saas-patterns/testing.md")` | writing isolation/flag tests |
 
 ---
 
@@ -68,10 +68,10 @@ Skip multi-DB unless compliance demands it on day one.
 
 Pipeline sequence:
 
--> **antes**: `plan` -- arquitectura multi-tenant, single-DB vs multi-DB decision
--> **implementacao**: `laravel-specialist` (Eloquent, queues, auth) in parallel
--> **pos-setup**: `tester-code` -- cross-tenant data isolation
+-> **before**: `plan` -- multi-tenant architecture, single-DB vs multi-DB decision
+-> **implementation**: `laravel-specialist` (Eloquent, queues, auth) in parallel
+-> **post-setup**: `tester-code` -- cross-tenant data isolation
 -> **security review**: `tester-security` -- tenant escape, data leakage
 -> **auth SaaS**: `auth`
 
-Notify on scaffold complete: `-> proximo: laravel-specialist`
+Notify on scaffold complete: `-> next: laravel-specialist`

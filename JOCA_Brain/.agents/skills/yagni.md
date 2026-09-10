@@ -1,102 +1,102 @@
 ---
 name: yagni
-description: "Decision ladder de 6 degraus para minimizar codigo e dependencias antes de escrever qualquer coisa. Formaliza os principios de simplicidade do soul.md/CLAUDE.md numa skill activavel. MUST be invoked when the user says: yagni, mais simples, minimo codigo, evitar dependencia, precisas mesmo disto, over-engineering, nao complicar, menos abstraccao. SHOULD also invoke when: adicionar dependencia nova, criar abstraccao, util/helper generico, scaffolding antecipado, feature especulativa."
-triggers: yagni, you arent gonna need it, mais simples, simplificar, minimo codigo, menos codigo, evitar dependencia, nova dependencia, npm install, composer require, precisas mesmo, over-engineering, sobre-engenharia, nao complicar, menos abstraccao, abstraccao prematura, helper generico, util generico, feature especulativa, scaffolding antecipado, refactor preventivo
+description: "6-rung decision ladder to minimize code and dependencies before writing anything. Formalizes the simplicity principles of soul.md/CLAUDE.md into an activatable skill. MUST be invoked when the user says: yagni, simpler, minimum code, avoid dependency, do you really need this, over-engineering, don't complicate, less abstraction. SHOULD also invoke when: adding a new dependency, creating an abstraction, generic util/helper, premature scaffolding, speculative feature."
+triggers: yagni, you arent gonna need it, simpler, simplify, minimum code, less code, avoid dependency, new dependency, npm install, composer require, do you really need, over-engineering, overengineering, dont complicate, less abstraction, premature abstraction, generic helper, generic util, speculative feature, premature scaffolding, preventive refactor
 ---
-# YAGNI — Decision Ladder de Simplicidade
+# YAGNI — Simplicity Decision Ladder
 
-Adoptada de DietrichGebert/ponytail. Formaliza simplicidade do `soul.md`/`CLAUDE.md` numa skill activavel.
+Adopted from DietrichGebert/ponytail. Formalizes the simplicity of `soul.md`/`CLAUDE.md` into an activatable skill.
 
-Premissa caveman: **codigo que nao escreves nao tem bugs.** Dependencia que nao adicionas nao tem CVEs nem breaking changes. Abstraccao que nao crias nao confunde ninguem.
+Caveman premise: **code you don't write has no bugs.** A dependency you don't add has no CVEs and no breaking changes. An abstraction you don't create confuses nobody.
 
-Bias: **YAGNI > stdlib > nativo da framework > dep ja presente > one-liner > codigo novo minimo.** Sempre nesta ordem. Para no primeiro degrau que resolve.
+Bias: **YAGNI > stdlib > framework native > dep already present > one-liner > minimum new code.** Always in this order. Stop at the first rung that solves it.
 
 ---
 
-## A escada (6 degraus, sequencial)
+## The ladder (6 rungs, sequential)
 
-Antes de escrever codigo ou adicionar dep, subir a escada **de cima para baixo**. Para no primeiro que serve.
+Before writing code or adding a dep, walk the ladder **from top to bottom**. Stop at the first one that serves.
 
-| # | Degrau | Pergunta | Acao |
+| # | Rung | Question | Action |
 |---|--------|----------|------|
-| 1 | **YAGNI** | Precisas mesmo disto? Agora? | Requisito real e presente? Nao → nao fazer. |
-| 2 | **Stdlib** | A linguagem ja faz isto? | `Array.map`, `URL`, `crypto`, `str_*`, `Collection`. |
-| 3 | **Nativo framework** | A framework ja faz isto? | Laravel: `Str`, `validator`, `Cache`, policies. React: `useState`, Context, `useId`. |
-| 4 | **Dep ja no projecto** | Algo no `package.json`/`composer.json` ja resolve? | Reusar antes de instalar nova. |
-| 5 | **One-liner / util pequeno** | Resolve-se com util curto inline? | Helper de 3-5 linhas no projecto > dep de 50KB. |
-| 6 | **Codigo novo minimo** | So aqui escreves codigo novo. | O minimo. Sem generalizar para casos hipoteticos. |
+| 1 | **YAGNI** | Do you really need this? Now? | Real and present requirement? No → don't do it. |
+| 2 | **Stdlib** | Does the language already do this? | `Array.map`, `URL`, `crypto`, `str_*`, `Collection`. |
+| 3 | **Framework native** | Does the framework already do this? | Laravel: `Str`, `validator`, `Cache`, policies. React: `useState`, Context, `useId`. |
+| 4 | **Dep already in the project** | Does something in `package.json`/`composer.json` already solve it? | Reuse before installing a new one. |
+| 5 | **One-liner / small util** | Can it be solved with a short inline util? | A 3-5 line helper in the project > a 50KB dep. |
+| 6 | **Minimum new code** | Only here do you write new code. | The minimum. No generalizing for hypothetical cases. |
 
-**Regra:** subir degrau (dep nova, abstraccao) so quando os anteriores comprovadamente nao chegam. Justificar 1 linha porque o degrau acima falha.
-
----
-
-## GUARD-RAILS (NUNCA se simplificam/cortam)
-
-Estes **nao** estao sujeitos a escada. Cortar aqui nao e simplicidade — e bug ou dano. Inviolaveis:
-
-- **Seguranca** — auth, autorizacao, escaping, secrets, CSRF, rate limit. Nunca "depois meto".
-- **Validacao de input** — todo input externo validado. "Confio no caller" nao e YAGNI, e furo.
-- **Prevencao de perda de dados** — transaccoes, confirmacao em accoes irreversiveis, backups, migracoes reversiveis.
-- **Acessibilidade** — semantica, labels, foco, contraste, teclado. Nao e feature opcional.
-
-YAGNI corta features especulativas e abstraccao prematura — **nunca** estes quatro. Em duvida se algo e guard-rail → tratar como guard-rail.
+**Rule:** go up a rung (new dep, abstraction) only when the previous ones demonstrably fall short. Justify in 1 line why the rung above fails.
 
 ---
 
-## Exemplos
+## GUARD-RAILS (NEVER simplified/cut)
+
+These are **not** subject to the ladder. Cutting here is not simplicity — it is a bug or damage. Inviolable:
+
+- **Security** — auth, authorization, escaping, secrets, CSRF, rate limit. Never "I'll add it later".
+- **Input validation** — every external input validated. "I trust the caller" is not YAGNI, it is a hole.
+- **Data loss prevention** — transactions, confirmation on irreversible actions, backups, reversible migrations.
+- **Accessibility** — semantics, labels, focus, contrast, keyboard. It is not an optional feature.
+
+YAGNI cuts speculative features and premature abstraction — **never** these four. In doubt whether something is a guard-rail → treat it as a guard-rail.
+
+---
+
+## Examples
 
 ```js
-// Degrau 1 — YAGNI: pediram listar 3 utilizadores
-// ❌ sistema de paginacao + filtros + cache "porque um dia"
+// Rung 1 — YAGNI: they asked to list 3 users
+// ❌ pagination system + filters + cache "because one day"
 // ✅ users.slice(0, 3)
 ```
 
 ```js
-// Degrau 2 — stdlib em vez de dep
+// Rung 2 — stdlib instead of a dep
 // ❌ npm install lodash.groupby
-// ✅ Object.groupBy(items, x => x.cat)   // ou reduce de 4 linhas
+// ✅ Object.groupBy(items, x => x.cat)   // or a 4-line reduce
 ```
 
 ```php
-// Degrau 3 — nativo da framework em vez de helper proprio
+// Rung 3 — framework native instead of your own helper
 // ❌ class SlugMaker { public function make(...) {...} }
 // ✅ Str::slug($title);
 ```
 
 ```js
-// Degrau 5 — one-liner em vez de dep
+// Rung 5 — one-liner instead of a dep
 // ❌ npm install is-empty
 // ✅ const isEmpty = v => v == null || v.length === 0;
 ```
 
 ```php
-// GUARD-RAIL — NAO cortar mesmo sob "simplifica"
-// ❌ "validacao depois, primeiro faz funcionar" → input vai cru pra query
-// ✅ $request->validate([...]);  // sempre, nao negociavel
+// GUARD-RAIL — do NOT cut even under "simplify it"
+// ❌ "validation later, first make it work" → input goes raw into the query
+// ✅ $request->validate([...]);  // always, non-negotiable
 ```
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |--------|----------|
-| Adicionar dep para uma funcao de 3 linhas | Degrau 5: util inline |
-| Abstrair antes do 3o uso | Inline ate o padrao repetir 3x |
-| Scaffolding "para o futuro" (config, plugins, hooks) | Construir quando o requisito existir |
-| Generalizar funcao para casos hipoteticos | Resolver o caso real de agora |
-| Wrapper proprio sobre algo da stdlib/framework | Usar o nativo directo |
-| Cortar validacao/auth "para simplificar" | Guard-rail: nunca cortar |
-| Camada de abstraccao de uso unico | Codigo directo |
-| Instalar dep sem subir a escada primeiro | Justificar porque degraus 1-5 falham |
+| Adding a dep for a 3-line function | Rung 5: inline util |
+| Abstracting before the 3rd use | Inline until the pattern repeats 3x |
+| Scaffolding "for the future" (config, plugins, hooks) | Build when the requirement exists |
+| Generalizing a function for hypothetical cases | Solve the real case at hand |
+| Your own wrapper over something from the stdlib/framework | Use the native one directly |
+| Cutting validation/auth "to simplify" | Guard-rail: never cut |
+| Single-use abstraction layer | Direct code |
+| Installing a dep without walking the ladder first | Justify why rungs 1-5 fail |
 
 ---
 
-## Interaccao com outras skills
+## Interaction with other skills
 
-- Reforca `caveman`/`soul.md`: simplicidade cirurgica, zero codigo desperdicado.
-- Invocar antes de `laravel-specialist`/`frontend` quando o instinto e adicionar dep ou abstraccao.
-- `react-composition` resolve o degrau 6 do lado da API de componentes (composicao > config).
+- Reinforces `caveman`/`soul.md`: surgical simplicity, zero wasted code.
+- Invoke before `laravel-specialist`/`frontend` when the instinct is to add a dep or an abstraction.
+- `react-composition` solves rung 6 on the component API side (composition > config).
 
-## Quando ignorar
-Guard-rails ganham sempre. Se simplificar toca seguranca/validacao/dados/a11y → parar, nao simplificar, sinalizar.
+## When to ignore
+Guard-rails always win. If simplifying touches security/validation/data/a11y → stop, do not simplify, flag it.

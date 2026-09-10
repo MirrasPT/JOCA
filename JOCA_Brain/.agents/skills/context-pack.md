@@ -1,31 +1,31 @@
 ---
 name: context-pack
-description: "Empacota uma árvore de código num único ficheiro AI-readable (repomix-style) para briefs de sub-agentes ou modelos de contexto longo (gemini-brain 1M). Usar quando: preparar brief de agente sobre projecto grande, pack codebase, empacotar repo, contexto para o gemini, repo num ficheiro."
-triggers: pack codebase, empacotar repo, pack context, context pack, repo num ficheiro, empacota o projecto, codebase num ficheiro, preparar contexto para agente, repomix
+description: "Packs a code tree into a single AI-readable file (repomix-style) for sub-agent briefs or long-context models (gemini-brain 1M). Use when: preparing an agent brief about a large project, pack codebase, pack repo, context for gemini, repo in one file."
+triggers: pack codebase, pack repo, pack context, context pack, repo in one file, pack the project, codebase in one file, prepare context for agent, repomix
 chain: gemini-brain
 ---
-# context-pack — repo → 1 ficheiro de contexto
+# context-pack — repo → 1 context file
 
-Um sub-agente com brief "lê estes 40 paths" gasta 40 Reads e perde-se; com "lê este ficheiro único" gasta 1. Este skill empacota a árvore relevante num artefacto único via `pack-context.mjs`.
+A sub-agent with a brief that says "read these 40 paths" spends 40 Reads and gets lost; with "read this single file" it spends 1. This skill packs the relevant tree into a single artifact via `pack-context.mjs`.
 
-## Executar
+## Run
 ```bash
-node "<JOCA_ROOT>/JOCA_Brain/.claude/scripts/pack-context.mjs" <dir-alvo> [--out <file>] [--max-kb 512] [--ext php,ts,tsx] [--exclude tests,fixtures]
+node "<JOCA_ROOT>/JOCA_Brain/.claude/scripts/pack-context.mjs" <target-dir> [--out <file>] [--max-kb 512] [--ext php,ts,tsx] [--exclude tests,fixtures]
 ```
-- Respeita `.gitignore` (via `git ls-files`; fallback walk com exclusões standard: node_modules, vendor, dist, storage…).
-- Binários/locks/minified ficam sempre de fora.
-- Budget: pequenos primeiro; o que não coube é **listado no cabeçalho** (sem cortes silenciosos).
+- Respects `.gitignore` (via `git ls-files`; fallback walk with standard exclusions: node_modules, vendor, dist, storage…).
+- Binaries/locks/minified are always left out.
+- Budget: small ones first; whatever did not fit is **listed in the header** (no silent truncation).
 
-## Regras
-1. **Output SEMPRE fora da árvore do projecto-alvo** (default: %TEMP%). Um pack dentro do projecto é apanhado por content-scanners (gotcha Tailwind v4 — `rules/orchestration-patterns.md` #4).
-2. Dimensionar ao consumidor: brief de sub-agente → `--max-kb 256-512`; gemini-brain (1M tokens) → até `--max-kb 2048`.
-3. Filtrar antes de aumentar budget: `--ext`/`--exclude` primeiro, `--max-kb` depois. Pack focado > pack gordo.
-4. No brief do agente, referencia o path do pack + instrução "lê o pack primeiro; NÃO re-Read os ficheiros originais salvo para editar".
+## Rules
+1. **Output ALWAYS outside the target project's tree** (default: %TEMP%). A pack inside the project gets picked up by content-scanners (Tailwind v4 gotcha — `rules/orchestration-patterns.md` #4).
+2. Size it to the consumer: sub-agent brief → `--max-kb 256-512`; gemini-brain (1M tokens) → up to `--max-kb 2048`.
+3. Filter before raising the budget: `--ext`/`--exclude` first, `--max-kb` after. A focused pack > a fat pack.
+4. In the agent brief, reference the pack path + the instruction "read the pack first; do NOT re-Read the original files except to edit".
 
-## Quando NÃO usar
-- Projecto pequeno (≤5 ficheiros) → paths directos no brief.
-- Precisas de estrutura/dependências, não conteúdo → `/map-joca` (graphify).
+## When NOT to use
+- Small project (≤5 files) → direct paths in the brief.
+- You need structure/dependencies, not content → `/map-joca` (graphify).
 
-## Próximo passo (chain)
-- Pack para análise de segundo modelo → `gemini-brain` (contexto 1M).
-- Pack para brief de worker → despachar o agente com o path.
+## Next step (chain)
+- Pack for second-model analysis → `gemini-brain` (1M context).
+- Pack for a worker brief → dispatch the agent with the path.

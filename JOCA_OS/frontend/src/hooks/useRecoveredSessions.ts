@@ -1,31 +1,31 @@
-// Conversas perdidas num reinício do backend.
+// Conversations lost in a backend restart.
 //
-// Quando o servidor reinicia, os PTYs morrem com ele e o `sessions_list` que chega a seguir é um
-// retrato AUTORITATIVO vazio: a UI poda tudo e as conversas desaparecem da lista sem uma palavra.
-// A poda está certa — o que faltava era dizer ao utilizador o que aconteceu. É isso que este hook
-// alimenta: lê o retrato que o backend guardou antes de morrer, e dá as duas saídas possíveis
-// (reabrir, ou ler o que a conversa tinha escrito).
+// When the server restarts, the PTYs die with it and the `sessions_list` that arrives next is an
+// empty AUTHORITATIVE snapshot: the UI prunes everything and the conversations vanish from the list
+// without a word. The pruning is right — what was missing was telling the user what happened. That
+// is what this hook feeds: it reads the snapshot the backend saved before dying, and gives the two
+// possible ways out (reopen, or read what the conversation had written).
 //
-// A poda NÃO é tocada aqui. Este hook só lê `/sessions/recovered`.
+// The pruning is NOT touched here. This hook only reads `/sessions/recovered`.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RecoveredSnapshot } from '../types';
 
 const ENDPOINT = '/sessions/recovered';
 
 export interface RecoveredSessionsApi {
-  /** `null` = nada a recuperar (encerramento limpo, retrato já dispensado, ou backend sem a rota). */
+  /** `null` = nothing to recover (clean shutdown, snapshot already dismissed, or backend without the route). */
   snapshot: RecoveredSnapshot | null;
-  /** Dispensa o aviso: apaga o retrato no servidor para não voltar no próximo arranque. */
+  /** Dismisses the warning: deletes the snapshot on the server so it does not come back on the next startup. */
   dismiss: () => void;
-  /** Output cru (com ANSI) que a conversa tinha quando morreu. */
+  /** Raw output (with ANSI) the conversation had when it died. */
   loadTail: (sessionId: string) => Promise<string>;
-  /** O `bootId` que veio no `sessions_list`. Mudou → o backend reiniciou → há retrato novo. */
+  /** The `bootId` that came in the `sessions_list`. Changed → the backend restarted → there is a new snapshot. */
   noteBootId: (bootId?: string) => void;
 }
 
 export function useRecoveredSessions(): RecoveredSessionsApi {
   const [snapshot, setSnapshot] = useState<RecoveredSnapshot | null>(null);
-  // Último arranque do servidor de que temos conhecimento. Serve só para detectar a MUDANÇA.
+  // The last server startup we know about. It only serves to detect the CHANGE.
   const bootIdRef = useRef<string | null>(null);
   const emCurso = useRef(false);
 
@@ -42,7 +42,7 @@ export function useRecoveredSessions(): RecoveredSessionsApi {
         if (typeof dados.bootId === 'string') bootIdRef.current = dados.bootId;
         setSnapshot(dados);
       })
-      // Falha de rede não é motivo para deitar fora um retrato que já está no ecrã.
+      // A network failure is no reason to throw away a snapshot that is already on screen.
       .catch(() => {})
       .finally(() => { emCurso.current = false; });
   }, []);
@@ -53,16 +53,16 @@ export function useRecoveredSessions(): RecoveredSessionsApi {
     if (!bootId) return;
     const anterior = bootIdRef.current;
     bootIdRef.current = bootId;
-    // Primeira vez (ainda não sabíamos qual era) não conta como reinício: o arranque já foi lido
-    // pelo efeito de montagem. Só uma MUDANÇA significa "o servidor que estava ali morreu".
+    // The first time (we did not yet know which one it was) does not count as a restart: the startup
+    // was already read by the mount effect. Only a CHANGE means "the server that was there died".
     if (anterior === null || anterior === bootId) return;
     refresh();
   }, [refresh]);
 
   const dismiss = useCallback(() => {
     setSnapshot(null);
-    // Se o DELETE falhar, o retrato continua no servidor e volta a aparecer numa próxima carga —
-    // que é o comportamento seguro: mais vale um aviso a repetir-se do que perder as conversas.
+    // If the DELETE fails, the snapshot stays on the server and shows up again on a later load —
+    // which is the safe behavior: better a warning that repeats than losing the conversations.
     fetch(ENDPOINT, { method: 'DELETE' }).catch(() => {});
   }, []);
 

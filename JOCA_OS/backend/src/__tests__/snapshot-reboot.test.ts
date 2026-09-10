@@ -1,12 +1,12 @@
-// Reiniciar o backend DUAS vezes seguidas não pode apagar o que ninguém chegou a ver.
+// Restarting the backend TWICE in a row cannot erase what nobody ever got to see.
 //
-// É o caminho mais provável de todos e o mais fácil de partir sem dar por isso: o `start.sh` corre
-// num terminal, muitas vezes sem browser aberto. Com um só ficheiro, o segundo arranque lia o que o
-// primeiro já tinha reescrito com `sessions: []` e o registo das conversas mortas desaparecia — a
-// funcionalidade continuava a "funcionar" e a única coisa que ela existe para salvar tinha-se ido.
+// It is the likeliest path of all and the easiest to break without noticing: `start.sh` runs in a
+// terminal, often with no browser open. With a single file, the second startup read what the first
+// had already rewritten with `sessions: []` and the record of the dead conversations disappeared — the
+// feature kept on "working" and the one thing it exists to save was gone.
 //
-// Cada `arrancaInstancia()` é um ARRANQUE do backend: `resetModules` + import novo faz o módulo
-// correr a promoção outra vez, que é exactamente o que acontece num processo novo.
+// Every `bootInstance()` is a backend STARTUP: `resetModules` + a fresh import makes the module
+// run the promotion again, which is exactly what happens in a new process.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -15,30 +15,30 @@ import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'joca-snapshot-reboot-'));
 process.env.JOCA_DATA_DIR = DATA_DIR;
 
-const FICHEIRO_VIVAS = path.join(DATA_DIR, 'sessions-snapshot.json');
-const FICHEIRO_PREV = path.join(DATA_DIR, 'sessions-snapshot.prev.json');
+const LIVE_FILE = path.join(DATA_DIR, 'sessions-snapshot.json');
+const PREV_FILE = path.join(DATA_DIR, 'sessions-snapshot.prev.json');
 
-/** O retrato que uma instância deixa em disco quando morre com uma conversa lá dentro. */
-function escreveRetratoComConversa(bootId: string) {
-  fs.writeFileSync(FICHEIRO_VIVAS, JSON.stringify({
+/** The snapshot an instance leaves on disk when it dies with a conversation inside it. */
+function writeSnapshotWithConversation(bootId: string) {
+  fs.writeFileSync(LIVE_FILE, JSON.stringify({
     bootId,
     savedAt: Date.now(),
     sessions: [{
-      id: 'sessao-1', name: 'Session 1', cwd: '/tmp/projecto',
+      id: 'session-1', name: 'Session 1', cwd: '/tmp/project',
       cli: 'claude', origin: 'user', status: 'idle',
-      tail: 'output que o utilizador ainda não leu',
+      tail: 'output the user has not read yet',
     }],
   }));
 }
 
-async function arrancaInstancia() {
+async function bootInstance() {
   vi.resetModules();
   return await import('../sessions-snapshot');
 }
 
 beforeEach(() => {
-  fs.rmSync(FICHEIRO_VIVAS, { force: true });
-  fs.rmSync(FICHEIRO_PREV, { force: true });
+  fs.rmSync(LIVE_FILE, { force: true });
+  fs.rmSync(PREV_FILE, { force: true });
 });
 
 afterAll(() => {
@@ -46,49 +46,49 @@ afterAll(() => {
   delete process.env.JOCA_DATA_DIR;
 });
 
-describe('sobreviver a arranques seguidos', () => {
-  it('promove o retrato de quem morreu com conversas vivas', async () => {
-    escreveRetratoComConversa('instancia-A');
-    const m = await arrancaInstancia();
+describe('surviving back-to-back startups', () => {
+  it('promotes the snapshot of whoever died with live conversations', async () => {
+    writeSnapshotWithConversation('instance-A');
+    const m = await bootInstance();
 
     const rec = m.recoveredSessions();
-    expect(rec.previousBootId).toBe('instancia-A');
-    expect(rec.sessions.map((s) => s.id)).toEqual(['sessao-1']);
-    expect(fs.existsSync(FICHEIRO_PREV)).toBe(true);
+    expect(rec.previousBootId).toBe('instance-A');
+    expect(rec.sessions.map((s) => s.id)).toEqual(['session-1']);
+    expect(fs.existsSync(PREV_FILE)).toBe(true);
   });
 
-  it('DOIS arranques seguidos sem ninguém ver o aviso — o retrato continua lá', async () => {
-    escreveRetratoComConversa('instancia-A');
+  it('TWO back-to-back startups with nobody seeing the warning — the snapshot is still there', async () => {
+    writeSnapshotWithConversation('instance-A');
 
-    // Arranque 1: promove e escreve o seu próprio retrato vazio (não há sessões vivas).
-    const primeira = await arrancaInstancia();
-    primeira.flushSessionsSnapshot();
-    expect(JSON.parse(fs.readFileSync(FICHEIRO_VIVAS, 'utf8')).sessions).toEqual([]);
+    // Startup 1: promotes and writes its own empty snapshot (there are no live sessions).
+    const first = await bootInstance();
+    first.flushSessionsSnapshot();
+    expect(JSON.parse(fs.readFileSync(LIVE_FILE, 'utf8')).sessions).toEqual([]);
 
-    // Arranque 2: o ficheiro das vivas está vazio. É aqui que a versão de um só ficheiro perdia tudo.
-    const segunda = await arrancaInstancia();
-    const rec = segunda.recoveredSessions();
+    // Startup 2: the live file is empty. This is where the single-file version lost everything.
+    const second = await bootInstance();
+    const rec = second.recoveredSessions();
 
-    expect(rec.previousBootId).toBe('instancia-A');
-    expect(rec.sessions.map((s) => s.id)).toEqual(['sessao-1']);
-    expect(segunda.recoveredTail('sessao-1')).toBe('output que o utilizador ainda não leu');
+    expect(rec.previousBootId).toBe('instance-A');
+    expect(rec.sessions.map((s) => s.id)).toEqual(['session-1']);
+    expect(second.recoveredTail('session-1')).toBe('output the user has not read yet');
   });
 
-  it('dispensar é o ÚNICO gesto que apaga — e apaga mesmo, incluindo do disco', async () => {
-    escreveRetratoComConversa('instancia-A');
-    const primeira = await arrancaInstancia();
+  it('dismissing is the ONLY gesture that deletes — and it really does delete, including from disk', async () => {
+    writeSnapshotWithConversation('instance-A');
+    const first = await bootInstance();
 
-    primeira.clearRecovered();
-    expect(primeira.recoveredSessions().sessions).toEqual([]);
-    expect(fs.existsSync(FICHEIRO_PREV)).toBe(false);
+    first.clearRecovered();
+    expect(first.recoveredSessions().sessions).toEqual([]);
+    expect(fs.existsSync(PREV_FILE)).toBe(false);
 
-    // E não volta no arranque seguinte.
-    const segunda = await arrancaInstancia();
-    expect(segunda.recoveredSessions().sessions).toEqual([]);
+    // And it does not come back on the next startup.
+    const second = await bootInstance();
+    expect(second.recoveredSessions().sessions).toEqual([]);
   });
 
-  it('um arranque limpo não inventa aviso nenhum', async () => {
-    const m = await arrancaInstancia();
+  it('a clean startup does not invent any warning', async () => {
+    const m = await bootInstance();
     const rec = m.recoveredSessions();
     expect(rec.sessions).toEqual([]);
     expect(rec.previousBootId).toBeUndefined();

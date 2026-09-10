@@ -2,248 +2,248 @@
 origin: local
 ---
 
-# /build-plan — Construção Supervisionada por Fases
+# /build-plan — Supervised Phased Build
 
-Ponte entre `/plan` (planeamento) e `/one-shot` (execução autónoma). Persiste o plano como artefacto em `docs/`, decompõe em tarefas por fase, e executa um loop de implementação com gate de testes + checkpoint humano entre fases.
+Bridge between `/plan` (planning) and `/one-shot` (autonomous execution). Persists the plan as an artifact in `docs/`, decomposes it into tasks per phase, and runs an implementation loop with a test gate + a human checkpoint between phases.
 
-**Quando usar:**
-- Projecto com risco suficiente para não confiar numa execução autónoma completa
-- Queres revisão humana entre fases antes de prosseguir
-- Output de `/plan` ou PRD existe e é preciso transformar em implementação controlada
+**When to use:**
+- A project with enough risk not to trust a fully autonomous execution
+- You want human review between phases before proceeding
+- Output from `/plan` or a PRD exists and has to be turned into a controlled implementation
 
-**Diferença de /one-shot:** `/one-shot` executa até ao fim sem interrupções. `/build-plan` para em cada gate de fase — humano valida antes de avançar.
-**Diferença de /plan:** `/plan` produz o documento e para. `/build-plan` consome esse documento e executa.
-
----
-
-## PRÉ-REQUISITOS
-
-O projecto DEVE ter pelo menos um destes:
-- Output de `/plan` (conversa activa com plano aprovado)
-- `PRD.md` ou `TECH_SPEC.md` com fases ou features definidas
-- `docs/plan.md` de uma sessão anterior
-
-Se nenhum existir: correr `/plan` primeiro. Não inventar scope.
+**Difference from /one-shot:** `/one-shot` executes to the end without interruptions. `/build-plan` stops at every phase gate — a human validates before advancing.
+**Difference from /plan:** `/plan` produces the document and stops. `/build-plan` consumes that document and executes.
 
 ---
 
-## FASE 0 — Carregar e Validar Contexto
+## PREREQUISITES
+
+The project MUST have at least one of these:
+- Output from `/plan` (active conversation with an approved plan)
+- `PRD.md` or `TECH_SPEC.md` with phases or features defined
+- `docs/plan.md` from a previous session
+
+If none exists: run `/plan` first. Do not invent scope.
+
+---
+
+## PHASE 0 — Load and Validate Context
 
 ```
-Ler: CLAUDE.md (constraints do projecto)
-Ler: memory/SKILL_INDEX.json (skills disponíveis)
-Ler: PRD.md / TECH_SPEC.md / output de /plan (whichever exists)
+Read: CLAUDE.md (project constraints)
+Read: memory/SKILL_INDEX.json (available skills)
+Read: PRD.md / TECH_SPEC.md / output from /plan (whichever exists)
 ```
 
-Verificar:
-- [ ] Stack definida
-- [ ] Fases ou features com acceptance criteria clara
-- [ ] Nenhuma decisão bloqueante em aberto sem owner
+Check:
+- [ ] Stack defined
+- [ ] Phases or features with clear acceptance criteria
+- [ ] No blocking decision left open with no owner
 
-Se faltar algo crítico → reportar exactamente o que falta e parar. Não prosseguir.
+If something critical is missing → report exactly what is missing and stop. Do not proceed.
 
 ---
 
-## FASE 1 — Persistir Plano
+## PHASE 1 — Persist the Plan
 
-Escrever `docs/plan.md` com:
+Write `docs/plan.md` with:
 
 ```markdown
-# Plano — <nome-projecto>
-_Gerado: <YYYY-MM-DD>_
+# Plan — <project-name>
+_Generated: <YYYY-MM-DD>_
 
 ## Scope
-<objectivo em 2-3 linhas>
+<objective in 2-3 lines>
 
 ## Stack
-<stack detectada>
+<detected stack>
 
-## Fases
-| # | Nome | Descrição | Dependências | Parallelizável |
+## Phases
+| # | Name | Description | Dependencies | Parallelizable |
 |---|------|-----------|--------------|----------------|
-| 1 | ... | ... | — | não |
-| 2 | ... | ... | Fase 1 | sim |
+| 1 | ... | ... | — | no |
+| 2 | ... | ... | Phase 1 | yes |
 
-## Decisões de Arquitectura
-<decisões chave com rationale 1 linha cada>
+## Architecture Decisions
+<key decisions with a 1-line rationale each>
 
-## Fora de Scope
-<o que foi explicitamente excluído>
+## Out of Scope
+<what was explicitly excluded>
 
 ## Open Questions
-<questões sem resposta — BLOQUEIA implementação se crítico>
+<unanswered questions — BLOCKS implementation if critical>
 ```
 
-Se `docs/plan.md` já existir com conteúdo relevante → ler, confirmar com utilizador se deve sobrescrever ou fazer merge.
+If `docs/plan.md` already exists with relevant content → read it, confirm with the user whether to overwrite or merge.
 
-**Confirmar com utilizador:** "Plano persistido em docs/plan.md. Prosseguir para decomposição de tarefas?"
+**Confirm with the user:** "Plan persisted in docs/plan.md. Proceed to task decomposition?"
 
 ---
 
-## FASE 2 — Decompor em Tarefas
+## PHASE 2 — Decompose into Tasks
 
-Escrever `docs/tasks.md` com tarefas agrupadas por fase:
+Write `docs/tasks.md` with tasks grouped by phase:
 
 ```markdown
-# Tasks — <nome-projecto>
-_Gerado: <YYYY-MM-DD> | Status: em-progresso_
+# Tasks — <project-name>
+_Generated: <YYYY-MM-DD> | Status: in-progress_
 
-## Fase 1 — <nome>
-Status: pendente
+## Phase 1 — <name>
+Status: pending
 
-- [ ] [1.1] <tarefa> — `caminho/ficheiro.ext` — depende: — [P]
-- [ ] [1.2] <tarefa> — `caminho/ficheiro.ext` — depende: 1.1
-- [ ] [1.3] <tarefa> — `caminho/ficheiro.ext` — depende: 1.1 — [P]
+- [ ] [1.1] <task> — `path/file.ext` — depends: — [P]
+- [ ] [1.2] <task> — `path/file.ext` — depends: 1.1
+- [ ] [1.3] <task> — `path/file.ext` — depends: 1.1 — [P]
 
-**Gate:** <critério de teste concreto para concluir esta fase>
+**Gate:** <concrete test criterion to close this phase>
 
-## Fase 2 — <nome>
-Status: bloqueado (aguarda Fase 1)
+## Phase 2 — <name>
+Status: blocked (awaiting Phase 1)
 ...
 ```
 
-Convenções:
-- `[P]` — tarefa paralelizável (sem dependências de escrita partilhada)
-- Cada tarefa com ficheiro(s) exacto(s) afectado(s)
-- Dependências explícitas entre tarefas (não fases inteiras se evitável)
-- Gate de fase = critério executável (ex: "testes X passam", "endpoint Y responde 200")
+Conventions:
+- `[P]` — parallelizable task (no shared-write dependencies)
+- Each task with the exact file(s) it affects
+- Explicit dependencies between tasks (not whole phases where avoidable)
+- Phase gate = executable criterion (e.g.: "tests X pass", "endpoint Y answers 200")
 
-**Confirmar com utilizador:** "Tasks decompostas em docs/tasks.md — N fases, N tarefas. Iniciar Fase 1?"
+**Confirm with the user:** "Tasks decomposed in docs/tasks.md — N phases, N tasks. Start Phase 1?"
 
 ---
 
-## FASE 3..N — Loop de Implementação por Fase
+## PHASE 3..N — Per-Phase Implementation Loop
 
-Para cada fase (sequencial por dependências, paralelo quando `[P]` permite):
+For each phase (sequential by dependencies, parallel where `[P]` allows):
 
-### 3a. Briefing de Fase
+### 3a. Phase Briefing
 
-Antes de executar, mostrar:
+Before executing, show:
 ```
-━━━ FASE <N> — <nome> ━━━
-Tarefas: N items
-Gate: <critério>
-Ficheiros: <lista>
-Depende de: <fases anteriores>
-Avançar? [Enter para continuar / 's' para saltar / 'q' para parar]
+━━━ PHASE <N> — <name> ━━━
+Tasks: N items
+Gate: <criterion>
+Files: <list>
+Depends on: <previous phases>
+Advance? [Enter to continue / 's' to skip / 'q' to stop]
 ```
 
-### 3b. Implementação
+### 3b. Implementation
 
-Activar skill relevante antes de escrever código:
-- Verificar trigger map em CLAUDE.md
-- Ler skill (`[skill: <nome>]`) se match ≥ 60%
-- Executar tarefas da fase — tocar só o necessário
+Activate the relevant skill before writing code:
+- Check the trigger map in CLAUDE.md
+- Read the skill (`[skill: <name>]`) if match ≥ 60%
+- Execute the phase's tasks — touch only what is necessary
 
-Actualizar status em `docs/tasks.md` à medida que completa:
-- `[ ]` → `[x]` por tarefa concluída
-- Status da fase: `pendente` → `em-progresso` → `aguarda-gate`
+Update the status in `docs/tasks.md` as it completes:
+- `[ ]` → `[x]` per completed task
+- Phase status: `pending` → `in-progress` → `awaiting-gate`
 
-### 3c. Gate de Testes
+### 3c. Test Gate
 
-Após implementação da fase, executar gate:
+After the phase's implementation, run the gate:
 
 ```bash
-# Correr testes relevantes para a fase
-# (comandos específicos da stack — não inventar; ler CLAUDE.md do projecto)
+# Run the tests relevant to the phase
+# (stack-specific commands — do not invent them; read the project's CLAUDE.md)
 ```
 
-Se testes passam → marcar fase como `concluída` em `docs/tasks.md`.
+If the tests pass → mark the phase as `done` in `docs/tasks.md`.
 
-Se testes falham:
-1. Reportar exactamente quais falharam e porquê
-2. Tentar fix cirúrgico (1 tentativa)
-3. Se ainda falha → parar e apresentar ao utilizador. Não avançar para próxima fase.
+If the tests fail:
+1. Report exactly which ones failed and why
+2. Try a surgical fix (1 attempt)
+3. If it still fails → stop and present to the user. Do not advance to the next phase.
 
-### 3d. Checkpoint Humano
+### 3d. Human Checkpoint
 
 ```
-━━━ CHECKPOINT — FASE <N> CONCLUÍDA ━━━
-Gate: ✓ passou / ✗ falhou
-Ficheiros modificados: <lista>
-Testes: N passed, N failed
+━━━ CHECKPOINT — PHASE <N> DONE ━━━
+Gate: ✓ passed / ✗ failed
+Files modified: <list>
+Tests: N passed, N failed
 
-Resumo do que foi feito:
+Summary of what was done:
   • <item 1>
   • <item 2>
 
-Avançar para Fase <N+1>? [Enter / 'q' para parar]
+Advance to Phase <N+1>? [Enter / 'q' to stop]
 ```
 
-Se utilizador parar → guardar estado em `docs/tasks.md` (status `pausado`). Corrida seguinte retoma daqui.
+If the user stops → save the state in `docs/tasks.md` (status `paused`). The next run resumes from here.
 
 ---
 
-## RETOMAR SESSÃO INTERROMPIDA
+## RESUME AN INTERRUPTED SESSION
 
-Se `docs/tasks.md` existir com status `pausado` ou `em-progresso`:
+If `docs/tasks.md` exists with status `paused` or `in-progress`:
 
 ```
-Sessão anterior detectada:
-  Fases completas: N/N
-  Última fase: <nome> — <status>
-  Retomar? [Enter] / Recomeçar do zero? ['r']
+Previous session detected:
+  Phases complete: N/N
+  Last phase: <name> — <status>
+  Resume? [Enter] / Start from scratch? ['r']
 ```
 
-Retomar = continuar a partir da primeira fase com status != `concluída`.
+Resume = continue from the first phase with status != `done`.
 
 ---
 
-## ARGUMENTOS OPCIONAIS
+## OPTIONAL ARGUMENTS
 
-- `/build-plan --phase 2` — iniciar directamente na Fase 2 (fases anteriores marcadas como completas)
-- `/build-plan --auto` — substituir checkpoints humanos por auto-proceed se gate passar (equivale a `/one-shot` por fases)
-- `/build-plan --dry-run` — gerar `docs/plan.md` + `docs/tasks.md` sem executar nenhuma implementação
-- `/build-plan --no-tests` — saltar gate de testes (mais rápido, menos seguro)
+- `/build-plan --phase 2` — start directly at Phase 2 (previous phases marked as complete)
+- `/build-plan --auto` — replace human checkpoints with auto-proceed if the gate passes (equivalent to `/one-shot` in phases)
+- `/build-plan --dry-run` — generate `docs/plan.md` + `docs/tasks.md` without executing any implementation
+- `/build-plan --no-tests` — skip the test gate (faster, less safe)
 
 ---
 
-## RELATÓRIO FINAL
+## FINAL REPORT
 
 ```
-BUILD-PLAN — <nome-projecto>
+BUILD-PLAN — <project-name>
 ══════════════════════════════
 
-Fases: N/N concluídas
+Phases: N/N done
 
-  ✓ Fase 1 — <nome> (N tarefas | gate passou)
-  ✓ Fase 2 — <nome> (N tarefas | gate passou)
-  ✗ Fase 3 — <nome> (pausado — gate falhou)
+  ✓ Phase 1 — <name> (N tasks | gate passed)
+  ✓ Phase 2 — <name> (N tasks | gate passed)
+  ✗ Phase 3 — <name> (paused — gate failed)
 
-Artefactos:
-  docs/plan.md       ✓ persistido
-  docs/tasks.md      ✓ actualizado (N/N tarefas concluídas)
+Artifacts:
+  docs/plan.md       ✓ persisted
+  docs/tasks.md      ✓ updated (N/N tasks done)
 
-Ficheiros modificados: N
-Testes: N passed, N failed
+Files modified: N
+Tests: N passed, N failed
 
-Próximos passos:
-  → Resolver gate da Fase 3, retomar com /build-plan
-  → /review-code quando todas as fases concluídas
-  → /one-shot --scope "fase N" para fases simples sem necessidade de supervisão
+Next steps:
+  → Resolve the Phase 3 gate, resume with /build-plan
+  → /review-code once every phase is done
+  → /one-shot --scope "phase N" for simple phases with no need for supervision
 ```
 
 ---
 
-## NOTAS
+## NOTES
 
-- Nunca avançar de fase com gate falhado (excepto `--no-tests`).
-- `docs/plan.md` e `docs/tasks.md` são o estado de resumo — não re-derivar se existirem.
-- Skills activadas por fase via trigger map — não globalmente no início.
-- Se stack não tem testes definidos, pedir ao utilizador critério de gate antes de iniciar Fase 1.
-- Edicões cirúrgicas — não reescrever ficheiros adjacentes não listados nas tarefas da fase.
+- Never advance a phase with a failed gate (except `--no-tests`).
+- `docs/plan.md` and `docs/tasks.md` are the summary state — do not re-derive them if they exist.
+- Skills activated per phase via the trigger map — not globally at the start.
+- If the stack has no tests defined, ask the user for the gate criterion before starting Phase 1.
+- Surgical edits — do not rewrite adjacent files not listed in the phase's tasks.
 
 ---
 
-## Autorização do `Workflow` (ferramenta do harness)
+## `Workflow` authorization (harness tool)
 
-**Correr `/build-plan` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
-podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
-Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+**Running `/build-plan` is the user's explicit opt-in to the `Workflow` tool.** Do not ask whether you
+may orchestrate — if the work splits into phases with fan-out, author the script and **call `Workflow`**.
+When the script is unnecessary, `Agent()` in parallel in the same turn serves just as well.
 
-Travões que **não** caem com esta autorização:
-- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
-- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
-- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
-- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.
+Brakes that do **not** fall away with this authorization:
+- **Cheap recon BEFORE authoring** the script (`rules/pipelines.md`) — `grep`/`ls` on the domain, inline.
+- **1-line gate** on anything irreversible (deploy · push · migration · delete · payment · auth).
+- **Verifier ≠ producer** — whoever writes does not sign off the gate (`.joca/loop.json`).
+- **Size** comes from `/config` ("Dynamic workflow size"), not from this command.
+- **Cost announced**: ≥6 agents or a loop of rounds → order of magnitude of tokens before launching.

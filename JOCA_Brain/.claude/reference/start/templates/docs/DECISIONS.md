@@ -1,25 +1,25 @@
-# Registo de decisões
+# Decision record
 
-Porque é que o código está como está. Duas ou três linhas por decisão, escritas
-no momento em que a decisão é tomada.
+Why the code is the way it is. Two or three lines per decision, written at the
+moment the decision is taken.
 
-O código mostra sempre o *quê*; nunca mostra o *porquê*, nem as alternativas
-descartadas.
+The code always shows the *what*; it never shows the *why*, nor the discarded
+alternatives.
 
-**Registar quando:** se escolhe entre alternativas, se descarta uma abordagem
-óbvia, ou se faz algo que daqui a seis meses vai parecer estranho.
-Não registar o trivial.
+**Record when:** you choose between alternatives, you discard an obvious
+approach, or you do something that in six months will look strange.
+Do not record the trivial.
 
 ---
 
-## AAAA-MM-DD — <Título curto>
+## YYYY-MM-DD — <Short title>
 
-**Contexto:** que situação obrigou a decidir.
+**Context:** what situation forced the decision.
 
-**Decisão:** o que foi decidido.
+**Decision:** what was decided.
 
-**Porquê:** sobretudo, porque é que as alternativas óbvias não servem.
+**Why:** above all, why the obvious alternatives do not work.
 
-**Consequências:** o que isto torna mais fácil, e o que torna mais difícil.
+**Consequences:** what this makes easier, and what it makes harder.
 
 ---

@@ -1,25 +1,25 @@
 name: Bug
-description: Algo que devia funcionar e não funciona
-labels: ["tipo: bug"]
+description: Something that should work and does not
+labels: ["type: bug"]
 body:
   - type: textarea
     id: esperado
     attributes:
-      label: O que devia acontecer
+      label: What should happen
     validations:
       required: true
 
   - type: textarea
     id: aconteceu
     attributes:
-      label: O que acontece
+      label: What happens
     validations:
       required: true
 
   - type: textarea
     id: reproduzir
     attributes:
-      label: Como reproduzir
+      label: How to reproduce
       value: |
         1.
         2.
@@ -30,16 +30,16 @@ body:
   - type: dropdown
     id: impacto
     attributes:
-      label: Impacto
+      label: Impact
       options:
-        - Bloqueia o utilizador — sem alternativa
-        - Incomoda — há forma de contornar
-        - Cosmético
+        - Blocks the user — no way around it
+        - Annoying — there is a way around it
+        - Cosmetic
     validations:
       required: true
 
   - type: textarea
     id: contexto
     attributes:
-      label: Contexto
-      description: Ambiente, utilizador afetado, mensagens de erro, entradas de log.
+      label: Context
+      description: Environment, affected user, error messages, log entries.

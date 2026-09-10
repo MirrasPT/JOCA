@@ -1,85 +1,85 @@
-# Motion Personality — arquetipos de movimento
+# Motion Personality — movement archetypes
 
-Referencia on-demand. Consumida por `skills/anima.md` (a tabela resumo vive la; o detalhe esta aqui).
-Adaptado de `LottieFiles/motion-design-skill` (MIT).
+On-demand reference. Consumed by `skills/anima.md` (the summary table lives there; the detail is here).
+Adapted from `LottieFiles/motion-design-skill` (MIT).
 
-O arquetipo escolhe-se **uma vez por projecto** e vale para tudo. Trocar de arquetipo entre
-componentes e a forma mais rapida de um produto se ler como template montado a pressa.
+The archetype is chosen **once per project** and applies to everything. Switching archetype between
+components is the fastest way for a product to read like a template thrown together in a hurry.
 
 ---
 
-## Os 4 arquetipos
+## The 4 archetypes
 
 ### Playful
-| Parametro | Valor |
+| Parameter | Value |
 |---|---|
-| Duracao | 150-300ms |
+| Duration | 150-300ms |
 | Easing | ease-out-back / springs |
 | Overshoot | 10-20% |
-| Trajectoria | arcos e curvas, nunca recta |
-| Squash-stretch | sim, nos impactos |
+| Trajectory | arcs and curves, never straight |
+| Squash-stretch | yes, on impacts |
 
-Assinatura: bounce a assentar, squash no press, wobble de rotacao, stagger variado.
-Onde: apps infantis, jogos casuais, social, celebracoes, onboarding, ferramentas criativas.
+Signature: bounce on settling, squash on press, rotation wobble, varied stagger.
+Where: kids' apps, casual games, social, celebrations, onboarding, creative tools.
 
-### Premium / Luxo
-| Parametro | Valor |
+### Premium / Luxury
+| Parameter | Value |
 |---|---|
-| Duracao | 350-600ms |
+| Duration | 350-600ms |
 | Easing | cubic-bezier(0.4, 0, 0.2, 1) |
 | Overshoot | 0% |
-| Trajectoria | curvas suaves, parallax subtil |
-| Squash-stretch | nunca |
+| Trajectory | smooth curves, subtle parallax |
+| Squash-stretch | never |
 
-Assinatura: fades lentos, escala subtil (98%→100%), pausas generosas, poucas propriedades (opacidade + uma).
-Onde: moda, financas, marcas de luxo, SaaS premium, portfolios, editorial.
+Signature: slow fades, subtle scale (98%→100%), generous pauses, few properties (opacity + one).
+Where: fashion, finance, luxury brands, premium SaaS, portfolios, editorial.
 
-### Corporate / Profissional — **default de UI**
-| Parametro | Valor |
+### Corporate / Professional — **UI default**
+| Parameter | Value |
 |---|---|
-| Duracao | 200-400ms |
+| Duration | 200-400ms |
 | Easing | cubic-bezier(0.2, 0, 0, 1) |
 | Overshoot | 0-3% |
-| Trajectoria | rectas, arcos pequenos so para enfase |
-| Squash-stretch | nao |
+| Trajectory | straight lines, small arcs only for emphasis |
+| Squash-stretch | no |
 
-Assinatura: timing consistente, transicoes de estado claras, movimento funcional, stagger uniforme.
-Onde: enterprise, dashboards, ferramentas de negocio, admin, saude, banca.
+Signature: consistent timing, clear state transitions, functional movement, uniform stagger.
+Where: enterprise, dashboards, business tools, admin, health, banking.
 
-### Energetic / Dinamico
-| Parametro | Valor |
+### Energetic / Dynamic
+| Parameter | Value |
 |---|---|
-| Duracao | 100-250ms |
+| Duration | 100-250ms |
 | Easing | ease-out-expo / elastic |
 | Overshoot | 15-30% |
-| Trajectoria | arcos dramaticos, deslocamento grande, diagonal |
-| Squash-stretch | sim, exagerado |
+| Trajectory | dramatic arcs, large displacement, diagonal |
+| Squash-stretch | yes, exaggerated |
 
-Assinatura: mudancas de escala grandes (50-150%), transicoes de cor rapidas, rajadas de particulas,
-stagger a acelerar, entradas pela margem.
-Onde: gaming, desporto, musica, eventos, marketing, fitness.
+Signature: large scale changes (50-150%), fast color transitions, particle bursts,
+accelerating stagger, entrances from the edge.
+Where: gaming, sport, music, events, marketing, fitness.
 
 ---
 
-## Escolher pelo brief
+## Choosing from the brief
 
-| Palavras no brief | Arquetipo |
+| Words in the brief | Archetype |
 |---|---|
-| divertido, bouncy, giro, amigavel | Playful |
-| elegante, minimal, luxo, sofisticado | Premium |
-| limpo, profissional, negocio, dashboard | Corporate |
-| dinamico, energetico, ousado, entusiasmante | Energetic |
-| (nao dito) + UI | **Corporate** |
-| (nao dito) + ilustracao | **Playful** |
+| fun, bouncy, cute, friendly | Playful |
+| elegant, minimal, luxury, sophisticated | Premium |
+| clean, professional, business, dashboard | Corporate |
+| dynamic, energetic, bold, exciting | Energetic |
+| (not stated) + UI | **Corporate** |
+| (not stated) + illustration | **Playful** |
 
 ---
 
-## Identidade de movimento da marca (3 constantes)
+## Brand motion identity (3 constants)
 
-**1. Easing de assinatura** — 80% das animacoes:
+**1. Signature easing** — 80% of the animations:
 Playful `ease-out-back` · Premium `(0.4,0,0.2,1)` · Corporate `(0.2,0,0,1)` · Energetic `ease-out-expo`
 
-**2. Paleta de duracoes**
+**2. Duration palette**
 
 | Tier | Playful | Premium | Corporate | Energetic |
 |---|---|---|---|---|
@@ -87,17 +87,17 @@ Playful `ease-out-back` · Premium `(0.4,0,0.2,1)` · Corporate `(0.2,0,0,1)` ·
 | Standard | 250ms | 500ms | 300ms | 180ms |
 | Slow | 400ms | 800ms | 450ms | 300ms |
 
-**3. Padrao de entrada**
-Playful: bounce de baixo · Premium: fade lento + escala 98%→100% · Corporate: slide da direita +
-opacidade · Energetic: snap da margem + overshoot
+**3. Entrance pattern**
+Playful: bounce from below · Premium: slow fade + scale 98%→100% · Corporate: slide from the right +
+opacity · Energetic: snap from the edge + overshoot
 
 ---
 
-## Misturar arquetipos
+## Mixing archetypes
 
-- **90% no arquetipo primario.** Momentos especificos podem pedir emprestado a outro.
-- A mudanca de personalidade entra a easing, nao a corte.
-- Exemplo legitimo: dashboard Corporate que pede Playful emprestado **so** no estado de sucesso.
+- **90% in the primary archetype.** Specific moments may borrow from another.
+- The personality change enters by easing, not by cut.
+- Legitimate example: a Corporate dashboard that borrows Playful **only** in the success state.
 
-⚠ Isto nao e licenca para variar. Se mais de 10% das animacoes fogem ao arquetipo, nao ha arquetipo —
-ha ausencia de decisao.
+⚠ This is not a license to vary. If more than 10% of the animations escape the archetype, there is no
+archetype — there is an absence of decision.

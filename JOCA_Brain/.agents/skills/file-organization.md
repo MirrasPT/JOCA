@@ -1,97 +1,97 @@
 ---
 name: file-organization
-description: "Audita uma pasta de ficheiros (assets de design, documentos, exports) e produz um plano de renomeação/reorganização com conteúdo REALMENTE verificado, não adivinhado pelo nome. MUST be invoked when the user says: organizar pasta, arrumar ficheiros, renomear ficheiros, limpar pasta de assets, plano de organização. SHOULD also invoke when: pasta de cliente desorganizada, nomes tipo v1/v2/op1, duplicados de ficheiros, ficheiros soltos na raiz."
-triggers: organizar pasta, arrumar ficheiros, renomear ficheiros, limpar pasta, plano de organização, organização de ficheiros, duplicados, ficheiros soltos, nomear assets, rename files, clean up folder, file organization
-chain: nenhum — termina no plano aprovado + execução; não encadeia automaticamente
+description: "Audits a folder of files (design assets, documents, exports) and produces a renaming/reorganisation plan with content that was REALLY verified, not guessed from the name. MUST be invoked when the user says: organize folder, tidy up files, rename files, clean up the assets folder, organization plan. SHOULD also invoke when: a disorganised client folder, names like v1/v2/op1, duplicate files, loose files in the root."
+triggers: organize folder, tidy up files, rename files, clean up folder, organization plan, file organization, duplicates, loose files, name assets
+chain: none — ends at the approved plan + execution; does not chain automatically
 ---
 
 # File Organization
 
-Organizar uma pasta de ficheiros reais (design, docs, exports) — não é refactor de código. O valor está em **verificar o conteúdo antes de renomear**, nunca inferir pelo nome actual, e nunca apagar sem aprovação explícita.
+Organizing a folder of real files (design, docs, exports) — this is not a code refactor. The value is in **verifying the content before renaming**, never inferring from the current name, and never deleting without explicit approval.
 
-## Quando usar
+## When to use it
 
-Pedido do tipo "organiza esta pasta", "isto está uma bagunça", nomes genéricos (`v1/v2/v3`, `op1-op4`, `IMG_1234`), pasta de cliente com anos de material acumulado, exports duplicados em formatos diferentes.
+A request like "organize this folder", "this is a mess", generic names (`v1/v2/v3`, `op1-op4`, `IMG_1234`), a client folder with years of accumulated material, duplicate exports in different formats.
 
-**Não é esta skill:** organizar código-fonte (isso é refactor — `laravel-refactor`/`tech-debt-auditor`), nem arrumar `.claude/skills`/repos de código (estrutura já é regida pelo `CLAUDE.md` do projecto).
+**Not this skill:** organizing source code (that is a refactor — `laravel-refactor`/`tech-debt-auditor`), nor tidying up `.claude/skills`/code repos (their structure is already governed by the project's `CLAUDE.md`).
 
 ## Workflow
 
-### 1. Recon — mapear zonas independentes
+### 1. Recon — map the independent zones
 
-`find`/`ls` para perceber a árvore e o volume antes de decidir método:
+`find`/`ls` to understand the tree and the volume before deciding on a method:
 ```bash
 find . -type f -not -path "*/graphify-out/*" -not -name ".DS_Store" | wc -l
 find . -maxdepth 3 -type d
 ```
-Cada subpasta de topo (por projecto/cliente/marca) é uma **zona independente** — candidata a fan-out se o volume justificar (ver secção 5).
+Every top-level subfolder (per project/client/brand) is an **independent zone** — a candidate for fan-out if the volume justifies it (see section 5).
 
-### 2. Detectar zonas de exclusão ANTES de propor qualquer rename
+### 2. Detect exclusion zones BEFORE proposing any rename
 
-Procurar sinais de pipeline activa que renomear parte:
-- Scripts que leem nomes fixos: `build.py`, `Makefile`, `package.json` com paths hardcoded, HTML/CSS que referencia asset por nome exacto.
-- Pastas `_src/`, `_build/`, `dist/`, `_backup/` junto de um gerador.
-- Se existir → **marcar a zona como intocada no plano**, explicar porquê (nome exacto lido por X), e organizar só à volta dela. Não pedir para confirmar — é dado objectivo (grep encontra a referência).
+Look for signs of an active pipeline that renaming would break:
+- Scripts that read fixed names: `build.py`, `Makefile`, `package.json` with hardcoded paths, HTML/CSS that references an asset by its exact name.
+- `_src/`, `_build/`, `dist/`, `_backup/` folders next to a generator.
+- If one exists → **mark the zone as untouched in the plan**, explain why (the exact name is read by X), and organize only around it. Do not ask for confirmation — it is an objective fact (grep finds the reference).
 
-### 3. Abrir o conteúdo real — nunca renomear pelo nome
+### 3. Open the real content — never rename from the name
 
-Regra dura (soul.md): **design tokens contam como factos** — o mesmo vale aqui para nomes de ficheiro. Um nome plausível não é verificação.
-- Imagens/SVG/PDF pequenos → `Read()` directamente (o Read tool renderiza imagem/PDF).
-- `.ai`/PSD grandes (>15MB) e binários não renderizáveis → não abrem; inferir por metadata (tamanho, data, nome-irmão já verificado) e marcar explicitamente **"não verificado visualmente"** no plano. Nunca fingir que foi aberto.
-- Ficheiros `.md`/`.txt`/`.rtf` → ler o conteúdo real, não só o nome.
-- Nomes tipo `v1/v2/v3`, `op1-op4`, `(1)/(2)` **quase sempre escondem uma diferença real** (cor, fundo, variante, versão descartada vs escolhida) — abrir todos os candidatos da série e nomear pela diferença encontrada, não manter o índice genérico.
+Hard rule (soul.md): **design tokens count as facts** — the same holds here for filenames. A plausible name is not verification.
+- Images/SVG/small PDFs → `Read()` them directly (the Read tool renders images/PDFs).
+- Large `.ai`/PSD files (>15MB) and non-renderable binaries → they do not open; infer from metadata (size, date, an already-verified sibling name) and mark them explicitly as **"not visually verified"** in the plan. Never pretend they were opened.
+- `.md`/`.txt`/`.rtf` files → read the real content, not just the name.
+- Names like `v1/v2/v3`, `op1-op4`, `(1)/(2)` **almost always hide a real difference** (color, background, variant, discarded vs chosen version) — open every candidate in the series and name them by the difference you find, do not keep the generic index.
 
-### 4. Detectar duplicados exactos
+### 4. Detect exact duplicates
 
-`md5`/`md5sum` para pares que parecem redundantes (mesma pasta com nomes diferentes, ou pastas irmãs com o mesmo conteúdo):
+`md5`/`md5sum` for pairs that look redundant (the same folder with different names, or sibling folders with the same content):
 ```bash
-md5 "caminho/a" "caminho/b"
+md5 "path/a" "path/b"
 ```
-- **Nunca apagar automaticamente.** Listar o par, apontar qual parece a cópia canónica (mais completa/recente/melhor nomeada) e deixar a remoção pendente de aprovação explícita do utilizador — mesmo que ele tenha aprovado "o plano" em bloco. Apagar é irreversível; renomear/mover não é.
-- Ficheiros de metadata órfã do macOS (`._*`, `.DS_Store`) → sinalizar, não abrir, não renomear.
+- **Never delete automatically.** List the pair, point out which one looks like the canonical copy (more complete/more recent/better named) and leave the removal pending the user's explicit approval — even if they approved "the plan" as a block. Deleting is irreversible; renaming/moving is not.
+- Orphan macOS metadata files (`._*`, `.DS_Store`) → flag them, do not open them, do not rename them.
 
-### 5. Fan-out se o volume justificar
+### 5. Fan out if the volume justifies it
 
-Regra de paralelismo do `task-intake.md`: **≥2 zonas independentes → despachar em paralelo**, um `Agent()` por zona, no mesmo turno. Cada agente:
-- Recebe a zona (path) + a convenção de nomes a aplicar + a lista do que NÃO tocar (pipelines já identificadas no passo 2).
-- Abre o conteúdo real de cada ficheiro da sua zona (passo 3).
-- Devolve Markdown: `caminho actual → caminho/nome proposto` + razão, agrupado, mais secção de duplicados encontrados.
-- **Não move nem apaga nada** — só inventaria. A execução acontece depois, centralizada, quando o plano estiver aprovado.
+The parallelism rule from `task-intake.md`: **≥2 independent zones → dispatch in parallel**, one `Agent()` per zone, in the same turn. Each agent:
+- Receives the zone (path) + the naming convention to apply + the list of what NOT to touch (pipelines already identified in step 2).
+- Opens the real content of every file in its zone (step 3).
+- Returns Markdown: `current path → proposed path/name` + reason, grouped, plus a section of the duplicates found.
+- **Moves nothing and deletes nothing** — it only inventories. Execution happens afterwards, centrally, once the plan is approved.
 
-Zonas pequenas (poucos ficheiros óbvios) fazem-se inline, sem agente — não vale o custo de ~15x tokens para 3 ficheiros.
+Small zones (a few obvious files) are done inline, without an agent — the ~15x token cost is not worth it for 3 files.
 
-### 6. Convenção de nomes (default, ajustar ao projecto)
+### 6. Naming convention (default, adjust to the project)
 
-- minúsculas, hífen, sem espaços/acentos **no nome do ficheiro** (o conteúdo pode ter acentos);
-- idioma segue o resto do projecto (não traduzir nomes de marca/produto);
-- preservar extensão e semântica existente se já for uma convenção coerente — só corrigir o que estiver mesmo errado (typo, ambíguo, ou nome que não bate com o conteúdo);
-- se uma pasta/projecto já tiver convenção própria e consistente (confirmado por amostragem, não suposição), **não a reescrever só por preferência pessoal** — só sinalizar o que quebra o padrão.
+- lowercase, hyphens, no spaces/accents **in the filename** (the content may have accents);
+- the language follows the rest of the project (do not translate brand/product names);
+- preserve the existing extension and semantics if it is already a coherent convention — only fix what is genuinely wrong (a typo, an ambiguity, or a name that does not match the content);
+- if a folder/project already has its own consistent convention (confirmed by sampling, not by assumption), **do not rewrite it out of personal preference** — only flag what breaks the pattern.
 
-### 7. Apresentar o plano
+### 7. Present the plan
 
-Por omissão: **texto/tabelas directamente no chat**, agrupado por zona, com secção de duplicados destacada no fim. Não publicar como Artifact salvo pedido explícito do utilizador — plano é para leitura e aprovação rápida, não é um deliverable visual.
+By default: **text/tables directly in the chat**, grouped by zone, with the duplicates section highlighted at the end. Do not publish it as an Artifact unless the user explicitly asks — a plan is for quick reading and approval, it is not a visual deliverable.
 
-Incluir sempre: contagem total revista, quantos renames propostos, quantos duplicados, o que ficou intocado e porquê.
+Always include: the total count reviewed, how many renames are proposed, how many duplicates, what was left untouched and why.
 
-### 8. Executar (só depois de aprovação)
+### 8. Execute (only after approval)
 
-- Renomear/mover é reversível → executar sem pedir confirmação extra por ficheiro, uma vez que o plano em si foi aprovado.
-- Apagar duplicados → **1 confirmação explícita por grupo**, mesmo que "aplica o plano" tenha sido dito em bloco — a aprovação do plano cobre a reorganização, não a remoção, salvo o utilizador dizer isso de forma inequívoca.
-- **Gotcha de filesystem case-insensitive** (macOS local, e a maioria dos mounts de Google Drive/iCloud): `mv Ficheiro.md ficheiro.md` (rename só de maiúscula/minúscula) é tratado como o mesmo ficheiro e o `mv` falha ou não faz nada — silenciosamente, sem erro visível. Passar sempre por um nome temporário:
+- Renaming/moving is reversible → execute without asking for extra confirmation per file, given that the plan itself was approved.
+- Deleting duplicates → **1 explicit confirmation per group**, even if "apply the plan" was said as a block — approving the plan covers the reorganisation, not the removal, unless the user says so unambiguously.
+- **Case-insensitive filesystem gotcha** (local macOS, and most Google Drive/iCloud mounts): `mv File.md file.md` (a rename that only changes case) is treated as the same file and `mv` either fails or does nothing — silently, with no visible error. Always go through a temporary name:
   ```bash
-  mv -n "ANALISE.md" "__tmp_analise.md"
-  mv -n "__tmp_analise.md" "analise.md"
+  mv -n "ANALYSIS.md" "__tmp_analysis.md"
+  mv -n "__tmp_analysis.md" "analysis.md"
   ```
-- Usar `mv -n` (no-clobber) sempre — nunca sobrescrever um ficheiro existente sem intenção explícita (regra dura: escrever por cima de um ficheiro existente é irreversível).
-- Verificar no fim: `find` a árvore outra vez e confirmar que não sobrou nenhum nome antigo fora das zonas marcadas como intocadas.
+- Always use `mv -n` (no-clobber) — never overwrite an existing file without explicit intent (hard rule: writing over an existing file is irreversible).
+- Verify at the end: `find` the tree again and confirm that no old name is left outside the zones marked as untouched.
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Correct |
 |---|---|
-| Renomear pelo nome do ficheiro sem abrir | Abrir o conteúdo real (imagem/PDF/md) antes de propor nome |
-| Apagar duplicados porque "o plano" foi aprovado em bloco | Confirmação explícita por grupo de duplicados, sempre |
-| Renomear ficheiros dentro de uma pasta `_src`/`_build` com gerador | Detectar a pipeline primeiro (grep por nomes fixos em scripts), marcar como intocada |
-| `mv Nome.md nome.md` numa pasta do Google Drive/macOS | Passar por nome temporário — filesystem case-insensitive trata como o mesmo ficheiro |
-| Publicar o plano sempre como Artifact | Chat por omissão; Artifact só se pedido |
-| Manter `v1/v2/v3` genérico depois de já ter aberto e visto a diferença real | Nomear pela diferença (cor/fundo/variante), não pelo índice |
+| Renaming from the filename without opening it | Open the real content (image/PDF/md) before proposing a name |
+| Deleting duplicates because "the plan" was approved as a block | Explicit confirmation per group of duplicates, always |
+| Renaming files inside a `_src`/`_build` folder that has a generator | Detect the pipeline first (grep for fixed names in scripts), mark it as untouched |
+| `mv Name.md name.md` in a Google Drive/macOS folder | Go through a temporary name — a case-insensitive filesystem treats it as the same file |
+| Always publishing the plan as an Artifact | Chat by default; Artifact only on request |
+| Keeping `v1/v2/v3` generic after already opening them and seeing the real difference | Name them by the difference (color/background/variant), not by the index |

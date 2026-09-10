@@ -1,44 +1,44 @@
-# /joca-doctor — diagnóstico da instalação
+# /joca-doctor — installation diagnostic
 
-Atalho para o script `.claude/scripts/joca-doctor.mjs`. Node ESM, zero dependências, só leitura
-(excepto com `--fix`). É o mesmo check que o `/save`, o `/update-joca` e o `/clean-install` usam
-como gate.
+Shortcut to the `.claude/scripts/joca-doctor.mjs` script. Node ESM, zero dependencies, read-only
+(except with `--fix`). It is the same check that `/save`, `/update-joca` and `/clean-install` use
+as a gate.
 
-## Correr
+## Run
 
 ```bash
-node .claude/scripts/joca-doctor.mjs          # só diagnóstico
-node .claude/scripts/joca-doctor.mjs --fix    # aplica as correcções seguras
+node .claude/scripts/joca-doctor.mjs          # diagnostic only
+node .claude/scripts/joca-doctor.mjs --fix    # applies the safe fixes
 ```
 
-Exit code: `0` = sem erros (⚠ não contam) · `1` = pelo menos um ✗.
+Exit code: `0` = no errors (⚠ do not count) · `1` = at least one ✗.
 
-## O que verifica
+## What it checks
 
-| # | Secção | Apanha |
+| # | Section | Catches |
 |---|---|---|
 | 1 | Runtimes | Node ≥ 18 · python3 |
-| 2 | CLIs | `claude` · `codex` · `agy` no PATH (informativo) |
-| 3 | `settings.json` + hooks | JSON válido · placeholders `<JOCA_ROOT>` por substituir · ficheiros de hook que não existem no disco |
-| 4 | Inventário vs índices | disco × `memory/SKILL_INDEX.json` × contagens do `README.md` |
-| 5 | Bridges cross-CLI | `.agents/` e `.codex/` stale face ao `.claude/` · descriptions malformadas nos `.toml` |
-| 6 | `GEMINI.md` / `AGENTS.md` | existem e estão em sincronia com o canónico |
-| 7 | `memory/` | `soul.md` ainda em template · `projects/` e `feedback/` existem |
-| 8 | `JOCA_OS` | JSON de `data/` válido · `node_modules` instalado (só leitura) |
-| 9 | Integridade de conteúdo | ponteiros citados em skills/agents/commands/rules que não resolvem · skills sem entrada no trigger map (existem mas nada as dispara) · skills de execução sem agente gémeo · `.bat`/`.cmd` com LF (não arrancam no Windows) |
+| 2 | CLIs | `claude` · `codex` · `agy` on PATH (informational) |
+| 3 | `settings.json` + hooks | Valid JSON · `<JOCA_ROOT>` placeholders still to be replaced · hook files that do not exist on disk |
+| 4 | Inventory vs indexes | disk × `memory/SKILL_INDEX.json` × the counts in `README.md` |
+| 5 | Cross-CLI bridges | `.agents/` and `.codex/` stale against `.claude/` · malformed descriptions in the `.toml` files |
+| 6 | `GEMINI.md` / `AGENTS.md` | they exist and are in sync with the canonical source |
+| 7 | `memory/` | `soul.md` still on the template · `projects/` and `feedback/` exist |
+| 8 | `JOCA_OS` | valid JSON in `data/` · `node_modules` installed (read-only) |
+| 9 | Content integrity | pointers cited in skills/agents/commands/rules that do not resolve · skills with no entry in the trigger map (they exist but nothing fires them) · execution skills with no twin agent · `.bat`/`.cmd` with LF (they do not start on Windows) |
 
-## Ler o resultado
+## Reading the result
 
-- **Clone acabado de fazer → 1 ✗ nos placeholders `<JOCA_ROOT>` é o estado CORRECTO.** O repositório
-  publica-se com os placeholders; quem os substitui é o `/install`. Não "corrigir" o `settings.json`
-  à mão — é exactamente o que não deve ir para o repositório.
-- Pelo mesmo motivo, o `soul.md` em template dá ⚠ num clone novo. Ambos desaparecem depois do `/install`.
+- **Freshly made clone → 1 ✗ on the `<JOCA_ROOT>` placeholders is the CORRECT state.** The repository
+  is published with the placeholders; the one that replaces them is `/install`. Do not "fix" `settings.json`
+  by hand — it is exactly what must not go into the repository.
+- For the same reason, `soul.md` on the template gives a ⚠ in a new clone. Both disappear after `/install`.
 - `.agents/` stale → `bash .claude/scripts/compile-bridges.sh`.
-- Índices fora de sincronia → `python3 .claude/scripts/build-skill-index.py` (Windows: `python`).
+- Indexes out of sync → `python3 .claude/scripts/build-skill-index.py` (Windows: `python`).
 
-## Quando correr
+## When to run
 
-- Depois de adicionar/mudar skills, agentes, comandos ou hooks.
-- Antes de publicar (junto com `public-release-audit`).
-- Como gate de `/save` PASSO 6, `/update-joca` e `/clean-install` — comparar o resumo com o baseline
-  do início da corrida: um ⚠ novo é defeito da corrida, não ruído.
+- After adding/changing skills, agents, commands or hooks.
+- Before publishing (together with `public-release-audit`).
+- As a gate for `/save` STEP 6, `/update-joca` and `/clean-install` — compare the summary with the baseline
+  from the start of the run: a new ⚠ is a defect of the run, not noise.

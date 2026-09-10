@@ -1,15 +1,15 @@
-# Modern CSS — o que a plataforma ja faz sem JS
+# Modern CSS — what the platform already does without JS
 
-Referencia on-demand. Consumida por `skills/frontend.md`, `skills/tailwind.md` e `skills/anima.md`.
-Adaptado de `tponscr-debug/claude-skill-awwwards` (MIT).
+On-demand reference. Consumed by `skills/frontend.md`, `skills/tailwind.md` and `skills/anima.md`.
+Adapted from `tponscr-debug/claude-skill-awwwards` (MIT).
 
-Toda a nossa doutrina de movimento assume GSAP. Boa parte do trabalho de scroll e responsividade de
-componente ja e nativa — e nativo custa 0 KB de bundle. **Verificar suporte antes de usar em
-producao;** estas features sao recentes e o baseline mexe.
+Our whole motion doctrine assumes GSAP. A good part of the scroll and component-responsiveness work
+is already native — and native costs 0 KB of bundle. **Check support before using it in
+production;** these features are recent and the baseline moves.
 
 ---
 
-## Scroll-driven animations (sem JS, sem ScrollTrigger)
+## Scroll-driven animations (no JS, no ScrollTrigger)
 
 ```css
 @keyframes reveal {
@@ -18,12 +18,12 @@ producao;** estas features sao recentes e o baseline mexe.
 }
 .scroll-reveal {
   animation: reveal linear both;
-  animation-timeline: view();           /* progresso do elemento no viewport */
+  animation-timeline: view();           /* element progress in the viewport */
   animation-range: entry 0% entry 40%;
 }
 ```
 
-Barra de progresso de leitura — `scroll(root)` em vez de `view()`:
+Reading progress bar — `scroll(root)` instead of `view()`:
 ```css
 .progress-bar {
   position: fixed; top: 0; left: 0; height: 3px;
@@ -34,17 +34,17 @@ Barra de progresso de leitura — `scroll(root)` em vez de `view()`:
 @keyframes grow-width { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 ```
 
-⚠ **`view()` nao tem `once`.** Um reveal em CSS nativo **repete cada vez que o elemento reentra no
-viewport** — inclusive ao voltar para cima. O `once: true` do ScrollTrigger nao tem equivalente nativo.
-Se a repeticao incomodar, ou o deslocamento e pequeno ao ponto de nao disputar hierarquia (≤16px), ou
-o reveal volta para ScrollTrigger. Decidir de propria vontade, nao descobrir em producao.
+⚠ **`view()` has no `once`.** A native CSS reveal **repeats every time the element re-enters the
+viewport** — including when scrolling back up. ScrollTrigger's `once: true` has no native equivalent.
+If the repetition bothers you, either the movement is small enough not to fight hierarchy (≤16px), or
+the reveal goes back to ScrollTrigger. Decide deliberately, do not find out in production.
 
-**Quando ainda vale GSAP/ScrollTrigger:** `once`, pin, snap, `containerAnimation`, coreografia entre
-varios triggers, ou quando e preciso ler/escrever estado em JS. Reveal repetivel e barra de progresso → CSS.
+**When GSAP/ScrollTrigger is still worth it:** `once`, pin, snap, `containerAnimation`, choreography
+across several triggers, or when you need to read/write state in JS. Repeatable reveal and progress bar → CSS.
 
 ---
 
-## Container queries — responsividade do componente, nao da pagina
+## Container queries — responsiveness of the component, not of the page
 
 ```css
 .card-wrapper { container-type: inline-size; container-name: card; }
@@ -53,17 +53,17 @@ varios triggers, ou quando e preciso ler/escrever estado em JS. Reveal repetivel
 @container card (min-width: 600px) { .card { grid-template-columns: 200px 1fr auto; } }
 ```
 
-Unidades de container (`cqi` = inline do container):
+Container units (`cqi` = container inline):
 ```css
 .card-title { font-size: clamp(1rem, 3cqi, 1.5rem); }
 ```
 
-Um card que se adapta ao **espaco que tem** funciona na sidebar e no grid principal sem variantes.
-Media queries continuam certas para layout de pagina.
+A card that adapts to the **space it has** works in the sidebar and in the main grid with no variants.
+Media queries are still right for page layout.
 
 ---
 
-## `:has()` — estilar o pai a partir do filho
+## `:has()` — style the parent from the child
 
 ```css
 .card:has(img)                          { grid-template-rows: 200px 1fr; }
@@ -72,11 +72,11 @@ body:has(.hero) .nav                    { background: transparent; position: abs
 body:has(.sidebar[data-open="true"]) .main { margin-left: 280px; }
 ```
 
-Mata a maioria dos estados que hoje se resolvem com uma classe posta por JS.
+Kills most of the states that today are solved with a class set by JS.
 
 ---
 
-## Container + full-bleed (a mecanica)
+## Container + full-bleed (the mechanic)
 
 ```css
 .container {
@@ -91,20 +91,20 @@ Mata a maioria dos estados que hoje se resolvem com uma classe posta por JS.
 }
 ```
 
-O `calc(50% - 50vw)` e a peca: puxa o elemento para fora do container sem o tirar do fluxo.
+The `calc(50% - 50vw)` is the piece: it pulls the element out of the container without taking it out of flow.
 
 ---
 
 ## Performance
 
 ```css
-/* seccoes abaixo da dobra: nao pagar layout/paint ate serem precisas */
+/* sections below the fold: don't pay layout/paint until they are needed */
 .below-fold-section { content-visibility: auto; contain-intrinsic-size: 0 600px; }
 
-/* isolar paint de um card */
+/* isolate a card's paint */
 .card { contain: layout style paint; }
 
-/* backdrop-filter sem compositing da pagina inteira */
+/* backdrop-filter without compositing the whole page */
 .glass {
   isolation: isolate;
   backdrop-filter: blur(16px);
@@ -112,22 +112,22 @@ O `calc(50% - 50vw)` e a peca: puxa o elemento para fora do container sem o tira
 }
 ```
 
-⚠ `contain-intrinsic-size` precisa de uma estimativa de altura credivel — errada, o scrollbar salta.
+⚠ `contain-intrinsic-size` needs a credible height estimate — wrong, and the scrollbar jumps.
 
 ---
 
-## `color-mix()` — derivar estados em vez de os declarar
+## `color-mix()` — derive states instead of declaring them
 
 ```css
 .btn        { background: var(--accent); }
 .btn:hover  { background: color-mix(in oklch, var(--accent), black 15%); }
 ```
 
-Um token, todos os estados derivados. Menos tokens a manter sincronizados.
+One token, all states derived. Fewer tokens to keep in sync.
 
 ---
 
-## Propriedades logicas
+## Logical properties
 
 ```css
 .card {
@@ -138,4 +138,4 @@ Um token, todos os estados derivados. Menos tokens a manter sincronizados.
 }
 ```
 
-`inline`/`block` em vez de `left`/`right`/`top`/`bottom` — funciona em RTL sem reescrever nada.
+`inline`/`block` instead of `left`/`right`/`top`/`bottom` — works in RTL without rewriting anything.

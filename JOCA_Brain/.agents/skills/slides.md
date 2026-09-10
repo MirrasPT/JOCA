@@ -1,7 +1,7 @@
 ---
 name: slides
-description: "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. SHOULD also invoke when: slide, keynote, html slides, html deck, apresentação html, criar slides."
-triggers: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch, slide, keynote, html slides, html deck, apresentação html, criar slides, fazer apresentação, pitch institucional, deck de vendas
+description: "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, presentation, pitch deck, deck, powerpoint, pptx, pitch. SHOULD also invoke when: slide, keynote, html slides, html deck, html presentation, create slides."
+triggers: slides, presentation, pitch deck, deck, powerpoint, pptx, pitch, slide, keynote, html slides, html deck, html presentation, create slides, make a presentation, institutional pitch, sales deck
 chain: design-review
 ---
 # Slides
@@ -60,18 +60,18 @@ Announce choice with one justification sentence. Await confirmation before writi
 
 ## #3 Design Philosophy (before any code)
 
-Define philosophy before choosing colours or layout:
+Define philosophy before choosing colors or layout:
 
 **Movement name** (1-2 words): e.g. "Editorial Tension", "Calculated Brutalism", "Minimal Breath"
 
 **3 parameters:**
 1. **Space** — dense vs airy? Compressed vs breathing?
-2. **Colour temperature** — warm/cool/neutral? Saturated/desaturated?
+2. **Color temperature** — warm/cool/neutral? Saturated/desaturated?
 3. **Typography** — aggressive display vs classic serif vs clean sans?
 
 Philosophy guides all decisions. Any choice contradicting it → revise.
 
-### Colour Strategy (OKLCH)
+### Color Strategy (OKLCH)
 
 ```css
 :root {
@@ -82,10 +82,10 @@ Philosophy guides all decisions. Any choice contradicting it → revise.
 }
 ```
 
-Strategy before colours:
+Strategy before colors:
 - **Restrained** — neutrals + 1 accent ≤10% of slides
-- **Committed** — 1 saturated colour 30-60% with strong presence
-- **Drenched** — the surface IS the colour (impact slides, transitions)
+- **Committed** — 1 saturated color 30-60% with strong presence
+- **Drenched** — the surface IS the color (impact slides, transitions)
 
 ---
 
@@ -181,7 +181,7 @@ Never repeat the same structure on consecutive slides:
 | **Split** | visual left + text right (or inverted) |
 | **Quote** | 1 attributed quote, generous negative space |
 | **List** | only when enumeration genuinely serves content |
-| **Transition** | between sections — different colour/typography, no dense content |
+| **Transition** | between sections — different color/typography, no dense content |
 
 ### Per-slide positioning
 
@@ -203,7 +203,7 @@ Before writing each slide, answer 4 questions:
 
 ### Space and composition
 
-- Asymmetric grids > centred columns
+- Asymmetric grids > centered columns
 - Full-bleed images > boxed images
 - Generous negative space > cramming
 - 1 dominant element per slide — never multiple competing
@@ -214,7 +214,7 @@ Before writing each slide, answer 4 questions:
 
 **Reflex check (two levels):**
 - Can someone guess theme + palette from the slide category alone? ("tech startup → dark blue + purple gradient") → revise
-- With category + anti-references, still recognise the generic aesthetic family? → revise again
+- With category + anti-references, still recognize the generic aesthetic family? → revise again
 
 | Avoid | Why |
 |-------|-----|
@@ -223,7 +223,7 @@ Before writing each slide, answer 4 questions:
 | Bullet list after bullet list | Death by PowerPoint |
 | Purple gradients | AI-generated cliche |
 | Emoji in business context | Amateur signal |
-| Centred title + centred body on every slide | Default PowerPoint template |
+| Centred title + centered body on every slide | Default PowerPoint template |
 | Decorative icons on every bullet | Icon slop — visual noise, zero meaning |
 | Decorative stats with gradient fills | Data slop — only real, relevant data |
 | Identical repeated cards | Grid slop |
@@ -259,7 +259,7 @@ await page.pdf({
 });
 
 await browser.close();
-console.log(`PDF exportado: deck.pdf (${slideCount} slides)`);
+console.log(`PDF exported: deck.pdf (${slideCount} slides)`);
 ```
 
 ```bash
@@ -267,7 +267,7 @@ node export-slides.mjs
 ```
 
 **Export notes:**
-- Text is vector/searchable (not rasterised)
+- Text is vector/searchable (not rasterized)
 - GSAP animations: pause at final state before exporting (`gsap.globalTimeline.pause()`)
 - Verify in browser before exporting: all slides render
 
@@ -300,7 +300,7 @@ On request ("review", "score", "is it good?") — or proactively when output see
 4. **Detail execution** — spacing, alignment, typography
 5. **Originality** — avoids the cliches listed above?
 
-Output: total + **Keep** (what works) + **Fix** (critical / important / optimisation) + **Quick Wins** (top 3 under 5 min).
+Output: total + **Keep** (what works) + **Fix** (critical / important / optimization) + **Quick Wins** (top 3 under 5 min).
 
 ---
 
@@ -313,7 +313,7 @@ Output: total + **Keep** (what works) + **Fix** (critical / important / optimisa
 - [ ] Text/background contrast ≥4.5:1
 - [ ] Layout rhythm — never the same on consecutive slides
 - [ ] Typography: display with character (not Inter/Roboto)
-- [ ] PDF: text is vector/searchable (not rasterised)
+- [ ] PDF: text is vector/searchable (not rasterized)
 - [ ] PPTX (if requested): text is editable (double-click in PowerPoint = editable text)
 
 ---

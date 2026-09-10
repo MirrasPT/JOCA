@@ -1,7 +1,7 @@
 ---
 name: error-tracking-prod
-description: "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health. SHOULD also invoke when: horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors."
-triggers: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health, horizon monitoring, uptime monitoring, oh dear, better stack, producao logs, production errors, error monitoring, alerta, alerting, monitoring, observability, observabilidade, log producao, erro producao
+description: "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health. SHOULD also invoke when: horizon monitoring, uptime monitoring, oh dear, better stack, production logs, production errors."
+triggers: sentry, flare, production logging, structured logging, JSON logs, correlation ID, health check, laravel health, horizon monitoring, uptime monitoring, oh dear, better stack, production logs, production errors, error monitoring, alert, alerting, monitoring, observability
 ---
 
 # Error Tracking — Production
@@ -18,7 +18,7 @@ Monitoring and logging for production. Sentry/Flare + structured logging + healt
 ```bash
 composer require sentry/sentry-laravel
 php artisan sentry:publish --dsn=https://key@o0.ingest.sentry.io/0
-php artisan sentry:test   # verificar
+php artisan sentry:test   # verify
 ```
 
 ### Bootstrap (Laravel 11+)
@@ -29,15 +29,15 @@ php artisan sentry:test   # verificar
 })
 ```
 
-### Config essencial
+### Essential config
 ```php
 // config/sentry.php
 'dsn'                => env('SENTRY_LARAVEL_DSN'),
 'environment'        => env('APP_ENV', 'production'),
-'release'            => env('SENTRY_RELEASE'),            // git hash no deploy
+'release'            => env('SENTRY_RELEASE'),            // git hash on deploy
 'traces_sample_rate' => env('SENTRY_TRACES_SAMPLE_RATE', 0.1), // 10% baseline
 'sample_rate'        => env('SENTRY_SAMPLE_RATE', 1.0),
-'send_default_pii'   => false,                             // NUNCA true sem GDPR review
+'send_default_pii'   => false,                             // NEVER true without a GDPR review
 
 'ignore_exceptions' => [
     Illuminate\Auth\AuthenticationException::class,         // 401
@@ -90,11 +90,11 @@ php artisan flare:test
 
 | | Flare | Sentry |
 |---|---|---|
-| Contexto Laravel | Profundo | Standard |
-| Performance monitoring | Sim (L11+) | Sim |
+| Laravel context | Deep | Standard |
+| Performance monitoring | Yes (L11+) | Yes |
 | Pricing | EUR 9/mo | Free tier + $26/mo |
-| GDPR/EU | Belgica | US (EU disponivel) |
-| Multi-linguagem | PHP/Laravel | 50+ plataformas |
+| GDPR/EU | Belgium | US (EU available) |
+| Multi-language | PHP/Laravel | 50+ platforms |
 
 **Recommendation:** Sentry for multi-stack teams. Flare for solo/agency Laravel-only.
 
@@ -241,7 +241,7 @@ Health::checks([
     CacheCheck::new(),
     DebugModeCheck::new(),                              // APP_DEBUG=false
     EnvironmentCheck::new()->expectEnvironment('production'),
-    SecurityAdvisoryCheck::new(),                        // CVEs em packages
+    SecurityAdvisoryCheck::new(),                        // CVEs in packages
 ]);
 ```
 
@@ -284,7 +284,7 @@ Gate::define('viewHorizon', fn (User $user) => $user->hasRole('admin'));
 ```php
 // config/horizon.php
 'waits' => [
-    'redis:critical' => 30,   // segundos
+    'redis:critical' => 30,   // seconds
     'redis:default'  => 60,
 ],
 ```

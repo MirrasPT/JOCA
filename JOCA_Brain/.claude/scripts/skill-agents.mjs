@@ -1,23 +1,23 @@
 #!/usr/bin/env node
-// Gera agentes de execução a partir de skills — um agente por skill que produz artefactos.
+// Generates execution agents from skills — one agent per skill that produces artifacts.
 //
-// PORQUÊ: uma skill é lida pelo main loop e executada NO contexto principal. Isso serializa o
-// trabalho: enquanto o main loop escreve CSS, não faz mais nada. Um agente com a mesma doutrina
-// corre em contexto próprio, e vários correm ao mesmo tempo. A skill não é convertida nem copiada —
-// continua a ser a fonte de verdade, e o agente lê-a como Step 0. Editar a skill actualiza os dois.
+// WHY: a skill is read by the main loop and executed IN the main context. That serializes the
+// work: while the main loop writes CSS, it does nothing else. An agent with the same doctrine runs
+// in its own context, and several run at the same time. The skill is neither converted nor copied —
+// it stays the source of truth, and the agent reads it as Step 0. Editing the skill updates both.
 //
-// O que o orquestrador ganha: para o mesmo trabalho passa a poder escolher
-//   (a) ler a skill e fazer inline    — 1 coisa de cada vez, sem custo de contexto extra
-//   (b) despachar <skill>-agent       — paralelo, contexto isolado, ~15x tokens
-// A escolha é dele; esta lista é o que torna (b) possível sem inventar um brief de raiz.
+// What the orchestrator gains: for the same work it can now choose
+//   (a) read the skill and do it inline — one thing at a time, no extra context cost
+//   (b) dispatch <skill>-agent          — parallel, isolated context, ~15x tokens
+// The choice is his; this list is what makes (b) possible without inventing a brief from scratch.
 //
-// NÃO gera para: doutrina/guard-rails (yagni, karpathy-guidelines, freeze…) nem routers — essas
-// moldam o comportamento da sessão, não produzem trabalho isolável, e como agentes seriam apenas
-// ruído na lista de escolha.
+// Does NOT generate for: doctrine/guard-rails (yagni, karpathy-guidelines, freeze…) nor routers —
+// those shape the session's behavior, do not produce isolable work, and as agents would be only
+// noise in the list to choose from.
 //
-// Uso:  node .claude/scripts/skill-agents.mjs [--dry] [--force]
-//   --dry    mostra o que faria, não escreve
-//   --force  reescreve também os agentes gerados que foram editados à mão
+// Usage:  node .claude/scripts/skill-agents.mjs [--dry] [--force]
+//   --dry    shows what it would do, writes nothing
+//   --force  also rewrites generated agents that were hand-edited
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -26,16 +26,16 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SKILLS = path.join(ROOT, '.claude', 'skills');
 const AGENTS = path.join(ROOT, '.claude', 'agents');
-const MARKER = 'generated-from:';           // marca de agente gerado (permite regenerar em segurança)
+const MARKER = 'generated-from:';           // generated-agent marker (allows safe regeneration)
 
 const DRY = process.argv.includes('--dry');
 const FORCE = process.argv.includes('--force');
 
-// ── Lista curada ─────────────────────────────────────────────────────────────
-// Skills de EXECUÇÃO DIRECTA: produzem código, design, conteúdo ou infraestrutura. Cada uma vira um
-// agente despachável. Manter agrupado por categoria — é assim que se decide se uma skill nova entra.
+// ── Curated list ─────────────────────────────────────────────────────────────
+// DIRECT EXECUTION skills: they produce code, design, content or infrastructure. Each becomes a
+// dispatchable agent. Keep it grouped by category — that is how you decide if a new skill enters.
 const EXECUTION_SKILLS = {
-  'código': [
+  'code': [
     'frontend', 'react-composition', 'react-patterns', 'react-email', 'tailwind', 'shadcn',
     'component-system', 'mobile', 'laravel-specialist', 'laravel-react', 'filament', 'rest-api',
     'auth', 'caching', 'queues', 'mysql', 'search', 'webhooks', 'file-storage', 'saas-patterns',
@@ -45,12 +45,12 @@ const EXECUTION_SKILLS = {
     'wp-block-development', 'wp-block-themes', 'wp-interactivity-api', 'wp-plugin-development',
     'wp-rest-api', 'wp-wpcli-and-ops', 'wpds', 'woocommerce-elementor',
   ],
-  'plataformas': ['shopify-app', 'shopify-theme', 'shopify-store-fixer', 'wix-cli', 'notion'],
+  'platforms': ['shopify-app', 'shopify-theme', 'shopify-store-fixer', 'wix-cli', 'notion'],
   'design': [
     'design-html', 'design-shotgun', 'design-system', 'design-tokens', 'anima', 'lottie-animator',
     'graphic-design', 'img-gen', 'slides', 'remotion', 'landing-page',
   ],
-  'conteúdo': [
+  'content': [
     'copywriting', 'content-calendar', 'email-sequence', 'social-content', 'social-scheduler',
     'seo', 'seo-local', 'pt-pt-translator', 'stop-slop',
   ],
@@ -79,9 +79,9 @@ function parseFrontmatter(text) {
       i--;
       fm[key] = block.filter(Boolean).join(val.startsWith('>') ? ' ' : '\n');
     } else if (val === '') {
-      // Chave sem valor na própria linha → pode ser uma lista YAML nas linhas seguintes
-      // (`triggers:` seguido de `  - cpanel`). Sem isto, skills que declaram os gatilhos em lista
-      // pareciam não ter nenhum, e o agente saía do gerador sem triggers.
+      // Key with no value on its own line → it may be a YAML list on the following lines
+      // (`triggers:` followed by `  - cpanel`). Without this, skills that declare their triggers as
+      // a list looked like they had none, and the agent left the generator with no triggers.
       const items = [];
       while (++i < lines.length && /^\s+-\s+/.test(lines[i])) {
         items.push(lines[i].replace(/^\s+-\s+/, '').trim().replace(/^["']|["']$/g, ''));
@@ -95,9 +95,9 @@ function parseFrontmatter(text) {
   return fm;
 }
 
-// A description do agente diz QUANDO despachá-lo, não repete a skill: name+description de TODOS os
-// agentes entram no system prompt de TODAS as sessões, portanto cada caracter aqui é custo
-// recorrente. Sem este aperto, 65 agentes custavam ~9.5k tokens por sessão em vez de ~2k.
+// The agent's description says WHEN to dispatch it, it does not repeat the skill: name+description
+// of ALL agents go into the system prompt of EVERY session, so every character here is a recurring
+// cost. Without this squeeze, 65 agents cost ~9.5k tokens per session instead of ~2k.
 const MAX_DESC = 100;
 
 function agentDescription(skillName, fm, category) {
@@ -105,7 +105,7 @@ function agentDescription(skillName, fm, category) {
     .split(/(?:\.\s|MUST be invoked|SHOULD also invoke|Invoke on|Invoke when|Invoke at|Invocar quando|Triggers?:)/)[0]
     .replace(/^["']|["']$/g, '')
     .trim();
-  // Corte na fronteira de palavra — 'dark.' a meio de 'dark mode' não ajuda ninguém a decidir.
+  // Cut on a word boundary — 'dark.' in the middle of 'dark mode' helps nobody decide.
   let what = first;
   if (what.length > MAX_DESC) {
     what = what.slice(0, MAX_DESC);
@@ -113,16 +113,16 @@ function agentDescription(skillName, fm, category) {
     if (cut > 40) what = what.slice(0, cut);
   }
   what = what.replace(/[,;:\s—-]+$/, '');
-  return `${category} · ${what}. Despachar para trabalho isolável deste domínio, em paralelo.`;
+  return `${category} · ${what}. Dispatch for isolable work in this domain, in parallel.`;
 }
 
-// Os triggers herdados chegam a ter 22 entradas (tailwind). Servem descoberta no SKILL_INDEX, não
-// activação fina — 6 chegam, e a skill mantém a lista completa.
+// Inherited triggers reach 22 entries (tailwind). They serve discovery in the SKILL_INDEX, not
+// fine activation — 6 are enough, and the skill keeps the full list.
 //
-// Nem toda a skill tem `triggers:` no frontmatter: em muitas os gatilhos vivem em prosa dentro da
-// description ("Invoke on: a, b, c"). Sem os extrair daqui também, o agente entrava no índice sem
-// gatilho nenhum — inalcançável por palavra-chave, que é exactamente o problema que acabámos de
-// corrigir nas skills. Mesmos padrões que build-skill-index.py.
+// Not every skill has `triggers:` in the frontmatter: in many the triggers live as prose inside the
+// description ("Invoke on: a, b, c"). Without extracting them from here too, the agent entered the
+// index with no trigger at all — unreachable by keyword, which is exactly the problem we have just
+// fixed in the skills. Same patterns as build-skill-index.py.
 const PROSE_TRIGGERS = /(?:MUST be invoked when(?:ever)? the user (?:says|mentions)|SHOULD also invoke when|Invocar quando o utilizador disser|Invocar quando|Invoke on|Invoke when|Triggers?):\s*([^\n]+?)(?:\.\s|\.$|$)/gi;
 
 function agentTriggers(fm) {
@@ -143,63 +143,64 @@ function agentTriggers(fm) {
 }
 
 function agentBody(skillName, fm) {
-  const triggers = fm.triggers ? `\n**Gatilhos:** ${fm.triggers}\n` : '\n';
-  return `# ${skillName} — agente de execução
+  const triggers = fm.triggers ? `\n**Triggers:** ${fm.triggers}\n` : '\n';
+  return `# ${skillName} — execution agent
 
-Especialista em ${skillName}. Corre em contexto próprio para que o orquestrador possa despachar
-vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
+${skillName} specialist. Runs in its own context so the orchestrator can dispatch several jobs at
+the same time without blocking the main conversation.
 ${triggers}
-## Step 0 — obrigatório, antes de qualquer acção
+## Step 0 — mandatory, before any action
 
 \`\`\`
 Read(".claude/skills/${skillName}.md")
 \`\`\`
 
-Essa skill é a fonte de verdade deste agente. **Não** foi copiada para aqui de propósito: quando a
-skill é editada, este agente passa a seguir a versão nova sem regeneração. Não age antes de a ler —
-o campo \`skills:\` do frontmatter não a carrega sozinho.
+That skill is this agent's source of truth. It was deliberately **not** copied in here: when the
+skill is edited, this agent follows the new version without being regenerated. Do not act before
+reading it — the frontmatter \`skills:\` field does not load it on its own.
 
-Se o brief mencionar outras skills, lê-as também antes de começar.
+If the brief mentions other skills, read those too before starting.
 
-## Como trabalhar
+## How to work
 
-1. Lê a skill (Step 0) e o brief que recebeste.
-2. Confirma o estado real antes de mudar: lê os ficheiros que vais tocar. Não assumas estrutura.
-3. Executa **só** o que o brief pede. Não "melhores" código adjacente, não acrescentes features
-   que ninguém pediu.
-4. Segue as convenções do projecto onde estás (CLAUDE.md do projecto, padrões do código à volta)
-   acima dos defaults da skill.
-5. Valida o que fizeste (build, testes, ou o critério de pronto que o brief definir).
+1. Read the skill (Step 0) and the brief you were given.
+2. Confirm the real state before changing anything: read the files you are about to touch. Do not
+   assume structure.
+3. Do **only** what the brief asks. Do not "improve" adjacent code, do not add features nobody
+   asked for.
+4. Follow the conventions of the project you are in (the project's CLAUDE.md, the patterns in the
+   surrounding code) over the skill's defaults.
+5. Validate what you did (build, tests, or whatever definition of done the brief set).
 
-## Limites
+## Limits
 
-- **Não despachas outros agentes.** A árvore tem um nível: main loop → workers. Se o trabalho
-  precisa de fan-out, devolve isso como recomendação e o caller decide.
-- **Não inventas** paths, APIs, chaves ou endpoints. Falta uma credencial ou não encontras um
-  ficheiro → deixa \`TODO: <o que falta>\` e reporta. Um valor plausível inventado passa no build e
-  só rebenta em produção.
-- **Irreversível** (deploy, push, migration, delete, pagamento) → não executas; devolve como
-  proposta para o caller confirmar.
-- Output volumoso (relatórios, listagens longas) → escreve em ficheiro e devolve o path, não
-  despejes tudo no relatório.
+- **You do not dispatch other agents.** The tree has one level: main loop → workers. If the work
+  needs fan-out, return that as a recommendation and the caller decides.
+- **You do not invent** paths, APIs, keys or endpoints. A credential is missing or you cannot find
+  a file → leave \`TODO: <what is missing>\` and report it. A plausible invented value passes the
+  build and only blows up in production.
+- **Irreversible** (deploy, push, migration, delete, payment) → you do not execute it; return it as
+  a proposal for the caller to confirm.
+- Bulky output (reports, long listings) → write it to a file and return the path, do not dump it
+  all into the report.
 
-## Relatório final
+## Final report
 
-Curto e accionável:
-- o que ficou feito, em uma ou duas frases;
-- ficheiros tocados (paths);
-- o que validaste e como;
-- o que ficou por fazer (com o motivo) e o próximo passo que recomendas.
+Short and actionable:
+- what got done, in one or two sentences;
+- files touched (paths);
+- what you validated and how;
+- what is left undone (with the reason) and the next step you recommend.
 `;
 }
 
-// ── Detecção de edições manuais ──────────────────────────────────────────────
-// O hash cobre tudo menos a própria linha do hash.
+// ── Detecting manual edits ───────────────────────────────────────────────────
+// The hash covers everything except the hash line itself.
 const HASH_LINE = /^content-hash: .*$\n?/m;
 const bodyHash = (text) => crypto.createHash('sha256').update(text.replace(HASH_LINE, '')).digest('hex').slice(0, 16);
 const storedHash = (text) => (text.match(/^content-hash: (\w+)$/m) || [])[1] || '';
 
-// ── Geração ──────────────────────────────────────────────────────────────────
+// ── Generation ───────────────────────────────────────────────────────────────
 const written = [], skipped = [], missing = [], manual = [];
 
 for (const [category, skills] of Object.entries(EXECUTION_SKILLS)) {
@@ -210,14 +211,14 @@ for (const [category, skills] of Object.entries(EXECUTION_SKILLS)) {
     const agentName = `${skillName}-agent`;
     const agentFile = path.join(AGENTS, `${agentName}.md`);
 
-    // Nunca pisar um agente curado à mão nem uma edição manual num gerado.
+    // Never step on a hand-curated agent, nor on a manual edit inside a generated one.
     //
-    // Um agente gerado leva o hash do que foi gerado. Se o ficheiro em disco já não corresponde ao
-    // seu próprio hash, alguém o editou — e regenerar apagaria esse trabalho em silêncio. Sem isto,
-    // correr o script uma segunda vez destrói qualquer personalização.
+    // A generated agent carries the hash of what was generated. If the file on disk no longer
+    // matches its own hash, someone edited it — and regenerating would silently wipe that work.
+    // Without this, running the script a second time destroys any customization.
     if (fs.existsSync(agentFile)) {
       const existing = fs.readFileSync(agentFile, 'utf8');
-      if (!existing.includes(MARKER)) { manual.push(agentName); continue; }   // curado à mão
+      if (!existing.includes(MARKER)) { manual.push(agentName); continue; }   // hand-curated
       if (!FORCE && bodyHash(existing) !== storedHash(existing)) { manual.push(agentName); continue; }
     }
 
@@ -235,7 +236,7 @@ generated-by: skill-agents.mjs
 ${agentBody(skillName, fm)}`;
 
     if (DRY) { written.push(agentName); continue; }
-    // Selar com o hash do próprio conteúdo, para a próxima corrida saber se foi tocado.
+    // Seal it with the hash of the content itself, so the next run knows whether it was touched.
     const sealed = content.replace(/^generated-by: skill-agents\.mjs$/m,
       `generated-by: skill-agents.mjs\ncontent-hash: ${bodyHash(content)}`);
     fs.writeFileSync(agentFile, sealed);
@@ -244,11 +245,11 @@ ${agentBody(skillName, fm)}`;
 }
 
 const total = Object.values(EXECUTION_SKILLS).flat().length;
-console.log(`[skill-agents] ${DRY ? '(dry) ' : ''}${written.length}/${total} agentes gerados em .claude/agents/`);
+console.log(`[skill-agents] ${DRY ? '(dry) ' : ''}${written.length}/${total} agents generated in .claude/agents/`);
 for (const [cat, list] of Object.entries(EXECUTION_SKILLS)) {
   console.log(`  ${cat}: ${list.length}`);
 }
-if (manual.length) console.log(`[skill-agents] preservados (editados à mão ou curados): ${manual.join(', ')}`);
-if (missing.length) console.log(`[skill-agents] AVISO — skills na lista mas sem ficheiro: ${missing.join(', ')}`);
-if (skipped.length) console.log(`[skill-agents] ignorados: ${skipped.join(', ')}`);
-console.log('[skill-agents] a seguir: python3 .claude/scripts/build-skill-index.py');
+if (manual.length) console.log(`[skill-agents] preserved (hand-edited or curated): ${manual.join(', ')}`);
+if (missing.length) console.log(`[skill-agents] WARNING — skills in the list but with no file: ${missing.join(', ')}`);
+if (skipped.length) console.log(`[skill-agents] skipped: ${skipped.join(', ')}`);
+console.log('[skill-agents] next: python3 .claude/scripts/build-skill-index.py');

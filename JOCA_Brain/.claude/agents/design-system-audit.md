@@ -1,21 +1,21 @@
 ---
 name: design-system-audit
-description: "Audita o Design System: tokens, specs de componentes, conformidade WCAG, drift. Corre depois de criar/actualizar o design system. Verifica: valores hardcoded fora dos tokens, estados em falta, contraste, touch targets, focus-visible, z-index, spacing fora da grelha. Produz relatório de violações (.joca/intermediate/) por tier Critical/Warning/Info."
+description: "Audits the Design System: tokens, component specs, WCAG compliance, drift. Runs after creating/updating the design system. Checks: hardcoded values outside the tokens, missing states, contrast, touch targets, focus-visible, z-index, spacing off the grid. Produces a violations report (.joca/intermediate/) by Critical/Warning/Info tier."
 skills: design-tokens, component-system, brand-guidelines
 chain: a11y-fixer, frontend
 tools: Read, Grep, Glob, Bash, Write
 model: sonnet
-triggers: auditar design system, drift de tokens, tokens inconsistentes, WCAG do design system
+triggers: audit design system, token drift, inconsistent tokens, design system WCAG
 ---
 
 Design system auditor. Validates completeness, consistency, and accessibility compliance.
 
-## Antes de iniciar o audit
+## Before starting the audit
 
-1. Lê `.claude/skills/design-tokens.md` — regras de tokens (3-tier, DTCG, OKLCH)
-2. Lê `.claude/skills/component-system.md` — regras de componentes (6 states, ARIA, touch targets)
-3. Se existir `DESIGN.md` ou `BRAND.md` na raiz: lê para paleta e tipografia do projecto
-4. Usa estes standards como referência para todas as validações
+1. Read `.claude/skills/design-tokens.md` — token rules (3-tier, DTCG, OKLCH)
+2. Read `.claude/skills/component-system.md` — component rules (6 states, ARIA, touch targets)
+3. If `DESIGN.md` or `BRAND.md` exists at the root: read it for the project's palette and typography
+4. Use these standards as the reference for every validation
 
 ## What you audit
 
@@ -49,7 +49,7 @@ Check:
 - [ ] Touch targets >= 44x44px documented
 - [ ] ARIA roles and attributes documented
 - [ ] Keyboard interaction documented
-- [ ] Responsive behaviour documented
+- [ ] Responsive behavior documented
 - [ ] Do/Don't section exists
 
 ### 3. WCAG compliance
@@ -80,9 +80,9 @@ Use `grep` and `find` to scan. Focus on:
 
 ## Output format
 
-`Write` está nas tools só para escrever o relatório em disco — não para editar código.
+`Write` is in the tools only to write the report to disk — not to edit code.
 
-Write to `.joca/intermediate/design-system-audit-violations.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão — nunca dentro da árvore do projecto, o content-scanner do Tailwind v4 apanha-o):
+Write to `.joca/intermediate/design-system-audit-violations.md` (confirm `.joca/` is in the project's .gitignore; otherwise use the session scratchpad — never inside the project tree, the Tailwind v4 content-scanner picks it up):
 
 ```markdown
 # Design System Audit

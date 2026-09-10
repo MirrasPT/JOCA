@@ -1,89 +1,89 @@
-# Visual Effects — vocabulario de observacao
+# Visual Effects — observation vocabulary
 
-Referencia on-demand. Serve para **nomear** o que se ve numa referencia visual, com precisao, em vez
-de escrever "tem uns efeitos fixes". Consumida por `skills/design-review.md`, `skills/design-shotgun.md`
-e `skills/gauntlet-loop.md` ao caracterizar um alvo.
+On-demand reference. It exists to **name** what you see in a visual reference, precisely, instead of
+writing "it has some cool effects". Consumed by `skills/design-review.md`, `skills/design-shotgun.md`
+and `skills/gauntlet-loop.md` when characterising a target.
 
-Vocabulario extraido de `zanwei/design-dna`.
+Vocabulary extracted from `zanwei/design-dna`.
 
-⚠ **Isto e taxonomia de observacao, nao guia de construcao.** A coluna de tecnica e uma pista de uma
-linha — chega para decidir se e viavel e quanto custa, nao para implementar. Implementar → `anima.md`,
-`modern-css.md`, ou a documentacao da biblioteca.
+⚠ **This is an observation taxonomy, not a build guide.** The technique column is a one-line hint —
+enough to decide whether it is viable and how much it costs, not to implement it. To implement → `anima.md`,
+`modern-css.md`, or the library's documentation.
 
-⚠ **Nomear nao e aprovar.** O `anti-slop-bans.md` bane varios destes por default (glassmorphism,
-cursores custom). Este ficheiro deixa dizer **o que** se bane em vez de so o nome.
+⚠ **Naming is not approving.** `anti-slop-bans.md` bans several of these by default (glassmorphism,
+custom cursors). This file lets you say **what** you are banning instead of only the name.
 
 ---
 
-## Fundos
+## Backgrounds
 
-| Tipo | Tecnica provavel |
+| Type | Likely technique |
 |---|---|
-| `gradient-animation` | `@keyframes` sobre linear/conic-gradient |
-| `noise-field` | Canvas 2D com ruido Perlin/simplex |
-| `mesh-gradient` | SVG `<mesh>` ou interpolacao em canvas |
-| `video-bg` | `<video autoplay muted loop>` com poster de fallback |
-| `generative-art` | Canvas 2D ou WebGL |
+| `gradient-animation` | `@keyframes` over linear/conic-gradient |
+| `noise-field` | Canvas 2D with Perlin/simplex noise |
+| `mesh-gradient` | SVG `<mesh>` or interpolation in canvas |
+| `video-bg` | `<video autoplay muted loop>` with a fallback poster |
+| `generative-art` | Canvas 2D or WebGL |
 
-## Particulas
+## Particles
 
-Tipos: `floating-dots` · `confetti` · `snow` · `fireflies` · `connected-nodes` · custom
-Interaccao: `mouse-repel` · `mouse-attract` · `click-burst` · nenhuma
+Types: `floating-dots` · `confetti` · `snow` · `fireflies` · `connected-nodes` · custom
+Interaction: `mouse-repel` · `mouse-attract` · `click-burst` · none
 
-Escolha de tecnologia e fallback de dispositivo fraco → `anima.md`, seccao de performance.
+Technology choice and weak-device fallback → `anima.md`, performance section.
 
-## Texto
+## Text
 
-| Tipo | Tecnica provavel |
+| Type | Likely technique |
 |---|---|
-| `split-letter-animate` | dividir em `<span>` por char/palavra + stagger |
-| `typewriter` | `steps()` em CSS ou intervalo em JS |
-| `glitch` | clip-path em camadas + desvio de cor |
-| `gradient-fill` | `background-clip: text` com gradiente animado |
-| `3d-extrude` | pilha de `text-shadow` ou geometria WebGL |
+| `split-letter-animate` | split into `<span>` per char/word + stagger |
+| `typewriter` | `steps()` in CSS or an interval in JS |
+| `glitch` | layered clip-path + color offset |
+| `gradient-fill` | `background-clip: text` with an animated gradient |
+| `3d-extrude` | stack of `text-shadow` or WebGL geometry |
 
-Estrategia de divisao: `by-char` · `by-word` · `by-line`.
+Split strategy: `by-char` · `by-word` · `by-line`.
 
 ## Scroll
 
-- **Parallax** — `translateY()` × velocidade da camada; registar **nº de camadas** (>2 e gatilho vestibular)
+- **Parallax** — `translateY()` × layer speed; record the **number of layers** (>2 is a vestibular trigger)
 - **Scroll-triggered** — `fade-up` · `scale-in` · `clip-reveal` · `counter` · `draw-SVG`
-- **Comportamento** — `scrubbed` (progresso = scroll) vs `triggered` (corre uma vez a entrar)
+- **Behavior** — `scrubbed` (progress = scroll) vs `triggered` (runs once on entry)
 
 ## Cursor
 
-`custom-cursor` · `magnetic-buttons` (transform por proximidade no hover) · `spotlight` · `trail`
+`custom-cursor` · `magnetic-buttons` (transform by proximity on hover) · `spotlight` · `trail`
 
-## Imagem
+## Image
 
-Tipo: `hover-distortion` · `reveal-clip` · `parallax-tilt` · `rgb-shift`
-Distorcao: `barrel` · `wave` · `liquid` · `glitch`
+Type: `hover-distortion` · `reveal-clip` · `parallax-tilt` · `rgb-shift`
+Distortion: `barrel` · `wave` · `liquid` · `glitch`
 
 ## SVG
 
-`path-draw` (animar `stroke-dashoffset` do comprimento do path ate 0) · `morph-shapes` ·
+`path-draw` (animate `stroke-dashoffset` from the path length down to 0) · `morph-shapes` ·
 `logo-reveal` · `decorative-loop`
 
 ## Shaders
 
-Tipo: `noise-distortion` · `wave` · `morph` · `color-shift` · `custom-GLSL`
-Ruido: `perlin` · `simplex` · `worley` · `fbm`
+Type: `noise-distortion` · `wave` · `morph` · `color-shift` · `custom-GLSL`
+Noise: `perlin` · `simplex` · `worley` · `fbm`
 
 ## 3D
 
-Tipo: `hero-model` · `product-viewer` · `scene-bg` · `text-extrusion` · `abstract-geometry`
-Pos-processamento: `bloom` · `FXAA` · `depth-of-field` · `chromatic-aberration`
+Type: `hero-model` · `product-viewer` · `scene-bg` · `text-extrusion` · `abstract-geometry`
+Post-processing: `bloom` · `FXAA` · `depth-of-field` · `chromatic-aberration`
 
-## Superficie
+## Surface
 
 `glass` · `neumorphic-light` · `neumorphic-dark` · `frosted-layers`
 
 ---
 
-## Dois eixos para caracterizar o conjunto
+## Two axes to characterise the whole
 
-**Intensidade:** nenhuma · acento subtil · moderada · imersiva
-**Tecnologia primaria:** so CSS · Canvas 2D · WebGL/Three.js · GSAP · Lottie · SVG SMIL · Pixi.js
+**Intensity:** none · subtle accent · moderate · immersive
+**Primary technology:** CSS only · Canvas 2D · WebGL/Three.js · GSAP · Lottie · SVG SMIL · Pixi.js
 
-Uma referencia descreve-se em uma linha com estes dois eixos mais os efeitos presentes. Ex.:
-*"acento subtil, so CSS: `gradient-animation` no hero + `fade-up` scroll-triggered"*.
+A reference is described in one line with these two axes plus the effects present. E.g.:
+*"subtle accent, CSS only: `gradient-animation` in the hero + `fade-up` scroll-triggered"*.

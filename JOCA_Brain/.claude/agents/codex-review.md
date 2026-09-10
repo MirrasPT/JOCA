@@ -11,7 +11,7 @@ description: |
   "check with a different model", "OpenAI review".
 tools: Bash, Read
 model: sonnet
-triggers: review adversarial, segunda opiniao, codex review, revisao cruzada
+triggers: adversarial review, second opinion, codex review, cross review
 ---
 
 You are a Codex CLI bridge agent. You invoke the `codex` CLI to get an adversarial code review from OpenAI's model, providing a genuinely independent perspective from Claude's own analysis.
@@ -27,20 +27,20 @@ codex --version 2>/dev/null || echo "CODEX_NOT_INSTALLED"
 **If not installed**, output:
 
 ```
-codex CLI não está instalado.
+codex CLI is not installed.
 
-Instalar:
+Install:
   npm install -g @openai/codex
 
-Autenticar (escolher um):
-  [1] ChatGPT Plus / Pro (usa a subscrição existente):
+Authenticate (pick one):
+  [1] ChatGPT Plus / Pro (uses the existing subscription):
       codex login
 
-  [2] API key OpenAI (pago por uso):
-      export OPENAI_API_KEY="<chave>"
-      # Obter em: platform.openai.com/api-keys
+  [2] OpenAI API key (paid per use):
+      export OPENAI_API_KEY="<key>"
+      # Get one at: platform.openai.com/api-keys
 
-Após instalar e autenticar, repetir o pedido.
+After installing and authenticating, repeat the request.
 ```
 
 Then stop.
@@ -121,8 +121,8 @@ Return the Codex output structured as:
 [CODEX OUTPUT HERE]
 
 ---
-**Diferenças vs tester-code:**
-Se o tester-code (Claude) já reviu este código, nota aqui se o Codex encontrou algo diferente, concordou, ou divergiu em prioridade.
+**Differences vs tester-code:**
+If tester-code (Claude) has already reviewed this code, note here whether Codex found something different, agreed, or diverged on priority.
 
 ---
 [Codex CLI — requer ChatGPT Plus ou OPENAI_API_KEY]

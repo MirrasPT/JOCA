@@ -2,7 +2,7 @@
 
 Reads unprocessed feedback, researches best practices, plans improvements, executes via skill-improver/skill-evaluator loop, validates, and reports. Full autonomous upgrade pipeline for JOCA internals.
 
-Scope: **JOCA interno apenas** -- skills, agentes, comandos, hooks, memory tools.
+Scope: **JOCA internals only** -- skills, agents, commands, hooks, memory tools.
 Never touches project files, external repos, or user data.
 
 ## When to run
@@ -15,22 +15,22 @@ Never touches project files, external repos, or user data.
 
 ## Phase 1 -- Collect Feedback
 
-### 1.0 Baseline do sistema (antes de tocar em nada)
+### 1.0 System baseline (before touching anything)
 
-O bloco de sistema da Phase 4c compara-se contra este baseline. Sem baseline, um ⚠ novo introduzido
-pela corrida é indistinguível de um ⚠ que já lá estava — e passa despercebido (foi assim que um
-`SKILL_INDEX.json` stale sobreviveu a uma corrida inteira de 62 achados).
+The Phase 4c system block is compared against this baseline. Without a baseline, a new ⚠ introduced
+by the run is indistinguishable from a ⚠ that was already there — and goes unnoticed (that is how a
+stale `SKILL_INDEX.json` survived a whole run of 62 findings).
 
 ```bash
 mkdir -p .joca/upgrade
 node .claude/scripts/joca-doctor.mjs > .joca/upgrade/doctor-baseline.txt 2>&1; echo "exit=$?"
-tail -2 .joca/upgrade/doctor-baseline.txt          # linha "Resumo: N ✓ · N ⚠ · N ✗"
+tail -2 .joca/upgrade/doctor-baseline.txt          # the "Summary: N ✓ · N ⚠ · N ✗" line
 git rev-parse HEAD > .joca/upgrade/head-baseline.txt
-ls memory/feedback/*.md | wc -l                    # nº de ficheiros à entrada
+ls memory/feedback/*.md | wc -l                    # number of files at intake
 ```
 
-Se `memory/feedback/auto-upgrade-log.md` já existir, guardar a data do último cabeçalho `## <data>` —
-é o marco a partir do qual se conta **entrada vs saída** na Phase 6.
+If `memory/feedback/auto-upgrade-log.md` already exists, save the date of the last `## <date>` heading —
+it is the mark from which **intake vs output** is counted in Phase 6.
 
 ### 1.1 Locate JOCA
 
@@ -83,49 +83,49 @@ Run /save to auto-extract feedback patterns from a session first.
 
 Stop here.
 
-### 1.5 Campo `estado` -- obrigatório, com prova lida do disco
+### 1.5 The `state` field -- mandatory, with evidence read from disk
 
-Nenhum issue passa à Phase 2 sem `estado`. É o passo que torna o comando **idempotente entre
-máquinas** e o que mais poupa: numa corrida real, 163 de 285 issues já estavam feitos; noutra, 54 de
-131. Sem ele o comando reescreve o que já existe.
+No issue passes to Phase 2 without `state`. It is the step that makes the command **idempotent across
+machines** and the one that saves the most: in a real run, 163 of 285 issues were already done; in another, 54
+of 131. Without it the command rewrites what already exists.
 
-| `estado` | Critério | Prova exigida |
+| `state` | Criterion | Evidence required |
 |---|---|---|
-| `JA_RESOLVIDO` | o fix descrito **está no disco** | comando + saída: `grep -n "<texto novo>" <alvo>` com hit |
-| `PENDENTE` | o alvo existe e não tem o fix | `grep` sem hit **no caminho completo do alvo** |
-| `INCERTO` | alvo ambíguo, ou o fix não é verificável por texto | dizer porquê, em 1 linha |
+| `ALREADY_RESOLVED` | the described fix **is on disk** | command + output: `grep -n "<new text>" <target>` with a hit |
+| `PENDING` | the target exists and does not have the fix | `grep` with no hit **on the target's full path** |
+| `UNCERTAIN` | ambiguous target, or the fix is not verifiable by text | say why, in 1 line |
 
-Regras duras:
-- **`**Resolvido:** <data>` no ficheiro de feedback é pista, não filtro.** Com 2 máquinas alternadas,
-  um fix marcado como aplicado numa máquina pode nunca ter atravessado para a outra. Confirmar no
-  disco antes de saltar.
-- **Alvo inexistente = achado.** Se o `ls` do componente afectado falhar, o issue é `INCERTO` com a
-  nota "alvo não existe" — nunca se cria o ficheiro a partir do nada para "cumprir" o issue. Numa
-  corrida real o feedback citava `skills/webapp-testing.md`, que não existia.
-- Afirmação de inexistência exige o **caminho completo** no comando, não o basename.
-- Só os `PENDENTE` seguem para a Phase 2. Os `INCERTO` vão para o gate da Phase 3, listados à parte.
+Hard rules:
+- **`**Resolved:** <date>` in the feedback file is a lead, not a filter.** With 2 alternating machines,
+  a fix marked as applied on one machine may never have crossed over to the other. Confirm on
+  disk before skipping.
+- **Non-existent target = a finding.** If the `ls` of the affected component fails, the issue is `UNCERTAIN`
+  with the note "target does not exist" — you never create the file out of nothing to "fulfill" the issue. In a
+  real run the feedback cited `skills/webapp-testing.md`, which did not exist.
+- A claim of non-existence requires the **full path** in the command, not the basename.
+- Only the `PENDING` ones go on to Phase 2. The `UNCERTAIN` ones go to the Phase 3 gate, listed separately.
 
-### 1.6 Modo backlog (acima de ~30 issues)
+### 1.6 Backlog mode (above ~30 issues)
 
-Acima de ~30 issues a Phase 1.3 ("agregar e deduplicar numa lista") e a Phase 3 (tabela para
-confirmar) deixam de ser praticáveis — já se chegou a 330 issues em 101 ficheiros. Nesse caso:
+Above ~30 issues, Phase 1.3 ("aggregate and deduplicate into one list") and Phase 3 (a table to
+confirm) stop being practicable — 330 issues in 101 files has already happened. In that case:
 
-**(a) Triagem por fan-out de agentes SÓ-LEITURA.** Um agente por **família de alvos** (comandos ·
-rules · skills · agents · scripts · memory), 3-5 em paralelo no mesmo turno. Cada um devolve, por
-issue: `estado` + prova + severidade + alvo. Brief obrigatório, além dos 4 campos habituais:
+**(a) Triage by fan-out of READ-ONLY agents.** One agent per **family of targets** (commands ·
+rules · skills · agents · scripts · memory), 3-5 in parallel in the same turn. Each returns, per
+issue: `state` + evidence + severity + target. Mandatory brief, on top of the usual 4 fields:
 
 ```
-NÃO EDITAS NADA. Ferramentas de escrita proibidas — só Read/Grep/Glob/Bash-de-leitura.
-Um triador que "aproveita e corrige" destrói a idempotência que a triagem existe para garantir,
-e o resultado deixa de ser auditável (não se sabe o que era estado inicial e o que foi acção tua).
-Escreve o resultado em .joca/upgrade/triagem-<familia>.md e devolve só o resumo + o path.
+YOU EDIT NOTHING. Writing tools forbidden — only Read/Grep/Glob/read-only-Bash.
+A triager who "takes the chance to fix things" destroys the idempotence the triage exists to guarantee,
+and the result stops being auditable (there is no telling what was the initial state and what was your action).
+Write the result to .joca/upgrade/triage-<family>.md and return only the summary + the path.
 ```
 
-**(b) Agregar por defeito, não por issue.** Apresentar **clusters** (mesmo defeito, mesmo alvo) na
-Phase 3, não 330 linhas. Ficheiros disjuntos por cluster — dois agentes no mesmo ficheiro pisam-se.
+**(b) Aggregate by defect, not by issue.** Present **clusters** (same defect, same target) in
+Phase 3, not 330 lines. Disjoint files per cluster — two agents in the same file step on each other.
 
-**(c) Fatiar por severidade.** Uma corrida = uma banda (`critical`+`high`, depois `medium`+`low`).
-No frontmatter de cada ficheiro coberto só em parte:
+**(c) Slice by severity.** One run = one band (`critical`+`high`, then `medium`+`low`).
+In the frontmatter of each file covered only in part:
 
 ```yaml
 processed: partial
@@ -133,15 +133,15 @@ upgrade_run: 2026-08-17
 upgrade_covered: [critical, high]
 ```
 
-Arquivar (Phase 6.3) só quando **todas** as bandas estiverem cobertas.
+Archive (Phase 6.3) only when **all** the bands are covered.
 
-**(d) Caducidade.** `medium`/`low` com mais de ~8 semanas num toolkit que mudou entretanto já não
-descrevem o mesmo gap. Propor arquivo por idade no gate da Phase 3, com a lista à vista — arquivar
-por idade é mais honesto do que manter uma fila que nunca se esvazia.
+**(d) Expiry.** `medium`/`low` older than ~8 weeks in a toolkit that has changed in the meantime no longer
+describe the same gap. Propose archiving by age at the Phase 3 gate, with the list in plain sight — archiving
+by age is more honest than keeping a queue that never empties.
 
-**(e) Entrada vs saída.** Reportar sempre: ficheiros novos desde a última corrida (baseline 1.0) vs
-processados nesta. Se a entrada ganhar de forma consistente, o modo backlog está a mascarar o
-problema, não a resolvê-lo — dizê-lo no relatório da Phase 6.
+**(e) Intake vs output.** Always report: new files since the last run (baseline 1.0) vs
+those processed in this one. If the intake wins consistently, backlog mode is masking the
+problem, not solving it — say so in the Phase 6 report.
 
 ---
 
@@ -215,7 +215,7 @@ JOCA UPGRADE PLAN
 7 improvements planned (2 HIGH, 3 MEDIUM, 2 LOW)
 
 Sources:
-  #1: session-meu-projecto-2026-05-20.md > Issue 3
+  #1: session-my-project-2026-05-20.md > Issue 3
   #2: auto-2026-05-22.md > Issue 1, joca-patterns.md > "Tailwind v4"
   ...
 ```
@@ -333,91 +333,91 @@ For each command improvement:
 
 ---
 
-## Phase 4b -- Verificar por EFEITO (obrigatória)
+## Phase 4b -- Verify by EFFECT (mandatory)
 
-Nunca se passa da Phase 4 à Phase 5 pelo relatório de quem escreveu. Numa corrida com verificação
-adversarial por fora apanharam-se 4 defeitos que teriam entrado em silêncio: um agente apagou 20
-linhas inteiras de um comando e não o reportou; outro escreveu um aviso factualmente falso alegando
-tê-lo "verificado a correr o script". **O relatório descreve a intenção; só o disco mostra o efeito.**
+You never go from Phase 4 to Phase 5 on the report of whoever wrote it. In a run with adversarial
+verification from the outside, 4 defects were caught that would have gone in silently: one agent deleted 20
+whole lines of a command and did not report it; another wrote a factually false warning claiming
+to have "verified it by running the script". **The report describes the intent; only the disk shows the effect.**
 
-Para **cada ficheiro tocado**:
+For **each file touched**:
 
 ```bash
-grep -n "<frase exacta que foi acrescentada>" <ficheiro>   # o texto novo existe mesmo?
-git diff --stat -- <ficheiro>                               # quanto entrou vs quanto saiu
-git diff -- <ficheiro> | grep '^-' | grep -v '^---'         # o que foi APAGADO (deve ser só o previsto)
+grep -n "<exact phrase that was added>" <file>              # does the new text really exist?
+git diff --stat -- <file>                                   # how much went in vs how much went out
+git diff -- <file> | grep '^-' | grep -v '^---'             # what was DELETED (should be only what was expected)
 ```
 
-E, conforme o tipo:
+And, depending on the type:
 
-| O que a alteração introduziu | Verificação |
+| What the change introduced | Verification |
 |---|---|
-| caminho de ficheiro | `ls <caminho completo>` |
-| flag de CLI | `<cli> --help` e confirmar a flag na saída |
-| `.js` / `.mjs` | `node --check <ficheiro>` |
-| `.py` | `python3 -m py_compile <ficheiro>` |
-| `.sh` | `bash -n <ficheiro>` |
-| triggers de skill | ver 4b.1 |
+| a file path | `ls <full path>` |
+| a CLI flag | `<cli> --help` and confirm the flag in the output |
+| `.js` / `.mjs` | `node --check <file>` |
+| `.py` | `python3 -m py_compile <file>` |
+| `.sh` | `bash -n <file>` |
+| skill triggers | see 4b.1 |
 
-**4b.1 Triggers novos vão para o INÍCIO da lista.** O `build-skill-index.py` guarda no máximo **15
-triggers por componente** (`return unique[:15]`, linha 130) e não avisa quando corta. Acrescentar no
-fim da lista do frontmatter — o que qualquer editor faz por omissão — produz uma alteração que existe
-no ficheiro e **não faz nada**: as skills carregam lazy pelo índice e o termo novo nunca é
-encontrado. Depois de reindexar (4c):
-
-```bash
-grep -c "<trigger novo>" memory/SKILL_INDEX.json   # 0 = inerte, ficou fora do corte
-```
-
-**Em modo backlog:** um verificador por lote, despachado **depois** do lote de escrita e **sem** ter
-participado nele. Quem escreveu o código não assina o gate.
-
-Defeito encontrado aqui = reparação nesta corrida, não item para o próximo ciclo.
-
-## Phase 4c -- Bloco de sistema (uma vez, contra o baseline)
-
-A verificação por ficheiro não vê o **estado derivado do sistema**. Os 12 defeitos de uma corrida
-eram quase todos a mesma família: escreveu-se no `.md` e não se propagou — skill nova fora do
-`SKILL_INDEX.json`, triggers novos inertes, espelhos `.agents/`/`.codex/` divergentes, contagens do
-`README.md` erradas. Correr os três comandos **depois de todos os ficheiros estarem escritos**:
+**4b.1 New triggers go to the START of the list.** `build-skill-index.py` keeps at most **15
+triggers per component** (`return unique[:15]`, line 130) and does not warn when it cuts. Appending to the
+end of the frontmatter list — what any editor does by default — produces a change that exists
+in the file and **does nothing**: skills load lazily through the index and the new term is never
+found. After reindexing (4c):
 
 ```bash
-python3 .claude/scripts/build-skill-index.py     # Windows: python — regenera memory/SKILL_INDEX.json
-bash    .claude/scripts/compile-bridges.sh       # regenera AGENTS.md / GEMINI.md / .agents / .codex
-node    .claude/scripts/joca-doctor.mjs > .joca/upgrade/doctor-depois.txt 2>&1; echo "exit=$?"
+grep -c "<new trigger>" memory/SKILL_INDEX.json   # 0 = inert, it fell outside the cut
 ```
 
-**Comparar com o baseline da 1.0 — correr os comandos sem comparar não é gate:**
+**In backlog mode:** one verifier per batch, dispatched **after** the writing batch and **without** having
+taken part in it. Whoever wrote the code does not sign the gate.
+
+A defect found here = repaired in this run, not an item for the next cycle.
+
+## Phase 4c -- System block (once, against the baseline)
+
+Per-file verification does not see the **system's derived state**. The 12 defects of one run
+were nearly all the same family: it was written into the `.md` and did not propagate — a new skill outside
+`SKILL_INDEX.json`, new triggers inert, `.agents/`/`.codex/` mirrors diverging, `README.md`
+counts wrong. Run the three commands **after all the files are written**:
 
 ```bash
-diff .joca/upgrade/doctor-baseline.txt .joca/upgrade/doctor-depois.txt
-tail -2 .joca/upgrade/doctor-depois.txt          # "Resumo: N ✓ · N ⚠ · N ✗"
+python3 .claude/scripts/build-skill-index.py     # Windows: python — regenerates memory/SKILL_INDEX.json
+bash    .claude/scripts/compile-bridges.sh       # regenerates AGENTS.md / GEMINI.md / .agents / .codex
+node    .claude/scripts/joca-doctor.mjs > .joca/upgrade/doctor-after.txt 2>&1; echo "exit=$?"
 ```
 
-| Leitura do diff | Acção |
+**Compare with the 1.0 baseline — running the commands without comparing is not a gate:**
+
+```bash
+diff .joca/upgrade/doctor-baseline.txt .joca/upgrade/doctor-after.txt
+tail -2 .joca/upgrade/doctor-after.txt          # "Summary: N ✓ · N ⚠ · N ✗"
+```
+
+| Reading of the diff | Action |
 |---|---|
-| ⚠ ou ✗ **novo** face ao baseline | defeito **desta corrida** — reparar antes da Phase 5, nunca reportar como pré-existente |
-| ⚠/✗ que já estava no baseline | listar como pré-existente na Phase 6, não corrigir por arrasto |
-| ⚠/✗ que desapareceu | ganho — creditar ao item que o resolveu |
+| ⚠ or ✗ **new** compared with the baseline | a defect **of this run** — repair it before Phase 5, never report it as pre-existing |
+| ⚠/✗ that was already in the baseline | list it as pre-existing in Phase 6, do not fix it by drag-along |
+| ⚠/✗ that disappeared | a win — credit it to the item that resolved it |
 
-`joca-doctor.mjs` sai com `1` se houver ✗. Aceita `--fix` para o que é auto-corrigível (contagens),
-mas o `--fix` corre-se **depois** de ler o diff, senão apaga a prova de que a corrida introduziu o ⚠.
+`joca-doctor.mjs` exits with `1` if there is a ✗. It accepts `--fix` for what is auto-fixable (counts),
+but `--fix` is run **after** reading the diff, otherwise it erases the evidence that the run introduced the ⚠.
 
-Confirmar ainda que os espelhos não divergiram em silêncio:
+Also confirm that the mirrors did not diverge silently:
 
 ```bash
 git status --short .agents .codex AGENTS.md GEMINI.md
 ```
 
-Ficheiro alterado aqui e não commitado junto com a fonte = divergência garantida no próximo ciclo.
+A file changed here and not committed together with the source = guaranteed divergence in the next cycle.
 
 ---
 
 ## Phase 5 -- Validate
 
-> Os passos 5.3, 5.4 e 5.6 já correram na Phase 4c, **com comparação contra o baseline**. Aqui só se
-> repetem se a Phase 5 tiver alterado mais algum ficheiro (ex.: 5.5 INDEX.md); e nesse caso volta-se
-> a comparar, não se corre por correr.
+> Steps 5.3, 5.4 and 5.6 already ran in Phase 4c, **with a comparison against the baseline**. Here they
+> are only repeated if Phase 5 changed some other file (e.g. 5.5 INDEX.md); and in that case you
+> compare again, you do not run for the sake of running.
 
 ### 5.1 Codex review (if available)
 
@@ -446,7 +446,7 @@ Report errors if any.
 ### 5.3 Regenerate SKILL_INDEX.json
 
 ```bash
-# Windows usa `python` (o `python3` e o stub vazio da Store); macOS/Linux usam `python3`.
+# Windows uses `python` (`python3` is the empty Store stub); macOS/Linux use `python3`.
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done
 ```
 
@@ -508,15 +508,15 @@ Files modified:
 Validation:
   SKILL_INDEX.json regenerated
   Bridges recompiled
-  joca-doctor: baseline 20 ✓ · 1 ⚠ · 1 ✗  →  depois 21 ✓ · 1 ⚠ · 0 ✗
-    novos desta corrida: 0        (qualquer ⚠/✗ novo é defeito desta corrida)
-    pré-existentes:      1 ⚠ (soul.md por preencher)
+  joca-doctor: baseline 20 ✓ · 1 ⚠ · 1 ✗  →  after 21 ✓ · 1 ⚠ · 0 ✗
+    new in this run: 0            (any new ⚠/✗ is a defect of this run)
+    pre-existing:    1 ⚠ (soul.md not filled in)
   [Codex review: 0 issues / not available]
 
-Entrada vs saída (desde <data da última corrida>):
-  ficheiros de feedback novos: N     processados nesta corrida: M
-  → saldo: +/-K        (se a entrada ganhar de forma consistente, dizê-lo em voz alta)
-  banda coberta: [critical, high]    adiado: X issues medium/low
+Intake vs output (since <date of the last run>):
+  new feedback files: N     processed in this run: M
+  → balance: +/-K        (if the intake wins consistently, say it out loud)
+  band covered: [critical, high]    deferred: X medium/low issues
 
 ---------------------
 ```
@@ -562,9 +562,9 @@ Next steps:
 ## Rules
 
 - Never implement without user confirmation (Phase 3.2 gate)
-- Nenhum issue passa sem `estado` + prova lida do disco (Phase 1.5) — a marca `**Resolvido:**` é pista, não filtro
-- Acima de ~30 issues, triagem por fan-out de agentes **só-leitura** (Phase 1.6a); um triador que edita destrói a idempotência
-- Phase 4b e 4c são obrigatórias: verificar por **efeito**, e comparar o `joca-doctor` com o baseline da 1.0 — correr os comandos sem comparar não é gate
+- No issue passes without `state` + evidence read from disk (Phase 1.5) — the `**Resolved:**` mark is a lead, not a filter
+- Above ~30 issues, triage by fan-out of **read-only** agents (Phase 1.6a); a triager that edits destroys the idempotence
+- Phase 4b and 4c are mandatory: verify by **effect**, and compare `joca-doctor` with the 1.0 baseline — running the commands without comparing is not a gate
 - Never delete feedback files -- mark as processed and archive
 - Never touch files outside JOCA (project files, user data, external repos)
 - If a file path does not exist: create it with correct structure
@@ -578,23 +578,23 @@ Next steps:
 
 ---
 
-## Modo `--auto` (headless — skill loop à Hermes)
+## `--auto` mode (headless — Hermes-style skill loop)
 
-`/upgrade-joca --auto` corre o ciclo SEM interacção — pensado para sessões em que o user pediu explicitamente rotina autónoma. O gate humano da Phase 3.2 é substituído por um perímetro conservador:
+`/upgrade-joca --auto` runs the cycle WITHOUT interaction — meant for sessions where the user explicitly asked for an autonomous routine. The human gate of Phase 3.2 is replaced by a conservative perimeter:
 
-**Pode aplicar sozinho (allowlist):**
-- `IMPROVE_SKILL` — melhorar skill existente (loop improver/evaluator, threshold 8.0/10 mantém-se)
-- `FIX_TRIGGER` — corrigir triggers/description de skill que não disparou quando devia
-- Regenerar `SKILL_INDEX.json` + bridges + marcar/arquivar feedback processado
+**It can apply on its own (allowlist):**
+- `IMPROVE_SKILL` — improve an existing skill (improver/evaluator loop, the 8.0/10 threshold still holds)
+- `FIX_TRIGGER` — fix the triggers/description of a skill that did not fire when it should have
+- Regenerate `SKILL_INDEX.json` + bridges + mark/archive processed feedback
 
-**NUNCA aplica sozinho (fica em proposta):**
-- `NEW_SKILL` / `NEW_AGENT` — escreve o draft em `memory/feedback/proposals/<nome>.md` com o rationale e pára
-- `FIX_AGENT` em agentes de orquestração (master-orchestrator, task-router, self-improver)
+**It NEVER applies on its own (stays as a proposal):**
+- `NEW_SKILL` / `NEW_AGENT` — writes the draft to `memory/feedback/proposals/<name>.md` with the rationale and stops
+- `FIX_AGENT` on orchestration agents (master-orchestrator, task-router, self-improver)
 - `CONFIG_CHANGE` (CLAUDE.md, soul.md, rules/, settings.json, hooks)
-- Qualquer coisa fora de `.claude/skills/` + índices
+- Anything outside `.claude/skills/` + the indexes
 
-**Regras extra do modo auto:**
-- Sem feedback pendente (≥1 ficheiro) → termina imediatamente com "nada a processar" (não inventa melhorias)
-- Máximo 5 melhorias aplicadas por run (as restantes ficam para o próximo ciclo, por ordem de severidade)
-- No fim, escreve um resumo em `memory/feedback/auto-upgrade-log.md` (append): data, itens aplicados, itens em proposta, itens falhados
-- Termina SEMPRE com um resumo claro (o worker do JOCA_OS captura-o e o juiz classifica) — listar: aplicado / proposto / falhado / adiado
+**Extra rules of auto mode:**
+- No pending feedback (≥1 file) → terminates immediately with "nothing to process" (does not invent improvements)
+- Maximum of 5 improvements applied per run (the rest are left for the next cycle, in order of severity)
+- At the end, write a summary to `memory/feedback/auto-upgrade-log.md` (append): date, items applied, items proposed, items failed
+- ALWAYS end with a clear summary (the JOCA_OS worker captures it and the judge classifies it) — list: applied / proposed / failed / deferred

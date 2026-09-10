@@ -1,6 +1,6 @@
 ---
 name: knowledge-ingest
-description: "Ingest URL/file into the personal Knowledge Base — convert to Markdown via markitdown, summarize, assign hierarchical tags, save raw+wiki+index. Backs the /know flow (FUTUROS Fase 5). MUST be invoked when the user says: /know, guardar isto, knowledge base, segundo cérebro, ingerir link, ingerir PDF, transcrever YouTube, guardar reel, markitdown, catalogar isto, pesquisar o que guardei."
+description: "Ingest URL/file into the personal Knowledge Base — convert to Markdown via markitdown, summarize, assign hierarchical tags, save raw+wiki+index. Backs the /know flow (FUTUROS Phase 5). MUST be invoked when the user says: /know, save this, knowledge base, second brain, ingest link, ingest PDF, transcribe YouTube, save reel, markitdown, catalog this, search what I saved."
 metadata:
   version: 1.0.0
   origin: local
@@ -8,248 +8,248 @@ metadata:
 
 # Knowledge Ingest
 
-Motor do `/know` (FUTUROS Fase 5). Pega numa fonte (URL ou ficheiro), converte para Markdown, resume, atribui tags hierárquicas, e arquiva na Knowledge Base pesquisável em linguagem natural. Segundo cérebro pessoal estilo Obsidian.
+Engine of `/know` (FUTUROS Phase 5). Takes a source (URL or file), converts it to Markdown, summarizes it, assigns hierarchical tags, and files it in the Knowledge Base, searchable in natural language. Personal second brain, Obsidian style.
 
-## Princípio Base
+## Base Principle
 
-Fonte heterogénea (PDF/Office/YouTube/Instagram/artigo/imagem/áudio) → **um formato único**: Markdown. Toda a inteligência (resumo, tags, pesquisa) opera sobre o `.md`, nunca sobre o formato original. Conversão é o passo 1 obrigatório.
+Heterogeneous source (PDF/Office/YouTube/Instagram/article/image/audio) → **a single format**: Markdown. All the intelligence (summary, tags, search) operates on the `.md`, never on the original format. Conversion is mandatory step 1.
 
 Pipeline:
 ```
-fonte ──→ markitdown ──→ raw .md ──→ resumo + tags ──→ wiki .md ──→ index.json
+source ──→ markitdown ──→ raw .md ──→ summary + tags ──→ wiki .md ──→ index.json
 ```
 
 ---
 
-## Estrutura de Pastas
+## Folder Structure
 
-Tudo vive em `<JOCA_ROOT>/JOCA_Brain/memory/knowledge/`. A pasta **não existe ainda** — criar na primeira ingestão.
+Everything lives in `<JOCA_ROOT>/JOCA_Brain/memory/knowledge/`. The folder **does not exist yet** — create it on the first ingestion.
 
 ```
 memory/knowledge/
-├── index.json            # índice global pesquisável (uma entrada por item)
-├── tags.md               # árvore de tags hierárquica (tipo Obsidian)
-├── raw/                  # output bruto do markitdown, intocado
-│   └── 2026-06-21--reel-fraldas.md
-└── wiki/                 # nota curada: resumo + tags + frontmatter + link p/ raw
-    └── 2026-06-21--reel-fraldas.md
+├── index.json            # searchable global index (one entry per item)
+├── tags.md               # hierarchical tag tree (Obsidian style)
+├── raw/                  # raw markitdown output, untouched
+│   └── 2026-06-21--reel-diapers.md
+└── wiki/                 # curated note: summary + tags + frontmatter + link to raw
+    └── 2026-06-21--reel-diapers.md
 ```
 
-Regras:
-- **`raw/`** — saída literal do markitdown. Nunca editar à mão. É a fonte de verdade do conteúdo.
-- **`wiki/`** — a nota que o utilizador lê/edita. Resumo + metadados. Aponta para o `raw/` correspondente.
-- **Nome de ficheiro** — `YYYY-MM-DD--slug.md`. Slug = kebab-case derivado do título/tema. Mesmo nome em `raw/` e `wiki/`.
-- `raw/` e `wiki/` partilham o nome → emparelhamento trivial.
+Rules:
+- **`raw/`** — literal markitdown output. Never edit by hand. It is the source of truth for the content.
+- **`wiki/`** — the note the user reads/edits. Summary + metadata. Points to the matching `raw/`.
+- **Filename** — `YYYY-MM-DD--slug.md`. Slug = kebab-case derived from the title/topic. Same name in `raw/` and `wiki/`.
+- `raw/` and `wiki/` share the name → trivial pairing.
 
 ---
 
 ## Setup — markitdown (Windows)
 
-Conversor: [microsoft/markitdown](https://github.com/microsoft/markitdown). Suporta PDF, Office (docx/pptx/xlsx), HTML, imagens (OCR/descrição), áudio (transcrição), e mais.
+Converter: [microsoft/markitdown](https://github.com/microsoft/markitdown). Supports PDF, Office (docx/pptx/xlsx), HTML, images (OCR/description), audio (transcription), and more.
 
-**Windows usa `python`, NUNCA `python3`** (o `python3` é o stub vazio da Microsoft Store → `ModuleNotFoundError`).
+**Windows uses `python`, NEVER `python3`** (`python3` is the empty Microsoft Store stub → `ModuleNotFoundError`).
 
 ```bash
-# instalar com todos os extras (PDF, áudio, OCR, etc.)
+# install with all the extras (PDF, audio, OCR, etc.)
 python -m pip install 'markitdown[all]'
 
-# verificar
+# check
 python -m markitdown --help
 ```
 
-Detecção robusta do interpretador certo:
+Robust detection of the right interpreter:
 ```bash
 for PY in python python3; do
   command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import markitdown" 2>/dev/null && { MD="$PY"; break; }
 done
-# usar "$MD -m markitdown ..." daqui em diante
+# use "$MD -m markitdown ..." from here on
 ```
 
-**Alternativa MCP** — se o servidor `markitdown-mcp` estiver registado no ambiente, usar a tool MCP em vez do CLI. NÃO assumir que está registado: verificar a lista de MCPs disponíveis primeiro. Sem CLI nem MCP → instalar o CLI (acima) antes de prosseguir.
+**MCP alternative** — if the `markitdown-mcp` server is registered in the environment, use the MCP tool instead of the CLI. Do NOT assume it is registered: check the list of available MCPs first. Neither CLI nor MCP → install the CLI (above) before going on.
 
-### Converter
+### Convert
 
 ```bash
-# ficheiro local → stdout
+# local file → stdout
 python -m markitdown "C:/path/to/doc.pdf" > raw/2026-06-21--doc.md
 
-# ou via flag de output
+# or via the output flag
 python -m markitdown "C:/path/to/slides.pptx" -o raw/2026-06-21--slides.md
 ```
 
-Para **URLs** (artigo/YouTube/Instagram): markitdown aceita alguns URIs directamente; quando não, descarregar primeiro e converter o ficheiro local. Confirmar o comportamento real por tipo (ver validação abaixo) — não inferir.
+For **URLs** (article/YouTube/Instagram): markitdown accepts some URIs directly; when it does not, download first and convert the local file. Confirm the real behavior per type (see validation below) — do not infer.
 
 ---
 
-## Credenciais e fontes que precisam de auth
+## Credentials and sources that need auth
 
-Algumas fontes precisam de chave/login (ex.: transcrição de áudio via API, certos endpoints de YouTube/Instagram, plugins de imagem do markitdown que chamam um LLM).
+Some sources need a key/login (e.g. audio transcription via API, certain YouTube/Instagram endpoints, markitdown image plugins that call an LLM).
 
-- Preferir sempre a via **sem auth** (markitdown local extrai legendas/transcrição já presentes; OCR local).
-- Credencial em falta → **NÃO inventar key/endpoint**. Deixar `TODO: credencial em falta — <fonte>` na nota wiki, marcar o item `status: incomplete` no índice, e reportar ao utilizador. (Hard limit do soul.md.)
-- Link morto / post apagado / privado → registar `status: dead-link`, guardar o que foi possível extrair, e dizer-lo. Nunca fabricar conteúdo.
-
----
-
-## Passos do /know
-
-1. **Receber fonte** — URL ou path de ficheiro (texto livre = guardar directo, salta markitdown).
-2. **Converter** — `markitdown` → `raw/YYYY-MM-DD--slug.md`. Se a conversão falhar/vazia → reportar, não inventar.
-3. **Resumir** — ler o `raw/`, escrever resumo curto (3-6 linhas) + bullets de pontos-chave.
-4. **Tags hierárquicas** — atribuir 2-4 tags da árvore (ver abaixo). Reusar tags existentes de `tags.md` antes de criar novas. Tags novas → acrescentar à árvore.
-5. **Escrever wiki** — `wiki/YYYY-MM-DD--slug.md` com frontmatter (ver formato).
-6. **Indexar** — acrescentar/actualizar entrada em `index.json`.
-7. **Actualizar `tags.md`** — se surgiram tags novas.
-8. **Confirmar** — uma linha: `[know] <título> → #tag1 #tag2 (wiki/…md)`.
+- Always prefer the **no-auth** route (local markitdown extracts captions/transcription already present; local OCR).
+- Missing credential → **do NOT invent a key/endpoint**. Leave `TODO: missing credential — <source>` in the wiki note, mark the item `status: incomplete` in the index, and report to the user. (Hard limit from soul.md.)
+- Dead link / deleted or private post → record `status: dead-link`, save whatever could be extracted, and say so. Never fabricate content.
 
 ---
 
-## Tags Hierárquicas (tipo Obsidian)
+## Steps of /know
 
-Árvore sugerida pelo JOCA, editável pelo utilizador. Cresce com os interesses. Notação `#pai/filho`.
+1. **Receive source** — URL or file path (free text = save directly, skips markitdown).
+2. **Convert** — `markitdown` → `raw/YYYY-MM-DD--slug.md`. If the conversion fails/comes back empty → report, do not invent.
+3. **Summarize** — read the `raw/`, write a short summary (3-6 lines) + bullets of key points.
+4. **Hierarchical tags** — assign 2-4 tags from the tree (see below). Reuse existing tags from `tags.md` before creating new ones. New tags → add them to the tree.
+5. **Write the wiki** — `wiki/YYYY-MM-DD--slug.md` with frontmatter (see format).
+6. **Index** — add/update the entry in `index.json`.
+7. **Update `tags.md`** — if new tags came up.
+8. **Confirm** — one line: `[know] <title> → #tag1 #tag2 (wiki/…md)`.
 
-`tags.md` (exemplo — gerar/expandir conforme o uso real):
+---
+
+## Hierarchical Tags (Obsidian style)
+
+Tree suggested by JOCA, editable by the user. It grows with the interests. Notation `#parent/child`.
+
+`tags.md` (example — generate/expand according to real usage):
 ```markdown
 # Tag Tree
 
-- #trabalho
-  - #trabalho/design
-  - #trabalho/programação
-  - #trabalho/produtividade
-- #pessoal
-  - #pessoal/parentalidade
-    - #pessoal/parentalidade/truques
-  - #pessoal/saúde
-  - #pessoal/finanças
-- #aprendizagem
-  - #aprendizagem/ai
-  - #aprendizagem/ferramentas
-  - #aprendizagem/tutoriais
+- #work
+  - #work/design
+  - #work/programming
+  - #work/productivity
+- #personal
+  - #personal/parenting
+    - #personal/parenting/tricks
+  - #personal/health
+  - #personal/finances
+- #learning
+  - #learning/ai
+  - #learning/tools
+  - #learning/tutorials
 ```
 
-Regra: **reusar antes de criar**. Antes de inventar uma tag, procurar uma equivalente na árvore. Manter a árvore enxuta.
+Rule: **reuse before creating**. Before inventing a tag, look for an equivalent in the tree. Keep the tree lean.
 
 ---
 
-## Formato da Nota Wiki
+## Wiki Note Format
 
 `wiki/YYYY-MM-DD--slug.md`:
 ```markdown
 ---
-title: "Truque para mudar fraldas sem chorar"
+title: "Trick for changing diapers without crying"
 source: "https://instagram.com/reel/xyz"
 source_type: instagram
 date_saved: 2026-06-21
-tags: [pessoal/parentalidade/truques]
-raw: raw/2026-06-21--reel-fraldas.md
+tags: [personal/parenting/tricks]
+raw: raw/2026-06-21--reel-diapers.md
 status: ok          # ok | incomplete | dead-link
 ---
 
-## Resumo
-Reel mostra técnica de distracção (brinquedo na mão) que reduz agitação
-durante a muda. Demora ~30s. Funciona até aos ~18 meses.
+## Summary
+Reel shows a distraction technique (toy in the hand) that reduces fussing
+during the change. Takes ~30s. Works up to ~18 months.
 
-## Pontos-chave
-- Dar objecto novo/inesperado segura a atenção
-- Superfície à altura da cintura evita lesões nas costas
-- Preparar tudo antes de começar
+## Key points
+- Giving a new/unexpected object holds the attention
+- A waist-height surface avoids back injuries
+- Prepare everything before starting
 
-## Notas
-(espaço para o utilizador anotar)
+## Notes
+(space for the user to annotate)
 ```
 
-`source_type` controlado: `pdf | office | youtube | instagram | article | image | audio | text`.
+Controlled `source_type`: `pdf | office | youtube | instagram | article | image | audio | text`.
 
 ---
 
-## Formato do Índice
+## Index Format
 
-`index.json` — uma entrada por item. É o que a pesquisa percorre.
+`index.json` — one entry per item. It is what the search walks through.
 
 ```json
 {
   "version": 1,
   "items": [
     {
-      "id": "2026-06-21--reel-fraldas",
-      "title": "Truque para mudar fraldas sem chorar",
+      "id": "2026-06-21--reel-diapers",
+      "title": "Trick for changing diapers without crying",
       "source": "https://instagram.com/reel/xyz",
       "source_type": "instagram",
       "date_saved": "2026-06-21",
-      "tags": ["pessoal/parentalidade/truques"],
-      "summary": "Técnica de distracção que reduz agitação na muda.",
-      "wiki": "wiki/2026-06-21--reel-fraldas.md",
-      "raw": "raw/2026-06-21--reel-fraldas.md",
+      "tags": ["personal/parenting/tricks"],
+      "summary": "Distraction technique that reduces fussing during the change.",
+      "wiki": "wiki/2026-06-21--reel-diapers.md",
+      "raw": "raw/2026-06-21--reel-diapers.md",
       "status": "ok"
     }
   ]
 }
 ```
 
-`summary` no índice = uma frase (para matching rápido). O resumo completo fica no wiki.
+`summary` in the index = one sentence (for fast matching). The full summary stays in the wiki.
 
 ---
 
-## Pesquisa em Linguagem Natural
+## Natural Language Search
 
-O utilizador NÃO precisa de saber as tags exactas. Pergunta natural → o JOCA mapeia para tags + termos e devolve os itens.
+The user does NOT need to know the exact tags. Natural question → JOCA maps it to tags + terms and returns the items.
 
-Exemplos:
-- "Tenho truques sobre fraldas?" → procurar `#pessoal/parentalidade/truques` + termo "fralda" em `title/summary`.
-- "O que guardei sobre AI esta semana?" → filtrar `tags ~ #aprendizagem/ai` + `date_saved` na última semana.
-- "Aquele artigo de produtividade do mês passado" → `source_type=article` + `tags ~ produtividade` + janela de data.
-- "Tudo sobre design" → `tags ~ design`.
+Examples:
+- "Do I have tricks about diapers?" → look for `#personal/parenting/tricks` + the term "diaper" in `title/summary`.
+- "What did I save about AI this week?" → filter `tags ~ #learning/ai` + `date_saved` in the last week.
+- "That productivity article from last month" → `source_type=article` + `tags ~ productivity` + date window.
+- "Everything about design" → `tags ~ design`.
 
-Estratégia de matching (sobre `index.json`):
-1. Inferir tags candidatas a partir da pergunta (mapear sinónimos → árvore de `tags.md`).
-2. Filtrar `items` por tag E/OU por termo em `title`/`summary`.
-3. Aplicar filtros de data quando a pergunta os refere ("esta semana", "mês passado").
-4. Devolver título + resumo + link wiki + source. Vários resultados → lista ordenada por `date_saved` desc.
+Matching strategy (over `index.json`):
+1. Infer candidate tags from the question (map synonyms → the `tags.md` tree).
+2. Filter `items` by tag AND/OR by term in `title`/`summary`.
+3. Apply date filters when the question mentions them ("this week", "last month").
+4. Return title + summary + wiki link + source. Several results → list ordered by `date_saved` desc.
 
-Sem hits → dizê-lo claramente e sugerir tags próximas existentes. Não inventar resultados.
-
----
-
-## Gestão
-
-- **Navegar** — por tags via `tags.md` / vista árvore no JOCA_OS.
-- **Editar** — corrigir tags/resumo no `wiki/` e reflectir no `index.json` (manter os dois em sync).
-- **Apagar** — remover `wiki/` + `raw/` + entrada do `index.json`.
-- **Exportar** — copiar a pasta `knowledge/` (markdown puro = portável p/ Obsidian).
+No hits → say so clearly and suggest nearby existing tags. Do not invent results.
 
 ---
 
-## Validação Antes de Declarar Pronto
+## Management
 
-markitdown comporta-se diferente por tipo de fonte. **Validar o `.md` produzido contra 1 ficheiro REAL por tipo** antes de dar o fluxo como funcional (regra anti-fabricação + verificar parser contra output real):
+- **Browse** — by tags via `tags.md` / tree view in JOCA_OS.
+- **Edit** — fix tags/summary in the `wiki/` and reflect it in `index.json` (keep the two in sync).
+- **Delete** — remove `wiki/` + `raw/` + the `index.json` entry.
+- **Export** — copy the `knowledge/` folder (pure markdown = portable to Obsidian).
 
-1. Correr 1 conversão real por `source_type` que se pretende suportar (pdf, office, youtube, instagram, article, image, audio).
-2. Abrir o `raw/*.md` e confirmar que tem conteúdo substantivo — não vazio, não só metadados, não erro silencioso.
-3. Campos críticos: transcrição de YouTube/áudio não pode vir vazia se existe; OCR de imagem com texto tem de o conter.
-4. Só depois marcar o tipo como suportado. Tipo que falha → documentar como não suportado / `TODO`, não fingir que funciona.
+---
 
-Ficheiro existir ≠ ficheiro pronto. Amostrar o conteúdo, não confiar no nome.
+## Validation Before Declaring It Ready
+
+markitdown behaves differently per source type. **Validate the produced `.md` against 1 REAL file per type** before calling the flow working (anti-fabrication rule + check the parser against real output):
+
+1. Run 1 real conversion per `source_type` you intend to support (pdf, office, youtube, instagram, article, image, audio).
+2. Open the `raw/*.md` and confirm it has substantive content — not empty, not just metadata, not a silent error.
+3. Critical fields: YouTube/audio transcription cannot come back empty if it exists; OCR of an image with text has to contain it.
+4. Only then mark the type as supported. A type that fails → document it as unsupported / `TODO`, do not pretend it works.
+
+File existing ≠ file ready. Sample the content, do not trust the name.
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |--------|----------|
-| `python3 -m markitdown` no Windows | `python -m markitdown` (python3 = stub da Store) |
-| Inferir que markitdown suporta um tipo | 1 conversão real + inspeccionar o `.md` |
-| Inventar key/endpoint p/ fonte com auth | No-auth source ou `TODO: credencial em falta` + reportar |
-| Resumir sem ler o `raw/` | Ler o `.md` convertido, depois resumir |
-| Criar tag nova sem ver as existentes | Reusar `tags.md`; criar só se não houver equivalente |
-| Editar `wiki/` e esquecer `index.json` | Manter wiki + índice em sync |
-| Editar o `raw/` à mão | `raw/` é imutável; notas vão para `wiki/` |
-| Declarar pronto por o ficheiro existir | Amostrar conteúdo (transcrição/OCR não-vazios) |
-| Fabricar conteúdo p/ link morto | `status: dead-link` + guardar o extraído + dizê-lo |
+| `python3 -m markitdown` on Windows | `python -m markitdown` (python3 = Store stub) |
+| Inferring that markitdown supports a type | 1 real conversion + inspect the `.md` |
+| Inventing a key/endpoint for a source with auth | No-auth source or `TODO: missing credential` + report |
+| Summarizing without reading the `raw/` | Read the converted `.md`, then summarize |
+| Creating a new tag without looking at the existing ones | Reuse `tags.md`; only create if there is no equivalent |
+| Editing `wiki/` and forgetting `index.json` | Keep wiki + index in sync |
+| Editing the `raw/` by hand | `raw/` is immutable; notes go to `wiki/` |
+| Declaring it ready because the file exists | Sample content (non-empty transcription/OCR) |
+| Fabricating content for a dead link | `status: dead-link` + save what was extracted + say so |
 
 ---
 
 ## Related
 
-- **browser-automate** — quando uma fonte precisa de driving de browser para extrair (post dinâmico).
-- **agent-context** — convenções de memória/INDEX onde a Knowledge Base se encaixa.
-- FUTUROS.md Fase 5 — visão e decisões pendentes (storage final, embeddings p/ pesquisa vectorial).
+- **browser-automate** — when a source needs browser driving to extract (dynamic post).
+- **agent-context** — memory/INDEX conventions where the Knowledge Base fits in.
+- FUTUROS.md Phase 5 — vision and pending decisions (final storage, embeddings for vector search).

@@ -1,4 +1,4 @@
-Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/zero-downtime-deploy.md")` para deploy sem downtime (Envoy/symlink) e maintenance mode. (Tabela de safe migrations vive no corpo da skill.)
+Part of the `availability` skill — loaded on-demand via `Read(".claude/reference/availability/zero-downtime-deploy.md")` for zero-downtime deploys (Envoy/symlink) and maintenance mode. (Safe migrations table lives in the skill body.)
 
 ## 3. Zero-Downtime Deploys
 

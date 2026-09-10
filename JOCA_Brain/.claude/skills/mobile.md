@@ -1,7 +1,7 @@
 ---
 name: mobile
-description: "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also invoke when: notch, dynamic island, PWA, app móvel, mobile app, tablet."
-triggers: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area, notch, dynamic island, PWA, app móvel, mobile app, tablet, breakpoint, viewport, media query, gesto, gesture, pull to refresh, adaptativo, adaptive, hamburger menu, drawer, off-canvas, mobile navigation, mobile menu, thumb zone, reachability, iOS mockup, Android mockup, device frame, app design, mobile design, mobile layout, small screen
+description: "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also invoke when: notch, dynamic island, PWA, mobile app, tablet."
+triggers: responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area, notch, dynamic island, PWA, mobile app, tablet, breakpoint, viewport, media query, gesture, pull to refresh, adaptive, hamburger menu, drawer, off-canvas, mobile navigation, mobile menu, thumb zone, reachability, iOS mockup, Android mockup, device frame, app design, mobile design, mobile layout, small screen
 ---
 # Mobile — Responsive & Mobile Specialist
 
@@ -24,7 +24,7 @@ Auto-invoked by `frontend` after first draft, or directly by user.
 ## Breakpoint System
 
 ```css
-/* Mobile-first: base e mobile, expandir com min-width */
+/* Mobile-first: the base is mobile, expand with min-width */
 /* 375px  -- small phone (iPhone SE, base) */
 /* 390px  -- standard phone (iPhone 14/15) */
 /* 428px  -- large phone (iPhone Pro Max) */
@@ -35,7 +35,7 @@ Auto-invoked by `frontend` after first draft, or directly by user.
 /* 1920px -- full HD */
 
 /* Tailwind: sm:640 md:768 lg:1024 xl:1280 2xl:1536 */
-/* Custom quando necessario */
+/* Custom when necessary */
 ```
 
 ### Rules
@@ -51,9 +51,9 @@ Auto-invoked by `frontend` after first draft, or directly by user.
 
 ### Navigation
 ```
-Desktop: navbar horizontal
-Tablet:  navbar com items colapsados
-Mobile:  bottom navigation bar (3-5 items) OU hamburger + drawer
+Desktop: horizontal navbar
+Tablet:  navbar with collapsed items
+Mobile:  bottom navigation bar (3-5 items) OR hamburger + drawer
 ```
 
 Bottom nav > hamburger when <= 5 primary actions. Hamburger hides -- bottom nav shows.
@@ -90,16 +90,16 @@ body {
 
 ### Touch Interactions
 ```css
-/* Remover 300ms tap delay */
+/* Remove the 300ms tap delay */
 * { touch-action: manipulation; }
 
-/* Feedback visual no tap */
+/* Visual feedback on tap */
 .touchable { -webkit-tap-highlight-color: rgba(0,0,0,0.05); }
 
-/* Prevenir text selection em elementos interactivos */
+/* Prevent text selection on interactive elements */
 .interactive { -webkit-user-select: none; user-select: none; }
 
-/* Smooth momentum scroll em containers */
+/* Smooth momentum scroll in containers */
 .scroll-container {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -119,7 +119,7 @@ Always set `width` + `height` or `aspect-ratio` to prevent CLS.
 
 ### Responsive Typography
 ```css
-/* Fluid type -- escala suave entre breakpoints */
+/* Fluid type -- smooth scale between breakpoints */
 .heading {
   font-size: clamp(1.75rem, 1.2rem + 2vw, 3.5rem);
   line-height: 1.1;
@@ -202,34 +202,34 @@ For PWA or native-feel web apps:
 
 ---
 
-## Medir a sério (não confiar em `scrollWidth`)
+## Measuring properly (do not trust `scrollWidth`)
 
-### Sangramento horizontal — a rotina canónica
+### Horizontal bleed — the canonical routine
 
-`document.documentElement.scrollWidth - clientWidth` devolve **0 falso** quando há
-`overflow-x: clip|hidden` num ancestral: o conteúdo continua cortado, o número diz que está tudo bem.
-Escondeu um defeito real (heading e parágrafo cortados a 390px) durante **5 auditorias seguidas**.
-Medir elemento a elemento:
+`document.documentElement.scrollWidth - clientWidth` returns a **false 0** when there is
+`overflow-x: clip|hidden` on an ancestor: the content stays cut off, the number says everything is fine.
+It hid a real defect (heading and paragraph cut off at 390px) for **5 audits in a row**.
+Measure element by element:
 
 ```js
-// Correr a 390×844, com goto fresco
+// Run at 390×844, with a fresh goto
 [...document.querySelectorAll('h1,h2,h3,p,li,a,button,img,td')]
   .map(el => ({ el, r: el.getBoundingClientRect() }))
   .filter(({ el, r }) => {
-    if (!r.width || !r.height) return false;                       // invisível
+    if (!r.width || !r.height) return false;                       // invisible
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.position === 'fixed') return false;
-    return r.right > innerWidth + 1 || r.left < -1;                // sangra
+    return r.right > innerWidth + 1 || r.left < -1;                // bleeds
   })
   .map(({ el, r }) => `${el.tagName}.${el.className} → right ${Math.round(r.right)} / vw ${innerWidth}`);
 ```
-Lista vazia = passa. Qualquer entrada = defeito com o elemento nomeado, não "há scroll horizontal".
+Empty list = pass. Any entry = a defect with the element named, not "there is horizontal scroll".
 
-### O clique chega? (`elementFromPoint`)
+### Does the click land? (`elementFromPoint`)
 
-Auditar `href` **não é** testar navegação. Um irmão do Elementor pintado por cima deixou 3 itens de
-menu com `href` correcto e mortos ao clique — reportado pelo cliente, em **duas sessões seguidas**,
-depois de rondas de auditoria ao HTML. Obrigatório em qualquer alteração a nav/header/overlay/modal:
+Auditing `href` is **not** testing navigation. An Elementor sibling painted on top left 3 menu
+items with the correct `href` and dead to the click — reported by the client, in **two sessions in a row**,
+after rounds of auditing the HTML. Mandatory on any change to nav/header/overlay/modal:
 
 ```js
 [...document.querySelectorAll('nav a, header a, [role="menuitem"], .overlay a')].map(a => {
@@ -238,22 +238,22 @@ depois de rondas de auditoria ao HTML. Obrigatório em qualquer alteração a na
   return { href: a.getAttribute('href'), ok: a.contains(hit) || hit === a, blocker: a.contains(hit) ? null : hit?.className };
 });
 ```
-`ok: false` = link morto, e o `blocker` diz quem está por cima. **Carga limpa** (`goto` fresco), não
-uma página já mexida — o estado acumulado esconde o defeito.
+`ok: false` = dead link, and the `blocker` says who is on top. **Clean load** (fresh `goto`), not
+a page already tampered with — the accumulated state hides the defect.
 
-### Provar antes de editar
+### Prove it before editing
 
-Para validar um fix de CSS: injectar o candidato na página ao vivo (`addStyleTag`) e **re-medir** com
-os rects, antes de tocar no ficheiro-fonte. Poupa o ciclo editar→deploy→ver e produz números
-concretos (item a item, `left`/`right` vs largura do viewport) para mostrar ao cliente — em vez de
-"parece melhor". O mesmo padrão prova causas-raiz: contraste medido ~1:1, não estimado.
+To validate a CSS fix: inject the candidate into the live page (`addStyleTag`) and **re-measure** with
+the rects, before touching the source file. It saves the edit→deploy→look cycle and produces concrete
+numbers (item by item, `left`/`right` vs viewport width) to show the client — instead of
+"looks better". The same pattern proves root causes: contrast measured at ~1:1, not estimated.
 
 ---
 
 ## Checklist Mobile
 
-- [ ] 375px without horizontal scroll — **medido pela rotina de rects acima**, não por `scrollWidth`
-- [ ] Links de nav/header/overlay passam o teste `elementFromPoint`
+- [ ] 375px without horizontal scroll — **measured by the rects routine above**, not by `scrollWidth`
+- [ ] nav/header/overlay links pass the `elementFromPoint` test
 - [ ] Touch targets >= 44px
 - [ ] Safe areas respected (notch, home indicator)
 - [ ] Inputs with correct `inputmode`

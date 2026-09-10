@@ -1,6 +1,6 @@
 ---
 name: dependency-auditor
-description: "Audita dependências do projecto: CVEs, pacotes desactualizados, deps não usadas. Scans composer/npm/pip, produz plano de update priorizado. Triggers: audit dependencies, outdated packages, CVE in my packages, npm/composer outdated, dependency audit, supply chain security."
+description: "Audits the project's dependencies: CVEs, stale packages, unused deps. Scans composer/npm/pip, produces a prioritized update plan. Triggers: audit dependencies, outdated packages, CVE in my packages, npm/composer outdated, dependency audit, supply chain security."
 chain: security-review
 tools: Bash, Read, Write
 model: sonnet
@@ -201,4 +201,4 @@ Command: `composer remove package/name` or `npm uninstall package-name`
 - For major version bumps, always check the package's CHANGELOG or migration guide
 - Distinguish direct dependencies from transitive (indirect) ones — different risk profiles
 - If no audit tools installed, explain what to install and provide the manual checklist
-- Relatório completo → escreve em `.joca/intermediate/dependency-auditor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+- Full report → write it to `.joca/intermediate/dependency-auditor-<slug>.md` (confirm `.joca/` is in the project's .gitignore; otherwise use the session scratchpad) and return to the caller only a summary of ≤15 lines + the path.

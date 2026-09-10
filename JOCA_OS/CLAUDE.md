@@ -1,18 +1,18 @@
 # JOCA_OS
 
-**Nome:** JOCA_OS
+**Name:** JOCA_OS
 **Stack:** React + Vite + TypeScript · Node.js + Express + WebSocket (`ws`) · xterm.js · node-pty
-**Objectivo:** Browser UI para Claude Code — terminal emulado com sidebar multi-sessão
-**Directório:** `JOCA_OS/`
+**Objective:** Browser UI for Claude Code — emulated terminal with multi-session sidebar
+**Directory:** `JOCA_OS/`
 
-## Arquitectura
+## Architecture
 
 ```
 JOCA_OS/
 ├── frontend/          ← React + Vite + TypeScript
 │   └── src/
 │       ├── components/
-│       │   ├── Sidebar.tsx     ← lista de sessões
+│       │   ├── Sidebar.tsx     ← session list
 │       │   └── Terminal.tsx    ← xterm.js wrapper
 │       └── App.tsx
 └── backend/           ← Node.js + Express + ws + node-pty
@@ -20,10 +20,10 @@ JOCA_OS/
         └── server.ts  ← WebSocket server + PTY manager
 ```
 
-## Arranque
+## Startup
 
 ```bash
-# Primeira vez (compila node-pty nativo para o Node.js instalado)
+# First time (compiles native node-pty for the installed Node.js)
 cd JOCA_OS
 npm run setup
 
@@ -31,50 +31,50 @@ npm run setup
 bash start.sh        # macOS/Linux
 # start.bat          # Windows
 
-# Aceder em: http://localhost:7492
+# Access at: http://localhost:7492
 ```
 
-**Nota:** Se `posix_spawnp failed` aparecer, correr:
+**Note:** If `posix_spawnp failed` shows up, run:
 ```bash
 cd backend/node_modules/node-pty && npx node-gyp rebuild
 ```
 
-## Skills activas
+## Active skills
 
-- `nodejs` — backend Node.js
-- `frontend-design` — UI React
+- `nodejs` — Node.js backend
+- `frontend-design` — React UI
 
-## Navegação de Código
+## Code Navigation
 
-1. Consultar `graphify-out/GRAPH_REPORT.md` se existir
-2. Ler ficheiros raw quando necessário para editar
-3. Actualizar: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
+1. Check `graphify-out/GRAPH_REPORT.md` if it exists
+2. Read raw files when needed to edit
+3. Update: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
 
-## Decisões chave
+## Key decisions
 
-- `node-pty` para PTY real (suporte ANSI, resize)
-- WebSocket raw (`ws`) — avaliar Socket.io se reconexão necessária
-- Estado em ficheiros JSON em `data/` (sem DB)
-- Local-first: bind default em `127.0.0.1` sem auth. Modo remoto (VPS) é opt-in:
-  `JOCA_HOST=0.0.0.0` só arranca com auth configurada (`JOCA_PASSWORD` ou password
-  definida na UI) — password scrypt + tokens em cookie httpOnly/Bearer
-- Multi-CLI: as sessões podem correr `claude` (default), `codex`,
-  `agy` ou `opencode` — perfis em `src/cli-profiles.ts`, override em `data/cli-profiles.json`
-- Notificações persistem na inbox (`data/notifications.json`) antes do broadcast WS
-- **Nada escreve sozinho num terminal.** Só entra o que o dono escreve — incluindo o resume, que é
-  **manual**, pelo botão da barra do chat (`session-manager.ts`: "Nenhum `/resume` é injectado"; a
-  forma do comando vem do `resumeCmd` do perfil do CLI). Removidos: o heartbeat (proactividade), os relatórios
-  automáticos, a varredura de encalhados, o subsistema de gestor de projecto / Joca global /
-  "A Sala", o sistema de Tarefas e o sistema de Automações (com o histórico de execuções).
-- **Um projecto abre VAZIO.** Nenhum terminal nasce sozinho — nem no arranque do backend, nem ao
-  criar o projecto, nem ao abrir o painel. Quem abre terminais é o dono, no "+" do projecto.
-- **Ponte de agentes** (`cli/joca.mjs` + `src/agent-bridge.ts`): cada PTY nasce com `JOCA_CLI`,
-  `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
-  o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — abre terminais,
-  fala com outros. Uma implementação por acção, sem reinícios.
+- `node-pty` for a real PTY (ANSI support, resize)
+- Raw WebSocket (`ws`) — evaluate Socket.io if reconnection is needed
+- State in JSON files in `data/` (no DB)
+- Local-first: default bind on `127.0.0.1` with no auth. Remote mode (VPS) is opt-in:
+  `JOCA_HOST=0.0.0.0` only starts with auth configured (`JOCA_PASSWORD` or a password
+  set in the UI) — scrypt password + tokens in an httpOnly cookie/Bearer
+- Multi-CLI: sessions can run `claude` (default), `codex`,
+  `agy` or `opencode` — profiles in `src/cli-profiles.ts`, override in `data/cli-profiles.json`
+- Notifications persist in the inbox (`data/notifications.json`) before the WS broadcast
+- **Nothing writes into a terminal by itself.** Only what the owner types goes in — including the resume, which is
+  **manual**, via the button on the chat bar (`session-manager.ts`: "No `/resume` is injected"; the
+  shape of the command comes from the CLI profile's `resumeCmd`). Removed: the heartbeat (proactivity), the automatic
+  reports, the stalled-session sweep, the project-manager / global Joca /
+  "The Room" subsystem, the Tasks system and the Automations system (with the execution history).
+- **A project opens EMPTY.** No terminal is born by itself — not at backend startup, not when
+  creating the project, not when opening the panel. The owner is the one who opens terminals, at the project's "+".
+- **Agent bridge** (`cli/joca.mjs` + `src/agent-bridge.ts`): every PTY is born with `JOCA_CLI`,
+  `JOCA_API_URL`, `JOCA_SESSION_ID` and (with auth) `JOCA_API_TOKEN`. The agent inside the terminal operates
+  JOCA_OS **while it runs** through the same HTTP API the browser uses — it opens terminals,
+  talks to others. One implementation per action, with no restarts.
 
-## Testes
+## Tests
 
 ```bash
-cd backend && npm test   # vitest — unidades puras (chunkText, cli-profiles, folderPickerCommand, PATH_SAFE) + contratos de rotas, notificações, sessões, host
+cd backend && npm test   # vitest — pure units (chunkText, cli-profiles, folderPickerCommand, PATH_SAFE) + route contracts, notifications, sessions, host
 ```

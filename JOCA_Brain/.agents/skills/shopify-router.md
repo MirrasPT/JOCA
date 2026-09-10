@@ -47,7 +47,7 @@ At the start of any Shopify task to:
 | Scenario                                          | Build                |
 |--------------------------------------------------|----------------------|
 | External service integration, multi-store, paid  | App                  |
-| Checkout customisation, admin UI field, POS      | Extension (in app)   |
+| Checkout customization, admin UI field, POS      | Extension (in app)   |
 | Custom storefront design, brand-specific layout  | Theme                |
 | Audit trust/SEO/AEO/conversion of existing store | Store Audit          |
 

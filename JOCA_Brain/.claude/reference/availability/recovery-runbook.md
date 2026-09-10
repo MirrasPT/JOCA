@@ -1,4 +1,4 @@
-Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/recovery-runbook.md")` em incidentes, restores e resiliência de queues. (Tabela RTO/RPO vive no corpo da skill.)
+Part of the `availability` skill — loaded on-demand via `Read(".claude/reference/availability/recovery-runbook.md")` for incidents, restores and queue resilience. (RTO/RPO table lives in the skill body.)
 
 ## 5. Queue Resilience
 

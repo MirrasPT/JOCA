@@ -1,7 +1,7 @@
 ---
 name: auth
 description: "Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware. MUST be invoked when the user says: auth, authentication, login, logout, register, sanctum, token, 2fa. SHOULD also invoke when: mfa, totp, oauth, socialite, social login, google login."
-triggers: auth, authentication, login, logout, register, sanctum, token, 2fa, mfa, totp, oauth, socialite, social login, google login, facebook login, role, permission, spatie, policy, gate, authorize, password, session, csrf, guard, middleware auth, api token, access control, RBAC, permissoes, autenticacao, papel, acesso
+triggers: auth, authentication, login, logout, register, sanctum, token, 2fa, mfa, totp, oauth, socialite, social login, google login, facebook login, role, permission, spatie, policy, gate, authorize, password, session, csrf, guard, middleware auth, api token, access control, RBAC, access
 chain: security-review, tester-security
 ---
 # Auth
@@ -14,14 +14,14 @@ Auto-invoked by `laravel-specialist` when auth work detected.
 
 ## Decision tree
 
-| Cenario | Usar |
+| Scenario | Use |
 |---------|------|
-| SPA no mesmo dominio (cookie-based) | Sanctum SPA |
+| SPA on the same domain (cookie-based) | Sanctum SPA |
 | Mobile / API tokens first-party | Sanctum tokens |
-| OAuth2 server para third-party | Passport |
+| OAuth2 server for third-party | Passport |
 | Role/permission checks | Spatie laravel-permission |
 | Login via Google, Facebook, GitHub | Socialite |
-| Autorizacao por recurso | Policies + Gates |
+| Per-resource authorization | Policies + Gates |
 
 ---
 
@@ -29,16 +29,16 @@ Auto-invoked by `laravel-specialist` when auth work detected.
 
 ### API token auth
 ```php
-// Emitir com abilities + expiry
+// Issue with abilities + expiry
 $token = $user->createToken('mobile', ['orders:read', 'orders:write'], now()->addDays(30));
-return ['token' => $token->plainTextToken]; // devolver uma vez, nunca guardar plain
+return ['token' => $token->plainTextToken]; // return once, never store plain
 
-// Verificar ability
+// Check ability
 $request->user()->tokenCan('orders:write');
 
-// Revogar
-$request->user()->currentAccessToken()->delete(); // token actual
-$request->user()->tokens()->delete();              // todos
+// Revoke
+$request->user()->currentAccessToken()->delete(); // current token
+$request->user()->tokens()->delete();              // all
 ```
 
 ### SPA (cookie-based)
@@ -258,14 +258,14 @@ Apply in any auth code review:
 
 ## Common pitfalls
 
-| Problema | Fix |
+| Problem | Fix |
 |----------|-----|
-| `unauthenticated` com token valido | Guard mismatch -- rota deve usar `auth:sanctum` |
-| Spatie permissions stale | `permission:cache-reset` no deploy |
-| Teams permissions bleed | `setPermissionsTeamId()` + `unsetRelation` por request |
-| Social `email` null | Validar antes de `User::firstWhere` |
-| CSRF 419 em SPA | SPA deve chamar `/sanctum/csrf-cookie`; verificar `SESSION_DOMAIN` |
-| 2FA redirect loop | Excluir `2fa.challenge` do middleware |
+| `unauthenticated` with a valid token | Guard mismatch -- the route must use `auth:sanctum` |
+| Spatie permissions stale | `permission:cache-reset` on deploy |
+| Teams permissions bleed | `setPermissionsTeamId()` + `unsetRelation` per request |
+| Social `email` null | Validate before `User::firstWhere` |
+| CSRF 419 in SPA | the SPA must call `/sanctum/csrf-cookie`; check `SESSION_DOMAIN` |
+| 2FA redirect loop | Exclude `2fa.challenge` from the middleware |
 | `remember me` bypasses 2FA | Re-prompt 2FA on restore via remember cookie |
 | Sanctum token never expires | Set `sanctum.expiration` in config |
 
@@ -274,7 +274,7 @@ Apply in any auth code review:
 ## Testing
 
 ```php
-// Sanctum com abilities
+// Sanctum with abilities
 Sanctum::actingAs($user, ['orders:read']);
 $this->getJson('/api/orders')->assertOk();
 
@@ -298,4 +298,4 @@ it('blocks non-owner from updating', function () {
 ---
 
 ## Quality gate
-After implementing auth: "Queres `tester-security`?" + "Queres `tester-ratelimit`?" (tests brute force on login/register/password reset)
+After implementing auth: "Want `tester-security`?" + "Want `tester-ratelimit`?" (tests brute force on login/register/password reset)

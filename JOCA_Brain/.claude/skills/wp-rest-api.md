@@ -27,7 +27,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 ### 0) Triage and locate REST usage
 
 1. Run triage:
-   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
+   - Read(".claude/skills/wp-project-triage.md") and do the triage manually (the script does not exist in this installation).
 2. Search for existing REST usage:
    - `register_rest_route`
    - `WP_REST_Controller`

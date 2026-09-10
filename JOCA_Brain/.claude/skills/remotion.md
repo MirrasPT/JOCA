@@ -1,7 +1,7 @@
 ---
 name: remotion
-description: "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring animation. SHOULD also invoke when: lyric video, music visualizer, visualizador de música, batch video, data-driven video, vídeo dados."
-triggers: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring animation, lyric video, music visualizer, visualizador de música, batch video, data-driven video, vídeo dados, vídeo template, criar vídeo react
+description: "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, useCurrentFrame, interpolate, spring animation. SHOULD also invoke when: lyric video, music visualizer, batch video, data-driven video."
+triggers: remotion, react video, programmatic video, useCurrentFrame, interpolate, spring animation, lyric video, music visualizer, batch video, data-driven video, video template, create react video
 ---
 
 # Remotion
@@ -18,10 +18,10 @@ Programmatic video with React. Each frame is a React component driven by `useCur
 | | HyperFrames | Remotion |
 |---|---|---|
 | Authoring | HTML + GSAP | React (TSX) |
-| Build step | Nenhum | Obrigatório |
-| GSAP seeking | Frame-accurate | Wall-clock (não seekable) |
+| Build step | None | Required |
+| GSAP seeking | Frame-accurate | Wall-clock (not seekable) |
 | Distributed render | Single machine | Lambda/AWS |
-| Licença | Apache 2.0 | Source-available (pago acima de threshold) |
+| License | Apache 2.0 | Source-available (paid above a threshold) |
 
 ---
 
@@ -30,7 +30,7 @@ Programmatic video with React. Each frame is a React component driven by `useCur
 ```bash
 npx create-video@latest --yes --blank --no-tailwind my-video
 cd my-video
-npm run dev    # abre Remotion Studio no browser
+npm run dev    # opens Remotion Studio in the browser
 ```
 
 **Project structure:**
@@ -38,10 +38,10 @@ npm run dev    # abre Remotion Studio no browser
 ```
 my-video/
 ├── src/
-│   ├── Root.tsx         # regista todas as Compositions
-│   ├── MyVideo.tsx      # componente de vídeo
+│   ├── Root.tsx         # registers all Compositions
+│   ├── MyVideo.tsx      # video component
 │   └── index.ts
-├── public/              # assets estáticos (audio, imagens)
+├── public/              # static assets (audio, images)
 ├── remotion.config.ts
 └── package.json
 ```
@@ -105,7 +105,7 @@ const opacity = interpolate(frame, [0, 30], [0, 1], {
   extrapolateLeft: "clamp",
 });
 
-// deslocamento (slide in)
+// displacement (slide in)
 const translateY = interpolate(frame, [0, 30], [50, 0], {
   extrapolateRight: "clamp",
 });
@@ -129,7 +129,7 @@ const opacity = interpolate(frame, [0, 30], [0, 1], {
   easing: Easing.bezier(0.16, 1, 0.3, 1),  // ease-out-expo
 });
 
-// Easings disponíveis:
+// Available easings:
 // Easing.linear, Easing.ease, Easing.bezier(x1, y1, x2, y2)
 // Easing.in(fn), Easing.out(fn), Easing.inOut(fn)
 // Easing.elastic(bounciness), Easing.bounce, Easing.back(factor)
@@ -191,7 +191,7 @@ const Main = () => {
 
 ```tsx
 <Sequence from={30} layout="none">
-  <span style={{ fontSize: 24 }}>Texto inline</span>
+  <span style={{ fontSize: 24 }}>Inline text</span>
 </Sequence>
 ```
 
@@ -206,16 +206,16 @@ import { Img, staticFile } from "remotion";
 import { Video } from "@remotion/media";
 import { Audio } from "@remotion/media";
 
-// Imagem
+// Image
 <Img src={staticFile("logo.png")} style={{ width: 200 }} />
 
-// Vídeo
+// Video
 <Video src={staticFile("clip.mp4")} style={{ opacity: 0.8 }} />
 
-// Áudio (BGM, narração)
+// Audio (BGM, narration)
 <Audio src={staticFile("music.mp3")} volume={0.4} />
 
-// Remote URLs também funcionam
+// Remote URLs also work
 <Video src="https://example.com/video.mp4" />
 ```
 
@@ -226,13 +226,13 @@ import { Audio } from "@remotion/media";
 **CSS transitions and CSS animations are FORBIDDEN** -- they don't render correctly:
 
 ```tsx
-// ❌ ERRADO — não funciona em Remotion
+// ❌ WRONG — does not work in Remotion
 <div style={{ transition: "opacity 0.5s" }}>...</div>
 
-// ❌ ERRADO — Tailwind animation classes não funcionam
+// ❌ WRONG — Tailwind animation classes do not work
 <div className="animate-fade-in">...</div>
 
-// ✅ CORRECTO — sempre usar useCurrentFrame + interpolate
+// ✅ RIGHT — always use useCurrentFrame + interpolate
 const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" });
 <div style={{ opacity }}>...</div>
 ```
@@ -256,7 +256,7 @@ export MINIMAX_VOICE_ID="your_voice_id"
 import os, requests, json, base64
 
 def generate_tts(text: str, output_path: str):
-    url = "https://api.minimax.io/v1/t2a_v2"  # ← domínio correcto (não .chat)
+    url = "https://api.minimax.io/v1/t2a_v2"  # ← correct domain (not .chat)
     headers = {
         "Authorization": f"Bearer {os.environ['MINIMAX_API_KEY']}",
         "Content-Type": "application/json",
@@ -304,7 +304,7 @@ asyncio.run(generate_tts("Olá mundo", "output.mp3"))
 
 ```bash
 # 1. Generate audio
-python scripts/generate_audio_minimax.py  # ou edge
+python scripts/generate_audio_minimax.py  # or edge
 
 # 2. Move to public/
 mv output.mp3 public/narration.mp3
@@ -319,7 +319,7 @@ export const VideoWithNarration = () => {
   return (
     <AbsoluteFill>
       <Audio src={staticFile("narration.mp3")} />
-      {/* resto do vídeo */}
+      {/* rest of the video */}
     </AbsoluteFill>
   );
 };
@@ -333,8 +333,8 @@ export const VideoWithNarration = () => {
 
 ```tsx
 const lyrics = [
-  { text: "Primeira linha", start: 0, end: 60 },
-  { text: "Segunda linha", start: 60, end: 120 },
+  { text: "First line", start: 0, end: 60 },
+  { text: "Second line", start: 60, end: 120 },
 ];
 
 export const LyricVideo = () => {
@@ -409,7 +409,7 @@ npm run dev
 npx remotion render src/index.ts MyVideo output.mp4
 
 # With parameters
-npx remotion render src/index.ts MyVideo output.mp4 --props '{"title":"Olá"}'
+npx remotion render src/index.ts MyVideo output.mp4 --props '{"title":"Hello"}'
 
 # Lambda (production, batch)
 npx remotion lambda render ...
@@ -417,7 +417,7 @@ npx remotion lambda render ...
 
 **Output platforms:**
 
-| Output | Comando |
+| Output | Command |
 |---|---|
 | MP4 16:9 | `--width 1920 --height 1080` |
 | Vertical 9:16 | `--width 1080 --height 1920` |

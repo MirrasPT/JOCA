@@ -1,38 +1,38 @@
 ---
 name: ploi-api
-description: "Controlar o Ploi.io programaticamente — API REST, CLI `ploi`, SDK PHP. MUST be invoked when the user says: ploi api, ploi cli, gerir servidor ploi, criar site no ploi, chave ssh ploi, ssh key ploi, deploy script ploi, nginx config ploi, token ploi. SHOULD also invoke when: automatizar infra, provisionar site, adicionar chave ao servidor, editar nginx, listar servidores, webhook de deploy."
-triggers: ploi api, ploi cli, ploi sdk, gerir servidor ploi, criar site no ploi, chave ssh ploi, ssh key ploi, deploy script ploi, nginx config ploi, token ploi, automatizar infra, provisionar site, adicionar chave ao servidor, editar nginx, listar servidores, ploi webhook, ploi.io api
+description: "Control Ploi.io programmatically — REST API, `ploi` CLI, PHP SDK. MUST be invoked when the user says: ploi api, ploi cli, manage ploi server, create site on ploi, ploi ssh key, ssh key ploi, deploy script ploi, nginx config ploi, ploi token. SHOULD also invoke when: automate infra, provision site, add a key to the server, edit nginx, list servers, deploy webhook."
+triggers: ploi api, ploi cli, ploi sdk, manage ploi server, create site on ploi, ploi ssh key, ssh key ploi, deploy script ploi, nginx config ploi, ploi token, automate infra, provision site, add a key to the server, edit nginx, list servers, ploi webhook, ploi.io api
 chain: deploy-ploi, deploy-executor
 ---
-# Ploi — controlo programático (API · CLI · SDK)
+# Ploi — programmatic control (API · CLI · SDK)
 
-Gerir a **conta/infra** Ploi por código: servidores, sites, chaves SSH, deploy scripts, Nginx, BDs.
-Para a **doutrina de deploy** (deploy script Laravel, zero-downtime, integridade de assets) → `deploy-ploi.md`.
+Manage the Ploi **account/infra** by code: servers, sites, SSH keys, deploy scripts, Nginx, DBs.
+For the **deploy doctrine** (Laravel deploy script, zero-downtime, asset integrity) → `deploy-ploi.md`.
 
 **Base URL:** `https://ploi.io/api/` · **Auth:** `Authorization: Bearer <token>` + `Accept: application/json`
 
 ---
 
-## As 3 vias — escolher de propósito
+## The 3 routes — choose deliberately
 
-| Via | Quando | Limite duro |
+| Route | When | Hard limit |
 |---|---|---|
-| **CLI `ploi`** | Uso interactivo, deploy manual, `env:pull/push`, listar | **Não gere chaves SSH nem Nginx.** `repository:install` exige OAuth do GitHub já ligado |
-| **API REST** (curl) | Tudo o resto — é o superset. Via por omissão para automação | Nenhum conhecido; cobre o que o dashboard faz |
-| **SDK PHP** | Dentro de uma app PHP/Laravel | `composer require ploi/ploi-php-sdk` |
+| **CLI `ploi`** | Interactive use, manual deploy, `env:pull/push`, listing | **It does not manage SSH keys nor Nginx.** `repository:install` requires GitHub OAuth already connected |
+| **REST API** (curl) | Everything else — it is the superset. The default route for automation | None known; it covers what the dashboard does |
+| **PHP SDK** | Inside a PHP/Laravel app | `composer require ploi/ploi-php-sdk` |
 
-⚠ **O CLI não é o tecto do que se consegue fazer.** Bater num limite do CLI **não** é bloqueio —
-é sinal para descer à API REST. Uma sessão deu "bloqueado, precisa do dashboard" para adicionar uma
-chave SSH; o `POST /servers/{id}/ssh-keys` resolveu em 1 chamada.
+⚠ **The CLI is not the ceiling of what can be done.** Hitting a CLI limit is **not** a blocker —
+it is a signal to drop down to the REST API. One session gave "blocked, needs the dashboard" for adding an
+SSH key; `POST /servers/{id}/ssh-keys` solved it in 1 call.
 
 ---
 
 ## Token
 
-O CLI guarda-o em **`~/.ploi/config.php`** (ficheiro PHP, **não** JSON), chave `'token' => '...'` (~1880 chars).
+The CLI keeps it in **`~/.ploi/config.php`** (a PHP file, **not** JSON), key `'token' => '...'` (~1880 chars).
 
 ```bash
-# extrair para variável — NUNCA imprimir o valor
+# extract into a variable — NEVER print the value
 TOK=$(python3 -c "
 import re
 print(re.search(r\"'token'\s*=>\s*'([^']*)'\", open('$HOME/.ploi/config.php').read()).group(1))
@@ -40,56 +40,56 @@ print(re.search(r\"'token'\s*=>\s*'([^']*)'\", open('$HOME/.ploi/config.php').re
 curl -s -H "Authorization: Bearer $TOK" -H "Accept: application/json" https://ploi.io/api/servers
 ```
 
-Token novo: `ploi token` (interactivo) ou ploi.io → Profile → API keys.
+New token: `ploi token` (interactive) or ploi.io → Profile → API keys.
 
 ---
 
-## Mapa de endpoints (autoritativo — extraído do SDK oficial)
+## Endpoint map (authoritative — extracted from the official SDK)
 
-⚠ **A regra que causa 404s: endpoints em `kebab-case`, métodos do SDK em `camelCase`.**
+⚠ **The rule that causes 404s: endpoints in `kebab-case`, SDK methods in `camelCase`.**
 `sshKeys()` → `/ssh-keys` · `systemUsers()` → `/system-users` · `nginxConfiguration()` → `/nginx-configuration`.
-E há um que nem sequer bate com o nome do método: **`cronjobs()` → `/crontabs`**.
+And there is one that does not even match the method name: **`cronjobs()` → `/crontabs`**.
 
-**Servidor** — `servers/{server}/…`
+**Server** — `servers/{server}/…`
 
-| Recurso | Endpoint |
+| Resource | Endpoint |
 |---|---|
 | Sites | `/sites` |
-| Bases de dados | `/databases` (→ `/{db}/users`, `/{db}/backups`) |
-| Chaves SSH | `/ssh-keys` |
-| Utilizadores de sistema | `/system-users` |
+| Databases | `/databases` (→ `/{db}/users`, `/{db}/backups`) |
+| SSH keys | `/ssh-keys` |
+| System users | `/system-users` |
 | Cronjobs | `/crontabs` ⚠ |
 | Daemons | `/daemons` |
-| Serviços | `/services/{nome}` (restart de nginx/mysql/…) |
-| Regras de rede | `/network-rules` |
+| Services | `/services/{name}` (restart nginx/mysql/…) |
+| Network rules | `/network-rules` |
 | Load balancer | `/load-balancer` |
 | Opcache / Insights | `/opcache` · `/insights` |
 
 **Site** — `servers/{server}/sites/{site}/…`
 
-| Recurso | Endpoint |
+| Resource | Endpoint |
 |---|---|
-| Deploy (disparar) | `POST /deploy` |
-| Deploy script (ler/escrever) | `GET`/`PUT /deploy/script` |
-| Config Nginx | `GET` / `PATCH /nginx-configuration` |
-| Certificados SSL | `/certificates` |
-| Repositório | `/repository` |
-| Ambiente (`.env`) | `/environment` |
-| Filas | `/queues` · Redirects `/redirects` · Aliases `/aliases` |
+| Deploy (trigger) | `POST /deploy` |
+| Deploy script (read/write) | `GET`/`PUT /deploy/script` |
+| Nginx config | `GET` / `PATCH /nginx-configuration` |
+| SSL certificates | `/certificates` |
+| Repository | `/repository` |
+| Environment (`.env`) | `/environment` |
+| Queues | `/queues` · Redirects `/redirects` · Aliases `/aliases` |
 | FastCGI cache | `/fastcgi-cache` · Auth users `/auth-users` · Tenants `/tenants` |
 
-**Topo:** `/projects` · `/scripts` · `/user` · `/webserver-templates` · `/backups/database` · `/backups/file`
+**Top level:** `/projects` · `/scripts` · `/user` · `/webserver-templates` · `/backups/database` · `/backups/file`
 
-**404 num endpoint = nome errado, quase nunca "não existe".** Confirmar contra o SDK antes de concluir
-ausência: `gh repo clone ploi/ploi-php-sdk` → `src/Ploi/Resources/*.php` → `buildEndpoint()`.
-(Custou-me dar por inexistente o `nginx-configuration`, depois de adivinhar `/nginx`, `/nginx/config`,
-`/webserver`, `/vhost` — todos 404. O recurso existia.)
+**A 404 on an endpoint = wrong name, almost never "it does not exist".** Confirm against the SDK before concluding
+absence: `gh repo clone ploi/ploi-php-sdk` → `src/Ploi/Resources/*.php` → `buildEndpoint()`.
+(It cost me declaring `nginx-configuration` non-existent, after guessing `/nginx`, `/nginx/config`,
+`/webserver`, `/vhost` — all 404. The resource existed.)
 
 ---
 
-## Receitas verificadas ao vivo (2026-08-14)
+## Recipes verified live (2026-08-14)
 
-### Auto-autorizar uma chave SSH (desbloqueia rsync/scp sem dashboard)
+### Self-authorize an SSH key (unblocks rsync/scp without the dashboard)
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/ploi_deploy -N "" -C "deploy-automation"
@@ -101,15 +101,15 @@ curl -s -X POST -H "Authorization: Bearer $TOK" -H "Content-Type: application/js
       'user':'ploi'}))")" \
   https://ploi.io/api/servers/{server}/ssh-keys        # → 201
 ```
-Campos: `name` · `key` (pública) · `user` (utilizador de sistema, tipicamente `ploi`). Propaga em segundos.
+Fields: `name` · `key` (public) · `user` (system user, typically `ploi`). It propagates in seconds.
 
-⚠ **A porta SSH do Ploi não é a 22** — vem no `ssh_port` do `GET /servers` (ex.: `4213`).
-O `ip_address` pode ser um **hostname**, não um IP.
+⚠ **Ploi's SSH port is not 22** — it comes in `ssh_port` from `GET /servers` (e.g. `4213`).
+The `ip_address` can be a **hostname**, not an IP.
 ```bash
 ssh -i ~/.ssh/ploi_deploy -p <ssh_port> ploi@<ip_address>
 ```
 
-### Ler/escrever o deploy script
+### Read/write the deploy script
 
 ```bash
 curl -s -H "Authorization: Bearer $TOK" .../sites/{site}/deploy/script      # GET
@@ -117,57 +117,57 @@ curl -s -X PUT -H "Authorization: Bearer $TOK" -H "Content-Type: application/jso
      -d '{"deploy_script":"cd /home/ploi/site\ngit pull origin master\n"}' \
      .../sites/{site}/deploy/script
 ```
-⚠ `PUT /deploy` → **405** (só GET/HEAD/POST — esse é o *disparar* deploy). O script vive em `/deploy/script`,
-e o campo do body é **`deploy_script`**, não `content`.
+⚠ `PUT /deploy` → **405** (GET/HEAD/POST only — that one *triggers* the deploy). The script lives at `/deploy/script`,
+and the body field is **`deploy_script`**, not `content`.
 
-### Editar a config Nginx
+### Edit the Nginx config
 
-`PATCH /sites/{site}/nginx-configuration` com `{"content": "<config completa>"}`. O `GET` devolve `{"content": …}`.
+`PATCH /sites/{site}/nginx-configuration` with `{"content": "<full config>"}`. The `GET` returns `{"content": …}`.
 
 ---
 
-## Site estático no Ploi
+## Static site on Ploi
 
-`project_type: "html"`, `web_directory: "/"`. **A config Nginx por omissão (a de app PHP) já serve
-estáticos correctamente** — `index index.html` resolve `/sub/` → `sub/index.html` antes do fallback
-`/index.php`, que nunca é atingido. Não é preciso reescrever o Nginx para publicar HTML; só por estética.
+`project_type: "html"`, `web_directory: "/"`. **The default Nginx config (the PHP app one) already serves
+statics correctly** — `index index.html` resolves `/sub/` → `sub/index.html` before the `/index.php`
+fallback, which is never reached. There is no need to rewrite the Nginx to publish HTML; only for aesthetics.
 
-Deploy script de um site estático não leva `composer install` nem reload do PHP-FPM:
+A static site's deploy script does not take `composer install` nor a PHP-FPM reload:
 ```bash
-cd /home/ploi/{dominio}
+cd /home/ploi/{domain}
 git pull origin master
 ```
 
 ---
 
-## Verificação (gate, não opcional)
+## Verification (gate, not optional)
 
-Um site criado e com ficheiros no disco **não** prova um site publicado:
+A site created and with files on disk does **not** prove a published site:
 ```bash
-curl -sI https://dominio/           # 200 + certificado válido
-curl -s  https://dominio/ | grep -o "<title>[^<]*</title>"   # bate com o ficheiro local?
-curl -sI https://dominio/assets/x.jpg   # os assets também, não só o HTML
+curl -sI https://domain/           # 200 + valid certificate
+curl -s  https://domain/ | grep -o "<title>[^<]*</title>"   # does it match the local file?
+curl -sI https://domain/assets/x.jpg   # the assets too, not just the HTML
 ```
-SSL Let's Encrypt pode demorar a emitir — reportar "SSL por emitir", não "falhou".
+Let's Encrypt SSL can take a while to issue — report "SSL pending issue", not "it failed".
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |---|---|
-| "O CLI não tem esse comando, logo é preciso o dashboard" | O CLI é subconjunto da API. Tentar a REST antes de declarar bloqueio |
-| Adivinhar o path do endpoint até acertar | Ler `src/Ploi/Resources/*.php` do SDK — o `buildEndpoint()` é a verdade |
-| Assumir `camelCase` no URL porque o método do SDK é assim | URL é `kebab-case`; e `cronjobs()` → `/crontabs` |
-| `PUT` no `/deploy` para gravar o script | `/deploy` dispara (POST); o script é `/deploy/script` |
-| Assumir porta SSH 22 | Ler `ssh_port` do `GET /servers` |
-| Imprimir o token para "confirmar que leu" | Só o comprimento (`${#TOK}`); o valor nunca aparece em transcript/relatório |
-| Aceitar "site criado" como publicado | `curl` ao URL público + a um asset |
-| Reescrever o Nginx para servir HTML estático | O default já serve; mexer só se houver motivo real |
+| "The CLI does not have that command, so the dashboard is needed" | The CLI is a subset of the API. Try REST before declaring a blocker |
+| Guessing the endpoint path until you hit it | Read the SDK's `src/Ploi/Resources/*.php` — `buildEndpoint()` is the truth |
+| Assuming `camelCase` in the URL because the SDK method is like that | The URL is `kebab-case`; and `cronjobs()` → `/crontabs` |
+| `PUT` on `/deploy` to save the script | `/deploy` triggers (POST); the script is `/deploy/script` |
+| Assuming SSH port 22 | Read `ssh_port` from `GET /servers` |
+| Printing the token to "confirm it was read" | Only the length (`${#TOK}`); the value never shows up in a transcript/report |
+| Accepting "site created" as published | `curl` the public URL + an asset |
+| Rewriting the Nginx to serve static HTML | The default already serves it; only touch it if there is a real reason |
 
 ---
 
-## SDK PHP (dentro de app PHP)
+## PHP SDK (inside a PHP app)
 
 ```php
 $ploi = new \Ploi\Ploi($token);
@@ -175,17 +175,17 @@ $ploi->server(123)->sites(456)->deployment()->deploy();
 $ploi->server(123)->sites(456)->nginxConfiguration()->update($config);
 $ploi->server(123)->sshKeys()->create($name, $key, $user);
 ```
-Encadeamento fluente (ID passa-se uma vez), paginação `->page($n, $perPage)`, e **excepções tipadas**
-por status: `Unauthenticated` 401 · `NotFound` 404 · `NotAllowed` 405 · `NotValid` 422 ·
-`TooManyAttempts` 429 · `InternalServerError` 500. Apanhar a específica (sobretudo `TooManyAttempts`
-→ recuar e repetir), nunca `\Exception` genérica.
-Resposta: `->getData()` (propriedade `data`) · `->getJson()` · `->toArray()`.
+Fluent chaining (the ID is passed once), pagination `->page($n, $perPage)`, and **typed exceptions**
+by status: `Unauthenticated` 401 · `NotFound` 404 · `NotAllowed` 405 · `NotValid` 422 ·
+`TooManyAttempts` 429 · `InternalServerError` 500. Catch the specific one (above all `TooManyAttempts`
+→ back off and retry), never a generic `\Exception`.
+Response: `->getData()` (the `data` property) · `->getJson()` · `->toArray()`.
 
 ---
 
-## Ligações
+## Links
 
-- `deploy-ploi.md` — pipeline de deploy, zero-downtime, integridade de assets publicados
-- `memory/tools/clis.md` — instalação/auth do CLI no inventário
-- SDK (mapa de endpoints): `github.com/ploi/ploi-php-sdk` → `src/Ploi/Resources/`
-- Docs: `developers.ploi.io` (⚠ é só a API HTTP; não documenta a instalação do CLI)
+- `deploy-ploi.md` — deploy pipeline, zero-downtime, integrity of published assets
+- `memory/tools/clis.md` — CLI installation/auth in the inventory
+- SDK (endpoint map): `github.com/ploi/ploi-php-sdk` → `src/Ploi/Resources/`
+- Docs: `developers.ploi.io` (⚠ it is only the HTTP API; it does not document the CLI installation)

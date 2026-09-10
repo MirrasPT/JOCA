@@ -1,19 +1,19 @@
-# Design Dataset — paletas · pares de fontes · estilos nomeados
+# Design Dataset — palettes · font pairs · named styles
 
-Banco de eixos para variantes de design consistentes. Consumido por `design-shotgun` (eixos das N variantes), `frontend` (Design Read) e `design-html`. Carregar on-demand via `Read()` — NÃO auto-carregado.
+Bank of axes for consistent design variants. Consumed by `design-shotgun` (axes of the N variants), `frontend` (Design Read) and `design-html`. Load on-demand via `Read()` — NOT auto-loaded.
 
-Objectivo: operacionalizar o anti-convergence — em vez de "diverge dos projectos anteriores" (vibes), escolher eixos DIFERENTES deste banco e registar quais foram usados. Inspirado no padrão UI UX Pro Max (dataset > geração ad-hoc).
+Goal: operationalise anti-convergence — instead of "diverge from previous projects" (vibes), pick DIFFERENT axes from this bank and record which were used. Inspired by the UI UX Pro Max pattern (dataset > ad-hoc generation).
 
-**Regra de uso (design-shotgun):** cada variante = 1 estilo nomeado + 1 paleta + 1 par de fontes, combinações DISTINTAS entre variantes. Nunca 2 variantes com o mesmo estilo. Registar a combinação no output (ex: `[V2: brutalist-editorial + Ember + Fraunces/Inter]`).
+**Usage rule (design-shotgun):** each variant = 1 named style + 1 palette + 1 font pair, DISTINCT combinations across variants. Never 2 variants with the same style. Record the combination in the output (e.g. `[V2: brutalist-editorial + Ember + Fraunces/Inter]`).
 
 ---
 
-## Paletas (OKLCH, verificadas p/ contraste AA em texto body)
+## Palettes (OKLCH, verified for AA contrast on body text)
 
-Formato: nome — fundo / superfície / texto / primária / acento. Light e dark onde aplicável.
+Format: name — background / surface / text / primary / accent. Light and dark where applicable.
 
-### Neutras + 1 acento (SaaS, dashboards, portfolios)
-| Nome | Fundo | Superfície | Texto | Primária | Acento |
+### Neutral + 1 accent (SaaS, dashboards, portfolios)
+| Name | Background | Surface | Text | Primary | Accent |
 |---|---|---|---|---|---|
 | Graphite | oklch(98% 0 0) | oklch(94% 0 0) | oklch(22% 0 0) | oklch(55% 0.20 260) | oklch(70% 0.15 80) |
 | Graphite Dark | oklch(18% 0.01 260) | oklch(24% 0.01 260) | oklch(93% 0 0) | oklch(70% 0.16 260) | oklch(78% 0.14 80) |
@@ -21,8 +21,8 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 | Slate Mint | oklch(97% 0.01 180) | oklch(92% 0.02 180) | oklch(24% 0.02 220) | oklch(58% 0.12 170) | oklch(65% 0.17 45) |
 | Ink & Paper | oklch(99% 0 0) | oklch(95% 0 0) | oklch(15% 0 0) | oklch(15% 0 0) | oklch(60% 0.22 25) |
 
-### Quentes (marcas artesanais, vinho, food, editorial)
-| Nome | Fundo | Superfície | Texto | Primária | Acento |
+### Warm (artisanal brands, wine, food, editorial)
+| Name | Background | Surface | Text | Primary | Accent |
 |---|---|---|---|---|---|
 | Ember | oklch(96% 0.02 70) | oklch(91% 0.03 70) | oklch(25% 0.04 40) | oklch(50% 0.18 35) | oklch(40% 0.10 130) |
 | Terracotta | oklch(95% 0.02 50) | oklch(89% 0.04 50) | oklch(28% 0.05 40) | oklch(55% 0.15 45) | oklch(45% 0.08 200) |
@@ -30,16 +30,16 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 | Bordeaux Dark | oklch(20% 0.03 20) | oklch(26% 0.04 20) | oklch(94% 0.01 60) | oklch(65% 0.15 20) | oklch(78% 0.13 85) |
 | Honey Oak | oklch(96% 0.03 85) | oklch(90% 0.05 85) | oklch(28% 0.04 60) | oklch(58% 0.13 70) | oklch(40% 0.09 260) |
 
-### Frias (tech, fintech, saúde, legal)
-| Nome | Fundo | Superfície | Texto | Primária | Acento |
+### Cool (tech, fintech, health, legal)
+| Name | Background | Surface | Text | Primary | Accent |
 |---|---|---|---|---|---|
 | Arctic | oklch(98% 0.005 240) | oklch(94% 0.01 240) | oklch(24% 0.02 250) | oklch(52% 0.18 250) | oklch(65% 0.14 190) |
 | Deep Sea Dark | oklch(17% 0.02 230) | oklch(23% 0.03 230) | oklch(92% 0.01 220) | oklch(72% 0.13 210) | oklch(80% 0.14 140) |
 | Sage Clinic | oklch(97% 0.01 150) | oklch(93% 0.02 150) | oklch(26% 0.02 180) | oklch(52% 0.10 160) | oklch(55% 0.15 260) |
 | Steel | oklch(96% 0.005 260) | oklch(91% 0.01 260) | oklch(22% 0.01 270) | oklch(45% 0.08 260) | oklch(60% 0.18 20) |
 
-### Alto contraste / statement (landing agressiva, streetwear, gaming)
-| Nome | Fundo | Superfície | Texto | Primária | Acento |
+### High contrast / statement (aggressive landing, streetwear, gaming)
+| Name | Background | Surface | Text | Primary | Accent |
 |---|---|---|---|---|---|
 | Void Neon | oklch(12% 0.01 280) | oklch(18% 0.02 280) | oklch(96% 0 0) | oklch(75% 0.20 150) | oklch(70% 0.25 330) |
 | Acid Poster | oklch(95% 0.15 110) | oklch(99% 0 0) | oklch(15% 0 0) | oklch(15% 0 0) | oklch(55% 0.25 300) |
@@ -48,55 +48,55 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 
 ---
 
-## Pares de fontes (Google Fonts, todos com PT-PT completo)
+## Font pairs (Google Fonts, all with full PT-PT coverage)
 
-| Par | Display | Body | Personalidade | Evitar em |
+| Pair | Display | Body | Personality | Avoid in |
 |---|---|---|---|---|
-| Editorial clássico | Fraunces | Inter | revista, vinho, artesanal | dashboards densos |
-| Suíço neutro | Inter (weights 700/400) | Inter | SaaS, fintech | marcas com alma |
-| Geo-humanista | Bricolage Grotesque | Work Sans | tech com carácter | legal, saúde |
-| Serif de luxo | Playfair Display | Source Sans 3 | premium, hotel, vinho | apps utilitárias |
-| Brutal contraste | Archivo Black | Archivo | poster, streetwear | conteúdo longo |
-| Nostalgia mono | JetBrains Mono | Inter | dev tools, docs técnicas | consumer B2C |
-| Redondo amigável | Nunito | Nunito Sans | infantil, social, saúde mental | corporate sério |
-| Condensado editorial | Oswald | Lora | notícias, desporto | UI densa |
-| Humanista quente | Poppins | Karla | lifestyle, food | dados/tabelas |
-| Grotesque display | Unbounded | Manrope | web3, gaming, música | banca tradicional |
-| Transitional sério | Libre Baskerville | PT Sans | legal, académico, editorial longo | mobile-first apps |
-| Neo-grotesque técnico | IBM Plex Sans | IBM Plex Sans | enterprise, dados | marcas emocionais |
+| Classic editorial | Fraunces | Inter | magazine, wine, artisanal | dense dashboards |
+| Swiss neutral | Inter (weights 700/400) | Inter | SaaS, fintech | brands with soul |
+| Geo-humanist | Bricolage Grotesque | Work Sans | tech with character | legal, health |
+| Luxury serif | Playfair Display | Source Sans 3 | premium, hotel, wine | utility apps |
+| Brutal contrast | Archivo Black | Archivo | poster, streetwear | long-form content |
+| Mono nostalgia | JetBrains Mono | Inter | dev tools, technical docs | consumer B2C |
+| Friendly rounded | Nunito | Nunito Sans | kids, social, mental health | serious corporate |
+| Condensed editorial | Oswald | Lora | news, sport | dense UI |
+| Warm humanist | Poppins | Karla | lifestyle, food | data/tables |
+| Grotesque display | Unbounded | Manrope | web3, gaming, music | traditional banking |
+| Serious transitional | Libre Baskerville | PT Sans | legal, academic, long editorial | mobile-first apps |
+| Technical neo-grotesque | IBM Plex Sans | IBM Plex Sans | enterprise, data | emotional brands |
 
 ---
 
-⚠ **Nenhuma display desta tabela pode violar o `anti-slop-bans.md`.** `Inter`, `system-ui`, `Roboto`,
-`Arial` e `Space Grotesk` estão banidos como display (⬛ hard-reject) — só valem como body. O par
-Geo-humanista tinha `Space Grotesk` na coluna de display e contradizia-o em silêncio; um agente que
-recebeu essa combinação num brief construiu a variante inteira em cima de um hard-reject.
-Ao acrescentar um par aqui, verificar a coluna Display contra a lista de bans.
+⚠ **No display face in this table may violate `anti-slop-bans.md`.** `Inter`, `system-ui`, `Roboto`,
+`Arial` and `Space Grotesk` are banned as display (⬛ hard-reject) — they only count as body. The
+Geo-humanist pair had `Space Grotesk` in the display column and silently contradicted it; an agent
+that got that combination in a brief built the whole variant on top of a hard-reject.
+When adding a pair here, check the Display column against the ban list.
 
-## Estilos nomeados (eixos p/ design-shotgun)
+## Named styles (axes for design-shotgun)
 
-Cada estilo = layout + densidade + forma + movimento. Escolher 1 por variante.
+Each style = layout + density + shape + motion. Pick 1 per variant.
 
-| Estilo | Assinatura | Onde brilha |
+| Style | Signature | Where it shines |
 |---|---|---|
-| swiss-grid | grelha 12col visível, tipografia como UI, zero decoração | SaaS, agências |
-| brutalist-editorial | borders 2-3px, sem sombras, tipos gigantes, cores chapadas | portfolios, moda |
-| soft-depth | cards com sombra difusa multi-camada, cantos 16-24px, glassmorphism pontual | fintech consumer, health |
-| dense-data | tabelas primeiro, tipografia 13-14px, zero hero, toolbar fixa | dashboards, admin |
-| luxury-still | whitespace 60%+, serif display, fotos full-bleed, animação lenta | vinho, hotéis, joalharia |
-| neo-terminal | mono everywhere, verde/âmbar sobre escuro, ASCII, cursor blink | dev tools, hacker aesthetic |
-| paper-collage | texturas de papel, rotações 1-3°, sombras duras, elementos recortados | artesanal, food, editorial |
-| kinetic-poster | tipo gigante animado, scroll-driven, cor agressiva | lançamentos, música, eventos |
-| calm-productivity | neutros quentes, densidade média, iconografia fina, micro-interacções subtis | notas, produtividade |
-| bento-showcase | grelha bento assimétrica, cada célula um feature, hover states ricos | product landing, portfolio dev |
-| retro-web | bevels suaves, gradientes 90s ironizados, cursors custom | side-projects, gaming casual |
-| editorial-longform | coluna única 65-75ch, drop caps, pull quotes, imagens intercaladas | blogs, revistas, docs |
+| swiss-grid | visible 12col grid, typography as UI, zero decoration | SaaS, agencies |
+| brutalist-editorial | 2-3px borders, no shadows, giant type, flat colors | portfolios, fashion |
+| soft-depth | cards with diffuse multi-layer shadow, 16-24px corners, occasional glassmorphism | consumer fintech, health |
+| dense-data | tables first, 13-14px typography, zero hero, fixed toolbar | dashboards, admin |
+| luxury-still | 60%+ whitespace, serif display, full-bleed photos, slow animation | wine, hotels, jewellery |
+| neo-terminal | mono everywhere, green/amber on dark, ASCII, blinking cursor | dev tools, hacker aesthetic |
+| paper-collage | paper textures, 1-3° rotations, hard shadows, cut-out elements | artisanal, food, editorial |
+| kinetic-poster | giant animated type, scroll-driven, aggressive color | launches, music, events |
+| calm-productivity | warm neutrals, medium density, thin iconography, subtle micro-interactions | notes, productivity |
+| bento-showcase | asymmetric bento grid, one feature per cell, rich hover states | product landing, dev portfolio |
+| retro-web | soft bevels, ironic 90s gradients, custom cursors | side-projects, casual gaming |
+| editorial-longform | single 65-75ch column, drop caps, pull quotes, interleaved images | blogs, magazines, docs |
 
 ---
 
-## Anti-convergence (obrigatório)
+## Anti-convergence (mandatory)
 
-Antes de escolher eixos, verificar `memory/projects/*.md` dos últimos projectos do mesmo tipo:
-1. Que estilo/paleta/par foi usado nos 2-3 anteriores? → **excluir esses eixos** das variantes.
-2. Registar no output de cada variante a combinação usada (auditável na próxima sessão).
-3. Se o brief do cliente FORÇA um eixo repetido (brand colors), diverge nos outros dois.
+Before picking axes, check `memory/projects/*.md` for the latest projects of the same type:
+1. Which style/palette/pair was used in the previous 2-3? → **exclude those axes** from the variants.
+2. Record in each variant's output the combination used (auditable next session).
+3. If the client brief FORCES a repeated axis (brand colors), diverge on the other two.

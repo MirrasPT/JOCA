@@ -1,4 +1,4 @@
-Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/replication.md")` para read replicas MySQL e failover Redis.
+Part of the `availability` skill — loaded on-demand via `Read(".claude/reference/availability/replication.md")` for MySQL read replicas and Redis failover.
 
 ## 2. Database Replication
 

@@ -1,26 +1,26 @@
-# JOCA — Bootstrap de `/clean-install`
+# JOCA — `/clean-install` Bootstrap
 
-Estás a executar o bootstrap do `/clean-install`. Segue estas instruções exactamente, pela ordem
-indicada — aguarda resposta antes de avançar.
+You are running the `/clean-install` bootstrap. Follow these instructions exactly, in the order
+given — wait for an answer before moving on.
 
-**Para quem já tem JOCA nesta máquina** (possivelmente várias cópias antigas) e sente consumo
-excessivo de tokens, instalações a conflituar, ou quer simplesmente uma instalação limpa sem perder
-memória. Se NUNCA instalaste JOCA nesta máquina, usa antes o
-[`install.md`](https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md).
-
----
-
-## Porque é que isto corre numa pasta vazia nova (não de dentro do JOCA antigo)
-
-**Nunca correr isto de dentro de uma instalação JOCA já existente.** O `/clean-install` acaba por
-arquivar instalações antigas — se corresse de dentro de uma delas, estaria a tentar mover/arquivar a
-própria pasta de onde o Claude Code está a correr, a meio da sessão. É um problema evitável: cria
-uma pasta nova e vazia, abre um terminal Claude Code lá dentro, e cola o prompt deste ficheiro
-(não o conteúdo do ficheiro em si — o PROMPT, ver Passo 1).
+**For anyone who already has JOCA on this machine** (possibly several old copies) and feels excessive
+token consumption, installations conflicting with each other, or simply wants a clean installation
+without losing memory. If you have NEVER installed JOCA on this machine, use
+[`install.md`](https://raw.githubusercontent.com/MirrasPT/JOCA/main/install.md) instead.
 
 ---
 
-## Passo 1 — Confirmar pasta vazia
+## Why this runs in a new empty folder (not from inside the old JOCA)
+
+**Never run this from inside an existing JOCA installation.** `/clean-install` ends up archiving old
+installations — if it ran from inside one of them, it would be trying to move/archive the very folder
+Claude Code is running from, mid-session. It is an avoidable problem: create a new, empty folder, open
+a Claude Code terminal inside it, and paste this file's prompt (not the file's content itself — the
+PROMPT, see Step 1).
+
+---
+
+## Step 1 — Confirm the folder is empty
 
 ```bash
 ls -A   # macOS/Linux
@@ -29,56 +29,56 @@ ls -A   # macOS/Linux
 Get-ChildItem -Force   # Windows
 ```
 
-Se a pasta NÃO estiver vazia: parar e avisar — "Esta pasta não está vazia. Cria uma pasta nova e
-volta a correr o prompt lá." Não continuar com ficheiros de outra coisa já cá dentro.
+If the folder is NOT empty: stop and warn — "This folder is not empty. Create a new folder and run
+the prompt there." Do not continue with files from something else already in here.
 
 ---
 
-## Passo 2 — Clonar o JOCA para dentro desta pasta
+## Step 2 — Clone JOCA into this folder
 
 ```bash
 git clone https://github.com/MirrasPT/JOCA.git .
 ```
 
-(o `.` no fim é de propósito — clona PARA DENTRO da pasta actual, não cria uma subpasta `JOCA/`
-como o `install.md` normal faz. Esta pasta, tal como está, **é** a instalação nova a partir de
-agora — não se move outra vez.)
+(the `.` at the end is deliberate — it clones INTO the current folder, it does not create a `JOCA/`
+subfolder the way the normal `install.md` does. This folder, exactly as it is, **is** the new
+installation from now on — it is not moved again.)
 
-Se `git` não disponível:
-- macOS: `brew install git` ou `xcode-select --install`
+If `git` is not available:
+- macOS: `brew install git` or `xcode-select --install`
 - Windows: `winget install Git.Git`
-- Linux: `sudo apt install git` ou `sudo dnf install git`
+- Linux: `sudo apt install git` or `sudo dnf install git`
 
-Verificar que a estrutura ficou correcta:
+Check that the structure came out right:
 ```bash
 ls JOCA_Brain/.claude/commands/clean-install.md
 ```
 
 ---
 
-## Passo 3 — Executar /clean-install
+## Step 3 — Run /clean-install
 
 ```bash
 cd JOCA_Brain
 ```
 
-Executar `/clean-install` — o comando vai:
-1. Descobrir TODAS as outras instalações JOCA nesta máquina (esta pasta, por ser a que acabou de
-   nascer, nunca entra nessa lista — ver "Fase -1" do próprio comando).
-2. Auditar cada uma contra este baseline que acabaste de clonar (o mais recente do GitHub).
-3. Mostrar uma tabela de optimizações (bloat de tokens, MCPs caros, skills mortas, etc.) e esperar
-   a tua aprovação explícita antes de tocar em nada.
-4. Consolidar a memória de TODAS as instalações antigas para aqui (a mais recente por data vence
-   em conflito, nada se descarta).
-5. Arquivar cada instalação antiga encontrada numa pasta `Old/` (nunca apagar).
-6. Correr o graphify (obrigatório) sobre todos os projectos ligados + esta instalação.
-7. Actualizar `~/CLAUDE.md` para apontar para AQUI como a instalação de produção.
+Run `/clean-install` — the command will:
+1. Find ALL the other JOCA installations on this machine (this folder, being the one just born, never
+   enters that list — see "Phase -1" of the command itself).
+2. Audit each one against this baseline you have just cloned (the most recent one from GitHub).
+3. Show a table of optimizations (token bloat, expensive MCPs, dead skills, etc.) and wait for your
+   explicit approval before touching anything.
+4. Consolidate the memory of ALL the old installations into here (the most recent by date wins on
+   conflict, nothing is discarded).
+5. Archive each old installation it finds in an `Old/` folder (never delete).
+6. Run graphify (mandatory) over every connected project + this installation.
+7. Update `~/CLAUDE.md` to point HERE as the production installation.
 
 ---
 
-## Depois
+## Afterwards
 
-- Esta pasta é a nova instalação de produção — fica onde a criaste, não se move.
-- As instalações antigas ficam em `Old/` (dentro ou ao lado desta pasta, conforme o comando reportar).
-- **Iniciar interface:** `bash JOCA_OS/start.sh` (macOS/Linux) ou `JOCA_OS\start.bat` (Windows).
-- **Actualizar no futuro:** `/update-joca`.
+- This folder is the new production installation — it stays where you created it, it is not moved.
+- The old installations end up in `Old/` (inside or next to this folder, as the command reports).
+- **Start the interface:** `bash JOCA_OS/start.sh` (macOS/Linux) or `JOCA_OS\start.bat` (Windows).
+- **Update in the future:** `/update-joca`.

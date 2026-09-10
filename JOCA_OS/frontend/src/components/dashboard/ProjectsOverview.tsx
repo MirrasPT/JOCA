@@ -8,14 +8,14 @@ import InlineName from '../InlineName';
 import { SaveAllButton, SaveAllConfirm, mensagemSaveAll, planoSaveAll } from './SaveAll';
 import type { RateLimits } from './RateBar';
 
-/** Quanto tempo fica no ecrã o resultado do Save all antes de se apagar sozinho. */
+/** How long the Save all result stays on screen before clearing itself. */
 const RESULTADO_MS = 8000;
 
 interface Props {
   projects: Project[];
   sessions: SessionInfo[];
   jocaLogicInfo: JocaLogicInfo | null;
-  /** Mantido na interface por compat com o caller; o consumo de limites vive no rodapé (StatusBar). */
+  /** Kept in the interface for caller compat; limit usage lives in the footer (StatusBar). */
   rateLimits: RateLimits | null;
   onCreateProject: () => void;
   onEditProject: (project: Project) => void;
@@ -23,15 +23,15 @@ interface Props {
   onOpenProject: (project: Project) => void;
   onSwitchSession: (id: string) => void;
   onNewSession: () => void;
-  /** Manda `/save` (com Enter) às conversas indicadas. Quem escolhe quais é o `planoSaveAll`. */
+  /** Sends `/save` (with Enter) to the given conversations. Which ones is chosen by `planoSaveAll`. */
   onSaveAll: (sessionIds: string[]) => void;
   onRenameProject?: (id: string, name: string) => void;
   onRenameSession?: (id: string, name: string) => void;
 }
 
-// O panorama global: contadores, estado do Brain e a grelha de projectos + agentes rápidos.
-// Os limites das CLIs saíram daqui de propósito — o rodapé (StatusBar) mostra-os SEMPRE, e o
-// bloco duplicado na dashboard era a mesma informação com outra pintura a envelhecer à parte.
+// The global overview: counters, Brain state and the grid of projects + quick agents.
+// The CLI limits left here deliberately — the footer (StatusBar) shows them ALWAYS, and the
+// duplicated block on the dashboard was the same information in another paint, aging separately.
 export default function ProjectsOverview({
   projects, sessions, jocaLogicInfo,
   onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession, onSaveAll,
@@ -41,13 +41,13 @@ export default function ProjectsOverview({
   const looseSessions = sessions.filter((s) => !s.projectId);
   const visibleProjects = projects.filter((p) => !p.archived);
 
-  // Save all: o plano conta-se a partir da lista viva, e o diálogo é o único caminho até ao envio.
+  // Save all: the plan is counted from the live list, and the dialog is the only path to sending.
   const plano = useMemo(() => planoSaveAll(sessions), [sessions]);
   const [confirmarSaveAll, setConfirmarSaveAll] = useState(false);
   const [resultadoSaveAll, setResultadoSaveAll] = useState('');
 
-  // O resultado é um aviso, não um estado permanente: sem isto ficava a dizer "enviado a 4
-  // conversas" horas depois, a descrever uma coisa que já não é verdade.
+  // The result is a warning, not a permanent state: without this it kept saying "sent to 4
+  // conversations" hours later, describing something that is no longer true.
   useEffect(() => {
     if (!resultadoSaveAll) return;
     const t = setTimeout(() => setResultadoSaveAll(''), RESULTADO_MS);
@@ -58,18 +58,18 @@ export default function ProjectsOverview({
     <div className="dashboard-view">
       <div className="vp-header">
         <div>
-          <h1 className="vp-title">Projectos_</h1>
-          <p className="vp-desc">Panorama dos projectos, agentes activos e do motor local.</p>
+          <h1 className="vp-title">Projects_</h1>
+          <p className="vp-desc">Overview of the projects, active agents and the local engine.</p>
         </div>
         <div className="dashboard-header-side">
           <div className="dashboard-header-actions">
             <SaveAllButton plano={plano} onClick={() => setConfirmarSaveAll(true)} />
             <button className="f-btn" type="button" onClick={onCreateProject}>
-              <FolderIcon /> Novo projecto
+              <FolderIcon /> New project
             </button>
           </div>
-          {/* Vive sempre no DOM (mesmo vazio) porque uma região viva só é anunciada se já lá
-              estiver quando o texto muda — e o espaço reservado evita o salto do cabeçalho. */}
+          {/* It always lives in the DOM (even empty) because a live region is only announced if it
+              is already there when the text changes — and the reserved space avoids a header jump. */}
           <p className="db-saveall-result" role="status">{resultadoSaveAll}</p>
         </div>
       </div>
@@ -91,28 +91,28 @@ export default function ProjectsOverview({
           <div className="db-stat-icon db-stat-icon--folder"><FolderIcon /></div>
           <div>
             <div className="db-stat-value">{visibleProjects.length}</div>
-            <div className="db-stat-label">Projectos activos</div>
+            <div className="db-stat-label">Active projects</div>
           </div>
         </div>
         <div className="db-stat-card">
           <div className="db-stat-icon db-stat-icon--terminal"><TerminalIcon /></div>
           <div>
             <div className="db-stat-value">{sessions.length}</div>
-            <div className="db-stat-label">Agentes abertos</div>
+            <div className="db-stat-label">Open agents</div>
           </div>
         </div>
         <div className="db-stat-card">
           <div className="db-stat-icon db-stat-icon--activity"><ActivityIcon /></div>
           <div>
             <div className="db-stat-value">{workingSessions.length}</div>
-            <div className="db-stat-label">A trabalhar agora</div>
+            <div className="db-stat-label">Working now</div>
           </div>
         </div>
         <div className="db-stat-card">
           <div className="db-stat-icon db-stat-icon--loose"><ShuffleIcon /></div>
           <div>
             <div className="db-stat-value">{looseSessions.length}</div>
-            <div className="db-stat-label">Agentes rápidos</div>
+            <div className="db-stat-label">Quick agents</div>
           </div>
         </div>
       </div>
@@ -123,14 +123,14 @@ export default function ProjectsOverview({
             <BrainIcon />
             <span className="db-logic-status-title">JOCA_Brain</span>
             <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'connected' : 'offline'}`}>
-              {jocaLogicInfo.connected ? 'ligado' : 'offline'}
+              {jocaLogicInfo.connected ? 'connected' : 'offline'}
             </span>
           </div>
           {jocaLogicInfo.connected && (
             <div className="db-logic-status-counts">
               <span>{jocaLogicInfo.skillCount} skills</span>
-              <span>{jocaLogicInfo.agentCount} agentes</span>
-              <span>{jocaLogicInfo.commandCount} comandos</span>
+              <span>{jocaLogicInfo.agentCount} agents</span>
+              <span>{jocaLogicInfo.commandCount} commands</span>
               {jocaLogicInfo.hasGraph && <span>graph</span>}
               {jocaLogicInfo.hasSoul && <span>soul</span>}
             </div>
@@ -138,13 +138,13 @@ export default function ProjectsOverview({
         </div>
       )}
 
-      <div className="section-title">Projectos</div>
+      <div className="section-title">Projects</div>
       <div className="db-projects-grid">
         {visibleProjects.length === 0 && looseSessions.length === 0 && (
           <div className="dashboard-empty-card">
             <div className="empty-icon"><TerminalIcon /></div>
-            <p>Ainda não há projectos. Cria um para teres onde trabalhar, ou abre um agente rápido para uma coisa avulsa.</p>
-            <button className="btn-new-large" type="button" onClick={onCreateProject}>+ Criar projecto</button>
+            <p>No projects yet. Create one so you have somewhere to work, or open a quick agent for a one-off thing.</p>
+            <button className="btn-new-large" type="button" onClick={onCreateProject}>+ Create project</button>
           </div>
         )}
 
@@ -167,16 +167,16 @@ export default function ProjectsOverview({
                       className="db-project-card-title-text"
                       inputStyle={{ fontSize: '13px', fontWeight: 700, height: '22px' }}
                     />
-                    {working > 0 && <span className="db-project-working-chip">{working} a trabalhar</span>}
+                    {working > 0 && <span className="db-project-working-chip">{working} working</span>}
                   </div>
                   <div className="db-project-card-path">{shortPath(project.path)}</div>
                 </div>
                 <div className="db-project-card-actions">
                   <button className="db-project-card-btn db-project-card-btn--ghost" type="button" onClick={() => onEditProject(project)}>
-                    Editar
+                    Edit
                   </button>
                   <button className="db-project-card-btn" type="button" onClick={() => onShowProject(project.id)}>
-                    Abrir
+                    Open
                   </button>
                 </div>
               </div>
@@ -190,7 +190,7 @@ export default function ProjectsOverview({
                       className="db-project-description db-project-description--empty"
                       onClick={(e) => { e.stopPropagation(); onEditProject(project); }}
                     >
-                      + Descreve o projecto para os terminais saberem o que é
+                      + Describe the project so the terminals know what it is
                     </button>
                   )}
                 </div>
@@ -198,7 +198,7 @@ export default function ProjectsOverview({
               <div className="db-project-sessions-list">
                 {projectSessions.length === 0 ? (
                   <button className="db-project-session-item db-project-session-empty" type="button" onClick={() => onOpenProject(project)}>
-                    Abrir sessão no projecto
+                    Open a session in the project
                   </button>
                 ) : (
                   projectSessions.map((session) => (
@@ -218,7 +218,7 @@ export default function ProjectsOverview({
                         inputStyle={{ fontSize: '11px', height: '18px', flex: 1, marginRight: '8px' }}
                       />
                       <span className={`db-project-session-status db-project-session-status--${session.status}`}>
-                        {session.status === 'working' ? 'a trabalhar' : 'parado'}
+                        {session.status === 'working' ? 'working' : 'idle'}
                       </span>
                     </div>
                   ))
@@ -240,13 +240,13 @@ export default function ProjectsOverview({
                     inputStyle={{ fontSize: '13px', fontWeight: 700, height: '22px' }}
                   />
                 </div>
-                <div className="db-project-card-path">{shortPath(session.cwd)} · agente rápido{session.cli && session.cli !== 'claude' ? ` (${session.cli})` : ''}</div>
+                <div className="db-project-card-path">{shortPath(session.cwd)} · quick agent{session.cli && session.cli !== 'claude' ? ` (${session.cli})` : ''}</div>
               </div>
               <div className="db-project-card-actions">
                 <span className={`db-project-session-status db-project-session-status--${session.status}`}>
-                  {session.status === 'working' ? 'a trabalhar' : 'parado'}
+                  {session.status === 'working' ? 'working' : 'idle'}
                 </span>
-                <button className="db-project-card-btn" type="button" onClick={() => onSwitchSession(session.id)}>Abrir</button>
+                <button className="db-project-card-btn" type="button" onClick={() => onSwitchSession(session.id)}>Open</button>
               </div>
             </div>
           </div>

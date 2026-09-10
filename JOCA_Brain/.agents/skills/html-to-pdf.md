@@ -1,51 +1,51 @@
 ---
 name: html-to-pdf
-description: "Export a single HTML page to a faithful 1-page PDF via headless Chrome, avoiding the default US-Letter page-split trap on tall content. MUST invoke when the user says: html to pdf, html-to-pdf, exportar PDF, PDF de 1 página, print-to-pdf, gerar PDF de HTML, print-CSS A4. SHOULD invoke when: PDF partido em 2 páginas, Chrome headless PDF, converter página para PDF, PDF fiel ao design, single-page PDF export."
-triggers: html to pdf, html-to-pdf, exportar PDF, PDF de 1 página, print-to-pdf, gerar PDF de HTML, print-CSS A4, PDF partido em 2 páginas, Chrome headless PDF, converter HTML para PDF, single-page PDF, virtual-time-budget
+description: "Export a single HTML page to a faithful 1-page PDF via headless Chrome, avoiding the default US-Letter page-split trap on tall content. MUST invoke when the user says: html to pdf, html-to-pdf, export PDF, 1-page PDF, print-to-pdf, generate PDF from HTML, print-CSS A4. SHOULD invoke when: PDF split across 2 pages, Chrome headless PDF, convert page to PDF, PDF faithful to the design, single-page PDF export."
+triggers: html to pdf, html-to-pdf, export PDF, 1-page PDF, print-to-pdf, generate PDF from HTML, print-CSS A4, PDF split across 2 pages, Chrome headless PDF, convert HTML to PDF, single-page PDF, virtual-time-budget
 origin: local
 ---
-# HTML → PDF — export fiel de 1 página
+# HTML → PDF — faithful 1-page export
 
-Padrão validado: HTML com print-CSS `@page` → Chrome headless `--print-to-pdf` → verificar contagem de páginas + re-leitura visual. Sem isto, o Chrome usa **US Letter por defeito e parte conteúdo alto em 2+ páginas** — a armadilha nº1.
+Validated pattern: HTML with `@page` print-CSS → Chrome headless `--print-to-pdf` → check the page count + visual re-read. Without this, Chrome uses **US Letter by default and splits tall content across 2+ pages** — pitfall no. 1.
 
 ---
 
-## 1. Print-CSS no HTML (obrigatório antes de exportar)
+## 1. Print-CSS in the HTML (mandatory before exporting)
 
-Sem `@page`, o Chrome assume US Letter (216×279mm) — conteúdo mais alto que isso spilla para a página 2.
+Without `@page`, Chrome assumes US Letter (216×279mm) — content taller than that spills onto page 2.
 
 ```css
 @page {
-  size: 210mm 297mm; /* A4 — trocar por tamanho medido se o conteúdo não for A4 */
+  size: 210mm 297mm; /* A4 — swap for a measured size if the content is not A4 */
   margin: 0;
 }
 html, body { margin: 0; padding: 0; }
 -webkit-print-color-adjust: exact;
-print-color-adjust: exact; /* preserva fundos/cores no PDF */
+print-color-adjust: exact; /* preserves backgrounds/colors in the PDF */
 
 @media print {
-  .screen-only { display: none; } /* esconder chrome só de ecrã (nav, botões) */
+  .screen-only { display: none; } /* hide screen-only chrome (nav, buttons) */
 }
 ```
 
-**Fit exacto a 1 página:** conteúdo com altura variável (não cabe em A4 fixo) → medir `document.body.scrollHeight` (Playwright/DevTools) e injectar `@page { size: <W>mm <H>mm; margin: 0 }` com a altura real convertida para mm (`px / 96 * 25.4`). Altura usável de A4 ≈ 269-297mm (consoante margens) — qualquer excesso spilla.
+**Exact fit to 1 page:** content with variable height (does not fit fixed A4) → measure `document.body.scrollHeight` (Playwright/DevTools) and inject `@page { size: <W>mm <H>mm; margin: 0 }` with the real height converted to mm (`px / 96 * 25.4`). Usable A4 height ≈ 269-297mm (depending on margins) — any excess spills.
 
 ---
 
-## 2. Servir o HTML
+## 2. Serving the HTML
 
-`file://` pode ser bloqueado pelo Chrome headless (fontes/imagens relativas falham). Servir sempre por HTTP:
+`file://` can be blocked by Chrome headless (relative fonts/images fail). Always serve over HTTP:
 
 ```bash
 python3 -m http.server 8123
-# depois apontar o Chrome a http://localhost:8123/page.html
+# then point Chrome at http://localhost:8123/page.html
 ```
 
-macOS: usar `python3`, não `python`.
+macOS: use `python3`, not `python`.
 
 ---
 
-## 3. Exportar via Chrome headless
+## 3. Export via Chrome headless
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
@@ -56,71 +56,71 @@ macOS: usar `python3`, não `python`.
   http://localhost:8123/page.html
 ```
 
-- `--no-pdf-header-footer` — remove data/URL/título que o Chrome injecta por defeito.
-- `--virtual-time-budget=6000` — dá 6s a fontes/imagens assíncronas antes de imprimir; subir se a página tiver assets pesados.
-- Alternativa (fallback, se Chrome indisponível): CLI `cli-printing-press` do inventário de tools do user.
+- `--no-pdf-header-footer` — removes the date/URL/title Chrome injects by default.
+- `--virtual-time-budget=6000` — gives async fonts/images 6s before printing; raise it if the page has heavy assets.
+- Alternative (fallback, if Chrome is unavailable): the `cli-printing-press` CLI from the user's tool inventory.
 
 ---
 
-## 4. Verificar (obrigatório — não declarar concluído sem isto)
+## 4. Verify (mandatory — do not declare it done without this)
 
-**a) Contagem de páginas:**
+**a) Page count:**
 ```bash
 mdls -name kMDItemNumberOfPages out.pdf                 # macOS (Spotlight)
 pdfinfo out.pdf | grep Pages                            # cross-platform (poppler) — fallback
 ```
-⚠ `mdls` pode devolver `(null)` logo a seguir a escrever (Spotlight ainda não indexou) e não existe fora de macOS → usar `pdfinfo` (ou `pdftk out.pdf dump_data | grep NumberOfPages`) como fallback fiável. Tem de dar o número esperado (normalmente `1`). Se der `2+` → o `@page size` não cobre o conteúdo real; voltar ao passo 1 e medir a altura certa.
+⚠ `mdls` can return `(null)` right after writing (Spotlight has not indexed yet) and does not exist outside macOS → use `pdfinfo` (or `pdftk out.pdf dump_data | grep NumberOfPages`) as a reliable fallback. It has to give the expected number (normally `1`). If it gives `2+` → the `@page size` does not cover the real content; go back to step 1 and measure the right height.
 
-**a2) Contagem sem browser nem binários externos (fallback mais fiável):** quando o `mdls` devolve `(null)` e o poppler não está instalado, contar `/Type /Page` nos próprios bytes do PDF:
+**a2) Count without a browser or external binaries (most reliable fallback):** when `mdls` returns `(null)` and poppler is not installed, count `/Type /Page` in the PDF's own bytes:
 ```bash
 python3 -c "import re,sys;d=open('out.pdf','rb').read();print(len(re.findall(rb'/Type\s*/Page[^s]',d)))"
 ```
 
-**a3) Calibrar a altura por sweep (sem Playwright):** em vez de medir `scrollHeight` no browser, gerar 4-5 PDFs para o scratchpad com alturas candidatas de `@page` e ficar com a **menor que dá 1 página**. ~5 s no total e não depende de browser nenhum — foi o caminho que funcionou numa sessão em que o Playwright estava indisponível (`Browser is already in use for ~/Library/Caches/ms-playwright-mcp/mcp-chrome-<id>, use --isolated`; acontece sempre que outra sessão tem o browser MCP aberto).
+**a3) Calibrate the height by sweep (without Playwright):** instead of measuring `scrollHeight` in the browser, generate 4-5 PDFs into the scratchpad with candidate `@page` heights and keep the **smallest one that gives 1 page**. ~5 s in total and it depends on no browser at all — this was the route that worked in a session where Playwright was unavailable (`Browser is already in use for ~/Library/Caches/ms-playwright-mcp/mcp-chrome-<id>, use --isolated`; it happens whenever another session has the MCP browser open).
 
-**b) Re-leitura visual:** ler `out.pdf` com o `Read` tool (ou `pdftoppm out.pdf preview -png` + abrir a imagem) e confirmar visualmente que o layout bate certo com o HTML original — cortes, overflow e fundos que desapareceram só se apanham a olho. Em macOS, `qlmanage -t -s 1000 -o <dir> out.pdf` gera a miniatura sem instalar nada.
-
----
-
-## 5. PDF a partir de HTML com imagens (tamanho do ficheiro)
-
-O `--print-to-pdf` do Chrome **re-embebe PNG/WebP como lossless** — um manual com fotografias sai gigante sem nada de errado no HTML. Receita validada: converter os rasters para **JPEG q80 antes do build**, reconstruir o HTML a apontar para eles, e só depois imprimir. Num manual real levou o PDF de **54,6 MB → 13,8 MB** sem diferença visível.
-
-Cuidados: padrões de tiling e regras `@media print` ficam **no fim da cascata** — uma imagem trocada por JPEG pode reaparecer via uma regra de print que continuava a apontar ao PNG antigo. Confirmar o peso final com `ls -lh out.pdf`, não assumir.
+**b) Visual re-read:** read `out.pdf` with the `Read` tool (or `pdftoppm out.pdf preview -png` + open the image) and confirm visually that the layout matches the original HTML — cuts, overflow and backgrounds that vanished are only caught by eye. On macOS, `qlmanage -t -s 1000 -o <dir> out.pdf` generates the thumbnail without installing anything.
 
 ---
 
-## 6. Documento longo self-contained (brand book, manual de normas, 50-80 págs)
+## 5. PDF from HTML with images (file size)
 
-Padrão redescoberto de raiz em cada manual — fixá-lo poupa ~1h por projecto:
-- **Fragmentos por parte** + um `build.py` que concatena. O ficheiro final é grande demais para editar à mão, e a sidebar repetida em ~70 páginas é a maior fonte de drift.
-- O compilador **expande tokens**: `%%ASSET%%` (asset → data URI base64, para o HTML ficar self-contained) e `%%NAV%%` (navegação/TOC gerada uma vez, não copiada por página).
-- **Extrair assets de um PDF sem inkscape/pdf2svg:** render com `pypdfium2` + keying por distância de cor + trim da bbox.
-- **Remover uma página/parte:** grep pelo texto → apagar o bloco no fragmento-fonte → actualizar `PARTS`/TOC no `build.py` → rebuild → reverificar a contagem de páginas e a página vizinha.
+Chrome's `--print-to-pdf` **re-embeds PNG/WebP as lossless** — a manual with photographs comes out huge with nothing wrong in the HTML. Validated recipe: convert the rasters to **JPEG q80 before the build**, rebuild the HTML pointing at them, and only then print. On a real manual it took the PDF from **54.6 MB → 13.8 MB** with no visible difference.
 
-Composição da folha (acentos em maiúsculas que somem em barra escura, `min-height` da mancha, rodapé com `margin-top:auto`, `columns:N` que fragmenta) → ver "Print CSS traps" e "Fixed-page pieces" em `graphic-design.md`.
+Watch out: tiling patterns and `@media print` rules sit **at the end of the cascade** — an image swapped for JPEG can reappear via a print rule that was still pointing at the old PNG. Confirm the final weight with `ls -lh out.pdf`, do not assume.
+
+---
+
+## 6. Long self-contained document (brand book, standards manual, 50-80 pages)
+
+A pattern rediscovered from scratch on every manual — pinning it down saves ~1h per project:
+- **Fragments per part** + a `build.py` that concatenates. The final file is too big to edit by hand, and the sidebar repeated across ~70 pages is the biggest source of drift.
+- The compiler **expands tokens**: `%%ASSET%%` (asset → base64 data URI, so the HTML is self-contained) and `%%NAV%%` (navigation/TOC generated once, not copied per page).
+- **Extract assets from a PDF without inkscape/pdf2svg:** render with `pypdfium2` + keying by color distance + bbox trim.
+- **Remove a page/part:** grep for the text → delete the block in the source fragment → update `PARTS`/TOC in `build.py` → rebuild → re-verify the page count and the neighboring page.
+
+Sheet composition (accents on capitals that vanish into a dark bar, `min-height` of the text block, footer with `margin-top:auto`, `columns:N` that fragments) → see "Print CSS traps" and "Fixed-page pieces" in `graphic-design.md`.
 
 ---
 
 ## Gotchas
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |----------|-------|-----|
-| PDF com 2+ páginas | Sem `@page size`, Chrome usa US Letter | Definir `@page { size: <W>mm <H>mm; margin: 0 }` no HTML |
-| Conteúdo alto continua a spillar mesmo com A4 | Altura real > 297mm | Medir `scrollHeight` real e usar esse valor em `@page size`, não A4 fixo |
-| Fundos/cores desaparecem no PDF | Chrome não imprime backgrounds por defeito | `-webkit-print-color-adjust: exact; print-color-adjust: exact` |
-| Fontes/imagens em falta no PDF | `file://` bloqueado ou assets ainda a carregar | Servir via `python3 -m http.server` + subir `--virtual-time-budget` |
-| Cabeçalho/rodapé com URL e data no PDF | Header/footer default do Chrome | `--no-pdf-header-footer` |
-| PDF de dezenas de MB com poucas fotos | Chrome re-embebe PNG/WebP como lossless | Converter rasters para JPEG q80 **antes** do build (§5) |
-| `Browser is already in use … use --isolated` | Outra sessão tem o browser MCP do Playwright aberto | Chrome headless directo (§3) + contagem/sweep sem browser (§4 a2/a3) |
+| PDF with 2+ pages | Without `@page size`, Chrome uses US Letter | Set `@page { size: <W>mm <H>mm; margin: 0 }` in the HTML |
+| Tall content keeps spilling even with A4 | Real height > 297mm | Measure the real `scrollHeight` and use that value in `@page size`, not fixed A4 |
+| Backgrounds/colors disappear in the PDF | Chrome does not print backgrounds by default | `-webkit-print-color-adjust: exact; print-color-adjust: exact` |
+| Fonts/images missing in the PDF | `file://` blocked or assets still loading | Serve via `python3 -m http.server` + raise `--virtual-time-budget` |
+| Header/footer with URL and date in the PDF | Chrome's default header/footer | `--no-pdf-header-footer` |
+| Tens of MB of PDF with few photos | Chrome re-embeds PNG/WebP as lossless | Convert rasters to JPEG q80 **before** the build (§5) |
+| `Browser is already in use … use --isolated` | Another session has Playwright's MCP browser open | Chrome headless directly (§3) + count/sweep without a browser (§4 a2/a3) |
 
 ---
 
 ## Checklist
 
-- [ ] `@page { size: ...; margin: 0 }` presente no HTML (A4 ou medido)
-- [ ] `print-color-adjust: exact` para preservar fundos/cores
-- [ ] HTML servido via `python3 -m http.server` (não `file://`)
-- [ ] Comando Chrome com `--no-pdf-header-footer` + `--virtual-time-budget`
-- [ ] Contagem de páginas = esperado (`mdls`/`pdfinfo`, ou o regex `/Type /Page` do §4 a2 quando não há binários)
-- [ ] PDF re-lido visualmente (Read tool / `pdftoppm`) e layout confirmado fiel ao HTML
+- [ ] `@page { size: ...; margin: 0 }` present in the HTML (A4 or measured)
+- [ ] `print-color-adjust: exact` to preserve backgrounds/colors
+- [ ] HTML served via `python3 -m http.server` (not `file://`)
+- [ ] Chrome command with `--no-pdf-header-footer` + `--virtual-time-budget`
+- [ ] Page count = expected (`mdls`/`pdfinfo`, or the `/Type /Page` regex from §4 a2 when there are no binaries)
+- [ ] PDF visually re-read (Read tool / `pdftoppm`) and layout confirmed faithful to the HTML

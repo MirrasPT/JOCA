@@ -1,14 +1,14 @@
-/* ─── Identidade visual de projectos e grupos na barra lateral ────────────────────────────────
-   Três coisas vivem aqui: o monograma (2 letras) da barra fechada, os ícones à escolha do
-   utilizador (logótipo carregado ou emoji), e a coluna que abre ao clicar num grupo fechado.
-   Ficheiro à parte do App.css de propósito — o App.css é território partilhado. */
+/* ─── Visual identity of projects and groups in the sidebar ───────────────────────────────────
+   Three things live here: the monogram (2 letters) of the collapsed sidebar, the icons of the
+   user's choosing (uploaded logo or emoji), and the column that opens on clicking a collapsed
+   group. A separate file from App.css deliberately — App.css is shared territory. */
 
-/* ── Monograma ────────────────────────────────────────────────────────────────────────────────
-   Fechada, o nome está escondido e um ícone de pasta igual em todos não distingue nada. Trocar
-   pelas duas primeiras letras (Projecto → PR) devolve a identidade sem ocupar mais espaço: o
-   monograma vem em `data-mono` e o svg fica no DOM para a barra aberta.
-   Só há um fundo — o quadrado é o `.project-group-label` (44px) e o monograma é texto no meio
-   dele; dar-lhe fundo próprio criaria um quadrado dentro do quadrado. */
+/* ── Monogram ─────────────────────────────────────────────────────────────────────────────────
+   Collapsed, the name is hidden and a folder icon that is the same for all tells nothing apart.
+   Swapping it for the first two letters (Project → PR) gives the identity back without taking more
+   space: the monogram comes in `data-mono` and the svg stays in the DOM for the expanded sidebar.
+   There is only one background — the square is the `.project-group-label` (44px) and the monogram
+   is text in the middle of it; its own background would create a square inside the square. */
 .session-sidebar--collapsed .project-group-icon[data-mono] {
   width: auto;
   height: auto;
@@ -20,10 +20,10 @@
 .session-sidebar--collapsed .project-group-icon[data-mono] svg { display: none; }
 .session-sidebar--collapsed .project-group-icon[data-mono]::after { content: attr(data-mono); }
 
-/* No projecto/grupo activo é o quadrado que veste a cor; o monograma só ganha peso. */
+/* On the active project/group it is the square that wears the color; the monogram only gains weight. */
 .session-sidebar--collapsed .project-group--current .project-group-icon[data-mono] { color: #fff; }
 
-/* ── Logótipo e emoji ─────────────────────────────────────────────────────────────────────── */
+/* ── Logo and emoji ───────────────────────────────────────────────────────────────────────── */
 .session-sidebar .project-group-icon.project-icon--image,
 .session-sidebar .project-group-icon.project-icon--emoji {
   width: 18px;
@@ -43,7 +43,7 @@
   overflow: visible;
 }
 
-/* Fechada há espaço para o logótipo respirar dentro do quadrado de 44px. */
+/* Collapsed there is room for the logo to breathe inside the 44px square. */
 .session-sidebar--collapsed .project-group-icon.project-icon--image,
 .session-sidebar--collapsed .project-group-icon.project-icon--emoji {
   width: 28px;
@@ -52,7 +52,7 @@
 }
 .session-sidebar--collapsed .project-group-icon.project-icon--emoji { font-size: 22px; }
 
-/* ── Campo de escolha do ícone (barra lateral + modal de projecto) ────────────────────────── */
+/* ── Icon picker field (sidebar + project modal) ──────────────────────────────────────────── */
 .icon-field {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -84,7 +84,7 @@
   align-items: center;
   gap: 8px;
 }
-/* Escondido: quem abre o selector é o botão ao lado, que já é operável por teclado. */
+/* Hidden: what opens the picker is the button beside it, which is already keyboard-operable. */
 .icon-field-file { display: none; }
 
 .icon-field-btn {
@@ -130,20 +130,20 @@
 }
 .icon-field-hint--error { color: var(--red); }
 
-/* Painel de ícone da linha de grupo — indentado como os membros, para se ler como parte do grupo. */
+/* Icon panel of the group row — indented like the members, so it reads as part of the group. */
 .project-folder-icon-panel {
   padding: 10px 8px 12px 24px;
 }
 
-/* ── Membros do grupo com a barra fechada ─────────────────────────────────────────────────────
-   Com a barra fechada os membros não cabem na linha; abrir a barra, escolher e voltar a fechar são
-   três passos para uma escolha. Clicar no quadrado do grupo abre-os aqui: uma coluna das bolas dos
-   projectos, logo por baixo, na mesma linguagem do resto da barra fechada.
+/* ── Group members with the sidebar collapsed ─────────────────────────────────────────────────
+   With the sidebar collapsed the members do not fit on the row; opening the sidebar, choosing and
+   collapsing it again are three steps for one choice. Clicking the group's square opens them here:
+   a column of the projects' dots, right below, in the same language as the rest of the collapsed bar.
 
-   ⚠ EM FLUXO, nunca `position:absolute`. O `.session-sidebar-list` tem `overflow-y:auto` +
-   `overflow-x:hidden` (precisa deles para o scroll da lista), e um painel absoluto colocado ao lado
-   (`left: calc(100% + 8px)`) era CORTADO pelo overflow do antepassado — parecia o dropdown partido.
-   Em fluxo o problema não existe: a coluna faz parte da lista e rola com ela. */
+   ⚠ IN FLOW, never `position:absolute`. The `.session-sidebar-list` has `overflow-y:auto` +
+   `overflow-x:hidden` (it needs them for the list's scroll), and an absolute panel placed beside it
+   (`left: calc(100% + 8px)`) was CLIPPED by the ancestor's overflow — it looked like a broken
+   dropdown. In flow the problem does not exist: the column is part of the list and scrolls with it. */
 .group-collapsed-list {
   display: flex;
   flex-direction: column;
@@ -151,7 +151,7 @@
   gap: 4px;
   margin: 4px 0 2px;
   padding: 5px 0;
-  /* Encosto visual ao grupo acima, para se ler como "estes são os de dentro". */
+  /* Visual rest against the group above, so it reads as "these are the ones inside". */
   border-top: 1px solid var(--border-faint);
   border-bottom: 1px solid var(--border-faint);
 }
@@ -182,8 +182,8 @@
   color: var(--text-ghost);
 }
 
-/* Dentro do botão de 36px o ícone é menor do que no quadrado de 44px do grupo — os membros têm de
-   se ler como subordinados ao grupo, não como irmãos dele. */
+/* Inside the 36px button the icon is smaller than in the group's 44px square — the members have to
+   read as subordinate to the group, not as its siblings. */
 .group-flyout-item .project-group-icon.project-icon--image,
 .group-flyout-item .project-group-icon.project-icon--emoji {
   width: 24px;

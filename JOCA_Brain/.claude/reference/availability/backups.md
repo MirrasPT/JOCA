@@ -1,4 +1,4 @@
-Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/backups.md")` ao configurar ou rever backups.
+Part of the `availability` skill — loaded on-demand via `Read(".claude/reference/availability/backups.md")` when configuring or reviewing backups.
 
 ## 1. Backups (spatie/laravel-backup)
 
@@ -26,7 +26,7 @@ php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"
         'databases' => ['mysql'],
     ],
     'destination' => [
-        'disks' => ['s3'],          // NUNCA so local
+        'disks' => ['s3'],          // NEVER only local
     ],
 ],
 'cleanup' => [
@@ -59,7 +59,7 @@ Separate S3/R2 account from the app -- if app is compromised, backups survive.
 
 ### Schedule
 ```php
-// bootstrap/app.php ou routes/console.php
+// bootstrap/app.php or routes/console.php
 Schedule::command('backup:run')->dailyAt('03:00');
 Schedule::command('backup:run --only-db')->everyFourHours();
 Schedule::command('backup:clean')->dailyAt('04:00');

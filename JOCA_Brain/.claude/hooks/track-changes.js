@@ -2,10 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 
-// stdin-first (padrão skill-lint.js): lê o JSON oficial do hook (tool_input.file_path);
-// se vazio, cai para argv[2] ($TOOL_INPUT_FILE_PATH — pode falhar a expandir no PowerShell).
+// stdin-first (the skill-lint.js pattern): reads the official hook JSON (tool_input.file_path);
+// if empty, falls back to argv[2] ($TOOL_INPUT_FILE_PATH — may fail to expand in PowerShell).
 let raw = '';
-try { raw = fs.readFileSync(0, 'utf8'); } catch (_) { /* sem stdin */ }
+try { raw = fs.readFileSync(0, 'utf8'); } catch (_) { /* no stdin */ }
 
 let filePath = '';
 let toolInput = {};
@@ -13,20 +13,20 @@ try {
   const data = JSON.parse(raw || '{}');
   toolInput = data.tool_input || {};
   filePath = toolInput.file_path || toolInput.path || '';
-} catch (_) { /* input não-JSON — nada a fazer */ }
+} catch (_) { /* non-JSON input — nothing to do */ }
 
 if (!filePath && process.argv[2]) filePath = process.argv[2];
 if (!filePath) process.exit(0);
 
 const norm = filePath.replace(/\\/g, '/');
 
-// --- Filtro 1: self-paths do próprio Brain ------------------------------------
-// Editar um hook Node não é trabalho de frontend. Sem isto, qualquer .js/.mjs do
-// toolkit contava como "frontend" e o Stop hook pedia tester-ui-ux para código sem UI.
+// --- Filter 1: the Brain's own self-paths -------------------------------------
+// Editing a Node hook is not frontend work. Without this, any .js/.mjs in the
+// toolkit counted as "frontend" and the Stop hook asked for tester-ui-ux on code with no UI.
 const SELF = ['/.claude/hooks/', '/.claude/scripts/', '/.joca/', '/.claude/agents/', '/.claude/rules/'];
 if (SELF.some((s) => norm.includes(s))) process.exit(0);
 
-// --- Filtro 2: artefactos de build (não são fonte) ----------------------------
+// --- Filter 2: build artifacts (they are not source) --------------------------
 const BUILD = ['/dist/', '/build/', '/node_modules/', '/.next/', '/graphify-out/', '/vendor/', '/.git/'];
 if (BUILD.some((s) => norm.includes(s))) process.exit(0);
 
@@ -50,16 +50,16 @@ const domainMap = {
 };
 let domain = domainMap[ext] || 'other';
 
-// --- Filtro 3: classificar pelo CONTEÚDO do diff, não só pela extensão --------
-// Um bump de constante de versão num functions.php não é uma alteração de backend.
-// Só se aplica ao Edit (temos o texto novo); no Write assume-se alteração real.
+// --- Filter 3: classify by the CONTENT of the diff, not just by the extension -
+// A version-constant bump in a functions.php is not a backend change.
+// Only applies to Edit (we have the new text); on Write a real change is assumed.
 function isTrivial(added) {
   const lines = added.split('\n').map((l) => l.trim()).filter(Boolean);
   if (!lines.length) return true;
   return lines.every((l) =>
-    /^(\/\/|#|\*|\/\*|\*\/|<!--|--)/.test(l) ||                       // comentário
-    /^(define\s*\(|const\s+\w*VERSION|\w*VERSION\s*=|"version"\s*:)/i.test(l) || // versão/constante
-    /^["']?\d+\.\d+/.test(l)                                          // número de versão solto
+    /^(\/\/|#|\*|\/\*|\*\/|<!--|--)/.test(l) ||                       // comment
+    /^(define\s*\(|const\s+\w*VERSION|\w*VERSION\s*=|"version"\s*:)/i.test(l) || // version/constant
+    /^["']?\d+\.\d+/.test(l)                                          // bare version number
   );
 }
 if (typeof toolInput.new_string === 'string' && isTrivial(toolInput.new_string)) {

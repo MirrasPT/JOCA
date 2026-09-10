@@ -1,98 +1,98 @@
 ---
 name: joca-terminal
-description: Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais e enviar notificações, tudo contra o JOCA_OS em execução e sem o reiniciar. MUST be invoked when the user says: comenta na tarefa, fecha a tarefa, marca como feito, cria uma tarefa, move a tarefa, abre um terminal, fala com o outro terminal, avisa-me quando acabares. SHOULD also invoke when: o agente acaba um trabalho que veio de uma tarefa do quadro, precisa de delegar a outro terminal, ou quer registar progresso para o utilizador ver.
+description: Use JOCA from inside a terminal opened by JOCA_OS — query/comment/move board tasks, open new terminals, talk to other terminals and send notifications, all against the running JOCA_OS and without restarting it. MUST be invoked when the user says: comment on the task, close the task, mark as done, create a task, move the task, open a terminal, talk to the other terminal, tell me when you finish. SHOULD also invoke when: the agent finishes work that came from a board task, needs to delegate to another terminal, or wants to record progress for the user to see.
 origin: local
 chain: task-router
 ---
 
-# JOCA a partir do terminal (ponte de agentes)
+# JOCA from the terminal (agent bridge)
 
-Todos os terminais abertos pelo JOCA_OS nascem com a ponte no ambiente. Verifica com `echo $JOCA_CLI`.
-Se a variável estiver vazia, este terminal **não** foi aberto pelo JOCA — não uses esta skill.
+Every terminal opened by JOCA_OS is born with the bridge in its environment. Check with `echo $JOCA_CLI`.
+If the variable is empty, this terminal was **not** opened by JOCA — do not use this skill.
 
-**O JOCA_OS está a correr enquanto usas isto.** Nada do que fizeres aqui o reinicia nem lhe toca no
-código: são as operações que a interface já expõe, chamadas por HTTP. O que mudares aparece no ecrã
-do utilizador no momento.
+**JOCA_OS is running while you use this.** Nothing you do here restarts it or touches its
+code: these are the operations the interface already exposes, called over HTTP. What you change shows up on the
+user's screen right away.
 
 ```bash
-node "$JOCA_CLI" help        # lista tudo o que podes fazer
+node "$JOCA_CLI" help        # lists everything you can do
 ```
 
-Variáveis disponíveis: `JOCA_CLI` (caminho do CLI), `JOCA_API_URL`, `JOCA_SESSION_ID` (este terminal),
-`JOCA_API_TOKEN` (só quando a auth está ligada). Tudo fala com o JOCA_OS **em execução** — nada precisa
-de reinício, e o que fizeres aparece na interface imediatamente.
+Available variables: `JOCA_CLI` (CLI path), `JOCA_API_URL`, `JOCA_SESSION_ID` (this terminal),
+`JOCA_API_TOKEN` (only when auth is on). Everything talks to the **running** JOCA_OS — nothing needs
+a restart, and what you do shows up in the interface immediately.
 
-## Regra principal: fecha o ciclo da tua tarefa
+## Main rule: close the loop on your task
 
-Quando executas uma tarefa do quadro, o brief traz o id dela. **Ao terminar, deixa uma nota do que
-fizeste** — é assim que o utilizador percebe o que aconteceu sem ler o terminal todo:
+When you carry out a board task, the brief carries its id. **When you finish, leave a note on what
+you did** — that is how the user grasps what happened without reading the whole terminal:
 
 ```bash
-node "$JOCA_CLI" comment <id-tarefa> "Implementei X em src/y.ts. Testes a passar. Ficou por fazer Z."
-node "$JOCA_CLI" done <id-tarefa> --note "Resumo do que fiz"   # comenta + move para 'concluida'
+node "$JOCA_CLI" comment <task-id> "Implemented X in src/y.ts. Tests passing. Z left undone."
+node "$JOCA_CLI" done <task-id> --note "Summary of what I did"   # comments + moves to 'concluida'
 ```
 
-Usa `done` só quando a tarefa está mesmo concluída. Se ficou a meio, comenta a explicar o estado e
-deixa-a onde está — o juiz do JOCA também escreve o veredicto dele na mesma thread.
+Use `done` only when the task really is finished. If it stopped halfway, comment explaining the state and
+leave it where it is — JOCA's judge also writes its verdict in the same thread.
 
-## Tarefas
+## Tasks
 
 ```bash
-node "$JOCA_CLI" tasks                          # o quadro todo, por coluna
-node "$JOCA_CLI" tasks --status a-executar      # filtrar
-node "$JOCA_CLI" task <id>                      # detalhe + thread de notas (lê ANTES de agir)
-node "$JOCA_CLI" new-task "Corrigir o parser" --desc "..." --status a-definir
+node "$JOCA_CLI" tasks                          # the whole board, by column
+node "$JOCA_CLI" tasks --status a-executar      # filter
+node "$JOCA_CLI" task <id>                      # detail + note thread (read BEFORE acting)
+node "$JOCA_CLI" new-task "Fix the parser" --desc "..." --status a-definir
 node "$JOCA_CLI" move <id> concluida            # a-definir|a-executar|em-execucao|concluida|arquivada
-node "$JOCA_CLI" advance <id>                   # empurra uma coluna para a direita
-node "$JOCA_CLI" merge <id1> <id2> --title "Tarefa única"
+node "$JOCA_CLI" advance <id>                   # pushes one column to the right
+node "$JOCA_CLI" merge <id1> <id2> --title "Single task"
 ```
 
-Os ids podem ser prefixos curtos (os 8 caracteres que as listagens mostram).
+Ids can be short prefixes (the 8 characters the listings show).
 
-**Descobriste trabalho novo a meio?** Não o faças em silêncio nem alargues a tarefa actual: cria uma
-tarefa (`new-task`) e menciona-a na tua nota. Mantém o quadro a ser a verdade do que falta fazer.
+**Found new work mid-flight?** Do not do it silently and do not widen the current task: create a
+task (`new-task`) and mention it in your note. Keep the board the truth of what is left to do.
 
-## Outros terminais (trabalho em conjunto)
+## Other terminals (working together)
 
 ```bash
-node "$JOCA_CLI" sessions                                    # quem está aberto (o teu tem ← )
-node "$JOCA_CLI" new-session "Testes" --cli codex --project <id> --prompt "corre a suite e reporta"
-node "$JOCA_CLI" send <id-sessão> "podes validar o build enquanto eu escrevo os testes?"
-node "$JOCA_CLI" read <id-sessão> --tail 3000                # lê o que o outro terminal produziu
+node "$JOCA_CLI" sessions                                    # who is open (yours has ← )
+node "$JOCA_CLI" new-session "Tests" --cli codex --project <id> --prompt "run the suite and report"
+node "$JOCA_CLI" send <session-id> "can you validate the build while I write the tests?"
+node "$JOCA_CLI" read <session-id> --tail 3000               # read what the other terminal produced
 ```
 
-`--cli` aceita `claude` (default), `codex`, `agy`, `opencode` — abre o terminal no CLI que fizer
-sentido para o trabalho (ex.: um segundo parecer noutro modelo).
+`--cli` accepts `claude` (default), `codex`, `agy`, `opencode` — open the terminal in whichever CLI makes
+sense for the work (e.g. a second opinion on another model).
 
-**Cuidado com loops:** não fiques a fazer `send`/`read` em ciclo à espera de resposta. Envia,
-continua o teu trabalho, e lê mais tarde. Nunca mandes mensagens para ti próprio.
+**Careful with loops:** do not sit doing `send`/`read` in a cycle waiting for an answer. Send,
+carry on with your work, and read later. Never send messages to yourself.
 
-## Avisar o utilizador
+## Warning the user
 
 ```bash
-node "$JOCA_CLI" notify "Deploy terminado — 3 testes falharam, vê o terminal Testes"
+node "$JOCA_CLI" notify "Deploy finished — 3 tests failed, check the Tests terminal"
 ```
 
-Vai para a inbox persistente do JOCA (sobrevive a fechar o browser). Usa para trabalho longo que
-acaba quando o utilizador não está a olhar. Não uses para progresso trivial.
+It goes to JOCA's persistent inbox (survives closing the browser). Use it for long work that
+finishes when the user is not looking. Do not use it for trivial progress.
 
-## Consultar
+## Querying
 
 ```bash
-node "$JOCA_CLI" projects        # projectos ligados ao JOCA
-node "$JOCA_CLI" runs --limit 20 # histórico de execuções (estado, duração, custo)
+node "$JOCA_CLI" projects        # projects connected to JOCA
+node "$JOCA_CLI" runs --limit 20 # run history (state, duration, cost)
 ```
 
-## Limites (não contornar)
+## Limits (do not work around)
 
-- **Não edites o JOCA_OS nem o JOCA_Brain** a partir de um worker de tarefa a menos que a tarefa o
-  peça explicitamente — mexer no motor enquanto ele te executa parte o teu próprio worker.
-- **Não apagues tarefas** que não criaste; move para `arquivada` em vez disso.
-- **Não abras terminais em catadupa** — cada um é um processo real e o cap é 30 no total.
-- O CLI fala com `127.0.0.1`; se der erro de ligação, o JOCA_OS não está a correr — reporta e pára,
-  não tentes arrancá-lo tu.
+- **Do not edit JOCA_OS or JOCA_Brain** from a task worker unless the task explicitly asks for
+  it — touching the engine while it is running you breaks your own worker.
+- **Do not delete tasks** you did not create; move them to `arquivada` instead.
+- **Do not open terminals in a flood** — each one is a real process and the cap is 30 in total.
+- The CLI talks to `127.0.0.1`; if you get a connection error, JOCA_OS is not running — report and stop,
+  do not try to start it yourself.
 
-## Próximo passo (chain)
+## Next step (chain)
 
-- Trabalho que exija classificação de via (skill/agente/workflow) → `task-router` (reversível, dispara sem perguntar).
-- Tarefa concluída com código alterado → deixa a nota e segue o `auto-test-dispatch` normal do JOCA.
+- Work that requires route classification (skill/agent/workflow) → `task-router` (reversible, fires without asking).
+- Task finished with changed code → leave the note and follow JOCA's normal `auto-test-dispatch`.

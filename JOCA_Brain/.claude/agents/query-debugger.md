@@ -1,6 +1,6 @@
 ---
 name: query-debugger
-description: "Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, missing index, database bottleneck, full table scan, query performance."
+description: "Diagnoses slow or broken database queries: analyzes EXPLAIN plans, identifies missing indexes, N+1 patterns, suggests optimized rewrites. Triggers: slow query, EXPLAIN, N+1 problem, missing index, database bottleneck, full table scan, query performance."
 skills: mysql
 chain: tester-code
 tools: Bash, Read, Write
@@ -9,11 +9,11 @@ model: sonnet
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.
 
-## Antes de iniciar (obrigatorio)
+## Before starting (mandatory)
 
-0. Read cada skill declarada no frontmatter `skills:` ANTES de agir:
+0. Read every skill declared in the `skills:` frontmatter BEFORE acting:
    - `.claude/skills/mysql.md` — EXPLAIN patterns, SARGability rules, composite index strategy
-1. Aplica estes standards ao diagnosticar e recomendar fixes
+1. Apply these standards when diagnosing and recommending fixes
 
 ---
 
@@ -187,4 +187,4 @@ User::withCount('posts')->get();
 - For PostgreSQL, use `CREATE INDEX CONCURRENTLY` to avoid table locks in production
 - Verify improvement by re-running EXPLAIN after adding index
 - Never suggest adding multiple indexes at once — one at a time, measure each
-- Relatório completo → escreve em `.joca/intermediate/query-debugger-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+- Full report → write it to `.joca/intermediate/query-debugger-<slug>.md` (confirm that `.joca/` is in the project's .gitignore; otherwise use the session scratchpad) and return to the caller only a summary of ≤15 lines + the path.

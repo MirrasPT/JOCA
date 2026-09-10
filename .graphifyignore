@@ -1,4 +1,4 @@
-# Dependências
+# Dependencies
 node_modules/
 vendor/
 .venv/
@@ -12,20 +12,20 @@ build/
 .nuxt/
 .output/
 
-# Graphify próprio
+# Graphify itself
 graphify-out/
 
 # Git
 .git/
 
-# Dados runtime
+# Runtime data
 *.log
 *.lock
 package-lock.json
 yarn.lock
 bun.lockb
 
-# Ficheiros pessoais / sensíveis
+# Personal / sensitive files
 .env
 .env.*
 .DS_Store

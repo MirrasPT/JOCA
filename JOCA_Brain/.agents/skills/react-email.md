@@ -63,17 +63,17 @@ export default function WelcomeEmail({ name, ctaUrl }: WelcomeEmailProps) {
   return (
     <Html lang="pt">
       <Head />
-      <Preview>Bem-vindo — a tua conta está pronta</Preview>
+      <Preview>Welcome — your account is ready</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Img src="https://cdn.example.com/logo.png" width="120" height="36" alt="Marca" />
+          <Img src="https://cdn.example.com/logo.png" width="120" height="36" alt="Brand" />
           <Section style={{ padding: "24px 0" }}>
-            <Heading style={h1}>Olá {name}</Heading>
-            <Text style={text}>A tua conta está activa. Começa por aqui.</Text>
-            <Button href={ctaUrl} style={button}>Abrir dashboard</Button>
+            <Heading style={h1}>Hi {name}</Heading>
+            <Text style={text}>Your account is active. Start here.</Text>
+            <Button href={ctaUrl} style={button}>Open dashboard</Button>
           </Section>
           <Hr style={hr} />
-          <Text style={footer}>Enviado por Marca · <Link href="https://example.com/unsubscribe">cancelar</Link></Text>
+          <Text style={footer}>Sent by Brand · <Link href="https://example.com/unsubscribe">unsubscribe</Link></Text>
         </Container>
       </Body>
     </Html>
@@ -152,9 +152,9 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 await resend.emails.send({
-  from: "Marca <hello@example.com>",
+  from: "Brand <hello@example.com>",
   to: user.email,
-  subject: "Bem-vindo",
+  subject: "Welcome",
   html: await render(<WelcomeEmail name={user.name} ctaUrl={url} />),
   text: await render(<WelcomeEmail name={user.name} ctaUrl={url} />, { plainText: true }),
 });
@@ -186,18 +186,18 @@ With Postmark: pass the rendered `html`/`text` to the Postmark client instead. K
 
 ---
 
-## Static HTML email (no-build — colável num ESP / `gws`)
+## Static HTML email (no-build — pasteable into an ESP / `gws`)
 
-Quando o entregável é um `.html` **sendable** sem toolchain (cold-reach, newsletter colada num ESP, anexo de `gws +send`), **não** uses os componentes React desta skill (precisam de build/render). Hand-code HTML **table-based** seguindo as MESMAS regras client-safe da secção 4:
+When the deliverable is a **sendable** `.html` with no toolchain (cold-reach, a newsletter pasted into an ESP, a `gws +send` attachment), do **not** use this skill's React components (they need build/render). Hand-code **table-based** HTML following the SAME client-safe rules from section 4:
 
-- Layout só com `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` (nunca flex/grid); coluna única ≤600px centrada.
-- **Todo o CSS inline** (`style="..."`); zero `<style>`/CSS externo para layout. px + hex + font-stack web-safe.
-- **MSO conditionals** para Outlook (`<!--[if mso]> … <![endif]-->`) — botões VML e larguras fixas.
-- `<img>` sempre com `width`/`height`/`alt` e **URL absoluto https**; hospedar imagens com `?v=N` (cache-bust — ver gotcha Cloudflare na skill `cpanel`).
-- Pré-visualizar via Chrome `--headless --screenshot` antes de enviar; gerar versão plain-text.
-- Enviar: `( cd <pasta> && gws gmail +send ... --body "$(cat email.html)" --html -a <anexo-no-cwd> )` (anexos do `gws` têm de estar no cwd).
+- Layout only with `<table role="presentation" cellpadding="0" cellspacing="0" border="0">` (never flex/grid); single column ≤600px, centered.
+- **All CSS inline** (`style="..."`); zero `<style>`/external CSS for layout. px + hex + web-safe font stack.
+- **MSO conditionals** for Outlook (`<!--[if mso]> … <![endif]-->`) — VML buttons and fixed widths.
+- `<img>` always with `width`/`height`/`alt` and an **absolute https URL**; host images with `?v=N` (cache-bust — see the Cloudflare gotcha in the `cpanel` skill).
+- Preview via Chrome `--headless --screenshot` before sending; generate a plain-text version.
+- Send: `( cd <folder> && gws gmail +send ... --body "$(cat email.html)" --html -a <attachment-in-cwd> )` (`gws` attachments must be in the cwd).
 
-> Regra: `react-email` = React/`.tsx` (precisa build). Para HTML estático colável → este skeleton table-based. Mesmas regras client-safe, output diferente.
+> Rule: `react-email` = React/`.tsx` (needs a build). For pasteable static HTML → this table-based skeleton. Same client-safe rules, different output.
 
 ---
 

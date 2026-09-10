@@ -1,7 +1,7 @@
 ---
 name: hyperframes
-description: "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync. SHOULD also invoke when: voiceover, tts, narração, transição de cena, scene transition, audio-reactive."
-triggers: hyperframes, video html, html video, composição de vídeo, criar vídeo html, video composition, title card, caption sync, voiceover, tts, narração, transição de cena, scene transition, audio-reactive, kinetic type, product launch video, vídeo de lançamento, fazer vídeo com html
+description: "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframes, video html, html video, video composition, create html video, title card, caption sync. SHOULD also invoke when: voiceover, tts, narration, scene transition, audio-reactive."
+triggers: hyperframes, video html, html video, create html video, video composition, title card, caption sync, voiceover, tts, narration, scene transition, audio-reactive, kinetic type, product launch video, launch video, make video with html
 ---
 
 # HyperFrames
@@ -325,7 +325,7 @@ Failures: `WCAG AA contrast warnings`. Fix by brightening (dark bg) or darkening
 Generate narration with **Kokoro-82M** — no API key, no cost.
 
 ```bash
-npx hyperframes tts "Texto aqui" --voice af_nova --output narration.wav
+npx hyperframes tts "Text here" --voice af_nova --output narration.wav
 npx hyperframes tts script.txt --voice bf_emma --output narration.wav
 npx hyperframes tts --list    # list all 54 voices
 ```

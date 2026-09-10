@@ -1,7 +1,7 @@
 ---
 name: design-tokens
 description: "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture. SHOULD also invoke when: DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index."
-triggers: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture, DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index, dark mode, dark theme, tema escuro, colour tokens, color tokens, shadow tokens, motion tokens, token file, tokens.css, tokens.json
+triggers: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens, component tokens, token architecture, DTCG, Style Dictionary, spacing scale, grid system, breakpoints, z-index, dark mode, dark theme, color tokens, shadow tokens, motion tokens, token file, tokens.css, tokens.json
 chain: component-system
 ---
 # Design Tokens
@@ -15,13 +15,13 @@ chain: component-system
 ## 3-Tier Architecture
 
 ```
-global.json     → RAW VALUES (sem semantica)
+global.json     → RAW VALUES (no semantics)
     ↓ references
-semantic.json   → NAMED INTENT (aliases para globals)
+semantic.json   → NAMED INTENT (aliases to globals)
     ↓ references
-component.json  → PER-COMPONENT (overrides consumidos por UI)
+component.json  → PER-COMPONENT (overrides consumed by UI)
     ↓ compiled
-tokens.css      → CSS custom properties flat (o que o frontend usa)
+tokens.css      → flat CSS custom properties (what the frontend uses)
 ```
 
 **Core rule:** zero raw values in semantic/component tiers. Only `{references}` to globals. Raw values live in global.json alone.
@@ -328,18 +328,18 @@ Compiled flat output. The file frontend imports.
 }
 ```
 
-⚠ **Nao zerar as durations.** `prefers-reduced-motion` **substitui** o movimento, nao o apaga: remover
-translate/scale/parallax, **manter opacity**, reduzir a duracao ≥50%. A 0ms os estados aparecem de
-golpe e perde-se a orientacao que a transicao dava — que e precisamente o que a preferencia pede que
-se preserve. (Os 4 valores acima sao um default nosso a derivar da escala do projecto; a regra e o
-−50%, nao os numeros.)
+⚠ **Do not zero the durations.** `prefers-reduced-motion` **replaces** the motion, it does not erase it: remove
+translate/scale/parallax, **keep opacity**, cut the duration by ≥50%. At 0ms the states appear all at
+once and you lose the orientation the transition was giving — which is exactly what the preference asks you
+to preserve. (The 4 values above are a default of ours, to be derived from the project's scale; the rule is the
+−50%, not the numbers.)
 
 ---
 
 ## Typography
 
-A rampa entra como **proporcoes por degrau**, derivadas do `DESIGN.md` da marca — nunca colada igual
-em todos os projectos (`clamp()` com os mesmos limites em 5 sites e convergencia disfarcada de sistema).
+The ramp goes in as **proportions per step**, derived from the brand's `DESIGN.md` — never pasted identically
+into every project (`clamp()` with the same limits across 5 sites is convergence disguised as a system).
 
 ```css
 :root {
@@ -359,9 +359,9 @@ em todos os projectos (`clamp()` com os mesmos limites em 5 sites e convergencia
 }
 ```
 
-**Tracking e line-height andam com o degrau** — texto grande aperta, texto pequeno em caixa alta abre:
+**Tracking and line-height move with the step** — large text tightens, small uppercase text opens up:
 
-| Degrau | letter-spacing | line-height |
+| Step | letter-spacing | line-height |
 |---|---|---|
 | display | −0.03em | 0.9 |
 | h1 | −0.025em | 0.95 |
@@ -409,9 +409,9 @@ em todos os projectos (`clamp()` com os mesmos limites em 5 sites e convergencia
 3. **No raw in semantic/component** -- only `{references}`. Raw values = global.json only
 4. **4px grid** -- all spacing is a multiple of 4
 5. **Contrast check** -- text on surface >= 4.5:1 (WCAG AA); large text >= 3:1
-6. **Reduced motion** -- always include `@media (prefers-reduced-motion: reduce)`, e nele **reduzir**
-   as durations (≥50%), nunca as zerar
-7. **Typography scale** -- rampa de 9 degraus com `clamp()`, com tracking e line-height por degrau
+6. **Reduced motion** -- always include `@media (prefers-reduced-motion: reduce)`, and in it **reduce**
+   the durations (≥50%), never zero them
+7. **Typography scale** -- a 9-step ramp with `clamp()`, with tracking and line-height per step
 
 ---
 
@@ -434,4 +434,4 @@ Pipeline position in JOCA sequence:
 -> **before**: `brand-guidelines` (DESIGN.md as input)
 -> **after**: `component-system` (consumes tokens for component specs)
 
-Notify on completion: `-> proximo: component-system`
+Notify on completion: `-> next: component-system`

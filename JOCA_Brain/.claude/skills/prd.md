@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requirements doc, product spec."
+description: "Generates and maintains PRD.md — living requirements doc optimized for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requirements doc, product spec."
 metadata:
   type: skill
   category: base

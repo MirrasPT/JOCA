@@ -1,76 +1,76 @@
 ---
 name: design-shotgun
-description: "Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos, compara lado-a-lado, recolhe feedback estruturado e itera. Adaptado do design-shotgun do gstack. MUST be invoked when the user says: explorar variantes, opções de design, design shotgun, mostra-me hipóteses, brainstorm visual, não gosto deste look, várias versões. SHOULD also invoke when: o user descreve UI nova mas ainda não viu como pode ficar."
-triggers: explorar variantes, variantes de design, opções de design, design shotgun, mostra hipóteses, mostra opções, brainstorm visual, várias versões, não gosto do look, design alternativo, mockups alternativos, explore designs, design options, design variants
+description: "Explore several design variants in parallel before coding — generates N distinct mockups, compares them side by side, collects structured feedback and iterates. Adapted from gstack's design-shotgun. MUST be invoked when the user says: explore variants, design options, design shotgun, show me some ideas, visual brainstorm, I don't like this look, several versions. SHOULD also invoke when: the user describes new UI but has not yet seen what it could look like."
+triggers: explore variants, design variants, design options, design shotgun, show me ideas, show options, visual brainstorm, several versions, I don't like this look, alternative design, alternative mockups, explore designs
 chain: design-review, design-html, frontend
 ---
-# /design-shotgun — Explorar variantes de design
+# /design-shotgun — Exploring design variants
 
-Em vez de uma proposta única, gerar **N variantes distintas em paralelo**, compará-las, e iterar a partir da escolhida. Multiplica a velocidade de design e evita fixar na 1ª ideia. Adaptado do `design-shotgun` do gstack.
+Instead of a single proposal, generate **N distinct variants in parallel**, compare them, and iterate from the chosen one. It multiplies design speed and stops you fixating on the 1st idea. Adapted from gstack's `design-shotgun`.
 
-Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **divergência controlada antes de convergir**.
+Difference from `img-gen` (1 image) and `frontend` (implements): this is **controlled divergence before converging**.
 
-## Quando usar
-- "mostra-me opções", "explorar variantes", "não gosto deste look", UI nova sem direcção visual fechada.
-- Proactivo: o user descreve uma feature de UI mas ainda não viu como pode ficar.
+## When to use it
+- "show me options", "explore variants", "I don't like this look", new UI with no settled visual direction.
+- Proactively: the user describes a UI feature but has not yet seen what it could look like.
 
 ## Workflow
 
-### 1. Fundação (sequencial, antes do fan-out)
-- Ler o sistema de design se existir: `DESIGN.md`, tokens, `brand-guidelines`. Variantes respeitam o sistema (não inventam paletas do nada, salvo se o brief for "explorar identidade").
-- Definir o **brief comum**: o que é a página/componente, o objectivo, a audiência, 1 constraint dura (ex.: "tem de caber above-the-fold").
-- **Pedir 2-3 referências concretas ANTES do fan-out** (URLs ou imagens que o utilizador goste) e declarar em 1 linha o que se retém de cada uma. Sem referências, os eixos abstractos não transmitem o que o utilizador tem na cabeça: duas rondas completas (6+6 agentes) foram deitadas fora porque a frase que resolveu tudo — "elegantes, requinte mas moderno, um mais minimalista, um mais bold" + 3 URLs — só chegou depois de ele ver o resultado errado.
-- **Benchmark visual sem imagens não é benchmark, é descrição.** Se a referência é um produto que só se conhece por pesquisa textual, pedir capturas — ou dizer explicitamente que o resultado é uma interpretação, não uma adaptação. Pesquisa textual descreve funcionalidades, não anatomia visual.
-- **Ler o banco de eixos**: `Read(".claude/reference/design-dataset.md")` — paletas OKLCH verificadas, pares de fontes e estilos nomeados. Cada variante = 1 estilo + 1 paleta + 1 par de fontes, combinações DISTINTAS; registar a combinação no output (`[V2: brutalist-editorial + Ember + Fraunces/Inter]`). Anti-convergence: excluir os eixos usados nos 2-3 projectos anteriores do mesmo tipo (`memory/projects/`).
-- Definir **3-6 eixos de divergência** (cada variante explora um). Os eixos têm de ser **estruturais**, não só estéticos: ordem e número de secções, tipo de navegação, densidade, grelha (simétrica vs quebrada), o que ocupa o primeiro viewport, foto-driven vs tipográfico. Trocar só o `<style>` sobre o mesmo markup produz peles da mesma variante, não variantes.
-- **Registo/intenção** é o 4º eixo, obrigatório: silencioso · acolhedor · imponente · documental · cinematográfico. Três agentes já convergiram no mesmo registo (arquivo frio, acento azul, numerais tabulares) com três estilos nomeados diferentes — os eixos de estilo/paleta/fonte separam gramática visual, não intenção. Variantes concorrentes têm de diferir aqui.
+### 1. Foundation (sequential, before the fan-out)
+- Read the design system if it exists: `DESIGN.md`, tokens, `brand-guidelines`. Variants respect the system (they do not invent palettes out of nothing, unless the brief is "explore the identity").
+- Define the **common brief**: what the page/component is, the objective, the audience, 1 hard constraint (e.g. "it has to fit above the fold").
+- **Ask for 2-3 concrete references BEFORE the fan-out** (URLs or images the user likes) and state in 1 line what you are keeping from each. Without references, abstract axes do not convey what the user has in their head: two full rounds (6+6 agents) were thrown away because the sentence that solved everything — "elegant, refined but modern, one more minimalist, one bolder" + 3 URLs — only arrived after he saw the wrong result.
+- **A visual benchmark without images is not a benchmark, it is a description.** If the reference is a product you only know through textual research, ask for captures — or say explicitly that the result is an interpretation, not an adaptation. Textual research describes features, not visual anatomy.
+- **Read the bank of axes**: `Read(".claude/reference/design-dataset.md")` — verified OKLCH palettes, font pairings and named styles. Each variant = 1 style + 1 palette + 1 font pairing, DISTINCT combinations; record the combination in the output (`[V2: brutalist-editorial + Ember + Fraunces/Inter]`). Anti-convergence: exclude the axes used in the previous 2-3 projects of the same type (`memory/projects/`).
+- Define **3-6 axes of divergence** (each variant explores one). The axes have to be **structural**, not merely aesthetic: order and number of sections, type of navigation, density, grid (symmetric vs broken), what occupies the first viewport, photo-driven vs typographic. Swapping only the `<style>` over the same markup produces skins of the same variant, not variants.
+- **Register/intent** is the 4th axis, and it is mandatory: quiet · welcoming · imposing · documentary · cinematic. Three agents once converged on the same register (cold archive, blue accent, tabular numerals) with three different named styles — the style/palette/font axes separate visual grammar, not intent. Competing variants have to differ here.
 
-### 2. Fan-out das variantes (paralelo)
-- Despachar **3-5 agentes** em paralelo (`img-gen-openai`/`img-gen-google` para imagem; ou geração de HTML/JSX estático para mockup navegável). Cap 3-5 (custo de contexto).
-- **Brief de cada agente** carrega: o brief comum + o SEU eixo + o sistema de design + anti-fabricação (sem inventar copy/dados — usar placeholders marcados) + Step 0 (Read `brand-guidelines`/`design-tokens` se relevante).
-- Cada agente escreve o output para disco (`scratchpad/shotgun/<n>/`) e devolve só um resumo + path (padrão "agentes escrevem para disco" — `rules/orchestration-patterns.md`).
+### 2. Fan-out of the variants (parallel)
+- Dispatch **3-5 agents** in parallel (`img-gen-openai`/`img-gen-google` for images; or static HTML/JSX generation for a navigable mockup). Cap 3-5 (context cost).
+- **Each agent's brief** carries: the common brief + ITS axis + the design system + anti-fabrication (no inventing copy/data — use marked placeholders) + Step 0 (Read `brand-guidelines`/`design-tokens` if relevant).
+- Each agent writes its output to disk (`scratchpad/shotgun/<n>/`) and returns only a summary + path (the "agents write to disk" pattern — `rules/orchestration-patterns.md`).
 
-### 3. Board de comparação
-- **Paridade de pipeline antes de comparar.** Todas as variantes passam pelos mesmos passos (upscale, export, resolução). Uma variante saiu sem o passo ESRGAN (568 KB vs 4,7 MB, ~88 dpi em A3) e a comparação ficou enviesada — a nitidez mascarou o desenho, que era o que estava em avaliação. Comparar tamanhos de ficheiro é o teste barato que apanha isto.
-- **Check mecânico de divergência, antes de mostrar seja o que for.** Extrair de cada variante o par tipográfico e as cores e falhar a ronda se duas coincidirem — regenera-se a duplicada, não se apresenta:
+### 3. Comparison board
+- **Pipeline parity before comparing.** Every variant goes through the same steps (upscale, export, resolution). One variant came out without the ESRGAN step (568 KB vs 4.7 MB, ~88 dpi at A3) and the comparison was skewed — sharpness masked the drawing, which was the thing under evaluation. Comparing file sizes is the cheap test that catches this.
+- **Mechanical divergence check, before showing anything at all.** Extract the font pairing and the colors from each variant and fail the round if two coincide — you regenerate the duplicate, you do not present it:
   ```bash
   grep -rhoE 'family=[A-Za-z+0-9]+|font-family:[^;]+' scratchpad/shotgun/*/ | sort | uniq -c | sort -rn
   grep -rhoE '#[0-9a-fA-F]{6}|oklch\([^)]*\)' scratchpad/shotgun/*/ | sort -u | head -40
   ```
-  É um `grep`, não um agente. Três agentes em paralelo já devolveram o **mesmo par tipográfico** (Unbounded + Manrope + JetBrains Mono) porque leram todos o mesmo `design-dataset.md` e nenhum via os outros — convergência que só se detecta comparando as N variantes depois de prontas.
-- Apresentar as variantes lado-a-lado (grelha de thumbnails/links).
-- Para cada uma: 1 frase do conceito + a tensão que explora.
+  It is a `grep`, not an agent. Three parallel agents have already returned the **same font pairing** (Unbounded + Manrope + JetBrains Mono) because they all read the same `design-dataset.md` and none of them could see the others — convergence that is only detectable by comparing the N variants once they are done.
+- Present the variants side by side (grid of thumbnails/links).
+- For each one: 1 sentence of the concept + the tension it explores.
 
-### 4. Feedback estruturado + iterar
-- Recolher feedback por variante (o que funciona / o que não). `AskUserQuestion` se ajudar a decidir.
-- Escolher 1 (ou fundir o melhor de 2). Registar a decisão: `node .claude/scripts/joca-brain.mjs decide --text "design escolhido: <…>" --source user`.
-- Iterar a escolhida 1-2x se preciso.
+### 4. Structured feedback + iterate
+- Collect feedback per variant (what works / what does not). `AskUserQuestion` if it helps the decision.
+- Pick 1 (or merge the best of 2). Record the decision: `node .claude/scripts/joca-brain.mjs decide --text "design chosen: <…>" --source user`.
+- Iterate on the chosen one 1-2x if needed.
 
-### 5. Autópsia obrigatória à 3ª rejeição
-**Três rondas rejeitadas seguidas → parar de produzir.** Não se gera a 4ª ronda: despacha-se **1 agente de autópsia** sobre as rejeitadas, com uma pergunta só — *o que é que estas propostas têm em COMUM?* O que varia entre elas já foi variado; a causa está no que não variou.
+### 5. Mandatory autopsy at the 3rd rejection
+**Three rejected rounds in a row → stop producing.** You do not generate a 4th round: you dispatch **1 autopsy agent** over the rejected ones, with a single question — *what do these proposals have in COMMON?* What varies between them has already been varied; the cause is in what did not vary.
 
-O relatório da autópsia entra como constraint dura no brief comum da ronda seguinte, e a ronda só arranca depois de o utilizador confirmar as causas.
+The autopsy report enters the next round's common brief as a hard constraint, and the round only starts after the user confirms the causes.
 
-Custo real de não o fazer: **oito propostas rejeitadas** antes de alguém perguntar isto. A autópsia (1 agente) achou as três causas em minutos — fotografia com marca de terceiros, a mesma página repintada em todas, zero comércio na página de uma loja — por muito menos do que custou a nona ronda às cegas.
+The real cost of not doing it: **eight rejected proposals** before anyone asked this. The autopsy (1 agent) found the three causes in minutes — photography with a third party's watermark, the same page repainted in all of them, zero commerce on a shop's page — for far less than the ninth blind round cost.
 
-## UX Principles — como os utilizadores se comportam (aplicar a cada variante)
+## UX Principles — how users behave (apply to every variant)
 
-Princípios observados (Steve Krug, *Don't Make Me Think*), não preferências. Avaliar cada variante contra eles.
+Observed principles (Steve Krug, *Don't Make Me Think*), not preferences. Evaluate each variant against them.
 
-**3 leis:**
-1. **Don't make me think** — cada ecrã auto-evidente. Se o user pára a pensar "o que clico?", o design falhou.
-2. **Cliques não importam, pensar importa** — 3 cliques óbvios > 1 clique que exige pensar.
-3. **Omite, depois omite outra vez** — corta metade das palavras, depois metade do que resta. Happy-talk e instruções morrem.
+**3 laws:**
+1. **Don't make me think** — every screen self-evident. If the user stops to think "what do I click?", the design failed.
+2. **Clicks don't matter, thinking matters** — 3 obvious clicks > 1 click that requires thought.
+3. **Omit, then omit again** — cut half the words, then half of what is left. Happy talk and instructions die.
 
-**Como se comportam:** os users *fazem scan* (não lêem) → hierarquia visual = importância; *satisficem* (escolhem a 1ª opção razoável) → torna a escolha certa a mais visível; *winguam* (não percebem como funciona, atrapalham-se até dar) → o caminho certo tem de ser o mais óbvio; *não lêem instruções*.
+**How they behave:** users *scan* (they don't read) → visual hierarchy = importance; they *satisfice* (they pick the 1st reasonable option) → make the right choice the most visible one; they *muddle through* (they don't understand how it works, they fumble until it does) → the right path has to be the most obvious one; they *don't read instructions*.
 
-**Billboard design:** usar convenções (logo top-left, nav top, lupa=search — não inovar em navegação por esperteza); hierarquia visual é tudo (tudo grita = nada se ouve; ruído é culpado até prova em contrário); clicável tem de parecer clicável (sem depender de hover — mobile não tem); clareza > consistência.
+**Billboard design:** use conventions (logo top-left, nav top, magnifier=search — don't innovate in navigation to look clever); visual hierarchy is everything (everything shouting = nothing is heard; noise is guilty until proven innocent); clickable has to look clickable (without relying on hover — mobile has none); clarity > consistency.
 
-**Navegação = wayfinding:** responder sempre "que site é? que página? que secções? onde estou?". Nav persistente; secção actual indicada; "trunk test" (tapa tudo menos a nav → ainda sabes onde estás?).
+**Navigation = wayfinding:** always answer "what site is this? what page? what sections? where am I?". Persistent nav; current section indicated; "trunk test" (cover everything but the nav → do you still know where you are?).
 
-**Reservatório de goodwill:** cada fricção esvazia-o. Esvazia mais rápido: esconder o que o user quer (preço/contacto), punir por não fazer à tua maneira, pedir info desnecessária, pôr "sizzle" no caminho (splash/tours forçados). Repõe: torna óbvio o que o user quer fazer, di-lo à cabeça, poupa passos, fácil recuperar de erros.
+**Reservoir of goodwill:** every bit of friction drains it. It drains faster if you: hide what the user wants (price/contact), punish them for not doing it your way, ask for unnecessary info, put "sizzle" in the way (splash screens/forced tours). It refills if you: make what the user wants to do obvious, say it up front, save steps, make errors easy to recover from.
 
-**Mobile:** mesmas regras, mais ainda. Touch targets ≥ 44px; afford­ances visíveis (sem cursor = sem hover-to-discover); prioriza sem dó.
+**Mobile:** same rules, only more so. Touch targets ≥ 44px; visible affordances (no cursor = no hover-to-discover); prioritize ruthlessly.
 
-## Próximo passo (chain)
-- Variante escolhida → `design-review` (validar gosto/slop) → `design-html` (mockup → HTML produção) OU `frontend` (implementar em React). Reversível → encadear; ver `rules/chaining.md`.
+## Next step (chain)
+- Variant chosen → `design-review` (validate taste/slop) → `design-html` (mockup → production HTML) OR `frontend` (implement in React). Reversible → chain it; see `rules/chaining.md`.

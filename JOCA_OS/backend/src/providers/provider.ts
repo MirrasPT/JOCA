@@ -1,5 +1,5 @@
-// Brain layer — direct LLM calls (no terminal, no orchestration). Usada hoje apenas pela
-// funcionalidade "Optimizar" (reescrita de texto).
+// Brain layer — direct LLM calls (no terminal, no orchestration). Used today only by the
+// "Optimizar" feature (text rewriting).
 //
 // Verified against @anthropic-ai/claude-agent-sdk@0.3.185 (sdk.d.ts + official TS reference):
 //   query({prompt, options}): Query extends AsyncGenerator<SDKMessage, void>
@@ -18,22 +18,22 @@ export interface BrainRunOptions {
   systemPrompt?: string;
   model?: string;                                  // 'opus' | 'sonnet' | 'haiku' | full id
   cwd?: string;
-  noTools?: boolean;                               // sem ferramentas → completação de texto pura
+  noTools?: boolean;                               // no tools → pure text completion
   // ── Multi-turn + tools ────────────────────────────────────────────────────
-  // ⚠ Nenhum caller usa estas opções hoje. O último era o `/optimize-objective` (llm-routes), que
-  // saiu com o sistema de Automações; antes disso, o gestor de projecto. Mantêm-se porque
-  // descrevem o contrato REAL do SDK — quem voltar a precisar de uma conversa com ferramentas
-  // precisa delas —, mas não as tomes por usadas.
+  // ⚠ No caller uses these options today. The last one was `/optimize-objective` (llm-routes), which
+  // left with the Automations system; before that, the project manager. They stay because they
+  // describe the REAL contract of the SDK — whoever needs a conversation with tools again
+  // needs them — but do not take them for used.
   //
-  // resume: SDK session id de um `result` anterior. O SDK recarrega o histórico dessa conversa, em
-  // vez de o reconstruirmos colando transcrição no prompt.
+  // resume: SDK session id from a previous `result`. The SDK reloads that conversation's history,
+  // instead of us rebuilding it by pasting a transcript into the prompt.
   resume?: string;
   // In-process MCP servers built with createSdkMcpServer(). Their tools reach the model as
   // mcp__<server>__<tool>.
   mcpServers?: Record<string, unknown>;
-  // Fronteira dura de ferramentas: `tools: []` desliga TODOS os built-ins (Bash/Edit/Write/Read).
+  // Hard tool boundary: `tools: []` turns OFF ALL the built-ins (Bash/Edit/Write/Read).
   disallowedTools?: string[];
-  // Nomes de ferramentas auto-aprovadas.
+  // Names of auto-approved tools.
   allowedTools?: string[];
   // Defaults to 'bypassPermissions' (needed by anything touching the filesystem). An agent with
   // tools:[] has no filesystem access at all, so it should run on 'default': bypass is both
@@ -69,13 +69,13 @@ export class ClaudeProvider {
         systemPrompt: opts.systemPrompt,
         cwd: opts.cwd,
         abortController: controller,
-        // Sem ferramentas → completação de texto pura (sem Bash/Read/etc), para quem quer que o
-        // cérebro REESCREVA a instrução em vez de a EXECUTAR. `tools:[]` desliga os built-ins;
-        // `maxTurns:1` é cinto e suspensórios contra um ciclo de ferramenta/continuação.
+        // No tools → pure text completion (no Bash/Read/etc), for whoever wants the brain to
+        // REWRITE the instruction instead of EXECUTING it. `tools:[]` turns off the built-ins;
+        // `maxTurns:1` is belt and braces against a tool/continuation loop.
         ...(opts.noTools ? { tools: [] as string[], maxTurns: 1 } : {}),
-        // As ferramentas MCP in-process MAIS os built-ins que o caller autorizou. `tools`
-        // é o que decide o que EXISTE; `allowedTools` só dispensa a permissão. Os built-ins saem da
-        // mesma lista, tirando as entradas mcp__* (essas vêm do servidor MCP).
+        // The in-process MCP tools PLUS the built-ins the caller authorized. `tools`
+        // is what decides what EXISTS; `allowedTools` only waives the permission. The built-ins come
+        // from the same list, minus the mcp__* entries (those come from the MCP server).
         ...(opts.mcpServers ? {
           tools: (opts.allowedTools ?? []).filter((t) => !t.startsWith('mcp__')),
           mcpServers: opts.mcpServers as never,

@@ -1,6 +1,6 @@
 ---
 name: personal-comms
-description: "Ler, resumir e enviar email + gerir calendario via MCP/CLI JA LIGADOS (sem API custom). MUST be invoked when the user says: ler email, resumir inbox, enviar email, responder email, marcar reuniao, criar evento, agenda, calendario, proximos eventos, lembrete, personal-comms, assistente pessoal de comunicacao."
+description: "Read, summarize and send email + manage the calendar via MCP/CLI ALREADY CONNECTED (no custom API). MUST be invoked when the user says: read email, summarize inbox, send email, reply to email, book a meeting, create event, agenda, calendar, upcoming events, reminder, personal-comms, personal communication assistant."
 metadata:
   version: 1.0.0
   origin: local
@@ -8,185 +8,185 @@ metadata:
 
 # Personal Comms
 
-Skill do agente `personal-comms` (FUTUROS Fase 2/3). Le, resume e envia email; le e gere calendario. Usa SEMPRE tools ja ligadas (MCP ou CLI) — nunca constroi API/cliente custom, nunca chama provider via HTTP cru.
+Skill of the `personal-comms` agent (FUTUROS Phase 2/3). Reads, summarizes and sends email; reads and manages the calendar. ALWAYS uses tools that are already connected (MCP or CLI) — it never builds a custom API/client, never calls a provider over raw HTTP.
 
-## Principio Nuclear — Descobrir, Nao Assumir
+## Nuclear Principle — Discover, Do Not Assume
 
-Nao existe tool fixa garantida para email/calendario neste ambiente. NAO assumir Gmail, Outlook, Google Calendar, nem nome de MCP especifico. Primeiro passo de QUALQUER tarefa: descobrir o que esta efectivamente ligado.
+There is no guaranteed fixed email/calendar tool in this environment. Do NOT assume Gmail, Outlook, Google Calendar, nor a specific MCP name. First step of ANY task: discover what is effectively connected.
 
-### Anti-fabricacao (forte — herda soul.md Hard Limits)
-- NUNCA inventar credenciais, endpoints, tokens, IDs de conta, nomes de MCP ou de tool.
-- Sem tool de email/calendario ligada -> NAO improvisar com curl/SMTP/IMAP nem pedir a key inline. Deixar `TODO: tool de email/calendario nao ligada` e REPORTAR ao supervisor/user.
-- Detalhe incerto (formato de resposta da tool, campo de data, fuso) -> dize-lo, nao adivinhar.
-- Este brief vale tambem quando este agente e spawned: sub-agentes nao herdam soul.md, so o brief.
+### Anti-fabrication (strong — inherits soul.md Hard Limits)
+- NEVER invent credentials, endpoints, tokens, account IDs, MCP or tool names.
+- No email/calendar tool connected -> do NOT improvise with curl/SMTP/IMAP nor ask for the key inline. Leave `TODO: email/calendar tool not connected` and REPORT to the supervisor/user.
+- Uncertain detail (the tool's response format, date field, timezone) -> say so, do not guess.
+- This brief also holds when this agent is spawned: sub-agents do not inherit soul.md, only the brief.
 
 ---
 
-## Passo 1 — Descoberta de Tool
+## Step 1 — Tool Discovery
 
-Ordem de verificacao. Parar no primeiro que der match.
+Order of checks. Stop at the first one that matches.
 
-1. **Tools MCP carregadas na sessao** — procurar por nome/keyword via `ToolSearch`:
+1. **MCP tools loaded in the session** — look them up by name/keyword via `ToolSearch`:
    ```
    ToolSearch query="email send read inbox"     max_results=8
    ToolSearch query="calendar event schedule"   max_results=8
    ToolSearch query="gmail outlook imap smtp"    max_results=8
    ```
-   Tools MCP aparecem como `mcp__<servidor>__<accao>`. So sao chamaveis depois do schema vir do `ToolSearch` (deferred tools). Confirmar o schema antes de invocar.
+   MCP tools show up as `mcp__<server>__<action>`. They are only callable after the schema comes back from `ToolSearch` (deferred tools). Confirm the schema before invoking.
 
-2. **MCP configurados (mesmo que nao expostos ao loop)** — inspeccionar config sem ler segredos:
-   - User scope: `~/.claude.json` / `~/.claude/` (procurar bloco `mcpServers`).
-   - Projecto: `.mcp.json` / `.claude/settings.json` na raiz do projecto.
-   - Listar via CLI: `claude mcp list` (mostra servidores ligados).
-   Se houver servidor de email/calendario configurado mas nao exposto ao main loop, ver "Browser/MCP fora do loop" abaixo.
+2. **Configured MCPs (even if not exposed to the loop)** — inspect the config without reading secrets:
+   - User scope: `~/.claude.json` / `~/.claude/` (look for the `mcpServers` block).
+   - Project: `.mcp.json` / `.claude/settings.json` at the project root.
+   - List via CLI: `claude mcp list` (shows connected servers).
+   If there is an email/calendar server configured but not exposed to the main loop, see "Browser/MCP outside the loop" below.
 
-3. **CLI no PATH** — verificar binarios de comunicacao instalados, ex.:
+3. **CLI on the PATH** — check which communication binaries are installed, e.g.:
    ```bash
    for c in gam gcalcli himalaya mutt msmtp khal vdirsyncer; do command -v "$c" && echo "found: $c"; done
    ```
-   (Lista ilustrativa — confirmar o que existe, nao assumir que algum esta la.)
+   (Illustrative list — confirm what exists, do not assume any of them is there.)
 
-4. **Nada encontrado** -> `TODO: tool de email/calendario nao ligada` + reportar. NAO continuar.
+4. **Nothing found** -> `TODO: email/calendar tool not connected` + report. Do NOT continue.
 
-> Windows: usar `python` (nao `python3` — stub vazio da Microsoft Store). Em PowerShell, `command -v` nao existe -> usar `Get-Command <nome> -ErrorAction SilentlyContinue`.
+> Windows: use `python` (not `python3` — the empty Microsoft Store stub). In PowerShell, `command -v` does not exist -> use `Get-Command <name> -ErrorAction SilentlyContinue`.
 
-### Verificar a tool contra resposta real (api-design.md)
-Antes de confiar no parsing de output (datas, remetente, ID de evento), fazer 1 chamada real read-only e inspeccionar o shape efectivo. Nao inferir o formato — `tsc`/build nao apanham um campo de data sempre `null`.
+### Check the tool against a real response (api-design.md)
+Before trusting the output parsing (dates, sender, event ID), make 1 real read-only call and inspect the effective shape. Do not infer the format — `tsc`/build do not catch a date field that is always `null`.
 
 ---
 
-## Passo 2 — Resumo de Inbox
+## Step 2 — Inbox Summary
 
-Quando ha tool de leitura de email ligada.
+When there is an email-reading tool connected.
 
-### Padrao
-1. Fetch read-only do periodo pedido (default: nao-lidos das ultimas 24h; confirmar se ambiguo).
-2. Agrupar por: **Accao requerida** / **FYI** / **Ruido** (newsletters, automaticos).
-3. Por email accionavel, 1 linha: `[remetente] assunto -> accao sugerida`.
-4. Nunca colar corpo inteiro — resumir. Identificadores criticos (remetente exacto, ID da mensagem, link) verbatim.
-5. Terminar com contagem: `N accionaveis, M FYI, K ruido`.
+### Pattern
+1. Read-only fetch of the requested period (default: unread from the last 24h; confirm if ambiguous).
+2. Group by: **Action required** / **FYI** / **Noise** (newsletters, automated).
+3. Per actionable email, 1 line: `[sender] subject -> suggested action`.
+4. Never paste the whole body — summarize. Critical identifiers (exact sender, message ID, link) verbatim.
+5. Finish with a count: `N actionable, M FYI, K noise`.
 
-### Formato de saida
+### Output format
 ```
-ACCIONAVEIS
-- [Cliente X] Proposta orcamento -> responder ate sexta
-- [Banco]    Pagamento falhado  -> verificar metodo
+ACTIONABLE
+- [Client X] Quote proposal  -> reply by Friday
+- [Bank]     Payment failed  -> check the method
 
 FYI
-- [Newsletter Y] resumo semanal
+- [Newsletter Y] weekly digest
 
-3 accionaveis, 1 FYI, 12 ruido
+3 actionable, 1 FYI, 12 noise
 ```
 
-### Guardrails de leitura
-- Read-only por defeito. Marcar como lido / arquivar / apagar = accao com efeito -> confirmar 1 linha antes (GUARD).
-- Nao expor conteudo sensivel (codigos 2FA, passwords em emails) em resumos partilhaveis.
+### Reading guardrails
+- Read-only by default. Mark as read / archive / delete = an action with effect -> confirm 1 line first (GUARD).
+- Do not expose sensitive content (2FA codes, passwords in emails) in shareable summaries.
 
 ---
 
-## Passo 3 — Enviar / Responder Email
+## Step 3 — Send / Reply to Email
 
-Accao com efeito externo, frequentemente irreversivel -> GUARD.
+An action with an external effect, frequently irreversible -> GUARD.
 
-1. **Draft primeiro.** Mostrar destinatario(s), assunto e corpo ao user.
-2. Confirmar 1 linha antes de enviar (`enviar? s/n`). Sem confirmacao -> nao enviar.
-3. So enviar via a tool descoberta. Sem tool de envio -> `TODO` + reportar; NAO cair para SMTP cru.
-4. Replies: preservar thread/`In-Reply-To` se a tool o suportar; nao inventar headers.
-5. Tom default: alinhado ao user (pt-pt, terso, profissional) salvo instrucao.
+1. **Draft first.** Show the recipient(s), subject and body to the user.
+2. Confirm 1 line before sending (`send? y/n`). Without confirmation -> do not send.
+3. Only send via the discovered tool. No sending tool -> `TODO` + report; do NOT fall back to raw SMTP.
+4. Replies: preserve the thread/`In-Reply-To` if the tool supports it; do not invent headers.
+5. Default tone: aligned to the user (pt-pt, terse, professional) unless instructed otherwise.
 
 ---
 
-## Passo 4 — Deteccao de Eventos
+## Step 4 — Event Detection
 
-Extrair compromissos de email/texto para sugerir entradas de calendario.
+Extract appointments from email/text to suggest calendar entries.
 
-- Sinais: data + hora + verbo de encontro ("reuniao", "call", "almoco", "deadline", "as 15h", "dia 3").
-- Output estruturado, NUNCA criar evento sem confirmar:
+- Signals: date + time + a meeting verb ("meeting", "call", "lunch", "deadline", "at 3pm", "on the 3rd").
+- Structured output, NEVER create an event without confirming:
   ```
-  Evento detectado:
-    titulo: Call com Cliente X
-    quando: 2026-06-25 15:00 Europe/Lisbon
-    fonte:  email [Cliente X] "Proposta"
-  Criar no calendario? s/n
+  Event detected:
+    title:  Call with Client X
+    when:   2026-06-25 15:00 Europe/Lisbon
+    source: email [Client X] "Proposal"
+  Create it in the calendar? y/n
   ```
-- Fuso: assumir `Europe/Lisbon` salvo indicacao; se a fonte for ambigua, dize-lo, nao adivinhar.
-- Datas relativas ("amanha", "proxima sexta") -> resolver contra a data actual do ambiente, mostrar a data absoluta resolvida.
+- Timezone: assume `Europe/Lisbon` unless told otherwise; if the source is ambiguous, say so, do not guess.
+- Relative dates ("tomorrow", "next Friday") -> resolve them against the environment's current date, show the resolved absolute date.
 
 ---
 
-## Passo 5 — Gerir Calendario
+## Step 5 — Manage the Calendar
 
-Quando ha tool de calendario ligada.
+When there is a calendar tool connected.
 
-- **Ler agenda**: "proximos eventos" -> listar janela pedida (default: hoje + 7 dias). 1 linha por evento: `data hora - titulo (local/link)`.
-- **Criar evento**: draft -> confirmar -> criar via tool. Campos minimos: titulo, inicio, fim/duracao, fuso. Convidados/local so se pedidos.
-- **Conflitos**: ao criar, verificar sobreposicao na janela; se houver, avisar antes de criar.
-- **Editar/cancelar**: accao com efeito -> confirmar; usar o ID real do evento devolvido pela tool (nunca inventar ID).
-
----
-
-## Lembretes
-
-JOCA nao tem scheduler proprio garantido. Para lembretes:
-1. Preferir a capacidade nativa da tool de calendario (notificacao/alerta do evento) — e o caminho fiavel.
-2. Agendamento recorrente do lado do agente -> so se existir mecanismo de cron/schedule confirmado no ambiente (ex.: `/schedule`, `/loop`). Confirmar que existe antes de prometer; senao `TODO` + reportar.
-3. Nunca prometer um lembrete que nenhuma tool ligada consegue disparar.
+- **Read the agenda**: "upcoming events" -> list the requested window (default: today + 7 days). 1 line per event: `date time - title (place/link)`.
+- **Create an event**: draft -> confirm -> create via the tool. Minimum fields: title, start, end/duration, timezone. Guests/place only if asked for.
+- **Conflicts**: when creating, check for overlap in the window; if there is one, warn before creating.
+- **Edit/cancel**: an action with effect -> confirm; use the real event ID returned by the tool (never invent an ID).
 
 ---
 
-## Browser/MCP fora do loop principal (workflows-and-tooling.md)
-Um MCP configurado pode nao estar exposto ao loop principal — so a sub-agentes. Se a config mostra servidor de email/calendario mas nenhuma tool aparece no `ToolSearch` do loop, delegar a accao a um sub-agente que tenha o MCP, com brief que carrega: objectivo, anti-fabricacao, confirmar antes de accoes com efeito. Nao assumir a tool disponivel inline.
+## Reminders
+
+JOCA has no guaranteed scheduler of its own. For reminders:
+1. Prefer the calendar tool's native capability (the event's notification/alert) — it is the reliable path.
+2. Recurring scheduling on the agent side -> only if a cron/schedule mechanism confirmed in the environment exists (e.g. `/schedule`, `/loop`). Confirm it exists before promising; otherwise `TODO` + report.
+3. Never promise a reminder that no connected tool can fire.
+
+---
+
+## Browser/MCP outside the main loop (workflows-and-tooling.md)
+A configured MCP may not be exposed to the main loop — only to sub-agents. If the config shows an email/calendar server but no tool shows up in the loop's `ToolSearch`, delegate the action to a sub-agent that has the MCP, with a brief that carries: objective, anti-fabrication, confirm before actions with effect. Do not assume the tool is available inline.
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Right |
 |--------|----------|
-| Assumir Gmail/Outlook/Google Calendar ligado | Descobrir via `ToolSearch` + `claude mcp list` + config |
-| Construir cliente IMAP/SMTP/REST custom | So tool MCP/CLI ja ligada |
-| Inventar key/endpoint/account ID em falta | `TODO: tool nao ligada` + reportar |
-| Enviar email sem confirmar | Draft -> confirmar 1 linha -> enviar |
-| Criar evento direto do email | Detectar -> mostrar -> confirmar -> criar |
-| Inferir shape do output da tool | 1 chamada real read-only + validar campos |
-| Inventar ID de evento para editar | Usar ID real devolvido pela tool |
-| Prometer lembrete sem mecanismo | Usar alerta do calendario ou `TODO` + reportar |
-| `python3` no Windows | `python` |
+| Assuming Gmail/Outlook/Google Calendar is connected | Discover via `ToolSearch` + `claude mcp list` + config |
+| Building a custom IMAP/SMTP/REST client | Only an MCP/CLI tool already connected |
+| Inventing a missing key/endpoint/account ID | `TODO: tool not connected` + report |
+| Sending email without confirming | Draft -> confirm 1 line -> send |
+| Creating an event straight from the email | Detect -> show -> confirm -> create |
+| Inferring the shape of the tool's output | 1 real read-only call + validate the fields |
+| Inventing an event ID to edit | Use the real ID returned by the tool |
+| Promising a reminder with no mechanism | Use the calendar alert or `TODO` + report |
+| `python3` on Windows | `python` |
 
 ---
 
-## Descarregar ANEXOS de email (o MCP do Gmail nao os descarrega)
+## Downloading email ATTACHMENTS (the Gmail MCP does not download them)
 
-O `mcp__claude_ai_Gmail__*` **le** metadados de anexos (`filename`, `mimeType`, `attachmentIds`)
-mas **nao tem tool para os gravar em disco**. Nao improvisar nem pedir ao utilizador que os
-descarregue a mao — a via e o CLI `gws`, e o payload vem em **base64url**, nao em bytes:
+`mcp__claude_ai_Gmail__*` **reads** attachment metadata (`filename`, `mimeType`, `attachmentIds`)
+but **has no tool to save them to disk**. Do not improvise nor ask the user to download
+them by hand — the way is the `gws` CLI, and the payload comes in **base64url**, not in bytes:
 
 ```bash
-# 1. obter messageId + attachment id  -> mcp__claude_ai_Gmail__get_thread (messageFormat: PLAIN_TEXT)
-# 2. puxar o anexo (o id do anexo tem ~700 chars; usar variavel, nunca inline)
+# 1. get messageId + attachment id  -> mcp__claude_ai_Gmail__get_thread (messageFormat: PLAIN_TEXT)
+# 2. pull the attachment (the attachment id is ~700 chars; use a variable, never inline)
 gws gmail users messages attachments get \
   --params "{\"userId\":\"me\",\"messageId\":\"$MSG\",\"id\":\"$ATT\"}" > att.json
-# 3. descodificar base64url (o `base64 -d` do macOS NAO aceita -_ nem falta de padding)
+# 3. decode base64url (macOS's `base64 -d` does NOT accept -_ nor missing padding)
 python3 -c "import json,base64,pathlib;d=json.load(open('att.json'))['data'];\
-pathlib.Path('saida.pdf').write_bytes(base64.urlsafe_b64decode(d+'='*(-len(d)%4)))"
+pathlib.Path('output.pdf').write_bytes(base64.urlsafe_b64decode(d+'='*(-len(d)%4)))"
 ```
 
-Verificar sempre pelo **efeito**: `head -c4` do ficheiro tem de dar `%PDF` (ou o magic do tipo),
-nao basta o JSON ter vindo com bytes. O `gws` escreve `Using keyring backend: keyring` no **stderr**
-— nao e erro; redirecionar stderr ou o ficheiro fica corrompido se se capturar `2>&1`.
+Always verify by **effect**: `head -c4` of the file has to give `%PDF` (or the magic of the type),
+it is not enough that the JSON came back with bytes. `gws` writes `Using keyring backend: keyring` to **stderr**
+— it is not an error; redirect stderr or the file gets corrupted if you capture `2>&1`.
 
-⚠ PDF de banco/financeira costuma vir **cifrado** (`pdftotext` devolve `Incorrect password`).
-A senha e uma convencao do emissor (na Cetelem: ano de nascimento + 4 ultimos digitos do NIF) e
-vive na memoria do projecto, nunca aqui.
+⚠ A bank/finance PDF usually comes **encrypted** (`pdftotext` returns `Incorrect password`).
+The password is a convention of the issuer (at Cetelem: year of birth + last 4 digits of the NIF) and
+lives in the project's memory, never here.
 
 ---
 
-## Checklist pre-accao
-- [ ] Tool de email/calendario CONFIRMADA ligada (ToolSearch / `claude mcp list` / config)
-- [ ] Schema da tool MCP carregado antes de invocar
-- [ ] Parsing validado contra 1 resposta real
-- [ ] Accoes com efeito (enviar/criar/editar/apagar) -> draft + confirmacao
-- [ ] Zero credenciais/endpoints/IDs inventados
-- [ ] Fuso explicito (Europe/Lisbon default) e datas relativas resolvidas
-- [ ] Sem tool -> `TODO` + reportado, NAO improvisado
-- [ ] Anexos: descarregados via `gws` + base64url, e verificados pelo magic do ficheiro
+## Pre-action checklist
+- [ ] Email/calendar tool CONFIRMED connected (ToolSearch / `claude mcp list` / config)
+- [ ] MCP tool schema loaded before invoking
+- [ ] Parsing validated against 1 real response
+- [ ] Actions with effect (send/create/edit/delete) -> draft + confirmation
+- [ ] Zero invented credentials/endpoints/IDs
+- [ ] Explicit timezone (Europe/Lisbon default) and relative dates resolved
+- [ ] No tool -> `TODO` + reported, NOT improvised
+- [ ] Attachments: downloaded via `gws` + base64url, and verified by the file's magic

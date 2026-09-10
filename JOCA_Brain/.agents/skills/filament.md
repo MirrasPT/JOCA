@@ -1,7 +1,7 @@
 ---
 name: filament
 description: "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page. SHOULD also invoke when: filament widget, filament form, filament table, filament action, Filament v4, Filament v5."
-triggers: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page, filament widget, filament form, filament table, filament action, Filament v4, Filament v5, make:filament-resource, NavigationGroup, admin painel, painel admin, gestao, dashboard admin
+triggers: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page, filament widget, filament form, filament table, filament action, Filament v4, Filament v5, make:filament-resource, NavigationGroup, management, dashboard admin
 chain: tester-code
 ---
 # Filament
@@ -47,7 +47,7 @@ final class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
     protected static ?string $slug = 'products';
-    protected static ?string $recordTitleAttribute = 'name'; // obrigatorio -- global search
+    protected static ?string $recordTitleAttribute = 'name'; // mandatory -- global search
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
     protected static string|\UnitEnum|null $navigationGroup = 'Shop';
     protected static ?int $navigationSort = 1;
@@ -55,7 +55,7 @@ final class ProductResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            // form fields aqui
+            // form fields here
         ]);
     }
 
@@ -63,8 +63,8 @@ final class ProductResource extends Resource
     {
         return $table
             ->columns([...])
-            ->recordActions([...])        // NAO ->actions()
-            ->groupedBulkActions([...])    // NAO ->bulkActions()
+            ->recordActions([...])        // NOT ->actions()
+            ->groupedBulkActions([...])    // NOT ->bulkActions()
             ->toolbarActions([...]);       // create/import/export
     }
 }
@@ -72,11 +72,11 @@ final class ProductResource extends Resource
 
 ## Complexity tiers
 
-| Nivel | Pages | Quando |
+| Level | Pages | When |
 |-------|-------|--------|
-| Simple | `ManageRecords` (modal CRUD) | <= 5 campos, sem relacoes |
-| Standard | `List + Create + Edit` | CRUD normal |
-| Full | `List + Create + Edit + View` + relation managers | Relacoes complexas |
+| Simple | `ManageRecords` (modal CRUD) | <= 5 fields, no relations |
+| Standard | `List + Create + Edit` | Normal CRUD |
+| Full | `List + Create + Edit + View` + relation managers | Complex relations |
 
 ---
 
@@ -99,8 +99,8 @@ $schema->components([
             ->dehydrated(),
         Select::make('category_id')
             ->relationship('category', 'name')
-            ->searchable()    // obrigatorio
-            ->preload(),      // obrigatorio
+            ->searchable()    // mandatory
+            ->preload(),      // mandatory
         RichEditor::make('description')->columnSpanFull(),
     ])->columns(2),
 ]);
@@ -137,39 +137,39 @@ Agent(subagent_type="filament-builder", prompt="Build a Filament resource for Ap
 
 ## Anti-patterns
 
-| Errado | Correcto |
+| Wrong | Correct |
 |--------|----------|
-| `->actions([])` na tabela | `->recordActions([])` |
+| `->actions([])` on the table | `->recordActions([])` |
 | `->bulkActions([])` | `->groupedBulkActions([])` |
-| `->form()` em action modals | `->schema()` |
-| Import de `Filament\Tables\Actions\*` | `Filament\Actions\*` |
-| String icones: `'heroicon-o-bag'` | `Heroicon::OutlinedShoppingBag` enum |
-| Texto hardcoded | Language files, `__()` |
-| Publicar Blade views | CSS hooks com prefixo `fi-` |
-| `filament:optimize` em local | So producao |
-| Selects multi-tenant sem `modifyQueryUsing` | Data leak |
-| Sem `$recordTitleAttribute` | Global search quebrado |
-| Sem `FilamentUser` interface em producao | Acesso sem controlo |
+| `->form()` in action modals | `->schema()` |
+| Importing from `Filament\Tables\Actions\*` | `Filament\Actions\*` |
+| Icon strings: `'heroicon-o-bag'` | `Heroicon::OutlinedShoppingBag` enum |
+| Hardcoded text | Language files, `__()` |
+| Publishing Blade views | CSS hooks with the `fi-` prefix |
+| `filament:optimize` locally | Production only |
+| Multi-tenant selects without `modifyQueryUsing` | Data leak |
+| No `$recordTitleAttribute` | Global search broken |
+| No `FilamentUser` interface in production | Uncontrolled access |
 
 ---
 
 ## Checklist
 
-- [ ] `$recordTitleAttribute` em cada resource
-- [ ] `Heroicon::` enum em todos os icones
-- [ ] Actions importadas de `Filament\Actions\*`
-- [ ] Tabela usa `recordActions()`, `groupedBulkActions()`, `toolbarActions()`
-- [ ] Enums implementam HasLabel + HasColor + HasIcon
-- [ ] Selects com `->searchable()` e `->preload()`
-- [ ] Multi-tenant: selects com `modifyQueryUsing`
-- [ ] `FilamentUser` interface + `canAccessPanel()` em producao
-- [ ] Model policies para viewAny, create, update, delete
-- [ ] Sem texto hardcoded -- language files
+- [ ] `$recordTitleAttribute` on every resource
+- [ ] `Heroicon::` enum on every icon
+- [ ] Actions imported from `Filament\Actions\*`
+- [ ] The table uses `recordActions()`, `groupedBulkActions()`, `toolbarActions()`
+- [ ] Enums implement HasLabel + HasColor + HasIcon
+- [ ] Selects with `->searchable()` and `->preload()`
+- [ ] Multi-tenant: selects with `modifyQueryUsing`
+- [ ] `FilamentUser` interface + `canAccessPanel()` in production
+- [ ] Model policies for viewAny, create, update, delete
+- [ ] No hardcoded text -- language files
 
-## Referências (carregar on-demand)
+## References (load on-demand)
 
-| Referência | Quando |
+| Reference | When |
 |---|---|
-| `Read(".claude/reference/filament/advanced-blocks.md")` | Enums (HasLabel/HasColor/HasIcon + gotcha Heroicon), infolists, relation managers, widgets, custom actions, global search, import/export, notifications |
-| `Read(".claude/reference/filament/tenancy-rbac.md")` | Multi-tenancy (scoping manual de selects — sem isto = data leak) e RBAC/Filament Shield (ordem de install, super_admin bypass, helper de testes) |
-| `Read(".claude/reference/filament/testing-deploy.md")` | Testes Pest+Livewire de resources e optimize/deploy em produção |
+| `Read(".claude/reference/filament/advanced-blocks.md")` | Enums (HasLabel/HasColor/HasIcon + the Heroicon gotcha), infolists, relation managers, widgets, custom actions, global search, import/export, notifications |
+| `Read(".claude/reference/filament/tenancy-rbac.md")` | Multi-tenancy (manual scoping of selects — without it = data leak) and RBAC/Filament Shield (install order, super_admin bypass, test helper) |
+| `Read(".claude/reference/filament/testing-deploy.md")` | Pest+Livewire tests for resources and optimize/deploy in production |

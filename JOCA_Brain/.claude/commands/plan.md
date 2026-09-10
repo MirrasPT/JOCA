@@ -1,21 +1,21 @@
-# /plan — Planeamento e Arquitectura
+# /plan — Planning and Architecture
 
-Entrar em Plan Mode.
+Enter Plan Mode.
 
-`Read(".claude/skills/plan.md")` — metodologia de planeamento (interrogar + OODA), a mesma que o `/autoplan` usa.
+`Read(".claude/skills/plan.md")` — planning methodology (interrogate + OODA), the same one `/autoplan` uses.
 
-Analisar contexto:
-- Ficheiros relevantes do projecto
-- Stack detectada
-- Objectivo declarado pelo utilizador
+Analyze the context:
+- Relevant project files
+- Detected stack
+- Objective stated by the user
 
-Produzir plano com:
-- Abordagem proposta e alternativas consideradas
-- Tradeoffs de cada opção
-- Passos concretos e verificáveis
-- Ficheiros que serão tocados
+Produce a plan with:
+- Proposed approach and alternatives considered
+- Tradeoffs of each option
+- Concrete, verifiable steps
+- Files that will be touched
 
-Não sair do Plan Mode sem aprovação explícita do utilizador.
+Do not leave Plan Mode without explicit approval from the user.
 
-## Próximo passo (chain)
-- Plano aprovado → skill/agente do domínio para implementar (via Trigger Map do `CLAUDE.md`). Notificar `[chain → <x>]`. Ver `rules/chaining.md`.
+## Next step (chain)
+- Plan approved → domain skill/agent to implement it (via the Trigger Map in `CLAUDE.md`). Notify `[chain → <x>]`. See `rules/chaining.md`.

@@ -1,5 +1,5 @@
-// O `cli/joca.mjs` é .mjs puro: nem tsc nem Vite o verificam. Foi aqui que viveu o
-// `rel(c.ts)` indefinido (ReferenceError em runtime com build verde) — o no-undef fecha isso.
+// `cli/joca.mjs` is pure .mjs: neither tsc nor Vite check it. This is where the undefined
+// `rel(c.ts)` lived (ReferenceError at runtime with a green build) — no-undef closes that.
 export default [
   {
     files: ['**/*.mjs'],

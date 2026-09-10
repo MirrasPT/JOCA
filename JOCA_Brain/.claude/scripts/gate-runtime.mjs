@@ -1,66 +1,66 @@
 #!/usr/bin/env node
-// gate-runtime.mjs — o gate de runtime das `rules/pipelines.md`, como artefacto.
+// gate-runtime.mjs — the runtime gate from `rules/pipelines.md`, as an artifact.
 //
-// PORQUÊ: `tsc`/`eslint`/`build` verdes provam que COMPILA, não que FUNCIONA. A regra
-// existe desde sempre em `.claude/rules/pipelines.md` §Gates e em
-// `.claude/reference/gates-runtime.md`, mas não tinha código — cada projecto reescrevia
-// ~250 linhas do zero e cada reescrita perdia uma das armadilhas. Este ficheiro é a
-// versão parametrizada: aponta-se a um URL base e a uma lista de rotas.
+// WHY: green `tsc`/`eslint`/`build` prove that it COMPILES, not that it WORKS. The rule
+// has always existed in `.claude/rules/pipelines.md` §Gates and in
+// `.claude/reference/gates-runtime.md`, but it had no code — every project rewrote
+// ~250 lines from scratch and every rewrite lost one of the pitfalls. This file is the
+// parameterized version: you point it at a base URL and a list of routes.
 //
-// O que mede (e que nenhum gate estático apanha):
-//   · contraste do texto contra o pixel PINTADO (alpha composto sobre os ancestrais;
-//     gradiente/imagem de fundo é assinalado, não adivinhado)
-//   · `document.elementFromPoint` no centro de cada alvo interactivo — auditar `href`
-//     não é testar o clique
-//   · sangramento horizontal por `getBoundingClientRect().right`, DESCARTANDO elementos
-//     com ancestral `overflow-x: auto|scroll|hidden|clip` (sem esse filtro, tabs mobile
-//     dão 15 rotas "partidas" que não estão)
-//   · erros de consola e `pageerror`
-//   · respostas HTTP >= 400
+// What it measures (and no static gate catches):
+//   · text contrast against the PAINTED pixel (alpha composited over the ancestors;
+//     a gradient/image background is flagged, not guessed)
+//   · `document.elementFromPoint` at the center of every interactive target — auditing
+//     `href` is not testing the click
+//   · horizontal bleed via `getBoundingClientRect().right`, DISCARDING elements with an
+//     `overflow-x: auto|scroll|hidden|clip` ancestor (without that filter, mobile tabs
+//     give 15 "broken" routes that are not)
+//   · console errors and `pageerror`
+//   · HTTP responses >= 400
 //
-// LIMITE ASSUMIDO: mede o estado de repouso da carga. Um gate que nunca clica é um gate
-// de layout — overlays, menus e modais exigem accionar o gatilho (ver `--clicar`).
+// ASSUMED LIMIT: it measures the resting state of the load. A gate that never clicks is a
+// layout gate — overlays, menus and modals require triggering them (see `--clicar`).
 //
-// Uso:
+// Usage:
 //   node .claude/scripts/gate-runtime.mjs --base http://localhost:3000
 //   node .claude/scripts/gate-runtime.mjs --base http://localhost:3000 --rotas /,/precos,/sobre
 //   node .claude/scripts/gate-runtime.mjs --config gate-runtime.json
 //   node .claude/scripts/gate-runtime.mjs --base http://localhost:3000 --clicar "header a,nav button"
 //
 // Flags:
-//   --base <url>        URL base (obrigatório, ou `base` no --config)
-//   --rotas a,b,c       lista de rotas (default: "/")
-//   --config <ficheiro> JSON com { base, rotas, temas, viewports, clicar, out, esperar }
-//   --temas a,b         valores postos em `data-theme` no <html> (default: nenhum)
+//   --base <url>        base URL (required, or `base` in --config)
+//   --rotas a,b,c       list of routes (default: "/")
+//   --config <file>     JSON with { base, rotas, temas, viewports, clicar, out, esperar }
+//   --temas a,b         values put in `data-theme` on the <html> (default: none)
 //   --viewports WxH,... default: 1440x900,390x844
-//   --clicar <seletor>  além de medir, clica em cada elemento que casa e conta erros novos
-//   --out <pasta>       destino do relatório e screenshots (default: ./.joca/gate-runtime)
-//   --esperar <ms>      espera após carga, antes de medir (default: 500)
+//   --clicar <selector> besides measuring, clicks every matching element and counts new errors
+//   --out <folder>      destination for the report and screenshots (default: ./.joca/gate-runtime)
+//   --esperar <ms>      wait after load, before measuring (default: 500)
 //
-// Exit code: 0 = tudo limpo · 1 = pelo menos uma rota com problema.
+// Exit code: 0 = all clean · 1 = at least one route with a problem.
 //
-// Playwright: resolvido pela receita da skill `browser-automate` — dependência do
-// projecto primeiro, depois `npm root -g`, depois `PLAYWRIGHT_PATH`. Nunca um caminho
-// cravado: um gate que não arranca é um gate que não existe.
+// Playwright: resolved by the `browser-automate` skill's recipe — project dependency
+// first, then `npm root -g`, then `PLAYWRIGHT_PATH`. Never a hardcoded path:
+// a gate that does not start is a gate that does not exist.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 
-// ── Ruído do browser ≠ defeito da página ──────────────────────────────────────
-// O browser PEDE sozinho o ícone por omissão (`/favicon.ico`, `apple-touch-icon*.png`)
-// mesmo quando o HTML nunca lhes toca — o 404 desses é do BROWSER, não da página.
-// Qualquer projecto sem favicon falhava o gate por isto, e um gate que falha por ruído
-// é um gate que se aprende a ignorar.
+// ── Browser noise ≠ page defect ───────────────────────────────────────────────
+// The browser REQUESTS the default icon on its own (`/favicon.ico`, `apple-touch-icon*.png`)
+// even when the HTML never touches them — that 404 is the BROWSER's, not the page's.
+// Any project without a favicon failed the gate over this, and a gate that fails on noise
+// is a gate you learn to ignore.
 //
-// O filtro é deliberadamente ESTREITO: casa só os caminhos que o browser inventa por
-// omissão. Um 404 de um asset que a PÁGINA pede (`/logo.svg`, `/app.js`, ou até um
-// `<link rel="icon" href="/marca/icone.png">`) É um defeito e continua a contar.
-// Filtrar por "404" no texto, ou por extensão de imagem, tapava defeitos reais.
+// The filter is deliberately NARROW: it matches only the paths the browser invents by
+// default. A 404 for an asset the PAGE requests (`/logo.svg`, `/app.js`, or even a
+// `<link rel="icon" href="/marca/icone.png">`) IS a defect and still counts.
+// Filtering on "404" in the text, or on image extension, would hide real defects.
 const RUIDO_URL = /\/(favicon\.ico|apple-touch-icon(-[\w.-]+)?\.png)$/i;
 const ehRuidoDeBrowser = (url) => RUIDO_URL.test(String(url || '').split(/[?#]/)[0]);
 
-// ── Argumentos ────────────────────────────────────────────────────────────────
+// ── Arguments ─────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
 const flag = (nome, def = null) => {
   const i = argv.indexOf(`--${nome}`);
@@ -73,7 +73,7 @@ if (configPath) {
   try {
     cfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   } catch (e) {
-    console.error(`✗ --config ${configPath} ilegível: ${e.message}`);
+    console.error(`✗ --config ${configPath} unreadable: ${e.message}`);
     process.exit(1);
   }
 }
@@ -82,7 +82,7 @@ const lista = (v) => (Array.isArray(v) ? v : String(v).split(',')).map((s) => s.
 
 const BASE = flag('base', cfg.base);
 if (!BASE) {
-  console.error('✗ Falta o URL base. Uso: --base http://localhost:3000 [--rotas /,/precos]');
+  console.error('✗ Missing base URL. Usage: --base http://localhost:3000 [--rotas /,/precos]');
   process.exit(1);
 }
 const ROTAS = lista(flag('rotas', cfg.rotas || '/'));
@@ -95,44 +95,44 @@ const CLICAR = flag('clicar', cfg.clicar || null);
 const ESPERAR = Number(flag('esperar', cfg.esperar ?? 500));
 const OUT = path.resolve(flag('out', cfg.out || path.join('.joca', 'gate-runtime')));
 
-// ── Playwright (receita da skill browser-automate) ────────────────────────────
+// ── Playwright (recipe from the browser-automate skill) ───────────────────────
 async function obterChromium() {
-  // `@playwright/cli` está aqui de propósito: é o pacote que o `npm i -g` instala nesta
-  // casa, e o `playwright` real vive ANINHADO dentro dele (ver skill `browser-automate`).
+  // `@playwright/cli` is here deliberately: it is the package `npm i -g` installs in this
+  // house, and the real `playwright` lives NESTED inside it (see the `browser-automate` skill).
   const nomes = ['playwright', 'playwright-core', '@playwright/test', '@playwright/cli'];
   for (const n of nomes) {
     try {
       const m = await import(n);
       if (m.chromium) return m.chromium;
-    } catch { /* segue */ }
+    } catch { /* carry on */ }
   }
   const raizes = [];
   if (process.env.PLAYWRIGHT_PATH) raizes.push(process.env.PLAYWRIGHT_PATH);
   try {
     raizes.push(execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim());
-  } catch { /* npm pode não estar no PATH */ }
+  } catch { /* npm may not be on the PATH */ }
   for (const raiz of raizes.filter(Boolean)) {
     for (const n of nomes) {
-      // O `playwright` global vem muitas vezes aninhado dentro do `@playwright/cli`.
+      // The global `playwright` often comes nested inside `@playwright/cli`.
       for (const sufixo of ['', '/node_modules/playwright']) {
         const alvo = path.join(raiz, n + sufixo, 'index.mjs');
         try {
           const m = await import(`file://${alvo.replace(/\\/g, '/')}`);
           if (m.chromium) return m.chromium;
-        } catch { /* segue */ }
+        } catch { /* carry on */ }
       }
     }
   }
   throw new Error(
-    'Playwright não encontrado.\n' +
-    '  No projecto:  npm i -D playwright && npx playwright install chromium\n' +
-    '  Ou aponta uma instalação existente:  PLAYWRIGHT_PATH=<pasta node_modules> node ...'
+    'Playwright not found.\n' +
+    '  In the project:  npm i -D playwright && npx playwright install chromium\n' +
+    '  Or point at an existing install:  PLAYWRIGHT_PATH=<node_modules folder> node ...'
   );
 }
 
-// ── A medição, avaliada dentro da página ──────────────────────────────────────
-// String e não função: é injectada por `page.evaluate` e não pode fechar sobre nada
-// do Node. `page.evaluate(fn, arg)` recebe UM argumento — daí o objecto.
+// ── The measurement, evaluated inside the page ────────────────────────────────
+// A string and not a function: it is injected by `page.evaluate` and cannot close over
+// anything from Node. `page.evaluate(fn, arg)` takes ONE argument — hence the object.
 const MEDIR = `(() => {
   const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
   const parse = s => {
@@ -143,16 +143,16 @@ const MEDIR = `(() => {
   };
   const lum = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-  const sobre = (fg, bg) => ({            // composição alpha: o que o olho vê, não o token
+  const sobre = (fg, bg) => ({            // alpha compositing: what the eye sees, not the token
     r: fg.r * fg.a + bg.r * (1 - fg.a),
     g: fg.g * fg.a + bg.g * (1 - fg.a),
     b: fg.b * fg.a + bg.b * (1 - fg.a),
     a: 1,
   });
 
-  // Fundo EFECTIVO: sobe a árvore compondo cada camada semi-transparente. Se pelo
-  // caminho houver gradiente ou imagem, marca-o — um valor único mentiria (o pior caso
-  // de um gradiente está numa das pontas, e isso não se mede por getComputedStyle).
+  // EFFECTIVE background: walks up the tree compositing each semi-transparent layer. If
+  // there is a gradient or image along the way, it flags it — a single value would lie (a
+  // gradient's worst case is at one of the ends, and that is not measurable by getComputedStyle).
   const bgOf = el => {
     const camadas = [];
     let n = el, pintura = false;
@@ -196,7 +196,7 @@ const MEDIR = `(() => {
     if (!visivel(el)) continue;
     const cs = getComputedStyle(el);
 
-    // Só nós de texto PRÓPRIOS — herdar o texto dos filhos duplica tudo.
+    // OWN text nodes only — inheriting the children's text duplicates everything.
     const txt = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join(' ').trim();
     if (txt.length > 1) {
       const fgRaw = parse(cs.color);
@@ -212,7 +212,7 @@ const MEDIR = `(() => {
           vistos.add(k);
           contraste.push({ texto: txt.slice(0, 60), ratio: +cr.toFixed(2), min, fontSize: cs.fontSize, weight: cs.fontWeight, color: cs.color, tag: el.tagName, cls: (el.className?.toString?.() || '').slice(0, 90) });
         } else if (pintura && !vistos.has('g' + k)) {
-          // Fundo com gradiente/imagem: o valor medido não é prova. Verificar as duas pontas à mão.
+          // Gradient/image background: the measured value is not evidence. Check both ends by hand.
           vistos.add('g' + k);
           gradiente.push({ texto: txt.slice(0, 60), tag: el.tagName, cls: (el.className?.toString?.() || '').slice(0, 60) });
         }
@@ -224,8 +224,8 @@ const MEDIR = `(() => {
     }
   }
 
-  // Alvos interactivos: tamanho, nome acessível e — o que só o runtime sabe — se o
-  // clique chega lá. Auditar o atributo href não é testar o clique.
+  // Interactive targets: size, accessible name and — what only the runtime knows — whether
+  // the click gets there. Auditing the href attribute is not testing the click.
   const SEL = 'a[href], button, input, select, textarea, [role="button"], [role="link"], [role="tab"], [onclick]';
   const cobertos = [], pequenos = [], semNome = [];
   let alvosMedidos = 0, foraDoEcra = 0;
@@ -236,8 +236,8 @@ const MEDIR = `(() => {
     if (r.height < 24 || r.width < 24) {
       pequenos.push({ tag: el.tagName, w: Math.round(r.width), h: Math.round(r.height), texto: (el.textContent || '').trim().slice(0, 40) });
     }
-    // Nome acessível: um <button> NUNCA é nomeado por label[for] — só por conteúdo,
-    // aria-label, aria-labelledby ou title. Armadilha transversal a Radix/shadcn/Headless.
+    // Accessible name: a <button> is NEVER named by label[for] — only by content,
+    // aria-label, aria-labelledby or title. A pitfall common to Radix/shadcn/Headless.
     const nomeado = (el.textContent || '').trim() || el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title') || el.getAttribute('alt');
     if (!nomeado) semNome.push({ tag: el.tagName, cls: (el.className?.toString?.() || '').slice(0, 80) });
 
@@ -250,7 +250,7 @@ const MEDIR = `(() => {
         tag: el.tagName,
         texto: (el.textContent || '').trim().slice(0, 40),
         href: el.getAttribute('href'),
-        tapadoPor: topo ? topo.tagName + '.' + (topo.className?.toString?.() || '').slice(0, 50) : 'nada',
+        tapadoPor: topo ? topo.tagName + '.' + (topo.className?.toString?.() || '').slice(0, 50) : 'nothing',
       });
     }
   }
@@ -273,13 +273,14 @@ const MEDIR = `(() => {
   };
 })()`;
 
-// ── Execução ──────────────────────────────────────────────────────────────────
+// ── Execution ─────────────────────────────────────────────────────────────────
 const chromium = await obterChromium();
 fs.mkdirSync(OUT, { recursive: true });
 
-// O Playwright global costuma vir SEM os binários descarregados (`npx playwright install`
-// nunca correu para ele). Nesse caso usa-se o Chrome já instalado na máquina — é o que a
-// skill `browser-automate` manda fazer, e evita 200 MB de download por gate.
+// The global Playwright usually comes WITHOUT the binaries downloaded (`npx playwright
+// install` never ran for it). In that case it uses the Chrome already installed on the
+// machine — which is what the `browser-automate` skill says to do, and avoids a 200 MB
+// download per gate.
 async function lancar() {
   const tentativas = [
     {},
@@ -293,8 +294,8 @@ async function lancar() {
   for (const opts of tentativas) {
     try { return await chromium.launch(opts); } catch (e) { ultimo = e; }
   }
-  throw new Error(`Nenhum browser arrancou. Última falha: ${String(ultimo).slice(0, 300)}\n` +
-    '  Corrige com `npx playwright install chromium` ou aponta o Chrome com CHROME_BIN=<caminho>.');
+  throw new Error(`No browser started. Last failure: ${String(ultimo).slice(0, 300)}\n` +
+    '  Fix it with `npx playwright install chromium` or point at Chrome with CHROME_BIN=<path>.');
 }
 const navegador = await lancar();
 const relatorio = [];
@@ -307,9 +308,9 @@ for (const rota of ROTAS) {
       pagina.on('pageerror', (e) => erros.push('PAGEERROR ' + String(e).slice(0, 160)));
       pagina.on('console', (m) => {
         if (m.type() !== 'error') return;
-        // `m.text()` de uma falha de rede não traz o URL ("Failed to load resource: …404").
-        // O URL vive no `location()` — é por lá que se distingue o ícone que o browser
-        // pediu sozinho de um asset que a página precisa.
+        // `m.text()` of a network failure does not carry the URL ("Failed to load resource: …404").
+        // The URL lives in `location()` — that is how you tell the icon the browser asked
+        // for on its own from an asset the page needs.
         if (ehRuidoDeBrowser(m.location?.()?.url)) return;
         erros.push(m.text().slice(0, 160));
       });
@@ -323,7 +324,7 @@ for (const rota of ROTAS) {
         await pagina.waitForTimeout(ESPERAR);
         const medida = await pagina.evaluate(MEDIR);
 
-        // Componente interactivo: um gate que nunca clica é um gate de layout.
+        // Interactive component: a gate that never clicks is a layout gate.
         let cliques = null;
         if (CLICAR) {
           cliques = [];
@@ -348,7 +349,7 @@ for (const rota of ROTAS) {
         relatorio.push({ rota, tema, vp: vp.n, status, erroFatal: String(e).slice(0, 200), erros: [...erros] });
       }
       await pagina.close();
-      process.stderr.write(`  medido ${etiqueta}\n`);
+      process.stderr.write(`  measured ${etiqueta}\n`);
     }
   }
 }
@@ -356,27 +357,27 @@ await navegador.close();
 
 fs.writeFileSync(path.join(OUT, 'relatorio.json'), JSON.stringify(relatorio, null, 2));
 
-// ── Resumo ────────────────────────────────────────────────────────────────────
+// ── Summary ───────────────────────────────────────────────────────────────────
 let falhas = 0;
 const linhas = [];
 for (const r of relatorio) {
   const f = [];
-  if (r.erroFatal) f.push(`FALHOU: ${r.erroFatal}`);
+  if (r.erroFatal) f.push(`FAILED: ${r.erroFatal}`);
   if (r.status >= 400) f.push(`HTTP ${r.status}`);
-  if (r.erros?.length) f.push(`${r.erros.length} erro(s) consola`);
-  if (r.contrasteTotal) f.push(`${r.contrasteTotal} contraste`);
-  if (r.sangramentoTotal) f.push(`${r.sangramentoTotal} sangra`);
-  if (r.alvosCobertos?.length) f.push(`${r.alvosCobertos.length} alvo tapado`);
-  if (r.alvosPequenos?.length) f.push(`${r.alvosPequenos.length} alvo <24px`);
-  if (r.semNomeAcessivel?.length) f.push(`${r.semNomeAcessivel.length} sem nome`);
-  if (r.cliques?.length) f.push(`${r.cliques.length} clique com erro`);
+  if (r.erros?.length) f.push(`${r.erros.length} console error(s)`);
+  if (r.contrasteTotal) f.push(`${r.contrasteTotal} contrast`);
+  if (r.sangramentoTotal) f.push(`${r.sangramentoTotal} bleed`);
+  if (r.alvosCobertos?.length) f.push(`${r.alvosCobertos.length} covered target`);
+  if (r.alvosPequenos?.length) f.push(`${r.alvosPequenos.length} target <24px`);
+  if (r.semNomeAcessivel?.length) f.push(`${r.semNomeAcessivel.length} with no name`);
+  if (r.cliques?.length) f.push(`${r.cliques.length} click with an error`);
   if (f.length) falhas++;
   const nota = [];
-  if (r.gradienteNaoMedivel?.length) nota.push(`${r.gradienteNaoMedivel.length} texto sobre gradiente/imagem (medir as 2 pontas à mão)`);
-  if (r.alvosForaDoEcra) nota.push(`${r.alvosForaDoEcra} alvo fora do ecrã (não clicável sem scroll — não medido)`);
-  linhas.push(`${f.length ? '✗' : '✓'} ${r.rota} [${r.tema || 'default'}/${r.vp}] ${f.join(' · ') || 'limpo'}${nota.length ? `  ⚠ ${nota.join(' · ')}` : ''}`);
+  if (r.gradienteNaoMedivel?.length) nota.push(`${r.gradienteNaoMedivel.length} text over gradient/image (measure the 2 ends by hand)`);
+  if (r.alvosForaDoEcra) nota.push(`${r.alvosForaDoEcra} target off-screen (not clickable without scrolling — not measured)`);
+  linhas.push(`${f.length ? '✗' : '✓'} ${r.rota} [${r.tema || 'default'}/${r.vp}] ${f.join(' · ') || 'clean'}${nota.length ? `  ⚠ ${nota.join(' · ')}` : ''}`);
 }
 console.log(linhas.join('\n'));
-console.log(`\n${relatorio.length - falhas}/${relatorio.length} combinações limpas · relatório: ${path.join(OUT, 'relatorio.json')}`);
-if (!CLICAR) console.log('⚠ Sem --clicar: mediu o estado de REPOUSO. Overlays/menus/modais exigem accionar o gatilho.');
+console.log(`\n${relatorio.length - falhas}/${relatorio.length} clean combinations · report: ${path.join(OUT, 'relatorio.json')}`);
+if (!CLICAR) console.log('⚠ Without --clicar: it measured the RESTING state. Overlays/menus/modals require triggering them.');
 process.exit(falhas > 0 ? 1 : 0);

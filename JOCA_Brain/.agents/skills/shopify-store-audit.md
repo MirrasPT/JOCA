@@ -71,7 +71,7 @@ Check per key product page:
 - Meta description: benefit-led, 150-160 chars
 - H1: product name with key modifier
 - Product description: 150+ words, covers use cases, materials, care
-- Image alt text: descriptive, includes product name + colour/variant
+- Image alt text: descriptive, includes product name + color/variant
 - URL: clean, lowercase, hyphenated
 
 ### Module 6 — Structured Data

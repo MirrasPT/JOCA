@@ -157,10 +157,10 @@
   margin: 0 4px;
 }
 
-/* ── Menus da barra (Model · Effort) ─────────────────────────────────
-   Eram estilos inline no JSX, escritos uma vez. Com dois menus iguais lado a lado passaram a
-   classe — duplicar 8 declarações inline é como divergem em silêncio. O grupo é UM contentor
-   (é ele que tem o ref do clique-fora); cada menu posiciona-se contra o seu próprio botão. */
+/* ── Bar menus (Model · Effort) ──────────────────────────────────────
+   They were inline styles in the JSX, written once. With two identical menus side by side they
+   became a class — duplicating 8 inline declarations is how they diverge silently. The group is ONE
+   container (it is the one holding the click-outside ref); each menu positions against its own button. */
 .cmd-menu-group {
   display: inline-flex;
   align-items: center;
@@ -188,8 +188,8 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
-/* Mesma pílula dos botões da barra, mas alinhada à esquerda e a ocupar a largura do menu — uma
-   lista de opções lê-se pela margem esquerda, não pelo centro de cada linha. */
+/* The same pill as the bar's buttons, but left-aligned and taking the menu's width — a list of
+   options is read down the left margin, not from the center of each row. */
 .cmd-menu-item {
   height: 28px;
   padding: 0 10px;
@@ -282,10 +282,11 @@
   padding-top: 4px;
 }
 
-/* Caixa de escrita colapsada — sobra a fila de atalhos rapidos, que e o que se quer ver quando o
-   terminal esta so a ser lido. `display: none` em vez de desmontar o bloco: o rascunho, os anexos
-   e a altura ja medida do textarea ficam intactos, e reabrir devolve exactamente o que la estava.
-   Tambem tira a caixa da ordem de tabulacao, que e o que se espera de algo escondido. */
+/* Collapsed composer — what is left is the row of quick shortcuts, which is what you want to see
+   when the terminal is only being read. `display: none` instead of unmounting the block: the draft,
+   the attachments and the textarea's already-measured height stay intact, and reopening gives back
+   exactly what was there. It also takes the box out of the tab order, which is what is expected of
+   something hidden. */
 .terminal-command-input-wrap--oculta {
   display: none;
 }
@@ -315,8 +316,9 @@
   color: var(--text-ghost);
 }
 
-/* O controlo mais usado da app era o único sem sinal de foco: `outline: 0` sem nada em troca.
-   O anel vai na MOLDURA (o textarea não tem borda própria), para não saltar o layout. */
+/* The most used control in the app was the only one with no focus signal: `outline: 0` with
+   nothing in exchange. The ring goes on the FRAME (the textarea has no border of its own), so the
+   layout does not jump. */
 .terminal-command-input-wrap:focus-within {
   border-top-color: var(--accent);
   box-shadow: inset 0 2px 0 -1px var(--accent);
@@ -341,9 +343,9 @@
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
-/* O hover trazia o laranja (#ff5511) e o brilho laranja cravados — em qualquer marca que não a de
-   origem, o botão mudava de cor ao passar o rato. Puxar o accent na direcção da própria tinta
-   funciona nos dois sentidos: escurece o laranja, acinzenta o branco do Office. */
+/* The hover carried the orange (#ff5511) and the orange glow hardcoded — in any brand other than
+   the original one, the button changed color on mouseover. Pulling the accent in the direction of
+   its own ink works both ways: it darkens the orange, and greys the Office white. */
 .terminal-command-send:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 86%, var(--on-accent));
   box-shadow: 0 4px 18px var(--accent-glow);
@@ -460,9 +462,9 @@
   flex: 1;
 }
 
-/* ─── Controlos vindos da barra de título (removida) ──────────────────────────
-   `Restart`, `Stop` e o ir-para-o-fim não tinham equivalente na fila de comandos; `Save` e
-   `Compact` tinham, e por isso não foram trazidos. */
+/* ─── Controls brought over from the title bar (removed) ─────────────────────
+   `Restart`, `Stop` and the jump-to-the-end had no equivalent in the command row; `Save` and
+   `Compact` did, and that is why they were not brought over. */
 .quick-command-btn--stop { color: var(--danger, #f85149); }
 .quick-command-btn--stop:hover {
   color: var(--danger, #f85149);
@@ -470,8 +472,8 @@
   background: color-mix(in srgb, var(--danger, #f85149) 10%, transparent);
 }
 
-/* Estado do terminal. Empurrado para a direita da fila — é informação, não um botão, e encostado
-   aos botões lia-se como mais um. */
+/* Terminal status. Pushed to the right of the row — it is information, not a button, and up
+   against the buttons it read as one more of them. */
 .cmd-bar-status {
   margin-left: auto;
   padding: 3px 10px;
@@ -489,19 +491,19 @@
   background: color-mix(in srgb, var(--on-surface) 7%, transparent);
 }
 
-/* ─── Telemóvel / ecrã estreito ──────────────────────────────────────────────
-   A fila de comandos tem ~14 pílulas. Com `flex-wrap: wrap` partia-se em 3 a 5 filas e, como a
-   barra é `flex-shrink: 0`, reclamava esse espaço todo ao palco. A fila passa a UMA fila com
-   scroll horizontal — o conteúdo é o mesmo, deixa é de comer o terminal.
-   Medido em runtime (mesma carga, com/sem estas regras): a 360×640 o xterm tinha 0px e a barra
-   302px transbordava o viewport (654 > 640, com o `enviar` fora do ecrã e sem scroll para lá
-   chegar) → xterm 61px, barra 158px, tudo dentro. A 390×844: xterm 77px → 187px. */
+/* ─── Phone / narrow screen ──────────────────────────────────────────────────
+   The command row has ~14 pills. With `flex-wrap: wrap` it broke into 3 to 5 rows and, since the
+   bar is `flex-shrink: 0`, it claimed all that space from the stage. The row becomes ONE row with
+   horizontal scroll — the content is the same, it just stops eating the terminal.
+   Measured at runtime (same load, with/without these rules): at 360×640 the xterm had 0px and the
+   302px bar overflowed the viewport (654 > 640, with `send` off screen and no scroll to get there)
+   → xterm 61px, bar 158px, all inside. At 390×844: xterm 77px → 187px. */
 @media (max-width: 860px) {
   .quick-command-row {
     flex-wrap: nowrap;
     overflow-x: auto;
-    /* `overflow-y` fica `hidden` de propósito: `visible` num eixo com o outro em `auto` computa
-       para `auto` e acrescentava uma barra vertical parasita de 1 fila. */
+    /* `overflow-y` stays `hidden` deliberately: `visible` on one axis with the other on `auto`
+       computes to `auto` and added a parasitic vertical bar one row tall. */
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
@@ -512,15 +514,15 @@
     display: none;
   }
 
-  /* Sem isto os filhos encolhem para caber nos 360px e as pílulas ficam ilegíveis em vez de
-     saírem para fora do scrollport. */
+  /* Without this the children shrink to fit the 360px and the pills become illegible instead of
+     going out past the scrollport. */
   .quick-command-row > * {
     flex-shrink: 0;
   }
 
-  /* O menu do `Model` abre para cima (`bottom: 100%`, em estilo inline) e o scrollport novo
-     cortava-o: medido, os 5 itens ficavam invisíveis e mortos ao clique. Fixo ao canto inferior
-     esquerdo, escapa ao recorte e cai na zona do polegar. */
+  /* The `Model` menu opens upwards (`bottom: 100%`, in an inline style) and the new scrollport cut
+     it: measured, the 5 items were invisible and dead to the click. Fixed to the bottom-left
+     corner, it escapes the clipping and lands in the thumb zone. */
   .quick-command-row [role="menu"] {
     position: fixed !important;
     top: auto !important;
@@ -536,17 +538,17 @@
     gap: 6px;
   }
 
-  /* A caixa de escrita repousava a 98px em QUALQUER ecrã — não por causa do `min-height` (96px,
-     que nunca chegava a morder), mas do `rows={4}` do textarea: com `height:auto`, o intrínseco
-     de 4 filas (4×19.5 + 20 de padding) é o que o JS lê em `scrollHeight`. A 360×640 esses 98px
-     eram 61% do orçamento vertical do terminal e deixavam o xterm com ~61px.
-     Aqui baixa-se o chão para 2 filas e põe-se um tecto de 5; o `TerminalView.tsx` mede a altura
-     contra `0` abaixo destes 860px para que este `min-height` volte a ser o chão de facto.
-     Medido em runtime, terminal aberto, mesma carga antes/depois: a barra passa de 158px a 104px
-     nos três tamanhos e o xterm ganha os mesmos 54px — 360×640 75,5 → 129,5px · 390×667
-     102,5 → 156,5px · 390×844 279,5 → 333,5px. 1440×900 mede igual ao que media (xterm 533px,
-     barra 191px). Com a caixa cheia o xterm fica em 71,5px a 360×640, onde antes ia a 0px: o
-     tecto era `40vh` (256px num ecrã de 640) e engolia o terminal inteiro. */
+  /* The composer rested at 98px on ANY screen — not because of the `min-height` (96px, which never
+     got to bite), but because of the textarea's `rows={4}`: with `height:auto`, the intrinsic
+     height of 4 rows (4×19.5 + 20 of padding) is what the JS reads in `scrollHeight`. At 360×640
+     those 98px were 61% of the terminal's vertical budget and left the xterm with ~61px.
+     Here the floor is lowered to 2 rows and a ceiling of 5 is set; `TerminalView.tsx` measures the
+     height against `0` below these 860px so this `min-height` becomes the actual floor again.
+     Measured at runtime, terminal open, same load before/after: the bar goes from 158px to 104px at
+     the three sizes and the xterm gains the same 54px — 360×640 75.5 → 129.5px · 390×667
+     102.5 → 156.5px · 390×844 279.5 → 333.5px. 1440×900 measures the same as it did (xterm 533px,
+     bar 191px). With the box full the xterm sits at 71.5px at 360×640, where before it went to 0px:
+     the ceiling was `40vh` (256px on a 640 screen) and swallowed the whole terminal. */
   .terminal-command-input {
     min-height: 52px;
     max-height: 110px;

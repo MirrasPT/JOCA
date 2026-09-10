@@ -61,7 +61,7 @@ def extract_triggers(path: Path, description: str = "") -> list:
     `description` is the already-parsed frontmatter value. The prose patterns below are matched
     against it alone, never the whole file: run over the raw text they would sail past the end of
     the description: value and swallow the keys that follow it (chain:, compatibility:), yielding
-    triggers like 'tarefa irreversivel."\\nchain: design-review'.
+    triggers like 'irreversible task."\\nchain: design-review'.
     """
     text = path.read_text(errors="ignore")
     triggers = []

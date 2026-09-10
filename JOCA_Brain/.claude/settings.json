@@ -81,7 +81,7 @@
           },
           {
             "type": "command",
-            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/stop-continuar.js\""
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/stop-continue.js\""
           }
         ]
       }

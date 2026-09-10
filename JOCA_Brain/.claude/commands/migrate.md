@@ -1,31 +1,31 @@
-# /migrate — Migração v1-legacy → v2.0
+# /migrate — v1-legacy → v2.0 Migration
 
-Guia completo para migrar uma instalação JOCA da branch `v1-legacy` para a versão actual (`master`).
+Complete guide for migrating a JOCA installation from the `v1-legacy` branch to the current version (`master`).
 
-**Repositório:** https://github.com/MirrasPT/JOCA
-**De:** `v1-legacy` (skills nested, AGENTS.md, install.md na raiz, sem soul.md)
-**Para:** `master` / v2.0 (flat layout, JOCA_OS integrado, soul.md, SKILL_INDEX)
+**Repository:** https://github.com/MirrasPT/JOCA
+**From:** `v1-legacy` (nested skills, AGENTS.md, install.md at the root, no soul.md)
+**To:** `master` / v2.0 (flat layout, integrated JOCA_OS, soul.md, SKILL_INDEX)
 
 ---
 
-## CONTEXTO — Estrutura Nova
+## CONTEXT — New Structure
 
-Na v2.0, o JOCA instala com layout flat:
+In v2.0, JOCA installs with a flat layout:
 
 ```
-JOCA/                     ← raiz = JOCA_Logic directo
+JOCA/                     ← root = JOCA_Logic directly
 ├── .claude/
 │   ├── agents/
 │   ├── commands/         ← /install, /resume, /save, /goal, etc.
 │   ├── hooks/
 │   ├── rules/
 │   ├── scripts/
-│   ├── skills/           ← flat, *.md (sem subpastas)
+│   ├── skills/           ← flat, *.md (no subfolders)
 │   └── settings.json
 ├── memory/
 │   ├── INDEX.md
-│   ├── SKILL_INDEX.json  ← auto-gerado
-│   ├── soul.md           ← personalidade core (novo na v2.0)
+│   ├── SKILL_INDEX.json  ← auto-generated
+│   ├── soul.md           ← core personality (new in v2.0)
 │   ├── projects/
 │   ├── tools/
 │   └── feedback/
@@ -37,31 +37,31 @@ JOCA/                     ← raiz = JOCA_Logic directo
 └── README.md
 ```
 
-**Nota:** NÃO existe pasta `JOCA_Logic/` separada. O conteúdo do JOCA_Logic vive directamente na raiz. O `JOCA_OS/backend/src/server.ts` tem `findJocaLogicRoot()` que detecta `.claude/` + `CLAUDE.md` fazendo walk-up a partir de `__dirname` — funciona com este layout sem alterações.
+**Note:** there is NO separate `JOCA_Logic/` folder. The JOCA_Logic content lives directly at the root. `JOCA_OS/backend/src/server.ts` has `findJocaLogicRoot()`, which detects `.claude/` + `CLAUDE.md` by walking up from `__dirname` — it works with this layout without changes.
 
 ---
 
-## FASE 0 — Assessment da Instalação Legacy
+## PHASE 0 — Assessment of the Legacy Installation
 
-### 1. Identificar instalação actual
+### 1. Identify the current installation
 
 ```bash
-# Confirmar que estamos na pasta JOCA com v1-legacy
+# Confirm we are in the JOCA folder with v1-legacy
 ls .claude/commands/ memory/INDEX.md CLAUDE.md
 cat CLAUDE.md | head -20
 ```
 
-Sinais de v1-legacy:
-- `AGENTS.md` na raiz
-- `CREDITOS.md` na raiz
-- `install.md` na raiz (fora de `.claude/commands/`)
-- Skills em subdirectórios nested com `SKILL.md` ou ficheiros compostos
-- Sem `memory/soul.md`
-- Sem `memory/SKILL_INDEX.json`
+Signs of v1-legacy:
+- `AGENTS.md` at the root
+- `CREDITS.md` at the root
+- `install.md` at the root (outside `.claude/commands/`)
+- Skills in nested subdirectories with `SKILL.md` or composite files
+- No `memory/soul.md`
+- No `memory/SKILL_INDEX.json`
 
-### 2. Inventariar memória existente
+### 2. Inventory the existing memory
 
-**LER TUDO antes de apagar o que quer que seja:**
+**READ EVERYTHING before deleting anything at all:**
 
 ```bash
 cat memory/INDEX.md
@@ -70,34 +70,34 @@ ls memory/tools/
 ls memory/feedback/
 ```
 
-Para cada ficheiro em `memory/projects/`, `memory/tools/` e `memory/feedback/`:
-- Ler o conteúdo completo
-- Guardar numa variável ou bloco para reutilizar na Fase 3
+For each file in `memory/projects/`, `memory/tools/` and `memory/feedback/`:
+- Read the complete content
+- Save it in a variable or block to reuse in Phase 3
 
-**Conteúdo da memória legacy a preservar:**
-- `memory/INDEX.md` — extrair apenas a secção `## Projectos` e entradas custom do utilizador
-- `memory/projects/*.md` — cada ficheiro é uma entrada de projecto (manter intacto)
-- `memory/tools/*.md` — referências de ferramentas (graphify.md, laravel-stack.md, mcp-routing.md, motion.md, etc.)
-- `memory/feedback/*.md` — histórico de sessões (manter se existir conteúdo)
+**Legacy memory content to preserve:**
+- `memory/INDEX.md` — extract only the `## Projectos` section and the user's custom entries
+- `memory/projects/*.md` — each file is a project entry (keep intact)
+- `memory/tools/*.md` — tool references (graphify.md, laravel-stack.md, mcp-routing.md, motion.md, etc.)
+- `memory/feedback/*.md` — session history (keep if there is content)
 
-**NÃO preservar da INDEX.md legacy:**
-- Secção `## Commands` (substituída pelos novos comandos)
-- Secção `## Agents` (substituída pelos novos agentes)
-- Listagens de skills (substituídas pelo SKILL_INDEX.json)
+**Do NOT preserve from the legacy INDEX.md:**
+- The `## Commands` section (replaced by the new commands)
+- The `## Agents` section (replaced by the new agents)
+- Skill listings (replaced by the SKILL_INDEX.json)
 
-### 3. Verificar ~/CLAUDE.md do utilizador
+### 3. Check the user's ~/CLAUDE.md
 
 ```bash
 cat ~/CLAUDE.md 2>/dev/null | head -40
 ```
 
-Anotar: nome, papel, localização, projectos activos, preferências. Estes dados são reutilizados na Fase 4.
+Note down: name, role, location, active projects, preferences. This data is reused in Phase 4.
 
 ---
 
-## FASE 1 — Backup e Limpeza
+## PHASE 1 — Backup and Cleanup
 
-### 1. Backup completo da memória
+### 1. Complete backup of the memory
 
 ```bash
 BACKUP_DIR="$HOME/joca-v1-backup-$(date +%Y%m%d)"
@@ -105,104 +105,104 @@ mkdir -p "$BACKUP_DIR"
 cp -R memory/ "$BACKUP_DIR/memory"
 cp CLAUDE.md "$BACKUP_DIR/CLAUDE.md"
 cp ~/CLAUDE.md "$BACKUP_DIR/home-CLAUDE.md" 2>/dev/null
-echo "✓ Backup em: $BACKUP_DIR"
+echo "✓ Backup at: $BACKUP_DIR"
 ```
 
-### 2. Remover TUDO da v1-legacy excepto memória
+### 2. Remove EVERYTHING from v1-legacy except the memory
 
-Apagar todos os ficheiros que vão ser substituídos pela v2.0:
+Delete every file that will be replaced by v2.0:
 
 ```bash
-# Skills, agentes, comandos antigos
+# Old skills, agents, commands
 rm -rf .claude/skills/ .claude/agents/ .claude/commands/
 rm -rf .claude/scripts/ .claude/hooks/ .claude/templates/ .claude/rules/
 rm -f .claude/settings.json
 
-# Ficheiros raiz antigos
-rm -f AGENTS.md CREDITOS.md install.md README.md CLAUDE.md
+# Old root files
+rm -f AGENTS.md CREDITS.md install.md README.md CLAUDE.md
 rm -f .mcp.json
 
-# JOCA_OS antigo (se existir — vai ser substituído)
+# Old JOCA_OS (if it exists — it will be replaced)
 rm -rf JOCA_OS/
 
-# NÃO apagar:
-# - memory/ (vai ser migrada)
-# - .git/ (preservar histórico)
-# - .gitignore / .graphifyignore (preservar)
+# Do NOT delete:
+# - memory/ (it will be migrated)
+# - .git/ (preserve the history)
+# - .gitignore / .graphifyignore (preserve)
 ```
 
-Confirmar que só resta:
+Confirm that all that is left is:
 ```bash
 ls -la
-# Deve ter: .git/ memory/ .gitignore (e pouco mais)
+# Should have: .git/ memory/ .gitignore (and little else)
 ```
 
 ---
 
-## FASE 2 — Instalar v2.0
+## PHASE 2 — Install v2.0
 
-### 1. Obter ficheiros novos do master
+### 1. Get the new files from master
 
 ```bash
-# Opção A: se o remote já aponta para MirrasPT/JOCA
-# (o branch default é 'main' — resolver em vez de assumir)
+# Option A: if the remote already points at MirrasPT/JOCA
+# (the default branch is 'main' — resolve it instead of assuming)
 BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
 [ -z "$BASE" ] && BASE=$(git remote show origin | sed -n 's/.*HEAD branch: //p')
 [ -z "$BASE" ] && BASE=main
 git fetch origin "$BASE"
 git checkout "origin/$BASE" -- .claude/ JOCA_OS/ CLAUDE.md README.md
 
-# Opção B: clone fresco (se preferir)
+# Option B: fresh clone (if you prefer)
 cd ..
 git clone https://github.com/MirrasPT/JOCA.git JOCA-new
-# Depois copiar ficheiros novos para a pasta JOCA existente
+# Then copy the new files into the existing JOCA folder
 ```
 
-### 2. Verificar estrutura resultante
+### 2. Check the resulting structure
 
 ```bash
 ls -la
-# Deve ter:
-# .claude/          ← novo (skills, agents, commands, scripts, settings)
-# JOCA_OS/          ← novo (frontend + backend)
-# memory/           ← preservado (vai ser migrado)
-# CLAUDE.md         ← novo
-# README.md         ← novo
+# Should have:
+# .claude/          ← new (skills, agents, commands, scripts, settings)
+# JOCA_OS/          ← new (frontend + backend)
+# memory/           ← preserved (it will be migrated)
+# CLAUDE.md         ← new
+# README.md         ← new
 ```
 
 ```bash
 ls .claude/commands/
-# Deve incluir: install.md, resume.md, save.md, plan.md, etc.
+# Should include: install.md, resume.md, save.md, plan.md, etc.
 
 ls .claude/skills/
-# Estrutura FLAT: só ficheiros *.md, sem subpastas (base/design/dev nested = v1-legacy)
+# FLAT structure: only *.md files, no subfolders (nested base/design/dev = v1-legacy)
 ```
 
-### 3. Instalar dependências do JOCA_OS
+### 3. Install the JOCA_OS dependencies
 
 ```bash
 cd JOCA_OS
-npm run setup   # instala frontend + backend + compila node-pty
+npm run setup   # installs frontend + backend + compiles node-pty
 cd ..
 ```
 
-Se `npm run setup` não existir:
+If `npm run setup` does not exist:
 ```bash
 cd JOCA_OS/backend && npm install && cd ../frontend && npm install && cd ../..
 ```
 
 ---
 
-## FASE 3 — Migração da Memória
+## PHASE 3 — Memory Migration
 
-### 1. Recriar soul.md (NOVO na v2.0)
+### 1. Recreate soul.md (NEW in v2.0)
 
-Se `memory/soul.md` não existir, criar inline com a estrutura base abaixo (os valores de calibração serão preenchidos na Fase 4):
+If `memory/soul.md` does not exist, create it inline with the base structure below (the calibration values will be filled in in Phase 4):
 
 ```markdown
 ---
 name: soul
-description: "Personalidade core do JOCA — identidade, drives, comunicação, limites."
+description: "JOCA's core personality — identity, drives, communication, limits."
 type: core
 priority: 0
 inject: always
@@ -212,8 +212,8 @@ immutable: true
 # SOUL — JOCA
 
 ## Identity
-Sistema operativo cognitivo para engenharia de software. Parceiro autónomo — não assistente.
-Optimiza para: resolução cirúrgica sem fricção, com integridade absoluta.
+Cognitive operating system for software engineering. Autonomous partner — not an assistant.
+Optimizes for: surgical resolution without friction, with absolute integrity.
 
 ## Working Principles
 - Surface assumptions before choosing; uncertain = ask (max 1 cycle)
@@ -261,154 +261,154 @@ explanation_depth: on-demand
 auto_test: <PENDING>
 ```
 
-### 2. Migrar memory/projects/
+### 2. Migrate memory/projects/
 
-Os ficheiros de projecto mantêm o formato — copiar directamente. Apenas verificar se os paths referenciados ainda existem:
+The project files keep the format — copy them directly. Just check whether the referenced paths still exist:
 
 ```bash
 ls memory/projects/
 ```
 
-Para cada ficheiro `.md` em `memory/projects/`:
-- Ler conteúdo
-- Se referencia paths antigos (e.g., path para `JOCA_Logic/` separado), actualizar
-- Manter o resto intacto
+For each `.md` file in `memory/projects/`:
+- Read the content
+- If it references old paths (e.g., a path to a separate `JOCA_Logic/`), update it
+- Keep the rest intact
 
-### 3. Migrar memory/tools/
+### 3. Migrate memory/tools/
 
-Os ficheiros em `memory/tools/` são referências de ferramentas. Manter os que ainda forem relevantes:
+The files in `memory/tools/` are tool references. Keep the ones that are still relevant:
 
-- `graphify.md` — manter se graphify estiver instalado
-- `laravel-stack.md` — manter se usar Laravel
-- `mcp-routing.md` — manter (decisões de routing MCP são reutilizáveis)
-- `motion.md` — manter se usar animação
+- `graphify.md` — keep if graphify is installed
+- `laravel-stack.md` — keep if you use Laravel
+- `mcp-routing.md` — keep (MCP routing decisions are reusable)
+- `motion.md` — keep if you use animation
 
-Remover ficheiros que referenciem ferramentas ou patterns já não usados.
+Remove files that reference tools or patterns no longer in use.
 
-### 4. Migrar memory/feedback/
+### 4. Migrate memory/feedback/
 
-Se existir conteúdo (não apenas `.gitkeep`), manter intacto. É histórico.
+If there is content (not just `.gitkeep`), keep it intact. It is history.
 
-### 5. Reescrever memory/INDEX.md
+### 5. Rewrite memory/INDEX.md
 
-O INDEX.md da v2.0 tem formato diferente — já não lista commands/agents/skills (esses estão nos ficheiros `.claude/` e no `SKILL_INDEX.json`). O INDEX.md agora é apenas um índice de memória do utilizador:
+The v2.0 INDEX.md has a different format — it no longer lists commands/agents/skills (those are in the `.claude/` files and in the `SKILL_INDEX.json`). INDEX.md is now only an index of the user's memory:
 
 ```markdown
 # JOCA Memory Index
 
-## Projectos
-- [nome.md](projects/nome.md) — descrição curta
+## Projects
+- [name.md](projects/name.md) — short description
 
 ## Tools
-- [graphify.md](tools/graphify.md) — notas de uso do graphify
-- [mcp-routing.md](tools/mcp-routing.md) — decisões de routing MCP
+- [graphify.md](tools/graphify.md) — graphify usage notes
+- [mcp-routing.md](tools/mcp-routing.md) — MCP routing decisions
 
 ## Feedback
-<!-- Entradas adicionadas por /save (auto-extract) -->
+<!-- Entries added by /save (auto-extract) -->
 ```
 
-Preencher com as entradas que realmente existem em `projects/`, `tools/` e `feedback/`.
+Fill it in with the entries that actually exist in `projects/`, `tools/` and `feedback/`.
 
-### 6. Regenerar SKILL_INDEX.json
+### 6. Regenerate SKILL_INDEX.json
 
 ```bash
-# Windows usa `python` (o `python3` é o stub vazio da Store); macOS/Linux usam `python3`.
-for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done || echo "Script não encontrado — SKILL_INDEX será gerado na próxima sessão"
+# Windows uses `python` (its `python3` is the Store's empty stub); macOS/Linux use `python3`.
+for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/scripts/build-skill-index.py && break; done || echo "Script not found — SKILL_INDEX will be generated in the next session"
 ```
 
 ---
 
-## FASE 4 — Questionário Soul.md
+## PHASE 4 — Soul.md Questionnaire
 
-Correr o questionário de calibração de personalidade. Usar `AskUserQuestion` para cada pergunta.
+Run the personality calibration questionnaire. Use `AskUserQuestion` for each question.
 
-**Q1 — Nível de Autonomia**
+**Q1 — Autonomy Level**
 ```
-question: "Quanto autónomo queres que o JOCA seja?"
-header: "Autonomia"
+question: "How autonomous do you want JOCA to be?"
+header: "Autonomy"
 options:
-  - "Máxima — executa tudo sem perguntar, só pára em irreversíveis (Recomendado)"
-  - "Alta — executa a maioria, pede em decisões de arquitectura"
-  - "Moderada — pede confirmação em alterações multi-ficheiro"
-  - "Baixa — pede sempre antes de alterar código"
+  - "Maximum — executes everything without asking, stops only at irreversibles (Recommended)"
+  - "High — executes most of it, asks on architecture decisions"
+  - "Moderate — asks for confirmation on multi-file changes"
+  - "Low — always asks before changing code"
 ```
-Mapear: Máxima=0.95, Alta=0.80, Moderada=0.60, Baixa=0.30
+Map: Maximum=0.95, High=0.80, Moderate=0.60, Low=0.30
 
-**Q2 — Estilo de Comunicação**
+**Q2 — Communication Style**
 ```
-question: "Como preferes que o JOCA comunique?"
-header: "Comunicação"
+question: "How do you prefer JOCA to communicate?"
+header: "Communication"
 options:
-  - "Caveman Full — fragmentos, zero filler, máxima compressão (Recomendado)"
-  - "Caveman Lite — sem filler mas frases completas"
-  - "Normal — profissional e conciso, sem compressão extrema"
+  - "Caveman Full — fragments, zero filler, maximum compression (Recommended)"
+  - "Caveman Lite — no filler but complete sentences"
+  - "Normal — professional and concise, without extreme compression"
 ```
-Mapear: full, lite, normal
+Map: full, lite, normal
 
-**Q3 — Comportamento em Erros**
+**Q3 — Behavior on Errors**
 ```
-question: "Quando encontra um erro no teu código, o JOCA deve:"
-header: "Erros"
+question: "When it finds an error in your code, JOCA should:"
+header: "Errors"
 options:
-  - "Corrigir imediatamente sem perguntar (Recomendado)"
-  - "Mostrar o problema e a correcção, aplicar após confirmação"
-  - "Reportar o problema sem corrigir — eu decido"
+  - "Fix it immediately without asking (Recommended)"
+  - "Show the problem and the fix, apply after confirmation"
+  - "Report the problem without fixing it — I decide"
 ```
-Mapear: fail-fast, balanced, permissive
+Map: fail-fast, balanced, permissive
 
-**Q4 — Testes Automáticos**
+**Q4 — Automatic Tests**
 ```
-question: "Queres que o JOCA corra testes automaticamente após alterações?"
+question: "Do you want JOCA to run tests automatically after changes?"
 header: "Auto-test"
 options:
-  - "Sim — trigger automático após código implementado (Recomendado)"
-  - "Não — só quando eu pedir"
+  - "Yes — automatic trigger after code is implemented (Recommended)"
+  - "No — only when I ask"
 ```
-Mapear: true, false
+Map: true, false
 
-### Aplicar calibração
+### Apply the calibration
 
-Substituir os `<PENDING>` no `memory/soul.md` secção Calibration Parameters:
+Replace the `<PENDING>` values in the `memory/soul.md` Calibration Parameters section:
 
 ```yaml
-autonomy_level: [valor]
-communication_mode: [valor]
-assertiveness: [inferido: máxima=0.85, alta=0.75, moderada=0.60, baixa=0.50]
-error_tolerance: [valor]
+autonomy_level: [value]
+communication_mode: [value]
+assertiveness: [inferred: maximum=0.85, high=0.75, moderate=0.60, low=0.50]
+error_tolerance: [value]
 explanation_depth: on-demand
-auto_test: [valor]
+auto_test: [value]
 ```
 
-Substituir também os placeholders `<USER_NAME>`, `<USER_ROLE>`, `<USER_STRENGTHS>`, `<USER_LEARNING_AREAS>` na secção User Alignment — usar dados do `~/CLAUDE.md` ou perguntar se não existirem.
+Also replace the `<USER_NAME>`, `<USER_ROLE>`, `<USER_STRENGTHS>`, `<USER_LEARNING_AREAS>` placeholders in the User Alignment section — use data from `~/CLAUDE.md` or ask if it does not exist.
 
-Confirmar:
+Confirm:
 ```
-✓ Soul calibrado — autonomia [X], comunicação [Y], erros [Z], auto-test [W]
+✓ Soul calibrated — autonomy [X], communication [Y], errors [Z], auto-test [W]
 ```
 
 ---
 
-## FASE 5 — Actualizar ~/CLAUDE.md
+## PHASE 5 — Update ~/CLAUDE.md
 
-Ler o `~/CLAUDE.md` existente. Actualizar a secção JOCA sem apagar dados pessoais ou de outros projectos:
+Read the existing `~/CLAUDE.md`. Update the JOCA section without deleting personal data or data from other projects:
 
 ```markdown
 ## JOCA
-Toolkit instalado em: [caminho]
-Comandos: /install · /start · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
+Toolkit installed at: [path]
+Commands: /install · /start · /resume · /save · /create-skill · /plan · /debug · /review-code · /review-design · /help-joca · /one-shot · /update-joca · /upgrade-joca · /goal
 
-Skills activas:
+Active skills:
 - Base: caveman, karpathy-guidelines, agent-context, create-skill
-- [categoria]: [lista por área activada]
+- [category]: [list per activated area]
 
-MCPs globais: [lista dos MCPs configurados]
+Global MCPs: [list of configured MCPs]
 ```
 
 ---
 
-## FASE 6 — Verificação Final
+## PHASE 6 — Final Verification
 
-### 1. Confirmar estrutura
+### 1. Confirm the structure
 
 ```bash
 echo "=== Root ===" && ls -la
@@ -420,61 +420,61 @@ echo "=== soul ===" && head -5 memory/soul.md
 echo "=== JOCA_OS ===" && ls JOCA_OS/
 ```
 
-### 2. Testar JOCA_OS
+### 2. Test JOCA_OS
 
 ```bash
 cd JOCA_OS && npm run dev &
 sleep 3
-# Portas reais: backend 7491 · frontend 7492
-curl -s http://localhost:7491/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend falhou"
-curl -s http://localhost:7491/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detectado" || echo "✗ JOCA_Logic não encontrado"
+# Real ports: backend 7491 · frontend 7492
+curl -s http://localhost:7491/health 2>/dev/null && echo "✓ Backend OK" || echo "✗ Backend failed"
+curl -s http://localhost:7491/joca-logic 2>/dev/null | head -1 && echo "✓ JOCA_Logic detected" || echo "✗ JOCA_Logic not found"
 kill %1 2>/dev/null
 cd ..
 ```
 
-### 3. Confirmar que restos v1-legacy foram removidos
+### 3. Confirm the v1-legacy leftovers were removed
 
 ```bash
-# Nenhum destes deve existir:
-ls AGENTS.md 2>/dev/null && echo "⚠ AGENTS.md ainda existe — apagar"
-ls CREDITOS.md 2>/dev/null && echo "⚠ CREDITOS.md ainda existe — apagar"
-ls install.md 2>/dev/null && echo "⚠ install.md na raiz ainda existe — apagar"
+# None of these should exist:
+ls AGENTS.md 2>/dev/null && echo "⚠ AGENTS.md still exists — delete it"
+ls CREDITS.md 2>/dev/null && echo "⚠ CREDITS.md still exists — delete it"
+ls install.md 2>/dev/null && echo "⚠ install.md at the root still exists — delete it"
 ```
 
-### 4. Relatório final
+### 4. Final report
 
 ```
-MIGRAÇÃO v1-legacy → v2.0 COMPLETA
+v1-legacy → v2.0 MIGRATION COMPLETE
 ────────────────────────────────────
 
-Estrutura:
+Structure:
   ✓ .claude/ — [n] skills, [n] agents, [n] commands
-  ✓ memory/ — soul.md calibrado, [n] projectos migrados, [n] tools
-  ✓ JOCA_OS/ — instalado e funcional
-  ✓ Restos v1-legacy removidos
+  ✓ memory/ — soul.md calibrated, [n] projects migrated, [n] tools
+  ✓ JOCA_OS/ — installed and working
+  ✓ v1-legacy leftovers removed
 
-Memória migrada:
-  ✓ projects/ — [lista]
-  ✓ tools/ — [lista]
-  ✓ feedback/ — [estado]
-  ✓ INDEX.md — reescrito para v2.0
+Memory migrated:
+  ✓ projects/ — [list]
+  ✓ tools/ — [list]
+  ✓ feedback/ — [state]
+  ✓ INDEX.md — rewritten for v2.0
 
 Soul.md:
-  ✓ Autonomia: [X] | Comunicação: [Y] | Erros: [Z] | Auto-test: [W]
+  ✓ Autonomy: [X] | Communication: [Y] | Errors: [Z] | Auto-test: [W]
 
-Próximo:
-  - Lançar JOCA UI: duplo-clique em "JOCA UI.command" ou npm start em JOCA_OS/
-  - Correr /install para configurar MCPs, API keys e integrações
-  - Correr /resume no início de cada sessão
+Next:
+  - Launch the JOCA UI: double-click "JOCA UI.command" or npm start in JOCA_OS/
+  - Run /install to configure MCPs, API keys and integrations
+  - Run /resume at the start of every session
 ```
 
 ---
 
-## REGRAS
+## RULES
 
-- **NUNCA apagar memória sem backup** — Fase 1 é obrigatória antes de qualquer limpeza
-- **Ler TODA a memória antes de apagar** — não confiar em nomes de ficheiro, ler conteúdo
-- **Perguntar antes de apagar entries de projecto** — podem ter contexto valioso
-- **O soul.md é obrigatório** — se não for preenchido, o JOCA perde personalidade
-- **Não misturar v1 e v2** — remover TODOS os ficheiros antigos, não fazer merge parcial de skills
-- **Testar o JOCA_OS** — confirmar que `findJocaLogicRoot()` detecta o layout flat
+- **NEVER delete memory without a backup** — Phase 1 is mandatory before any cleanup
+- **Read ALL the memory before deleting** — do not trust filenames, read the content
+- **Ask before deleting project entries** — they may hold valuable context
+- **soul.md is mandatory** — if it is not filled in, JOCA loses its personality
+- **Do not mix v1 and v2** — remove ALL the old files, do not do a partial merge of skills
+- **Test JOCA_OS** — confirm that `findJocaLogicRoot()` detects the flat layout

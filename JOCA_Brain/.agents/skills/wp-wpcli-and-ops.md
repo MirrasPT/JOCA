@@ -1,6 +1,6 @@
 ---
 name: wp-wpcli-and-ops
-description: "WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Invoke on: wp search-replace, migração de domínio, wp db."
+description: "WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Invoke on: wp search-replace, domain migration, wp db."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Requires WP-CLI in the execution environment."
 ---
 
@@ -38,7 +38,7 @@ WP-CLI commands can be destructive. Before any write operation:
 
 ### 1) Inspect WP-CLI and site targeting (deterministic)
 
-Inspecionar manualmente: `wp --info`, `wp cli version` e targeting (`--path`/`--url`) — o script inspector não existe nesta instalação.
+Inspect manually: `wp --info`, `wp cli version` and targeting (`--path`/`--url`) — the inspector script does not exist in this installation.
 
 If WP-CLI is unavailable, install via the project's documented tooling (Composer, container, or system package), or ask for the expected execution environment.
 

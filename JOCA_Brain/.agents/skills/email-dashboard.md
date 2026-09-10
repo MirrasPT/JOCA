@@ -1,115 +1,115 @@
 ---
 name: email-dashboard
-description: "Lê a inbox do Gmail (read-only) e entrega um dashboard HTML local, aberto no browser, com os emails triados por Acção / A aguardar / FYI / Ruído. MUST be invoked when the user says: email-dashboard, vê o meu email, vê a minha caixa de correio, dashboard do email, dashboard da inbox, check my email, inbox dashboard, o que tenho no email. SHOULD also invoke when: o user pede um ponto de situação do email ao início do dia, ou pergunta o que ficou por responder e quer o resultado num ficheiro em vez de texto no chat."
-triggers: email-dashboard, ve o meu email, dashboard do email, dashboard da inbox, check my email, inbox dashboard, o que tenho no email, ponto de situacao do email, o que ficou por responder
-chain: personal-comms, novo-issue
+description: "Reads the Gmail inbox (read-only) and delivers a local HTML dashboard, opened in the browser, with the emails triaged into Action / Waiting on / FYI / Noise. MUST be invoked when the user says: email-dashboard, check my email, look at my mailbox, email dashboard, inbox dashboard, what's in my email. SHOULD also invoke when: the user asks for an email status checkpoint at the start of the day, or asks what is still unanswered and wants the result in a file rather than as text in the chat."
+triggers: email-dashboard, check my email, email dashboard, inbox dashboard, what's in my email, email status checkpoint, what is still unanswered
+chain: personal-comms, new-issue
 allowed-tools: Bash, Read, Write, ToolSearch, mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread, mcp__claude_ai_Gmail__list_labels
 metadata:
-  category: produtividade
+  category: productivity
   origin: user
 ---
 
 # Email Dashboard
 
-Ciclo fechado, sempre o mesmo: **ler a inbox (read-only) → triar → escrever um `.html` local → abrir no browser**. Nunca marca lido, nunca arquiva, nunca envia, nunca responde.
+A closed cycle, always the same: **read the inbox (read-only) → triage → write a local `.html` → open it in the browser**. It never marks as read, never archives, never sends, never replies.
 
-## Quando usar
+## When to use it
 
-- "vê o meu email" / "o que tenho na inbox" / ponto de situação matinal.
-- Depois de um dia sem abrir o mail, para saber o que exige acção.
+- "check my email" / "what's in my inbox" / morning status checkpoint.
+- After a day without opening the mail, to find out what requires action.
 
-Não usar para: **enviar/responder email, criar eventos, gerir calendário, ou um resumo curto só em texto no chat** → `personal-comms`. O sinal que separa as duas: se o pedido implica ficheiro/dashboard visual para reabrir depois, é esta skill; se é só "diz-me rápido", é `personal-comms`.
+Do not use it for: **sending/replying to email, creating events, managing the calendar, or a short summary as text in the chat only** → `personal-comms`. The signal that separates the two: if the request implies a file/visual dashboard to reopen later, it is this skill; if it is just "tell me quickly", it is `personal-comms`.
 
-## Passo 1 — Tool de leitura (nunca assumir carregada)
+## Step 1 — The reading tool (never assume it is loaded)
 
-As tools Gmail são **deferred** neste ambiente: carregar todas numa única chamada antes de usar qualquer uma.
+The Gmail tools are **deferred** in this environment: load all of them in a single call before using any of them.
 
 ```
 ToolSearch query="select:mcp__claude_ai_Gmail__search_threads,mcp__claude_ai_Gmail__get_thread,mcp__claude_ai_Gmail__list_labels" max_results=3
 ```
 
-Não devolveu as 3 tools → correr a descoberta do `personal-comms` (Passo 1 dessa skill: `claude mcp list`, config, CLIs). Continua sem tool de leitura → escrever `TODO: tool de email não ligada`, reportar e **parar**. Nunca improvisar IMAP/curl, nunca inventar credenciais.
+It did not return the 3 tools → run the `personal-comms` discovery (Step 1 of that skill: `claude mcp list`, config, CLIs). Still no reading tool → write `TODO: email tool not connected`, report it and **stop**. Never improvise IMAP/curl, never invent credentials.
 
-## Passo 2 — Janela e estado
+## Step 2 — Window and state
 
-Estado persistente em `~/Relatorios/email-dashboard/estado.json` (`{"ultima_corrida":"ISO8601"}`).
+Persistent state in `~/Relatorios/email-dashboard/estado.json` (`{"ultima_corrida":"ISO8601"}`).
 
-1. Ler o estado. Existe e é JSON válido → janela = desde `ultima_corrida`. Não existe, ou o JSON não faz parse → janela = `newer_than:2d` (tratar como corrida inicial, não travar).
-2. O user manda uma janela explícita ("hoje", "esta semana") → essa sobrepõe-se sempre ao estado.
-3. Traduzir para sintaxe Gmail, nunca linguagem natural: `in:inbox newer_than:2d -in:draft`.
+1. Read the state. It exists and is valid JSON → window = since `ultima_corrida`. It does not exist, or the JSON does not parse → window = `newer_than:2d` (treat it as an initial run, do not stall).
+2. The user gives an explicit window ("today", "this week") → that always overrides the state.
+3. Translate it to Gmail syntax, never natural language: `in:inbox newer_than:2d -in:draft`.
 
-## Passo 3 — Buscar (barato primeiro)
+## Step 3 — Fetch (cheap first)
 
 ```
 search_threads(query="in:inbox newer_than:2d -in:draft", pageSize=50, view="THREAD_VIEW_MINIMAL")
 ```
 
-- `THREAD_VIEW_MINIMAL` já traz `subject`, `snippet`, `sender`, `date`, `label_ids` — chega para triar. **Não abrir corpos por defeito.**
-- Resposta `{}` = **zero resultados, não erro** → renderizar o estado vazio do Passo 6, nunca inventar linhas.
-- `label:` aceita **IDs**, não nomes visíveis → `list_labels()` primeiro se o user filtrar por etiqueta.
-- Precisa de detalhe do corpo (proposta, valor, prazo)? `get_thread(threadId, messageFormat="PLAIN_TEXT")` **só** para candidatos a Acção, máximo **8 threads** por corrida. `FULL_CONTENT` esgota o contexto — nunca usar.
-- **Erro duro da tool** (auth expirada, rate limit, 5xx) é diferente de `{}`: não repetir a chamada mais de 1 vez, escrever `TODO: falha na leitura do email (<erro>)`, reportar e **parar** — nunca renderizar um dashboard parcial que se lê como inbox vazia.
-- `pageSize` máximo real = 50. Mais que 50 threads na janela → paginar com `pageToken`, máximo **2 páginas extra**; ao fim disso o dashboard diz "janela truncada em N threads" em vez de continuar a paginar.
+- `THREAD_VIEW_MINIMAL` already brings `subject`, `snippet`, `sender`, `date`, `label_ids` — enough to triage. **Do not open bodies by default.**
+- A `{}` response = **zero results, not an error** → render the empty state from Step 6, never invent rows.
+- `label:` accepts **IDs**, not visible names → `list_labels()` first if the user filters by label.
+- Need detail from the body (a proposal, a value, a deadline)? `get_thread(threadId, messageFormat="PLAIN_TEXT")` **only** for Action candidates, a maximum of **8 threads** per run. `FULL_CONTENT` exhausts the context — never use it.
+- A **hard tool error** (expired auth, rate limit, 5xx) is different from `{}`: do not repeat the call more than once, write `TODO: email read failed (<error>)`, report it and **stop** — never render a partial dashboard that reads as an empty inbox.
+- The real maximum `pageSize` = 50. More than 50 threads in the window → paginate with `pageToken`, a maximum of **2 extra pages**; after that the dashboard says "window truncated at N threads" instead of paginating further.
 
-## Passo 4 — Triagem (4 baldes, um por thread)
+## Step 4 — Triage (4 buckets, one per thread)
 
-| Balde | Regra |
+| Bucket | Rule |
 |---|---|
-| **Acção** | Pergunta directa ao user, pedido, prazo, factura/pagamento, cliente à espera |
-| **A aguardar** | Última mensagem da thread é do próprio user **e pedia resposta** → a bola está do lado do outro. Reencaminhamento ou cópia para o próprio sem pergunta → **FYI**, não aqui |
-| **FYI** | Informativo real (equipa, plataforma, entregas) sem acção pedida |
-| **Ruído** | Newsletters, marketing, `category:promotions`/`social`, notificações automáticas |
+| **Action** | A direct question to the user, a request, a deadline, an invoice/payment, a client waiting |
+| **Waiting on** | The last message in the thread is the user's own **and it asked for a reply** → the ball is in the other person's court. A forward or a copy to himself with no question → **FYI**, not here |
+| **FYI** | Genuinely informative (team, platform, deliveries) with no action requested |
+| **Noise** | Newsletters, marketing, `category:promotions`/`social`, automatic notifications |
 
-Por thread guardar: `remetente`, `assunto`, `data`, `threadId`, `snippet` (máx. 160 caracteres), balde, e **acção sugerida em 1 linha** (só para Acção).
+Per thread, store: `sender`, `subject`, `date`, `threadId`, `snippet` (max. 160 characters), bucket, and a **suggested action in 1 line** (Action only).
 
-Marcar o projecto no cartão quando o remetente/assunto casa um projecto do inventário — a lista canónica é `memory/PROJECTOS.md` (ou a tabela de projectos do `~/CLAUDE.md`); **nunca** manter uma cópia de clientes dentro desta skill, que apodrece em silêncio. Sem match → sem etiqueta, **nunca adivinhar o projecto**.
+Mark the project on the card when the sender/subject matches a project in the inventory — the canonical list is `memory/PROJECTOS.md` (or the projects table in `~/CLAUDE.md`); **never** keep a copy of clients inside this skill, which rots silently. No match → no label, **never guess the project**.
 
-## Passo 5 — Regras de conteúdo (não negociáveis)
+## Step 5 — Content rules (non-negotiable)
 
-- **Zero fabricação**: cada cartão vem de uma resposta real da tool — nenhuma contagem estimada, nenhum remetente plausível.
-- **Segredos não entram no HTML**: códigos 2FA/OTP, passwords, tokens, links de reset → o cartão escreve `[código omitido]`. O ficheiro fica no disco e pode ser reaberto por qualquer pessoa.
-- **Read-only absoluto**: proibido `label_*`, `trash_*`, `mark_*`, `send_*`, `reply`, `create_draft`. User pede acção a partir de um cartão → `personal-comms`, com confirmação se for envio.
+- **Zero fabrication**: every card comes from a real tool response — no estimated count, no plausible sender.
+- **Secrets do not go into the HTML**: 2FA/OTP codes, passwords, tokens, reset links → the card writes `[code omitted]`. The file sits on disk and can be reopened by anyone.
+- **Absolutely read-only**: `label_*`, `trash_*`, `mark_*`, `send_*`, `reply`, `create_draft` are forbidden. The user asks for an action from a card → `personal-comms`, with confirmation if it is a send.
 
-## Passo 6 — Dashboard HTML
+## Step 6 — HTML dashboard
 
-Ficheiro: `~/Relatorios/email-dashboard/YYYY-MM-DD-HHMM.html` (`mkdir -p` primeiro). **Timestamp no nome — nunca escrever por cima de um dashboard anterior.**
+File: `~/Relatorios/email-dashboard/YYYY-MM-DD-HHMM.html` (`mkdir -p` first). **Timestamp in the name — never write over a previous dashboard.**
 
-Conteúdo mínimo:
-- Cabeçalho: data/hora da corrida + janela coberta em texto ("desde 2026-09-02 09:14") + 4 contadores.
-- 4 secções na ordem **Acção → A aguardar → FYI → Ruído** (Ruído colapsado num `<details>`, só contagem + remetentes).
-- Cartão: remetente · assunto · data relativa · projecto (se houver) · snippet · acção sugerida · link `https://mail.google.com/mail/u/0/#inbox/<threadId>` com `target="_blank"`.
-- Estado vazio explícito: "Nada novo na janela X" — nunca uma página em branco.
+Minimum content:
+- Header: date/time of the run + the window covered in words ("since 2026-09-02 09:14") + 4 counters.
+- 4 sections in the order **Action → Waiting on → FYI → Noise** (Noise collapsed into a `<details>`, count + senders only).
+- Card: sender · subject · relative date · project (if any) · snippet · suggested action · link `https://mail.google.com/mail/u/0/#inbox/<threadId>` with `target="_blank"`.
+- Explicit empty state: "Nothing new in window X" — never a blank page.
 
-Regras de construção:
-- **HTML auto-contido**: CSS inline no `<style>`, zero CDN, zero fetch. Abre offline e daqui a um ano.
-- Claro/escuro por `prefers-color-scheme`, ambos com fundo e cor explícitos.
-- PT-PT em toda a interface.
-- Sem `Artifact()` — o output é sempre local.
+Build rules:
+- **Self-contained HTML**: CSS inline in `<style>`, zero CDN, zero fetch. It opens offline and a year from now.
+- Light/dark via `prefers-color-scheme`, both with an explicit background and color.
+- English throughout the interface.
+- No `Artifact()` — the output is always local.
 
-Verificação antes de reportar: `test -f <path>` devolve sucesso. Só então:
+Verification before reporting: `test -f <path>` returns success. Only then:
 ```bash
-open ~/Relatorios/email-dashboard/<ficheiro>.html      # macOS
-# Windows: start "" "%USERPROFILE%\Relatorios\email-dashboard\<ficheiro>.html"
+open ~/Relatorios/email-dashboard/<file>.html      # macOS
+# Windows: start "" "%USERPROFILE%\Relatorios\email-dashboard\<file>.html"
 ```
-Escrever `estado.json` com a hora desta corrida **só depois** de o ficheiro existir no disco — se o dashboard falhar a meio, a próxima corrida repete a janela em vez de perder emails.
+Write `estado.json` with the time of this run **only after** the file exists on disk — if the dashboard fails halfway, the next run repeats the window instead of losing emails.
 
-## Passo 7 — Resposta no terminal
+## Step 7 — Reply in the terminal
 
-Máximo 4 linhas: contagens dos 4 baldes, os 2-3 accionáveis mais urgentes, o path do ficheiro. O detalhe está no dashboard — não repetir a lista toda no chat.
+Maximum 4 lines: the counts of the 4 buckets, the 2-3 most urgent actionable items, the path to the file. The detail is in the dashboard — do not repeat the whole list in the chat.
 
 ## Gotchas
 
-| Sintoma | Causa | Fix |
+| Symptom | Cause | Fix |
 |---|---|---|
-| Contexto esgotado a meio | `get_thread` com `FULL_CONTENT` ou em demasiadas threads | `PLAIN_TEXT`, máximo 8 threads |
-| `label:Clientes` não devolve nada | `label:` quer o **ID**, não o nome | `list_labels()` e usar o `id` |
-| Threads já triadas voltam a aparecer | `estado.json` não foi escrito no fim da corrida anterior | Escrever o estado sempre, mesmo em janela vazia |
-| `estado.json` existe mas não abre | JSON corrompido (corrida anterior interrompida) | Tratar como inexistente, `newer_than:2d`, sobrescrever no fim |
-| Thread arquivada aparece na inbox | Gmail devolve a thread inteira se **uma** mensagem casar | Filtrar por `label_ids` conter `INBOX` |
-| Link do cartão abre a conta errada | `u/0` é o índice do perfil Google no browser, não fixo | Trocar por `u/?authuser=<email>` |
-| Dashboard anterior desapareceu | Ficheiro escrito com nome fixo | Timestamp no nome, sempre |
+| Context exhausted halfway | `get_thread` with `FULL_CONTENT` or across too many threads | `PLAIN_TEXT`, maximum 8 threads |
+| `label:Clientes` returns nothing | `label:` wants the **ID**, not the name | `list_labels()` and use the `id` |
+| Already-triaged threads come back | `estado.json` was not written at the end of the previous run | Always write the state, even on an empty window |
+| `estado.json` exists but does not open | Corrupted JSON (the previous run was interrupted) | Treat it as non-existent, `newer_than:2d`, overwrite it at the end |
+| An archived thread appears in the inbox | Gmail returns the whole thread if **one** message matches | Filter by `label_ids` containing `INBOX` |
+| The card's link opens the wrong account | `u/0` is the index of the Google profile in the browser, not fixed | Swap it for `u/?authuser=<email>` |
+| The previous dashboard vanished | File written with a fixed name | Timestamp in the name, always |
 
-## Próximo passo (chain)
+## Next step (chain)
 
-- `personal-comms` — o user quer responder/enviar/marcar reunião a partir de um cartão. **Envio é irreversível** → draft + 1 linha de confirmação antes.
-- `novo-issue` — um email accionável é trabalho de um projecto com repo conhecido. Reversível → abrir o issue sem perguntar, e dizer qual.
+- `personal-comms` — the user wants to reply/send/book a meeting from a card. **Sending is irreversible** → draft + 1 line of confirmation first.
+- `new-issue` — an actionable email is work for a project with a known repo. Reversible → open the issue without asking, and say which one.

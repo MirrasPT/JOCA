@@ -1,31 +1,31 @@
 #!/usr/bin/env node
 /**
- * joca-brain — memória institucional event-sourced do JOCA (decisões + aprendizagens).
+ * joca-brain — JOCA's event-sourced institutional memory (decisions + learnings).
  *
- * Adaptado de gstack lib/gstack-decision.ts (conceitos, não código): log JSONL
- * append-only, "active" COMPUTADO (um `decide` não referido por `supersede`/`redact`),
- * scope repo/branch, secret-scan na escrita (HIGH → rejeita), datamark anti-injecção
- * no resurface, snapshot bounded p/ recall O(active). Local-first markdown/JSONL —
- * NÃO importa Postgres (o Brain do JOCA mantém-se em ficheiros).
+ * Adapted from gstack lib/gstack-decision.ts (concepts, not code): append-only
+ * JSONL log, COMPUTED "active" (a `decide` not referenced by `supersede`/`redact`),
+ * repo/branch scope, secret-scan on write (HIGH → rejects), anti-injection datamark
+ * on resurface, bounded snapshot for O(active) recall. Local-first markdown/JSONL —
+ * does NOT import Postgres (JOCA's Brain stays in files).
  *
- * Store (fonte única, resolvido por __dirname → nunca recomputar com ../../):
+ * Store (single source, resolved via __dirname → never recompute with ../../):
  *   <JOCA_Brain>/memory/decisions/<slug>.jsonl     (+ .active.json snapshot)
  *   <JOCA_Brain>/memory/learnings/<slug>.jsonl
  *
- * Uso (o texto pode ir posicional ou em --text; `<cmd> --help` imprime a assinatura):
+ * Usage (the text can go positional or in --text; `<cmd> --help` prints the signature):
  *   joca-brain decide  "..." | --text "..." [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10]
  *   joca-brain supersede <id>
  *   joca-brain redact <id>
  *   joca-brain learn   "..." | --text "..." [--tags a,b,c] [--file path]
  *   joca-brain active  [--slug X] [--json]
- *   joca-brain recall  [--slug X] [--limit 5]      # active decisions + learnings recentes (p/ hook)
+ *   joca-brain recall  [--slug X] [--limit 5]      # active decisions + recent learnings (for the hook)
  *   joca-brain search  <query> [--limit 5] [--slug X]
- *   joca-brain reindex                              # força rebuild do índice FTS5
+ *   joca-brain reindex                              # forces a rebuild of the FTS5 index
  *
- * Search: tenta FTS5 (node:sqlite via joca-memory-index.mjs; rebuild lazy por mtime,
- * inclui checkpoints, ranking bm25) e cai para substring se node:sqlite indisponível
- * (node <22.5), FTS5 ausente, ou erro. JOCA_BRAIN_NO_FTS=1 força o fallback.
- * Escritas (decide/learn/supersede/redact) NÃO indexam — indexação é lazy no search.
+ * Search: tries FTS5 (node:sqlite via joca-memory-index.mjs; lazy rebuild by mtime,
+ * includes checkpoints, bm25 ranking) and falls back to substring if node:sqlite is
+ * unavailable (node <22.5), FTS5 is missing, or on error. JOCA_BRAIN_NO_FTS=1 forces the fallback.
+ * Writes (decide/learn/supersede/redact) do NOT index — indexing is lazy, on search.
  */
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -60,7 +60,7 @@ function currentSlug(explicit) {
   try {
     const top = execSync('git rev-parse --show-toplevel', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     if (top) return sanitizeSlug(basename(top));
-  } catch (_) { /* não-git */ }
+  } catch (_) { /* non-git */ }
   return sanitizeSlug(basename(process.cwd()));
 }
 function sanitizeSlug(s) { return String(s).replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown'; }
@@ -69,7 +69,7 @@ function currentBranch() {
   catch (_) { return undefined; }
 }
 
-// ---------- secret scan (HIGH-tier; rejeita escrita) ----------
+// ---------- secret scan (HIGH-tier; rejects the write) ----------
 const SECRET_PATTERNS = [
   [/AKIA[0-9A-Z]{16}/, 'AWS access key'],
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private key block'],
@@ -84,8 +84,8 @@ function scanSecrets(text) {
   return hits;
 }
 
-// ---------- datamark (neutraliza injecção no resurface) ----------
-// Filtro por code-point (sem regex de control-chars no source) + substituições simples.
+// ---------- datamark (neutralizes injection on resurface) ----------
+// Code-point filter (no control-char regex in the source) + simple substitutions.
 function datamark(text) {
   const ZWSP = '​';
   let cleaned = '';
@@ -110,7 +110,7 @@ function learningsLog(slug) { return join(MEM, 'learnings', `${slug}.jsonl`); }
 
 function appendJsonl(file, obj) {
   ensureDir(dirname(file));
-  appendFileSync(file, JSON.stringify(obj) + '\n', 'utf8'); // O_APPEND single-line = atómico
+  appendFileSync(file, JSON.stringify(obj) + '\n', 'utf8'); // O_APPEND single-line = atomic
 }
 function readJsonl(file) {
   if (!existsSync(file)) return [];
@@ -118,7 +118,7 @@ function readJsonl(file) {
   for (const line of readFileSync(file, 'utf8').split('\n')) {
     const t = line.trim();
     if (!t) continue;
-    try { out.push(JSON.parse(t)); } catch (_) { /* tolera linha parcial/malformada */ }
+    try { out.push(JSON.parse(t)); } catch (_) { /* tolerates a partial/malformed line */ }
   }
   return out;
 }
@@ -147,7 +147,7 @@ function filterByScope(active, branch) {
 }
 
 // ---------- commands ----------
-// texto aceite posicional (`learn "x"`) OU em --text — o posicional era o erro nº1 do /learn
+// text accepted positionally (`learn "x"`) OR in --text — the positional was /learn's #1 error
 function textOf(a) {
   if (typeof a.text === 'string') return a.text.trim();
   if (typeof a._[0] === 'string') return a._[0].trim();
@@ -156,10 +156,10 @@ function textOf(a) {
 function cmdDecide(a) {
   const slug = currentSlug(a.slug);
   const text = textOf(a);
-  if (!text) fail(`decide: texto obrigatório\n  ${USAGE.decide}`);
+  if (!text) fail(`decide: text is required\n  ${USAGE.decide}`);
   const freeText = [text, a.rationale, a.branch].filter((s) => typeof s === 'string').join('\n');
   const secrets = scanSecrets(freeText);
-  if (secrets.length) fail(`decide REJEITADO: contém segredo (${secrets.join(', ')}). Roda + remove — não logar segredos.`);
+  if (secrets.length) fail(`decide REJECTED: contains a secret (${secrets.join(', ')}). Rotate + remove — never log secrets.`);
   const scope = a.scope === 'branch' ? 'branch' : 'repo';
   const ev = {
     id: randomUUID(), kind: 'decide', decision: text,
@@ -171,22 +171,22 @@ function cmdDecide(a) {
   };
   appendJsonl(decisionsLog(slug), ev);
   refreshSnapshot(slug);
-  console.log(`[brain] decisão registada (${slug}) id=${ev.id}`);
+  console.log(`[brain] decision recorded (${slug}) id=${ev.id}`);
 }
 function cmdRef(kind, a) {
   const slug = currentSlug(a.slug);
   const target = a._[0];
-  if (!target) fail(`${kind}: <id> obrigatório`);
+  if (!target) fail(`${kind}: <id> is required`);
   appendJsonl(decisionsLog(slug), { id: randomUUID(), kind, supersedes: target, date: new Date().toISOString(), source: 'agent' });
   refreshSnapshot(slug);
-  console.log(`[brain] ${kind} de ${target} (${slug})`);
+  console.log(`[brain] ${kind} of ${target} (${slug})`);
 }
 function cmdLearn(a) {
   const slug = currentSlug(a.slug);
   const text = textOf(a);
-  if (!text) fail(`learn: texto obrigatório\n  ${USAGE.learn}`);
+  if (!text) fail(`learn: text is required\n  ${USAGE.learn}`);
   const secrets = scanSecrets(text);
-  if (secrets.length) fail(`learn REJEITADO: contém segredo (${secrets.join(', ')}).`);
+  if (secrets.length) fail(`learn REJECTED: contains a secret (${secrets.join(', ')}).`);
   const ev = {
     id: randomUUID(), text,
     tags: typeof a.tags === 'string' ? a.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
@@ -194,14 +194,14 @@ function cmdLearn(a) {
     branch: currentBranch(), date: new Date().toISOString(),
   };
   appendJsonl(learningsLog(slug), ev);
-  console.log(`[brain] aprendizagem registada (${slug}) id=${ev.id}`);
+  console.log(`[brain] learning recorded (${slug}) id=${ev.id}`);
 }
 function cmdActive(a) {
   const slug = currentSlug(a.slug);
   const active = filterByScope(computeActive(readJsonl(decisionsLog(slug))), currentBranch());
   if (a.json) { console.log(JSON.stringify(active, null, 2)); return; }
-  if (!active.length) { console.log(`(sem decisões activas para ${slug})`); return; }
-  console.log(`# Decisões activas — ${slug}`);
+  if (!active.length) { console.log(`(no active decisions for ${slug})`); return; }
+  console.log(`# Active decisions — ${slug}`);
   for (const d of active) console.log(`- [${d.date.slice(0, 10)}] ${datamark(d.decision)}${d.rationale ? ` — ${datamark(d.rationale)}` : ''}`);
 }
 function cmdRecall(a) {
@@ -211,11 +211,11 @@ function cmdRecall(a) {
   const learns = readJsonl(learningsLog(slug)).slice(-limit);
   const lines = [];
   if (active.length) {
-    lines.push(`## Brain — decisões activas (${slug})`);
+    lines.push(`## Brain — active decisions (${slug})`);
     for (const d of active) lines.push(`- ${datamark(d.decision)}`);
   }
   if (learns.length) {
-    lines.push(`## Brain — aprendizagens recentes (${slug})`);
+    lines.push(`## Brain — recent learnings (${slug})`);
     for (const l of learns) lines.push(`- ${datamark(l.text)}${l.tags && l.tags.length ? ` [${l.tags.join(',')}]` : ''}`);
   }
   console.log(lines.join('\n'));
@@ -223,57 +223,57 @@ function cmdRecall(a) {
 async function cmdSearch(a) {
   const slug = currentSlug(a.slug);
   const qRaw = a._[0] || '';
-  if (!qRaw) fail('search: <query> obrigatório');
+  if (!qRaw) fail('search: <query> is required');
   const limit = parseInt(a.limit, 10) || 5;
 
-  // 1) FTS5 (bm25 + snippets + checkpoints) — rebuild lazy se db inexistente/stale.
+  // 1) FTS5 (bm25 + snippets + checkpoints) — lazy rebuild if the db is missing/stale.
   try {
     const idx = await import('./joca-memory-index.mjs');
     if (idx.ftsAvailable()) {
       if (idx.isStale(MEM)) idx.rebuildIndex(MEM);
       const rows = idx.searchIndex(MEM, qRaw, { limit, slug });
       const lines = rows.map((r) => {
-        if (r.kind === 'decision') return `[decisão] ${datamark(r.title)}`;
-        if (r.kind === 'learning') return `[aprendizagem] ${datamark(r.title)}`;
+        if (r.kind === 'decision') return `[decision] ${datamark(r.title)}`;
+        if (r.kind === 'learning') return `[learning] ${datamark(r.title)}`;
         return `[checkpoint ${basename(r.source_path)}] ${datamark(r.title)} — ${datamark(r.snippet)}`;
       });
-      console.log(lines.join('\n') || `(nada para "${qRaw}" em ${slug})`);
+      console.log(lines.join('\n') || `(nothing for "${qRaw}" in ${slug})`);
       return;
     }
-  } catch (_) { /* node:sqlite indisponível ou índice partido → substring */ }
+  } catch (_) { /* node:sqlite unavailable or broken index → substring */ }
 
-  // 2) fallback substring (comportamento original, sem checkpoints)
+  // 2) substring fallback (original behavior, no checkpoints)
   const q = qRaw.toLowerCase();
   const hits = [];
   for (const d of computeActive(readJsonl(decisionsLog(slug)))) {
     const hay = `${d.decision} ${d.rationale || ''}`.toLowerCase();
-    if (hay.includes(q)) hits.push(`[decisão] ${datamark(d.decision)}`);
+    if (hay.includes(q)) hits.push(`[decision] ${datamark(d.decision)}`);
   }
   for (const l of readJsonl(learningsLog(slug))) {
     const hay = `${l.text} ${(l.tags || []).join(' ')}`.toLowerCase();
-    if (hay.includes(q)) hits.push(`[aprendizagem] ${datamark(l.text)}`);
+    if (hay.includes(q)) hits.push(`[learning] ${datamark(l.text)}`);
   }
-  console.log(hits.slice(0, limit).join('\n') || `(nada para "${q}" em ${slug})`);
+  console.log(hits.slice(0, limit).join('\n') || `(nothing for "${q}" in ${slug})`);
 }
 async function cmdReindex() {
   let idx;
   try { idx = await import('./joca-memory-index.mjs'); }
-  catch (e) { fail(`reindex: joca-memory-index indisponível (${e.message})`); }
-  if (!idx.ftsAvailable()) fail('reindex: node:sqlite/FTS5 indisponível (precisa node >= 22.5; JOCA_BRAIN_NO_FTS desliga)');
+  catch (e) { fail(`reindex: joca-memory-index unavailable (${e.message})`); }
+  if (!idx.ftsAvailable()) fail('reindex: node:sqlite/FTS5 unavailable (needs node >= 22.5; JOCA_BRAIN_NO_FTS turns it off)');
   try {
     const c = idx.rebuildIndex(MEM);
-    console.log(`[brain] índice FTS5 reconstruído: ${c.decisions} decisões, ${c.learnings} aprendizagens, ${c.checkpoints} checkpoints → memory/.index/memory.db`);
-  } catch (e) { fail(`reindex falhou: ${e.message}`); }
+    console.log(`[brain] FTS5 index rebuilt: ${c.decisions} decisions, ${c.learnings} learnings, ${c.checkpoints} checkpoints → memory/.index/memory.db`);
+  } catch (e) { fail(`reindex failed: ${e.message}`); }
 }
 
 function fail(msg) { console.error(msg); process.exit(1); }
 
-// ---------- usage (--help por comando; antes era preciso abrir o .mjs p/ ver as flags) ----------
+// ---------- usage (--help per command; you used to have to open the .mjs to see the flags) ----------
 const USAGE = {
-  decide: 'joca-brain decide "texto" [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10] [--slug X]',
+  decide: 'joca-brain decide "text" [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10] [--slug X]',
   supersede: 'joca-brain supersede <id> [--slug X]',
   redact: 'joca-brain redact <id> [--slug X]',
-  learn: 'joca-brain learn "texto" [--tags a,b,c] [--file path] [--slug X]',
+  learn: 'joca-brain learn "text" [--tags a,b,c] [--file path] [--slug X]',
   active: 'joca-brain active [--slug X] [--json]',
   recall: 'joca-brain recall [--slug X] [--limit 5]',
   search: 'joca-brain search <query> [--limit 5] [--slug X]',
@@ -288,8 +288,8 @@ if (cmd === '--help' || cmd === '-h' || cmd === 'help') {
   console.log(Object.values(USAGE).join('\n'));
   process.exit(0);
 }
-// `-h` e `help` não começam por `--`, portanto o parseArgs mete-os no posicional `_` — e o texto
-// dos comandos de escrita LÊ o `_[0]`. Sem este check, `learn -h` registava uma aprendizagem "-h".
+// `-h` and `help` do not start with `--`, so parseArgs puts them in the positional `_` — and the
+// text of the write commands READS `_[0]`. Without this check, `learn -h` recorded a "-h" learning.
 const pedeAjuda = a.help || a.h || a._.includes('-h') || a._.includes('help');
 if (pedeAjuda && USAGE[cmd]) { console.log(USAGE[cmd]); process.exit(0); }
 switch (cmd) {
@@ -302,6 +302,6 @@ switch (cmd) {
   case 'search': await cmdSearch(a); break;
   case 'reindex': await cmdReindex(); break;
   default:
-    console.log('joca-brain — uso: decide|supersede|redact|learn|active|recall|search|reindex (ver cabeçalho do ficheiro)');
+    console.log('joca-brain — usage: decide|supersede|redact|learn|active|recall|search|reindex (see the file header)');
     process.exit(cmd ? 1 : 0);
 }

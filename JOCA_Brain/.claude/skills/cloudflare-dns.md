@@ -1,17 +1,17 @@
 ---
 name: cloudflare-dns
-description: Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, registo DNS, SPF merge, MX Cloudflare, reencaminhar email domínio, forward email domínio, DKIM Cloudflare. SHOULD invoke when: domínio novo no Cloudflare, configurar noreply@, verificar MX/TXT, zona Cloudflare, upsert DNS record, criar subdomínio DNS.
-triggers: cloudflare dns, cloudflare-dns, email routing, registo dns, spf merge, mx cloudflare, reencaminhar email dominio, forward email dominio, dkim cloudflare, zona cloudflare, upsert dns, dns idempotente
+description: Manage DNS records and Email Routing on Cloudflare via API, idempotent, per domain. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, DNS record, SPF merge, MX Cloudflare, forward email domain, DKIM Cloudflare. SHOULD invoke when: new domain on Cloudflare, configure noreply@, check MX/TXT, Cloudflare zone, upsert DNS record, create DNS subdomain.
+triggers: cloudflare dns, cloudflare-dns, email routing, dns record, spf merge, mx cloudflare, forward email domain, dkim cloudflare, cloudflare zone, upsert dns, idempotent dns
 origin: local
 ---
 
 # Cloudflare DNS + Email Routing
 
-Gerir registos DNS e Email Routing (forward-only) por API, **idempotente**, por domínio. Fluxo manual repete-se por domínio e tem 2 armadilhas (ver Gotchas). Nunca blind-POST — duplica registos.
+Manage DNS records and Email Routing (forward-only) via API, **idempotently**, per domain. The manual flow repeats per domain and has 2 pitfalls (see Gotchas). Never blind-POST — it duplicates records.
 
-## Setup (1x por conta)
+## Setup (once per account)
 
-Token vive **só** em ficheiro local, fora do git, nunca no chat:
+The token lives **only** in a local file, outside git, never in the chat:
 ```bash
 mkdir -p ~/.cloudflare
 cat > ~/.cloudflare/<account>.json <<'JSON'
@@ -19,12 +19,12 @@ cat > ~/.cloudflare/<account>.json <<'JSON'
 JSON
 chmod 600 ~/.cloudflare/<account>.json
 ```
-Token scope: Zone.DNS Edit + Account.Email Routing Addresses/Rules Edit, na zona/conta certa.
-`account_id`: Cloudflare dashboard → domínio → Overview → coluna direita.
+Token scope: Zone.DNS Edit + Account.Email Routing Addresses/Rules Edit, on the right zone/account.
+`account_id`: Cloudflare dashboard → domain → Overview → right-hand column.
 
-**Nunca** fazer `echo`/`cat`/print do token ou do header `Authorization` em stdout, logs, ou mensagens.
+**Never** `echo`/`cat`/print the token or the `Authorization` header to stdout, logs, or messages.
 
-## Auth (base de toda a sessão)
+## Auth (the basis of every session)
 
 ```bash
 CF_FILE=~/.cloudflare/<account>.json
@@ -34,17 +34,17 @@ API=https://api.cloudflare.com/client/v4
 AUTH=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
 ```
 
-## 1. Zona por domínio
+## 1. Zone per domain
 
 ```bash
 zone_id() { curl -s "${AUTH[@]}" "$API/zones?name=$1" | jq -r '.result[0].id'; }
 ZONE=$(zone_id example.com)
 ```
-Guardar `ZONE` por domínio numa sessão que toca vários — evita repetir o lookup.
+Save `ZONE` per domain in a session that touches several — it avoids repeating the lookup.
 
-## 2. Upsert DNS (idempotente) — A/CNAME/TXT
+## 2. DNS upsert (idempotent) — A/CNAME/TXT
 
-Sempre GET primeiro; `id` existe → `PATCH`, senão → `POST`. **Nunca POST sem GET antes.**
+Always GET first; the `id` exists → `PATCH`, otherwise → `POST`. **Never POST without a GET first.**
 ```bash
 dns_upsert() { # zone type name content
   local zone=$1 type=$2 name=$3 content=$4
@@ -55,7 +55,7 @@ dns_upsert() { # zone type name content
 }
 ```
 
-MX precisa de `priority` — variante dedicada (match por `type+name+content`, porque há 3 MX no mesmo `name`):
+MX needs `priority` — dedicated variant (match by `type+name+content`, because there are 3 MX on the same `name`):
 ```bash
 dns_upsert_mx() { # zone name content priority
   local zone=$1 name=$2 content=$3 prio=$4
@@ -66,82 +66,82 @@ dns_upsert_mx() { # zone name content priority
 }
 ```
 
-Confirmar `success:true` sempre — `errors:[]` vazio não garante nada se `success:false` passou despercebido. Se `success:false` → mostrar `errors[]` ao user e **parar a checklist** (não continuar como se tivesse passado).
+Always confirm `success:true` — an empty `errors:[]` guarantees nothing if a `success:false` went unnoticed. If `success:false` → show `errors[]` to the user and **stop the checklist** (do not carry on as if it had passed).
 
-## 3. Email Routing — activar + destino + regra
+## 3. Email Routing — enable + destination + rule
 
-**GOTCHA 1 (auth scope):** `POST /zones/{zone}/email/routing/enable` devolve **erro 10000 (auth)** sob token account-scoped "all zones". Activar Email Routing pelo **dashboard** (1 clique, domínio novo) — não é falha, é esperado. Depois de activo, addresses/rules/DNS seguem por API normalmente.
+**GOTCHA 1 (auth scope):** `POST /zones/{zone}/email/routing/enable` returns **error 10000 (auth)** under an account-scoped "all zones" token. Enable Email Routing from the **dashboard** (1 click, new domain) — it is not a failure, it is expected. Once enabled, addresses/rules/DNS go through the API normally.
 
-Destino (se ainda não existir — o destino que É o email da conta CF auto-verifica):
+Destination (if it does not exist yet — the destination that IS the CF account's email self-verifies):
 ```bash
 curl -s -X POST "${AUTH[@]}" "$API/accounts/$CF_ACCT/email/routing/addresses" \
-  -d "$(jq -n --arg e "<gmail@destino>" '{email:$e}')" | jq -c '{success,errors}'
+  -d "$(jq -n --arg e "<gmail@destination>" '{email:$e}')" | jq -c '{success,errors}'
 ```
 
-Regra de forward (`noreply@domínio → gmail`):
+Forward rule (`noreply@domain → gmail`):
 ```bash
 curl -s -X POST "${AUTH[@]}" "$API/zones/$ZONE/email/routing/rules" \
   -d '{"matchers":[{"type":"literal","field":"to","value":"noreply@example.com"}],
-       "actions":[{"type":"forward","value":["<gmail@destino>"]}],"enabled":true}' | jq -c '{success,errors}'
+       "actions":[{"type":"forward","value":["<gmail@destination>"]}],"enabled":true}' | jq -c '{success,errors}'
 ```
 
-DNS de Email Routing (3x MX + 1 DKIM): o **enable pelo dashboard (Gotcha 1) já os cria automaticamente**. As chamadas abaixo são só para **re-afirmar/verificar** de forma idempotente (ou fallback se algum não ficou). Prioridades `85/45/38` = valores fixos do Cloudflare Email Routing (route1/2/3); o valor DKIM é gerado pelo Cloudflare — copiar do dashboard, não inventar:
+Email Routing DNS (3x MX + 1 DKIM): the **enable from the dashboard (Gotcha 1) already creates them automatically**. The calls below are only to **re-assert/verify** idempotently (or as a fallback if one of them did not stick). Priorities `85/45/38` = fixed Cloudflare Email Routing values (route1/2/3); the DKIM value is generated by Cloudflare — copy it from the dashboard, do not invent it:
 ```bash
 dns_upsert_mx "$ZONE" example.com route1.mx.cloudflare.net 85
 dns_upsert_mx "$ZONE" example.com route2.mx.cloudflare.net 45
 dns_upsert_mx "$ZONE" example.com route3.mx.cloudflare.net 38
-dns_upsert    "$ZONE" TXT "cf2024-1._domainkey.example.com" "<valor DKIM gerado pelo CF, copiar do dashboard>"
+dns_upsert    "$ZONE" TXT "cf2024-1._domainkey.example.com" "<DKIM value generated by CF, copy from the dashboard>"
 ```
 
-Só recebe (forward); o DKIM `cf2024-1._domainkey` é o do routing (criado pelo enable) — enviar "como" o domínio (SMTP Send-as, DKIM próprio) é passo à parte, não coberto aqui.
+Receive only (forward); the `cf2024-1._domainkey` DKIM is the routing one (created by the enable) — sending "as" the domain (SMTP Send-as, your own DKIM) is a separate step, not covered here.
 
-## 4. SPF — merge, nunca substituir
+## 4. SPF — merge, never replace
 
-**GOTCHA 2 (SPF clobber):** o wizard de Email Routing **reescreve o TXT SPF da raiz e apaga includes existentes** (ex.: Mailjet). Depois de activar Email Routing, **sempre** re-mergir o SPF por API:
+**GOTCHA 2 (SPF clobber):** the Email Routing wizard **rewrites the root SPF TXT and deletes existing includes** (e.g. Mailjet). After enabling Email Routing, **always** re-merge the SPF via API:
 ```bash
 spf_current() { curl -s "${AUTH[@]}" "$API/zones/$1/dns_records?type=TXT&name=$2" \
   | jq -r '.result[] | select(.content | startswith("v=spf1"))'; }
-spf_current "$ZONE" example.com   # confirmar o estado ANTES de decidir o merge — não assumir
+spf_current "$ZONE" example.com   # confirm the state BEFORE deciding the merge — do not assume
 
-spf_merge() { # zone txt_record_id novo_conteudo
+spf_merge() { # zone txt_record_id new_content
   curl -s -X PATCH "${AUTH[@]}" "$API/zones/$1/dns_records/$2" \
     -d "$(jq -n --arg c "$3" '{content:$c}')" | jq -c '{success,errors}'
 }
-# exemplo: preservar Mailjet + adicionar Cloudflare
-spf_merge "$ZONE" "<id do TXT SPF>" "v=spf1 include:spf.mailjet.com include:_spf.mx.cloudflare.net ~all"
+# example: preserve Mailjet + add Cloudflare
+spf_merge "$ZONE" "<SPF TXT record id>" "v=spf1 include:spf.mailjet.com include:_spf.mx.cloudflare.net ~all"
 ```
-Merge = concatenar `include:` existentes + `include:_spf.mx.cloudflare.net`, um único `~all` no fim. Nunca substituir sem ler o `content` actual primeiro.
+Merge = concatenate the existing `include:` + `include:_spf.mx.cloudflare.net`, a single `~all` at the end. Never replace without reading the current `content` first.
 
-## 5. Verificar (edge duplo)
+## 5. Verify (double edge)
 
 ```bash
 dig @1.1.1.1 MX example.com +short
 dig @8.8.8.8 MX example.com +short
-dig @1.1.1.1 TXT example.com +short              # SPF merged, um único registo
+dig @1.1.1.1 TXT example.com +short              # SPF merged, a single record
 dig @1.1.1.1 TXT cf2024-1._domainkey.example.com +short
 ```
-Confirmar nos dois resolvers antes de declarar concluído — propagação assíncrona entre eles.
+Confirm on both resolvers before declaring it done — propagation between them is asynchronous.
 
 ## Gotchas
 
-| Sintoma | Causa | Fix |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `enable` devolve erro 10000 (auth) | endpoint de settings não aceita token account-scoped "all zones" | Activar pelo dashboard (1 clique); API continua a servir addresses/rules/DNS |
-| SPF perde `include:spf.mailjet.com` (ou outro) após activar Email Routing | wizard reescreve o TXT SPF da raiz | `spf_merge` — ler `content` actual, concatenar, `PATCH` (nunca `POST` um TXT SPF novo) |
-| DNS duplicado (2 registos A/MX iguais) | `POST` sem `GET` prévio | Sempre `dns_upsert*` (GET → PATCH se existe, POST se não) |
-| MX antigo ainda resolve num resolver | dig só num edge | Confirmar em `1.1.1.1` e `8.8.8.8` antes de fechar |
+| `enable` returns error 10000 (auth) | the settings endpoint does not accept an account-scoped "all zones" token | Enable it from the dashboard (1 click); the API still serves addresses/rules/DNS |
+| SPF loses `include:spf.mailjet.com` (or another) after enabling Email Routing | the wizard rewrites the root SPF TXT | `spf_merge` — read the current `content`, concatenate, `PATCH` (never `POST` a new SPF TXT) |
+| Duplicated DNS (2 identical A/MX records) | `POST` with no prior `GET` | Always `dns_upsert*` (GET → PATCH if it exists, POST if not) |
+| An old MX still resolves on one resolver | dig on a single edge | Confirm on `1.1.1.1` and `8.8.8.8` before closing |
 
-## Checklist — domínio novo
+## Checklist — new domain
 
-- [ ] Token em `~/.cloudflare/<account>.json` (scope Zone.DNS + Email Routing)
-- [ ] `ZONE=$(zone_id <dominio>)`
-- [ ] Email Routing activado pelo **dashboard** (Gotcha 1)
-- [ ] Destino de email criado/verificado (`accounts/.../addresses`)
-- [ ] 3x MX (`dns_upsert_mx`, prioridades 85/45/38) + TXT DKIM `cf2024-1._domainkey`
-- [ ] Regra de forward criada (`noreply@` → destino)
-- [ ] SPF lido e re-mergido por API (Gotcha 2) — includes antigos preservados
-- [ ] `dig` confirmado em `1.1.1.1` e `8.8.8.8` (MX + TXT SPF + TXT DKIM)
+- [ ] Token in `~/.cloudflare/<account>.json` (scope Zone.DNS + Email Routing)
+- [ ] `ZONE=$(zone_id <domain>)`
+- [ ] Email Routing enabled from the **dashboard** (Gotcha 1)
+- [ ] Email destination created/verified (`accounts/.../addresses`)
+- [ ] 3x MX (`dns_upsert_mx`, priorities 85/45/38) + DKIM TXT `cf2024-1._domainkey`
+- [ ] Forward rule created (`noreply@` → destination)
+- [ ] SPF read and re-merged via API (Gotcha 2) — old includes preserved
+- [ ] `dig` confirmed on `1.1.1.1` and `8.8.8.8` (MX + SPF TXT + DKIM TXT)
 
-## Irreversível
+## Irreversible
 
-`PATCH`/`POST` em DNS ou email routing afecta tráfego/entrega em produção → **1 linha de confirmação** antes de correr (soul.md gate). Leitura (`GET zones`, `GET dns_records`, `dig`) → correr sem perguntar.
+`PATCH`/`POST` on DNS or email routing affects production traffic/delivery → **1 line of confirmation** before running (soul.md gate). Reads (`GET zones`, `GET dns_records`, `dig`) → run without asking.

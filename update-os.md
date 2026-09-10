@@ -1,28 +1,28 @@
-# JOCA — Update SÓ do JOCA_OS
+# JOCA — JOCA_OS-ONLY Update
 
-Traz a interface (`JOCA_OS/`) do repositório público **sem tocar no `JOCA_Brain/`**. Lê este
-ficheiro e segue as instruções.
+Brings in the interface (`JOCA_OS/`) from the public repository **without touching `JOCA_Brain/`**.
+Read this file and follow the instructions.
 
-**Repositório público:** https://github.com/MirrasPT/JOCA.git
+**Public repository:** https://github.com/MirrasPT/JOCA.git
 
-**Sentido único: GitHub → local. Nunca push, nunca commit, nunca alterar o remote `origin`.**
+**One direction only: GitHub → local. Never push, never commit, never change the `origin` remote.**
 
 ---
 
-## Quando usar este ficheiro em vez do `update.md`
+## When to use this file instead of `update.md`
 
-| Queres | Ficheiro |
+| You want | File |
 |---|---|
-| Interface nova (terminais, dashboard, atalhos) e **manter as tuas skills/agentes/memória como estão** | **este** |
-| Trazer tudo — motor e interface | `update.md` |
+| A new interface (terminals, dashboard, shortcuts) and **to keep your skills/agents/memory as they are** | **this one** |
+| To bring in everything — engine and interface | `update.md` |
 
-O caso normal de uma instalação de trabalho é **este**: o `JOCA_Brain/` de cada máquina diverge do
-público de propósito (skills próprias, memória de projectos, agentes que só existem localmente), e
-um update completo obriga a defender tudo isso. A interface não tem nada disso — é só código.
+The normal case for a working installation is **this one**: each machine's `JOCA_Brain/` diverges from
+the public one on purpose (its own skills, project memory, agents that exist only locally), and a full
+update forces you to defend all of that. The interface has none of it — it is just code.
 
 ---
 
-## Passo 1 — Localizar a instalação
+## Step 1 — Locate the installation
 
 **macOS/Linux:**
 ```bash
@@ -38,15 +38,15 @@ $jocaDir = Split-Path $jocaOs
 Set-Location $jocaDir
 ```
 
-Se houver mais do que uma instalação na máquina, **pergunta ao dono qual** — não escolhas a primeira
-que aparecer.
+If there is more than one installation on the machine, **ask the owner which one** — do not pick the
+first one that shows up.
 
 ---
 
-## Passo 2 — Garantir acesso ao repositório público
+## Step 2 — Make sure you can reach the public repository
 
-O `origin` de uma instalação de trabalho pode ser um repo **privado** (é o caso da instalação de
-produção). O público entra como remote à parte, chamado `publico`.
+The `origin` of a working installation may be a **private** repo (that is the case for the production
+installation). The public one comes in as a separate remote, called `publico`.
 
 ```bash
 git remote -v
@@ -54,10 +54,10 @@ git remote get-url publico 2>/dev/null || git remote add publico https://github.
 git fetch publico
 ```
 
-Se o `origin` já for `https://github.com/MirrasPT/JOCA.git`, usa `origin` em vez de `publico` nos
-passos seguintes.
+If `origin` is already `https://github.com/MirrasPT/JOCA.git`, use `origin` instead of `publico` in
+the following steps.
 
-**Resolver o ramo — nunca assumir.** O repo público usa `main`; instalações privadas usam `master`.
+**Resolve the branch — never assume.** The public repo uses `main`; private installations use `master`.
 ```bash
 BASE=$(git remote show publico | sed -n 's/.*HEAD branch: //p')
 [ -z "$BASE" ] && BASE=main
@@ -67,139 +67,139 @@ echo "ref: $REF"
 
 ---
 
-## Passo 3 — Ver o que muda, só dentro do JOCA_OS
+## Step 3 — See what changes, inside JOCA_OS only
 
 ```bash
 git diff --name-status HEAD "$REF" -- JOCA_OS/
 ```
 
-Se vazio → **a interface já está actualizada.** Parar.
+If empty → **the interface is already up to date.** Stop.
 
 ```bash
 git log HEAD.."$REF" --oneline -- JOCA_OS/
 ```
 
-⚠ **Olha para a lista antes de aplicar.** Se aparecer alguma coisa fora de `JOCA_OS/`, o comando
-está errado — este update não toca em mais nada.
+⚠ **Look at the list before applying.** If anything outside `JOCA_OS/` shows up, the command is
+wrong — this update touches nothing else.
 
 ---
 
-## Passo 4 — ⚠ O `.gitignore` do JOCA_OS: a armadilha que engole estado
+## Step 4 — ⚠ The JOCA_OS `.gitignore`: the pitfall that swallows state
 
-Há duas variantes desta pasta, e a diferença é invisível até ser tarde:
+There are two variants of this folder, and the difference is invisible until it is too late:
 
-| Instalação | `JOCA_OS/data/` | Porquê |
+| Installation | `JOCA_OS/data/` | Why |
 |---|---|---|
-| Pública / máquina única | **ignorada** | O estado é local e nunca se publica |
-| Trabalho, alternada entre 2 máquinas | **versionada, de propósito** | O estado É o que se quer sincronizar |
+| Public / single machine | **ignored** | The state is local and is never published |
+| Working, alternating between 2 machines | **versioned, on purpose** | The state IS what you want to sync |
 
-O `JOCA_OS/.gitignore` é um ficheiro versionado **dentro** de `JOCA_OS/`, portanto o Passo 5
-sobrepõe-no pela versão pública. Numa instalação do segundo tipo isso não apaga nada de imediato —
-mas cada chat, ícone ou projecto **novo** deixa de viajar para a outra máquina, sem erro nenhum.
-Só se dá por isso quando falta trabalho do outro lado.
+`JOCA_OS/.gitignore` is a versioned file **inside** `JOCA_OS/`, so Step 5 overwrites it with the
+public version. On an installation of the second kind that deletes nothing immediately — but every
+**new** chat, icon or project stops traveling to the other machine, with no error at all. You only
+notice when work is missing on the other side.
 
-Descobre em que caso estás **antes** de aplicar:
+Find out which case you are in **before** applying:
 ```bash
 git ls-files JOCA_OS/data/ | wc -l
 ```
-- Devolve `0` → a `data/` é ignorada. Nada a fazer, salta para o Passo 5.
-- Devolve **mais do que 0** → a tua instalação versiona o estado. Guarda o ficheiro agora:
+- Returns `0` → `data/` is ignored. Nothing to do, skip to Step 5.
+- Returns **more than 0** → your installation versions the state. Save the file now:
 ```bash
 cp JOCA_OS/.gitignore /tmp/joca-os-gitignore-local
 ```
-e repõe-no no Passo 6.
+and put it back in Step 6.
 
 ---
 
-## Passo 5 — Aplicar
+## Step 5 — Apply
 
 ```bash
 git checkout "$REF" -- JOCA_OS/
 ```
 
-O que este comando faz e não faz, para não haver dúvidas:
-- escreve os ficheiros de `JOCA_OS/` que existem no ref;
-- **não apaga** ficheiros que só existem localmente — a tua `JOCA_OS/data/` sobrevive mesmo quando é
-  ignorada no público;
-- **não toca** em `JOCA_Brain/`, nem na raiz, nem em `memory/`;
-- deixa as alterações **em staging** (é como o `checkout` de um path funciona). Confirma com
-  `git status` e commita quando quiseres — ou não, se a tua instalação não commita.
+What this command does and does not do, so there is no doubt:
+- it writes the `JOCA_OS/` files that exist in the ref;
+- it **does not delete** files that exist only locally — your `JOCA_OS/data/` survives even when it
+  is ignored in the public repo;
+- it **does not touch** `JOCA_Brain/`, nor the root, nor `memory/`;
+- it leaves the changes **staged** (that is how `checkout` of a path works). Check with `git status`
+  and commit when you want — or not, if your installation does not commit.
 
-Se tiveres alterações locais dentro de `JOCA_OS/` que queres manter, **vê-as primeiro** — este
-comando escreve por cima delas:
+If you have local changes inside `JOCA_OS/` that you want to keep, **look at them first** — this
+command writes over them:
 ```bash
 git status --porcelain JOCA_OS/
-git diff JOCA_OS/          # o que perderias
+git diff JOCA_OS/          # what you would lose
 ```
 
 ---
 
-## Passo 6 — Repor o `.gitignore` local (só se o Passo 4 disse que sim)
+## Step 6 — Put the local `.gitignore` back (only if Step 4 said so)
 
 ```bash
 cp /tmp/joca-os-gitignore-local JOCA_OS/.gitignore
-git ls-files JOCA_OS/data/ | wc -l    # tem de continuar a devolver o mesmo número de antes
+git ls-files JOCA_OS/data/ | wc -l    # must still return the same number as before
 ```
 
 ---
 
-## Passo 7 — Reconstruir
+## Step 7 — Rebuild
 
 ```bash
 cd JOCA_OS/backend  && npm install && npm run build && cd ../..
 cd JOCA_OS/frontend && npm install && npm run build && cd ../..
 ```
 
-⚠ O `npm run build` do **frontend** não é opcional — o backend serve `frontend/dist/`, e sem ele a
-interface fica na versão anterior apesar de os ficheiros novos já estarem no disco.
+⚠ The **frontend** `npm run build` is not optional — the backend serves `frontend/dist/`, and without
+it the interface stays on the previous version even though the new files are already on disk.
 
-⚠ O `npm install` também não: um update que traga dependências novas parte o build sem isso, e a
-mensagem de erro não diz que o problema é esse.
+⚠ Neither is `npm install`: an update that brings new dependencies breaks the build without it, and
+the error message does not say that is the problem.
 
 ---
 
-## Passo 8 — Reiniciar
+## Step 8 — Restart
 
-**Reiniciar mata os terminais e agentes que estiverem a correr.** O backend corre o build
-compilado, sem watch — sem reinício, o código novo do backend não ganha efeito.
+**Restarting kills the terminals and agents that are running.** The backend runs the compiled build,
+with no watch — without a restart, the new backend code does not take effect.
 
 ```bash
 bash JOCA_OS/stop.sh    # Windows: JOCA_OS\stop.bat
 bash JOCA_OS/start.sh   # Windows: JOCA_OS\start.bat
 ```
 
-As conversas fechadas assim deixam de desaparecer em silêncio: ao voltar, o JOCA avisa quantas
-foram fechadas e deixa ler o output que cada uma tinha. Não são retomáveis — o contexto do CLI morre
-com o processo — mas o registo fica.
+Conversations closed this way no longer disappear silently: on the way back, JOCA reports how many
+were closed and lets you read the output each of them had. They are not resumable — the CLI context
+dies with the process — but the record stays.
 
-Se tiveres duas instalações na mesma máquina, arranca esta nas portas dela:
+If you have two installations on the same machine, start this one on its own ports:
 ```bash
 JOCA_BACKEND_PORT=7591 JOCA_FRONTEND_PORT=7592 bash JOCA_OS/start.sh
 ```
 
 ---
 
-## Passo 9 — Confirmar por efeito, não pelo silêncio dos comandos
+## Step 9 — Confirm by effect, not by the silence of the commands
 
 ```bash
-curl -s localhost:7491/runtime | head -c 200     # ou a porta que usaste
+curl -s localhost:7491/runtime | head -c 200     # or whichever port you used
 ```
 
-E **abre a interface no browser.** Um build verde prova que compila, não que funciona: confirma que
-os terminais abrem, que o texto chega ao CLI, e que a dashboard carrega.
+And **open the interface in the browser.** A green build proves that it compiles, not that it works:
+confirm that the terminals open, that text reaches the CLI, and that the dashboard loads.
 
 ---
 
-## Passo 10 — Relatório
+## Step 10 — Report
 
 ```
-JOCA_OS ACTUALIZADO
-───────────────────
-✓ N ficheiros de JOCA_OS actualizados — <hash> <mensagem>
-✓ JOCA_Brain intacto (git status --porcelain JOCA_Brain/ → vazio)
-✓ .gitignore local reposto  (ou: não era necessário)
-✓ backend + frontend reconstruídos
-✓ reiniciado e aberto no browser
+JOCA_OS UPDATED
+───────────────
+✓ N JOCA_OS files updated — <hash> <message>
+✓ JOCA_Brain intact (git status --porcelain JOCA_Brain/ → empty)
+✓ local .gitignore restored  (or: it was not needed)
+✓ backend + frontend rebuilt
+✓ restarted and opened in the browser
 
-Ficou em staging: git status
+Left staged: git status
 ```

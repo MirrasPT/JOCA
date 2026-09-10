@@ -1,7 +1,7 @@
 ---
 name: security
-description: "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assignment, IDOR, SQL injection, security review, audit, hardening."
-triggers: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF, mass assignment, IDOR, SQL injection, security review, audit, hardening, headers, CSP, HSTS, secrets, encryption, encriptação, rate limit, brute force, supply chain, CVE, pentest, security check, esta seguro, is it secure, code review security
+description: "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assignment, IDOR, SQL injection, security review, audit, hardening."
+triggers: security, vulnerability, OWASP, injection, XSS, CSRF, mass assignment, IDOR, SQL injection, security review, audit, hardening, headers, CSP, HSTS, secrets, encryption, rate limit, brute force, supply chain, CVE, pentest, security check, is it secure, code review security
 chain: security-review, tester-security
 ---
 
@@ -13,18 +13,18 @@ Global security skill. OWASP Top 10:2025 + ASVS 5.0 + Laravel + React patterns. 
 
 ## OWASP Top 10:2025 -- Laravel mapping
 
-| # | Vulnerabilidade | Risco Laravel | Mitigacao |
+| # | Vulnerability | Laravel risk | Mitigation |
 |---|-----------------|---------------|-----------|
 | A01 | Broken Access Control | IDOR, missing policies, SSRF | Policies+Gates, route model binding ownership, deny-by-default |
-| A02 | Security Misconfiguration | `APP_DEBUG=true`, Telescope exposto, headers em falta | Config check, security headers, `.env` fora do public |
-| A03 | Supply Chain Failures | Packages Composer comprometidos | `composer audit` em CI, pin versions, review packages |
-| A04 | Insecure Design | Sem threat model no design | STRIDE threat model, abuse cases no PRD |
-| A05 | Injection | `DB::raw()` com input, `{!! !!}` com user data | Eloquent parametrizado, Blade `{{ }}` |
-| A06 | Vulnerable Components | CVEs em Composer/npm | `composer audit` + `npm audit` automatizado |
-| A07 | Auth Failures | Password reset fraco, sem MFA | Sanctum, rate limiting, HaveIBeenPwned |
-| A08 | Integrity Failures | Updates nao assinados, deserializacao | Verificar assinaturas, evitar `unserialize()` |
-| A09 | Logging Failures | Sem logs de auth, logging PII | Structured logging, nunca `$request->all()` em logs |
-| A10 | Error Handling Failures | Stack traces expostos | `APP_DEBUG=false`, error pages custom |
+| A02 | Security Misconfiguration | `APP_DEBUG=true`, Telescope exposed, missing headers | Config check, security headers, `.env` outside public |
+| A03 | Supply Chain Failures | Compromised Composer packages | `composer audit` in CI, pin versions, review packages |
+| A04 | Insecure Design | No threat model in the design | STRIDE threat model, abuse cases in the PRD |
+| A05 | Injection | `DB::raw()` with input, `{!! !!}` with user data | Parameterized Eloquent, Blade `{{ }}` |
+| A06 | Vulnerable Components | CVEs in Composer/npm | `composer audit` + `npm audit` automated |
+| A07 | Auth Failures | Weak password reset, no MFA | Sanctum, rate limiting, HaveIBeenPwned |
+| A08 | Integrity Failures | Unsigned updates, deserialization | Verify signatures, avoid `unserialize()` |
+| A09 | Logging Failures | No auth logs, logging PII | Structured logging, never `$request->all()` in logs |
+| A10 | Error Handling Failures | Exposed stack traces | `APP_DEBUG=false`, custom error pages |
 
 ---
 
@@ -32,28 +32,28 @@ Global security skill. OWASP Top 10:2025 + ASVS 5.0 + Laravel + React patterns. 
 
 ### Mass Assignment (CRITICAL)
 ```php
-// MAU -- $guarded vazio abre tudo
+// BAD -- empty $guarded opens everything
 protected $guarded = [];
 
-// MAU -- passa tudo incluindo role, is_admin
+// BAD -- passes everything including role, is_admin
 User::create($request->all());
 
-// BOM -- allowlist explicita
+// GOOD -- explicit allowlist
 protected $fillable = ['name', 'email', 'bio'];
 
-// BOM -- so campos validados
+// GOOD -- only validated fields
 User::create($request->validated());
 ```
 
 ### SQL Injection (CRITICAL)
 ```php
-// MAU -- interpolacao em raw query
+// BAD -- interpolation in a raw query
 DB::select("SELECT * FROM users WHERE email = '$email'");
 DB::table('users')->orderByRaw($request->input('sort'));
 
-// BOM -- parametrizado
+// GOOD -- parameterized
 DB::select('SELECT * FROM users WHERE email = ?', [$email]);
-User::where('email', $email)->first(); // Eloquent sempre safe
+User::where('email', $email)->first(); // Eloquent always safe
 ```
 Danger zones: `DB::raw()`, `whereRaw()`, `selectRaw()`, `orderByRaw()`, `havingRaw()` with `$request` or `$_`.
 
@@ -62,22 +62,22 @@ Danger zones: `DB::raw()`, `whereRaw()`, `selectRaw()`, `orderByRaw()`, `havingR
 // SAFE -- auto-escaped
 {{ $userInput }}
 
-// PERIGOSO -- nunca com user data sem sanitizer
+// DANGEROUS -- never with user data without a sanitizer
 {!! $userContent !!}
 
-// ACEITAVEL -- com HTMLPurifier
+// ACCEPTABLE -- with HTMLPurifier
 {!! clean($userMarkdown) !!}
 ```
 
 ### XSS -- React (HIGH)
 ```jsx
-// PERIGOSO -- bypassa React escaping
+// DANGEROUS -- bypasses React escaping
 <div dangerouslySetInnerHTML={{ __html: userContent }} />
 
-// PERIGOSO -- javascript: protocol
+// DANGEROUS -- javascript: protocol
 <a href={userSuppliedUrl}>Link</a>
 
-// BOM
+// GOOD
 import DOMPurify from 'dompurify';
 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }} />
 
@@ -87,10 +87,10 @@ const isSafeUrl = (url) => /^https?:\/\//.test(url);
 
 ### IDOR (CRITICAL)
 ```php
-// MAU -- qualquer user acede qualquer order
+// BAD -- any user can access any order
 public function show(Order $order) { return $order; }
 
-// BOM -- policy check
+// GOOD -- policy check
 public function show(Order $order) {
     $this->authorize('view', $order);
     return $order;
@@ -99,21 +99,21 @@ public function show(Order $order) {
 
 ### CORS (CRITICAL)
 ```php
-// CRITICO -- wildcard + credentials = data theft
+// CRITICAL -- wildcard + credentials = data theft
 'allowed_origins' => ['*'],
 'supports_credentials' => true,
 
-// BOM -- origens explicitas
+// GOOD -- explicit origins
 'allowed_origins' => ['https://app.yourdomain.com'],
 'supports_credentials' => true,
 ```
 
 ### Path Traversal (CRITICAL)
 ```php
-// MAU
+// BAD
 Storage::get($request->input('filename')); // ../../.env
 
-// BOM
+// GOOD
 Storage::get(basename($request->input('filename')));
 ```
 
@@ -150,7 +150,7 @@ RateLimiter::for('password-reset', function (Request $request) {
     return Limit::perMinute(3)->by($request->ip());
 });
 
-// API geral
+// General API
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
 });
@@ -184,12 +184,12 @@ APP_PREVIOUS_KEYS=base64:oldkey1...,base64:oldkey2...
 ## Logging -- never log these
 
 ```php
-// NUNCA
+// NEVER
 Log::info('Login', ['password' => $password]);
-Log::debug('Request', $request->all());  // apanha passwords
-Log::error('Failed', ['user' => $user]); // serializa modelo inteiro
+Log::debug('Request', $request->all());  // catches passwords
+Log::error('Failed', ['user' => $user]); // serializes the whole model
 
-// BOM
+// GOOD
 Log::info('Login', ['user_id' => $user->id, 'ip' => $request->ip()]);
 Log::warning('Failed login', ['email_hash' => hash('sha256', $email), 'ip' => $request->ip()]);
 ```
@@ -249,7 +249,7 @@ composer validate --strict
 
 ### Fast automated scan
 ```
-Agent(subagent_type="tester-security", prompt="Security scan completo. Path: [path]. Stack: Laravel + React. Verificar: CVEs (composer+npm), secrets (gitleaks), HTTP headers, .env exposure, APP_DEBUG, CORS, mass assignment ($guarded=[]), raw SQL com $request, {!! !!} com user data, dangerouslySetInnerHTML, rate limiting em auth routes, Log:: com PII. Report: Critical/High/Medium/Low.")
+Agent(subagent_type="tester-security", prompt="Full security scan. Path: [path]. Stack: Laravel + React. Check: CVEs (composer+npm), secrets (gitleaks), HTTP headers, .env exposure, APP_DEBUG, CORS, mass assignment ($guarded=[]), raw SQL with $request, {!! !!} with user data, dangerouslySetInnerHTML, rate limiting on auth routes, Log:: with PII. Report: Critical/High/Medium/Low.")
 ```
 
 ### Deep code review
@@ -264,32 +264,32 @@ Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Aut
 
 ---
 
-## Checklist pre-deploy
+## Pre-deploy checklist
 
 ### Critical (blocks deploy)
 - [ ] `APP_DEBUG=false`
 - [ ] `APP_ENV=production`
-- [ ] `.env` fora do web root
-- [ ] `$guarded = []` em zero modelos
-- [ ] `$request->all()` nunca passa a `create()`/`update()`
-- [ ] Zero `DB::raw()` com input de utilizador
-- [ ] Zero `{!! !!}` com user data sem sanitizer
-- [ ] `composer audit` sem CRITICAL/HIGH
+- [ ] `.env` outside the web root
+- [ ] `$guarded = []` in zero models
+- [ ] `$request->all()` never passed to `create()`/`update()`
+- [ ] Zero `DB::raw()` with user input
+- [ ] Zero `{!! !!}` with user data without a sanitizer
+- [ ] `composer audit` with no CRITICAL/HIGH
 - [ ] HTTPS enforced (HSTS)
 
 ### High (fix before going live)
-- [ ] CORS com origens explicitas (nao wildcard)
-- [ ] Rate limiting em login/password reset
+- [ ] CORS with explicit origins (not wildcard)
+- [ ] Rate limiting on login/password reset
 - [ ] Session config: http_only, secure, same_site=lax
-- [ ] Security headers configurados
-- [ ] `LOG_LEVEL=warning` (nao debug)
-- [ ] Zero `Log::` com passwords/tokens/PII
-- [ ] Policies em todos os resource controllers
-- [ ] `npm audit` sem HIGH
+- [ ] Security headers configured
+- [ ] `LOG_LEVEL=warning` (not debug)
+- [ ] Zero `Log::` with passwords/tokens/PII
+- [ ] Policies on every resource controller
+- [ ] `npm audit` with no HIGH
 
 ### Medium (fix next sprint)
-- [ ] CSP configurado (pelo menos report-only)
-- [ ] Encryption em campos PII (SSN, bank, etc.)
-- [ ] PHP disable_functions configurado
+- [ ] CSP configured (at least report-only)
+- [ ] Encryption on PII fields (SSN, bank, etc.)
+- [ ] PHP disable_functions configured
 - [ ] Nginx hardened (server_tokens off, file blocking)
-- [ ] Dependabot activo
+- [ ] Dependabot active

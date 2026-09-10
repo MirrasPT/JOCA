@@ -1,0 +1,76 @@
+name: Feature
+description: Something new that the product starts doing
+labels: ["type: feature"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problem
+      description: The concrete pain, in user language. Not the solution.
+      placeholder: Today, whoever manages a team cannot know...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solucao
+    attributes:
+      label: What is going to be done
+      description: The desired behavior, from the point of view of whoever uses it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Done when
+      description: >-
+        Criteria verifiable by someone who did not take part in the conversation.
+        Maximum 5 — more than that means the issue should have been split.
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: fora
+    attributes:
+      label: Out of scope
+      description: What this issue explicitly does NOT do.
+    validations:
+      required: true
+
+  - type: input
+    id: design
+    attributes:
+      label: Design
+      description: Path to the mockup, or "not applicable".
+      placeholder: docs/mockups/dashboard.html
+
+  - type: textarea
+    id: ficheiros
+    attributes:
+      label: Likely files
+      description: >-
+        Which files/folders this work will touch. It is NOT decorative: it is what
+        lets `plan-waves` decide whether two issues run in parallel — they only
+        can if the sets are disjoint. Without this, they get sequenced out of
+        caution.
+      placeholder: |
+        app/Http/Controllers/ReportController.php
+        resources/views/reports/
+    validations:
+      required: true
+
+  - type: textarea
+    id: tecnico
+    attributes:
+      label: Technical context
+      description: Entities involved, decisions already taken.
+
+  - type: input
+    id: depende
+    attributes:
+      label: Depends on
+      description: Number of another issue that has to be done first, or "nothing".
+      placeholder: "#12"

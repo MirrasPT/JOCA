@@ -1,7 +1,7 @@
 ---
 name: graphic-design
-description: "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável."
-triggers: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz, cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável, banner, standee, print design, design gráfico, exportar PDF, imprimir
+description: "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, leaflet. SHOULD also invoke when: business card, roll up, graphic material, marketing material, fold-out."
+triggers: roll-up, flyer, trifold, bifold, poster, brochure, leaflet, business card, roll up, graphic material, marketing material, fold-out, banner, standee, print design, graphic design, export PDF, print
 chain: design-review
 ---
 
@@ -15,18 +15,18 @@ Print materials in HTML/CSS with professional press quality. HTML is the canvas,
 
 ## Supported Formats
 
-| Formato | Dimensões | Uso típico |
+| Format | Dimensions | Typical use |
 |---------|-----------|------------|
-| **Roll-Up** | 85×200cm | Eventos, feiras, recepções |
-| **Roll-Up largo** | 150×200cm | Palcos, exposições |
-| **Flyer A5** | 148×210mm | Promoções, eventos |
-| **Flyer A4** | 210×297mm | Apresentações, fichas técnicas |
-| **Poster A3** | 297×420mm | Anúncios, decoração |
-| **Poster A2** | 420×594mm | Exterior, montras |
-| **Bifold A4** | 420×297mm (aberto) | Brochuras 4 páginas |
-| **Trifold A4** | 630×297mm (aberto) | Brochuras 6 páginas |
-| **Cartão de visita** | 90×55mm | Contactos |
-| **Banner horizontal** | 300×100cm | Palcos, estrados |
+| **Roll-Up** | 85×200cm | Events, trade fairs, receptions |
+| **Wide Roll-Up** | 150×200cm | Stages, exhibitions |
+| **Flyer A5** | 148×210mm | Promotions, events |
+| **Flyer A4** | 210×297mm | Presentations, spec sheets |
+| **Poster A3** | 297×420mm | Adverts, decoration |
+| **Poster A2** | 420×594mm | Outdoor, shop windows |
+| **Bifold A4** | 420×297mm (open) | 4-page brochures |
+| **Trifold A4** | 630×297mm (open) | 6-page brochures |
+| **Business card** | 90×55mm | Contacts |
+| **Horizontal banner** | 300×100cm | Stages, platforms |
 
 ---
 
@@ -51,20 +51,20 @@ Define the visual philosophy before writing code:
 
 **3 visual parameters:**
 1. **Space** -- dense vs airy? full vs empty?
-2. **Colour temperature** -- warm/cool/neutral? saturated/muted?
+2. **Color temperature** -- warm/cool/neutral? saturated/muted?
 3. **Typography** -- aggressive display vs classic serif vs clean sans?
 
 The philosophy guides every decision. If a choice contradicts it, revise.
 
 **Movement examples:**
 
-| Movimento | Expressao visual |
+| Movement | Visual expression |
 |-----------|-----------------|
-| Concrete Poetry | Blocos de cor monumentais, tipografia escultural, divisoes espaciais brutalistas. Polish poster energy meets Le Corbusier. |
-| Chromatic Language | Precisao geometrica, zonas de cor criam significado. Josef Albers meets data viz. |
-| Analog Meditation | Grao de papel, sangrias de tinta, negativo vasto. Estetica photobook japones. |
-| Organic Systems | Formas arredondadas, arranjos organicos, cor da natureza via arquitectura. |
-| Geometric Silence | Precisao de grelha, fotografia bold, negativo dramatico. Swiss formalism meets brutalismo. |
+| Concrete Poetry | Monumental color blocks, sculptural typography, brutalist spatial divisions. Polish poster energy meets Le Corbusier. |
+| Chromatic Language | Geometric precision, color zones create meaning. Josef Albers meets data viz. |
+| Analog Meditation | Paper grain, ink bleeds, vast negative space. Japanese photobook aesthetic. |
+| Organic Systems | Rounded shapes, organic arrangements, nature's color via architecture. |
+| Geometric Silence | Grid precision, bold photography, dramatic negative space. Swiss formalism meets brutalism. |
 
 **Art/poster mode:**
 For artistic (non-commercial) pieces: treat output as museum art, not marketing. Repeated patterns, precise shapes, typography as visual element (not information). Minimal text -- composition communicates. Every alignment is intentional refinement.
@@ -73,7 +73,7 @@ For artistic (non-commercial) pieces: treat output as museum art, not marketing.
 
 Read `DESIGN.md` if present. Otherwise:
 1. Request logo (SVG or high-res PNG >= 300dpi)
-2. Confirm brand colours (hex -> OKLCH)
+2. Confirm brand colors (hex -> OKLCH)
 3. Confirm brand typography
 
 **Print resolution rule:**
@@ -90,7 +90,7 @@ Build in HTML/CSS with real dimensions in mm/cm using `@page` and scale for prev
 # Via Playwright
 npx playwright screenshot --viewport=<w>x<h> file:///path/to/design.html output.png
 
-# Ou via node script para PDF com dimensões correctas
+# Or via a node script for a PDF with correct dimensions
 node export-print.mjs design.html output.pdf --format A4
 ```
 
@@ -106,14 +106,14 @@ node export-print.mjs design.html output.pdf --format A4
 <head>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  /* Dimensões reais — escala para preview no browser */
+
+  /* Real dimensions — scale for browser preview */
   :root {
-    --scale: 0.35;  /* Ajustar para caber no viewport */
+    --scale: 0.35;  /* Adjust to fit the viewport */
     --width: 85cm;
     --height: 200cm;
   }
-  
+
   body {
     background: #888;
     display: flex;
@@ -122,7 +122,7 @@ node export-print.mjs design.html output.pdf --format A4
     padding: 40px;
     min-height: 100vh;
   }
-  
+
   .canvas {
     width: calc(var(--width) * var(--scale));
     height: calc(var(--height) * var(--scale));
@@ -130,12 +130,12 @@ node export-print.mjs design.html output.pdf --format A4
     position: relative;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    
-    /* Font scaling proporcional */
+
+    /* Proportional font scaling */
     font-size: calc(10px * var(--scale));
   }
-  
-  /* Para exportar: usar dimensões reais sem scale */
+
+  /* To export: use real dimensions without scale */
   @media print {
     body { padding: 0; background: none; }
     .canvas {
@@ -149,7 +149,7 @@ node export-print.mjs design.html output.pdf --format A4
 </head>
 <body>
   <div class="canvas">
-    <!-- Design aqui -->
+    <!-- Design here -->
   </div>
 </body>
 </html>
@@ -158,26 +158,26 @@ node export-print.mjs design.html output.pdf --format A4
 ### Print-specific CSS rules
 
 ```css
-/* Bleed area — 3mm extra em cada lado para corte */
+/* Bleed area — 3mm extra on each side for trimming */
 .canvas {
   padding: calc(3mm * var(--scale));  /* Safe zone */
 }
 
-/* Zonas seguras */
+/* Safe zones */
 .safe-zone {
   position: absolute;
-  inset: calc(5mm * var(--scale));  /* 5mm de margem mínima */
+  inset: calc(5mm * var(--scale));  /* 5mm minimum margin */
 }
 
-/* Tipografia mínima para print */
-.caption { font-size: calc(7px * var(--scale)); }    /* 7pt mínimo */
-.body-text { font-size: calc(10px * var(--scale)); } /* 10pt confortável */
+/* Minimum typography for print */
+.caption { font-size: calc(7px * var(--scale)); }    /* 7pt minimum */
+.body-text { font-size: calc(10px * var(--scale)); } /* 10pt comfortable */
 .headline { font-size: calc(36px * var(--scale)); }  /* Display */
 
-/* Evitar aliasing em texto pequeno */
+/* Avoid aliasing on small text */
 * { -webkit-font-smoothing: antialiased; }
 
-/* Fontes via @font-face para garantir embed no PDF */
+/* Fonts via @font-face to guarantee embedding in the PDF */
 @font-face {
   font-family: 'BrandFont';
   src: url('assets/fonts/BrandFont.woff2') format('woff2');
@@ -192,24 +192,24 @@ node export-print.mjs design.html output.pdf --format A4
 
 **Typical structure (bottom to top):**
 ```
-┌──────────────────────┐ ← Topo (logo, tagline)
-│    LOGO (topo)       │
+┌──────────────────────┐ ← Top (logo, tagline)
+│    LOGO (top)        │
 │    TAGLINE           │
 │                      │
-│    HERO IMAGE        │ ← 40% da altura
-│    (imagem impacto)  │
+│    HERO IMAGE        │ ← 40% of the height
+│    (impact image)    │
 │                      │
-│    TÍTULO PRINCIPAL  │ ← Grande, legível a 3m
-│    subtítulo         │
+│    MAIN TITLE        │ ← Large, readable at 3m
+│    subtitle          │
 │                      │
-│    BULLETS / INFO    │ ← 3-4 pontos máximo
-│    • Ponto 1         │
-│    • Ponto 2         │
-│    • Ponto 3         │
+│    BULLETS / INFO    │ ← 3-4 points max
+│    • Point 1         │
+│    • Point 2         │
+│    • Point 3         │
 │                      │
-│    CTA / CONTACTO    │ ← Website, QR code
+│    CTA / CONTACT     │ ← Website, QR code
 │    QR CODE           │
-└──────────────────────┘ ← Base (cor de fundo ou gradient)
+└──────────────────────┘ ← Base (background color or gradient)
 ```
 
 **Roll-up visibility rules:**
@@ -222,20 +222,20 @@ node export-print.mjs design.html output.pdf --format A4
 ### Flyer A5/A4
 
 ```
-┌────────────────────┐
-│  HERO VISUAL       │ ← 50-60% do espaço
-│  (foto/ilustração) │
-├────────────────────┤
-│  HEADLINE          │ ← Máx 6 palavras
-│  Subtítulo         │ ← 1-2 linhas
-│                    │
-│  Corpo do texto    │ ← Conciso, listas curtas
-│  • Ponto 1         │
-│  • Ponto 2         │
-│                    │
-│  DATA / LOCAL      │ ← Info prática
-│  LOGO + CONTACTO  │
-└────────────────────┘
+┌──────────────────────┐
+│  HERO VISUAL         │ ← 50-60% of the space
+│  (photo/illustration)│
+├──────────────────────┤
+│  HEADLINE            │ ← Max 6 words
+│  Subtitle            │ ← 1-2 lines
+│                      │
+│  Body text           │ ← Concise, short lists
+│  • Point 1           │
+│  • Point 2           │
+│                      │
+│  DATE / LOCATION     │ ← Practical info
+│  LOGO + CONTACT      │
+└──────────────────────┘
 ```
 
 ### Trifold A4
@@ -243,16 +243,16 @@ node export-print.mjs design.html output.pdf --format A4
 Three panels of 210x297mm each (folded = 3 visible panels):
 
 ```
-FRENTE (aberto):
+FRONT (open):
 ┌──────────┬──────────┬──────────┐
-│ Painel 4 │ Painel 5 │ Painel 6 │
+│ Panel 4  │ Panel 5  │ Panel 6  │
 │ (back)   │ (inside) │ (inside) │
 └──────────┴──────────┴──────────┘
 
-TRÁS (dobrado):
+BACK (folded):
 ┌──────────────────────────────────┐
-│ Painel 1   │ Painel 2 │ Painel 3│
-│ (capa)     │ (capa2)  │ (back)  │
+│ Panel 1    │ Panel 2  │ Panel 3 │
+│ (cover)    │ (cover2) │ (back)  │
 └──────────────────────────────────┘
 ```
 
@@ -266,24 +266,24 @@ TRÁS (dobrado):
 
 ### Composition Rules
 
-1. **Visual hierarchy** -- eye follows: largest -> highest contrast -> most colourful. The most important element must dominate.
+1. **Visual hierarchy** -- eye follows: largest -> highest contrast -> most colorful. The most important element must dominate.
 2. **Negative space** -- breathing room is design, not emptiness. Essential for premium formats.
-3. **Alignment** -- max 2 alignments per piece (e.g. left + centre). 3+ = visual chaos.
-4. **Repetition** -- repeated elements (colour, shape, style) create cohesion. Minimum 1 repeated element.
-5. **Contrast** -- no contrast = no hierarchy. Use scale, colour, weight, or space.
+3. **Alignment** -- max 2 alignments per piece (e.g. left + center). 3+ = visual chaos.
+4. **Repetition** -- repeated elements (color, shape, style) create cohesion. Minimum 1 repeated element.
+5. **Contrast** -- no contrast = no hierarchy. Use scale, color, weight, or space.
 
 ### Anti-slop for Print
 
-| Evitar | Porquê |
+| Avoid | Why |
 |--------|--------|
-| Clipart/stock genérico | Imagem de banco de imagens óbvia destrói credibilidade |
-| Text over busy images sem legibilidade | Contraste insuficiente = ilegível impresso |
-| Mais de 3 fontes por peça | Fragmentação visual |
-| Gradientes de múltiplas cores | Impressão CMYK produz resultados imprevisíveis |
-| Cores muito claras (< 15% opacidade) | Desaparecem na impressão |
-| Imagens raster < 300dpi | Pixelado em print |
-| Texto muito pequeno (< 7pt) | Ilegível impresso |
-| Reciclar o mesmo fundo por N peças de social | Rejeitado em produção: 4 fundos do cartaz espalhados por 28 visuais leu-se como "muito fraco". Default de evento: **1 fundo AI próprio por categoria** (gerado com o cartaz como ref via `-i`) e **carrossel** (capa + slides) para conteúdo denso, não um post cheio de texto |
+| Generic clipart/stock | An obvious stock-library image destroys credibility |
+| Text over busy images without legibility | Insufficient contrast = illegible in print |
+| More than 3 fonts per piece | Visual fragmentation |
+| Multi-color gradients | CMYK printing produces unpredictable results |
+| Very light colors (< 15% opacity) | They vanish in print |
+| Raster images < 300dpi | Pixelated in print |
+| Text too small (< 7pt) | Illegible in print |
+| Recycling the same background across N social pieces | Rejected in production: 4 poster backgrounds spread across 28 visuals read as "very weak". Event default: **1 dedicated AI background per category** (generated with the poster as ref via `-i`) and a **carousel** (cover + slides) for dense content, not a post full of text |
 
 ### Print Typography
 
@@ -320,21 +320,21 @@ await page.goto(`file://${process.cwd()}/design.html`);
 
 await page.pdf({
   path: "design.pdf",
-  width: "85cm",      // dimensões reais
+  width: "85cm",      // real dimensions
   height: "200cm",
   printBackground: true,
   margin: { top: 0, right: 0, bottom: 0, left: 0 }
 });
 
 await browser.close();
-console.log("PDF exportado: design.pdf");
+console.log("PDF exported: design.pdf");
 ```
 
 ### Via CSS @page
 
 ```css
 @page {
-  size: 85cm 200cm;   /* dimensões reais */
+  size: 85cm 200cm;   /* real dimensions */
   margin: 0;
 }
 
@@ -352,7 +352,7 @@ console.log("PDF exportado: design.pdf");
 
 Include in PDF output:
 - Exact dimensions in mm (e.g. "85mm x 200mm final + 3mm bleed = 91mm x 206mm")
-- Colour profile: sRGB (digital press) or manual CMYK conversion
+- Color profile: sRGB (digital press) or manual CMYK conversion
 - Resolution: >= 300dpi for raster images
 - Embedded fonts (ensure @font-face uses correct format)
 
@@ -394,12 +394,12 @@ Canonical sequence for the recurring print-poster flow (MICS, Montalegre, Espuma
 1. **AI background with no text** — say so in the prompt, and keep the top/bottom bands empty so the lettering has somewhere to land.
 2. **Upscale (ESRGAN) BEFORE compositing**, never after — the lettering must be drawn at final resolution.
 3. **Lettering at 300 dpi** over the upscaled art.
-4. **Check brand emblems at real size** — generated vehicles/objects keep recognisable manufacturer badges even when the prompt forbids them.
+4. **Check brand emblems at real size** — generated vehicles/objects keep recognizable manufacturer badges even when the prompt forbids them.
 5. **Export JPG + PDF.**
 
 Known gotchas: heavy display inks bleed past their glyph box; rotating a text block widens its bounding box; Pillow does not read `woff2` (convert to TTF/OTF first).
 
-**Cut-out alignment:** enlarging the cut-out from the centre works only with **one** subject near the centre. With several scattered subjects each one moves a different distance and stops sitting on its own copy — there, enlarge the whole canvas (background + cut-out together) and separate by depth instead (blur + darken the background).
+**Cut-out alignment:** enlarging the cut-out from the center works only with **one** subject near the center. With several scattered subjects each one moves a different distance and stops sitting on its own copy — there, enlarge the whole canvas (background + cut-out together) and separate by depth instead (blur + darken the background).
 
 **Builders take `[source] [suffix]` arguments from day one.** Single-piece builders that always write the same filename destroy the previous version, so a "compare the two" request means rebuilding. With no arguments they write the canonical name.
 
@@ -421,10 +421,10 @@ Known gotchas: heavy display inks bleed past their glyph box; rotating a text bl
 
 If `DESIGN.md` exists:
 ```
-1. Ler logo paths → usar nos assets
-2. Ler --color-primary, --color-secondary → aplicar no design
-3. Ler tipografia → usar as fontes de marca
-4. Ler anti-references → confirmar que o design não se parece com estas
+1. Read logo paths → use them in the assets
+2. Read --color-primary, --color-secondary → apply in the design
+3. Read typography → use the brand fonts
+4. Read anti-references → confirm the design does not look like these
 ```
 
 If no `DESIGN.md`, run brand-guidelines skill first or request assets from user.

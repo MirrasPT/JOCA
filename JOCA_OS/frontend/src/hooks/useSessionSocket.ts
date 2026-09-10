@@ -33,8 +33,8 @@ function pruneMap<T>(map: Map<string, T>, alive: Set<string>): boolean {
 }
 
 export type ServerMessage =
-  /** `bootId` identifica ESTE arranque do backend. Mudou entre dois `sessions_list` → o servidor
-   *  que estava ali morreu e voltou, e as conversas de antes já não existem. */
+  /** `bootId` identifies THIS backend startup. Changed between two `sessions_list` → the server
+   *  that was there died and came back, and the conversations from before no longer exist. */
   | { type: 'sessions_list'; sessions: SessionInfo[]; bootId?: string }
   | { type: 'session_created'; session: SessionInfo; requestedBy?: string }
   | { type: 'session_closed'; sessionId: string }
@@ -70,26 +70,26 @@ export interface SessionSocketDeps {
   sessionsRef: React.MutableRefObject<SessionInfo[]>;
   activeIdRef: React.MutableRefObject<string | null>;
   pinOutputRef: React.MutableRefObject<boolean>;
-  /** `false` = a próxima sessão criada NÃO rouba o ecrã (o "+" da lista de agentes cria o agente e
-   *  fica onde se está). Volta a `true` sozinho depois de consumido — é uma excepção pontual, não
-   *  um modo: numa lista lateral, ser atirado para ecrã cheio a cada agente novo é agressivo. */
+  /** `false` = the next session created does NOT steal the screen (the "+" in the agents list creates
+   *  the agent and stays where you are). It goes back to `true` by itself once consumed — it is a one-off
+   *  exception, not a mode: in a side list, being thrown into full screen on every new agent is aggressive. */
   focusNewSessionRef: React.MutableRefObject<boolean>;
   activateSession: (id: string) => void;
   addToast: (session: SessionInfo) => void;
-  /** Toast persistente para uma notificação `priority:'action'` (bloqueio à espera de resposta). */
+  /** Persistent toast for a `priority:'action'` notification (a block waiting on an answer). */
   addNotificationToast: (notification: AppNotification) => void;
   processOutput: (sessionId: string, data: string) => void;
   reloadProjects: () => void;
   reloadProjectMemory: () => void;
-  /** Qual arranque do backend está do outro lado. Só notifica; a poda abaixo não muda por isto. */
+  /** Which backend startup is on the other side. It only notifies; the pruning below does not change for this. */
   onServerBoot?: (bootId?: string) => void;
 }
 
 // Owns the WebSocket lifecycle (connect / reconnect / message routing) and exposes a stable `send`.
 // All parent dependencies are read through a ref, so the socket is created once on mount.
 /**
- * Identidade deste separador. Só vive em memória: recarregar dá um id novo, e é o que se quer —
- * um separador recarregado é um cliente novo, sem herdar saltos de vista de antes.
+ * Identity of this tab. It only lives in memory: reloading gives a new id, and that is what is wanted —
+ * a reloaded tab is a new client, without inheriting view jumps from before.
  */
 const CLIENT_ID = crypto.randomUUID();
 
@@ -99,19 +99,19 @@ export function useSessionSocket(deps: SessionSocketDeps) {
   const reconnectDelay = useRef(RECONNECT_BASE_DELAY);
   const unmountedRef = useRef(false);
   const depsRef = useRef(deps);
-  // O que já foi pintado no xterm de cada sessão, para NÃO voltar a limpar o ecrã por nada.
-  // Guarda o comprimento do último buffer replicado + a cauda nesse ponto (impressão digital
-  // barata): se o buffer novo continua o mesmo, escreve-se só o delta em vez de `reset()`.
-  // `ref` guarda a INSTÂNCIA do terminal em que se pintou: uma `TerminalPane` remontada traz um
-  // xterm novo e vazio, e aí o replay tem de ser completo, não incremental.
+  // What has already been painted in each session's xterm, so as NOT to clear the screen again for nothing.
+  // It stores the length of the last replicated buffer + the tail at that point (a cheap
+  // fingerprint): if the new buffer continues the same one, only the delta is written instead of `reset()`.
+  // `ref` stores the terminal INSTANCE it was painted on: a remounted `TerminalPane` brings a
+  // new, empty xterm, and there the replay has to be complete, not incremental.
   const replayed = useRef<Map<string, { ref: TerminalRef; len: number; tail: string }>>(new Map());
   useEffect(() => { depsRef.current = deps; });
 
   const send = useCallback((msg: object) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      // Carimba QUEM está a pedir a sessão. O carimbo é injectado aqui, e não em cada um dos dez
-      // sítios que criam sessões, para não haver um que se esqueça — esquecer significa voltar a
-      // arrastar todos os separadores abertos para o terminal novo.
+      // Stamps WHO is asking for the session. The stamp is injected here, and not in each of the ten
+      // places that create sessions, so that none of them forgets — forgetting means dragging every
+      // open tab into the new terminal again.
       const m = msg as { type?: string; clientId?: string };
       const corpo = m.type === 'create_session' && !m.clientId ? { ...msg, clientId: CLIENT_ID } : msg;
       wsRef.current.send(JSON.stringify(corpo));
@@ -131,9 +131,9 @@ export function useSessionSocket(deps: SessionSocketDeps) {
 
       switch (msg.type) {
         case 'sessions_list': {
-          // Primeiro de tudo: dizer QUEM está do outro lado. Se o backend reiniciou, a poda que
-          // acontece mais abaixo vai apagar as sessões antigas — e quem ouve isto é quem depois
-          // consegue explicar ao utilizador para onde é que elas foram.
+          // First of all: say WHO is on the other side. If the backend restarted, the pruning that
+          // happens further down will delete the old sessions — and whoever listens to this is the one
+          // that can then explain to the user where they went.
           d.onServerBoot?.(msg.bootId);
           d.setSessions(msg.sessions);
           const alive = new Set(msg.sessions.map((s) => s.id));
@@ -168,10 +168,10 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             ...prev,
           ].slice(0, 80));
           d.activateSession(msg.session.id);
-          // Só salta para o terminal novo QUEM O PEDIU. Três condições: não é um worker de fundo
-          // ('auto'), fui eu que pedi (`requestedBy`), e este pedido não foi um dos que abrem em
-          // segundo plano (`focusNewSessionRef`). Sem a do meio, um segundo separador — ou outro
-          // agente a abrir um terminal — atirava-te para fora do que estavas a fazer.
+          // Only WHOEVER ASKED FOR IT jumps to the new terminal. Three conditions: it is not a background
+          // worker ('auto'), it was me who asked (`requestedBy`), and this request was not one of the ones
+          // that open in the background (`focusNewSessionRef`). Without the middle one, a second tab — or
+          // another agent opening a terminal — threw you out of what you were doing.
           const pediEu = msg.requestedBy === undefined || msg.requestedBy === CLIENT_ID;
           if (msg.session.origin !== 'auto' && pediEu && d.focusNewSessionRef.current) {
             d.setActiveId(msg.session.id);
@@ -211,10 +211,10 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         case 'output': {
           d.termRefs.current.get(msg.sessionId)?.write(msg.data);
           d.processOutput(msg.sessionId, msg.data);
-          // O buffer do servidor é a concatenação do que sai do PTY: acompanhar aqui o que já foi
-          // pintado ao vivo é o que impede o replay seguinte de reescrever estas mesmas linhas
-          // (era essa a duplicação). Se o servidor entretanto cortar o buffer, o comprimento deixa
-          // de bater certo e o replay cai no caminho do `reset()`, que é o correcto nesse caso.
+          // The server buffer is the concatenation of what comes out of the PTY: tracking here what has
+          // already been painted live is what stops the next replay from rewriting these same lines
+          // (that was the duplication). If the server trims the buffer meanwhile, the length stops
+          // matching and the replay falls into the `reset()` path, which is the right one in that case.
           const marca = replayed.current.get(msg.sessionId);
           if (marca) {
             const tail = (marca.tail + msg.data).slice(-256);
@@ -228,11 +228,11 @@ export function useSessionSocket(deps: SessionSocketDeps) {
 
         case 'buffer': {
           const ref = d.termRefs.current.get(msg.sessionId);
-          // Um `reset()` apaga o ecrã à frente de quem está a ler. Antes acontecia em TODAS as
-          // respostas a `get_buffer` — incluindo as que uma reconexão dispara para cada terminal
-          // montado — e lia-se como "saiu um clear do nada e limpou-me o chat". Só se limpa quando
-          // o buffer do servidor deixou de continuar o que já está pintado (terminal acabado de
-          // montar, ou buffer cortado no servidor por ter passado o tecto).
+          // A `reset()` clears the screen in front of whoever is reading. Before it happened on EVERY
+          // response to `get_buffer` — including the ones a reconnection fires for each mounted
+          // terminal — and it read as "a clear came out of nowhere and wiped my chat". It only clears when
+          // the server buffer has stopped continuing what is already painted (a terminal just
+          // mounted, or a buffer trimmed on the server for having passed the ceiling).
           const prev = replayed.current.get(msg.sessionId);
           const continua = !!prev
             && !!ref
@@ -262,12 +262,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
               // NO popup toast for your own terminal work — keep only the subtle unread dot in the
-              // sidebar. Workers criados programaticamente (origin 'auto') DO fire an OS
-              // notification: correm em segundo plano, portanto o utilizador tem de ser avisado de
-              // que o resultado está pronto para inspecção.
+              // sidebar. Workers created programmatically (origin 'auto') DO fire an OS
+              // notification: they run in the background, so the user has to be told that
+              // the result is ready for inspection.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
               if (session.origin === 'auto') {
-                notify('JOCA — Terminado', session.name, { sessionId: session.id });
+                notify('JOCA — Finished', session.name, { sessionId: session.id });
               }
             }
           }
@@ -280,8 +280,8 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           break;
 
 
-        // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
-        // do SO só para 'system'.
+        // The notifications panel was removed; what is left are the ephemeral channels. An OS
+        // notification only for 'system'.
         case 'notification':
           if (msg.notification.kind === 'system') {
             notify(
@@ -290,8 +290,8 @@ export function useSessionSocket(deps: SessionSocketDeps) {
               msg.notification.meta,
             );
           }
-          // Um bloqueio à espera de resposta tem de aparecer mesmo com a inbox fechada — e o toast
-          // de `action` não se auto-fecha, ao contrário do aviso de sessão terminada.
+          // A block waiting on an answer has to show up even with the inbox closed — and the `action`
+          // toast does not auto-close, unlike the finished-session warning.
           if (msg.notification.priority === 'action') d.addNotificationToast(msg.notification);
           break;
 
@@ -299,10 +299,10 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         // silently did nothing and the user had no idea why.
         case 'error':
           d.setActivityEvents((prev) => [
-            { id: crypto.randomUUID(), title: 'Erro do servidor', detail: msg.error, timestamp: Date.now() },
+            { id: crypto.randomUUID(), title: 'Server error', detail: msg.error, timestamp: Date.now() },
             ...prev,
           ].slice(0, 80));
-          notify('JOCA — Erro', msg.error.replace(/\s+/g, ' ').trim().slice(0, 120));
+          notify('JOCA — Error', msg.error.replace(/\s+/g, ' ').trim().slice(0, 120));
           break;
 
         default:

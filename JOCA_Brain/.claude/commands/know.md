@@ -1,23 +1,23 @@
-# /know — Ingerir na Knowledge Base
+# /know — Ingest into the Knowledge Base
 
-Guarda conteúdo no segundo cérebro pessoal. `/know <url|ficheiro|texto>`.
+Saves content into the personal second brain. `/know <url|file|text>`.
 
-Atalho para o agente `knowledge-ingest`.
+Shortcut to the `knowledge-ingest` agent.
 
-## Fluxo
+## Flow
 
-1. Receber a fonte: URL (artigo/YouTube/Instagram), caminho de ficheiro (PDF/Office/imagem/áudio), ou texto livre.
-2. Detectar acções irreversíveis: nenhuma (só escreve em `memory/knowledge/`) → prosseguir sem confirmação.
-3. `Agent(subagent_type="knowledge-ingest")` com a fonte no brief.
-4. O agente: converte para Markdown via **markitdown** → gera resumo → atribui tags hierárquicas → escreve nota wiki em `memory/knowledge/` (raw imutável + nota `.md` com wikilinks + index).
-5. Reportar: título, tags atribuídas, e caminho da nota.
+1. Receive the source: URL (article/YouTube/Instagram), file path (PDF/Office/image/audio), or free text.
+2. Detect irreversible actions: none (it only writes to `memory/knowledge/`) → proceed without confirmation.
+3. `Agent(subagent_type="knowledge-ingest")` with the source in the brief.
+4. The agent: converts to Markdown via **markitdown** → generates a summary → assigns hierarchical tags → writes a wiki note in `memory/knowledge/` (immutable raw + `.md` note with wikilinks + index).
+5. Report: title, assigned tags, and the path of the note.
 
-## Pesquisar
+## Search
 
-Linguagem natural (não é preciso saber as tags): "tenho truques sobre X?", "o que guardei sobre AI esta semana?".
-O agente lê o index + notas de `memory/knowledge/` e devolve a fonte.
+Natural language (you do not need to know the tags): "do I have tricks about X?", "what did I save about AI this week?".
+The agent reads the index + notes in `memory/knowledge/` and returns the source.
 
-## Setup (uma vez)
+## Setup (once)
 
-markitdown: `python -m pip install 'markitdown[all]'` (Windows: `python`, não `python3`).
-Opcional: registar `markitdown-mcp` como MCP global. Ver skill `knowledge-ingest`.
+markitdown: `python -m pip install 'markitdown[all]'` (Windows: `python`, not `python3`).
+Optional: register `markitdown-mcp` as a global MCP. See the `knowledge-ingest` skill.

@@ -10,23 +10,23 @@ import { loadCliProfiles, CLI_IDS, type CliId } from '../cli-profiles';
 import { binExists } from '../providers/provider';
 import { execFile } from 'child_process';
 
-// ── Selector de pasta nativo: o comando por plataforma ───────────────────────
-// Função pura + exportada para ser testável fora do Windows (nenhuma máquina Windows aqui
-// consegue ser reproduzida; o que se testa é a FORMA do comando).
+// ── Native folder picker: the per-platform command ───────────────────────────
+// Pure + exported function so it is testable outside Windows (no Windows machine here
+// can be reproduced; what is tested is the SHAPE of the command).
 //
-// Windows — o script anterior falhava em silêncio por três motivos, todos corrigidos aqui:
-//  1. `ShowDialog()` SEM janela dona. O diálogo nasce dentro de uma árvore de processos de
-//     fundo (`JOCA OS.vbs` corre o `start.bat` com window style 0 → `start /b "" cmd /c` →
-//     node → powershell), que nunca teve o foreground. O Windows não deixa um processo
-//     nessas condições roubar o primeiro plano: a janela abre ATRÁS do browser ou limita-se
-//     a piscar na barra de tarefas — para o utilizador, "o botão não faz nada". Uma janela
-//     dona `TopMost`, activada antes, e passada a `ShowDialog($owner)`, força-a à frente.
-//  2. O script trazia aspas DUPLAS lá dentro. Na linha de comando do Windows o Node tem de
-//     as escapar (`\"`) e a re-análise que o powershell.exe faz do seu próprio command line
-//     é território conhecido de partir-se. Aqui é tudo plicas: zero aspas duplas, zero escape.
-//  3. `RootFolder` ficava no default (Desktop). No Windows não há raiz única — o nível de topo
-//     são as unidades. `MyComputer` põe C:\, D:\, G:\… à cabeça da árvore.
-// Ver também o ponto 4 no handler: cancelar (1) deixou de ser indistinguível de rebentar (2).
+// Windows — the previous script failed silently for three reasons, all fixed here:
+//  1. `ShowDialog()` with NO owner window. The dialog is born inside a tree of background
+//     processes (`JOCA OS.vbs` runs `start.bat` with window style 0 → `start /b "" cmd /c` →
+//     node → powershell), which never had the foreground. Windows does not let a process
+//     in those conditions steal the foreground: the window opens BEHIND the browser or just
+//     blinks in the taskbar — to the user, "the button does nothing". An owner window that is
+//     `TopMost`, activated beforehand, and passed to `ShowDialog($owner)`, forces it to the front.
+//  2. The script carried DOUBLE quotes inside it. On the Windows command line Node has to
+//     escape them (`\"`) and the re-parsing powershell.exe does of its own command line
+//     is well-known breaking ground. Here it is all single quotes: zero double quotes, zero escaping.
+//  3. `RootFolder` stayed on the default (Desktop). On Windows there is no single root — the top
+//     level is the drives. `MyComputer` puts C:\, D:\, G:\… at the head of the tree.
+// See also point 4 in the handler: canceling (1) stopped being indistinguishable from blowing up (2).
 const WINDOWS_PICKER_BODY = [
   `Add-Type -AssemblyName System.Windows.Forms`,
   `$owner=New-Object System.Windows.Forms.Form`,
@@ -40,7 +40,7 @@ const WINDOWS_PICKER_BODY = [
   `$owner.Show()`,
   `$owner.Activate()`,
   `$d=New-Object System.Windows.Forms.FolderBrowserDialog`,
-  `$d.Description='Escolhe a pasta do projecto'`,
+  `$d.Description='Choose the project folder'`,
   `$d.RootFolder=[System.Environment+SpecialFolder]::MyComputer`,
   `$d.ShowNewFolderButton=$true`,
   `$r=$d.ShowDialog($owner)`,
@@ -59,22 +59,22 @@ export function folderPickerCommand(platform: NodeJS.Platform = process.platform
     return {
       cmd: 'powershell.exe',
       args: ['-NoProfile', '-STA', '-Command', WINDOWS_PICKER_PS],
-      // Em Windows o caminho pode SER a raiz de uma unidade (`C:\`) — cortar a barra final
-      // transformava-a em `C:` (caminho relativo ao directório actual dessa unidade).
+      // On Windows the path can BE the root of a drive (`C:\`) — cutting the trailing slash
+      // turned it into `C:` (a path relative to that drive's current directory).
       trimTrailingSlash: false,
     };
   }
   if (platform === 'darwin') {
     return {
       cmd: 'osascript',
-      args: ['-e', 'POSIX path of (choose folder with prompt "Escolhe a pasta do projecto")'],
+      args: ['-e', 'POSIX path of (choose folder with prompt "Choose the project folder")'],
       trimTrailingSlash: true,
     };
   }
-  // Linux: zenity quando existe; sem ele, o modal cai no campo manual.
+  // Linux: zenity when it exists; without it, the modal falls back to the manual field.
   return {
     cmd: 'zenity',
-    args: ['--file-selection', '--directory', '--title=Escolhe a pasta do projecto'],
+    args: ['--file-selection', '--directory', '--title=Choose the project folder'],
     trimTrailingSlash: true,
   };
 }
@@ -83,32 +83,32 @@ export function systemRouter(): Router {
   const r = Router();
 
   // ── Native folder picker ───────────────────────────────────────────────────
-  // O JOCA corre na máquina do dono — o backend PODE abrir o diálogo nativo de escolher pasta
-  // (Finder/Explorer) e devolver o caminho absoluto, coisa que o browser sozinho não consegue
-  // (webkitdirectory só dá caminhos relativos). Usado pelo modal de criar/editar projecto.
-  // Serializado: um diálogo de cada vez — dois pedidos seguidos não abrem duas janelas.
+  // JOCA runs on the owner's machine — the backend CAN open the native choose-folder dialog
+  // (Finder/Explorer) and return the absolute path, something the browser alone cannot do
+  // (webkitdirectory only gives relative paths). Used by the create/edit project modal.
+  // Serialized: one dialog at a time — two requests in a row do not open two windows.
   let pickerBusy = false;
   r.post('/pick-folder', (_req, res) => {
-    if (pickerBusy) return res.status(409).json({ error: 'já há um selector de pasta aberto' });
+    if (pickerBusy) return res.status(409).json({ error: 'there is already a folder picker open' });
     pickerBusy = true;
     const done = (status: number, body: object) => { pickerBusy = false; res.status(status).json(body); };
-    const timeoutMs = 5 * 60_000; // o dono pode demorar a escolher — não cortar cedo
+    const timeoutMs = 5 * 60_000; // the owner may take a while to choose — do not cut it short
     const spec = folderPickerCommand();
     execFile(spec.cmd, spec.args, { timeout: timeoutMs }, (err, stdout, stderr) => {
       if (err) {
         const code = (err as { code?: number | string }).code;
-        // 4. Uma falha REAL deixa de se disfarçar de "cancelei". Antes, qualquer erro do
-        //    picker (binário em falta, WinForms indisponível, thread não-STA, política do
-        //    PowerShell) devolvia 200 {canceled:true} — o utilizador clicava e não acontecia
-        //    nada, sem erro nenhum no ecrã. Agora só o cancelamento é silencioso.
+        // 4. A REAL failure stops disguising itself as "I canceled". Before, any picker error
+        //    (missing binary, WinForms unavailable, non-STA thread, PowerShell policy)
+        //    returned 200 {canceled:true} — the user clicked and nothing happened,
+        //    with no error at all on screen. Now only the cancellation is silent.
         if (code === 'ENOENT') {
-          return done(500, { error: `selector de pastas indisponível: ${spec.cmd} não encontrado` });
+          return done(500, { error: `folder picker unavailable: ${spec.cmd} not found` });
         }
-        if (code === 2) { // convenção do script do Windows: 2 = rebentou, 1 = cancelado
-          const why = (stderr || '').trim().slice(0, 300) || 'erro desconhecido no selector';
-          return done(500, { error: `selector de pastas falhou: ${why}` });
+        if (code === 2) { // Windows script convention: 2 = blew up, 1 = canceled
+          const why = (stderr || '').trim().slice(0, 300) || 'unknown error in the picker';
+          return done(500, { error: `folder picker failed: ${why}` });
         }
-        return done(200, { canceled: true }); // cancelar sai com código ≠ 0 em todos os pickers
+        return done(200, { canceled: true }); // canceling exits with code ≠ 0 in every picker
       }
       const raw = stdout.trim();
       const p = spec.trimTrailingSlash ? raw.replace(/\/$/, '') : raw;
@@ -130,7 +130,7 @@ export function systemRouter(): Router {
   // user when they finish something long-running.
   r.post('/notifications', express.json({ limit: '256kb' }), (req, res) => {
     const b = (req.body ?? {}) as { text?: unknown; title?: unknown; kind?: unknown };
-    if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text obrigatorio' });
+    if (typeof b.text !== 'string' || !b.text.trim()) return res.status(400).json({ error: 'text required' });
     res.json(pushNotification({
       kind: 'system',
       title: typeof b.title === 'string' && b.title.trim() ? b.title : 'Terminal',
@@ -161,9 +161,9 @@ export function systemRouter(): Router {
     res.json(CLI_IDS.map((id: CliId, i) => ({
       id, label: profiles[id].label, bin: profiles[id].bin, available: availability[i],
       startupSequence: profiles[id].startupSequence,
-      // O botão "Resume" da barra de comandos remonta o mesmo comando do arranque, e a forma dele
-      // muda por CLI (`/resume` no claude, `resume` nos outros) e é sobreponível em
-      // cli-profiles.json — por isso vai daqui em vez de estar escrito à mão no frontend.
+      // The command bar's "Resume" button reassembles the same startup command, and its shape
+      // changes per CLI (`/resume` on claude, `resume` on the others) and is overridable in
+      // cli-profiles.json — which is why it goes from here instead of being hand-written in the frontend.
       resumeCmd: profiles[id].resumeCmd,
     })));
   });

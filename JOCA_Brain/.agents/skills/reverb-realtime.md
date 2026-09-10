@@ -222,10 +222,10 @@ Echo.leaveChannel(`orders.${orderId}`);  // leaves only the specific variant
 | broadcastWith() serializes Eloquent model | Return only scalar/array values -- never Eloquent instances |
 | Horizontal scaling -- events reach some users only | Enable `REVERB_SCALING_ENABLED=true` + shared Redis |
 
-## Referências (carregar on-demand)
+## References (load on-demand)
 
-| Referência | Quando |
+| Reference | When |
 |---|---|
 | `Read(".claude/reference/reverb-realtime/presence-whisper.md")` | Presence channels (here/joining/leaving), client events/whisper (typing), notification broadcasting, model broadcasting (Eloquent) |
-| `Read(".claude/reference/reverb-realtime/production-deploy.md")` | Deploy em produção: Nginx reverse proxy, Supervisor, ext-uv, scaling horizontal (Redis), Pulse monitoring, fallback Pusher |
-| `Read(".claude/reference/reverb-realtime/testing.md")` | Testar broadcasting: Event::fake(), auth de canais via /broadcasting/auth, payload broadcastWith() |
+| `Read(".claude/reference/reverb-realtime/production-deploy.md")` | Production deploy: Nginx reverse proxy, Supervisor, ext-uv, horizontal scaling (Redis), Pulse monitoring, Pusher fallback |
+| `Read(".claude/reference/reverb-realtime/testing.md")` | Test broadcasting: Event::fake(), channel auth via /broadcasting/auth, broadcastWith() payload |

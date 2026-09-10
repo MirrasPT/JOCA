@@ -1,129 +1,129 @@
-# Playbook de arranque de projeto
+# Project startup playbook
 
-**Contexto:** produto próprio · Laravel/Livewire · Next.js · Flutter · GitHub Issues · design feito com Claude
-**Versão:** 2.0 — agosto de 2026 (portado para o JOCA: multi-stack, formulários interactivos, mockup como Artifact)
+**Context:** own product · Laravel/Livewire · Next.js · Flutter · GitHub Issues · design done with Claude
+**Version:** 2.0 — August 2026 (ported to JOCA: multi-stack, interactive forms, mockup as an Artifact)
 
 ---
 
-## O que este documento é
+## What this document is
 
-O método para arrancar **qualquer projeto novo**, desde a ideia até ao primeiro ciclo de desenvolvimento a rolar. Seis fases, ~1 a 2 semanas para um produto pequeno.
+The method for starting **any new project**, from the idea to the first development cycle rolling. Six phases, ~1 to 2 weeks for a small product.
 
-A regra que sustenta a sequência: **cada fase produz o input da seguinte.** Os fluxos revelam as entidades; o esqueleto técnico permite materializar o sistema visual; os ecrãs mostram que campos o modelo de dados precisa mesmo de ter.
+The rule that holds the sequence up: **each phase produces the input of the next.** The flows reveal the entities; the technical skeleton makes it possible to materialize the visual system; the screens show which fields the data model really needs to have.
 
-## Como executar isto com o Claude Code
+## How to run this with Claude Code
 
-Não sigas o documento à mão. Copia o pacote para o projeto e corre:
+Do not follow the document by hand. Copy the package into the project and run:
 
 ```
 /start
 ```
 
-A skill lê o `PROGRESSO.md`, **confirma cada fase pelo critério de saída com um comando** (uma fase marcada como feita que não passe o critério é tratada como por fazer), determina em que fase estás, conduz-te por ela uma pergunta de cada vez, e **verifica os critérios de saída com comandos antes de deixar avançar**. Se retomares daqui a duas semanas, ela sabe onde ficaste.
+The skill reads `PROGRESS.md`, **confirms each phase by its exit criterion with a command** (a phase marked as done that does not pass the criterion is treated as not done), works out which phase you are in, walks you through it one question at a time, and **checks the exit criteria with commands before letting you move on**. If you resume two weeks from now, it knows where you stopped.
 
-### As três camadas — e o que cada uma garante
+### The three layers — and what each one guarantees
 
-Vale a pena perceber o que cada mecanismo faz mesmo, porque só um deles garante alguma coisa:
+It is worth understanding what each mechanism actually does, because only one of them guarantees anything:
 
-| Camada | Mecanismo | O que faz |
+| Layer | Mechanism | What it does |
 |---|---|---|
-| **Contexto** | `.ai/guidelines/`, `.claude/rules/`, `docs/` | *Inclina.* O Claude lê e tende a seguir — mas é contexto, não configuração. Sem garantias |
-| **Orquestração** | `/start` + `PROGRESSO.md` | *Verifica.* Corre comandos e confirma critérios antes de avançar |
-| **Enforcement** | hooks, CI, rulesets | *Impede.* Executa independentemente do que o Claude decida |
+| **Context** | `.ai/guidelines/`, `.claude/rules/`, `docs/` | *Biases.* Claude reads it and tends to follow — but it is context, not configuration. No guarantees |
+| **Orchestration** | `/start` + `PROGRESS.md` | *Verifies.* Runs commands and confirms criteria before moving on |
+| **Enforcement** | hooks, CI, rulesets | *Prevents.* Runs regardless of what Claude decides |
 
-**A resposta honesta a "como garanto que é tudo feito como deve ser":** o `CLAUDE.md` não garante nada — é uma mensagem no contexto, não uma regra aplicada. O que garante é a terceira camada. Por isso o pacote traz hooks (`.claude/hooks/`), o CI bloqueia merges, e o ruleset bloqueia pushes.
+**The honest answer to "how do I guarantee everything is done properly":** `CLAUDE.md` guarantees nothing — it is a message in the context, not an enforced rule. What guarantees is the third layer. That is why the package ships hooks (`.claude/hooks/`), CI blocks merges, and the ruleset blocks pushes.
 
-Regra para decidir onde pôr cada coisa: **se o custo de ser ignorado for alto, não é contexto — é hook, CI ou ruleset.**
+Rule for deciding where to put each thing: **if the cost of being ignored is high, it is not context — it is a hook, CI or a ruleset.**
 
 ---
 
-## Vista geral
+## Overview
 
-| Fase | O que produz | Duração |
+| Phase | What it produces | Duration |
 |---|---|---|
-| **A — Enquadramento** | `PRODUTO.md` — o problema e as fronteiras | 2–3 h |
-| **B — Fluxos** | Percursos do utilizador, lista de ecrãs e entidades | 3–4 h |
-| **C — Esqueleto técnico** | Repo a correr, Boost, CI, issues configurados | 1 dia |
-| **D — Sistema visual** | `DESIGN.md` + tokens + componentes base | 1 dia |
-| **E — Ecrãs** | Mockups HTML/Tailwind revistos | 2–3 dias |
-| **F — Arquitetura** | `ARCHITECTURE.md` + migrações | 1 dia |
+| **A — Framing** | `PRODUCT.md` — the problem and the boundaries | 2–3 h |
+| **B — Flows** | User journeys, list of screens and entities | 3–4 h |
+| **C — Technical skeleton** | Repo running, Boost, CI, issues configured | 1 day |
+| **D — Visual system** | `DESIGN.md` + tokens + base components | 1 day |
+| **E — Screens** | Reviewed HTML/Tailwind mockups | 2–3 days |
+| **F — Architecture** | `ARCHITECTURE.md` + migrations | 1 day |
 
-> **Nota sobre a ordem.** O esqueleto técnico vem **antes** do design porque a Fase D configura tokens no Tailwind e cria componentes Blade — precisa do projeto a existir. E as migrações vêm **depois** dos ecrãs, porque são os ecrãs que revelam que campos são mesmo necessários.
-
----
-
-# FASE A — Enquadramento
-
-## Objetivo
-Escrever o que o produto é, e sobretudo o que **não** é.
-
-## Como fazer
-Sessão com o Claude a produzir `docs/PRODUTO.md` (template no pacote). A skill `product-management:brainstorm` serve bem como ponto de partida.
-
-## Benefício
-A secção **"O que NÃO é" é a mais valiosa do documento inteiro**. Em produto próprio não há cliente a fechar o âmbito, e o âmbito cresce sozinho — cada boa ideia parece pequena isoladamente. Escrever as fronteiras no dia 1 dá-te algo a que voltar quando, no mês 3, aparecer a quarta boa ideia.
-
-O `PRODUTO.md` é também o documento que o Claude lê para perceber o que estás a construir. Sem ele, cada sessão parte do zero.
-
-## Feito quando
-Consegues explicar o produto em duas frases, e a lista do "não é" tem pelo menos cinco pontos.
+> **Note on the order.** The technical skeleton comes **before** the design because Phase D configures tokens in Tailwind and creates Blade components — it needs the project to exist. And the migrations come **after** the screens, because it is the screens that reveal which fields are really necessary.
 
 ---
 
-# FASE B — Fluxos
+# PHASE A — Framing
 
-## Objetivo
-Descrever os percursos principais do utilizador, em texto, antes de haver qualquer pixel.
+## Objective
+Write down what the product is, and above all what it is **not**.
 
-## Como fazer
-Para cada percurso essencial (tipicamente 3 a 6):
+## How to do it
+A session with Claude producing `docs/PRODUCT.md` (template in the package). The `product-management:brainstorm` skill works well as a starting point.
+
+## Benefit
+The **"What it is NOT" section is the most valuable of the whole document**. In your own product there is no client closing the scope, and the scope grows on its own — every good idea looks small in isolation. Writing the boundaries down on day 1 gives you something to go back to when, in month 3, the fourth good idea shows up.
+
+`PRODUCT.md` is also the document Claude reads to understand what you are building. Without it, every session starts from zero.
+
+## Done when
+You can explain the product in two sentences, and the "is not" list has at least five points.
+
+---
+
+# PHASE B — Flows
+
+## Objective
+Describe the main user journeys, in text, before there is a single pixel.
+
+## How to do it
+For each essential journey (typically 3 to 6):
 
 ```markdown
-## Fluxo: <nome>
+## Flow: <name>
 
-**Quem:** <o utilizador>
-**Quer:** <o objetivo dele>
+**Who:** <the user>
+**Wants:** <their goal>
 
-1. Chega a <onde> vindo de <onde>
-2. Vê <o quê>
-3. Faz <ação>
-4. O sistema <resposta>
-5. Termina com <resultado>
+1. Arrives at <where> coming from <where>
+2. Sees <what>
+3. Does <action>
+4. The system <response>
+5. Ends with <result>
 
-**Correu mal:** <o que pode falhar, e o que acontece então>
+**Went wrong:** <what can fail, and what happens then>
 ```
 
-Depois extrair duas listas, para `docs/PRODUTO.md`:
-- **Ecrãs** necessários para suportar os fluxos
-- **Entidades** que aparecem nos fluxos
+Then extract two lists, into `docs/PRODUCT.md`:
+- **Screens** needed to support the flows
+- **Entities** that appear in the flows
 
-## Benefício
-Escrever fluxos em texto é a coisa mais barata que podes fazer e a que mais desperdício evita. Um fluxo mal pensado custa 20 minutos a corrigir aqui; custa três dias depois de haver ecrãs desenhados e tabelas criadas.
+## Benefit
+Writing flows in text is the cheapest thing you can do and the one that avoids the most waste. A badly thought-out flow costs 20 minutes to fix here; it costs three days once there are screens designed and tables created.
 
-Resolve também o problema do ovo e da galinha entre design e arquitetura: **os fluxos são o antepassado comum dos dois.**
+It also solves the chicken-and-egg problem between design and architecture: **the flows are the common ancestor of both.**
 
-## Feito quando
-Existem 3–6 fluxos escritos, e deles saiu uma lista de ecrãs e uma de entidades.
+## Done when
+There are 3–6 flows written, and out of them came a list of screens and a list of entities.
 
 ---
 
-# FASE C — Esqueleto técnico
+# PHASE C — Technical skeleton
 
-## C1 — Criar o projeto
+## C1 — Create the project
 
-O installer, se ainda não estiver instalado:
+The installer, if it is not installed yet:
 
 ```bash
 composer global require laravel/installer
 ```
 
-Depois:
+Then:
 
 ```bash
-laravel new <projeto>
+laravel new <project>
 ```
 
-Escolher o starter kit conforme a stack de frontend:
+Choose the starter kit according to the frontend stack:
 
 | Starter kit | Stack |
 |---|---|
@@ -132,9 +132,9 @@ Escolher o starter kit conforme a stack de frontend:
 | Vue | Vue 3 + Inertia 3 + shadcn-vue |
 | Svelte | Svelte 5 + Inertia 3 + shadcn-svelte |
 
-Todos trazem autenticação, **Tailwind 4**, Pint, Larastan (com `phpstan.neon`) e um workflow de CI de base.
+They all ship authentication, **Tailwind 4**, Pint, Larastan (with `phpstan.neon`) and a baseline CI workflow.
 
-Laravel 13 (março de 2026) suporta PHP 8.3–8.5.
+Laravel 13 (March 2026) supports PHP 8.3–8.5.
 
 ## C2 — Laravel Boost
 
@@ -143,114 +143,114 @@ composer require laravel/boost --dev
 php artisan boost:install
 ```
 
-**É o passo com maior retorno de todo o playbook.** Dá ao Claude dez ferramentas MCP: ler o schema da base de dados, os modelos Eloquent, os logs da aplicação e do browser, o último erro, executar queries, e pesquisa semântica na documentação do Laravel.
+**It is the highest-return step in the whole playbook.** It gives Claude ten MCP tools: read the database schema, the Eloquent models, the application and browser logs, the last error, run queries, and semantic search over the Laravel documentation.
 
-O Boost traz também skills próprias (Pest, Tailwind, convenções) e usa `.ai/skills/` para skills personalizadas. Depois do install, correr `/context` e ver que skills ficaram disponíveis — se alguma cobrir o mesmo que as do pacote, escolher uma e apagar a outra em vez de manter as duas.
+Boost also ships its own skills (Pest, Tailwind, conventions) and uses `.ai/skills/` for custom skills. After the install, run `/context` and see which skills became available — if any covers the same ground as the package's, pick one and delete the other instead of keeping both.
 
-**Onde escrever o vosso contexto:** ver a secção "Estrutura de contexto" a seguir. Em resumo: nunca no `CLAUDE.md`, sempre em `.ai/guidelines/`.
+**Where to write your context:** see the "Context structure" section below. In short: never in `CLAUDE.md`, always in `.ai/guidelines/`.
 
-## C3 — Testes e CI
+## C3 — Tests and CI
 
-Pest 5 exige PHP 8.4+ e PHPUnit 13, enquanto os starter kits vêm com PHPUnit 12 e `"php": "^8.3"`. **A instalação simples falha.** A sequência que resolve:
+Pest 5 requires PHP 8.4+ and PHPUnit 13, while the starter kits come with PHPUnit 12 and `"php": "^8.3"`. **The simple install fails.** The sequence that fixes it:
 
 ```bash
-# 1. subir a constraint de PHP no composer.json para "^8.4"
+# 1. raise the PHP constraint in composer.json to "^8.4"
 
-# 2. substituir o PHPUnit do starter kit pelo Pest
+# 2. replace the starter kit's PHPUnit with Pest
 composer remove phpunit/phpunit --dev
 composer require pestphp/pest --dev -W
 ./vendor/bin/pest --init
 ```
 
-O Pint e o Larastan **já vêm no starter kit** — não os voltar a instalar.
+Pint and Larastan **already come in the starter kit** — do not install them again.
 
-**O workflow de CI:** o starter kit já traz `.github/workflows/tests.yml`, que corre em PHP 8.3 e vai partir assim que o Pest 5 entrar. Substituir esse ficheiro pelo `ci.yml` do pacote — **apagar o do starter kit**, não deixar os dois.
+**The CI workflow:** the starter kit already ships `.github/workflows/tests.yml`, which runs on PHP 8.3 and will break as soon as Pest 5 comes in. Replace that file with the package's `ci.yml` — **delete the starter kit's**, do not leave both.
 
-> **Test impact analysis** (só voltar a correr os testes afetados) existe no Pest 5 mas é opt-in: exige `--tia` e um driver de cobertura instalado. Vale a pena quando a suite crescer; não é preciso no dia 1.
+> **Test impact analysis** (re-running only the affected tests) exists in Pest 5 but is opt-in: it requires `--tia` and a coverage driver installed. It is worth it once the suite grows; it is not needed on day 1.
 
-## C3b — Estrutura de contexto
+## C3b — Context structure
 
-**Sim, tens `CLAUDE.md`** — e é lido em todas as sessões. O que não podes é escrevê-lo à mão, porque o Boost regenera-o. A solução é o mecanismo do próprio Boost.
+**Yes, you have `CLAUDE.md`** — and it is read in every session. What you cannot do is write it by hand, because Boost regenerates it. The solution is Boost's own mechanism.
 
-| Ficheiro | Quem escreve | Vai ao git? | Para quê |
+| File | Who writes it | Goes into git? | What for |
 |---|---|---|---|
-| `CLAUDE.md`, `AGENTS.md` | **Boost** (gerado) | não | Onde o Boost junta tudo. Ler sim, **editar nunca** |
-| `.ai/guidelines/*.md` | **tu, à mão** | **sim** | O teu contexto. O Boost inclui-o no `CLAUDE.md` que gera |
-| `.claude/rules/*.md` | **tu, à mão** | **sim** | Regras que só carregam ao ler certos ficheiros |
-| `.ai/rules/` | só a ferramenta `record-rule` | **sim** | Regras que o Claude regista durante o trabalho |
-| `docs/*.md` | tu | **sim** | Documentos longos, lidos a pedido |
+| `CLAUDE.md`, `AGENTS.md` | **Boost** (generated) | no | Where Boost gathers everything. Read yes, **edit never** |
+| `.ai/guidelines/*.md` | **you, by hand** | **yes** | Your context. Boost includes it in the `CLAUDE.md` it generates |
+| `.claude/rules/*.md` | **you, by hand** | **yes** | Rules that only load when reading certain files |
+| `.ai/rules/` | only the `record-rule` tool | **yes** | Rules Claude records during the work |
+| `docs/*.md` | you | **yes** | Long documents, read on demand |
 
-**A peça que faltava:** ficheiros `.md` ou `.blade.php` colocados em `.ai/guidelines/` são **automaticamente incluídos** nas guidelines do Boost sempre que se corre `boost:install` ou `boost:update`. O teu conteúdo sobrevive à regeneração porque é a fonte dela.
+**The missing piece:** `.md` or `.blade.php` files placed in `.ai/guidelines/` are **automatically included** in Boost's guidelines whenever `boost:install` or `boost:update` runs. Your content survives the regeneration because it is its source.
 
-> **`.ai/rules/` vs `.claude/rules/` — qual usar.** Parecem sobrepor-se; a divisão prática é a autoria. As regras que **tu** escreves vão para `.claude/rules/`, porque o Claude Code as carrega nativamente. A pasta `.ai/rules/` é do Boost e só deve ser escrita pela ferramenta `record-rule` — um ficheiro lá colocado à mão **não é descoberto** até o índice ser regenerado.
+> **`.ai/rules/` vs `.claude/rules/` — which to use.** They look like they overlap; the practical split is authorship. The rules **you** write go into `.claude/rules/`, because Claude Code loads them natively. The `.ai/rules/` folder belongs to Boost and should only be written by the `record-rule` tool — a file placed there by hand **is not discovered** until the index is regenerated.
 
-Copiar do pacote:
+Copy from the package:
 
 ```
-.ai/guidelines/00-projeto.md            → o que é, comandos, convenções, nunca fazer
-.ai/guidelines/10-fluxo-de-trabalho.md  → branch, issue, testes, PR
-.claude/rules/interface.md              → carrega ao editar views e CSS
-.claude/rules/base-de-dados.md          → carrega ao editar migrações e modelos
+.ai/guidelines/00-project.md            → what it is, commands, conventions, never do
+.ai/guidelines/10-workflow.md  → branch, issue, tests, PR
+.claude/rules/interface.md              → loads when editing views and CSS
+.claude/rules/database.md          → loads when editing migrations and models
 ```
 
-**Porquê `.claude/rules/` com `paths:`** — o `CLAUDE.md` é lido inteiro em todas as sessões e come contexto. Regras de interface só interessam quando se mexe em views; regras de base de dados só quando se mexe em migrações. Com `paths:` no frontmatter, carregam apenas nesses momentos. Mantém o contexto permanente pequeno, que é o que faz o Claude segui-lo melhor.
+**Why `.claude/rules/` with `paths:`** — `CLAUDE.md` is read whole in every session and eats context. Interface rules only matter when you touch views; database rules only when you touch migrations. With `paths:` in the frontmatter, they load only at those moments. It keeps the permanent context small, which is what makes Claude follow it better.
 
-> ⚠️ **Limitação a conhecer:** regras com `paths:` carregam quando o Claude **lê** um ficheiro que corresponde ao padrão — não a cada operação. Ao criar um ecrã de raiz, sem ler nenhuma view antes, a regra pode não estar em contexto. E não são reinjetadas depois de um `/compact`.
+> ⚠️ **A limitation to know:** rules with `paths:` load when Claude **reads** a file matching the pattern — not on every operation. When creating a screen from scratch, without reading any view first, the rule may not be in context. And they are not re-injected after a `/compact`.
 >
-> Por isso as regras que **têm mesmo de valer sempre** ficam em `.ai/guidelines/` (contexto permanente) ou, se o custo de serem ignoradas for alto, num hook.
+> That is why the rules that **really have to apply always** go in `.ai/guidelines/` (permanent context) or, if the cost of being ignored is high, in a hook.
 
-> **Regra prática de tamanho:** o contexto sempre-presente (guidelines + rules sem `paths`) deve ficar abaixo de ~200 linhas. Acima disso, a adesão cai. Detalhe longo vai para `docs/` e é referenciado, não colado.
+> **Practical size rule:** the always-present context (guidelines + rules without `paths`) should stay under ~200 lines. Above that, adherence drops. Long detail goes into `docs/` and is referenced, not pasted.
 
-**Verificar depois do `boost:install`:** abrir o `CLAUDE.md` gerado e confirmar que o conteúdo de `.ai/guidelines/` lá está. Dentro do Claude Code, `/context` mostra que ficheiros de memória foram mesmo carregados.
+**Check after `boost:install`:** open the generated `CLAUDE.md` and confirm the content of `.ai/guidelines/` is there. Inside Claude Code, `/context` shows which memory files were actually loaded.
 
 ## C4 — GitHub Issues
 
 ```bash
-gh label create "tipo: funcionalidade" --color 0052CC
-gh label create "tipo: bug"           --color D93F0B
-gh label create "tipo: técnico"       --color 5319E7
-gh label create "área: design"        --color FBCA04
-gh label create "prioridade: agora"   --color B60205
-gh label create "bloqueado"           --color 000000
+gh label create "type: feature" --color 0052CC
+gh label create "type: bug"           --color D93F0B
+gh label create "type: technical"       --color 5319E7
+gh label create "area: design"        --color FBCA04
+gh label create "priority: now"   --color B60205
+gh label create "blocked"           --color 000000
 ```
 
-Copiar `.github/ISSUE_TEMPLATE/` do pacote. Criar um GitHub Project (board) ligado ao repositório.
+Copy `.github/ISSUE_TEMPLATE/` from the package. Create a GitHub Project (board) linked to the repository.
 
-Proteger a `main` em **Settings → Rules → Rulesets**: exigir PR, 1 aprovação e CI verde.
+Protect `main` in **Settings → Rules → Rulesets**: require a PR, 1 approval and green CI.
 
-> Rulesets em repositório **privado** exigem plano Pro ou Team. Em privado + Free não estão disponíveis, e a regra de merge passa a depender de disciplina.
+> Rulesets on a **private** repository require a Pro or Team plan. On private + Free they are not available, and the merge rule comes down to discipline.
 
 ## C5 — Deploy
 
-Com o Ploi: criar servidor e site, ligar o repositório, ativar o quick deploy. Ambiente de staging antes de produção, se o projeto o justificar.
+With Ploi: create the server and site, connect the repository, enable quick deploy. A staging environment before production, if the project warrants it.
 
-## Benefício desta fase
-Feita agora e não no fim, esta fase dá às fases de design um sítio real onde materializar decisões — tokens no `app.css`, componentes em `resources/views/components/`. E o Boost, instalado antes do design, faz com que o Claude conheça o projeto desde a primeira conversa sobre interface.
+## Benefit of this phase
+Done now and not at the end, this phase gives the design phases a real place to materialize decisions — tokens in `app.css`, components in `resources/views/components/`. And Boost, installed before the design, means Claude knows the project from the first conversation about interface.
 
-## Feito quando
-`php artisan serve` corre, `./vendor/bin/pest` passa, o CI está verde num PR de teste, e as labels e templates existem.
+## Done when
+`php artisan serve` runs, `./vendor/bin/pest` passes, CI is green on a test PR, and the labels and templates exist.
 
 ---
 
-# FASE D — Sistema visual
+# PHASE D — Visual system
 
-> **A fase que não se salta.** Ler o aviso no fim antes de decidir saltá-la.
+> **The phase you do not skip.** Read the warning at the end before deciding to skip it.
 
-## Objetivo
-Definir as restrições visuais **antes** de desenhar qualquer ecrã.
+## Objective
+Define the visual constraints **before** designing any screen.
 
-## Como fazer
+## How to do it
 
-**1. Decidir as poucas coisas que são realmente tuas.** Escolhe deliberadamente — não deixes ao Claude:
-- Uma família tipográfica e uma escala
-- Uma cor de marca e uma neutra
-- Um raio de cantos e uma densidade (compacto vs. espaçoso)
+**1. Decide the few things that are really yours.** Choose deliberately — do not leave it to Claude:
+- One type family and one scale
+- One brand color and one neutral
+- One corner radius and one density (compact vs. spacious)
 
-São quatro decisões. É aqui que vive praticamente toda a identidade do produto.
+That is four decisions. This is where practically the whole identity of the product lives.
 
-**2. Escrever `docs/DESIGN.md`** com essas decisões e as regras de uso (template no pacote).
+**2. Write `docs/DESIGN.md`** with those decisions and the usage rules (template in the package).
 
-**3. Declarar os tokens.** Tailwind 4 configura-se em CSS, não em `tailwind.config.js`. No `resources/css/app.css`:
+**3. Declare the tokens.** Tailwind 4 is configured in CSS, not in `tailwind.config.js`. In `resources/css/app.css`:
 
 ```css
 @import "tailwindcss";
@@ -265,233 +265,233 @@ São quatro decisões. É aqui que vive praticamente toda a identidade do produt
 }
 ```
 
-**4. Criar os componentes base** em `resources/views/components/` — botão, input, card, badge, tabela, modal, estado vazio, alerta. Seis a dez chegam.
+**4. Create the base components** in `resources/views/components/` — button, input, card, badge, table, modal, empty state, alert. Six to ten is enough.
 
-**5. Criar uma página que mostre todos os componentes juntos**, em `/design` (só em ambiente local). É onde se vê se o sistema é coerente.
+**5. Create a page showing all the components together**, at `/design` (local environment only). That is where you see whether the system is coherent.
 
-## Benefício
-Este é o `CLAUDE.md` do design, e o argumento é exatamente o mesmo.
+## Benefit
+This is the design's `CLAUDE.md`, and the argument is exactly the same.
 
-Sem sistema definido, cada ecrã que o Claude gera é bonito isoladamente e **incoerente em conjunto** — três tons de azul, quatro tamanhos de botão, espaçamentos que não conversam. Cada ecrã parece bem quando o revês sozinho; só ao fim de dez é que se percebe que o produto parece feito por cinco pessoas diferentes. Nessa altura, corrigir é refazer.
+With no system defined, every screen Claude generates is pretty in isolation and **incoherent together** — three shades of blue, four button sizes, spacings that do not talk to each other. Every screen looks fine when you review it alone; only after ten do you realize the product looks like it was made by five different people. By then, fixing it means redoing it.
 
-Com o sistema definido, o Claude compõe dentro de restrições — que é exatamente onde ele é forte.
+With the system defined, Claude composes within constraints — which is exactly where it is strong.
 
-## Feito quando
-Existe `DESIGN.md`, os tokens estão no `app.css`, os componentes existem, e a página `/design` mostra-os juntos.
-
----
-
-# FASE E — Ecrãs
-
-## Objetivo
-Desenhar os ecrãs da primeira versão, iterando depressa.
-
-## Como fazer
-Para cada ecrã, com a skill `/preparar-design`:
-
-1. O Claude gera um **mockup HTML+Tailwind 4 estático**, usando os tokens definidos.
-2. Abres no browser e vês. Iteras em conversa — "a densidade está errada", "falta o estado vazio".
-3. Aprovado, fica em `docs/mockups/<ecra>.html`, commitado.
-4. Esse ficheiro passa a ser **a referência** para a implementação em Blade.
-
-Pedir sempre os quatro estados, não só o ecrã feliz: **vazio, a carregar, erro, e com muitos dados**.
-
-## Benefício
-A vantagem grande de o design ser feito pelo Claude e não em Figma: **o artefacto de design já é código**. Não há handoff, não há tradução, não há "o dev implementou diferente do design". O mockup usa os mesmos tokens Tailwind que a aplicação usa.
-
-O ciclo de iteração também é outro: mudar a densidade de uma tabela é uma frase, não trinta minutos de trabalho manual.
-
-## Onde isto falha — e é importante
-**O Claude produz design competente e convencional, não distintivo.** Layouts limpos, hierarquia correta, espaçamento sensato. Não produz uma identidade visual que faça alguém parar. Para produto próprio que compita pelo aspeto, é uma limitação real.
-
-A mitigação é a Fase D: **investe a diferenciação nas quatro decisões do sistema** — tipografia, cor, forma, densidade — e deixa a composição dos ecrãs ao Claude. É aí que a relação esforço/resultado é melhor.
-
-Não uses os mockups como componentes finais. São referência; a implementação em Blade faz-se a sério, com os componentes reais.
-
-## Feito quando
-Os ecrãs da primeira versão têm mockup aprovado, incluindo estados vazios e de erro.
+## Done when
+`DESIGN.md` exists, the tokens are in `app.css`, the components exist, and the `/design` page shows them together.
 
 ---
 
-# FASE F — Arquitetura
+# PHASE E — Screens
 
-## Objetivo
-Definir o modelo de dados e a estrutura, com os ecrãs já conhecidos.
+## Objective
+Design the screens of the first version, iterating fast.
 
-## Como fazer
+## How to do it
+For each screen, with the `/prepare-design` skill:
 
-**1. Modelo de dados.** As entidades saíram da Fase B; os ecrãs da Fase E mostram que campos são mesmo precisos. Escrever as migrações — são o artefacto de design, não apenas código.
+1. Claude generates a **static HTML+Tailwind 4 mockup**, using the defined tokens.
+2. You open it in the browser and look. You iterate in conversation — "the density is wrong", "the empty state is missing".
+3. Once approved, it goes in `docs/mockups/<screen>.html`, committed.
+4. That file becomes **the reference** for the Blade implementation.
 
-**2. `docs/ARCHITECTURE.md`:** módulos e fronteiras, packages escolhidos e porquê, integrações externas, o que fica fora do Laravel padrão.
+Always ask for the four states, not just the happy screen: **empty, loading, error, and with lots of data**.
 
-**3. `docs/DECISIONS.md`:** as decisões estruturantes, com alternativas descartadas. Duas ou três linhas cada.
+## Benefit
+The big advantage of the design being done by Claude and not in Figma: **the design artifact is already code**. There is no handoff, no translation, no "the dev implemented it differently from the design". The mockup uses the same Tailwind tokens the application uses.
 
-## Benefício
-Fazer o modelo de dados **depois** dos ecrãs evita o erro clássico de modelar em abstrato: tabelas elegantes que não suportam o que o ecrã precisa de mostrar, ou campos criados "por precaução" que nunca são usados.
+The iteration cycle is different too: changing a table's density is one sentence, not thirty minutes of manual work.
 
-O `DECISIONS.md` responde à pergunta que o código nunca responde: *porque é que isto está assim?* Daqui a seis meses, é a diferença entre confiar numa decisão antiga e refazê-la por não a perceber.
+## Where this fails — and it matters
+**Claude produces competent, conventional design, not distinctive design.** Clean layouts, correct hierarchy, sensible spacing. It does not produce a visual identity that makes someone stop. For your own product competing on looks, that is a real limitation.
 
-## Feito quando
-Migrações escritas e a correr, `ARCHITECTURE.md` e `DECISIONS.md` commitados.
+The mitigation is Phase D: **invest the differentiation in the system's four decisions** — typography, color, shape, density — and leave the composition of the screens to Claude. That is where the effort/result ratio is best.
+
+Do not use the mockups as final components. They are a reference; the Blade implementation is done properly, with the real components.
+
+## Done when
+The first version's screens have an approved mockup, including empty and error states.
 
 ---
 
-# O ciclo, depois do arranque
+# PHASE F — Architecture
+
+## Objective
+Define the data model and the structure, with the screens already known.
+
+## How to do it
+
+**1. Data model.** The entities came out of Phase B; the Phase E screens show which fields are really needed. Write the migrations — they are the design artifact, not just code.
+
+**2. `docs/ARCHITECTURE.md`:** modules and boundaries, packages chosen and why, external integrations, what falls outside standard Laravel.
+
+**3. `docs/DECISIONS.md`:** the structural decisions, with the alternatives discarded. Two or three lines each.
+
+## Benefit
+Doing the data model **after** the screens avoids the classic mistake of modeling in the abstract: elegant tables that do not support what the screen needs to show, or fields created "just in case" that are never used.
+
+`DECISIONS.md` answers the question the code never answers: *why is this like this?* Six months from now, it is the difference between trusting an old decision and redoing it because you do not understand it.
+
+## Done when
+Migrations written and running, `ARCHITECTURE.md` and `DECISIONS.md` committed.
+
+---
+
+# The cycle, after the startup
 
 ```
-ideia
+idea
   │
   ▼
-/novo-issue ──► issue no GitHub com critérios de aceitação
+/new-issue ──► issue on GitHub with acceptance criteria
   │
-  ├─ precisa de ecrã novo? ──► /preparar-design ──► mockup aprovado, ligado ao issue
-  │
-  ▼
-git checkout -b <tipo>/<nº>-<descricao>
+  ├─ needs a new screen? ──► /prepare-design ──► approved mockup, linked to the issue
   │
   ▼
-implementar com Claude (Boost dá-lhe schema, modelos, logs, docs)
+git checkout -b <type>/<n>-<description>
   │
   ▼
-/escrever-testes <nº>   ← sessão separada, a partir dos critérios
+implement with Claude (Boost gives it schema, models, logs, docs)
   │
   ▼
-git push -u origin <branch>  ──►  PR com "Closes #<nº>"
+/write-tests <n>   ← separate session, from the criteria
   │
   ▼
-CI (Pint · Larastan · Pest) ──► revisor ──► revisão humana ──► merge
+git push -u origin <branch>  ──►  PR with "Closes #<n>"
+  │
+  ▼
+CI (Pint · Larastan · Pest) ──► reviewer ──► human review ──► merge
                                                                  │
                                                                  ▼
-                                                    o issue fecha sozinho
+                                                    the issue closes on its own
 ```
 
-**Convenção de branch:** `feat/12-exportar-relatorio`, `fix/34-erro-no-login`, `chore/56-atualizar-deps`.
+**Branch convention:** `feat/12-export-report`, `fix/34-login-error`, `chore/56-update-deps`.
 
-**Fechar o issue:** escrever `Closes #12` na descrição do PR. Nativo do GitHub, sem integração para configurar.
-
----
-
-# As cinco regras
-
-1. **A Fase D antes da Fase E.** Sistema visual antes de ecrãs, sempre.
-2. **Nenhum issue entra em implementação sem critérios de aceitação verificáveis.**
-3. **Quem implementou não escreve os testes na mesma sessão.** Testes escritos a seguir ao código verificam o código, não o requisito — passam sempre e não provam nada.
-4. **Nenhum PR faz merge sem CI verde e uma aprovação.**
-5. **Uma decisão estruturante que não fica no `DECISIONS.md` perde-se.**
+**Closing the issue:** write `Closes #12` in the PR description. Native to GitHub, no integration to configure.
 
 ---
 
-# O que isto custa
+# The five rules
 
-- **1 a 2 semanas de arranque** antes da primeira linha de funcionalidade. Parece muito; é menos do que refazer o modelo de dados no mês 2.
-- **Disciplina nas fases A, B e D**, que são as que menos parecem trabalho e mais determinam o resultado.
-- **Tokens.** Design iterativo e implementação assistida consomem bastante.
-- **Uma limitação assumida:** o design será competente, não distintivo (ver Fase E).
+1. **Phase D before Phase E.** Visual system before screens, always.
+2. **No issue goes into implementation without verifiable acceptance criteria.**
+3. **Whoever implemented does not write the tests in the same session.** Tests written right after the code check the code, not the requirement — they always pass and prove nothing.
+4. **No PR merges without green CI and one approval.**
+5. **A structural decision that does not land in `DECISIONS.md` is lost.**
 
-**Onde não compensa:** protótipos descartáveis e provas de conceito. O playbook paga-se em produto que vai ser mantido.
+---
+
+# What this costs
+
+- **1 to 2 weeks of startup** before the first line of functionality. It looks like a lot; it is less than redoing the data model in month 2.
+- **Discipline in phases A, B and D**, which are the ones that least look like work and most determine the result.
+- **Tokens.** Iterative design and assisted implementation consume a fair amount.
+- **An accepted limitation:** the design will be competent, not distinctive (see Phase E).
+
+**Where it does not pay off:** throwaway prototypes and proofs of concept. The playbook pays for itself on a product that is going to be maintained.
 
 ---
 
 # Checklist
 
 ```
-FASE A — Enquadramento
-[ ] docs/PRODUTO.md, com "o que NÃO é" (5+ pontos)
+PHASE A — Framing
+[ ] docs/PRODUCT.md, with "what it is NOT" (5+ points)
 
-FASE B — Fluxos
-[ ] 3-6 fluxos escritos
-[ ] Lista de ecrãs + lista de entidades
+PHASE B — Flows
+[ ] 3-6 flows written
+[ ] List of screens + list of entities
 
-FASE C — Esqueleto técnico
-[ ] laravel new + starter kit escolhido
-[ ] Laravel Boost instalado; verificado o que gerou
-[ ] .ai/guidelines/ preenchido e incluído no CLAUDE.md gerado
-[ ] .claude/rules/ copiado; hooks copiados e executáveis
-[ ] CLAUDE.md, .mcp.json e boost.json no .gitignore
-[ ] PHP ^8.4 no composer.json; PHPUnit removido; Pest 5 instalado
-[ ] tests.yml do starter kit apagado; ci.yml do pacote no lugar
-[ ] CI verde num PR de teste
-[ ] Labels, issue templates e Project criados
-[ ] Ruleset a proteger a main
-[ ] Deploy configurado (Ploi)
+PHASE C — Technical skeleton
+[ ] laravel new + starter kit chosen
+[ ] Laravel Boost installed; checked what it generated
+[ ] .ai/guidelines/ filled in and included in the generated CLAUDE.md
+[ ] .claude/rules/ copied; hooks copied and executable
+[ ] CLAUDE.md, .mcp.json and boost.json in .gitignore
+[ ] PHP ^8.4 in composer.json; PHPUnit removed; Pest 5 installed
+[ ] starter kit's tests.yml deleted; package's ci.yml in its place
+[ ] CI green on a test PR
+[ ] Labels, issue templates and Project created
+[ ] Ruleset protecting main
+[ ] Deploy configured (Ploi)
 
-FASE D — Sistema visual
-[ ] Tipografia, cor, forma e densidade decididas
+PHASE D — Visual system
+[ ] Typography, color, shape and density decided
 [ ] docs/DESIGN.md
-[ ] Tokens em @theme no app.css
-[ ] Componentes base + página /design
+[ ] Tokens in @theme in app.css
+[ ] Base components + /design page
 
-FASE E — Ecrãs
-[ ] Mockup por ecrã, com os quatro estados
-[ ] Commitados em docs/mockups/
+PHASE E — Screens
+[ ] Mockup per screen, with the four states
+[ ] Committed in docs/mockups/
 
-FASE F — Arquitetura
-[ ] Migrações escritas e a correr
+PHASE F — Architecture
+[ ] Migrations written and running
 [ ] docs/ARCHITECTURE.md
 [ ] docs/DECISIONS.md
-[ ] Issues da primeira versão abertos
+[ ] First version's issues opened
 ```
 
 ---
 
-## Ficheiros do pacote
+## Package files
 
 ```
-ORQUESTRAÇÃO
-.claude/skills/start/  → /start — conduz e verifica as 6 fases
+ORCHESTRATION
+.claude/skills/start/  → /start — walks through and checks the 6 phases
 
-CONTEXTO (lido pelo Claude em todas as sessões)
-.ai/guidelines/00-projeto.md            → o Boost inclui isto no CLAUDE.md gerado
-.ai/guidelines/10-fluxo-de-trabalho.md  → idem
-.claude/rules/interface.md              → carrega só ao editar views/CSS
-.claude/rules/base-de-dados.md          → carrega só ao editar migrações/modelos
+CONTEXT (read by Claude in every session)
+.ai/guidelines/00-project.md            → Boost includes this in the generated CLAUDE.md
+.ai/guidelines/10-workflow.md  → same
+.claude/rules/interface.md              → loads only when editing views/CSS
+.claude/rules/database.md          → loads only when editing migrations/models
 
-ENFORCEMENT (executa independentemente do Claude)
-.claude/settings.json             → liga os hooks
-.claude/hooks/proteger-main.sh    → bloqueia commit/push na main
-.claude/hooks/avisar-design.sh    → avisa se se editam views sem DESIGN.md
-.github/workflows/ci.yml          → Fase C3 (substitui o tests.yml do starter kit)
+ENFORCEMENT (runs independently of Claude)
+.claude/settings.json             → wires up the hooks
+.claude/hooks/protect-main.sh    → blocks commit/push on main
+.claude/hooks/warn-design.sh    → warns if views are edited without DESIGN.md
+.github/workflows/ci.yml          → Phase C3 (replaces the starter kit's tests.yml)
 
-DOCUMENTOS (lidos a pedido)
-docs/PRODUTO.md               → Fase A (template)
-docs/DESIGN.md                → Fase D (template)
-docs/ARCHITECTURE.md          → Fase F (template)
-docs/DECISIONS.md             → Fase F (template)
-docs/mockups/                 → Fase E (destino dos mockups)
-REVIEW.md                     → critérios de revisão
+DOCUMENTS (read on demand)
+docs/PRODUCT.md               → Phase A (template)
+docs/DESIGN.md                → Phase D (template)
+docs/ARCHITECTURE.md          → Phase F (template)
+docs/DECISIONS.md             → Phase F (template)
+docs/mockups/                 → Phase E (destination of the mockups)
+REVIEW.md                     → review criteria
 
-TRABALHO DIÁRIO
-.claude/skills/novo-issue/        → criar issues no GitHub
-.claude/skills/preparar-design/     → mockups na Fase E
-.claude/skills/escrever-testes/   → testes a partir dos critérios
-.claude/agents/revisor.md         → revisão antes do PR
-.github/ISSUE_TEMPLATE/*.yml      → Fase C4
+DAILY WORK
+.claude/skills/new-issue/        → create issues on GitHub
+.claude/skills/prepare-design/     → mockups in Phase E
+.claude/skills/write-tests/   → tests from the criteria
+.claude/agents/reviewer.md         → review before the PR
+.github/ISSUE_TEMPLATE/*.yml      → Phase C4
 ```
 
-Mais o `PROGRESSO.md`, que a skill `/start` cria na raiz e mantém atualizado. Commitar também.
+Plus `PROGRESS.md`, which the `/start` skill creates at the root and keeps up to date. Commit it too.
 
-**Instalar:**
+**Install:**
 
 ```bash
-# copiar o pacote para a raiz do repositório, depois:
+# copy the package into the repository root, then:
 chmod +x .claude/hooks/*.sh
 printf 'CLAUDE.md\nAGENTS.md\n.mcp.json\nboost.json\n' >> .gitignore
-git add -A && git commit -m "chore: método de trabalho e contexto do projeto"
+git add -A && git commit -m "chore: working method and project context"
 ```
 
-Ao abrir o Claude Code no projeto pela primeira vez, **aceitar o diálogo de confiança da pasta** — sem isso os hooks de `.claude/settings.json` não correm, e a camada de enforcement fica inativa sem aviso.
+When opening Claude Code in the project for the first time, **accept the folder trust dialog** — without it the hooks in `.claude/settings.json` do not run, and the enforcement layer stays inactive with no warning.
 
-Depois é só: `/start`.
+After that it is just: `/start`.
 
-## Referências
+## References
 
 - [Laravel 13 — releases](https://laravel.com/docs/13.x/releases)
 - [Laravel — Starter Kits](https://laravel.com/starter-kits)
 - [Laravel Boost](https://laravel.com/docs/13.x/boost)
-- [Claude Code — memória e CLAUDE.md](https://code.claude.com/docs/en/memory)
+- [Claude Code — memory and CLAUDE.md](https://code.claude.com/docs/en/memory)
 - [Claude Code — hooks](https://code.claude.com/docs/en/hooks)
-- [Pest — instalação](https://pestphp.com/docs/installation)
-- [Tailwind 4 — tema e tokens](https://tailwindcss.com/docs/theme)
+- [Pest — installation](https://pestphp.com/docs/installation)
+- [Tailwind 4 — theme and tokens](https://tailwindcss.com/docs/theme)
 - [Larastan](https://github.com/larastan/larastan)
 - [GitHub — issue forms](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository)
 - [GitHub — rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)

@@ -2,31 +2,31 @@
 // user is alerted even when the JOCA window isn't focused. The in-app toast is separate (visual, only
 // when the tab is visible); these fire alongside it.
 //
-// Uma notificação que avisa e não leva a lado nenhum obriga o utilizador a procurar sozinho o sítio
-// de que ela falava. Por isso todas as vias (toast, inbox, notificação do SO) partilham o mesmo
-// contrato de destino — o `meta` da própria notificação — resolvido por um único handler registado
-// pelo App, que é quem sabe navegar.
+// A notification that warns and leads nowhere forces the user to find the place it was talking about
+// on his own. That is why every route (toast, inbox, OS notification) shares the same destination
+// contract — the notification's own `meta` — resolved by a single handler registered by the App,
+// which is what knows how to navigate.
 import type { AppNotification } from '../types';
 
 export type NotificationTarget = NonNullable<AppNotification['meta']>;
 
 let audioCtx: AudioContext | null = null;
 
-// Registado uma vez pelo App (quem tem o router e o estado de vistas). Módulo e não contexto React
-// porque quem dispara isto — o router de mensagens do WebSocket — não é um componente.
+// Registered once by the App (which has the router and the view state). A module and not a React
+// context because what fires this — the WebSocket message router — is not a component.
 let openTargetHandler: ((target: NotificationTarget) => void) | null = null;
 
 export function setNotificationTargetHandler(fn: ((target: NotificationTarget) => void) | null): void {
   openTargetHandler = fn;
 }
 
-/** Navega para a origem de uma notificação. No-op silencioso se ainda ninguém registou o handler. */
+/** Navigates to the origin of a notification. A silent no-op if nobody has registered the handler yet. */
 export function openNotificationTarget(target: NotificationTarget | undefined | null): void {
   if (!target || !openTargetHandler) return;
-  try { openTargetHandler(target); } catch { /* navegação falhou — não vale rebentar o aviso */ }
+  try { openTargetHandler(target); } catch { /* navigation failed — not worth blowing up the warning */ }
 }
 
-/** Há para onde ir? Serve para o toast decidir se mostra "Abrir" ou não. */
+/** Is there anywhere to go? It lets the toast decide whether to show "Open" or not. */
 export function hasNotificationTarget(target: NotificationTarget | undefined | null): boolean {
   if (!target) return false;
   return Boolean(target.sessionId || target.projectId);
@@ -70,11 +70,11 @@ export function playNotifySound(): void {
 }
 
 /**
- * Ícone do tema de marca activo, para a notificação do SO não sair com o ícone genérico do browser.
+ * Icon of the active brand theme, so the OS notification does not come out with the browser's generic icon.
  *
- * Lido do `<link rel="icon">` da própria página em vez de importar o `brand.ts`: é o `index.html`
- * que o troca (antes do bundle, para o separador não piscar o tema errado), portanto o DOM é a
- * fonte que está sempre certa — sem duplicar a lógica de qual tema está activo.
+ * Read from the page's own `<link rel="icon">` instead of importing `brand.ts`: it is `index.html`
+ * that swaps it (before the bundle, so the tab does not flash the wrong theme), so the DOM is the
+ * source that is always right — without duplicating the logic of which theme is active.
  */
 function iconeDaMarca(): string | undefined {
   try {
@@ -84,12 +84,12 @@ function iconeDaMarca(): string | undefined {
 }
 
 /**
- * Assunto da notificação, para o SO SUBSTITUIR a anterior do mesmo assunto em vez de empilhar.
+ * Subject of the notification, so the OS REPLACES the previous one on the same subject instead of stacking.
  *
- * Era esta a origem das notificações repetidas: sem `tag`, cada aviso é uma notificação nova, e um
- * uma fonte que fala cinco vezes deixa cinco cartões na bandeja a dizer quase o mesmo. O `groupKey` é
- * a mesma noção que o backend já usa para fundir entradas na inbox (`notifications/store.ts`) —
- * aqui reaproveita-se, para as duas metades terem uma só ideia de "isto é o mesmo assunto".
+ * This was the origin of the repeated notifications: without `tag`, each warning is a new notification, and a
+ * a source that speaks five times leaves five cards in the tray saying nearly the same thing. `groupKey` is
+ * the same notion the backend already uses to merge entries in the inbox (`notifications/store.ts`) —
+ * it is reused here, so the two halves have a single idea of "this is the same subject".
  */
 function assunto(title: string, target?: NotificationTarget): string {
   if (target?.groupKey) return target.groupKey;
@@ -100,18 +100,18 @@ function assunto(title: string, target?: NotificationTarget): string {
 
 // Fire an OS notification if the user granted permission (no-op otherwise).
 //
-// Com `target`, o clique traz a janela para a frente E navega. A ordem importa: `window.focus()`
-// antes de navegar, senão a mudança de vista acontece numa janela que continua atrás de tudo e o
-// utilizador só a encontra mais tarde, já sem contexto.
+// With `target`, the click brings the window to the front AND navigates. The order matters: `window.focus()`
+// before navigating, otherwise the view change happens in a window that stays behind everything and the
+// user only finds it later, by then with no context.
 export function osNotify(title: string, body: string, target?: NotificationTarget): void {
   try {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    // `renotify` fica por omissão (false): substituir o cartão anterior não volta a tocar nem a
-    // saltar para a frente. O som já foi dado pelo `notify()`, quando é caso disso.
+    // `renotify` is left at its default (false): replacing the previous card does not sound again nor
+    // jump to the front. The sound was already given by `notify()`, when that is the case.
     const n = new Notification(title, { body, icon: iconeDaMarca(), tag: assunto(title, target) });
     if (!hasNotificationTarget(target)) return;
     n.onclick = () => {
-      try { window.focus(); } catch { /* o browser pode recusar o foco */ }
+      try { window.focus(); } catch { /* the browser may refuse the focus */ }
       openNotificationTarget(target);
       n.close();
     };

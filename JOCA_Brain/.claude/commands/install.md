@@ -1,205 +1,205 @@
-# /install — Setup e configuracao do JOCA
+# /install — JOCA setup and configuration
 
-Assistente de instalacao e reconfiguracao. Pode correr a qualquer momento — reconfigura sem apagar o que ja existe.
+Installation and reconfiguration assistant. It can run at any time — it reconfigures without deleting what already exists.
 
-**Repositorio:** https://github.com/MirrasPT/JOCA.git
+**Repository:** https://github.com/MirrasPT/JOCA.git
 
-**A regra que manda neste comando:** *detectar primeiro, perguntar so o que falta.* O sistema
-operativo, o que ja esta instalado, o que ja esta configurado — nada disso se pergunta, ve-se.
-As perguntas que sobram sao sobre **preferencias** e **intencao**, que nenhum comando adivinha.
+**The rule that governs this command:** *detect first, ask only for what is missing.* The operating
+system, what is already installed, what is already configured — none of that gets asked, it gets seen.
+The questions that remain are about **preferences** and **intent**, which no command guesses.
 
-> Isto substitui o questionario de multi-select que este comando era (mapa de areas->skills, listas
-> de CLIs a marcar um a um). Esse formulario tinha de ser mantido alinhado com o inventario real de
-> skills — era esse o trabalho do antigo `/sync-questionnaires`, agora removido — e mesmo assim
-> perguntava coisas que um `command -v` responde melhor.
+> This replaces the multi-select questionnaire this command used to be (map of areas->skills, lists
+> of CLIs to tick one by one). That form had to be kept aligned with the real inventory of
+> skills — that was the job of the old `/sync-questionnaires`, now removed — and even so it
+> asked things a `command -v` answers better.
 
-**Dados protegidos (NUNCA sobrescrever em reinstalacao):**
-- `memory/projects/` — dados de projectos do utilizador
-- `memory/feedback/` — sessoes de feedback
-- `memory/soul.md` — calibracao de personalidade
-- `JOCA_OS/data/` — projectos, sessoes, settings do UI
-- Ficheiros com `origin: local` no frontmatter — skills/agents criados localmente
+**Protected data (NEVER overwrite on a reinstall):**
+- `memory/projects/` — the user's project data
+- `memory/feedback/` — feedback sessions
+- `memory/soul.md` — personality calibration
+- `JOCA_OS/data/` — projects, sessions, UI settings
+- Files with `origin: local` in the frontmatter — locally created skills/agents
 
 ---
 
-## FASE 0 — Levantamento (zero perguntas)
+## PHASE 0 — Survey (zero questions)
 
 ```bash
-node -e "console.log(process.platform, process.version)"     # OS + Node (Node e obrigatorio)
-cat ~/CLAUDE.md 2>/dev/null | head -30                        # perfil ja existe?
+node -e "console.log(process.platform, process.version)"     # OS + Node (Node is mandatory)
+cat ~/CLAUDE.md 2>/dev/null | head -30                        # does a profile already exist?
 ls memory/soul.md memory/projects memory/feedback JOCA_OS/data 2>/dev/null
 grep -n "autonomy_level\|communication_mode" memory/soul.md 2>/dev/null
-grep -c "JOCA_ROOT" .claude/settings.json 2>/dev/null         # >0 = placeholder por substituir
-# que CLIs ja existem (nao perguntar por estes):
+grep -c "JOCA_ROOT" .claude/settings.json 2>/dev/null         # >0 = placeholder still to replace
+# which CLIs already exist (do not ask about these):
 for c in gh gws gcloud aws agy codex ffmpeg yt-dlp markitdown wp shopify wix ntn \
          sentry-cli stripe graphify python python3; do
-  command -v "$c" >/dev/null 2>&1 && echo "TEM $c"
+  command -v "$c" >/dev/null 2>&1 && echo "HAS $c"
 done
 ```
 
-**O que isto decide sozinho:**
+**What this decides on its own:**
 
-| Sinal | Conclusao — nao perguntar |
+| Signal | Conclusion — do not ask |
 |---|---|
-| `process.platform` | OS: `win32` -> PowerShell em tudo; `darwin`/`linux` -> bash |
-| `~/CLAUDE.md` com perfil | nome e papel do utilizador ja existem |
-| `memory/soul.md` com `autonomy_level` preenchido | ja foi calibrado — isto e **reconfiguracao**, nao instalacao |
-| `TEM <cli>` | esse CLI ja esta instalado; so entra na lista se faltar |
-| `JOCA_OS/data/` existe | o JOCA_OS ja esta a ser usado; nao reinstalar por cima |
-| `<JOCA_ROOT>` no `settings.json` | placeholder por substituir — **com ele la, nenhum hook corre** |
+| `process.platform` | OS: `win32` -> PowerShell everywhere; `darwin`/`linux` -> bash |
+| `~/CLAUDE.md` with a profile | the user's name and role already exist |
+| `memory/soul.md` with `autonomy_level` filled in | it has already been calibrated — this is **reconfiguration**, not installation |
+| `HAS <cli>` | that CLI is already installed; it only enters the list if it is missing |
+| `JOCA_OS/data/` exists | JOCA_OS is already in use; do not reinstall over it |
+| `<JOCA_ROOT>` in `settings.json` | placeholder still to replace — **with it there, no hook runs** |
 
-Se `node` nao existir: parar e dizer que e obrigatorio.
+If `node` does not exist: stop and say that it is mandatory.
 
-Se ja houver perfil **e** soul calibrado, mostra o que esta configurado e pergunta uma so coisa:
-*manter tudo* · *mudar preferencias* · *so acrescentar ferramentas*. Manter -> saltar para FASE 3.
-
----
-
-## FASE 1 — Quem es tu (so o que falta)
-
-Se o `~/CLAUDE.md` ja der nome e papel, **confirma numa linha** em vez de perguntar de novo.
-Caso contrario: nome, papel (designer · dev · full-stack · marketing · PM · outro) e, opcional, pais
-(so importa para `portugal-payments`/`portugal-invoicing` e idioma).
-
-O OS **nao se pergunta** — ja foi detectado na FASE 0. Diz qual e e segue.
+If there is already a profile **and** a calibrated soul, show what is configured and ask one single thing:
+*keep everything* · *change preferences* · *only add tools*. Keep -> jump to PHASE 3.
 
 ---
 
-## FASE 2 — Como queres que o JOCA se comporte
+## PHASE 1 — Who you are (only what is missing)
 
-Tres perguntas. Sao preferencias: nenhuma se deduz do disco. Usa `AskUserQuestion`.
+If `~/CLAUDE.md` already gives the name and role, **confirm in one line** instead of asking again.
+Otherwise: name, role (designer · dev · full-stack · marketing · PM · other) and, optionally, country
+(it only matters for `portugal-payments`/`portugal-invoicing` and language).
 
-**1. Autonomia** — quanto pode agir sem perguntar?
-Maxima (recomendado) `0.95` · Alta `0.80` · Moderada `0.60` · Baixa `0.30` -> `autonomy_level`.
-Em qualquer nivel, accoes **irreversiveis** (deploy, push, migrations, deletes, pagamentos) pedem
-sempre confirmacao — isso nao e calibravel.
-
-**2. Comunicacao** — `lite` (terso, recomendado) · `full` (explica) · `ultra` (fragmentos) -> `communication_mode`.
-
-**3. Testes automaticos** — correr testes sozinho depois de mudar codigo? -> `auto_test`.
-
-Os restantes parametros (`assertiveness`, `error_tolerance`, `explanation_depth`,
-`orchestration_threshold`, `loop_max_iterations`) ficam nos defaults do `soul.md` e ajustam-se depois
-editando o ficheiro. Perguntar oito parametros a alguem que ainda nao usou o sistema nao produz
-melhores respostas — produz respostas inventadas.
-
-### Areas de trabalho — **nao se perguntam**
-
-O JOCA traz **131 skills** que activam por relevancia >= 60% via `SKILL_INDEX.json` + Trigger Map do
-`CLAUDE.md`. Nao ha nada para ligar ou desligar: uma skill de WordPress nunca dispara num projecto
-Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria para **esconder**
-skills que o utilizador viria a precisar.
-
-O que e especifico de um projecto (stack, plataforma, CLIs desse projecto) e decidido pelo
-`/start`, que ve a pasta. Aqui trata-se so da maquina.
+The OS **is not asked about** — it was already detected in PHASE 0. Say which it is and move on.
 
 ---
 
-## FASE 3 — Ferramentas (so as que faltam)
+## PHASE 2 — How you want JOCA to behave
 
-A FASE 0 ja disse o que existe. Apresenta **so o que falta**, agrupado, com uma nota de para que
-serve — e deixa escolher em bloco, nao um a um:
+Three questions. They are preferences: none is deduced from the disk. Use `AskUserQuestion`.
+
+**1. Autonomy** — how much may it act without asking?
+Maximum (recommended) `0.95` · High `0.80` · Moderate `0.60` · Low `0.30` -> `autonomy_level`.
+At any level, **irreversible** actions (deploy, push, migrations, deletes, payments) always ask for
+confirmation — that is not calibratable.
+
+**2. Communication** — `lite` (terse, recommended) · `full` (explains) · `ultra` (fragments) -> `communication_mode`.
+
+**3. Automatic tests** — run tests on its own after changing code? -> `auto_test`.
+
+The remaining parameters (`assertiveness`, `error_tolerance`, `explanation_depth`,
+`orchestration_threshold`, `loop_max_iterations`) stay at the `soul.md` defaults and are adjusted later
+by editing the file. Asking eight parameters of someone who has not used the system yet does not produce
+better answers — it produces invented ones.
+
+### Areas of work — **not asked about**
+
+JOCA ships **131 skills** that activate by relevance >= 60% via `SKILL_INDEX.json` + the Trigger Map in
+`CLAUDE.md`. There is nothing to switch on or off: a WordPress skill never fires in a Laravel
+project, because the trigger does not match. Choosing "areas" at install time would only serve to **hide**
+skills the user would come to need.
+
+What is specific to a project (stack, platform, that project's CLIs) is decided by
+`/start`, which sees the folder. Here it is only about the machine.
+
+---
+
+## PHASE 3 — Tools (only the missing ones)
+
+PHASE 0 already said what exists. Present **only what is missing**, grouped, with a note on what it is
+for — and let them choose in blocks, not one by one:
 
 ```
-Ja tens: gh, ffmpeg, python, graphify
+You already have: gh, ffmpeg, python, graphify
 
-Faltam (escolhe os grupos que queres):
-  [core]      markitdown   -> motor do /know (ingerir PDF/Office/YouTube)
+Missing (choose the groups you want):
+  [core]      markitdown   -> engine of /know (ingest PDF/Office/YouTube)
   [git/cloud] gws, gcloud, aws
-  [ai]        agy (Gemini, multimodal) · codex (review adversarial) · huggingface-cli
-  [media]     yt-dlp, whisperx        -> usados pelo agente `watch`
+  [ai]        agy (Gemini, multimodal) · codex (adversarial review) · huggingface-cli
+  [media]     yt-dlp, whisperx        -> used by the `watch` agent
   [cms]       wp-cli · shopify · wix · ntn (Notion, Node >= 22)
   [dev]       sentry-cli · stripe-cli · cli-printing-press (Go 1.26+)
-  [browser]   Playwright CLI (nunca browser-use, nunca MCP)
+  [browser]   Playwright CLI (never browser-use, never MCP)
 ```
 
-⚠ **`graphify` não entra nesta escolha — é OBRIGATÓRIO, instala-se sempre, sem perguntar.** É a
-memória de código/conhecimento mais barata do JOCA (ver `memory/tools/clis.md`); sem ele, `/save`,
-`/resume`, `/map-joca` e `/clean-install` ficam a reler ficheiros `.md` inteiros em vez de consultar
-o grafo. Instalação na FASE EXECUÇÃO corre incondicionalmente, mesmo que o utilizador não escolha
-nenhum grupo opcional.
+⚠ **`graphify` is not part of this choice — it is MANDATORY, always installed, without asking.** It is
+JOCA's cheapest code/knowledge memory (see `memory/tools/clis.md`); without it, `/save`,
+`/resume`, `/map-joca` and `/clean-install` end up rereading whole `.md` files instead of consulting
+the graph. The installation in the EXECUTION PHASE runs unconditionally, even if the user chooses
+no optional group.
 
-Recomendar `[core]` sempre; o resto so se o papel (FASE 1) o justificar — um designer nao precisa de
-`stripe-cli` por defeito. **Instalar CLIs que nao se usam custa tempo e falha em silencio.**
+Always recommend `[core]`; the rest only if the role (PHASE 1) justifies it — a designer does not need
+`stripe-cli` by default. **Installing CLIs that are not used costs time and fails silently.**
 
-Inventario completo com comandos de instalacao por OS e notas de autenticacao:
-`memory/tools/clis.md`. Os comandos concretos correm na FASE EXECUCAO.
+Complete inventory with installation commands per OS and authentication notes:
+`memory/tools/clis.md`. The concrete commands run in the EXECUTION PHASE.
 
-### Chaves de API
+### API keys
 
-Perguntar **so** pelas que as ferramentas escolhidas exigem — e nunca as escrever em ficheiros
-versionados. Se uma chave nao for dada, a ferramenta fica registada como **PENDENTE** no relatorio,
-com o passo manual. Nunca inventar uma chave nem um endpoint para "destrancar" um passo.
+Ask **only** for the ones the chosen tools require — and never write them into versioned
+files. If a key is not given, the tool is recorded as **PENDING** in the report,
+with the manual step. Never invent a key or an endpoint to "unlock" a step.
 
 ---
 
-## FASE 4 — Proposta e gate unico
+## PHASE 4 — Proposal and single gate
 
 ```
-UTILIZADOR: <nome> — <papel> [· <pais>]
-SISTEMA:    <OS detectado> · Node <versao>
-MODO:       autonomia <x> · comunicacao <y> · auto-test <s/n>
+USER:       <name> — <role> [· <country>]
+SYSTEM:     <detected OS> · Node <version>
+MODE:       autonomy <x> · communication <y> · auto-test <y/n>
 
-JA INSTALADO:  <lista detectada>            <- nao se toca
-VOU INSTALAR:  <lista>                      <- so o que falta e foi escolhido
-CHAVES:        <as que foram dadas> | PENDENTE: <as que faltam>
+ALREADY INSTALLED: <detected list>          <- not touched
+WILL INSTALL:      <list>                   <- only what is missing and was chosen
+KEYS:              <the ones given> | PENDING: <the missing ones>
 
-VOU CRIAR/ACTUALIZAR
-  memory/soul.md                 <- parametros + alinhamento com o utilizador
-  ~/CLAUDE.md                    <- perfil + comandos + tabela de projectos
-  .claude/settings.json          <- paths reais (substitui <JOCA_ROOT>)
-  JOCA_OS                        <- dependencias + build do frontend
-  <launcher>                     <- atalho de arranque
+WILL CREATE/UPDATE
+  memory/soul.md                 <- parameters + alignment with the user
+  ~/CLAUDE.md                    <- profile + commands + project table
+  .claude/settings.json          <- real paths (replaces <JOCA_ROOT>)
+  JOCA_OS                        <- dependencies + frontend build
+  <launcher>                     <- startup shortcut
 ```
 
-`AskUserQuestion`: "Confirmas?" -> *Sim, instalar* · *Deixa-me corrigir*.
+`AskUserQuestion`: "Do you confirm?" -> *Yes, install* · *Let me correct it*.
 
-Este e o **unico** gate do comando. A partir daqui corre tudo seguido, e o que falhar vai para o
-relatorio final como PENDENTE com o comando manual — uma falha de CLI nunca aborta a instalacao.
+This is the **only** gate of the command. From here everything runs straight through, and whatever fails
+goes into the final report as PENDING with the manual command — a CLI failure never aborts the installation.
 
 ---
 
-## FASE EXECUCAO
+## EXECUTION PHASE
 
-### 1. Preencher soul.md
+### 1. Fill in soul.md
 
-Ler `memory/soul.md`, substituir todos os placeholders `<...>` com os valores recolhidos nas FASE 1 (identidade) e FASE 2 (comportamento). Actualizar Calibration Parameters.
+Read `memory/soul.md`, replace every `<...>` placeholder with the values gathered in PHASE 1 (identity) and PHASE 2 (behavior). Update the Calibration Parameters.
 
 ### 2. ~/CLAUDE.md
 
-Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
+Read the current file. Add/update without deleting existing content:
 
 ```markdown
-## Utilizador
-[Nome] — [papel][, localizacao]
+## User
+[Name] — [role][, location]
 
 ## JOCA
-Toolkit instalado em: [caminho_joca]
-Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /start (novo projecto ou ligar existente), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
-Geracao de imagens: [motores seleccionados]
+Toolkit installed at: [joca_path]
+Active skills: 127 (RFC 2119 trigger system — automatic activation by relevance)
+Commands: /install, /start (new project or connect an existing one), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
+Image generation: [selected engines]
 
 ## JOCA_OS
-Interface: / triggers autocomplete de commands, skills e agents (dropdown)
-Arranque: start.bat (Windows) ou bash start.sh (macOS/Linux)
+Interface: / triggers autocomplete of commands, skills and agents (dropdown)
+Startup: start.bat (Windows) or bash start.sh (macOS/Linux)
 
 ## Workspace
 
-## Projectos activos
-| Directorio | Descricao |
+## Active projects
+| Directory | Description |
 |-----------|-----------|
-<!-- Entradas adicionadas por /start e /save -->
+<!-- Entries added by /start and /save -->
 
-@[caminho_joca]/JOCA_Brain/CLAUDE.md
+@[joca_path]/JOCA_Brain/CLAUDE.md
 ```
 
-### 3. Estrutura de memoria
+### 3. Memory structure
 
-Confirmar que existem (criar se nao existirem):
+Confirm that these exist (create them if they do not):
 - `memory/INDEX.md`
-- `memory/projects/` (com `.gitkeep`)
+- `memory/projects/` (with `.gitkeep`)
 - `memory/tools/`
-- `memory/feedback/` (com `.gitkeep`)
+- `memory/feedback/` (with `.gitkeep`)
 
 **Windows (PowerShell):**
 ```powershell
@@ -219,96 +219,96 @@ touch memory/projects/.gitkeep memory/feedback/.gitkeep
 [ -f memory/INDEX.md ] || touch memory/INDEX.md
 ```
 
-### 3b. Graphify (OBRIGATÓRIO — corre sempre, sem perguntar)
+### 3b. Graphify (MANDATORY — always runs, without asking)
 
 ```bash
-uv tool install graphifyy   # pacote real chama-se "graphifyy"; instala o entrypoint "graphify"
-# sem uv: pipx install graphifyy
-bash .claude/scripts/graphify-patch.sh   # reaplica patches (DOC_EXTENSIONS, dotdirs incluídos)
+uv tool install graphifyy   # the real package is called "graphifyy"; it installs the "graphify" entrypoint
+# without uv: pipx install graphifyy
+bash .claude/scripts/graphify-patch.sh   # reapplies the patches (DOC_EXTENSIONS, dotdirs included)
 ```
 
-Verificar: `graphify --help` ou `python3 -c "import graphify"`. Sem isto, `/save`/`/resume`/
-`/map-joca`/`/clean-install` degradam para reler ficheiros `.md` inteiros em vez de consultar o
-grafo — é a optimização de custo mais barata que o JOCA tem, nunca saltar este passo.
+Check: `graphify --help` or `python3 -c "import graphify"`. Without it, `/save`/`/resume`/
+`/map-joca`/`/clean-install` degrade into rereading whole `.md` files instead of consulting the
+graph — it is the cheapest cost optimization JOCA has, never skip this step.
 
-### 4. Browser Automation (se seleccionado)
+### 4. Browser Automation (if selected)
 
-⚠ **`browser-use` está BANIDO — nunca instalar, nunca sugerir.** Política do dono (2026-08-05):
-verificação ad-hoc → extensão **Claude no Chrome**; automação com script → **Playwright CLI**.
-**Nunca instalar o MCP do Playwright** (`@playwright/mcp`) — mesmo que pareça a via mais simples.
+⚠ **`browser-use` is BANNED — never install it, never suggest it.** The owner's policy (2026-08-05):
+ad-hoc verification → the **Claude in Chrome** extension; scripted automation → **Playwright CLI**.
+**Never install the Playwright MCP** (`@playwright/mcp`) — even if it looks like the simplest route.
 
-**Playwright CLI (única via de automação de browser):**
+**Playwright CLI (the only route for browser automation):**
 
 ```bash
 npm install -g @playwright/cli
 ```
 
-Verificar: `playwright-cli --help` (ou `npx playwright --version`). Se não estiver instalado nesta
-máquina, pedir ao dono para o instalar — nunca usar MCP como atalho.
+Check: `playwright-cli --help` (or `npx playwright --version`). If it is not installed on this
+machine, ask the owner to install it — never use an MCP as a shortcut.
 
 **markitdown (Knowledge Base / `/know`):**
 
 ```bash
-python -m pip install markitdown-mcp        # MCP + core (Windows: python, nao python3)
-python -m pip install 'markitdown[all]'     # NAO e opcional — ver aviso abaixo
+python -m pip install markitdown-mcp        # MCP + core (Windows: python, not python3)
+python -m pip install 'markitdown[all]'     # NOT optional — see the warning below
 claude mcp add markitdown --scope user -- python -m markitdown_mcp
 ```
 
-⚠ **Instalar sempre com `[all]`.** O markitdown do brew (e o `pip install markitdown` simples) vem
-sem o extra `[docx]` → converter um `.docx` rebenta com `MissingDependencyException`, sem pista de
-qual e o extra em falta. Se nao der para reinstalar: um `.docx` e um zip — `zipfile` + regex sobre
-`word/document.xml` extrai o texto.
+⚠ **Always install with `[all]`.** The brew markitdown (and the plain `pip install markitdown`) comes
+without the `[docx]` extra → converting a `.docx` blows up with `MissingDependencyException`, with no clue
+which extra is missing. If reinstalling is not an option: a `.docx` is a zip — `zipfile` + a regex over
+`word/document.xml` extracts the text.
 
-Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
+Check: `claude mcp list | grep markitdown` (it should say Connected). See `memory/tools/mcps.md`.
 
-Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
+Google connectors: instruct activation at claude.ai/settings (native OAuth).
 
 ### 5. API Keys
 
-Para cada chave marcada como "introduzir agora":
+For each key marked as "enter now":
 
-**Chaves de agentes** — adicionar ao bloco `env` global de `~/.claude.json`:
+**Agent keys** — add them to the global `env` block of `~/.claude.json`:
 ```json
-{ "env": { "OPENAI_API_KEY": "<valor>", "GEMINI_API_KEY": "<valor>" } }
+{ "env": { "OPENAI_API_KEY": "<value>", "GEMINI_API_KEY": "<value>" } }
 ```
 
-Para chaves PENDENTE — listar com link de obtencao:
+For PENDING keys — list them with the link to obtain them:
 - `OPENAI_API_KEY` -> platform.openai.com/api-keys
 - `GEMINI_API_KEY` -> aistudio.google.com/apikey
 - `SENTRY_AUTH_TOKEN` -> sentry.io/settings/account/api/auth-tokens
 - `STRIPE_API_KEY` -> dashboard.stripe.com/apikeys (test mode)
 
-### 6. CLIs externos
+### 6. External CLIs
 
-**gh CLI** (se seleccionado e instalado):
+**gh CLI** (if selected and installed):
 ```
-Correr: gh auth login
-Segue as instrucoes interactivas para autenticar via browser.
+Run: gh auth login
+Follow the interactive instructions to authenticate via the browser.
 ```
 
-**gws** (se seleccionado):
+**gws** (if selected):
 
 ```bash
 npm install -g @googleworkspace/cli
 ```
 
-Autenticar:
+Authenticate:
 ```bash
-gws auth setup    # cria projecto Cloud + activa APIs + login (requer gcloud)
-gws auth login    # logins subsequentes
+gws auth setup    # creates a Cloud project + enables the APIs + login (requires gcloud)
+gws auth login    # subsequent logins
 ```
 
-Sem gcloud: configurar OAuth client manualmente no Cloud Console, download JSON para `~/.config/gws/client_secret.json`, depois `gws auth login`.
+Without gcloud: configure the OAuth client by hand in the Cloud Console, download the JSON to `~/.config/gws/client_secret.json`, then `gws auth login`.
 
-Gotchas de auth (vividos — conta **pessoal**, não Workspace):
-- `gws auth setup --login` pede **86 scopes** (incl. admin de Workspace, `cloud-identity.devices`) → numa conta pessoal dá `invalid_scope`/Erro 400.
-- `gws auth login --services gmail --readonly` **NÃO** restringe scopes — só `--scopes <lista explícita>` restringe (ex.: `https://www.googleapis.com/auth/gmail.readonly`).
-- Consent screen em "Testing" sem test users → `403 access_denied` (add user em `console.cloud.google.com/auth/audience?project=<id>`).
-- App em "Testing" → Google **expira o refresh token ~7 dias**. Fix: **publicar a app em Production** (conta pessoal não tem via Workspace-Internal).
-- Headless/VPS: creds no keyring + `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`. Capacidades p/ automações (e2e): `gws gmail +triage` (não-lidos), `+read`, `+send`/`+reply`/`+forward` — corre non-interactive via `child_process.exec`.
-- **`+send` anexos têm de estar no cwd** — `--attach <path>` fora da pasta actual → `validationError 400` ("outside the current directory"). Correr o `+send` a partir da pasta dos ficheiros (subshell `( cd <pasta> && gws ... -a <nome-relativo> )`) ou copiar o anexo para cwd primeiro. Body HTML completo passa bem por `--body "$(cat file.html)" --html`.
+Auth gotchas (lived through — **personal** account, not Workspace):
+- `gws auth setup --login` asks for **86 scopes** (incl. Workspace admin, `cloud-identity.devices`) → on a personal account it gives `invalid_scope`/Error 400.
+- `gws auth login --services gmail --readonly` does **NOT** restrict scopes — only `--scopes <explicit list>` restricts (e.g.: `https://www.googleapis.com/auth/gmail.readonly`).
+- Consent screen in "Testing" with no test users → `403 access_denied` (add a user at `console.cloud.google.com/auth/audience?project=<id>`).
+- App in "Testing" → Google **expires the refresh token in ~7 days**. Fix: **publish the app in Production** (a personal account has no Workspace-Internal route).
+- Headless/VPS: creds in the keyring + `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`. Capabilities for automations (e2e): `gws gmail +triage` (unread), `+read`, `+send`/`+reply`/`+forward` — runs non-interactive via `child_process.exec`.
+- **`+send` attachments have to be in the cwd** — `--attach <path>` outside the current folder → `validationError 400` ("outside the current directory"). Run `+send` from the files' folder (subshell `( cd <folder> && gws ... -a <relative-name> )`) or copy the attachment into the cwd first. A complete HTML body passes fine via `--body "$(cat file.html)" --html`.
 
-**sentry-cli** (se seleccionado):
+**sentry-cli** (if selected):
 
 macOS:
 ```bash
@@ -325,9 +325,9 @@ Windows (Scoop):
 scoop install sentry-cli
 ```
 
-Instruir: `sentry-cli login` para autenticar, ou definir `SENTRY_AUTH_TOKEN` em env.
+Instruct: `sentry-cli login` to authenticate, or set `SENTRY_AUTH_TOKEN` in the env.
 
-**ffmpeg** (se seleccionado):
+**ffmpeg** (if selected):
 
 macOS:
 ```bash
@@ -344,51 +344,51 @@ Windows (Scoop):
 scoop install ffmpeg
 ```
 
-Verificar: `ffmpeg -version`
+Check: `ffmpeg -version`
 
-**yt-dlp** (se seleccionado — usado pelo agent `watch`):
+**yt-dlp** (if selected — used by the `watch` agent):
 
 macOS: `brew install yt-dlp`
-Linux: `pip3 install -U yt-dlp` ou `sudo apt install yt-dlp`
-Windows: `scoop install yt-dlp` ou `pip install -U yt-dlp`
+Linux: `pip3 install -U yt-dlp` or `sudo apt install yt-dlp`
+Windows: `scoop install yt-dlp` or `pip install -U yt-dlp`
 
-Verificar: `yt-dlp --version`
+Check: `yt-dlp --version`
 
-**whisperx** (se seleccionado — transcricao local sem API):
+**whisperx** (if selected — local transcription with no API):
 
-Prereq: Python 3.10+ e ffmpeg.
+Prereq: Python 3.10+ and ffmpeg.
 ```bash
 pip install -U whisperx
 ```
-Primeira execucao descarrega modelo (~3GB para `large-v3`).
+The first run downloads the model (~3GB for `large-v3`).
 
-Verificar: `whisperx --help`
+Check: `whisperx --help`
 
-**stripe-cli** (se seleccionado):
+**stripe-cli** (if selected):
 
 macOS: `brew install stripe/stripe-cli/stripe`
-Linux: download de github.com/stripe/stripe-cli/releases
+Linux: download from github.com/stripe/stripe-cli/releases
 Windows: `scoop install stripe`
 
-Instruir: `stripe login` (OAuth interactivo) e usar `stripe listen --forward-to localhost:8000/webhook` para testes locais.
+Instruct: `stripe login` (interactive OAuth) and use `stripe listen --forward-to localhost:8000/webhook` for local tests.
 
-**aws-cli** (se seleccionado):
+**aws-cli** (if selected):
 
 macOS: `brew install awscli`
-Linux: `sudo apt install awscli` ou installer oficial em aws.amazon.com/cli
+Linux: `sudo apt install awscli` or the official installer at aws.amazon.com/cli
 Windows: `winget install Amazon.AWSCLI`
 
-Instruir: `aws configure` (key, secret, region, output).
+Instruct: `aws configure` (key, secret, region, output).
 
-**gcloud** (se seleccionado — prereq para `gws auth setup`):
+**gcloud** (if selected — prereq for `gws auth setup`):
 
 macOS: `brew install --cask google-cloud-sdk`
 Linux: `curl https://sdk.cloud.google.com | bash`
 Windows: `winget install Google.CloudSDK`
 
-Instruir: `gcloud init` para autenticar e seleccionar projecto.
+Instruct: `gcloud init` to authenticate and select a project.
 
-**huggingface-cli** (se seleccionado):
+**huggingface-cli** (if selected):
 
 Windows (PowerShell):
 ```powershell
@@ -400,9 +400,9 @@ macOS / Linux (bash):
 pip3 install -U "huggingface_hub[cli]"
 ```
 
-Instruir: `huggingface-cli login` para autenticar.
+Instruct: `huggingface-cli login` to authenticate.
 
-**Antigravity CLI** (se seleccionado):
+**Antigravity CLI** (if selected):
 
 Windows (PowerShell):
 ```powershell
@@ -414,9 +414,9 @@ macOS / Linux (bash):
 npm install -g @anthropic-ai/antigravity
 ```
 
-Instruir: `agy auth login` ou definir `GEMINI_API_KEY`.
+Instruct: `agy auth login` or set `GEMINI_API_KEY`.
 
-**Codex CLI** (se seleccionado):
+**Codex CLI** (if selected):
 
 Windows (PowerShell):
 ```powershell
@@ -428,91 +428,91 @@ macOS / Linux (bash):
 npm install -g @openai/codex
 ```
 
-Instruir: `codex login` ou definir `OPENAI_API_KEY`.
+Instruct: `codex login` or set `OPENAI_API_KEY`.
 
-**CLI Printing Press** (se seleccionado):
+**CLI Printing Press** (if selected):
 
-Prerequisito — Go 1.26+:
+Prerequisite — Go 1.26+:
 macOS: `brew install go`
-Linux: `sudo apt install golang` ou download de golang.org
-Windows: download de golang.org/dl
+Linux: `sudo apt install golang` or download from golang.org
+Windows: download from golang.org/dl
 
-Garantir `$GOPATH/bin` no PATH:
+Make sure `$GOPATH/bin` is on the PATH:
 ```bash
 echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Instalar:
+Install:
 ```bash
 go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest
 ```
 
-Verificar: `cli-printing-press --version`
+Check: `cli-printing-press --version`
 
-**Zoho Mail CLI** (se seleccionado):
+**Zoho Mail CLI** (if selected):
 
-Prerequisito — Java 11+:
-- macOS: `brew install openjdk@21` (keg-only, adicionar `/opt/homebrew/opt/openjdk@21/bin` ao PATH)
-- Linux: `sudo apt install openjdk-21-jdk` ou equivalente
-- Windows: download de adoptium.net (Eclipse Temurin)
+Prerequisite — Java 11+:
+- macOS: `brew install openjdk@21` (keg-only, add `/opt/homebrew/opt/openjdk@21/bin` to the PATH)
+- Linux: `sudo apt install openjdk-21-jdk` or equivalent
+- Windows: download from adoptium.net (Eclipse Temurin)
 
-Verificar: `java -version` (deve mostrar 11+)
+Check: `java -version` (it should show 11+)
 
-Instalar:
+Install:
 ```bash
 mkdir -p ~/.local/bin/zmail-cli
 curl -L -o ~/.local/bin/zmail-cli/zmail-cli.jar \
   https://www.zohowebstatic.com/mail/3938191/ZMAIL_CLI/zmail-cli.jar
 ```
 
-Criar wrapper `~/.local/bin/zmail`:
+Create the `~/.local/bin/zmail` wrapper:
 ```bash
 #!/usr/bin/env bash
 export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
 exec java -jar "$HOME/.local/bin/zmail-cli/zmail-cli.jar" "$@"
 ```
 
-Tornar executável: `chmod +x ~/.local/bin/zmail`
+Make it executable: `chmod +x ~/.local/bin/zmail`
 
-Verificar: `zmail` (abre prompt interactivo — pede password de encriptação no primeiro arranque para proteger refresh tokens locais).
+Check: `zmail` (opens an interactive prompt — it asks for an encryption password on the first startup to protect local refresh tokens).
 
-Instruir: `zmail:>login` para OAuth via browser. Para data centers regionais usar `login --dc <tld>` (`.com`, `.eu`, `.in`, `.au`, `.jp`, `.ca`, `.sa`).
+Instruct: `zmail:>login` for OAuth via the browser. For regional data centers use `login --dc <tld>` (`.com`, `.eu`, `.in`, `.au`, `.jp`, `.ca`, `.sa`).
 
 Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
-### 7. settings.json do projecto
+### 7. The project's settings.json
 
-**PASSO OBRIGATORIO — sem isto os hooks nao correm.**
+**MANDATORY STEP — without it the hooks do not run.**
 
-O `JOCA_Brain/.claude/settings.json` vem com os **10 hooks** a apontar para o placeholder
-`<JOCA_ROOT>`. Substituir **todas** as ocorrencias pelo caminho absoluto onde o JOCA foi
-clonado (a pasta que contem `JOCA_Brain/`), sem barra final:
+`JOCA_Brain/.claude/settings.json` ships with the **10 hooks** pointing at the placeholder
+`<JOCA_ROOT>`. Replace **every** occurrence with the absolute path where JOCA was
+cloned (the folder that contains `JOCA_Brain/`), with no trailing slash:
 
 ```bash
 # macOS / Linux
-JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # raiz resolvida na FASE 0
+JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # root resolved in PHASE 0
 sed -i '' "s|<JOCA_ROOT>|$JOCA_ROOT|g" JOCA_Brain/.claude/settings.json
 ```
 ```powershell
 # Windows
-$JOCA_ROOT = "C:/Users/<utilizador>/Desktop/JOCA"   # caminho real, com barras /
+$JOCA_ROOT = "C:/Users/<user>/Desktop/JOCA"   # real path, with / slashes
 (Get-Content JOCA_Brain\.claude\settings.json -Raw) -replace '<JOCA_ROOT>', $JOCA_ROOT |
   Set-Content JOCA_Brain\.claude\settings.json -NoNewline
 ```
 
-Verificar (tem de dar **0** e o JSON tem de continuar valido):
+Check (it has to give **0** and the JSON has to stay valid):
 ```bash
 grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json    # 0
 node -e "JSON.parse(require('fs').readFileSync('JOCA_Brain/.claude/settings.json','utf8')); console.log('JSON ok')"
 ```
 
-**Porque absolutos:** no Windows o cwd dos hooks nao e garantidamente a raiz do repo e a
-variavel `$CLAUDE_PROJECT_DIR` pode vir vazia (alem de os hooks poderem correr em `cmd`, que
-nao expande `$VAR`). Paths relativos falham **em silencio** — o hook nao corre e nao ha erro.
-Usar `/` mesmo em Windows.
+**Why absolute:** on Windows the hooks' cwd is not guaranteed to be the repo root and the
+`$CLAUDE_PROJECT_DIR` variable can come back empty (besides which the hooks may run in `cmd`, which
+does not expand `$VAR`). Relative paths fail **silently** — the hook does not run and there is no error.
+Use `/` even on Windows.
 
-⚠ Se mudares a pasta do JOCA de sitio, tens de repetir esta substituicao.
+⚠ If you move the JOCA folder elsewhere, you have to repeat this substitution.
 
 ```json
 {
@@ -565,7 +565,7 @@ Usar `/` mesmo em Windows.
         "hooks": [
           { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-checkpoint.js\"" },
           { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-test-dispatch.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-continuar.js\"" }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-continue.js\"" }
         ]
       }
     ]
@@ -573,102 +573,102 @@ Usar `/` mesmo em Windows.
 }
 ```
 
-Notas:
-- **Ordem no array Stop importa:** `stop-checkpoint.js` → `auto-test-dispatch.js` → `stop-continuar.js`. O checkpoint corre ANTES do dispatch (este limpa a `.joca/test-queue.jsonl`); o `stop-continuar.js` corre **por último**, porque é o único que pode bloquear o fim do turno — e bloqueia **uma vez** por turno (guarda `stop_hook_active`; ver `rules/chaining.md`).
-- Runtime `node` para todos os hooks excepto `check-skill-paths.sh` (bash, vive em `.claude/scripts/`).
-- Hooks flag-file (`check-freeze`, `check-careful`, `check-tdd`) são no-op sem a flag `.joca/*.flag` — armados pelas skills `freeze`/`careful`/`tdd`, desarmados por `unfreeze`.
+Notes:
+- **The order in the Stop array matters:** `stop-checkpoint.js` → `auto-test-dispatch.js` → `stop-continue.js`. The checkpoint runs BEFORE the dispatch (which clears `.joca/test-queue.jsonl`); `stop-continue.js` runs **last**, because it is the only one that can block the end of the turn — and it blocks **once** per turn (the `stop_hook_active` guard; see `rules/chaining.md`).
+- Runtime `node` for every hook except `check-skill-paths.sh` (bash, lives in `.claude/scripts/`).
+- Flag-file hooks (`check-freeze`, `check-careful`, `check-tdd`) are a no-op without the `.joca/*.flag` flag — armed by the `freeze`/`careful`/`tdd` skills, disarmed by `unfreeze`.
 
-### 8. JOCA_OS (instala por defeito)
+### 8. JOCA_OS (installed by default)
 
-O JOCA_OS corre em **porta 7491** (backend) e **porta 7492** (frontend). A interface detecta automaticamente o JOCA_Brain como directorio irmao — zero configuracao.
+JOCA_OS runs on **port 7491** (backend) and **port 7492** (frontend). The interface automatically detects JOCA_Brain as a sibling directory — zero configuration.
 
-> **macOS e a plataforma de referencia** — o JOCA_OS foi desenvolvido e validado em macOS. Se o OS detectado na FASE 0 for **Windows** (`process.platform === 'win32'`), ler e activar a skill `.claude/skills/joca-os-windows.md` ANTES de correr `npm install`/`npm run build`: ela conduz build do node-pty (requer VS Build Tools + Python), PTY PowerShell, paths, statusline/Keychain e launchers, testando e corrigindo numa so passagem. Notificar: `[skill: joca-os-windows]`.
+> **macOS is the reference platform** — JOCA_OS was developed and validated on macOS. If the OS detected in PHASE 0 is **Windows** (`process.platform === 'win32'`), read and activate the `.claude/skills/joca-os-windows.md` skill BEFORE running `npm install`/`npm run build`: it drives the node-pty build (requires VS Build Tools + Python), the PowerShell PTY, paths, statusline/Keychain and launchers, testing and fixing in a single pass. Notify: `[skill: joca-os-windows]`.
 
 **Windows (PowerShell):**
 
-Usa a abordagem de temp batch launcher para evitar problemas de quoting em nested processes:
+Use the temp batch launcher approach to avoid quoting problems in nested processes:
 
 ```powershell
-Set-Location "<caminho_joca>\..\JOCA_OS\backend"
+Set-Location "<joca_path>\..\JOCA_OS\backend"
 npm install
 npm run build
-Set-Location "<caminho_joca>\..\JOCA_OS\frontend"
+Set-Location "<joca_path>\..\JOCA_OS\frontend"
 npm install
 ```
 
-Verificar: `node <caminho_joca>\..\JOCA_OS\backend\dist\server.js` inicia sem erros.
+Check: `node <joca_path>\..\JOCA_OS\backend\dist\server.js` starts without errors.
 
-Arranque Windows: `start.bat` — cria batch launchers temporarios em `%TEMP%\joca-ui\` para backend e frontend, evitando problemas de quoting com caminhos que contem espacos.
+Windows startup: `start.bat` — creates temporary batch launchers in `%TEMP%\joca-ui\` for backend and frontend, avoiding quoting problems with paths that contain spaces.
 
 **macOS / Linux (bash):**
 
 ```bash
-cd "<caminho_joca>/../JOCA_OS"
+cd "<joca_path>/../JOCA_OS"
 cd backend && npm install && npm run build && cd ..
 cd frontend && npm install && cd ..
 chmod +x start.sh stop.sh 2>/dev/null
 ```
 
-Verificar: `node <caminho_joca>/../JOCA_OS/backend/dist/server.js` inicia sem erros.
+Check: `node <joca_path>/../JOCA_OS/backend/dist/server.js` starts without errors.
 
-Arranque macOS/Linux: `bash start.sh` — usa `nohup` + `disown` para manter os processos em background.
+macOS/Linux startup: `bash start.sh` — uses `nohup` + `disown` to keep the processes in the background.
 
 **JOCA_OS Slash Command Autocomplete:**
-O JOCA_OS suporta autocomplete de comandos, skills e agents — ao digitar `/` no terminal emulado, aparece um dropdown com todos os comandos disponiveis. Mencionar isto ao utilizador.
+JOCA_OS supports autocomplete of commands, skills and agents — typing `/` in the emulated terminal brings up a dropdown with every available command. Mention this to the user.
 
 ### 9. Launcher
 
 `AskUserQuestion`:
 ```
-question: "Criar atalho para abrir o JOCA UI com um clique?"
+question: "Create a shortcut to open the JOCA UI with one click?"
 header: "Launcher"
 options:
   - "Desktop"
-  - "Pasta do JOCA"
-  - "Outro caminho"
-  - "Nao criar"
+  - "JOCA folder"
+  - "Another path"
+  - "Do not create"
 ```
 
-Se "Outro caminho": pedir caminho em texto livre.
+If "Another path": ask for the path in free text.
 
-Se seleccionado:
+If selected:
 
 **macOS:**
 ```bash
-cp "<caminho_joca>/../JOCA_OS/JOCA UI.command" "<destino>/JOCA UI.command"
-chmod +x "<destino>/JOCA UI.command"
+cp "<joca_path>/../JOCA_OS/JOCA UI.command" "<destination>/JOCA UI.command"
+chmod +x "<destination>/JOCA UI.command"
 ```
 
 **Windows:**
 ```powershell
-Copy-Item "<caminho_joca>\..\JOCA_OS\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
+Copy-Item "<joca_path>\..\JOCA_OS\JOCA UI.vbs" "<destination>\JOCA UI.vbs"
 ```
 
-### 10. Skills novas (se confirmado)
+### 10. New skills (if confirmed)
 
-Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamente aprovada. Nao ha deteccao de gaps na instalacao: um gap real aparece a trabalhar num projecto (e o `/start` ou o `/upgrade-joca` levantam-no), nao a responder a um formulario.
+Run `/create-skill [name]` for each new skill that has been explicitly approved. There is no gap detection at install time: a real gap shows up while working on a project (and `/start` or `/upgrade-joca` raise it), not while answering a form.
 
-### 11. Relatorio final
+### 11. Final report
 
 ```
-OK Soul calibrado — [autonomia], [comunicacao], [erros]
-OK ~/CLAUDE.md actualizado
-OK Memoria: estrutura verificada
-OK Skills: 127 configuradas (RFC 2119 trigger system)
-OK Integracoes: [Browser: playwright-cli/nenhum] · [Graphify: instalado] · [CLIs: lista]
-OK JOCA_OS: instalado (backend :7491, frontend :7492)[ · Windows: skill joca-os-windows aplicada]
-OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
-[estado] Deps: node / npm / git / gh / jq / bun / docker
+OK Soul calibrated — [autonomy], [communication], [errors]
+OK ~/CLAUDE.md updated
+OK Memory: structure verified
+OK Skills: 127 configured (RFC 2119 trigger system)
+OK Integrations: [Browser: playwright-cli/none] · [Graphify: installed] · [CLIs: list]
+OK JOCA_OS: installed (backend :7491, frontend :7492)[ · Windows: joca-os-windows skill applied]
+OK StatusLine: installed (rate limits -> %TEMP%/joca-ui/rate-limits.json)
+[state] Deps: node / npm / git / gh / jq / bun / docker
 
 API KEYS
-  OK [chave] — configurada
-  PENDENTE [chave] — PENDENTE -> [URL]
+  OK [key] — configured
+  PENDING [key] — PENDING -> [URL]
 
-JOCA pronto.
--> Iniciar interface: JOCA_OS\start.bat (Windows) ou bash JOCA_OS/start.sh (macOS/Linux)
--> Autocomplete: digita / no terminal para ver commands, skills e agents
--> Para comecar/ligar um projecto: navega para a pasta e corre /start
--> Inicio de sessao: /resume
--> Referencia rapida: /help-joca
+JOCA ready.
+-> Start the interface: JOCA_OS\start.bat (Windows) or bash JOCA_OS/start.sh (macOS/Linux)
+-> Autocomplete: type / in the terminal to see commands, skills and agents
+-> To start/connect a project: navigate to the folder and run /start
+-> Start of session: /resume
+-> Quick reference: /help-joca
 -> Repo: https://github.com/MirrasPT/JOCA.git
 ```

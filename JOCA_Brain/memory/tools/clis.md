@@ -1,70 +1,70 @@
-# CLIs externos — inventário de instalação
+# External CLIs — installation inventory
 
-Registo dos CLIs que o JOCA sabe usar. O `/install` percorre esta lista e instala os que
-escolheres — nenhum é obrigatório: cada um só é preciso quando a skill/agente que o usa entra
-em jogo. **Auth é sempre interactiva (login do próprio utilizador) — chaves e tokens nunca vêm
-no repositório nem devem ser inventados.**
+Record of the CLIs JOCA knows how to use. `/install` walks this list and installs the ones you
+choose — none is mandatory: each one is only needed when the skill/agent that uses it comes
+into play. **Auth is always interactive (the user's own login) — keys and tokens never come
+in the repository, nor should they be invented.**
 
-## Núcleo (recomendados)
+## Core (recommended)
 
-| CLI | Função | Instalação (macOS) | Instalação (Windows) | Auth |
+| CLI | Function | Installation (macOS) | Installation (Windows) | Auth |
 |---|---|---|---|---|
 | `gh` | GitHub (repos/PRs, `/ship`, `pr-repair`) | `brew install gh` | `winget install GitHub.cli` | `gh auth login` |
-| `ffmpeg` | vídeo/áudio (skills `video`, `remotion`; agente `watch`). Traz o `ffprobe`, usado para inspeccionar streams | `brew install ffmpeg` | `winget install Gyan.FFmpeg` | — |
-| `yt-dlp` | download de vídeo (agente watch, last30days) | `brew install yt-dlp` | `pip install yt-dlp` | — |
-| `markitdown` | ficheiro/URL → Markdown (motor do `/know`) | `brew install markitdown` | `pip install "markitdown[all]"` | — |
-| `codex` | OpenAI Codex — review adversarial (`codex-review`), img-gen (`img-gen-openai`) | `npm i -g @openai/codex` | idem | ChatGPT Plus ou `OPENAI_API_KEY` |
-| `agy` | Antigravity — Gemini multimodal, img/video gen (`img-gen-google`, `gemini-brain`) | instalador próprio (Antigravity CLI) | idem | própria (login) |
-| `gemini` | Gemini CLI | `npm i -g @google/gemini-cli` | idem | própria (login) |
+| `ffmpeg` | video/audio (skills `video`, `remotion`; agent `watch`). Brings `ffprobe`, used to inspect streams | `brew install ffmpeg` | `winget install Gyan.FFmpeg` | — |
+| `yt-dlp` | video download (agent watch, last30days) | `brew install yt-dlp` | `pip install yt-dlp` | — |
+| `markitdown` | file/URL → Markdown (engine of `/know`) | `brew install markitdown` | `pip install "markitdown[all]"` | — |
+| `codex` | OpenAI Codex — adversarial review (`codex-review`), img-gen (`img-gen-openai`) | `npm i -g @openai/codex` | same | ChatGPT Plus or `OPENAI_API_KEY` |
+| `agy` | Antigravity — multimodal Gemini, img/video gen (`img-gen-google`, `gemini-brain`) | its own installer (Antigravity CLI) | same | its own (login) |
+| `gemini` | Gemini CLI | `npm i -g @google/gemini-cli` | same | its own (login) |
 
-## Browser / automação
+## Browser / automation
 
-| CLI | Função | Instalação | Auth |
+| CLI | Function | Installation | Auth |
 |---|---|---|---|
-| `browser-use` | automação de browser (skill `browser-automate`, default) | `uv tool install browser-use` | key do modelo escolhido |
-| `playwright-cli` | controlo de browser (fallback; MCP `@playwright/mcp` é o caminho principal — ver `tools/mcps.md`) | `npm i -g playwright-cli` | — |
+| `browser-use` | browser automation (skill `browser-automate`, default) | `uv tool install browser-use` | key of the chosen model |
+| `playwright-cli` | browser control (fallback; the `@playwright/mcp` MCP is the main path — see `tools/mcps.md`) | `npm i -g playwright-cli` | — |
 
 ## Google / cloud
 
-| CLI | Função | Instalação (macOS) | Instalação (Windows) | Auth |
+| CLI | Function | Installation (macOS) | Installation (Windows) | Auth |
 |---|---|---|---|---|
-| `gcloud` | Google Cloud SDK (prereq do gws) | `brew install --cask google-cloud-sdk` | instalador oficial Google | `gcloud auth login` |
-| `gws` | Google Workspace (Gmail/Calendar/Drive/Sheets — agente `personal-comms`, automações) | `npm i -g @googleworkspace/cli` | idem | `gws auth setup --login` (requer gcloud; `--scopes` explícito; publicar a app OAuth senão o token expira ~7 dias) |
+| `gcloud` | Google Cloud SDK (prereq of gws) | `brew install --cask google-cloud-sdk` | official Google installer | `gcloud auth login` |
+| `gws` | Google Workspace (Gmail/Calendar/Drive/Sheets — agent `personal-comms`, automations) | `npm i -g @googleworkspace/cli` | same | `gws auth setup --login` (requires gcloud; explicit `--scopes`; publish the OAuth app or the token expires in ~7 days) |
 | `aws` | S3/R2 (skill `file-storage`) | `brew install awscli` | `winget install Amazon.AWSCLI` | `aws configure` |
 
-## Plataformas / e-commerce
+## Platforms / e-commerce
 
-| CLI | Função | Instalação (macOS) | Instalação (Windows) | Auth |
+| CLI | Function | Installation (macOS) | Installation (Windows) | Auth |
 |---|---|---|---|---|
-| `wp` (wp-cli) | WordPress/WooCommerce (skills `wordpress-router`, `wp-*`, `woocommerce-elementor`) | `brew install wp-cli` | phar oficial + wrapper `.bat` | — (por site) |
-| `shopify` | Shopify (skills `shopify-app`, `shopify-theme`, `shopify-router`) | `npm i -g @shopify/cli` | idem | `shopify auth` |
-| `wix` | Wix/Velo (skill wix-cli) | `npm i -g @wix/cli` | idem | login browser |
-| `stripe` | webhooks/testes de pagamento (agente payment-integration) | `brew install stripe/stripe-cli/stripe` | `scoop install stripe` | `stripe login` |
+| `wp` (wp-cli) | WordPress/WooCommerce (skills `wordpress-router`, `wp-*`, `woocommerce-elementor`) | `brew install wp-cli` | official phar + `.bat` wrapper | — (per site) |
+| `shopify` | Shopify (skills `shopify-app`, `shopify-theme`, `shopify-router`) | `npm i -g @shopify/cli` | same | `shopify auth` |
+| `wix` | Wix/Velo (skill wix-cli) | `npm i -g @wix/cli` | same | browser login |
+| `stripe` | webhooks/payment tests (agent payment-integration) | `brew install stripe/stripe-cli/stripe` | `scoop install stripe` | `stripe login` |
 | `ntn` | Notion (skill notion) — Node ≥ 22 | `npm i -g ntn` | `winget install Notion.ntn` | `ntn login` |
 
-## Dev / dados
+## Dev / data
 
-| CLI | Função | Instalação | Auth |
+| CLI | Function | Installation | Auth |
 |---|---|---|---|
-| `hf` (huggingface_hub) | modelos/datasets HF | `uv tool install huggingface_hub` | `hf auth login` |
+| `hf` (huggingface_hub) | HF models/datasets | `uv tool install huggingface_hub` | `hf auth login` |
 | `sentry-cli` | error tracking (skills `error-tracking-dev`/`error-tracking-prod`) | `npm i -g @sentry/cli` | `SENTRY_AUTH_TOKEN` |
-| `cli-printing-press` | gerar CLIs/MCP a partir de APIs | `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest` (Go 1.26+; PATH += `~/go/bin`) | — |
-| `graphify` | **OBRIGATÓRIO.** Mapa de código/conhecimento (`/map-joca`, `/resume`, `/save`, `/clean-install`) — memória de projecto mais barata de consultar do que abrir ficheiros `.md` gigantes à procura. | `uv tool install graphifyy` (pacote real chama-se `graphifyy`, entrypoint instala como `graphify`; sem `uv`: `pipx install graphifyy`). Depois de instalar/actualizar, correr sempre `bash .claude/scripts/graphify-patch.sh` (reaplica patches: DOC_EXTENSIONS expandido, inclui dotdirs como `.claude/`). | — |
-| `zmail` | Zoho Mail (jar Java + wrapper `zmail`; requer Java 11+) | jar oficial Zoho + wrapper em `~/.local/bin/zmail` | `zmail` → `login [--dc <tld>]` (interactivo) |
+| `cli-printing-press` | generate CLIs/MCP from APIs | `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest` (Go 1.26+; PATH += `~/go/bin`) | — |
+| `graphify` | **MANDATORY.** Code/knowledge map (`/map-joca`, `/resume`, `/save`, `/clean-install`) — project memory that is cheaper to consult than opening giant `.md` files hunting for something. | `uv tool install graphifyy` (the real package is called `graphifyy`, the entrypoint installs as `graphify`; without `uv`: `pipx install graphifyy`). After installing/updating, always run `bash .claude/scripts/graphify-patch.sh` (it reapplies the patches: expanded DOC_EXTENSIONS, includes dotdirs such as `.claude/`). | — |
+| `zmail` | Zoho Mail (Java jar + `zmail` wrapper; requires Java 11+) | official Zoho jar + wrapper in `~/.local/bin/zmail` | `zmail` → `login [--dc <tld>]` (interactive) |
 | `supabase` | Supabase | `brew install supabase/tap/supabase` / `scoop install supabase` | `supabase login` |
-| `railway` | deploy Railway | `npm i -g @railway/cli` | `railway login` |
-| `deno` / `bun` | runtimes JS alternativos | `brew install deno` / bun.sh | — |
-| `whisperx` | STT local + forced alignment (skill `lyric-align`) — pesado (torch), venv dedicado | `uv venv` + `pip install whisperx` | — |
-| `poppler` (`pdftoppm`, `pdfinfo`) | verificar PDFs gerados (skill `html-to-pdf`): contagem de páginas e render para re-leitura visual | `brew install poppler` / `winget install oschwartz10612.Poppler` | — |
-| `pdftk` | alternativa ao `pdfinfo` para contar páginas (`dump_data`) — opcional | `brew install pdftk-java` | — |
+| `railway` | Railway deploy | `npm i -g @railway/cli` | `railway login` |
+| `deno` / `bun` | alternative JS runtimes | `brew install deno` / bun.sh | — |
+| `whisperx` | local STT + forced alignment (skill `lyric-align`) — heavy (torch), dedicated venv | `uv venv` + `pip install whisperx` | — |
+| `poppler` (`pdftoppm`, `pdfinfo`) | check generated PDFs (skill `html-to-pdf`): page count and render for visual re-reading | `brew install poppler` / `winget install oschwartz10612.Poppler` | — |
+| `pdftk` | alternative to `pdfinfo` for counting pages (`dump_data`) — optional | `brew install pdftk-java` | — |
 
 ## MCP servers
-Ver `tools/mcps.md` — `markitdown` (`uvx markitdown-mcp` no Mac / `python -m markitdown_mcp` no Windows) e `playwright` (`npx -y @playwright/mcp@latest`).
+See `tools/mcps.md` — `markitdown` (`uvx markitdown-mcp` on the Mac / `python -m markitdown_mcp` on Windows) and `playwright` (`npx -y @playwright/mcp@latest`).
 
-## Plugins Claude Code (`claude plugin install`)
-- `last30days@last30days-skill` — `claude plugin marketplace add mvanhorn/last30days-skill` + install. Sinal social dos últimos 30 dias (Reddit/X/YouTube/TikTok/HN/Polymarket/GitHub). Config em `~/.config/last30days/` (keys ScrapeCreators/X opcionais).
-- `cloudflare@cloudflare` — purga de cache/DNS (skill deploy-vps) via API; token do utilizador em `~/.cloudflare/` (fora do git).
-- `comfy` / `civitai` — geração de media local; requer ComfyUI instalado.
+## Claude Code plugins (`claude plugin install`)
+- `last30days@last30days-skill` — `claude plugin marketplace add mvanhorn/last30days-skill` + install. Social signal from the last 30 days (Reddit/X/YouTube/TikTok/HN/Polymarket/GitHub). Config in `~/.config/last30days/` (ScrapeCreators/X keys optional).
+- `cloudflare@cloudflare` — cache/DNS purge (skill deploy-vps) via API; the user's token in `~/.cloudflare/` (outside git).
+- `comfy` / `civitai` — local media generation; requires ComfyUI installed.
 
 ## PATH
-Garantir no shell profile: `~/go/bin` (cli-printing-press), `~/.local/bin` (uv tools, zmail), globals do npm, e o bin do Java se o `zmail` for usado. No Windows, `winget`/`npm`/`pip` tratam do PATH sozinhos na maioria dos casos.
+Make sure the shell profile has: `~/go/bin` (cli-printing-press), `~/.local/bin` (uv tools, zmail), the npm globals, and the Java bin if `zmail` is used. On Windows, `winget`/`npm`/`pip` handle the PATH on their own in most cases.

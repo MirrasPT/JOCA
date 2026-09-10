@@ -1,15 +1,15 @@
 ---
 name: component-system
-description: "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec. SHOULD also invoke when: input spec, card spec, UI components, UI kit, component library, component documentation."
-triggers: component system, sistema de componentes, component inventory, inventario de componentes, component spec, component states, estados de componentes, button spec, input spec, card spec, UI components, UI kit, component library, component documentation, anatomia do componente, component anatomy
+description: "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, component inventory, component spec, component states, button spec. SHOULD also invoke when: input spec, card spec, UI components, UI kit, component library, component documentation."
+triggers: component system, component inventory, component spec, component states, button spec, input spec, card spec, UI components, UI kit, component library, component documentation, component anatomy
 chain: frontend
 ---
 
 # Component System
 
-Inventario e spec de componentes. Contrato fechado que o Frontend consome.
+Component inventory and spec. A closed contract that the Frontend consumes.
 
-**Activar** apos `design-tokens` gerar tokens/, antes de implementacao UI.
+**Activate** after `design-tokens` generates tokens/, before UI implementation.
 
 ---
 
@@ -34,30 +34,30 @@ system/
     ├── dropdown.md
     ├── tabs.md
     ├── table.md
-    └── ...                         ← adicionar conforme necessario
+    └── ...                         ← add as needed
 ```
 
 ---
 
 ## component-inventory.md
 
-Master list. Lido pelo frontend no inicio de CADA sessao.
+Master list. Read by the frontend at the start of EVERY session.
 
 ```markdown
 # Component Inventory
 
 **Tokens:** tokens/tokens.css
-**Ultima actualizacao:** [data]
+**Last updated:** [date]
 
-## Regra de sessao
+## Session rule
 
-> Antes de escrever UI, ler este ficheiro + tokens/tokens.css.
-> Usar APENAS componentes e tokens listados aqui.
-> Nunca inventar variantes, estados ou tokens fora deste inventario.
+> Before writing UI, read this file + tokens/tokens.css.
+> Use ONLY the components and tokens listed here.
+> Never invent variants, states or tokens outside this inventory.
 
-## Componentes
+## Components
 
-| Componente | Variants | Sizes | Ficheiro |
+| Component | Variants | Sizes | File |
 |-----------|----------|-------|----------|
 | Button | primary, secondary, ghost, destructive, link | sm, md, lg | [button.md](components/button.md) |
 | Input | default, error | md | [input.md](components/input.md) |
@@ -77,16 +77,16 @@ Master list. Lido pelo frontend no inicio de CADA sessao.
 
 ## Global State Contract
 
-States aplicados uniformemente a TODOS os componentes interactivos:
+States applied uniformly to ALL interactive components:
 
-| Estado | Visual | Token delta | CSS |
+| State | Visual | Token delta | CSS |
 |--------|--------|------------|-----|
-| **default** | Estado base | — | — |
-| **hover** | Lightness +5% no bg | `*-hover` tokens | `:hover` |
-| **focus-visible** | Ring 2px, offset 2px, cor `--color-focus-ring` | `--focus-ring-*` | `:focus-visible` |
-| **active** | Lightness -5% no bg, scale 0.98 | — | `:active` |
+| **default** | Base state | — | — |
+| **hover** | Lightness +5% on the bg | `*-hover` tokens | `:hover` |
+| **focus-visible** | Ring 2px, offset 2px, color `--color-focus-ring` | `--focus-ring-*` | `:focus-visible` |
+| **active** | Lightness -5% on the bg, scale 0.98 | — | `:active` |
 | **disabled** | Opacity 0.4, cursor not-allowed | `--*-disabled-opacity` | `[aria-disabled="true"]` |
-| **loading** | Spinner overlay, texto hidden, pointer-events none | — | `[data-loading]` |
+| **loading** | Spinner overlay, text hidden, pointer-events none | — | `[data-loading]` |
 
 ### Focus visible (non-negotiable)
 
@@ -97,33 +97,33 @@ States aplicados uniformemente a TODOS os componentes interactivos:
 }
 ```
 
-NUNCA usar `outline: none` sem alternativa visivel. NUNCA usar `:focus` sem `:focus-visible`.
+NEVER use `outline: none` without a visible alternative. NEVER use `:focus` without `:focus-visible`.
 
 ### Touch targets
 
-Minimo 44x44px para elementos interactivos (WCAG 2.5.8). Se o componente visual e menor (ex: checkbox 20px), expandir hit area com padding ou pseudo-element.
+Minimum 44x44px for interactive elements (WCAG 2.5.8). If the visual component is smaller (e.g. a 20px checkbox), expand the hit area with padding or a pseudo-element.
 ```
 
 ---
 
-## Template por componente
+## Template per component
 
-Cada `system/components/<name>.md` segue esta estrutura:
+Each `system/components/<name>.md` follows this structure:
 
 ```markdown
 # [Component Name]
 
 ## Anatomy
 
-[Partes do componente — ex: container, label, icon-left, icon-right, spinner]
+[Component parts — e.g. container, label, icon-left, icon-right, spinner]
 
 ## Variants
 
-| Variant | Uso | Tokens |
+| Variant | Use | Tokens |
 |---------|-----|--------|
-| primary | CTA principal, accao destrutiva confirmada | bg: `--button-bg-primary`, fg: `--button-fg-primary` |
-| secondary | Accao secundaria, cancel | bg: `--button-bg-secondary`, fg: `--button-fg-secondary` |
-| ghost | Accao terciaria, inline | bg: transparent, fg: `--color-text` |
+| primary | Main CTA, confirmed destructive action | bg: `--button-bg-primary`, fg: `--button-fg-primary` |
+| secondary | Secondary action, cancel | bg: `--button-bg-secondary`, fg: `--button-fg-secondary` |
+| ghost | Tertiary action, inline | bg: transparent, fg: `--color-text` |
 
 ## Sizes
 
@@ -135,7 +135,7 @@ Cada `system/components/<name>.md` segue esta estrutura:
 
 ## States
 
-| Estado | bg | fg | border | transform | extras |
+| State | bg | fg | border | transform | extras |
 |--------|----|----|--------|-----------|--------|
 | default | `--button-bg-primary` | `--button-fg-primary` | none | — | — |
 | hover | `--button-bg-primary-hover` | `--button-fg-primary` | none | — | cursor pointer |
@@ -146,85 +146,85 @@ Cada `system/components/<name>.md` segue esta estrutura:
 
 ## Responsive
 
-| Breakpoint | Comportamento |
+| Breakpoint | Behavior |
 |-----------|--------------|
-| < sm | Full width (block), height lg para touch |
+| < sm | Full width (block), height lg for touch |
 | >= sm | Inline, width auto |
 
 ## Accessibility
 
-- **Role:** `button` (ou `<button>` nativo)
-- **Disabled:** usar `aria-disabled="true"` (nao `disabled` attr — permite focus para screen readers)
-- **Loading:** `aria-busy="true"`, texto do spinner como `aria-label`
-- **Icon-only:** obrigatorio `aria-label` descritivo
-- **Keyboard:** Enter/Space activa
+- **Role:** `button` (or a native `<button>`)
+- **Disabled:** use `aria-disabled="true"` (not the `disabled` attr — it keeps focus for screen readers)
+- **Loading:** `aria-busy="true"`, spinner text as `aria-label`
+- **Icon-only:** a descriptive `aria-label` is mandatory
+- **Keyboard:** Enter/Space activates
 
 ## Do / Don't
 
 | Do | Don't |
 |----|-------|
-| Usar primary para 1 CTA por vista | 2+ primary buttons na mesma vista |
-| Label com verbo de accao ("Guardar", "Enviar") | Labels vagas ("Ok", "Submeter") |
-| Ghost para accoes terciarias | Ghost para accoes destrutivas |
-| Disabled com tooltip explicativo | Disabled sem explicacao |
+| Use primary for 1 CTA per view | 2+ primary buttons in the same view |
+| Label with an action verb ("Save", "Send") | Vague labels ("Ok", "Submit") |
+| Ghost for tertiary actions | Ghost for destructive actions |
+| Disabled with an explanatory tooltip | Disabled with no explanation |
 ```
 
 ---
 
-## Geracao
+## Generation
 
 ### Input
 
-1. **tokens/tokens.css** — obrigatorio (token refs para states)
-2. **DESIGN.md** — tipografia, espacamento
-3. **PRD.md** — se existir, extrair features para mapear componentes
-4. **Codebase existente** — se ja tem componentes, documentar os existentes
+1. **tokens/tokens.css** — mandatory (token refs for states)
+2. **DESIGN.md** — typography, spacing
+3. **PRD.md** — if it exists, extract features to map components
+4. **Existing codebase** — if it already has components, document the existing ones
 
-### Processo
+### Process
 
-1. Ler tokens/tokens.css
-2. Identificar componentes necessarios:
-   - PRD existe: mapear features a componentes
-   - Sem PRD: gerar set base (button, input, card, badge, avatar, modal, toast)
-3. Gerar component-inventory.md
-4. Gerar spec por componente (prioridade: mais usados primeiro)
-5. Apresentar para review
-6. Iterar ate aprovacao
+1. Read tokens/tokens.css
+2. Identify the components needed:
+   - PRD exists: map features to components
+   - No PRD: generate the base set (button, input, card, badge, avatar, modal, toast)
+3. Generate component-inventory.md
+4. Generate a spec per component (priority: most used first)
+5. Present for review
+6. Iterate until approval
 
-### Perguntas minimas
+### Minimum questions
 
-- "Componentes alem do set base? (tabela, dropdown, tabs, sidebar, etc.)"
-- "Framework CSS? (Tailwind, vanilla CSS, CSS Modules) — afecta formato dos tokens no spec"
+- "Components beyond the base set? (table, dropdown, tabs, sidebar, etc.)"
+- "CSS framework? (Tailwind, vanilla CSS, CSS Modules) — it affects the token format in the spec"
 
 ---
 
-## Protocolo sessao-start (CRITICO)
+## Session-start protocol (CRITICAL)
 
-Quando a skill `frontend` e activada, DEVE:
+When the `frontend` skill is activated, it MUST:
 
 1. `Read("system/component-inventory.md")`
 2. `Read("tokens/tokens.css")`
-3. Para cada componente a implementar: `Read("system/components/<name>.md")`
+3. For each component to implement: `Read("system/components/<name>.md")`
 
-Fecha o token set — o frontend nao pode inventar variantes, estados ou tokens fora do inventario.
+It closes the token set — the frontend cannot invent variants, states or tokens outside the inventory.
 
 ---
 
-## Actualizacao
+## Updating
 
-Actualizar quando:
-- Componente novo necessario (adicionar spec + entry no inventory)
-- Token mudou (verificar que component refs resolvem)
-- Feedback do `design-system-audit` — states em falta, ARIA incorrectos
-- Feature nova no PRD requer variante nova
+Update when:
+- A new component is needed (add a spec + an entry in the inventory)
+- A token changed (check that the component refs resolve)
+- Feedback from `design-system-audit` — missing states, incorrect ARIA
+- A new feature in the PRD requires a new variant
 
 ---
 
 ## Workflow
 
-Pipeline na sequencia JOCA:
+Pipeline in the JOCA sequence:
 
--> **antes**: `design-tokens` (tokens como input)
--> **apos**: `design-system-audit` (valida sistema completo) -> `frontend` (consome como contrato)
+-> **before**: `design-tokens` (tokens as input)
+-> **after**: `design-system-audit` (validates the complete system) -> `frontend` (consumes it as a contract)
 
-Notificar ao concluir: `-> proximo: design-system-audit`
+Notify on completion: `-> next: design-system-audit`

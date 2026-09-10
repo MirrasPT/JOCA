@@ -1,40 +1,40 @@
 # Delta — Flutter
 
-Versao estavel verificada Agosto 2026: **3.47.0**.
+Stable version verified August 2026: **3.47.0**.
 
-Flutter e sempre **frontend movel**; o backend e Laravel API (ou nenhum, se for app local).
-Aplica-se aos passos 2.1–2.4 e 2.8–2.9. O resto e igual.
+Flutter is always **mobile frontend**; the backend is a Laravel API (or none, if it is a local app).
+It applies to steps 2.1–2.4 and 2.8–2.9. The rest is the same.
 
 ## 2.1 — Scaffold
 
 ```bash
-flutter create --org <com.dominio.inverso> --platforms=android,ios app
+flutter create --org <com.reverse.domain> --platforms=android,ios app
 cd app && flutter pub get
 ```
 
-O `--org` define o package id (`com.dominio.app`) e **e dificil de mudar depois** — perguntar antes,
-nao assumir.
+`--org` sets the package id (`com.domain.app`) and **is hard to change later** — ask first,
+do not assume.
 
-## 2.3 — Testes
+## 2.3 — Tests
 
-`flutter_test` ja vem no scaffold. Preferir **widget tests** (`testWidgets`) a unit tests de
-classes internas: verificam o que o utilizador ve.
+`flutter_test` already ships with the scaffold. Prefer **widget tests** (`testWidgets`) over unit
+tests of internal classes: they check what the user sees.
 
-## 2.4 — Teste inicial
+## 2.4 — Initial test
 
 ```dart
-testWidgets('arranca sem rebentar', (tester) async {
-  await tester.pumpWidget(const MinhaApp());
+testWidgets('starts without crashing', (tester) async {
+  await tester.pumpWidget(const MyApp());
   expect(find.byType(MaterialApp), findsOneWidget);
 });
 ```
 
 ## 2.8 — Tokens
 
-Nao ha Tailwind. Os tokens do `docs/DESIGN.md` convertem-se para `ThemeData`, em `lib/theme.dart`:
+There is no Tailwind. The tokens in `docs/DESIGN.md` are converted to `ThemeData`, in `lib/theme.dart`:
 
 ```dart
-final tema = ThemeData(
+final theme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4F46E5)),
   fontFamily: 'Inter',
   cardTheme: const CardThemeData(shape: RoundedRectangleBorder(
@@ -43,19 +43,19 @@ final tema = ThemeData(
 );
 ```
 
-`rem` → px a 16px/rem. **A cor de marca e o mesmo hex do `DESIGN.md`** — nao "a mais parecida do
-Material".
+`rem` → px at 16px/rem. **The brand color is the same hex as in `DESIGN.md`** — not "the closest one
+in Material".
 
 ## 2.9 — CI
 
-`ci-flutter.yml`. `flutter analyze --fatal-infos` e o unico gate estatico do Dart — nao o baixar para
-so-erros.
+`ci-flutter.yml`. `flutter analyze --fatal-infos` is Dart's only static gate — do not lower it to
+errors-only.
 
-## Armadilhas
+## Pitfalls
 
-- **`ColorScheme.fromSeed` deriva a paleta toda da semente** e pode ignorar cores que o `DESIGN.md`
-  fixou. Se a marca tiver secundaria/terciaria definidas, passa-as explicitamente em vez de deixar
-  derivar.
-- **Alvos de toque >= 48dp** (Material) — mais exigente que os 44px da web.
-- **Keystore nunca vai para o git.** Release assinada exige segredos do repositorio.
-- O mockup HTML e **referencia visual**, nao estrutura: nao ha traducao 1-para-1 de HTML para widgets.
+- **`ColorScheme.fromSeed` derives the whole palette from the seed** and may ignore colors that
+  `DESIGN.md` pinned. If the brand has a secondary/tertiary defined, pass them explicitly instead of
+  letting them be derived.
+- **Touch targets >= 48dp** (Material) — stricter than the web's 44px.
+- **The keystore never goes into git.** A signed release requires repository secrets.
+- The HTML mockup is a **visual reference**, not structure: there is no 1-to-1 translation from HTML to widgets.

@@ -1,31 +1,31 @@
 ---
 name: tdd
-description: "Activa o modo test-first (TDD guard) na sessão — editar código de produção sem teste novo/alterado primeiro dispara confirmação (ask, nunca deny) via hook check-tdd. Usar quando o user disser: tdd, test first, testes primeiro, modo tdd, tdd guard, red green, força testes."
-triggers: tdd, test first, test-first, testes primeiro, modo tdd, tdd guard, red green, red-green, força testes, forca testes, escreve testes primeiro
+description: "Arms test-first mode (TDD guard) for the session — editing production code without a new/changed test first triggers a confirmation (ask, never deny) via the check-tdd hook. Use when the user says: tdd, test first, tests first, tdd mode, tdd guard, red green, force tests."
+triggers: tdd, test first, test-first, tests first, tdd mode, tdd guard, red green, red-green, force tests, write tests first
 chain: unfreeze
 ---
-# /tdd — Guard-rail test-first
+# /tdd — Test-first guard-rail
 
-Impõe a disciplina red→green: com o modo armado, qualquer Edit/Write de **código de produção** sem um teste tocado na janela recente (30 min) dispara **confirmação** — o hook `check-tdd.js` (PreToolUse) pergunta em vez de bloquear. Escrever/alterar testes é sempre livre e rearma a janela.
+Enforces the red→green discipline: with the mode armed, any Edit/Write of **production code** without a test touched in the recent window (30 min) triggers a **confirmation** — the `check-tdd.js` hook (PreToolUse) asks instead of blocking. Writing/changing tests is always free and re-arms the window.
 
-Complementa (não substitui) o auto-test existente: o PostToolUse continua a recomendar testers DEPOIS do código; este guard actua ANTES.
+It complements (does not replace) the existing auto-test: PostToolUse still recommends testers AFTER the code; this guard acts BEFORE.
 
-## Mecanismo
-- Hook `check-tdd.js` corre em cada Edit/Write e lê `.joca/tdd.flag` no cwd.
-- Sem flag → no-op. Fail-open (bug no hook nunca bloqueia trabalho).
-- Ficheiro de teste (`tests/`, `.test.`, `.spec.`, `_test.`, `*Test.php`, `*Tests.cs`) → permite e regista timestamp em `.joca/tdd-last-test.txt`.
-- Código de produção (php/ts/tsx/js/py/cs/vue/go/rb, fora de config) sem teste na janela → `permissionDecision: "ask"` com a razão.
+## Mechanism
+- The `check-tdd.js` hook runs on every Edit/Write and reads `.joca/tdd.flag` in the cwd.
+- No flag → no-op. Fail-open (a bug in the hook never blocks work).
+- Test file (`tests/`, `.test.`, `.spec.`, `_test.`, `*Test.php`, `*Tests.cs`) → allows it and records a timestamp in `.joca/tdd-last-test.txt`.
+- Production code (php/ts/tsx/js/py/cs/vue/go/rb, outside config) with no test in the window → `permissionDecision: "ask"` with the reason.
 
-## Setup (executar)
+## Setup (run)
 ```bash
-mkdir -p .joca && touch .joca/tdd.flag && echo "TDD guard armado."
+mkdir -p .joca && touch .joca/tdd.flag && echo "TDD guard armed."
 ```
-Confirmar ao user: "Modo test-first activo. Código de produção sem teste recente pede confirmação. `/unfreeze` desliga."
+Confirm to the user: "Test-first mode active. Production code with no recent test asks for confirmation. `/unfreeze` turns it off."
 
-## Notas
-- **Ask, não deny** — heurística código→teste tem falsos positivos legítimos (glue code, hotfix); a decisão final é do user.
-- Aplica-se a Edit/Write; `sed` via Bash não é interceptado (mesma limitação do /freeze — combinar com /careful se necessário).
-- Combinável com /freeze e /careful (hooks independentes, todos flag-file).
+## Notes
+- **Ask, not deny** — the code→test heuristic has legitimate false positives (glue code, hotfix); the final decision is the user's.
+- Applies to Edit/Write; `sed` via Bash is not intercepted (same limitation as /freeze — combine with /careful if needed).
+- Combinable with /freeze and /careful (independent hooks, all flag-file).
 
-## Próximo passo (chain)
-- Para desligar → `/unfreeze` (remove também freeze/careful).
+## Next step (chain)
+- To turn it off → `/unfreeze` (also removes freeze/careful).

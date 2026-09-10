@@ -2,11 +2,11 @@ import { defineConfig } from 'vitest/config';
 import os from 'os';
 import path from 'path';
 
-// Os testes escrevem e APAGAM ficheiros de `DATA_DIR` (`notifications.test.ts` e `manager.test.ts`
-// fazem `fs.rmSync` para isolar cada caso). Sem este override apontavam aos dados reais: correr
-// `npm test` apagava as notificações e o chat do gestor de quem tivesse o JOCA a sério nesta cópia.
-// `env` é aplicado antes de qualquer módulo ser importado, que é o que faz o `project-store` ler
-// já o valor certo — um `setupFiles` chegaria tarde por causa do hoisting dos imports.
+// The tests write and DELETE files from `DATA_DIR` (`notifications.test.ts` and `manager.test.ts`
+// do `fs.rmSync` to isolate each case). Without this override they pointed at the real data: running
+// `npm test` deleted the notifications and the manager chat of anyone with JOCA for real in this copy.
+// `env` is applied before any module is imported, which is what makes `project-store` read the
+// right value already — a `setupFiles` would arrive too late because of import hoisting.
 export default defineConfig({
   test: {
     env: {

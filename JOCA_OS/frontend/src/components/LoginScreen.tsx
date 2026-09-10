@@ -25,11 +25,11 @@ export default function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
         onSuccess();
         return;
       }
-      if (res.status === 429) setError('Demasiadas tentativas. Aguarda um pouco e tenta de novo.');
-      else if (res.status === 401) setError('Password errada.');
-      else setError('Não foi possível iniciar sessão. Tenta de novo.');
+      if (res.status === 429) setError('Too many attempts. Wait a moment and try again.');
+      else if (res.status === 401) setError('Wrong password.');
+      else setError('Could not sign in. Try again.');
     } catch {
-      setError('Sem ligação ao servidor.');
+      setError('No connection to the server.');
     } finally {
       setBusy(false);
     }
@@ -39,7 +39,7 @@ export default function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
     <div className="login-screen">
       <form className="login-card" onSubmit={submit}>
         <div className="login-logo" aria-hidden>JOCA</div>
-        <p className="login-subtitle">Introduz a password para continuar.</p>
+        <p className="login-subtitle">Enter the password to continue.</p>
         <input
           className="login-input"
           type="password"
@@ -52,7 +52,7 @@ export default function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
         />
         {error && <p className="login-error" role="alert">{error}</p>}
         <button className="login-submit" type="submit" disabled={!password || busy}>
-          {busy ? 'A entrar…' : 'Entrar'}
+          {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
     </div>

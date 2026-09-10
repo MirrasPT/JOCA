@@ -5,31 +5,31 @@ import fs from 'fs';
 import { DATA_DIR, loadProjects, ProjectIcon } from '../project-store';
 import { loadProjectGroups } from '../project-groups-store';
 
-// Ícones de projecto e de grupo: upload, entrega e remoção. Segue o padrão do POST /upload
-// (express.raw + cabeçalho x-file-ext), mas guarda em data/icons e NUNCA reutiliza o nome do
-// cliente — o nome é um UUID gerado aqui, o que fecha path traversal por construção.
+// Project and group icons: upload, delivery and removal. Follows the POST /upload pattern
+// (express.raw + x-file-ext header), but saves into data/icons and NEVER reuses the client's
+// name — the name is a UUID generated here, which closes path traversal by construction.
 //
-// SVG é REJEITADO de propósito. Um SVG é um documento com script/foreignObject e este endpoint
-// devolve o ficheiro para ser desenhado inline na sidebar; servir SVG carregado pelo utilizador
-// seria XSS armazenado. É a mesma decisão já tomada em UPLOAD_ALLOWED_EXTS (helpers.ts), mantida
-// coerente. Quem quiser um ícone vectorial exporta PNG/WEBP.
+// SVG is REJECTED deliberately. An SVG is a document with script/foreignObject and this endpoint
+// returns the file to be drawn inline in the sidebar; serving user-uploaded SVG would be stored
+// XSS. It is the same decision already made in UPLOAD_ALLOWED_EXTS (helpers.ts), kept
+// consistent. Whoever wants a vector icon exports PNG/WEBP.
 export const ICONS_DIR = path.join(DATA_DIR, 'icons');
 
 const MAX_ICON_BYTES = 2 * 1024 * 1024;
 
-// Extensão canónica → Content-Type. 'jpg' normaliza para 'jpeg' no nome do ficheiro guardado.
+// Canonical extension → Content-Type. 'jpg' normalizes to 'jpeg' in the saved file's name.
 const ICON_MIME: Record<string, string> = {
   png: 'image/png',
   jpeg: 'image/jpeg',
   webp: 'image/webp',
 };
 
-// Só nomes que ESTE servidor gera. Serve de validação tanto na entrega/remoção como no PATCH
-// (um `icon.value` de tipo 'image' tem de casar isto, senão era um path arbitrário).
+// Only names THIS server generates. It doubles as validation on delivery/removal and on the PATCH
+// (an `icon.value` of type 'image' has to match this, otherwise it was an arbitrary path).
 const ICON_FILE_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpeg|webp)$/;
 
-// A extensão declarada mente com frequência (e é o cliente a declará-la). O que decide é o
-// conteúdo: sem estes magic bytes o ficheiro não é a imagem que diz ser.
+// The declared extension often lies (and it is the client declaring it). What decides is the
+// content: without these magic bytes the file is not the image it says it is.
 function sniffImageExt(buf: Buffer): 'png' | 'jpeg' | 'webp' | null {
   if (buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
   if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpeg';
@@ -41,8 +41,8 @@ export function isGeneratedIconFilename(name: string): boolean {
   return ICON_FILE_RE.test(name);
 }
 
-// Um emoji = exactamente um grapheme cluster pictográfico. Contar code points não chega: uma
-// família com ZWJ tem 7 e continua a ser um só glifo, e "ab" tem 2 e não é emoji nenhum.
+// An emoji = exactly one pictographic grapheme cluster. Counting code points is not enough: a
+// family with ZWJ has 7 and is still a single glyph, and "ab" has 2 and is no emoji at all.
 function isSingleEmoji(value: string): boolean {
   if (!value || value.length > 32) return false;
   if ([...value].length > 12) return false;
@@ -55,64 +55,64 @@ export type IconParseResult =
   | { ok: true; icon: ProjectIcon | undefined }
   | { ok: false; error: string };
 
-// Valida o campo `icon` de um PATCH. `null`/`''` limpa o ícone (→ undefined). Devolve sempre um
-// objecto NOVO com só os dois campos conhecidos — nunca o objecto do body, que traria chaves
-// arbitrárias para dentro do JSON persistido.
+// Validates the `icon` field of a PATCH. `null`/`''` clears the icon (→ undefined). It always
+// returns a NEW object with only the two known fields — never the body's object, which would carry
+// arbitrary keys into the persisted JSON.
 export function parseIconInput(raw: unknown): IconParseResult {
   if (raw === null || raw === '') return { ok: true, icon: undefined };
-  if (typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: 'icon inválido' };
+  if (typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, error: 'invalid icon' };
   const { type, value } = raw as { type?: unknown; value?: unknown };
-  if (typeof value !== 'string') return { ok: false, error: 'icon.value tem de ser texto' };
+  if (typeof value !== 'string') return { ok: false, error: 'icon.value has to be text' };
   if (type === 'emoji') {
-    if (!isSingleEmoji(value)) return { ok: false, error: 'icon.value tem de ser um único emoji' };
+    if (!isSingleEmoji(value)) return { ok: false, error: 'icon.value has to be a single emoji' };
     return { ok: true, icon: { type: 'emoji', value } };
   }
   if (type === 'image') {
-    if (!isGeneratedIconFilename(value)) return { ok: false, error: 'icon.value não é um ficheiro de ícone válido' };
-    if (!fs.existsSync(path.join(ICONS_DIR, value))) return { ok: false, error: 'Ícone não encontrado' };
+    if (!isGeneratedIconFilename(value)) return { ok: false, error: 'icon.value is not a valid icon file' };
+    if (!fs.existsSync(path.join(ICONS_DIR, value))) return { ok: false, error: 'Icon not found' };
     return { ok: true, icon: { type: 'image', value } };
   }
-  return { ok: false, error: "icon.type tem de ser 'image' ou 'emoji'" };
+  return { ok: false, error: "icon.type has to be 'image' or 'emoji'" };
 }
 
-// Um ficheiro só se apaga quando mais ninguém o aponta: o mesmo upload pode ser reutilizado por
-// vários projectos/grupos e apagá-lo deixaria os outros com um ícone morto.
+// A file is only deleted once nobody else points at it: the same upload can be reused by several
+// projects/groups and deleting it would leave the others with a dead icon.
 export function isIconReferenced(filename: string): boolean {
   const used = (icon?: ProjectIcon) => icon?.type === 'image' && icon.value === filename;
   return loadProjects().some((p) => used(p.icon)) || loadProjectGroups().some((g) => used(g.icon));
 }
 
-// Chamada DEPOIS de gravar a mudança, quando um ícone de imagem foi substituído ou removido: sem
-// isto data/icons crescia para sempre com ficheiros que já ninguém aponta.
+// Called AFTER saving the change, when an image icon was replaced or removed: without this
+// data/icons grew forever with files nobody points at any more.
 export function collectIconIfUnused(previous: ProjectIcon | undefined, next: ProjectIcon | undefined): void {
   if (previous?.type !== 'image') return;
   if (next?.type === 'image' && next.value === previous.value) return;
   if (isIconReferenced(previous.value)) return;
-  try { fs.unlinkSync(path.join(ICONS_DIR, previous.value)); } catch { /* já não existe — nada a fazer */ }
+  try { fs.unlinkSync(path.join(ICONS_DIR, previous.value)); } catch { /* no longer there — nothing to do */ }
 }
 
 export function iconsRouter(): Router {
   const r = Router();
 
-  // Upload. Corpo = bytes crus da imagem (mesmo padrão do POST /upload), extensão declarada em
-  // x-file-ext apenas como pista — quem manda é o sniff do conteúdo.
+  // Upload. Body = the image's raw bytes (same pattern as POST /upload), extension declared in
+  // x-file-ext only as a hint — what rules is the content sniff.
   r.post('/icons', express.raw({ type: '*/*', limit: MAX_ICON_BYTES }), (req, res) => {
     const body = req.body as Buffer;
-    if (!Buffer.isBuffer(body) || body.length === 0) return res.status(400).json({ error: 'Corpo vazio' });
-    if (body.length > MAX_ICON_BYTES) return res.status(413).json({ error: 'Ícone demasiado grande (máx. 2 MB)' });
+    if (!Buffer.isBuffer(body) || body.length === 0) return res.status(400).json({ error: 'Empty body' });
+    if (body.length > MAX_ICON_BYTES) return res.status(413).json({ error: 'Icon too large (max. 2 MB)' });
 
     const rawExt = (req.headers['x-file-ext'] as string) || '';
-    if (/[\r\n]/.test(rawExt)) return res.status(400).json({ error: 'Cabeçalho de extensão inválido' });
+    if (/[\r\n]/.test(rawExt)) return res.status(400).json({ error: 'Invalid extension header' });
     const declared = rawExt.replace(/[^\w-]/g, '').toLowerCase();
-    if (declared === 'svg') return res.status(400).json({ error: 'SVG não é aceite como ícone (risco de script)' });
+    if (declared === 'svg') return res.status(400).json({ error: 'SVG is not accepted as an icon (script risk)' });
 
     const ext = sniffImageExt(body);
-    if (!ext) return res.status(400).json({ error: 'Só PNG, JPEG ou WEBP' });
+    if (!ext) return res.status(400).json({ error: 'Only PNG, JPEG or WEBP' });
 
     const filename = `${randomUUID()}.${ext}`;
     fs.mkdirSync(ICONS_DIR, { recursive: true });
-    // Escrita atómica: o GET do ícone pode chegar antes de um write longo terminar e serviria
-    // metade do ficheiro.
+    // Atomic write: the icon GET can arrive before a long write finishes and would serve
+    // half the file.
     const target = path.join(ICONS_DIR, filename);
     const tmp = `${target}.tmp`;
     fs.writeFileSync(tmp, body);
@@ -123,26 +123,26 @@ export function iconsRouter(): Router {
 
   r.get('/icons/:name', (req, res) => {
     const name = req.params.name;
-    if (!isGeneratedIconFilename(name)) return res.status(400).json({ error: 'Nome inválido' });
+    if (!isGeneratedIconFilename(name)) return res.status(400).json({ error: 'Invalid name' });
     const file = path.join(ICONS_DIR, name);
-    if (!fs.existsSync(file)) return res.status(404).json({ error: 'Não encontrado' });
+    if (!fs.existsSync(file)) return res.status(404).json({ error: 'Not found' });
     const ext = name.slice(name.lastIndexOf('.') + 1);
     res.setHeader('Content-Type', ICON_MIME[ext] || 'application/octet-stream');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    // Defesa em profundidade caso um raster contrabandeie markup: aqui nada é executável.
+    // Defense in depth in case a raster smuggles markup: nothing here is executable.
     res.setHeader('Content-Security-Policy', "sandbox; default-src 'none'");
-    // O nome é um UUID: o conteúdo nunca muda, mudar de ícone gera outro nome.
+    // The name is a UUID: the content never changes, changing icon generates another name.
     res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
     res.sendFile(file);
   });
 
   r.delete('/icons/:name', (req, res) => {
     const name = req.params.name;
-    if (!isGeneratedIconFilename(name)) return res.status(400).json({ error: 'Nome inválido' });
-    if (isIconReferenced(name)) return res.status(409).json({ error: 'Ícone ainda em uso' });
+    if (!isGeneratedIconFilename(name)) return res.status(400).json({ error: 'Invalid name' });
+    if (isIconReferenced(name)) return res.status(409).json({ error: 'Icon still in use' });
     try { fs.unlinkSync(path.join(ICONS_DIR, name)); }
     catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') return res.status(500).json({ error: 'Falhou a remoção' });
+      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') return res.status(500).json({ error: 'Removal failed' });
     }
     res.json({ ok: true });
   });

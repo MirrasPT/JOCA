@@ -28,7 +28,7 @@ function AuthGate() {
 
   if (status === null) {
     return (
-      <div className="auth-gate-loading" aria-label="A carregar">
+      <div className="auth-gate-loading" aria-label="Loading">
         <div className="auth-gate-spinner" aria-hidden />
       </div>
     );
@@ -45,6 +45,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(<AuthGate />);
 // module graph and break HMR. sw.js lives in public/ and is copied as-is to dist/.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => { /* PWA é opcional */ });
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* PWA is optional */ });
   });
 }

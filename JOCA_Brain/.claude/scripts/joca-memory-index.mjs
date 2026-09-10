@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 /**
- * joca-memory-index — índice full-text FTS5 da memória do Brain (node:sqlite, zero deps).
+ * joca-memory-index — FTS5 full-text index of the Brain's memory (node:sqlite, zero deps).
  *
- * Indexa decisões ACTIVAS + aprendizagens (JSONL) + checkpoints (markdown) numa base
- * SQLite em <memory>/.index/memory.db (gitignored). Consumido por joca-brain.mjs
- * (`search`/`reindex`): rebuild lazy no search via mtime — NUNCA no write.
+ * Indexes ACTIVE decisions + learnings (JSONL) + checkpoints (markdown) into a SQLite
+ * database at <memory>/.index/memory.db (gitignored). Consumed by joca-brain.mjs
+ * (`search`/`reindex`): lazy rebuild on search via mtime — NEVER on write.
  *
- * Fail-silent by design: node <22.5 não tem node:sqlite, e nem todo o binário traz FTS5 —
- * `ftsAvailable()` devolve false e o caller cai para a busca substring original.
- * Override manual: JOCA_BRAIN_NO_FTS=1 desliga o FTS (útil p/ testar o fallback).
+ * Fail-silent by design: node <22.5 has no node:sqlite, and not every binary ships FTS5 —
+ * `ftsAvailable()` returns false and the caller falls back to the original substring search.
+ * Manual override: JOCA_BRAIN_NO_FTS=1 turns FTS off (useful for testing the fallback).
  *
  * API:
  *   ftsAvailable()                        → bool
- *   isStale(memoryRoot)                   → bool (db inexistente ou fonte mais recente)
+ *   isStale(memoryRoot)                   → bool (db missing or a source is newer)
  *   rebuildIndex(memoryRoot)              → { decisions, learnings, checkpoints }
  *   searchIndex(memoryRoot, query, {limit, slug}) → [{kind, slug, id, ts, title, snippet, source_path, rank}]
  */
 import { join, basename } from 'path';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'fs';
 
-// ---------- import protegido (node:sqlite só existe em node >= 22.5) ----------
+// ---------- guarded import (node:sqlite only exists in node >= 22.5) ----------
 let DatabaseSync = null;
 try {
-  // Silencia SÓ o ExperimentalWarning do SQLite (stderr limpo p/ hooks); o resto passa.
+  // Silences ONLY the SQLite ExperimentalWarning (clean stderr for hooks); the rest goes through.
   const prev = process.listeners('warning');
   process.removeAllListeners('warning');
   process.on('warning', (w) => {
@@ -30,9 +30,9 @@ try {
     for (const l of prev) l.call(process, w);
   });
   ({ DatabaseSync } = await import('node:sqlite'));
-} catch (_) { DatabaseSync = null; /* node antigo — indisponível */ }
+} catch (_) { DatabaseSync = null; /* old node — unavailable */ }
 
-// ---------- disponibilidade (probe FTS5 cached) ----------
+// ---------- availability (cached FTS5 probe) ----------
 let ftsProbe = null;
 export function ftsAvailable() {
   if (process.env.JOCA_BRAIN_NO_FTS) return false;
@@ -43,7 +43,7 @@ export function ftsAvailable() {
       db.exec('CREATE VIRTUAL TABLE _probe USING fts5(x)');
       db.close();
       ftsProbe = true;
-    } catch (_) { ftsProbe = false; /* binário sem FTS5 */ }
+    } catch (_) { ftsProbe = false; /* binary without FTS5 */ }
   }
   return ftsProbe;
 }
@@ -54,12 +54,12 @@ function openDb(memoryRoot) {
   const dir = join(memoryRoot, '.index');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   const db = new DatabaseSync(dbPath(memoryRoot));
-  // Colunas todas pesquisáveis; body é a coluna 5 (0-based) — usada pelo snippet().
+  // All columns searchable; body is column 5 (0-based) — the one snippet() uses.
   db.exec('CREATE VIRTUAL TABLE IF NOT EXISTS mem USING fts5(kind, slug, id, ts, title, body, source_path)');
   return db;
 }
 
-// ---------- scan de fontes ----------
+// ---------- source scan ----------
 function filesIn(dir, ext) {
   if (!existsSync(dir)) return [];
   try { return readdirSync(dir).filter((f) => f.endsWith(ext)).map((f) => join(dir, f)); }
@@ -85,28 +85,28 @@ function sourceFiles(memoryRoot) {
   ];
 }
 
-// ---------- staleness (mtime db vs fontes) ----------
+// ---------- staleness (db mtime vs sources) ----------
 export function isStale(memoryRoot) {
   const dbp = dbPath(memoryRoot);
   if (!existsSync(dbp)) return true;
   let dbM;
   try { dbM = statSync(dbp).mtimeMs; } catch (_) { return true; }
   for (const f of sourceFiles(memoryRoot)) {
-    try { if (statSync(f).mtimeMs >= dbM) return true; } catch (_) { /* removido entretanto */ }
+    try { if (statSync(f).mtimeMs >= dbM) return true; } catch (_) { /* removed in the meantime */ }
   }
   return false;
 }
 
-// ---------- parse de fontes ----------
+// ---------- source parsing ----------
 function readJsonl(file) {
   const out = [];
   try {
     for (const line of readFileSync(file, 'utf8').split('\n')) {
       const t = line.trim();
       if (!t) continue;
-      try { out.push(JSON.parse(t)); } catch (_) { /* tolera linha parcial/malformada */ }
+      try { out.push(JSON.parse(t)); } catch (_) { /* tolerates a partial/malformed line */ }
     }
-  } catch (_) { /* ilegível → vazio */ }
+  } catch (_) { /* unreadable → empty */ }
   return out;
 }
 function parseCheckpoint(file) {
@@ -120,18 +120,18 @@ function parseCheckpoint(file) {
       body = raw.slice(end + 4);
     }
   }
-  // Título = 1º heading/linha não-vazia do corpo; fallback = nome do ficheiro.
+  // Title = 1st heading/non-empty line of the body; fallback = the file name.
   const first = body.split('\n').map((l) => l.trim()).find((l) => l.length);
   const title = (first && first.replace(/^#+\s*/, '').slice(0, 120)) || basename(file, '.md');
   return { ts, title, body };
 }
 
-// ---------- rebuild (DELETE + INSERT numa transacção) ----------
+// ---------- rebuild (DELETE + INSERT in a single transaction) ----------
 export function rebuildIndex(memoryRoot) {
   const counts = { decisions: 0, learnings: 0, checkpoints: 0 };
   const rows = []; // [kind, slug, id, ts, title, body, source_path]
 
-  // Decisões — só ACTIVAS (decide não referido por supersede/redact), como computeActive.
+  // Decisions — ACTIVE only (a decide not referenced by supersede/redact), like computeActive.
   for (const file of filesIn(join(memoryRoot, 'decisions'), '.jsonl')) {
     const slug = basename(file, '.jsonl');
     const events = readJsonl(file);
@@ -145,7 +145,7 @@ export function rebuildIndex(memoryRoot) {
     }
   }
 
-  // Aprendizagens — todas (não há supersede em learnings).
+  // Learnings — all of them (there is no supersede in learnings).
   for (const file of filesIn(join(memoryRoot, 'learnings'), '.jsonl')) {
     const slug = basename(file, '.jsonl');
     for (const e of readJsonl(file)) {
@@ -156,13 +156,13 @@ export function rebuildIndex(memoryRoot) {
     }
   }
 
-  // Checkpoints — markdown por slug.
+  // Checkpoints — markdown per slug.
   for (const [slug, file] of checkpointFiles(memoryRoot)) {
     try {
       const { ts, title, body } = parseCheckpoint(file);
       rows.push(['checkpoint', slug, basename(file, '.md'), ts, title, body, file]);
       counts.checkpoints++;
-    } catch (_) { /* checkpoint ilegível → salta */ }
+    } catch (_) { /* unreadable checkpoint → skip */ }
   }
 
   const db = openDb(memoryRoot);
@@ -173,7 +173,7 @@ export function rebuildIndex(memoryRoot) {
     for (const r of rows) ins.run(...r);
     db.exec('COMMIT');
   } catch (e) {
-    try { db.exec('ROLLBACK'); } catch (_) { /* já fechado */ }
+    try { db.exec('ROLLBACK'); } catch (_) { /* already closed */ }
     db.close();
     throw e;
   }
@@ -181,9 +181,9 @@ export function rebuildIndex(memoryRoot) {
   return counts;
 }
 
-// ---------- query FTS5 sanitizada ----------
-// Cada termo vai entre aspas duplas (phrase token) — neutraliza operadores FTS5
-// (AND/OR/NOT/NEAR/*/^/:) e aspas do utilizador (escapadas por duplicação).
+// ---------- sanitized FTS5 query ----------
+// Every term goes inside double quotes (phrase token) — neutralizes FTS5 operators
+// (AND/OR/NOT/NEAR/*/^/:) and the user's quotes (escaped by doubling).
 function ftsQuery(q) {
   return String(q).split(/\s+/).filter(Boolean)
     .map((t) => `"${t.replace(/"/g, '""')}"`).join(' ');

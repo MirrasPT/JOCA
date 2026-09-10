@@ -1,89 +1,89 @@
-# Motion Choreography — varios elementos a mexer ao mesmo tempo
+# Motion Choreography — several elements moving at the same time
 
-Referencia on-demand. Consumida por `skills/anima.md`. Adaptado de `LottieFiles/motion-design-skill` (MIT).
+On-demand reference. Consumed by `skills/anima.md`. Adapted from `LottieFiles/motion-design-skill` (MIT).
 
-Uma animacao isolada quase nunca falha. O que falha e o **conjunto**: cinco coisas boas a acontecer
-ao mesmo tempo leem-se como ruido. Este ficheiro e sobre o conjunto.
-
----
-
-## As duas regras de 1/3
-
-**Distancia:** nenhum movimento percorre >1/3 do ecra sem keyframe intermedio. Quebrar com mudanca
-de direccao, variacao de velocidade ou ajuste de arco.
-
-**Elementos:** com 3+ elementos animados, no maximo **1/3 activos em simultaneo**. Escalonar para
-que o elemento 1 assente quando o 3 comeca.
+An isolated animation almost never fails. What fails is the **whole**: five good things happening
+at the same time read as noise. This file is about the whole.
 
 ---
 
-## Direccao partilhada
+## The two 1/3 rules
 
-Todos os elementos entram **da mesma direccao** ou de uma origem partilhada. Direccoes misturadas = caos.
+**Distance:** no movement travels >1/3 of the screen without an intermediate keyframe. Break it with a
+change of direction, a change of speed or an arc adjustment.
 
-Quando varios elementos reagem a **um** trigger:
-- todos arrancam dentro de **50ms** uns dos outros;
-- podem **chegar** em alturas diferentes (aterragem escalonada);
-- mesma familia de easing; o movimento nasce no ponto do trigger.
+**Elements:** with 3+ animated elements, at most **1/3 active simultaneously**. Stagger so that
+element 1 settles when 3 starts.
 
 ---
 
-## Counter-motion (o que da peso)
+## Shared direction
 
-| Movimento principal | Counter-motion | Racio de velocidade |
+All elements enter **from the same direction** or from a shared origin. Mixed directions = chaos.
+
+When several elements react to **one** trigger:
+- they all start within **50ms** of each other;
+- they may **arrive** at different times (staggered landing);
+- same easing family; the movement is born at the trigger point.
+
+---
+
+## Counter-motion (what gives weight)
+
+| Main movement | Counter-motion | Speed ratio |
 |---|---|---|
-| Entra pela esquerda | fundo desloca-se para a direita | 20-30% |
-| Escala para cima | sombra escala para baixo | 10-20% |
-| Roda CW | ambiente deriva CCW | 15-25% |
-| Sobe (Y up) | sombra alarga e suaviza | 20-30% |
+| Enters from the left | background shifts to the right | 20-30% |
+| Scales up | shadow scales down | 10-20% |
+| Rotates CW | environment drifts CCW | 15-25% |
+| Rises (Y up) | shadow widens and softens | 20-30% |
 
-## Profundidade por velocidade
+## Depth by speed
 
-| Camada | Deslocamento | Velocidade |
+| Layer | Displacement | Speed |
 |---|---|---|
-| Foreground | 1.0x | mais rapida |
-| Midground | 0.5x | media |
-| Background | 0.2x | mais lenta |
+| Foreground | 1.0x | fastest |
+| Midground | 0.5x | medium |
+| Background | 0.2x | slowest |
 
 ---
 
-## Estrutura de uma sequencia
+## Structure of a sequence
 
-| Fase | Fatia da duracao | O que acontece |
+| Phase | Share of the duration | What happens |
 |---|---|---|
-| Setup | 20-30% | elementos entram, cena estabelece-se |
-| Accao | 30-40% | movimento principal |
-| Resolucao | 30-40% | assentar, reaccoes secundarias |
+| Setup | 20-30% | elements enter, the scene establishes itself |
+| Action | 30-40% | main movement |
+| Resolution | 30-40% | settle, secondary reactions |
 
-Deixar **100-200ms de quietude** depois da resolucao antes de comecar movimento novo.
+Leave **100-200ms of stillness** after the resolution before starting new movement.
 
 ---
 
-## Stagger — padrao e orcamento
+## Stagger — pattern and budget
 
-| Padrao | Delay entre itens | Orcamento total |
+| Pattern | Delay between items | Total budget |
 |---|---|---|
 | Micro cascade | 20-40ms | <200ms |
 | Standard | 50-100ms | <400ms |
 | Dramatic | 100-200ms | <600ms |
 | Wave | 30-60ms | <500ms |
 
-**O total do stagger tem de ficar <500ms.** 20 itens × 40ms = 800ms → reduzir o passo ou agrupar.
+**The stagger total has to stay <500ms.** 20 items × 40ms = 800ms → reduce the step or group them.
 
-Direccao: cima-para-baixo (listas) · esq-para-dta (horizontais) · centro-para-fora (hero) ·
-aleatorio (organico) · invertido (saidas).
+Direction: top-to-bottom (lists) · left-to-right (horizontals) · center-outwards (hero) ·
+random (organic) · reversed (exits).
 
-- Todos os elementos escalonados usam a **mesma familia de easing**.
-- Varia so o tempo de arranque, **nunca a curva**.
-- Opcional: o ultimo elemento leva um overshoot ligeiro, como pontuacao.
+- All staggered elements use the **same easing family**.
+- Vary only the start time, **never the curve**.
+- Optional: the last element takes a slight overshoot, like punctuation.
 
 ---
 
-## Dirigir a atencao
+## Directing attention
 
-| Tecnica | Como |
+| Technique | How |
 |---|---|
-| Movimento condutor | animar o alvo antes do contexto |
-| Movimento de seguimento | assentar no ponto focal |
-| Movimento ambiente | continuo subtil na periferia |
-| Movimento apontador | direccional em direccao ao CTA |
+| Leading movement | animate the target before the context |
+| Following movement | settle on the focal point |
+| Ambient movement | subtle and continuous in the periphery |
+| Pointing movement | directional towards the CTA |

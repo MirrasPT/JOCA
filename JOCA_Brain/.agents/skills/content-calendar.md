@@ -1,6 +1,6 @@
 ---
 name: content-calendar
-description: "Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware optimal posting slots, caption/hook generation, asset-to-slot mapping, and release rollout sequencing. MUST be invoked when the user says: plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule, asset schedule, waterfall release, episodic rollout, quando publicar, sequencia de publicacao."
+description: "Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware optimal posting slots, caption/hook generation, asset-to-slot mapping, and release rollout sequencing. MUST be invoked when the user says: publishing plan, social calendar, launch rollout, per-platform captions, content schedule, posting schedule, asset schedule, waterfall release, episodic rollout, when to publish, publishing sequence."
 origin: local
 metadata:
   version: 1.0.0
@@ -173,4 +173,4 @@ For waterfall/episodic: one-paragraph narrative of the sequence logic, flagging 
 - **social-content**: platform strategy, content pillars, hook formulas, engagement tactics
 - **content-strategy**: editorial planning, audience research, content mix
 - **launch-strategy**: launch architecture, pre/post-launch sequencing, channel coordination
-- **copywriting**: long-form captions, ad copy, CTA optimisation
+- **copywriting**: long-form captions, ad copy, CTA optimization

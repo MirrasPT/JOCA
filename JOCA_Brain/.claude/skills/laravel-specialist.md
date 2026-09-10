@@ -1,7 +1,7 @@
 ---
 name: laravel-specialist
 description: "Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller. SHOULD also invoke when: middleware, service, job, queue, Sanctum, Horizon."
-triggers: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, controller, middleware, service, job, queue, Sanctum, Horizon, Livewire, Laravel API, Laravel auth, Laravel testing, Pest, factory, seeder, observer, event, listener, notification, policy, gate, schedule, broadcasting, Laravel config, .env, route, form request, resource, collection
+triggers: Laravel, Eloquent, Artisan, composer.json, migration, model, controller, middleware, service, job, queue, Sanctum, Horizon, Livewire, Laravel API, Laravel auth, Laravel testing, Pest, factory, seeder, observer, event, listener, notification, policy, gate, schedule, broadcasting, Laravel config, .env, route, form request, resource, collection
 chain: tester-code, tester-api
 ---
 # Laravel Specialist
@@ -294,8 +294,8 @@ Full Filament resource from a model: spawn `filament-builder` agent
 Security code review: spawn `security-review` agent
 On error: spawn `log-debugger`
 
-## Próximo passo (chain)
-Após implementar (reversível → encadear sem perguntar, `[chain → x]`):
-1. `tester-code` (agente) — review da implementação vs plano/standards.
-2. `tester-api` (agente) — se foram criados/alterados endpoints.
-Migrations/deploy/push → 1 linha de confirmação. Ver `rules/chaining.md`.
+## Next step (chain)
+After implementing (reversible → chain without asking, `[chain → x]`):
+1. `tester-code` (agent) — review of the implementation vs plan/standards.
+2. `tester-api` (agent) — if endpoints were created/changed.
+Migrations/deploy/push → 1 line of confirmation. See `rules/chaining.md`.

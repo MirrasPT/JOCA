@@ -22,7 +22,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/icon.svg']))
-      .catch(() => { /* pre-cache é best-effort */ })
+      .catch(() => { /* pre-cache is best-effort */ })
       .then(() => self.skipWaiting())
   );
 });
@@ -71,5 +71,5 @@ self.addEventListener('fetch', (event) => {
       }))
     );
   }
-  // Anything else: default browser behaviour (no respondWith).
+  // Anything else: default browser behavior (no respondWith).
 });

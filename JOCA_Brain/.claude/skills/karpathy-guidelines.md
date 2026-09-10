@@ -1,6 +1,6 @@
 ---
 name: karpathy-guidelines
-description: "Karpathy-style behavioural rules to reduce LLM coding mistakes — think first, simplicity, surgical edits. Invoke on: coding discipline, avoid overengineering, LLM coding mistakes."
+description: "Karpathy-style behavioral rules to reduce LLM coding mistakes — think first, simplicity, surgical edits. Invoke on: coding discipline, avoid overengineering, LLM coding mistakes."
 license: MIT
 ---
 

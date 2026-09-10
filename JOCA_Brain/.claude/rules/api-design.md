@@ -1,5 +1,5 @@
-# REST API design — MOVIDA (on-demand)
+# REST API design — MOVED (on-demand)
 
-Referência extensa (URLs resource-oriented, RFC 9457, versioning+Sunset, pagination, rate limiting, OpenAPI, checklist) **movida para `.claude/reference/api-design.md`** — deixou de ser auto-carregada em toda a sessão.
+Extensive reference (resource-oriented URLs, RFC 9457, versioning+Sunset, pagination, rate limiting, OpenAPI, checklist) **moved to `.claude/reference/api-design.md`** — it is no longer auto-loaded in every session.
 
-**Quando desenhas endpoints / contratos de API → `Read(".claude/reference/api-design.md")` primeiro.** Invocada pela skill `laravel-specialist`.
+**When you design endpoints / API contracts → `Read(".claude/reference/api-design.md")` first.** Invoked by the `laravel-specialist` skill.

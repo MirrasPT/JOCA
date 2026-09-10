@@ -1,11 +1,11 @@
-# .claude/rules/ — LÊ ANTES DE ADICIONAR
+# .claude/rules/ — READ BEFORE ADDING
 
-⚠ **Custo:** todos os `.md` desta pasta são **auto-carregados em TODAS as sessões** (contam como "memory files no `/context`). Cada linha aqui é re-enviada em **cada mensagem** — custa tokens recorrentes, não uma vez.
+⚠ **Cost:** every `.md` in this folder is **auto-loaded in EVERY session** (they count as "memory files in `/context`). Every line here is re-sent in **every message** — it costs recurring tokens, not a one-off.
 
-Regras:
-- **Só directivas de comportamento global** que valem sempre (task-intake, chaining, pipelines, orchestration, testing). Não meter aqui referência/gotchas de nicho.
-- **Terse.** Tabelas > prosa. Sem repetir o que já está no `CLAUDE.md` ou noutra rule.
-- **Detalhe extenso → `.claude/reference/`** (NÃO auto-carregado; `Read()` on-demand) ou `memory/projects/*.md`. Já lá vivem `api-design.md` e `workflows-and-tooling.md` — os pointers de 1-parágrafo ficam aqui em `rules/`.
-- Antes de adicionar uma rule nova, perguntar: "isto tem de estar em contexto SEMPRE?" Se não → não é uma rule.
-- **Sinal de intruso:** um `.md` aqui com frontmatter de skill (`name:` + `description:` + `triggers:`) foi lá parar por engano → mover para `.claude/skills/`. Aconteceu com o `testing.md` (era o skill `test-master` de terceiros): 94 linhas / ~1k tokens em **cada mensagem**, zero valor comportamental, e a tabela de `references/*.md` que continha apontava para ficheiros que nunca existiram no repo. Ao adicionar/editar uma rule, confirmar que **cada path citado resolve** (`ls`).
-- Este README também é auto-carregado → mantê-lo curto.
+Rules:
+- **Only global behavior directives** that always hold (task-intake, chaining, pipelines, orchestration, testing). Do not put niche reference/gotchas here.
+- **Terse.** Tables > prose. No repeating what is already in `CLAUDE.md` or in another rule.
+- **Extensive detail → `.claude/reference/`** (NOT auto-loaded; `Read()` on-demand) or `memory/projects/*.md`. `api-design.md` and `workflows-and-tooling.md` already live there — the 1-paragraph pointers stay here in `rules/`.
+- Before adding a new rule, ask: "does this have to be in context ALWAYS?" If not → it is not a rule.
+- **Intruder signal:** a `.md` here with skill frontmatter (`name:` + `description:` + `triggers:`) ended up there by mistake → move it to `.claude/skills/`. It happened with `testing.md` (it was the third-party `test-master` skill): 94 lines / ~1k tokens in **every message**, zero behavioral value, and the table of `references/*.md` it contained pointed to files that never existed in the repo. When adding/editing a rule, confirm that **every path cited resolves** (`ls`).
+- This README is auto-loaded too → keep it short.

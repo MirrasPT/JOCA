@@ -1,5 +1,5 @@
-// Rate-limit usage bar + the RateLimits type. Fonte única de verdade: App.tsx faz o poll de
-// /rate-limits e passa por prop; DashboardView re-exporta RateLimits para os consumidores.
+// Rate-limit usage bar + the RateLimits type. Single source of truth: App.tsx polls
+// /rate-limits and passes it by prop; DashboardView re-exports RateLimits to the consumers.
 
 interface RateWindow {
   used_pct: number | null;
@@ -49,7 +49,7 @@ export function RateBar({ label, win, fillClass }: { label: string; win?: RateWi
         <div className={`db-rate-bar-fill ${fillClass}`} style={{ width: `${Math.min(100, win.used_pct)}%` }} />
       </div>
       <span className="db-rate-bar-pct">{win.used_pct < 1 ? '<1' : Math.round(win.used_pct)}%</span>
-      {reset && <span className="db-rate-bar-reset" title="Próximo reset">↺ {reset}</span>}
+      {reset && <span className="db-rate-bar-reset" title="Next reset">↺ {reset}</span>}
     </div>
   );
 }

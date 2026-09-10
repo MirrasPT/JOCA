@@ -1,75 +1,75 @@
-# /goal — Auto-Orquestração a partir de Linguagem Natural
+# /goal — Auto-Orchestration from Natural Language
 
-Ponto de entrada de workflow multi-agente **sem PRD**. Recebe uma tarefa em linguagem natural,
-sintetiza um plano mínimo in-memory, e dispara o `master-orchestrator` com um GOAL + loop até concluir.
+Entry point for a multi-agent workflow **without a PRD**. Takes a task in natural language,
+synthesizes a minimal in-memory plan, and fires the `master-orchestrator` with a GOAL + a loop until done.
 
-Variante NL-driven do `/one-shot` (que se mantém PRD-driven). Use `/goal <descrição>`.
+NL-driven variant of `/one-shot` (which stays PRD-driven). Use `/goal <description>`.
 
-## Quando usar
+## When to use
 
-- Tarefa que cruza ≥2 domínios, toca ≥3 ficheiros, ou é uma feature completa (via D do `rules/task-intake.md`).
-- Não há (nem se quer criar) `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
-- O Decision Filter classificou a tarefa como **workflow**.
+- A task that crosses ≥2 domains, touches ≥3 files, or is a complete feature (route D of `rules/task-intake.md`).
+- There is no (and no intention to create a) `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
+- The Decision Filter classified the task as **workflow**.
 
-Para tarefas mais pequenas, NÃO usar `/goal` — resolver pela via A/B/C (resposta / 1 skill / 1 agente).
+For smaller tasks, do NOT use `/goal` — solve it via route A/B/C (answer / 1 skill / 1 agent).
 
-## Fluxo
+## Flow
 
-### 1. Carregar contexto (lazy)
+### 1. Load context (lazy)
 ```
-Ler: CLAUDE.md (constraints + trigger map)
-Ler: memory/SKILL_INDEX.json (índice de skills/agentes disponíveis)
-Ler: rules/task-intake.md + rules/orchestration-patterns.md (doutrina)
+Read: CLAUDE.md (constraints + trigger map)
+Read: memory/SKILL_INDEX.json (index of available skills/agents)
+Read: rules/task-intake.md + rules/orchestration-patterns.md (doctrine)
 ```
 
-### 2. Sintetizar plano in-memory
-A partir da descrição NL, derivar:
-- **GOAL** em 1-2 frases.
-- **Critérios de aceitação** explícitos (como sabemos que está feito).
-- **Work-streams candidatos** — mapear o GOAL aos triggers das skills/agentes reais do `SKILL_INDEX.json` (qualquer domínio, não só web). Independentes = paralelizáveis.
+### 2. Synthesize the in-memory plan
+From the NL description, derive:
+- **GOAL** in 1-2 sentences.
+- Explicit **acceptance criteria** (how we know it is done).
+- **Candidate work-streams** — map the GOAL to the triggers of the real skills/agents in `SKILL_INDEX.json` (any domain, not just web). Independent = parallelizable.
 
-Não inventar nomes de skills/agentes — só os que constam do índice.
+Do not invent skill/agent names — only the ones listed in the index.
 
-**O plano é visível, não in-memory.** Antes do passo 4, imprimir em 5-15 linhas: GOAL · critérios de
-aceitação · um bloco por work-stream com *ficheiros que lhe pertencem* e *critério de sucesso*. Não é
-um gate (não se espera aprovação em trabalho reversível) — é o que torna verificável que dois agentes
-não escrevem no mesmo ficheiro, e o que o utilizador corrige em 1 linha antes de gastar ~15x tokens.
+**The plan is visible, not in-memory.** Before step 4, print it in 5-15 lines: GOAL · acceptance
+criteria · one block per work-stream with *the files that belong to it* and *the success criterion*. It is
+not a gate (approval is not awaited on reversible work) — it is what makes it verifiable that two agents
+do not write in the same file, and what the user corrects in 1 line before spending ~15x tokens.
 
-### 3. Gate de segurança
-Detectar acções irreversíveis no GOAL (auth/payments/migrations/deletes/deploy/push/git destrutivo).
-Se houver → **1 linha de confirmação** antes de disparar. Caso contrário, prosseguir.
+### 3. Safety gate
+Detect irreversible actions in the GOAL (auth/payments/migrations/deletes/deploy/push/destructive git).
+If there are any → **1 line of confirmation** before firing. Otherwise, proceed.
 
-### 4. Executar (o main loop É o orquestrador)
-O **main loop adopta o playbook `.claude/agents/master-orchestrator.md`** e conduz a orquestração ELE PRÓPRIO — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não poderia despachar workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop dispara os *workers* via `Agent()` com:
-- o GOAL + critérios de aceitação,
-- o plano in-memory (work-streams),
-- o brief canónico obrigatório (8 cláusulas — ver master-orchestrator.md / soul.md).
+### 4. Execute (the main loop IS the orchestrator)
+The **main loop adopts the `.claude/agents/master-orchestrator.md` playbook** and conducts the orchestration ITSELF — you do **not** do `Agent(subagent_type="master-orchestrator")` (a subagent could not dispatch workers; the 1-level rule in `rules/orchestration-patterns.md`). Following the playbook, the main loop fires the *workers* via `Agent()` with:
+- the GOAL + acceptance criteria,
+- the in-memory plan (work-streams),
+- the mandatory canonical brief (8 clauses — see master-orchestrator.md / soul.md).
 
-Corre a Phase 4.5 (Goal-Satisfaction Loop): compara resultado vs critérios, re-decompõe só a lacuna, re-dispatch. Cap `loop_max_iterations` (default 4); 3x sem progresso → para e reporta.
+Runs Phase 4.5 (Goal-Satisfaction Loop): compares the result vs the criteria, re-decomposes only the gap, re-dispatches. Cap `loop_max_iterations` (default 4); 3x with no progress → stops and reports.
 
-### 5. Reportar
-⚠ Antes de dar um stream como falhado: um worker que devolve `null` pode ter feito o trabalho todo e
-falhado só o `StructuredOutput` (já aconteceu — ver `/one-shot` PASSO 4). Verificar em disco
-(`git status`/`ls`) e reportar "trabalho em disco OK, retorno estruturado falhou", nunca `null` seco.
+### 5. Report
+⚠ Before giving a stream up as failed: a worker that returns `null` may have done all the work and
+only failed the `StructuredOutput` (this has already happened — see `/one-shot` STEP 4). Check on disk
+(`git status`/`ls`) and report "work on disk OK, structured return failed", never a bare `null`.
 
-Resumir o que foi feito vs critérios de aceitação. Listar o que ficou por concluir (se cap atingido) e auto-disparar `tester-*` conforme o pipeline de testes.
+Summarize what was done vs the acceptance criteria. List what was left unfinished (if the cap was reached) and auto-fire `tester-*` per the testing pipeline.
 
-## Restrição arquitectural
+## Architectural constraint
 
-Sub-agentes **não** fazem spawn de sub-agentes. A auto-orquestração vive no **main loop / neste command**, não num agente-que-chama-agentes. `master-orchestrator.md` é o **playbook** que o main loop segue; **o spawn dos workers é feito pelo main loop** (não por um `master-orchestrator` spawned). Ver `rules/orchestration-patterns.md`.
+Sub-agents do **not** spawn sub-agents. Auto-orchestration lives in the **main loop / in this command**, not in an agent-that-calls-agents. `master-orchestrator.md` is the **playbook** the main loop follows; **the spawning of the workers is done by the main loop** (not by a spawned `master-orchestrator`). See `rules/orchestration-patterns.md`.
 
 
 ---
 
-## Autorização do `Workflow` (ferramenta do harness)
+## `Workflow` authorization (harness tool)
 
-**Correr `/goal` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
-podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
-Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+**Running `/goal` is the user's explicit opt-in to the `Workflow` tool.** Do not ask whether you
+may orchestrate — if the work splits into phases with fan-out, author the script and **call `Workflow`**.
+When the script is unnecessary, `Agent()` in parallel in the same turn serves just as well.
 
-Travões que **não** caem com esta autorização:
-- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
-- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
-- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
-- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.
+Brakes that do **not** fall away with this authorization:
+- **Cheap recon BEFORE authoring** the script (`rules/pipelines.md`) — `grep`/`ls` on the domain, inline.
+- **1-line gate** on anything irreversible (deploy · push · migration · delete · payment · auth).
+- **Verifier ≠ producer** — whoever writes does not sign off the gate (`.joca/loop.json`).
+- **Size** comes from `/config` ("Dynamic workflow size"), not from this command.
+- **Cost announced**: ≥6 agents or a loop of rounds → order of magnitude of tokens before launching.

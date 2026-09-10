@@ -1,12 +1,12 @@
-// ProjectWorkspace — a vista de um projecto (mainView === 'project').
+// ProjectWorkspace — a project's view (mainView === 'project').
 //
-// O terminal é o palco. Em cima fica uma barra fina com a identidade do projecto e, logo abaixo,
-// uma tab por terminal aberto; todo o resto da altura é terminal.
+// The terminal is the stage. On top sits a thin bar with the project's identity and, right below,
+// one tab per open terminal; all the rest of the height is terminal.
 //
-// O terminal em si é o `TerminalView`, o MESMO componente da vista em ecrã cheio: mesma barra de
-// comandos (git, colar caminho, skills, anexos), mesmo drag&drop, mesmo autocomplete de `/`. Antes
-// havia aqui um composer reduzido e paralelo — duas caixas de escrita com capacidades diferentes
-// para o mesmo terminal.
+// The terminal itself is the `TerminalView`, the SAME component as the full-screen view: same
+// command bar (git, paste path, skills, attachments), same drag&drop, same `/` autocomplete. There
+// used to be a reduced, parallel composer here — two composers with different capabilities for the
+// same terminal.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JocaItems, Project, ProjectMemory, SessionInfo, TerminalRef } from '../../types';
 import { shortPath } from '../../lib/paths';
@@ -24,7 +24,7 @@ function TerminalGlyph() {
   );
 }
 
-/** Tudo o que o `TerminalView` precisa e que vive no App — reencaminhado tal e qual. */
+/** Everything the `TerminalView` needs that lives in the App — forwarded exactly as it is. */
 export interface TerminalBridge {
   activeId: string | null;
   activatedIds: Set<string>;
@@ -50,13 +50,13 @@ interface Props {
   projects: Project[];
   sessions: SessionInfo[];
   onEditProject: (project: Project) => void;
-  /** Escolher o terminal de uma tab — muda o activo SEM sair da vista do projecto. */
+  /** Choose a tab's terminal — changes the active one WITHOUT leaving the project view. */
   onSelectTerminal: (id: string) => void;
-  /** Renomear a sessão de um terminal (duplo clique na tab). */
+  /** Rename a terminal's session (double click on the tab). */
   onRenameSession?: (id: string, name: string) => void;
-  /** Fecha a sessão de um terminal (mesmo handler da barra lateral). */
+  /** Closes a terminal's session (same handler as the sidebar). */
   onCloseSession: (id: string) => void;
-  /** Abre um terminal novo neste projecto (o "+" das tabs). */
+  /** Opens a new terminal in this project (the tabs' "+"). */
   onAddAgent: (project: Project, cli?: string) => void;
   onRenameProject?: (id: string, name: string) => void;
   onInput: (sessionId: string, data: string) => void;
@@ -79,8 +79,8 @@ export default function ProjectWorkspace({
   );
   const tabs = useMemo(() => buildTabs(projectSessions), [projectSessions]);
 
-  // A tab activa é o terminal activo do App, desde que pertença a este projecto; senão, a primeira.
-  // Sem isto, entrar no projecto vindo de outro terminal mostrava o terminal errado.
+  // The active tab is the App's active terminal, as long as it belongs to this project; else the first.
+  // Without this, entering the project from another terminal showed the wrong terminal.
   const activeTabId = tabs.some((t) => t.id === terminal.activeId)
     ? terminal.activeId
     : (tabs[0]?.id ?? null);
@@ -103,15 +103,15 @@ export default function ProjectWorkspace({
   if (!project) {
     return (
       <div className="project-workspace project-workspace--empty">
-        <p className="tk-drawer-empty">Escolhe um projecto na barra lateral.</p>
+        <p className="tk-drawer-empty">Choose a project in the sidebar.</p>
       </div>
     );
   }
 
   return (
     <div className="project-workspace">
-      {/* Barra fina: o que era um cabeçalho de 90px com título grande, path e chips. A informação
-          é a mesma; o espaço que ocupava é agora terminal. */}
+      {/* Thin bar: what used to be a 90px header with a big title, path and chips. The information
+          is the same; the space it took is now terminal. */}
       <div className="pw-bar">
         <span className="pw-bar-dot" style={{ background: project.color }} aria-hidden />
         {editingName ? (
@@ -126,7 +126,7 @@ export default function ProjectWorkspace({
               if (e.key === 'Escape') setEditingName(false);
               e.stopPropagation();
             }}
-            aria-label="Nome do projecto"
+            aria-label="Project name"
           />
         ) : (
           <button
@@ -137,20 +137,20 @@ export default function ProjectWorkspace({
               setEditingName(true);
               setTimeout(() => nameInputRef.current?.focus(), 50);
             }}
-            title={`${project.name} — duplo clique para renomear`}
+            title={`${project.name} — double click to rename`}
           >
             {project.name}
           </button>
         )}
         <span className="pw-bar-path" title={project.path}>{shortPath(project.path)}</span>
         <span className="pw-bar-spacer" />
-        <span className="pw-bar-stat">{tabs.length} terminal{tabs.length === 1 ? '' : 'is'}</span>
+        <span className="pw-bar-stat">{tabs.length} terminal{tabs.length === 1 ? '' : 's'}</span>
         <button
           className="pw-bar-settings"
           type="button"
           onClick={() => onEditProject(project)}
-          aria-label="Configurações do projecto"
-          title="Configurações do projecto"
+          aria-label="Project settings"
+          title="Project settings"
         >
           <SettingsIcon />
         </button>
@@ -168,14 +168,14 @@ export default function ProjectWorkspace({
       <div className="pw-stage">
         <div className="pw-terminal-slot">
           {tabs.length === 0 ? (
-            // Palco vazio: a mensagem centra-se no espaço que sobra em vez de ficar encostada ao
-            // canto, e traz a acção com ela — mandar procurar o "+" era trabalho para o leitor.
+            // Empty stage: the message centers in the space that is left instead of sitting in the
+            // corner, and brings the action with it — sending you hunting for the "+" was work for the reader.
             <div className="pw-stage-empty">
               <TerminalGlyph />
-              <p className="pw-stage-empty-title">Sem terminais abertos</p>
-              <p className="pw-stage-empty-hint">Abre um terminal para trabalhar neste projecto.</p>
+              <p className="pw-stage-empty-title">No open terminals</p>
+              <p className="pw-stage-empty-hint">Open a terminal to work in this project.</p>
               <button type="button" className="pw-stage-empty-btn" onClick={() => onAddAgent(project)}>
-                Abrir terminal
+                Open terminal
               </button>
             </div>
           ) : (

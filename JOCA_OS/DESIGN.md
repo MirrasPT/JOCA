@@ -1,39 +1,39 @@
 # DESIGN.md — JOCA UI
 
-> Documento vivo. Referência para o redesign completo.
-> Não implementar sem decisões confirmadas.
+> Living document. Reference for the complete redesign.
+> Do not implement without confirmed decisions.
 
 ---
 
-## Moodboard — padrões identificados
+## Moodboard — identified patterns
 
-**Referências analisadas:** macOS widgets, Raycast Wrapped, Alien AI, MonoCloud, Furion PT, Data AI app
+**References analyzed:** macOS widgets, Raycast Wrapped, Alien AI, MonoCloud, Furion PT, Data AI app
 
-### Padrões comuns
-- **Cards com glows/halos** — cada sessão/item tem profundidade, borda subtil, glow colorido que indica estado
-- **Bento grid** — conteúdo em grelha de cards (não lista plana)
-- **Warm accent** — laranja/âmbar como cor de destaque (não azul frio)
-- **Sidebar slim e icónica** — navegação por ícones + label curto, não lista de items densos
-- **Vista overview + detalhe** — cards no centro, detalhe (terminal) num painel lateral
-- **Status visual rico** — glows animados indicam estado sem precisar de ler texto
-- **Glassmorphism subtil** — cards com backdrop-blur, bordas semitransparentes
-- **Tipografia grande** — informação importante em type grande, não pequeno
+### Common patterns
+- **Cards with glows/halos** — each session/item has depth, a subtle border, a colored glow that indicates state
+- **Bento grid** — content in a card grid (not a flat list)
+- **Warm accent** — orange/amber as the highlight color (not cold blue)
+- **Slim, iconic sidebar** — navigation by icons + short label, not a list of dense items
+- **Overview + detail view** — cards in the center, detail (terminal) in a side panel
+- **Rich visual status** — animated glows indicate state without having to read text
+- **Subtle glassmorphism** — cards with backdrop-blur, semitransparent borders
+- **Large typography** — important information in large type, not small
 
 ---
 
-## Conceito proposto — "Mission Control"
+## Proposed concept — "Mission Control"
 
-Em vez de: sidebar de lista + um terminal gigante
+Instead of: a list sidebar + one giant terminal
 
-Passar para: **overview de sessões em cards + terminal focado mais pequeno**
+Move to: **overview of sessions in cards + smaller focused terminal**
 
 ```
 ┌────────┬──────────────────────────────┬──────────────────┐
 │  Nav   │   Session Cards (grid)       │   Terminal       │
-│ slim   │                              │   (activo)       │
+│ slim   │                              │   (active)       │
 │        │  ╔══════╗  ╔══════╗         │                  │
 │  ◉     │  ║ S1   ║  ║ S2   ║         │  xterm.js        │
-│  ○     │  ║ ●work║  ║ ○idle║         │  ~50% largura    │
+│  ○     │  ║ ●work║  ║ ○idle║         │  ~50% width      │
 │  ○     │  ╚══════╝  ╚══════╝         │                  │
 │  ○     │                              │                  │
 │        │  ╔══════╗  ╔══════╗         │                  │
@@ -42,73 +42,73 @@ Passar para: **overview de sessões em cards + terminal focado mais pequeno**
 
 ---
 
-## Componentes a definir
+## Components to define
 
 ### Nav sidebar (slim ~56px)
-- Ícones: Sessions · Files · Projects · (Settings?)
-- Sem texto — só ícones com tooltip
-- Branding JOCA no topo (pequeno)
-- **A confirmar:** largura exacta, ícones escolhidos
+- Icons: Sessions · Files · Projects · (Settings?)
+- No text — only icons with a tooltip
+- JOCA branding at the top (small)
+- **To confirm:** exact width, chosen icons
 
 ### Session cards grid
-- Cada card mostra:
-  - Nome da sessão
-  - Status visual (glow animado: laranja=working, verde=done/idle, cinza=idle)
-  - Preview das últimas linhas de output (truncado, monospace, pequeno)
-  - Tempo decorrido desde última actividade
-  - Projecto a que pertence (se aplicável)
-- Click num card → activa esse terminal no painel direito
-- Tamanho dos cards: fixo ou variável?
-- **A confirmar:** colunas (2? 3? auto?), altura dos cards
+- Each card shows:
+  - Session name
+  - Visual status (animated glow: orange=working, green=done/idle, gray=idle)
+  - Preview of the last output lines (truncated, monospace, small)
+  - Time elapsed since the last activity
+  - Project it belongs to (if applicable)
+- Click on a card → activates that terminal in the right panel
+- Card size: fixed or variable?
+- **To confirm:** columns (2? 3? auto?), card height
 
-### Terminal panel (direito)
-- ~45-50% da largura total
-- Título: nome da sessão activa + cwd
-- xterm.js normal mas mais pequeno
-- Border-left subtil separando do grid
-- **A confirmar:** pode fechar/esconder o painel terminal?
+### Terminal panel (right)
+- ~45-50% of the total width
+- Title: name of the active session + cwd
+- Normal xterm.js but smaller
+- Subtle border-left separating it from the grid
+- **To confirm:** can the terminal panel be closed/hidden?
 
-### Estado dos chats (indicador visual)
-- `working` — glow laranja/âmbar pulsante + spinner subtil no card
-- `idle` — sem glow, dot verde estático (pronto para input)  
-- `done` — flash verde momentâneo + badge "✓" no card → notificação
-- Notificação `done`: badge no card se não for o activo; toast in-app + Notification API do browser (nativa macOS)
-- **A confirmar:** som? (toggle nas settings)
+### Chat state (visual indicator)
+- `working` — pulsing orange/amber glow + subtle spinner on the card
+- `idle` — no glow, static green dot (ready for input)  
+- `done` — momentary green flash + "✓" badge on the card → notification
+- `done` notification: badge on the card if it is not the active one; in-app toast + the browser's Notification API (native macOS)
+- **To confirm:** sound? (toggle in the settings)
 
 ### Files panel
-- Aparece quando clica ícone Files na nav
-- Substitui ou aparece ao lado do grid?
-- **A confirmar:** overlay? painel separado?
+- Appears when you click the Files icon in the nav
+- Replaces the grid or appears next to it?
+- **To confirm:** overlay? separate panel?
 
 ### Projects
-- Cards de projecto (não lista)
-- Estado: nr de sessões activas no projecto, última actividade
-- **A confirmar:** separado ou integrado no session grid?
+- Project cards (not a list)
+- State: no. of active sessions in the project, last activity
+- **To confirm:** separate or integrated into the session grid?
 
 ---
 
-## Paleta de cores
+## Color palette
 
-### Base (escuro quente — não frio)
+### Base (warm dark — not cold)
 ```
---bg-void:    #080608    (mais escuro, tom quente)
---bg-base:    #0e0b0e    (base app)
+--bg-void:    #080608    (darkest, warm tone)
+--bg-base:    #0e0b0e    (app base)
 --bg-card:    #141118    (cards)
 --bg-hover:   #1c1720    (hover)
 ```
 
-### Accent (laranja/âmbar — inspirado nas refs)
+### Accent (orange/amber — inspired by the refs)
 ```
---accent:     #e8601c    (laranja principal)
---accent-dim: #f59332    (âmbar secundário)
+--accent:     #e8601c    (main orange)
+--accent-dim: #f59332    (secondary amber)
 --accent-soft: rgba(232, 96, 28, 0.12)
 ```
 
 ### Status
 ```
---working:    #f59332    (âmbar — a trabalhar)
---idle:       #3dba7a    (verde — pronto)
---done:       #3dba7a    (verde brilhante — acabou)
+--working:    #f59332    (amber — working)
+--idle:       #3dba7a    (green — ready)
+--done:       #3dba7a    (bright green — finished)
 ```
 
 ### Text
@@ -121,27 +121,27 @@ Passar para: **overview de sessões em cards + terminal focado mais pequeno**
 
 ---
 
-## Decisões confirmadas
+## Confirmed decisions
 
-| # | Decisão |
+| # | Decision |
 |---|---------|
-| 1 | Cards em **auto-fit grid** `minmax(220px, 1fr)` |
-| 2 | Terminal **hideable** via toggle no NavRail |
-| 3 | Files e cards **coexistem** — FilesView toggle à esquerda do grid |
-| 4 | Notificações: **in-app toast** + **macOS Notification API** |
-| 5 | Accent: **laranja #e8601c** / âmbar #f59332 (não azul) |
-| 6 | Status: working=amber pulsante, idle=verde, done=flash verde + notificação |
-| 7 | Verificar com **tester-ui-ux** + **tester-accessibility** após implementação |
+| 1 | Cards in an **auto-fit grid** `minmax(220px, 1fr)` |
+| 2 | Terminal **hideable** via a toggle in the NavRail |
+| 3 | Files and cards **coexist** — FilesView toggle to the left of the grid |
+| 4 | Notifications: **in-app toast** + **macOS Notification API** |
+| 5 | Accent: **orange #e8601c** / amber #f59332 (not blue) |
+| 6 | Status: working=pulsing amber, idle=green, done=green flash + notification |
+| 7 | Verify with **tester-ui-ux** + **tester-accessibility** after implementation |
 
 ---
 
-## Questões em aberto — para discussão
+## Open questions — for discussion
 
-1. **Cards grid**: quantas colunas? altura fixa ou variável?
-2. **Terminal panel**: sempre visível ou pode fechar?
-3. **Files**: overlay ou substitui o grid?
-4. **Projects no grid**: misturado com sessions ou separado?
-5. **Notificação done**: só in-app ou também nativa do OS?
-6. **Som** quando termina: sim ou não?
-7. **Drag para reordenar** cards: queres?
-8. **Files panel**: continua com o file browser actual ou redesenhamos?
+1. **Cards grid**: how many columns? fixed or variable height?
+2. **Terminal panel**: always visible or can it close?
+3. **Files**: overlay or does it replace the grid?
+4. **Projects in the grid**: mixed with sessions or separate?
+5. **done notification**: in-app only or also native to the OS?
+6. **Sound** when it finishes: yes or no?
+7. **Drag to reorder** cards: do you want it?
+8. **Files panel**: keep the current file browser or do we redesign it?

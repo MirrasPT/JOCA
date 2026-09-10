@@ -1,7 +1,7 @@
 ---
 name: anima
-description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone. SHOULD also invoke when: animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada."
-triggers: animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone, animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada, animar, micro-interacao, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequencia animada, loading animation, skeleton, shimmer, morphing, SVG animation
+description: "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animation, gsap, lottie, scroll animation, page transition, hover animation, icon animation. SHOULD also invoke when: illustration animation, scroll trigger, motion, animate, transition, entrance effect."
+triggers: animation, gsap, lottie, scroll animation, page transition, hover animation, icon animation, illustration animation, scroll trigger, motion, animate, transition, entrance effect, microinteraction, scroll effect, parallax, reveal, fade in, slide in, stagger, timeline, animated sequence, loading animation, skeleton, shimmer, morphing, SVG animation
 chain: design-review, tester-performance
 ---
 # Anima — Animation Specialist
@@ -19,86 +19,86 @@ Produces working code. Justifies every timing choice.
 
 Decide before writing code:
 
-| Contexto | Usar |
+| Context | Use |
 |----------|------|
-| Animar elementos HTML/CSS (texto, cards, secoes, navbar) | **GSAP** |
-| Scroll-triggered animations (entrada no viewport) | **GSAP ScrollTrigger** |
+| Animating HTML/CSS elements (text, cards, sections, navbar) | **GSAP** |
+| Scroll-triggered animations (entering the viewport) | **GSAP ScrollTrigger** |
 | Page transitions, route animations | **GSAP** |
-| Sequencias complexas com timing preciso | **GSAP Timeline** |
-| Animar SVG paths, morphing | **GSAP MorphSVG** |
-| Icones animados (hover, click, loop) | **Lottie** |
-| Ilustracoes animadas (mascotes, loading, success/error) | **Lottie** |
+| Complex sequences with precise timing | **GSAP Timeline** |
+| Animating SVG paths, morphing | **GSAP MorphSVG** |
+| Animated icons (hover, click, loop) | **Lottie** |
+| Animated illustrations (mascots, loading, success/error) | **Lottie** |
 | Splash screens, onboarding animations | **Lottie** |
-| Exportar animacao como MP4/GIF | **HTML -> pipeline de exportacao** |
-| Animacao com audio/SFX | **Skill `video` (HTML Animation -> Video Export — BGM + SFX pipeline)** |
+| Exporting an animation as MP4/GIF | **HTML -> export pipeline** |
+| Animation with audio/SFX | **Skill `video` (HTML Animation -> Video Export — BGM + SFX pipeline)** |
 
-Ambiguo -> perguntar. Nunca assumir.
+Ambiguous -> ask. Never assume.
 
 ---
 
-## Principios de Animacao (Anti-slop)
+## Animation Principles (Anti-slop)
 
-### Animacao com proposito
+### Animation with a purpose
 
-Toda animacao responde a uma de 3 perguntas:
-1. **Orienta** — indica direccao, hierarquia, ou mudanca de estado?
-2. **Confirma** — da feedback de uma accao do utilizador?
-3. **Narra** — conta uma historia ou conduz a atencao?
+Every animation answers one of 3 questions:
+1. **Orients** — does it indicate direction, hierarchy, or a change of state?
+2. **Confirms** — does it give feedback on a user action?
+3. **Narrates** — does it tell a story or lead the attention?
 
-Nenhuma -> nao animar.
+None -> do not animate.
 
-### Arquetipo de movimento (escolher ANTES de animar)
+### Motion archetype (choose BEFORE animating)
 
-O arquetipo fixa duracao, easing e overshoot para o projecto inteiro. Sem ele, cada animacao tem uma
-personalidade diferente e o conjunto le-se como template.
+The archetype fixes duration, easing and overshoot for the whole project. Without it, each animation
+has a different personality and the set reads like a template.
 
-| Arquetipo | Duracao | Easing | Overshoot | Quando |
+| Archetype | Duration | Easing | Overshoot | When |
 |---|---|---|---|---|
-| Playful | 150-300ms | ease-out-back | 10-20% | brincalhao, infantil, jogo |
-| Premium | 350-600ms | cubic-bezier(0.4,0,0.2,1) | 0% | luxo, editorial, vinho, hotel |
-| **Corporate** *(default UI)* | 200-400ms | cubic-bezier(0.2,0,0,1) | 0-3% | SaaS, dashboard, institucional |
-| Energetic | 100-250ms | ease-out-expo | 15-30% | desporto, lancamento, musica |
+| Playful | 150-300ms | ease-out-back | 10-20% | playful, childlike, game |
+| Premium | 350-600ms | cubic-bezier(0.4,0,0.2,1) | 0% | luxury, editorial, wine, hotel |
+| **Corporate** *(default UI)* | 200-400ms | cubic-bezier(0.2,0,0,1) | 0-3% | SaaS, dashboard, institutional |
+| Energetic | 100-250ms | ease-out-expo | 15-30% | sport, launch, music |
 
-Defaults: **Corporate** para UI, **Playful** para ilustracao. Tabelas completas (duration palette,
-entrance patterns, stagger por personalidade) → `Read(".claude/reference/frontend/motion-personality.md")`.
+Defaults: **Corporate** for UI, **Playful** for illustration. Full tables (duration palette,
+entrance patterns, stagger by personality) → `Read(".claude/reference/frontend/motion-personality.md")`.
 
-### Regras de timing
+### Timing rules
 
-| Tipo | Duracao | Easing |
+| Type | Duration | Easing |
 |------|---------|--------|
-| Micro-interaccao (hover, click) | 100-200ms | ease-out-quart |
-| Transicao de estado (modal, dropdown) | 200-300ms | ease-out-quart |
-| Entrada de pagina / hero animation | 400-600ms | ease-out-expo |
-| Scroll reveal (por elemento) | 300-500ms | ease-out-quart |
-| Exit animations | 60-70% do enter | ease-in-quart |
-| Stagger entre itens de lista | 30-50ms por item | ease-out-quart |
+| Micro-interaction (hover, click) | 100-200ms | ease-out-quart |
+| State transition (modal, dropdown) | 200-300ms | ease-out-quart |
+| Page entrance / hero animation | 400-600ms | ease-out-expo |
+| Scroll reveal (per element) | 300-500ms | ease-out-quart |
+| Exit animations | 60-70% of the enter | ease-in-quart |
+| Stagger between list items | 30-50ms per item | ease-out-quart |
 
-**Easing padrao:**
+**Default easing:**
 ```js
-// ease-out-quart (suave, natural)
+// ease-out-quart (smooth, natural)
 "power4.out"  // GSAP
 cubic-bezier(0.16, 1, 0.3, 1)  // CSS
 
-// ease-out-expo (entrada dramatica)
+// ease-out-expo (dramatic entrance)
 "expo.out"  // GSAP
 cubic-bezier(0.19, 1, 0.22, 1)  // CSS
 ```
 
-**Nunca usar:** linear para UI transitions, `ease-in` para entradas.
-**bounce/elastic:** proibidos em Premium e Corporate; permitidos em Playful e Energetic, dentro do
-overshoot do arquetipo. Fora desses dois arquetipos, um bounce e slop.
+**Never use:** linear for UI transitions, `ease-in` for entrances.
+**bounce/elastic:** forbidden in Premium and Corporate; allowed in Playful and Energetic, within the
+archetype's overshoot. Outside those two archetypes, a bounce is slop.
 
-### Escala e coreografia
+### Scale and choreography
 
-**Multiplicador por distancia** (sobre a duracao base do arquetipo):
-50px ×0.8 · 100px ×1.0 · 200px ×1.3 · 300px ×1.5 · 400px ×1.6 · ecra inteiro ×1.8-2.0
+**Multiplier by distance** (over the archetype's base duration):
+50px ×0.8 · 100px ×1.0 · 200px ×1.3 · 300px ×1.5 · 400px ×1.6 · full screen ×1.8-2.0
 
-**Peso do elemento:** Heavy (modais) 300-500ms overshoot 0% · Medium (cards) 200-350ms 3-5% ·
+**Element weight:** Heavy (modals) 300-500ms overshoot 0% · Medium (cards) 200-350ms 3-5% ·
 Light (tooltips, badges) 80-200ms 5-15%
 
-**Tecto de latencia** — tempo ate o feedback *comecar*, nao a duracao:
+**Latency ceiling** — time until the feedback *starts*, not the duration:
 
-| Resposta a input | Tecto |
+| Response to input | Ceiling |
 |---|---|
 | Hover | <100ms |
 | Press/tap | <150ms |
@@ -107,56 +107,56 @@ Light (tooltips, badges) 80-200ms 5-15%
 | Error shake | 300-400ms |
 | Long press | 500-800ms |
 
-**Dois tectos duros de coreografia:**
-- Stagger **total** < 500ms (20 itens × 40ms = 800ms → reduzir o passo ou agrupar)
-- Com 3+ elementos animados, no maximo **1/3** a mexer em simultaneo
+**Two hard choreography ceilings:**
+- **Total** stagger < 500ms (20 items × 40ms = 800ms → reduce the step or group them)
+- With 3+ animated elements, at most **1/3** moving at the same time
 
-Counter-motion, camadas por velocidade e budgets por padrao → `Read(".claude/reference/frontend/motion-choreography.md")`.
+Counter-motion, layers by speed and budgets per pattern → `Read(".claude/reference/frontend/motion-choreography.md")`.
 
-### Performance rules (obrigatorias)
+### Performance rules (mandatory)
 
 ```
-✅ Animar SEMPRE: transform (translate, scale, rotate), opacity
-✅ Animar com cuidado: filter (blur, brightness) — GPU-acelerado mas pesado
-❌ Nunca animar: width, height, top, left, margin, padding — causam reflow
+✅ ALWAYS animate: transform (translate, scale, rotate), opacity
+✅ Animate with care: filter (blur, brightness) — GPU-accelerated but heavy
+❌ Never animate: width, height, top, left, margin, padding — they cause reflow
 ```
 
-**`autoAlpha` em vez de `opacity`** em qualquer fade-out. O `autoAlpha` poe `visibility:hidden` a 0 e
-devolve `inherit` a nao-zero — sem isso ficam elementos invisiveis a comer cliques.
+**`autoAlpha` instead of `opacity`** in any fade-out. `autoAlpha` sets `visibility:hidden` at 0 and
+returns `inherit` at non-zero — without it you get invisible elements eating clicks.
 
-**Escolha de tecnologia por orcamento de performance** (declarado no projecto):
-- particulas count < 100 e sem fisica complexa → vanilla JS + Canvas 2D
-- count ≥ 100 ou interaccao complexa → Pixi.js ou Three.js Points
-- fallback de dispositivo fraco: `navigator.hardwareConcurrency <= 2` → variante estatica/fade
+**Technology choice by performance budget** (declared in the project):
+- particle count < 100 and no complex physics → vanilla JS + Canvas 2D
+- count ≥ 100 or complex interaction → Pixi.js or Three.js Points
+- weak-device fallback: `navigator.hardwareConcurrency <= 2` → static/fade variant
 
 ```js
-// ✅ Correcto — so transform
+// ✅ Correct — transform only
 gsap.to(".card", { x: 100, opacity: 0, duration: 0.3 });
 
-// ❌ Errado — reflow
+// ❌ Wrong — reflow
 gsap.to(".card", { left: 100, width: 200, duration: 0.3 });
 ```
 
-**`filter` a partir de `none` = preto.** O GSAP le `filter: none` como `brightness(0)`, nao `brightness(1)` — um `gsap.to(el, { filter: "brightness(1.2)" })` sobre um elemento sem `filter` inicial faz o elemento ficar PRETO e clarear (animacao invertida). Usar sempre `fromTo` com o estado inicial explicito:
+**`filter` starting from `none` = black.** GSAP reads `filter: none` as `brightness(0)`, not `brightness(1)` — a `gsap.to(el, { filter: "brightness(1.2)" })` on an element with no initial `filter` makes the element go BLACK and then brighten (inverted animation). Always use `fromTo` with the explicit initial state:
 ```js
-// ❌ arranca em brightness(0) → cartao fica preto
+// ❌ starts at brightness(0) → the card goes black
 gsap.to(".card", { filter: "brightness(1.2)" });
 
-// ✅ estado inicial explicito
+// ✅ explicit initial state
 gsap.fromTo(".card", { filter: "brightness(1)" }, { filter: "brightness(1.2)" });
 ```
 
-**will-change:** usar so em elementos que vao animar (nao globalmente):
+**will-change:** use it only on elements that are going to animate (not globally):
 ```css
 .will-animate { will-change: transform, opacity; }
-/* Remover apos animacao: element.style.willChange = 'auto' */
+/* Remove after the animation: element.style.willChange = 'auto' */
 ```
 
-**prefers-reduced-motion — SUBSTITUI o movimento, nao o apaga.**
+**prefers-reduced-motion — REPLACES the motion, it does not delete it.**
 
-Um `if (!prefersReducedMotion)` a envolver a animacao deixa quem tem a preferencia ligada sem
-transicao nenhuma: os estados aparecem de golpe e perde-se a orientacao que a animacao dava. A
-substituicao correcta e **remover o deslocamento espacial, manter a opacidade, reduzir a duracao ≥50%**.
+An `if (!prefersReducedMotion)` wrapping the animation leaves whoever has the preference on with no
+transition at all: the states appear at once and the orientation the animation gave is lost. The
+correct replacement is **remove the spatial displacement, keep the opacity, cut the duration ≥50%**.
 
 ```js
 const mm = gsap.matchMedia();
@@ -167,25 +167,25 @@ mm.add({
 }, (ctx) => {
   const { isDesktop, reduceMotion } = ctx.conditions;
   gsap.from(".hero-title", {
-    y: reduceMotion ? 0 : (isDesktop ? 40 : 24),   // deslocamento fora, opacidade fica
+    y: reduceMotion ? 0 : (isDesktop ? 40 : 24),   // displacement out, opacity stays
     autoAlpha: 0,
     duration: reduceMotion ? 0.2 : 0.6
   });
-  // auto-revert: o que for criado aqui e revertido quando a condicao deixa de bater
-}, scopeRef);   // 3º argumento = scope
+  // auto-revert: whatever is created here is reverted when the condition stops matching
+}, scopeRef);   // 3rd argument = scope
 ```
 
-❌ **Nunca aninhar `gsap.context()` dentro de `gsap.matchMedia()`** — o matchMedia ja e um context.
+❌ **Never nest `gsap.context()` inside `gsap.matchMedia()`** — matchMedia is already a context.
 
-⚠ **As condicoes de largura tem de ser EXAUSTIVAS.** Se nenhuma casar, o callback **nunca corre** — e
-como o `.from()` parte de `autoAlpha: 0`, os elementos ficam invisiveis para sempre. Pagina em branco,
-**sem erro de consola**, so num intervalo de larguras. Aconteceu 2x no mesmo dia: uma variante perdeu
-tudo abaixo do heroi a 390px. Cobrir sempre o espectro (`(min-width: 1024px)` + `(max-width: 1023px)`,
-ou um ramo `all: "(min-width: 0px)"`) e **testar a largura mais estreita** antes de entregar.
+⚠ **The width conditions have to be EXHAUSTIVE.** If none matches, the callback **never runs** — and
+since `.from()` starts from `autoAlpha: 0`, the elements stay invisible forever. Blank page, **with no
+console error**, only in one width range. It happened 2x on the same day: one variant lost everything
+below the hero at 390px. Always cover the spectrum (`(min-width: 1024px)` + `(max-width: 1023px)`, or
+an `all: "(min-width: 0px)"` branch) and **test the narrowest width** before delivering.
 
-⚠ **No ramo reduced-motion, `from()` com `autoAlpha: 0` deixa o elemento invisivel.** O `from()` resolve
-o valor FINAL a partir do estado actual; se a animacao nao mexer, o final fica 0. Nesse ramo usar
-`fromTo()` explicito, com o estado final declarado:
+⚠ **In the reduced-motion branch, `from()` with `autoAlpha: 0` leaves the element invisible.** `from()`
+resolves the FINAL value from the current state; if the animation does not move, the final ends up 0.
+In that branch use an explicit `fromTo()`, with the final state declared:
 ```js
 tl.fromTo(el, { autoAlpha: 0, y: reduceMotion ? 0 : 40 }, { autoAlpha: 1, y: 0, duration: reduceMotion ? 0.2 : 0.6 });
 ```
@@ -208,16 +208,16 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 ```
 
-**O Club GSAP acabou.** Desde a aquisicao pela Webflow, **nenhum plugin** exige membership, license
-key ou auth token — SplitText e MorphSVG incluidos. Vem tudo em `npm install gsap`.
-❌ Nunca gerar `.npmrc` com token GreenSock, apontar a `npm.greensock.com`, nem sugerir subscrever o Club.
+**Club GSAP is over.** Since the Webflow acquisition, **no plugin** requires membership, a license
+key or an auth token — SplitText and MorphSVG included. It all comes in `npm install gsap`.
+❌ Never generate an `.npmrc` with a GreenSock token, point at `npm.greensock.com`, or suggest subscribing to the Club.
 
-### Patterns essenciais
+### Essential patterns
 
-#### Entrada de pagina (hero)
+#### Page entrance (hero)
 
 ```js
-// Staggered hero — elementos entram em cascata
+// Staggered hero — elements enter in a cascade
 gsap.from(".hero-title, .hero-subtitle, .hero-cta", {
   y: 40,
   opacity: 0,
@@ -228,7 +228,7 @@ gsap.from(".hero-title, .hero-subtitle, .hero-cta", {
 });
 ```
 
-#### Scroll reveal (seccoes)
+#### Scroll reveal (sections)
 
 ```js
 gsap.registerPlugin(ScrollTrigger);
@@ -242,13 +242,13 @@ gsap.utils.toArray(".reveal").forEach((el) => {
     scrollTrigger: {
       trigger: el,
       start: "top 85%",
-      once: true     // so uma vez — nao repetir no scroll up
+      once: true     // only once — do not repeat on scroll up
     }
   });
 });
 ```
 
-#### Navbar no scroll
+#### Navbar on scroll
 
 ```js
 ScrollTrigger.create({
@@ -258,7 +258,7 @@ ScrollTrigger.create({
 });
 ```
 
-#### Timeline (sequencia precisa)
+#### Timeline (precise sequence)
 
 ```js
 const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
@@ -270,10 +270,10 @@ tl.from(".logo", { scale: 0.8, opacity: 0, duration: 0.4 })
   .from(".hero-cta", { scale: 0.9, opacity: 0, duration: 0.4 }, "-=0.3");
 ```
 
-#### Hover effects (quickTo para performance)
+#### Hover effects (quickTo for performance)
 
 ```js
-// quickTo — mais rapido que gsap.to em eventos repetidos
+// quickTo — faster than gsap.to on repeated events
 const xTo = gsap.quickTo(".cursor", "x", { duration: 0.3, ease: "power3.out" });
 const yTo = gsap.quickTo(".cursor", "y", { duration: 0.3, ease: "power3.out" });
 
@@ -298,40 +298,40 @@ gsap.to(".hero-bg", {
 });
 ```
 
-**`scrub: 1` (numero), nunca `scrub: true`** em scroll-scrub — `true` liga a animacao 1:1 ao scroll e a roda do rato da degraus; um numero (0.5–1.5) adiciona inercia e suaviza.
+**`scrub: 1` (a number), never `scrub: true`** in scroll-scrub — `true` ties the animation 1:1 to the scroll and the mouse wheel makes it step; a number (0.5–1.5) adds inertia and smooths it.
 
-**Tres falhas silenciosas do ScrollTrigger** (nenhuma da erro de consola):
+**Three silent ScrollTrigger failures** (none gives a console error):
 
-❌ `tl.from(el, { scrollTrigger: {...} })` — ScrollTrigger num tween **filho** nao dispara.
-✅ ScrollTrigger so na **timeline** ou num tween de **topo**: `gsap.timeline({ scrollTrigger: {...} })`.
+❌ `tl.from(el, { scrollTrigger: {...} })` — ScrollTrigger on a **child** tween does not fire.
+✅ ScrollTrigger only on the **timeline** or on a **top-level** tween: `gsap.timeline({ scrollTrigger: {...} })`.
 
-`scrub` e `toggleActions` sao mutuamente exclusivos no mesmo trigger — se ambos existirem, **scrub
-ganha** e o `toggleActions` nunca corre.
+`scrub` and `toggleActions` are mutually exclusive on the same trigger — if both exist, **scrub
+wins** and `toggleActions` never runs.
 
-Dois `from()`/`fromTo()` **na mesma propriedade do mesmo elemento** → pôr `immediateRender: false`
-no(s) posterior(es), senao o estado final do primeiro e sobrescrito antes de ele correr:
+Two `from()`/`fromTo()` **on the same property of the same element** → put `immediateRender: false`
+on the later one(s), otherwise the first one's final state is overwritten before it runs:
 ```js
 gsap.from(".card", { y: 60, duration: 0.5 });
-gsap.from(".card", { y: 20, duration: 0.5, delay: 0.5, immediateRender: false });  // sem isto, o 1º nunca se ve
+gsap.from(".card", { y: 20, duration: 0.5, delay: 0.5, immediateRender: false });  // without this, the 1st is never seen
 ```
 
-Scroll horizontal falso = `containerAnimation` a animar `x/xPercent` de um **filho** do pinned, com
-**`ease: "none"` obrigatorio**; `pin` e `snap` nao funcionam dentro de `containerAnimation`.
+Fake horizontal scroll = `containerAnimation` animating `x/xPercent` of a **child** of the pinned one,
+with **`ease: "none"` mandatory**; `pin` and `snap` do not work inside `containerAnimation`.
 
-#### Validar um scrub (Playwright / browser)
+#### Validating a scrub (Playwright / browser)
 
-Medir `getComputedStyle` logo a seguir a um `scrollTo` da valores errados — o scrub tem ~1 s de lag.
-1. Esperar **≥2 s** apos o `scrollTo` antes de medir.
-2. **Confirmar o viewport ANTES de medir** efeitos dependentes de media queries (sticky/stack desligam-se em mobile; medir um stack a 390px da numeros que nao fazem sentido).
-3. Para validar a CURVA do scrub, **screenshots em 3 pontos** sao mais fiaveis do que ler computed styles.
+Measuring `getComputedStyle` right after a `scrollTo` gives wrong values — the scrub has ~1 s of lag.
+1. Wait **≥2 s** after the `scrollTo` before measuring.
+2. **Confirm the viewport BEFORE measuring** effects that depend on media queries (sticky/stack switch off on mobile; measuring a stack at 390px gives numbers that make no sense).
+3. To validate the scrub CURVE, **screenshots at 3 points** are more reliable than reading computed styles.
 
 ### Deep dives → `.claude/reference/gsap/` (on-demand, MIT/GreenSock)
 
-`Read()` só o ficheiro da camada em causa — são API references, não se pré-carregam.
+`Read()` only the file for the layer in question — they are API references, they are not pre-loaded.
 
 - `gsap-core.md` — to/from/fromTo, easing, defaults, immediateRender, autoAlpha, matchMedia
 - `gsap-timeline.md` — position parameter, labels, nesting
-- `gsap-scrolltrigger.md` — pin, scrub, batch, containerAnimation (scroll horizontal)
+- `gsap-scrolltrigger.md` — pin, scrub, batch, containerAnimation (horizontal scroll)
 - `gsap-plugins.md` — Flip, Draggable, SplitText (autoSplit/onSplit), MorphSVG
 - `gsap-react.md` — useGSAP, contextSafe, revertOnUpdate, cleanup
 - `gsap-performance.md` — quickTo, batch reads, will-change
@@ -342,12 +342,12 @@ Medir `getComputedStyle` logo a seguir a um `scrollTo` da valores errados — o 
 
 ## Lottie
 
-### Quando usar
+### When to use
 
-- Icones com animacao de estado (hamburger -> close, play -> pause, like, checkmark)
-- Ilustracoes animadas (loading, success, error, empty states, mascotes)
-- Loops de fundo (particulas, ondas, padroes subtis)
-- Animacoes que precisam de interactividade por segmento (hover play, click trigger)
+- Icons with a state animation (hamburger -> close, play -> pause, like, checkmark)
+- Animated illustrations (loading, success, error, empty states, mascots)
+- Background loops (particles, waves, subtle patterns)
+- Animations that need per-segment interactivity (hover play, click trigger)
 
 ### Setup
 
@@ -367,7 +367,7 @@ Medir `getComputedStyle` logo a seguir a um `scrollTo` da valores errados — o 
 ```
 
 ```js
-// Controlo programatico
+// Programmatic control
 import lottie from "lottie-web";
 
 const anim = lottie.loadAnimation({
@@ -382,36 +382,36 @@ const anim = lottie.loadAnimation({
 button.addEventListener("mouseenter", () => anim.play());
 button.addEventListener("mouseleave", () => anim.stop());
 
-// Segmentos
+// Segments
 anim.playSegments([0, 60], true);   // frames 0 -> 60
 ```
 
-### Estrutura do JSON Lottie
+### Lottie JSON structure
 
 Key fields for manual editing:
 ```json
 {
-  "nm": "nome da animacao",
+  "nm": "animation name",
   "fr": 60,         // framerate
   "ip": 0,          // in-point
   "op": 120,        // out-point (=2s a 60fps)
   "w": 500,         // width
   "h": 500,         // height
-  "layers": [...]   // camadas
+  "layers": [...]   // layers
 }
 ```
 
-**Editar cores sem After Effects:**
+**Editing colors without After Effects:**
 ```js
-// Procurar "c": [R,G,B,1] em valores 0-1
-// Substituir com nova cor:
+// Look for "c": [R,G,B,1] in 0-1 values
+// Replace with the new color:
 // oklch(0.6 0.2 30) -> RGB(0.85, 0.4, 0.2) ≈ [0.85, 0.4, 0.2, 1]
 ```
 
-### Padroes de icones Lottie
+### Lottie icon patterns
 
 ```js
-// Icone que anima no hover e volta ao estado inicial
+// Icon that animates on hover and returns to the initial state
 const iconAnim = lottie.loadAnimation({
   container: document.querySelector(".icon"),
   loop: false,
@@ -461,7 +461,7 @@ function Hero() {
     gsap.from(".hero-title", { y: 40, autoAlpha: 0, duration: 0.7, ease: "expo.out" });
   }, { scope: container });
 
-  // Handlers criados DEPOIS do useGSAP correr nao entram no context → nao sao limpos.
+  // Handlers created AFTER useGSAP runs do not enter the context → they are not cleaned up.
   const onEnter = contextSafe(() => gsap.to(".card", { scale: 1.05, duration: 0.2 }));
 
   return <div ref={container}><h1 className="hero-title">...</h1></div>;
@@ -474,12 +474,12 @@ function Hero() {
 const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
 lenis.on('scroll', ScrollTrigger.update);
 gsap.ticker.add((t) => lenis.raf(t * 1000));
-gsap.ticker.lagSmoothing(0);          // razao de existir deste bloco
-return () => lenis.destroy();         // cleanup obrigatorio em React
+gsap.ticker.lagSmoothing(0);          // the reason this block exists
+return () => lenis.destroy();         // mandatory cleanup in React
 ```
 
-Sem `lagSmoothing(0)` o GSAP compensa frames perdidos e o ScrollTrigger **dessincroniza** do smooth
-scroll — os pins saltam. Sem `destroy()`, cada remount acumula um raf loop.
+Without `lagSmoothing(0)` GSAP compensates for dropped frames and ScrollTrigger **desyncs** from the
+smooth scroll — the pins jump. Without `destroy()`, each remount piles up another raf loop.
 
 ### Export as MP4/GIF
 Use skill `video` (HTML Animation -> Video Export).
@@ -488,16 +488,16 @@ Use skill `video` (HTML Animation -> Video Export).
 
 ## Checklist
 
-- [ ] Arquetipo escolhido e aplicado ao projecto inteiro (nao um por animacao)
-- [ ] `prefers-reduced-motion` **substitui** (opacidade fica, deslocamento sai, duracao −50%) — nao envolve num `if`
-- [ ] So transform+opacity animados (sem width/height/top/left); `autoAlpha` nos fade-outs
-- [ ] `will-change` apenas em elementos que vao animar
-- [ ] `once: true` no ScrollTrigger para reveals
-- [ ] Durations no range: micro 100-200ms, transitions 200-300ms, reveals 300-500ms
-- [ ] Easing: ease-out para entradas, ease-in para saidas
-- [ ] bounce/elastic so em Playful/Energetic
-- [ ] Stagger total < 500ms · no maximo 1/3 dos elementos a mexer ao mesmo tempo
+- [ ] Archetype chosen and applied to the whole project (not one per animation)
+- [ ] `prefers-reduced-motion` **replaces** (opacity stays, displacement goes, duration −50%) — not wrapped in an `if`
+- [ ] Only transform+opacity animated (no width/height/top/left); `autoAlpha` on fade-outs
+- [ ] `will-change` only on elements that are going to animate
+- [ ] `once: true` on ScrollTrigger for reveals
+- [ ] Durations in range: micro 100-200ms, transitions 200-300ms, reveals 300-500ms
+- [ ] Easing: ease-out for entrances, ease-in for exits
+- [ ] bounce/elastic only in Playful/Energetic
+- [ ] Stagger total < 500ms · at most 1/3 of the elements moving at the same time
 
-Auditoria a fundo (rubrica binaria, tiers de severidade, diagnostico sintoma→causa, adaptacao por
-plataforma) → `Read(".claude/reference/frontend/motion-quality.md")`.
-- [ ] GSAP limpo (sem event listeners duplicados, gsap.context() em React)
+In-depth audit (binary rubric, severity tiers, symptom→cause diagnosis, adaptation by platform) →
+`Read(".claude/reference/frontend/motion-quality.md")`.
+- [ ] GSAP clean (no duplicated event listeners, gsap.context() in React)

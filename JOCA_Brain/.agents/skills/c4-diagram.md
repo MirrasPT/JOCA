@@ -1,7 +1,7 @@
 ---
 name: c4-diagram
-description: "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram. SHOULD also invoke when: arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid."
-triggers: C4, diagrama de arquitectura, architecture diagram, container diagram, system context, como o sistema se estrutura, diagrama do sistema, system diagram, arquitectura visual, visual architecture, mermaid architecture, componentes do sistema, system components, diagrama mermaid
+description: "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, architecture diagram, container diagram, system context, how the system is structured, system diagram. SHOULD also invoke when: visual architecture, mermaid architecture, system components, mermaid diagram."
+triggers: C4, architecture diagram, container diagram, system context, how the system is structured, system diagram, visual architecture, mermaid architecture, system components, mermaid diagram
 ---
 # C4 Diagram
 
@@ -13,12 +13,12 @@ Mermaid architecture diagrams using Simon Brown's C4 model. Output to `docs/arch
 
 ## C4 Levels
 
-| Nivel | Diagrama | Mermaid | Audiencia |
+| Level | Diagram | Mermaid | Audience |
 |-------|----------|---------|-----------|
-| 1 | **Context** | `C4Context` | Todos — sistema + actores + sistemas externos |
-| 2 | **Container** | `C4Container` | Equipa tecnica — apps, servicos, DBs |
-| 3 | **Component** | `C4Component` | Devs — estrutura interna de um container |
-| 4 | **Code** | `classDiagram` | Devs — classes/funcoes (raro, on demand) |
+| 1 | **Context** | `C4Context` | Everyone — system + actors + external systems |
+| 2 | **Container** | `C4Container` | Technical team — apps, services, DBs |
+| 3 | **Component** | `C4Component` | Devs — internal structure of a container |
+| 4 | **Code** | `classDiagram` | Devs — classes/functions (rare, on demand) |
 
 **Golden rule:** Context + Container suffice for most teams. Generate level 3/4 only if requested or the container is complex.
 
@@ -28,15 +28,15 @@ Mermaid architecture diagrams using Simon Brown's C4 model. Output to `docs/arch
 
 Identify mode before producing any diagram:
 
-| Sinal | Modo |
+| Signal | Mode |
 |-------|------|
-| Ideia vaga, sem codigo, "quero desenhar..." | **Design** (greenfield) |
-| Path para repo, codigo existente | **Document-code** (retro-documentar) |
-| README, spec, PRD partilhado | **Document-prose** (retro de docs) |
-| Diagrama existente + "esta bem?" | **Review** |
-| Diagrama existente + "adiciona X" | **Update** |
+| Vague idea, no code, "I want to draw..." | **Design** (greenfield) |
+| Path to a repo, existing code | **Document-code** (retro-document) |
+| README, spec, PRD shared | **Document-prose** (retro from docs) |
+| Existing diagram + "is this right?" | **Review** |
+| Existing diagram + "add X" | **Update** |
 
-If unclear, ask: "Queres (a) desenhar arquitectura nova, (b) documentar sistema existente, ou (c) rever/actualizar diagrama?"
+If unclear, ask: "Do you want to (a) design a new architecture, (b) document an existing system, or (c) review/update a diagram?"
 
 ---
 
@@ -49,42 +49,42 @@ docs/
 └── architecture/
     ├── 01-context.md
     ├── 02-container.md
-    └── 03-component-[nome].md    ← so se pedido
+    └── 03-component-[name].md    ← only if requested
 ```
 
 ### Template per Level
 
 ```markdown
-# [Nivel] — [Nome do Sistema]
+# [Level] — [System Name]
 
 ## Overview
-[1-2 frases: o que este diagrama mostra]
+[1-2 sentences: what this diagram shows]
 
-## Diagrama
+## Diagram
 
 \```mermaid
 C4Container
-    title Container diagram for [Sistema]
+    title Container diagram for [System]
     ...
 \```
 
-## Elementos
+## Elements
 
-| Nome | Tipo | Tecnologia | Responsabilidade |
+| Name | Type | Technology | Responsibility |
 |------|------|-----------|-----------------|
-| [nome] | Container/DB/Queue | [tech] | [o que faz] |
+| [name] | Container/DB/Queue | [tech] | [what it does] |
 
-## Relacoes chave
+## Key relations
 
-| De | Para | Intent | Protocolo |
+| From | To | Intent | Protocol |
 |----|------|--------|-----------|
-| [origem] | [destino] | [o que faz] | [HTTP/gRPC/AMQP/...] |
+| [source] | [target] | [what it does] | [HTTP/gRPC/AMQP/...] |
 
-## Decisoes arquitecturais
-- [decisao relevante para este nivel]
+## Architectural decisions
+- [decision relevant to this level]
 
 ## Assumptions
-- [inferencias nao confirmadas — NUNCA incorporar silenciosamente]
+- [unconfirmed inferences — NEVER incorporate silently]
 ```
 
 ---
@@ -148,14 +148,14 @@ Rel_R(from, to, "Label")    # right
 C4Container
     title Container diagram for SaaS Platform
 
-    Person(user, "Tenant User", "Utilizador autenticado de um tenant")
-    Person(admin, "Platform Admin", "Administrador da plataforma")
+    Person(user, "Tenant User", "Authenticated user of a tenant")
+    Person(admin, "Platform Admin", "Platform administrator")
 
     System_Boundary(platform, "SaaS Platform") {
-        Container(spa, "Frontend SPA", "React, Vite", "Interface do utilizador")
+        Container(spa, "Frontend SPA", "React, Vite", "User interface")
         Container(api, "API", "Laravel 11, PHP 8.3", "Business logic, REST endpoints")
-        Container(worker, "Queue Worker", "Laravel Horizon", "Processa jobs assincronos")
-        ContainerDb(db, "Database", "MySQL 8", "Dados multi-tenant")
+        Container(worker, "Queue Worker", "Laravel Horizon", "Processes async jobs")
+        ContainerDb(db, "Database", "MySQL 8", "Multi-tenant data")
         ContainerDb(cache, "Cache", "Redis 7", "Cache, sessions, queues")
         Container(ws, "WebSocket", "Laravel Reverb", "Real-time events")
     }
@@ -220,14 +220,14 @@ C4Container
 
 ## Common Mistakes
 
-| Erro | Problema | Fix |
+| Mistake | Problem | Fix |
 |------|----------|-----|
-| Misturar niveis | Container ao lado de Component no mesmo diagrama | Um nivel por diagrama |
-| Esquecer sistemas externos | Sistema parece isolado | Context level mostra TUDO que interage |
-| Labels vagas ("Uses", "Calls") | Nao comunica nada | Intent concreto + protocolo |
-| Sem tecnologia em containers | Nao se sabe o que e | Sempre: "Laravel 11, PHP 8.3" |
-| Diagrama sem documento | Diagrama e ambiguo sozinho | Sempre acompanhar com Markdown |
-| Entregar sem validar | Assumptions nao confirmadas | Nunca escrever ficheiros sem "ok" do utilizador |
+| Mixing levels | Container next to Component in the same diagram | One level per diagram |
+| Forgetting external systems | The system looks isolated | Context level shows EVERYTHING that interacts |
+| Vague labels ("Uses", "Calls") | Communicates nothing | Concrete intent + protocol |
+| No technology on containers | You cannot tell what it is | Always: "Laravel 11, PHP 8.3" |
+| Diagram with no document | A diagram is ambiguous on its own | Always accompany it with Markdown |
+| Delivering without validating | Unconfirmed assumptions | Never write files without the user's "ok" |
 
 ---
 
@@ -239,4 +239,4 @@ Pipeline position in the JOCA sequence:
 -> **lateral**: `adr` (architectural decisions logged during diagramming)
 -> **after**: `task-breakdown` (break components into atomic work)
 
-Notify on completion: `-> proximo: task-breakdown`
+Notify on completion: `-> next: task-breakdown`

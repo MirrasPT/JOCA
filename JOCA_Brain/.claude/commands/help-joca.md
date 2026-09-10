@@ -1,77 +1,77 @@
-# /help-joca — Referência rápida do JOCA
+# /help-joca — JOCA quick reference
 
-Apresenta todos os comandos, agentes e skills do JOCA com descrição curta.
+Presents every JOCA command, agent and skill with a short description.
 
-## Passos
+## Steps
 
-1. Ler `memory/INDEX.md` para obter a lista actualizada de commands e agentes.
-2. Ler `memory/SKILL_INDEX.json` para obter a lista actualizada de skills (name + description).
-3. Apresentar o output abaixo — substituindo as secções de Agentes e Skills com o conteúdo real (INDEX.md para agentes, SKILL_INDEX.json para skills), resumido a ~10 palavras por item.
+1. Read `memory/INDEX.md` to get the up-to-date list of commands and agents.
+2. Read `memory/SKILL_INDEX.json` to get the up-to-date list of skills (name + description).
+3. Present the output below — replacing the Agents and Skills sections with the real content (INDEX.md for agents, SKILL_INDEX.json for skills), summarized to ~10 words per item.
 
 ---
 
-## Output a apresentar
+## Output to present
 
 ```
-JOCA — Referência rápida
+JOCA — Quick reference
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SESSÃO
-/resume              Carrega contexto e knowledge graph do projecto
-/save                Guarda estado da sessão e actualiza memory
-/start               Arranca um projecto novo ou liga um existente ao JOCA
-/install             Setup ou reconfiguração do JOCA
-/migrate             Migração v1-legacy → v2.0
+SESSION
+/resume              Loads project context and knowledge graph
+/save                Saves session state and updates memory
+/start               Starts a new project or connects an existing one to JOCA
+/install             JOCA setup or reconfiguration
+/migrate             v1-legacy → v2.0 migration
 
 WORKFLOW
-/plan                Activa Plan Mode para arquitectura e decisões
-/autoplan            Plano completo auto-revisto (produto → design → eng)
-/goal                Auto-orquestração de tarefa NL → master-orchestrator loop
-/one-shot            Desenvolvimento autónomo end-to-end a partir de PRD
-/build-plan          Construção supervisionada por fases com gate de testes
-/debug               Triage de erros com skill do stack detectado
-/review-code         Code review via tester-code + Codex adversarial opcional
-/review-design       Review UI/UX e acessibilidade em paralelo
-/ship                Levar código a PR: sync → testes → gate → push → PR
-/create-skill [desc] Cria nova skill via pipeline self-improving
-/create-skill --upgrade [nome]  Melhora skill existente
+/plan                Activates Plan Mode for architecture and decisions
+/autoplan            Full self-reviewed plan (product → design → eng)
+/goal                Auto-orchestration from an NL task → master-orchestrator loop
+/one-shot            Autonomous end-to-end development from a PRD
+/build-plan          Supervised phased build with a test gate
+/debug               Error triage with the detected stack's skill
+/review-code         Code review via tester-code + optional adversarial Codex
+/review-design       UI/UX and accessibility review in parallel
+/ship                Take code to PR: sync → tests → gate → push → PR
+/create-skill [desc] Creates a new skill via a self-improving pipeline
+/create-skill --upgrade [name]  Improves an existing skill
 
-CONHECIMENTO
-/know                Ingere conteúdo na Knowledge Base (markitdown → nota wiki)
-/learn               Memória institucional do Brain (decisões + aprendizagens)
-/retro               Retrospectiva: aprendizagens da janela → acções
-/map-joca            Mapa de conhecimento interactivo (graph.html via graphify)
+KNOWLEDGE
+/know                Ingests content into the Knowledge Base (markitdown → wiki note)
+/learn               The Brain's institutional memory (decisions + learnings)
+/retro               Retrospective: learnings from the window → actions
+/map-joca            Interactive knowledge map (graph.html via graphify)
 
-FEEDBACK & MANUTENÇÃO
-(feedback do projecto + JOCA é auto-capturado pelo /save)
-/upgrade-joca        Lê feedback acumulado → implementa melhorias ao JOCA
-/update-joca         Verifica e aplica updates do repositório oficial GitHub
-/status              Mostra rate limits, modelo e contexto actual
+FEEDBACK & MAINTENANCE
+(project + JOCA feedback is auto-captured by /save)
+/upgrade-joca        Reads accumulated feedback → implements improvements to JOCA
+/update-joca         Checks and applies updates from the official GitHub repository
+/status              Shows rate limits, model and current context
 
 WORDPRESS
-/wp-perf             Quick triage WordPress — issues críticos (rápido)
-/wp-perf-review      Code review WP completo: Critical / Warning / Info
+/wp-perf             Quick WordPress triage — critical issues (fast)
+/wp-perf-review      Full WP code review: Critical / Warning / Info
 
-/help-joca           Esta página
+/help-joca           This page
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-AGENTES
-[ler do memory/INDEX.md — secção ## Agents — e apresentar agrupado por categoria]
+AGENTS
+[read from memory/INDEX.md — the ## Agents section — and present grouped by category]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SKILLS
-[ler de memory/SKILL_INDEX.json — apresentar agrupado por domínio]
-Nota: Skills Shopify e WordPress só activas nos projectos respectivos.
+[read from memory/SKILL_INDEX.json — present grouped by domain]
+Note: Shopify and WordPress skills are only active in their respective projects.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## Regras de formatação
+## Formatting rules
 
-- Descrições: máximo ~10 palavras, sem artigos quando possível
-- Agentes agrupados por categoria tal como no INDEX.md; skills agrupadas por domínio
-- Sem markdown pesado — texto plano com `━` como separador
-- Famílias grandes de skills (GSAP, ComfyUI, WordPress, hyperframes): agrupar como bloco "GSAP (8)" etc. com nota "(ver SKILL_INDEX.json para lista completa)"
-- Se o utilizador passar argumento (ex: `/help-joca design`): filtrar e mostrar só essa categoria
+- Descriptions: maximum ~10 words, no articles where possible
+- Agents grouped by category just as in INDEX.md; skills grouped by domain
+- No heavy markdown — plain text with `━` as the separator
+- Large skill families (GSAP, ComfyUI, WordPress, hyperframes): group as a block "GSAP (8)" etc. with the note "(see SKILL_INDEX.json for the full list)"
+- If the user passes an argument (e.g.: `/help-joca design`): filter and show only that category

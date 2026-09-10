@@ -1,15 +1,15 @@
-Parte da skill `frontend` — carregado on-demand. Brand asset protocol, regras de cor/tema/tipografia/layout e modo Design Advisor.
+Part of the `frontend` skill — loaded on-demand. Brand asset protocol, color/theme/typography/layout rules and Design Advisor mode.
 
 ### Brand Asset Protocol (when brand involved)
 
 Brand recognition comes from real assets, not palettes.
 
-| Prioridade | Asset | Impacto |
+| Priority | Asset | Impact |
 |-----------|-------|---------|
-| 1 | Logo (SVG/PNG) | Maximo |
-| 2 | Imagens produto / screenshots UI | Maximo |
-| 3 | Cores (extraidas de assets reais) | Medio |
-| 4 | Tipografia | Suporte |
+| 1 | Logo (SVG/PNG) | Maximum |
+| 2 | Product images / UI screenshots | Maximum |
+| 3 | Colors (extracted from real assets) | Medium |
+| 4 | Typography | Support |
 
 **Protocol:**
 1. Ask for full list (logo, images, colors, fonts, guidelines)
@@ -20,7 +20,7 @@ Brand recognition comes from real assets, not palettes.
 
 **Never:** CSS shapes or SVG drawings to replace real photos. Stop and ask before using filler.
 
-### Cor
+### Color
 - OKLCH. Reduce chroma when lightness approaches 0 or 100.
 - Never pure `#000` or `#fff` -- tint toward brand color (chroma 0.005-0.01).
 - Pick strategy:
@@ -31,10 +31,10 @@ Brand recognition comes from real assets, not palettes.
 - Light and dark designed together, not one after the other.
 - WCAG 4.5:1 body text, 3:1 large text.
 
-### Tema (dark vs light)
+### Theme (dark vs light)
 Never a default. Write 1 sentence of physical scene: who uses it, where, what ambient light. If the sentence doesn't force the answer, it's not concrete enough.
 
-### Tipografia
+### Typography
 - Distinctive display + refined body. Ratio >= 1.25 between steps.
 - Line length: 65-75ch long text, 35-60ch mobile.
 - Vary fonts between generations -- never converge on the same one.
@@ -60,7 +60,7 @@ Never a default. Write 1 sentence of physical scene: who uses it, where, what am
 
 ## #5 Design Advisor (direction undefined)
 
-Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
+Trigger: "make something beautiful", "I don't know what style", "help me design", "do whatever you think is best".
 
 Don't guess and build. Enter advisor mode:
 
@@ -68,13 +68,13 @@ Don't guess and build. Enter advisor mode:
 2. Restate brief in 100-150 words
 3. Recommend 3 directions from 3 different schools:
 
-| Escola | Caracter |
+| School | Character |
 |--------|---------|
-| Arquitectura de Informacao (Pentagram) | Rational, data-driven, contained |
+| Information Architecture (Pentagram) | Rational, data-driven, contained |
 | Motion Poetry (Field.io) | Dynamic, immersive, technical beauty |
-| Minimalismo (Kenya Hara) | Order, negative space, refined |
-| Vanguarda Experimental (Sagmeister) | Avant-garde, generative, impact |
-| Filosofia Oriental | Warm, poetic, contemplative |
+| Minimalism (Kenya Hara) | Order, negative space, refined |
+| Experimental Avant-Garde (Sagmeister) | Avant-garde, generative, impact |
+| Eastern Philosophy | Warm, poetic, contemplative |
 
 4. Generate 3 quick HTML demos with real content -> Playwright screenshot -> show
 5. User picks -> Junior Designer mode with chosen direction

@@ -124,7 +124,7 @@ export function isAuthenticated(req: { headers: IncomingMessage['headers'] }): b
 // data); every data/action route sits behind this.
 export function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (isAuthenticated(req)) return next();
-  res.status(401).json({ error: 'Não autenticado' });
+  res.status(401).json({ error: 'Not authenticated' });
 }
 
 export function authRouter(): Router {
@@ -136,12 +136,12 @@ export function authRouter(): Router {
 
   r.post('/auth/login', express.json(), (req, res) => {
     if (!authEnabled()) return res.json({ ok: true });
-    if (Date.now() < lockedUntil) return res.status(429).json({ error: 'Demasiadas tentativas — espera 30s' });
+    if (Date.now() < lockedUntil) return res.status(429).json({ error: 'Too many attempts — wait 30s' });
     const password = typeof (req.body ?? {}).password === 'string' ? (req.body as { password: string }).password : '';
     if (!verifyPassword(password)) {
       failCount++;
       if (failCount >= MAX_FAILS) { lockedUntil = Date.now() + LOCKOUT_MS; failCount = 0; }
-      return res.status(401).json({ error: 'Password errada' });
+      return res.status(401).json({ error: 'Wrong password' });
     }
     failCount = 0;
     const token = issueToken();
@@ -161,10 +161,10 @@ export function authRouter(): Router {
   // First-time password setup from the local UI (before a VPS deploy). Allowed only when no
   // password exists yet OR the caller is already authenticated (password change).
   r.post('/auth/set-password', express.json(), (req, res) => {
-    if (authEnabled() && !isAuthenticated(req)) return res.status(401).json({ error: 'Não autenticado' });
-    if (process.env.JOCA_PASSWORD) return res.status(400).json({ error: 'Password gerida por env JOCA_PASSWORD — remove a env para gerir aqui' });
+    if (authEnabled() && !isAuthenticated(req)) return res.status(401).json({ error: 'Not authenticated' });
+    if (process.env.JOCA_PASSWORD) return res.status(400).json({ error: 'Password managed by env JOCA_PASSWORD — remove the env to manage it here' });
     const password = typeof (req.body ?? {}).password === 'string' ? (req.body as { password: string }).password : '';
-    if (password.length < 8) return res.status(400).json({ error: 'Password demasiado curta (mínimo 8 caracteres)' });
+    if (password.length < 8) return res.status(400).json({ error: 'Password too short (minimum 8 characters)' });
     setPassword(password);
     const token = issueToken();
     res.setHeader('Set-Cookie', `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(TOKEN_TTL_MS / 1000)}`);

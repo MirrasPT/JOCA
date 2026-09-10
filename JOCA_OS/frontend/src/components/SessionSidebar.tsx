@@ -7,45 +7,45 @@ import { shortPath } from '../lib/paths';
 import ConfirmDialog from './ConfirmDialog';
 import { useBrand } from '../hooks/useBrand';
 import { probeOfficeGif, loadOfficePool, poolIndex, stillFor } from '../lib/office-gifs';
-// Versão lida do `package.json`, não escrita à mão: o número que estava aqui cravado tinha ficado
-// uma versão inteira atrás do real (0.8.1 no ecrã, 0.9.1 nos três package.json). O import nomeado
-// só traz a string para o bundle, não o ficheiro todo.
+// Version read from `package.json`, not written by hand: the number hardcoded here had fallen a
+// whole version behind the real one (0.8.1 on screen, 0.9.1 in the three package.json). The named
+// import only brings the string into the bundle, not the whole file.
 import { version as VERSAO_COMPLETA } from '../../package.json';
 
-/** Só `major.minor` na barra (`0.9`). O patch continua a viver no `package.json`, que é onde
- *  interessa; aqui é identidade, não número de build — e continua a derivar do ficheiro, para não
- *  voltar a divergir como aconteceu com o `0.8.1` escrito à mão.
+/** Only `major.minor` in the bar (`0.9`). The patch keeps living in `package.json`, which is where
+ *  it matters; here it is identity, not a build number — and it still derives from the file, so it
+ *  does not diverge again like the hand-written `0.8.1` did.
  *
- *  Quando o backend anuncia um `JOCA_ENV` (`PRD`, `DEV`, …), é ESSE o rótulo que aparece: com duas
- *  instalações a correr ao mesmo tempo, saber QUAL se está a ver vale mais do que a versão, que é
- *  a mesma nas duas. Sem `JOCA_ENV`, nada muda. */
+ *  When the backend announces a `JOCA_ENV` (`PRD`, `DEV`, …), THAT is the label that shows: with two
+ *  installations running at the same time, knowing WHICH one you are looking at is worth more than
+ *  the version, which is the same in both. Without `JOCA_ENV`, nothing changes. */
 const VERSAO = VERSAO_COMPLETA.split('.').slice(0, 2).join('.');
 
 
 
 interface Props {
-  /** Rótulo da instância (`JOCA_ENV` no backend). `null` → mostra a versão. */
+  /** Instance label (`JOCA_ENV` in the backend). `null` → shows the version. */
   envLabel?: string | null;
   sessions: SessionInfo[];
   projects: Project[];
   projectGroups: ProjectGroupData[];
-  /** O tipo vem de `types.ts` — repetir a união aqui fazia-a divergir (foi assim que `'agents'`
-   *  passou a existir em todo o lado menos na barra que o tem de marcar como activo). */
+  /** The type comes from `types.ts` — repeating the union here made it diverge (that is how
+   *  `'agents'` came to exist everywhere except in the bar that has to mark it as active). */
   mainView: MainView;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onShowDashboard: () => void;
-  /** Vista global de agentes (todos os projectos num sítio só). */
+  /** Global agents view (every project in one single place). */
   onShowAgents: () => void;
   onShowProject: (projectId: string) => void;
-  /** Abrir um agente solto (sem projecto) directamente da barra. */
+  /** Open a loose agent (without a project) straight from the sidebar. */
   onOpenSession: (id: string) => void;
-  /** Renomear um agente rápido (duplo-clique no nome). */
+  /** Rename a quick agent (double-click on the name). */
   onRenameSession?: (id: string, name: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
   onCreateProject: () => void;
-  /** Abre as Definições (modal). O rail direito onde viviam foi removido. */
+  /** Opens Settings (modal). The right rail where they lived was removed. */
   onOpenSettings: () => void;
   onInput: (sessionId: string, data: string) => void;
   onRenameProject?: (id: string, name: string) => void;
@@ -53,10 +53,10 @@ interface Props {
   onReorderProjects?: (orderedIds: string[]) => void;
   onGroupProjects?: (draggedId: string, targetId: string) => void;
   onUngroupProject?: (id: string) => void;
-  /** Remove o projecto do JOCA. A confirmação é levantada pela própria linha, não aqui. */
+  /** Removes the project from JOCA. The confirmation is raised by the row itself, not here. */
   onRemoveProject?: (id: string) => void;
   onRenameGroup?: (id: string, name: string) => void;
-  /** `null` limpa o ícone do grupo (o backend recolhe o ficheiro se mais ninguém o apontar). */
+  /** `null` clears the group icon (the backend collects the file if nobody else points at it). */
   onSetGroupIcon?: (id: string, icon: ProjectIcon | null) => void;
   onToggleGroupCollapsed?: (id: string, collapsed: boolean) => void;
 }
@@ -70,31 +70,31 @@ type LucideName =
   | 'settings';
 
 /**
- * Ícones do tema "The Office" — só entram com `data-brand="office"`, e só para os nomes que aqui
- * estão; o resto cai no conjunto normal.
+ * Icons of the "The Office" theme — they only come in with `data-brand="office"`, and only for the
+ * names listed here; the rest falls back to the normal set.
  *
- * São desenhos NOSSOS, no mesmo traço dos outros (24×24, `currentColor`), a citar as piadas
- * correntes da série — a caneca do chefe, o Dundie, o agrafador, a beterraba de Schrute Farms, os
- * óculos, a resma de papel. Não são fotogramas: imagens da série num repo público seriam material
- * com direitos de terceiros, e estes herdam a cor do tema, coisa que um PNG não faz.
+ * They are OUR OWN drawings, in the same stroke as the others (24×24, `currentColor`), quoting the
+ * show's running jokes — the boss's mug, the Dundie, the stapler, the Schrute Farms beet, the
+ * glasses, the ream of paper. They are not frames: images from the show in a public repo would be
+ * third-party copyrighted material, and these inherit the theme's color, which a PNG does not.
  */
 const OFFICE_ICONS: Partial<Record<LucideName, React.ReactNode>> = {
-  // Caneca "World's Best Boss" — o painel principal.
+  // "World's Best Boss" mug — the main panel.
   'layout-dashboard': <><path d="M4 8h11v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" /><path d="M15 10h2.2a2.4 2.4 0 0 1 0 4.8H15" /><path d="M7.5 3v2M11.5 3v2" /></>,
-  // Beterraba de Schrute Farms — os agentes.
+  // Schrute Farms beet — the agents.
   terminal: <><path d="M12 20.5c-3.2 0-5.5-2.3-5.5-5.2S9 9.5 12 9.5s5.5 2.9 5.5 5.8-2.3 5.2-5.5 5.2Z" /><path d="M12 9.5V5.5" /><path d="M12 6.5C10.8 4.3 9 3.8 7.4 4.4c.2 1.9 2 3 4.6 2.1ZM12 6.5c1.2-2.2 3-2.7 4.6-2.1-.2 1.9-2 3-4.6 2.1Z" /></>,
-  // Lápis — a sessão rápida é o rascunho ao lado, não a lavoura dos agentes. Glifo PRÓPRIO para os
-  // dois se distinguirem mesmo sem GIF nenhum configurado.
+  // Pencil — the quick session is the scratch pad on the side, not the agents' field work. Its OWN
+  // glyph so the two can be told apart even with no GIF configured at all.
   'terminal-quick': <><path d="m14.5 4.5 5 5L9 20H4v-5Z" /><path d="m12.5 6.5 5 5" /></>,
-  // Óculos do Dwight — as definições.
+  // Dwight's glasses — the settings.
   settings: <><circle cx="6.6" cy="13.5" r="3.6" /><circle cx="17.4" cy="13.5" r="3.6" /><path d="M10.2 13.2c.8-.9 2.8-.9 3.6 0" /><path d="m3.2 11.4 1.8-3M20.8 11.4 19 8.4" /></>,
-  // Resma de papel — cada projecto é uma pilha de folhas.
+  // Ream of paper — each project is a stack of sheets.
   folder: <><path d="M8 3.5h9.5v17H8Z" /><path d="M5 6.5v14h11" /><path d="M10.6 8h4.4M10.6 11.5h4.4" /></>,
 };
 
 /**
- * URL do GIF deste ícone, se o ficheiro existir em `public/brand/office/`. Devolve `null` enquanto
- * sonda e sempre que o tema não é o The Office — nesses casos desenha-se o glifo, como antes.
+ * URL of this icon's GIF, if the file exists in `public/brand/office/`. Returns `null` while it
+ * probes and whenever the theme is not The Office — in those cases the glyph is drawn, as before.
  */
 function useOfficeGif(name: LucideName, activo: boolean): string | null {
   const [src, setSrc] = useState<string | null>(null);
@@ -108,9 +108,10 @@ function useOfficeGif(name: LucideName, activo: boolean): string | null {
 }
 
 /**
- * Imagem animada que só anima com o rato em cima. Em repouso mostra o fotograma parado; ao entrar
- * troca para o ficheiro animado, ao sair volta atrás (e o animado recomeça do início na próxima vez,
- * que é o que se quer). Se o parado não existir, fica-se pelo animado — nunca há buraco.
+ * Animated image that only animates with the mouse over it. At rest it shows the still frame; on
+ * enter it switches to the animated file, on leave it goes back (and the animated one restarts from
+ * the beginning next time, which is what we want). If the still does not exist, we stay on the
+ * animated one — there is never a hole.
  */
 function OfficeGif({ src, className }: { src: string; className?: string }) {
   const [hover, setHover] = useState(false);
@@ -119,8 +120,8 @@ function OfficeGif({ src, className }: { src: string; className?: string }) {
   const ref = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // O gatilho é o BOTÃO/linha que contém o ícone, não o ícone: um alvo de 20px obrigava a acertar
-    // no quadrado, quando o que se está a apontar é a entrada inteira.
+    // The trigger is the BUTTON/row that contains the icon, not the icon: a 20px target forced you
+    // to hit the square, when what you are pointing at is the whole entry.
     const alvo = ref.current?.closest<HTMLElement>(
       'button, a, [role="button"], .sidebar-loose-item, .project-group-header',
     );
@@ -131,9 +132,9 @@ function OfficeGif({ src, className }: { src: string; className?: string }) {
     alvo.addEventListener('mouseenter', entra);
     alvo.addEventListener('mouseleave', sai);
 
-    // O item ONDE SE ESTÁ anima sem hover nenhum. O estado activo é escrito em classes/atributos do
-    // botão, e muda sem que este componente volte a renderizar — daí o observador, em vez de o ler
-    // uma vez e ficar desactualizado ao mudar de vista.
+    // The item you ARE ON animates with no hover at all. The active state is written into the
+    // button's classes/attributes, and changes without this component re-rendering — hence the
+    // observer, instead of reading it once and going stale on a view change.
     const leEstado = () => setSeleccionado(
       alvo.classList.contains('active')
       || alvo.classList.contains('is-active')
@@ -164,8 +165,8 @@ function OfficeGif({ src, className }: { src: string; className?: string }) {
 }
 
 /**
- * GIF da pool para este id (projecto ou sessão). `null` fora do tema The Office, enquanto a pool é
- * sondada, ou se a pasta estiver vazia — nesses casos desenha-se o ícone normal.
+ * GIF from the pool for this id (project or session). `null` outside The Office theme, while the
+ * pool is being probed, or if the folder is empty — in those cases the normal icon is drawn.
  */
 function usePoolGif(id: string, activo: boolean): string | null {
   const [pool, setPool] = useState<string[]>([]);
@@ -181,8 +182,8 @@ function usePoolGif(id: string, activo: boolean): string | null {
 function LucideIcon({ name }: { name: LucideName }) {
   const brand = useBrand();
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.1, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  // Ordem: GIF (se o ficheiro existir na pasta) → glifo do tema → glifo normal. O glifo é o que se
-  // desenha enquanto a sondagem não responde, portanto nunca há um buraco nem um ícone partido.
+  // Order: GIF (if the file exists in the folder) → theme glyph → normal glyph. The glyph is what
+  // gets drawn while the probe has not answered, so there is never a hole nor a broken icon.
   const gif = useOfficeGif(name, brand.id === 'office');
   if (gif) return <OfficeGif src={gif} />;
   if (brand.id === 'office' && OFFICE_ICONS[name]) return <svg {...common}>{OFFICE_ICONS[name]}</svg>;
@@ -191,9 +192,9 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>;
   if (name === 'folder-plus') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /><path d="M12 10v6M9 13h6" /></svg>;
   if (name === 'message-square') return <svg {...common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" /></svg>;
-  // `terminal-quick` (sessão rápida / agentes soltos) desenha-se igual ao `terminal` no conjunto
-  // normal — é a MESMA coisa. Existe como nome próprio só para poder receber um ícone diferente nos
-  // temas: partilhar a chave fazia o GIF dos Agentes aparecer também na sessão rápida.
+  // `terminal-quick` (quick session / loose agents) is drawn the same as `terminal` in the normal
+  // set — it is the SAME thing. It exists as its own name only so it can get a different icon in the
+  // themes: sharing the key made the Agents GIF show up in the quick session too.
   if (name === 'terminal' || name === 'terminal-quick') return <svg {...common}><path d="m5 7 5 5-5 5" /><path d="M12 19h7" /></svg>;
   if (name === 'folder') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
   if (name === 'folder-open') return <svg {...common}><path d="M6 17.5A2.5 2.5 0 0 1 3.5 15V6.5A2.5 2.5 0 0 1 6 4h3.5l2 2H18a2 2 0 0 1 2 2v1" /><path d="M4 17.5 6.2 10h15.3l-2.2 7.5A2 2 0 0 1 17.4 19H5.9A2 2 0 0 1 4 17.5Z" /></svg>;
@@ -219,22 +220,22 @@ function LucideIcon({ name }: { name: LucideName }) {
   return <svg {...common}><path d="m9 18 6-6-6-6" /></svg>;
 }
 
-// ── Identidade visual (logótipo · emoji · monograma) ───────────────
-// Cascata única para projectos E grupos: logótipo carregado → emoji escolhido → 2 primeiras letras
-// do nome. Com a barra fechada o nome está escondido, por isso nenhum dos ramos pode cair num
-// quadrado vazio — era isso que acontecia aos grupos, que nem sequer tinham elemento de ícone.
-// O monograma vem em `data-mono` e só o CSS o troca pelo svg quando a barra está fechada (o ícone
-// de pasta continua no DOM para a barra aberta).
+// ── Visual identity (logo · emoji · monogram) ──────────────────────
+// A single cascade for projects AND groups: uploaded logo → chosen emoji → the first 2 letters of
+// the name. With the sidebar collapsed the name is hidden, so none of the branches may fall into an
+// empty square — that is what happened to groups, which did not even have an icon element.
+// The monogram comes in `data-mono` and only the CSS swaps it for the svg when the sidebar is
+// collapsed (the folder icon stays in the DOM for the expanded sidebar).
 
 function ProjectAvatar({ icon, name, id }: { icon?: ProjectIcon; name: string; id?: string }) {
   const brand = useBrand();
-  // A pool só entra quando o projecto NÃO tem ícone próprio: um logótipo que o dono escolheu ganha
-  // sempre ao sorteio. Hook chamado incondicionalmente (regra dos hooks) e desligado por `activo`.
+  // The pool only comes in when the project has NO icon of its own: a logo the owner chose always
+  // beats the draw. The hook is called unconditionally (rules of hooks) and switched off by `activo`.
   const poolGif = usePoolGif(id ?? name, brand.id === 'office' && !icon);
   if (icon?.type === 'image') {
     return (
       <span className="project-group-icon project-icon--image">
-        {/* Decorativa: o nome acessível já vem do botão que a envolve. */}
+        {/* Decorative: the accessible name already comes from the button that wraps it. */}
         <img src={projectIconUrl(icon)} alt="" />
       </span>
     );
@@ -257,19 +258,18 @@ function ProjectAvatar({ icon, name, id }: { icon?: ProjectIcon; name: string; i
 }
 
 /**
- * Campo de escolha de ícone (carregar logótipo · emoji · remover), partilhado pela linha de grupo
- * na barra lateral e pelo modal de projecto. Vive aqui, e não num ficheiro próprio, porque os dois
- * únicos consumidores são estes dois módulos — a alternativa era criar um terceiro ficheiro só para
- * uma função de ~60 linhas.
+ * Icon picker field (upload logo · emoji · remove), shared by the group row in the sidebar and by
+ * the project modal. It lives here, and not in a file of its own, because the only two consumers
+ * are these two modules — the alternative was creating a third file just for a ~60-line function.
  *
- * O upload segue o contrato de `POST /icons`: bytes crus no corpo, extensão só como pista. O
- * servidor é a autoridade sobre formato/tamanho — aqui só se traduz o erro para PT-PT.
+ * The upload follows the `POST /icons` contract: raw bytes in the body, the extension only as a
+ * hint. The server is the authority on format/size — here the error is only translated into PT-PT.
  */
 export function ProjectIconField({ icon, name, label, onChange }: {
   icon?: ProjectIcon;
-  /** Nome do projecto/grupo — alimenta o monograma da pré-visualização. */
+  /** Project/group name — feeds the preview's monogram. */
   name: string;
-  /** Como o alvo se chama nos rótulos acessíveis (ex.: "grupo Marketing"). */
+  /** What the target is called in accessible labels (e.g. "group Marketing"). */
   label: string;
   onChange: (icon: ProjectIcon | null) => void;
 }) {
@@ -290,13 +290,13 @@ export function ProjectIconField({ icon, name, label, onChange }: {
       });
       const data = await res.json().catch(() => ({} as { error?: string; icon?: ProjectIcon }));
       if (!res.ok || !data.icon) {
-        setError(data.error || (res.status === 413 ? 'Imagem demasiado grande (máximo 2 MB).' : 'Não foi possível carregar a imagem.'));
+        setError(data.error || (res.status === 413 ? 'Image too large (maximum 2 MB).' : 'Could not upload the image.'));
         return;
       }
       onChange(data.icon);
       setEmojiDraft('');
     } catch {
-      setError('Não foi possível carregar a imagem.');
+      setError('Could not upload the image.');
     } finally {
       setBusy(false);
     }
@@ -305,8 +305,8 @@ export function ProjectIconField({ icon, name, label, onChange }: {
   const applyEmoji = () => {
     const value = emojiDraft.trim();
     if (!value) return;
-    // Validação leve — quem decide mesmo é o servidor (1 grapheme pictográfico).
-    if (!/\p{Extended_Pictographic}/u.test(value)) { setError('Escreve um único emoji.'); return; }
+    // Light validation — the one that really decides is the server (1 pictographic grapheme).
+    if (!/\p{Extended_Pictographic}/u.test(value)) { setError('Type a single emoji.'); return; }
     setError('');
     onChange({ type: 'emoji', value });
   };
@@ -337,19 +337,19 @@ export function ProjectIconField({ icon, name, label, onChange }: {
           disabled={busy}
           onClick={() => fileRef.current?.click()}
         >
-          {busy ? 'A carregar…' : 'Carregar logótipo'}
+          {busy ? 'Uploading…' : 'Upload logo'}
         </button>
         <label className="icon-field-emoji-input">
           <span>Emoji</span>
           <input
             value={emojiDraft}
             maxLength={8}
-            aria-label={`Emoji do ${label}`}
+            aria-label={`Emoji for ${label}`}
             onChange={(e) => setEmojiDraft(e.target.value)}
             onBlur={applyEmoji}
             onKeyDown={(e) => {
               if (e.key === 'Enter') { e.preventDefault(); applyEmoji(); }
-              // Escape segue caminho: é quem fecha o modal/flyout que envolve o campo.
+              // Escape goes on its way: it is whoever closes the modal/flyout wrapping the field.
               if (e.key !== 'Escape') e.stopPropagation();
             }}
           />
@@ -360,39 +360,39 @@ export function ProjectIconField({ icon, name, label, onChange }: {
             className="icon-field-btn icon-field-btn--ghost"
             onClick={() => { setEmojiDraft(''); setError(''); onChange(null); }}
           >
-            Remover ícone
+            Remove icon
           </button>
         )}
       </div>
       <p className={`icon-field-hint${error ? ' icon-field-hint--error' : ''}`} role="status">
-        {error || 'PNG, JPEG ou WEBP até 2 MB. Sem ícone, ficam as duas primeiras letras do nome.'}
+        {error || 'PNG, JPEG or WEBP up to 2 MB. With no icon, the first two letters of the name are used.'}
       </p>
     </div>
   );
 }
 
-// ── Ordenação de projectos ─────────────────────────────────────────
-// Os projectos não têm data de criação — usamos a posição no array (a ordem `order`
-// devolvida por GET /projects) como proxy: o último da lista é o mais recente.
-// As ordenações não-manuais são só uma VISTA (não gravam nada no servidor); há um
-// botão "Fixar ordem" que persiste explicitamente via onReorderProjects → PUT /projects/order.
+// ── Project sorting ────────────────────────────────────────────────
+// Projects have no creation date — we use the position in the array (the `order` returned by
+// GET /projects) as a proxy: the last one in the list is the most recent.
+// The non-manual sorts are only a VIEW (they save nothing on the server); there is a
+// "Pin order" button that persists explicitly via onReorderProjects → PUT /projects/order.
 
 type ProjectSort = 'manual' | 'name-asc' | 'name-desc' | 'recent' | 'oldest';
 
 const PROJECT_SORT_KEY = 'joca:project-sort';
 
 const PROJECT_SORT_OPTIONS: { value: ProjectSort; label: string }[] = [
-  { value: 'manual', label: 'Manual (arrastar)' },
-  { value: 'name-asc', label: 'Nome A→Z' },
-  { value: 'name-desc', label: 'Nome Z→A' },
-  { value: 'recent', label: 'Mais recentes' },
-  { value: 'oldest', label: 'Mais antigos' },
+  { value: 'manual', label: 'Manual (drag)' },
+  { value: 'name-asc', label: 'Name A→Z' },
+  { value: 'name-desc', label: 'Name Z→A' },
+  { value: 'recent', label: 'Most recent' },
+  { value: 'oldest', label: 'Oldest' },
 ];
 
 const PROJECT_SORT_HINT =
-  'Ordenação da barra: projectos E agentes rápidos. "Mais recentes"/"Mais antigos" usam a posição na lista como '
-  + 'aproximação da data (os projectos não guardam data de criação — o último adicionado fica no fim). '
-  + 'Só "Manual (arrastar)" permite reordenar por drag; as outras são apenas uma vista, até carregares em "Fixar ordem".';
+  'Sidebar sorting: projects AND quick agents. "Most recent"/"Oldest" use the position in the list as '
+  + 'an approximation of the date (projects do not store a creation date — the last one added ends up at the end). '
+  + 'Only "Manual (drag)" allows reordering by drag; the others are just a view, until you press "Pin order".';
 
 function readProjectSort(): ProjectSort {
   try {
@@ -402,11 +402,11 @@ function readProjectSort(): ProjectSort {
 }
 
 /**
- * Genérico em `{ name }` porque o mesmo selector ordena DUAS listas: os projectos e os agentes
- * rápidos. Eram dois critérios diferentes na mesma barra — mudar a ordenação não mexia nos agentes.
+ * Generic over `{ name }` because the same selector sorts TWO lists: the projects and the quick
+ * agents. They were two different criteria in the same bar — changing the sort did not touch the agents.
  */
 function sortProjects<T extends { name: string }>(list: T[], sort: ProjectSort): T[] {
-  // 'manual' e 'oldest' são a ordem tal como vem do servidor (mais antigo primeiro).
+  // 'manual' and 'oldest' are the order exactly as it comes from the server (oldest first).
   if (sort === 'manual' || sort === 'oldest') return list;
   const out = [...list];
   if (sort === 'recent') return out.reverse();
@@ -414,14 +414,14 @@ function sortProjects<T extends { name: string }>(list: T[], sort: ProjectSort):
   return out.sort((a, b) => dir * a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
 }
 
-// ── Pesquisa de projectos ──────────────────────────────────────────
-// Uma só caixa filtra as TRÊS listas da barra: projectos activos, secções e arquivados. O arquivo
-// cresce sem limite (é para lá que vão os projectos fechados) e sem pesquisa a única forma de lá
-// chegar era abrir a gaveta e percorrer a lista à vista.
+// ── Project search ─────────────────────────────────────────────────
+// A single box filters the THREE lists in the bar: active projects, sections and archived. The
+// archive grows without limit (it is where closed projects go) and without search the only way to
+// get there was opening the drawer and scanning the list by eye.
 
-/** Sem acentos e em minúsculas: "sao" tem de encontrar "São", "bracaris" tem de encontrar "Bracaris".
- *  `\p{Diacritic}` em vez de um intervalo de marcas combinatórias escrito em cru — essas são
- *  invisíveis no ficheiro e o primeiro editor que o re-normalize parte o filtro em silêncio. */
+/** No accents and lowercase: "sao" has to find "São", "bracaris" has to find "Bracaris".
+ *  `\p{Diacritic}` instead of a range of combining marks written raw — those are invisible in the
+ *  file and the first editor that re-normalizes it breaks the filter silently. */
 function normalizeSearch(value: string): string {
   return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 }
@@ -431,16 +431,17 @@ function matchesQuery(name: string, query: string): boolean {
 }
 
 // ── Project row ────────────────────────────────────────────────────
-// Um projecto é um item de rail (estilo lista de servidores) — dot de cor, nome, badge de
-// "a trabalhar", acções reveladas a hover. As sessões do projecto já não aparecem aqui: vivem no
-// canal Workers do ProjectWorkspace, que é para onde `onDashboard` leva. Além de agrupar e
-// arquivar, a linha remove o projecto — foi retirado daqui uma vez por ser redundante com a
-// "Zona perigosa" do Overview, e voltou a pedido: chegar lá obrigava a abrir o modal de edição.
-// A diferença é que agora NÃO apaga a um clique — levanta um alertdialog que diz o que se perde.
+// A project is a rail item (server-list style) — color dot, name, "working" badge, actions revealed
+// on hover. The project's sessions no longer show up here: they live in the ProjectWorkspace's
+// Workers channel, which is where `onDashboard` leads. Besides grouping and archiving, the row
+// removes the project — it was taken out of here once for being redundant with the Overview's
+// "Danger zone", and came back on request: getting there meant opening the edit modal.
+// The difference is that it now does NOT delete on one click — it raises an alertdialog that says
+// what is lost.
 //
-// Largar a bolinha de cor de OUTRO projecto sobre esta agrupa os dois (onGroupDrop) — distinto de
-// largar no resto da linha, que reordena (onDrop). A bolinha intercepta o próprio evento
-// (stopPropagation) para as duas acções nunca dispararem ao mesmo tempo.
+// Dropping ANOTHER project's color dot onto this one groups the two (onGroupDrop) — distinct from
+// dropping on the rest of the row, which reorders (onDrop). The dot intercepts the event itself
+// (stopPropagation) so the two actions never fire at the same time.
 
 function ProjectRow({
   project, sessions, onDashboard, onRenameProject,
@@ -467,8 +468,8 @@ function ProjectRow({
   onDotDragEnter?: () => void;
   onDotDragLeave?: () => void;
   onGroupDrop?: () => void;
-  /** Alternativa por teclado ao arrastar-a-bolinha (WCAG 2.1.1 — o drag nativo não é operável por
-   *  teclado/toque). Outros projectos activos, para escolher com quem agrupar este. */
+  /** Keyboard alternative to dragging-the-dot (WCAG 2.1.1 — native drag is not operable by
+   *  keyboard/touch). Other active projects, to choose which one to group this with. */
   groupCandidates?: { id: string; name: string; groupName?: string }[];
   onGroupWith?: (targetId: string) => void;
 }) {
@@ -525,8 +526,8 @@ function ProjectRow({
               if (e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); onMoveUp?.(); }
               else if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); onMoveDown?.(); }
             }}
-            title="Arrastar ou usar ↑/↓ para reordenar"
-            aria-label={`Reordenar ${project.name} — setas para cima/baixo`}
+            title="Drag or use ↑/↓ to reorder"
+            aria-label={`Reorder ${project.name} — up/down arrows`}
           >
             <LucideIcon name="grip" />
           </span>
@@ -560,8 +561,8 @@ function ProjectRow({
             className="project-group-label"
             onClick={onDashboard}
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-            title={`${project.name} — abrir workspace (duplo-clique renomeia)`}
-            aria-label={`Abrir workspace de ${project.name}`}
+            title={`${project.name} — open workspace (double-click to rename)`}
+            aria-label={`Open ${project.name}'s workspace`}
           >
             <ProjectAvatar icon={project.icon} name={project.name} id={project.id} />
             <span
@@ -578,18 +579,18 @@ function ProjectRow({
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
         <div className="project-group-actions">
           {groupCandidates && groupCandidates.length > 0 && onGroupWith && (
-            <button className="project-group-action" type="button" aria-label={`Agrupar ${project.name} com outro projecto`} onClick={(e) => { e.stopPropagation(); setGrouping(true); }} data-tooltip="Agrupar com…" data-tooltip-position="bottom"><LucideIcon name="link" /></button>
+            <button className="project-group-action" type="button" aria-label={`Group ${project.name} with another project`} onClick={(e) => { e.stopPropagation(); setGrouping(true); }} data-tooltip="Group with…" data-tooltip-position="bottom"><LucideIcon name="link" /></button>
           )}
-          {onUngroup && <button className="project-group-action" type="button" aria-label={`Retirar ${project.name} do grupo`} onClick={(e) => { e.stopPropagation(); onUngroup(); }} data-tooltip="Retirar do grupo" data-tooltip-position="bottom"><LucideIcon name="x" /></button>}
-          {onArchive && <button className="project-group-action" type="button" aria-label={`Arquivar projeto ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Arquivar projeto" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
-          {onRemove && <button className="project-group-action project-group-action--remove" type="button" aria-label={`Remover projecto ${project.name}`} onClick={(e) => { e.stopPropagation(); setConfirmRemove(true); }} data-tooltip="Remover projecto" data-tooltip-position="bottom"><LucideIcon name="trash" /></button>}
+          {onUngroup && <button className="project-group-action" type="button" aria-label={`Remove ${project.name} from the group`} onClick={(e) => { e.stopPropagation(); onUngroup(); }} data-tooltip="Remove from the group" data-tooltip-position="bottom"><LucideIcon name="x" /></button>}
+          {onArchive && <button className="project-group-action" type="button" aria-label={`Archive project ${project.name}`} onClick={(e) => { e.stopPropagation(); onArchive(); }} data-tooltip="Archive project" data-tooltip-position="bottom"><LucideIcon name="archive" /></button>}
+          {onRemove && <button className="project-group-action project-group-action--remove" type="button" aria-label={`Remove project ${project.name}`} onClick={(e) => { e.stopPropagation(); setConfirmRemove(true); }} data-tooltip="Remove project" data-tooltip-position="bottom"><LucideIcon name="trash" /></button>}
         </div>
       </div>
       {grouping && groupCandidates && onGroupWith && (
         <div className="project-group-picker" onClick={(e) => e.stopPropagation()}>
           <select
             ref={groupSelectRef}
-            aria-label={`Agrupar ${project.name} com…`}
+            aria-label={`Group ${project.name} with…`}
             defaultValue=""
             onChange={(e) => {
               const id = e.target.value;
@@ -599,9 +600,9 @@ function ProjectRow({
             onBlur={() => setGrouping(false)}
             onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); setGrouping(false); } }}
           >
-            <option value="" disabled>Agrupar com…</option>
+            <option value="" disabled>Group with…</option>
             {groupCandidates.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}{c.groupName ? ` (grupo: ${c.groupName})` : ''}</option>
+              <option key={c.id} value={c.id}>{c.name}{c.groupName ? ` (group: ${c.groupName})` : ''}</option>
             ))}
           </select>
         </div>
@@ -609,16 +610,16 @@ function ProjectRow({
 
       {confirmRemove && onRemove && (
         <ConfirmDialog
-          title={`Remover "${project.name}"?`}
-          confirmLabel="Remover projecto"
+          title={`Remove "${project.name}"?`}
+          confirmLabel="Remove project"
           onCancel={() => setConfirmRemove(false)}
           onConfirm={() => { setConfirmRemove(false); onRemove(); }}
         >
-          Vais apagar <strong>{project.name}</strong> do JOCA: a entrada na barra, a conversa e os
-          terminais abertos deste projecto, que são fechados primeiro.
+          You are going to delete <strong>{project.name}</strong> from JOCA: the sidebar entry, the
+          conversation and this project's open terminals, which are closed first.
           <span className="confirm-note">
-            Os ficheiros em <strong>{shortPath(project.path)}</strong> não são tocados. Para o tirar
-            da vista sem apagar nada, arquiva-o.
+            The files in <strong>{shortPath(project.path)}</strong> are not touched. To take it out
+            of sight without deleting anything, archive it.
           </span>
         </ConfirmDialog>
       )}
@@ -626,15 +627,16 @@ function ProjectRow({
   );
 }
 
-// ── Project folder (grupo) ──────────────────────────────────────────
-// Linha colapsável que representa um grupo de projectos (agrupamento puramente visual — largar a
-// bolinha de um projecto sobre a de outro cria/junta a este). Expandida, mostra os projectos-membro
-// indentados por baixo, cada um como uma ProjectRow normal.
+// ── Project folder (group) ──────────────────────────────────────────
+// Collapsible row representing a group of projects (purely visual grouping — dropping one project's
+// dot onto another's creates/joins this one). Expanded, it shows the member projects indented
+// below, each one as a normal ProjectRow.
 
 /**
- * Linha de um agente rápido (sessão sem projecto). Duplo-clique no nome entra em edição — mesmo
- * gesto que renomeia um projecto na linha acima, para não haver dois vocabulários na mesma barra.
- * Com a barra fechada não há nome à vista, portanto também não há renome: fica só o quadrado.
+ * Row of a quick agent (a session without a project). Double-clicking the name enters editing — the
+ * same gesture that renames a project in the row above, so there are not two vocabularies in the
+ * same bar. With the sidebar collapsed there is no name in sight, so there is no rename either:
+ * only the square is left.
  */
 function LooseAgentRow({
   session, collapsed, onOpen, onRename, onClose,
@@ -646,7 +648,7 @@ function LooseAgentRow({
   onClose?: () => void;
 }) {
   const brand = useBrand();
-  // Cada sessão apanha o seu GIF da pool, pelo id — estável enquanto a sessão viver.
+  // Each session picks up its own GIF from the pool, by id — stable for as long as the session lives.
   const poolGif = usePoolGif(session.id, brand.id === 'office');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(session.name);
@@ -677,7 +679,7 @@ function LooseAgentRow({
             if (e.key === 'Escape') { setDraft(session.name); setEditing(false); }
             e.stopPropagation();
           }}
-          aria-label={`Nome do agente ${session.name}`}
+          aria-label={`Name of agent ${session.name}`}
         />
       </div>
     );
@@ -692,9 +694,9 @@ function LooseAgentRow({
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       onDoubleClick={onRename && !collapsed ? (e) => { e.stopPropagation(); setEditing(true); } : undefined}
       title={onRename && !collapsed
-        ? `${session.name} — agente sem projecto (duplo-clique renomeia)`
-        : `${session.name} — agente sem projecto`}
-      aria-label={`Abrir agente ${session.name}`}
+        ? `${session.name} — agent without a project (double-click to rename)`
+        : `${session.name} — agent without a project`}
+      aria-label={`Open agent ${session.name}`}
     >
       <span className="sidebar-loose-icon">{poolGif ? <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" /> : <LucideIcon name="terminal-quick" />}</span>
       <span className="sidebar-loose-name">{session.name}</span>
@@ -703,8 +705,8 @@ function LooseAgentRow({
           type="button"
           className="sidebar-loose-close"
           onClick={(e) => { e.stopPropagation(); onClose(); }}
-          aria-label={`Fechar agente ${session.name}`}
-          data-tooltip="Fechar agente"
+          aria-label={`Close agent ${session.name}`}
+          data-tooltip="Close agent"
           data-tooltip-position="bottom"
         >
           <LucideIcon name="x" />
@@ -723,15 +725,15 @@ function ProjectFolder({
   members: Project[];
   sessions: SessionInfo[];
   expanded: boolean;
-  /** Barra lateral fechada — a linha vira um quadrado e o clique abre o flyout em vez de colapsar. */
+  /** Sidebar collapsed — the row becomes a square and the click opens the flyout instead of collapsing. */
   collapsed: boolean;
   onToggle: () => void;
   onRenameGroup?: (name: string) => void;
   onSetIcon?: (icon: ProjectIcon | null) => void;
-  /** Abrir um projecto do grupo a partir do flyout. */
+  /** Open a project of the group from the flyout. */
   onOpenMember: (project: Project) => void;
-  /** Mesma wiring (drag/agrupar/arquivar/…) que uma ProjectRow solta — construído pelo caller
-   *  (SessionSidebar) para nunca divergir entre linha solta e linha aninhada. */
+  /** The same wiring (drag/group/archive/…) as a loose ProjectRow — built by the caller
+   *  (SessionSidebar) so it never diverges between a loose row and a nested row. */
   renderMember: (project: Project) => ReactNode;
   dotDragOver?: boolean;
   onDotDragEnter?: () => void;
@@ -744,8 +746,8 @@ function ProjectFolder({
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const labelRef = useRef<HTMLButtonElement>(null);
-  // Ref própria, não `document.querySelector('.group-flyout')`: com dois grupos na barra o selector
-  // por classe apanharia sempre o primeiro painel e o Tab ficaria preso no flyout errado.
+  // Its own ref, not `document.querySelector('.group-flyout')`: with two groups in the bar the
+  // class selector would always catch the first panel and Tab would get trapped in the wrong flyout.
   const flyoutRef = useRef<HTMLDivElement>(null);
   const workingCount = members.reduce(
     (n, p) => n + sessions.filter((s) => s.projectId === p.id && s.status === 'working').length,
@@ -767,7 +769,7 @@ function ProjectFolder({
     labelRef.current?.focus();
   }, []);
 
-  // Abrir a barra deixa o flyout sem sítio (a lista do grupo passa a estar inline).
+  // Expanding the sidebar leaves the flyout with nowhere to go (the group list becomes inline).
   useEffect(() => { if (!collapsed) setFlyoutOpen(false); }, [collapsed]);
 
   useEffect(() => {
@@ -776,7 +778,7 @@ function ProjectFolder({
     const onPointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
       if (flyoutRef.current?.contains(target) || labelRef.current?.contains(target)) return;
-      // Clique fora só fecha — devolver o foco aqui roubá-lo-ia a quem o utilizador acabou de clicar.
+      // A click outside only closes — returning focus here would steal it from whatever the user just clicked.
       setFlyoutOpen(false);
     };
     document.addEventListener('mousedown', onPointerDown);
@@ -807,7 +809,7 @@ function ProjectFolder({
           className="project-group-grip project-folder-chevron"
           onClick={onToggle}
           aria-expanded={expanded}
-          aria-label={`${expanded ? 'Colapsar' : 'Expandir'} grupo ${group.name}`}
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${group.name}`}
         >
           <LucideIcon name={expanded ? 'chevron-down' : 'chevron-right'} />
         </button>
@@ -839,16 +841,16 @@ function ProjectFolder({
             ref={labelRef}
             type="button"
             className="project-group-label"
-            // Fechada, a lista de membros não cabe inline — o clique (e o Enter/Espaço, que num
-            // <button> disparam o mesmo onClick) abre o flyout em vez de colapsar/expandir.
+            // Collapsed, the member list does not fit inline — the click (and Enter/Space, which in
+            // a <button> fire the same onClick) opens the flyout instead of collapsing/expanding.
             onClick={collapsed ? () => setFlyoutOpen((v) => !v) : onToggle}
             onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
             title={collapsed
-              ? `${group.name} — ${members.length} projectos (abrir lista)`
-              : `${group.name} — ${members.length} projectos (duplo-clique renomeia)`}
+              ? `${group.name} — ${members.length} projects (open list)`
+              : `${group.name} — ${members.length} projects (double-click to rename)`}
             aria-label={collapsed
-              ? `Grupo ${group.name}, ${members.length} projectos — abrir lista`
-              : `Grupo ${group.name}, ${members.length} projectos`}
+              ? `Group ${group.name}, ${members.length} projects — open list`
+              : `Group ${group.name}, ${members.length} projects`}
             aria-haspopup={collapsed ? 'menu' : undefined}
             aria-expanded={collapsed ? flyoutOpen : expanded}
           >
@@ -871,10 +873,10 @@ function ProjectFolder({
             <button
               className="project-group-action"
               type="button"
-              aria-label={`Ícone do grupo ${group.name}`}
+              aria-label={`Icon of group ${group.name}`}
               aria-expanded={iconPanel}
               onClick={(e) => { e.stopPropagation(); setIconPanel((v) => !v); }}
-              data-tooltip="Ícone do grupo"
+              data-tooltip="Group icon"
               data-tooltip-position="bottom"
             >
               <LucideIcon name="sparkles" />
@@ -882,14 +884,14 @@ function ProjectFolder({
           </div>
         )}
       </div>
-      {/* Painel próprio em vez de o meter no modo de renome: o input de nome grava em `onBlur`,
-          e tocar nos botões do ícone fechava a edição por baixo dos pés do utilizador. */}
+      {/* Its own panel instead of stuffing it into rename mode: the name input saves on `onBlur`,
+          and touching the icon buttons closed the edit from under the user's feet. */}
       {iconPanel && onSetIcon && (
         <div className="project-folder-icon-panel">
           <ProjectIconField
             icon={group.icon}
             name={group.name}
-            label={`grupo ${group.name}`}
+            label={`group ${group.name}`}
             onChange={onSetIcon}
           />
         </div>
@@ -899,17 +901,17 @@ function ProjectFolder({
           {members.map((project) => renderMember(project))}
         </div>
       )}
-      {/* Fechada, os membros saem EM FLUXO por baixo do quadrado do grupo — uma coluna das bolas
-          dos projectos, na mesma linguagem do resto da barra fechada.
-          ⚠ Não usar `position:absolute` aqui: o `.session-sidebar-list` tem `overflow-y:auto` +
-          `overflow-x:hidden` (precisa deles para o scroll), e qualquer painel que saísse para o
-          lado era CORTADO pelo overflow do antepassado — foi o que partiu a versão anterior. */}
+      {/* Collapsed, the members come out IN FLOW below the group's square — a column of the
+          projects' dots, in the same language as the rest of the collapsed bar.
+          ⚠ Do not use `position:absolute` here: `.session-sidebar-list` has `overflow-y:auto` +
+          `overflow-x:hidden` (it needs them for the scroll), and any panel that went out to the
+          side was CUT by the ancestor's overflow — that is what broke the previous version. */}
       {collapsed && flyoutOpen && (
         <div
           ref={flyoutRef}
           className="group-collapsed-list"
           role="menu"
-          aria-label={`Projectos do grupo ${group.name}`}
+          aria-label={`Projects of group ${group.name}`}
           onKeyDown={onFlyoutKeyDown}
         >
           {members.map((project) => (
@@ -921,12 +923,12 @@ function ProjectFolder({
               style={{ '--project-color': projectColor(project) } as CSSProperties}
               onClick={() => { setFlyoutOpen(false); onOpenMember(project); }}
               title={project.name}
-              aria-label={`Abrir ${project.name}`}
+              aria-label={`Open ${project.name}`}
             >
               <ProjectAvatar icon={project.icon} name={project.name} id={project.id} />
             </button>
           ))}
-          {members.length === 0 && <span className="group-collapsed-empty" title="Grupo sem projectos" aria-hidden>—</span>}
+          {members.length === 0 && <span className="group-collapsed-empty" title="Group with no projects" aria-hidden>—</span>}
         </div>
       )}
     </div>
@@ -951,9 +953,9 @@ export default function SessionSidebar({
   const [dotOverId, setDotOverId] = useState<string | null>(null);
   const [projectSort, setProjectSort] = useState<ProjectSort>(readProjectSort);
   const [search, setSearch] = useState('');
-  // Só a tira mobile lê isto: lá a caixa de pesquisa vive atrás da lupa, porque os 26px+gap que
-  // ocupava sempre eram 26px+gap que a lista de projectos não tinha. No desktop a caixa está
-  // sempre visível (nenhuma regra a esconde) e este estado nunca é consultado.
+  // Only the mobile strip reads this: there the search box lives behind the magnifier, because the
+  // 26px+gap it always took up were 26px+gap the project list did not have. On desktop the box is
+  // always visible (no rule hides it) and this state is never consulted.
   const [searchOpen, setSearchOpen] = useState(false);
   const sortRowRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -961,26 +963,26 @@ export default function SessionSidebar({
   const query = normalizeSearch(search);
   const searching = query.length > 0;
 
-  // Na tira mobile (38dvh, já perto do limite antes disto) abrir a barra empurra a lista de
-  // projectos toda para fora do fold, sem pista nenhuma de que há mais para baixo — traz a barra
-  // para a vista assim que abre.
+  // On the mobile strip (38dvh, already near the limit before this) opening the bar pushes the
+  // whole project list out of the fold, with no hint at all that there is more below — it brings the
+  // bar into view as soon as it opens.
   useEffect(() => {
     if (sortMenuOpen) sortRowRef.current?.scrollIntoView({ block: 'nearest' });
   }, [sortMenuOpen]);
 
-  // Abrir a lupa põe o cursor onde se vai escrever; fechá-la LIMPA o filtro. Fechar sem limpar
-  // deixava uma pesquisa activa sem nada no ecrã a dizê-lo — a lista aparecia truncada e não havia
-  // caixa à vista para perceber porquê.
+  // Opening the magnifier puts the cursor where you are going to type; closing it CLEARS the
+  // filter. Closing without clearing left an active search with nothing on screen saying so — the
+  // list showed up truncated and there was no box in sight to work out why.
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
   const idleSessions = sessions.filter(s => s.status === 'idle');
-  // Agentes "rápidos": sessões sem projecto. Seguem a MESMA ordenação escolhida no selector dos
-  // projectos — é um selector só para a barra toda, e ter duas listas com critérios diferentes era
-  // o que fazia parecer que a ordenação não pegava aqui.
-  // Excepção em "Manual": uma sessão não tem ordem arrastada para respeitar, portanto mantém-se o
-  // critério que já existia — a trabalhar primeiro, que é o que se vai lá ver.
+  // "Quick" agents: sessions without a project. They follow the SAME sorting chosen in the
+  // projects' selector — it is one selector for the whole bar, and having two lists with different
+  // criteria was what made it look like the sorting did not take here.
+  // Exception in "Manual": a session has no dragged order to respect, so the criterion that already
+  // existed is kept — working first, which is what you go there to see.
   const soltas = sessions.filter(s => !s.projectId && (!searching || matchesQuery(s.name, query)));
   const looseSessions = projectSort === 'manual'
     ? [...soltas].sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'))
@@ -989,9 +991,9 @@ export default function SessionSidebar({
   const activeProjects = projects.filter(p => !p.archived);
   const archivedProjects = projects.filter(p => p.archived);
 
-  // A pesquisa é uma VISTA sobre as três listas — não toca no estado do servidor. Um projecto entra
-  // se o nome casar, ou se casar o nome da SECÇÃO onde está: escrever "clientes" tem de trazer a
-  // secção inteira, senão a secção aparecia vazia e parecia um bug.
+  // The search is a VIEW over the three lists — it does not touch server state. A project comes in
+  // if its name matches, or if the name of the SECTION it is in matches: typing "clients" has to
+  // bring the whole section, otherwise the section showed up empty and looked like a bug.
   const groupMatches = (groupId?: string) =>
     !!groupId && matchesQuery(projectGroups.find(g => g.id === groupId)?.name ?? '', query);
   const projectMatches = (p: Project) =>
@@ -1003,8 +1005,9 @@ export default function SessionSidebar({
   const sortedProjects = sortProjects(visibleActive, projectSort);
   const sortedArchivedProjects = sortProjects(visibleArchived, projectSort);
 
-  // Top-level items da lista: projectos soltos tal-qual, e um item único por grupo (na posição do
-  // seu primeiro membro na ordenação corrente) — o agrupamento é só visual, não altera `order`.
+  // Top-level items of the list: loose projects as they are, and a single item per group (at the
+  // position of its first member in the current sorting) — the grouping is only visual, it does not
+  // change `order`.
   type SidebarItem =
     | { kind: 'project'; project: Project }
     | { kind: 'group'; group: ProjectGroupData; members: Project[] };
@@ -1026,10 +1029,10 @@ export default function SessionSidebar({
     }
   }
 
-  // Ordenar por nome tem de valer para as SECÇÕES também. O ciclo acima emite cada grupo na posição
-  // do seu primeiro membro, portanto uma secção "Zulu" cujo primeiro projecto fosse "Acura" aterrava
-  // no topo do A→Z — a lista parecia desordenada sem se perceber porquê. Só se aplica às ordenações
-  // por nome: em "Mais recentes"/"Mais antigos" a posição na lista É o critério.
+  // Sorting by name has to hold for the SECTIONS too. The loop above emits each group at the
+  // position of its first member, so a section "Zulu" whose first project was "Acura" landed at the
+  // top of the A→Z — the list looked unsorted with no way to see why. It only applies to the
+  // name sorts: in "Most recent"/"Oldest" the position in the list IS the criterion.
   if (projectSort === 'name-asc' || projectSort === 'name-desc') {
     const dir = projectSort === 'name-desc' ? -1 : 1;
     const itemName = (i: SidebarItem) => i.kind === 'group' ? i.group.name : i.project.name;
@@ -1043,9 +1046,9 @@ export default function SessionSidebar({
     setDotOverId(null);
   };
 
-  // Arrastar só faz sentido na vista manual — noutra ordenação a posição largada seria descartada.
-  // E nunca com a pesquisa activa: a lista visível é um subconjunto, mas `commitReorder` indexa a
-  // lista COMPLETA — largar entre dois resultados filtrados gravaria uma ordem que ninguém pediu.
+  // Dragging only makes sense in the manual view — in another sorting the dropped position would be
+  // discarded. And never with the search active: the visible list is a subset, but `commitReorder`
+  // indexes the FULL list — dropping between two filtered results would save an order nobody asked for.
   const dragEnabled = !!onReorderProjects && activeProjects.length > 1 && projectSort === 'manual' && !searching;
   const canPinOrder = !!onReorderProjects && activeProjects.length > 1 && projectSort !== 'manual' && !searching;
   const canSort = activeProjects.length > 1 || archivedProjects.length > 1;
@@ -1055,9 +1058,10 @@ export default function SessionSidebar({
     try { localStorage.setItem(PROJECT_SORT_KEY, value); } catch { /* ignore */ }
   };
 
-  // "Fixar ordem": grava a ordem actualmente visível e volta ao modo manual.
-  // Deriva da lista COMPLETA de activos, não de `sortedProjects` (que a pesquisa filtra) — senão
-  // fixar com um filtro escrito gravaria a ordem só dos resultados e perdia o resto.
+  // "Pin order": saves the currently visible order and goes back to manual mode.
+  // It derives from the FULL list of active ones, not from `sortedProjects` (which the search
+  // filters) — otherwise pinning with a filter typed would save the order of the results only and
+  // lose the rest.
   const pinCurrentOrder = () => {
     if (!onReorderProjects) return;
     onReorderProjects(sortProjects(activeProjects, projectSort).map(p => p.id));
@@ -1092,9 +1096,9 @@ export default function SessionSidebar({
     setConfirmCloseIdle(false);
   };
 
-  // Props partilhadas por uma ProjectRow, quer esteja solta na lista quer aninhada dentro de uma
-  // ProjectFolder — extraído para não haver 2 sítios a wire-ar drag/agrupamento de forma divergente
-  // (bug apanhado ao testar: as linhas aninhadas não tinham handler de "largar na bolinha" nenhum).
+  // Props shared by a ProjectRow, whether it is loose in the list or nested inside a ProjectFolder
+  // — extracted so there are not 2 places wiring drag/grouping in divergent ways (bug caught while
+  // testing: the nested rows had no "drop on the dot" handler at all).
   const projectRowProps = (project: Project) => ({
     project,
     sessions: sessions.filter(s => s.projectId === project.id),
@@ -1115,7 +1119,7 @@ export default function SessionSidebar({
     onDotDragEnter: () => setDotOverId(project.id),
     onDotDragLeave: () => setDotOverId((v: string | null) => v === project.id ? null : v),
     onGroupDrop: onGroupProjects ? () => handleGroupDrop(project.id) : undefined,
-    // Alternativa por teclado ao arrastar-a-bolinha (drag nativo não é operável por teclado/toque).
+    // Keyboard alternative to dragging-the-dot (native drag is not operable by keyboard/touch).
     groupCandidates: onGroupProjects
       ? activeProjects.filter((p) => p.id !== project.id).map((p) => ({
         id: p.id,
@@ -1126,10 +1130,10 @@ export default function SessionSidebar({
     onGroupWith: onGroupProjects ? (targetId: string) => onGroupProjects(project.id, targetId) : undefined,
   });
 
-  // `--filtering` só serve à tira mobile: com a pesquisa escrita OU o menu de ordenar aberto, os
-  // 38dvh da tira ficam todos consumidos pelo cabeçalho e não sobra uma linha de lista sequer
-  // (medido a 390×844: 28px de lista visíveis com o menu fechado, 0px com ele aberto). A tira
-  // cresce enquanto durar o gesto e volta aos 38dvh assim que se limpa.
+  // `--filtering` only serves the mobile strip: with the search typed OR the sort menu open, the
+  // strip's 38dvh are entirely consumed by the header and not a single list row is left
+  // (measured at 390×844: 28px of list visible with the menu closed, 0px with it open). The strip
+  // grows for as long as the gesture lasts and goes back to 38dvh as soon as it is cleared.
   return (
     <aside
       className={`session-sidebar ${collapsed ? 'session-sidebar--collapsed' : ''}${(searching || sortMenuOpen || searchOpen) ? ' session-sidebar--filtering' : ''}${(searchOpen || searching) ? ' session-sidebar--search-open' : ''}`}
@@ -1149,7 +1153,7 @@ export default function SessionSidebar({
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-expanded={!collapsed}
             onClick={onToggleCollapsed}
-            data-tooltip={collapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
+            data-tooltip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             data-tooltip-position="bottom"
           >
             <span className="sidebar-collapse-glyph">
@@ -1173,25 +1177,25 @@ export default function SessionSidebar({
             className={`nav-btn ${mainView === 'agents' ? 'active' : ''}`}
             type="button"
             onClick={onShowAgents}
-            aria-label="Agentes"
+            aria-label="Agents"
             aria-current={mainView === 'agents' ? 'page' : undefined}
           >
             <span className="nav-icon"><LucideIcon name="terminal" /></span>
-            <span>Agentes</span>
+            <span>Agents</span>
           </button>
         </div>
 
         <div className="session-sidebar-header">
           <span className="sidebar-title">Projects</span>
           <div className="sidebar-header-actions">
-            {/* Gatilho da pesquisa — só existe na tira mobile (`display:none` fora do breakpoint):
-                lá a caixa está recolhida por omissão, aqui em cima continua sempre aberta. */}
+            {/* Search trigger — it only exists on the mobile strip (`display:none` outside the
+                breakpoint): there the box is collapsed by default, up here it stays always open. */}
             {projects.length > 0 && (
               <button
                 className={`sidebar-search-toggle${(searchOpen || searching) ? ' is-active' : ''}`}
                 type="button"
                 onClick={() => setSearchOpen((v) => { if (v) setSearch(''); return !v; })}
-                aria-label={(searchOpen || searching) ? 'Fechar pesquisa de projectos' : 'Pesquisar projectos'}
+                aria-label={(searchOpen || searching) ? 'Close project search' : 'Search projects'}
                 aria-expanded={searchOpen || searching}
                 aria-controls="sidebar-search-row"
               ><LucideIcon name={(searchOpen || searching) ? 'x' : 'search'} /></button>
@@ -1201,9 +1205,9 @@ export default function SessionSidebar({
                 className={`sidebar-btn-sort${sortMenuOpen ? ' is-active' : ''}`}
                 type="button"
                 onClick={() => setSortMenuOpen((v) => !v)}
-                data-tooltip="Ordenar projectos e agentes rápidos"
+                data-tooltip="Sort projects and quick agents"
                 data-tooltip-position="bottom"
-                aria-label="Ordenar projectos e agentes rápidos"
+                aria-label="Sort projects and quick agents"
                 aria-expanded={sortMenuOpen}
                 aria-controls="sidebar-sort-row"
               ><LucideIcon name="arrow-up-down" /></button>
@@ -1219,8 +1223,8 @@ export default function SessionSidebar({
               className="sidebar-search-input"
               type="search"
               value={search}
-              placeholder="Pesquisar projectos…"
-              aria-label="Pesquisar projectos, secções e arquivados"
+              placeholder="Search projects…"
+              aria-label="Search projects, sections and archived"
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setSearch(''); setSearchOpen(false); } }}
             />
@@ -1229,8 +1233,8 @@ export default function SessionSidebar({
                 className="sidebar-search-clear"
                 type="button"
                 onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}
-                aria-label="Limpar pesquisa"
-                data-tooltip="Limpar (Esc)"
+                aria-label="Clear search"
+                data-tooltip="Clear (Esc)"
                 data-tooltip-position="bottom"
               ><LucideIcon name="x" /></button>
             )}
@@ -1244,7 +1248,7 @@ export default function SessionSidebar({
               value={projectSort}
               onChange={(e) => changeProjectSort(e.target.value as ProjectSort)}
               title={PROJECT_SORT_HINT}
-              aria-label="Ordenar projetos"
+              aria-label="Sort projects"
             >
               {PROJECT_SORT_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -1255,21 +1259,21 @@ export default function SessionSidebar({
                 className="sidebar-sort-pin"
                 type="button"
                 onClick={pinCurrentOrder}
-                data-tooltip="Gravar esta ordem como ordem manual"
+                data-tooltip="Save this order as the manual order"
                 data-tooltip-position="bottom"
               >
-                Fixar
+                Pin
               </button>
             )}
           </div>
         )}
 
         <div className="session-sidebar-list">
-          {/* Agentes sem projecto, à cabeça da lista. Antes só se lá chegava pela vista global de
-              Agentes e procurando — um agente rápido perde o sentido se custar dois passos. */}
+          {/* Agents without a project, at the head of the list. Before, you only got there through
+              the global Agents view and by searching — a quick agent loses its point if it costs two steps. */}
           {looseSessions.length > 0 && (
-            <div className="sidebar-loose" aria-label="Agentes rápidos">
-              <div className="sidebar-loose-title">Rápidos</div>
+            <div className="sidebar-loose" aria-label="Quick agents">
+              <div className="sidebar-loose-title">Quick</div>
               {looseSessions.map((s) => (
                 <LooseAgentRow
                   key={s.id}
@@ -1307,12 +1311,12 @@ export default function SessionSidebar({
 
           {projects.length > 0 && !searching && (
             <button type="button" className="sidebar-add-project-row" onClick={onCreateProject}>
-              <LucideIcon name="folder-plus" /> Novo projecto
+              <LucideIcon name="folder-plus" /> New project
             </button>
           )}
 
-          {/* A pesquisa abre a gaveta do arquivo sozinha: o motivo de existir a caixa é encontrar
-              projectos arquivados, e obrigar a um segundo clique para ver os resultados anulava-o. */}
+          {/* The search opens the archive drawer by itself: the reason the box exists is to find
+              archived projects, and forcing a second click to see the results cancelled that out. */}
           {sortedArchivedProjects.length > 0 && (
             <div className="sidebar-archived">
               <button
@@ -1322,7 +1326,7 @@ export default function SessionSidebar({
                 aria-expanded={searching || showArchived}
               >
                 <span className="sidebar-archived-icon"><LucideIcon name="archive" /></span>
-                <span className="sidebar-archived-label">Arquivados</span>
+                <span className="sidebar-archived-label">Archived</span>
                 <span className="sidebar-archived-count">
                   {searching ? `${sortedArchivedProjects.length}/${archivedProjects.length}` : archivedProjects.length}
                 </span>
@@ -1337,7 +1341,7 @@ export default function SessionSidebar({
                         className="archived-item-name"
                         type="button"
                         onClick={() => onShowProject(project.id)}
-                        title={`Abrir dashboard de ${project.name}`}
+                        title={`Open ${project.name}'s dashboard`}
                       >
                         {project.name}
                       </button>
@@ -1346,9 +1350,9 @@ export default function SessionSidebar({
                           className="archived-item-restore"
                           type="button"
                           onClick={() => onArchiveProject(project.id, false)}
-                          data-tooltip="Restaurar para a barra"
+                          data-tooltip="Restore to the sidebar"
                           data-tooltip-position="bottom"
-                          aria-label={`Restaurar projeto ${project.name}`}
+                          aria-label={`Restore project ${project.name}`}
                         >
                           <LucideIcon name="archive-restore" />
                         </button>
@@ -1362,58 +1366,58 @@ export default function SessionSidebar({
 
           {searching && sortedProjects.length === 0 && sortedArchivedProjects.length === 0 && looseSessions.length === 0 && (
             <div className="sidebar-search-empty">
-              <span>Nada encontrado para “{search.trim()}”</span>
-              <button type="button" onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}>Limpar pesquisa</button>
+              <span>Nothing found for “{search.trim()}”</span>
+              <button type="button" onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}>Clear search</button>
             </div>
           )}
 
           {projects.length === 0 && (
             <div className="sidebar-empty">
               <div className="sidebar-empty-icon"><LucideIcon name="info" /></div>
-              <p>Sem projectos</p>
-              <button className="sidebar-btn-new-large" onClick={onCreateProject}>+ Criar projecto</button>
+              <p>No projects</p>
+              <button className="sidebar-btn-new-large" onClick={onCreateProject}>+ Create project</button>
             </div>
           )}
         </div>
 
-        {/* Rodapé da barra. O wrapper é `display:contents` no desktop — os três botões continuam a
-            ser filhos de flex do bento, exactamente como antes — e vira uma FILA na tira mobile,
-            onde três blocos empilhados custavam 103px+gaps de altura a uma tira de 320px. */}
+        {/* The bar's footer. The wrapper is `display:contents` on desktop — the three buttons stay
+            flex children of the bento, exactly as before — and becomes a ROW on the mobile strip,
+            where three stacked blocks cost 103px+gaps of height on a 320px strip. */}
         <div className="sidebar-footer-row">
-        {/* Os dois botões partilham uma linha — dois blocos de largura inteira empilhados custavam
-            altura à lista de projectos sem a ganhar em legibilidade. O "Fechar inativas" fica de
-            fora do par: tem o rótulo mais longo e é a acção mais rara. */}
+        {/* The two buttons share a row — two stacked full-width blocks cost the project list height
+            without gaining it in legibility. "Close idle" stays out of the pair: it has the longest
+            label and is the rarest action. */}
         <div className="sidebar-footer-pair">
         <button
           type="button"
           className="sidebar-quick-session-btn"
           onClick={onNew}
-          data-tooltip="Sessão rápida — agente sem projecto"
+          data-tooltip="Quick session — agent without a project"
           data-tooltip-position="top"
         >
-          <LucideIcon name="terminal-quick" /> Sessão rápida
+          <LucideIcon name="terminal-quick" /> Quick session
         </button>
 
-        {/* Definições: o ícone de fundo da coluna esquerda. Passou para aqui quando o rail direito
-            (notificações + definições) foi removido — a app deixou de ter coluna à direita. */}
+        {/* Settings: the icon at the bottom of the left column. It moved here when the right rail
+            (notifications + settings) was removed — the app stopped having a right column. */}
         <button
           type="button"
           className="sidebar-settings-btn"
           onClick={onOpenSettings}
-          data-tooltip="Definições"
+          data-tooltip="Settings"
           data-tooltip-position="top"
-          aria-label="Definições"
+          aria-label="Settings"
         >
-          <LucideIcon name="settings" /> <span className="sidebar-settings-label">Definições</span>
+          <LucideIcon name="settings" /> <span className="sidebar-settings-label">Settings</span>
         </button>
 
         <div className="session-bulk-actions">
           {confirmCloseIdle ? (
             <div className="bulk-confirm-row">
-              <span>Fechar {idleSessions.length} inativas?</span>
+              <span>Close {idleSessions.length} idle?</span>
               <div style={{ display: 'flex', gap: '4px' }}>
-                <button type="button" className="confirm-yes" onClick={closeIdleSessions}>Sim</button>
-                <button type="button" className="confirm-no" onClick={() => setConfirmCloseIdle(false)}>Não</button>
+                <button type="button" className="confirm-yes" onClick={closeIdleSessions}>Yes</button>
+                <button type="button" className="confirm-no" onClick={() => setConfirmCloseIdle(false)}>No</button>
               </div>
             </div>
           ) : (
@@ -1422,14 +1426,14 @@ export default function SessionSidebar({
               type="button"
               disabled={idleSessions.length === 0}
               onClick={() => setConfirmCloseIdle(true)}
-              data-tooltip="Fechar todas as sessões inativas"
+              data-tooltip="Close all idle sessions"
               data-tooltip-position="bottom"
-              aria-label={`Fechar ${idleSessions.length} sessões inativas`}
+              aria-label={`Close ${idleSessions.length} idle sessions`}
             >
-              {/* O rótulo por extenso esconde-se na fila compacta do rodapé (fica "✕ (2)"); o nome
-                  completo continua no tooltip e no aria-label. Por extenso não cabia: medido em
-                  77px de largura, saía cortado a meio de "INATIVA", sem sequer as reticências. */}
-              <LucideIcon name="x" /> <span className="bulk-select-label">Fechar inativas </span>({idleSessions.length})
+              {/* The full label hides in the footer's compact row (it becomes "✕ (2)"); the complete
+                  name stays in the tooltip and the aria-label. Written out it did not fit: measured
+                  at 77px wide, it came out cut in the middle of "IDLE", without even the ellipsis. */}
+              <LucideIcon name="x" /> <span className="bulk-select-label">Close idle </span>({idleSessions.length})
             </button>
           )}
         </div>

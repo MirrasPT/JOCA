@@ -1,10 +1,10 @@
-# CI — Flutter (app movel, backend a parte).
+# CI — Flutter (mobile app, backend separate).
 #
-# Versao estavel verificada em Agosto 2026: Flutter 3.47.0.
+# Stable version verified in August 2026: Flutter 3.47.0.
 #
-# `flutter analyze` e o equivalente ao Larastan/eslint aqui e trata avisos como
-# erros com --fatal-infos. Nao o baixar para so-erros: e o unico gate estatico
-# que o Dart tem.
+# `flutter analyze` is the equivalent of Larastan/eslint here and treats warnings
+# as errors with --fatal-infos. Do not lower it to errors-only: it is the only
+# static gate Dart has.
 
 name: CI
 
@@ -28,27 +28,27 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Formatacao
+      - name: Formatting
         run: dart format --set-exit-if-changed .
 
-      - name: Analise estatica
+      - name: Static analysis
         run: flutter analyze --fatal-infos
 
-      - name: Testes
+      - name: Tests
         run: flutter test
 
-      # Build de verificacao. O APK de release exige keystore (segredos do
-      # repositorio) — aqui so se confirma que compila.
+      # Verification build. The release APK requires a keystore (repository
+      # secrets) — here we only confirm that it compiles.
       - name: Build (debug)
         run: flutter build apk --debug
 
 # ---------------------------------------------------------------------------
-# Para assinar um AAB de release, acrescentar:
+# To sign a release AAB, add:
 #
 #     - uses: actions/setup-java@v5
 #       with: { distribution: 'temurin', java-version: '21' }
 #     - run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/key.jks
 #     - run: flutter build appbundle --release
 #
-# com key.properties gerado a partir de segredos. NUNCA commitar a keystore.
+# with key.properties generated from secrets. NEVER commit the keystore.
 # ---------------------------------------------------------------------------

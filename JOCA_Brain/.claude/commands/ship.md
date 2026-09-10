@@ -1,30 +1,30 @@
-# /ship — Levar código a PR (sync → testes → review → push → PR)
+# /ship — Take code to a PR (sync → tests → review → push → PR)
 
-Adaptado do `ship` do gstack. Pipeline de envio pré-merge: sincroniza a base, corre testes, revê o diff, actualiza versão/CHANGELOG, commita, e **só depois do gate** faz push + abre PR. Nunca faz push/PR às cegas.
+Adapted from gstack's `ship`. Pre-merge delivery pipeline: syncs the base, runs the tests, reviews the diff, updates version/CHANGELOG, commits, and **only after the gate** pushes + opens the PR. Never pushes/opens a PR blind.
 
-⚠ Contém passos **irreversíveis** (push, PR) → gate de confirmação obrigatório (soul.md / Decision Filter).
+⚠ Contains **irreversible** steps (push, PR) → mandatory confirmation gate (soul.md / Decision Filter).
 
-## Quando usar
-- "ship", "ship it", "põe em PR", "push para main", "está pronto, envia".
-- Proactivo: o user diz que o código está pronto / quer abrir PR → invocar isto (não fazer push directo).
+## When to use
+- "ship", "ship it", "put it in a PR", "push to main", "it's ready, send it".
+- Proactive: the user says the code is ready / wants to open a PR → invoke this (do not push directly).
 
-## Pipeline (auto-runner; pára nos gates)
+## Pipeline (auto-runner; stops at the gates)
 
-1. **Estado limpo** — `git status`. Working tree com lixo não-relacionado → resolver/avisar antes (não misturar no commit de ship).
-2. **Sync da base** — detectar branch base (`main`/`master`), `git fetch`, ver divergência. Se a feature-branch está atrás → integrar a base (merge/rebase conforme convenção do repo). Conflitos → resolver (ou delegar `pr-repair`).
-3. **Testes** — correr a suite do projecto (detectar: `npm test`/`pest`/`vitest`/`pytest`…). **Vermelho → parar** e reportar (não enviar código partido). Sem suite → `tester-code` (review) como rede mínima.
-4. **Review do diff** — `git diff` da base: scope drift? segredos? `console.log`/`dd()` esquecidos? ficheiros a mais? Despachar `tester-code` se o diff for não-trivial. Segredos no diff → **parar** (não commitar segredos).
-5. **Versão + CHANGELOG** (se o projecto os tiver) — bump `VERSION`/`package.json`, entrada no `CHANGELOG.md` (o que mudou, em 1-3 linhas).
-6. **Commit** — mensagem coesa (convenção do repo). Co-authored trailer conforme regras do ambiente.
-7. **⛔ GATE** — mostrar 1 linha: branch, nº de ficheiros, base, destino. Confirmar antes de push.
-8. **Push + PR** — `git push`; abrir PR via `github` skill / `gh pr create` com título + corpo (resumo + test plan). Devolver o link.
+1. **Clean state** — `git status`. Working tree with unrelated junk → resolve/warn first (do not mix it into the ship commit).
+2. **Sync the base** — detect the base branch (`main`/`master`), `git fetch`, check the divergence. If the feature branch is behind → integrate the base (merge/rebase per the repo's convention). Conflicts → resolve (or delegate to `pr-repair`).
+3. **Tests** — run the project's suite (detect: `npm test`/`pest`/`vitest`/`pytest`…). **Red → stop** and report (do not ship broken code). No suite → `tester-code` (review) as the minimum safety net.
+4. **Review the diff** — `git diff` against the base: scope drift? secrets? forgotten `console.log`/`dd()`? extra files? Dispatch `tester-code` if the diff is non-trivial. Secrets in the diff → **stop** (do not commit secrets).
+5. **Version + CHANGELOG** (if the project has them) — bump `VERSION`/`package.json`, entry in `CHANGELOG.md` (what changed, in 1-3 lines).
+6. **Commit** — coherent message (repo convention). Co-authored trailer per the environment's rules.
+7. **⛔ GATE** — show 1 line: branch, number of files, base, destination. Confirm before pushing.
+8. **Push + PR** — `git push`; open the PR via the `github` skill / `gh pr create` with title + body (summary + test plan). Return the link.
 
-## Regras
-- **Nunca** push/PR sem o gate (passo 7), mesmo com autonomy alta — é irreversível/outward-facing.
-- **Nunca** commitar segredos ou enviar testes vermelhos.
-- Branch protegida (default `main`/`master`) → trabalhar em feature-branch + PR, nunca push directo (salvo instrução explícita).
-- Registar a release no Brain se relevante: `node .claude/scripts/joca-brain.mjs decide --text "shipped <feature> em PR #N" --source user`.
+## Rules
+- **Never** push/open a PR without the gate (step 7), even with high autonomy — it is irreversible/outward-facing.
+- **Never** commit secrets or ship red tests.
+- Protected branch (default `main`/`master`) → work on a feature branch + PR, never push directly (unless explicitly instructed).
+- Record the release in the Brain if relevant: `node .claude/scripts/joca-brain.mjs decide --text "shipped <feature> in PR #N" --source user`.
 
-## Próximo passo (chain)
-- PR merged e há deploy a fazer → agente `deploy-executor` (corre pipeline + health-check; ⛔ gate próprio).
-- PR vermelho (CI a falhar / conflitos / reviews de bot) → agente `pr-repair`. Ver `rules/chaining.md`.
+## Next step (chain)
+- PR merged and there is a deploy to do → `deploy-executor` agent (runs the pipeline + health-check; ⛔ gate of its own).
+- Red PR (CI failing / conflicts / bot reviews) → `pr-repair` agent. See `rules/chaining.md`.

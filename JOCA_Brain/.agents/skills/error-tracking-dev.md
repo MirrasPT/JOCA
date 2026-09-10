@@ -1,7 +1,7 @@
 ---
 name: error-tracking-dev
-description: "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug."
-triggers: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1, slow query dev, log viewer, clockwork, pail, desenvolvimento, development debug, debug bar, barra debug, ver queries, ver logs, painel debug, erros dev, errors dev, dump, dd, stack trace dev
+description: "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow query dev, log viewer, clockwork, pail, development, development debug."
+triggers: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1, slow query dev, log viewer, clockwork, pail, development, development debug, debug bar, view queries, view logs, errors dev, dump, dd, stack trace dev
 ---
 
 # Error Tracking — Development
@@ -40,19 +40,19 @@ LOG_LEVEL=debug
 
 Real-time overlay at bottom of browser:
 
-| Painel | O que mostra |
+| Panel | What it shows |
 |--------|-------------|
-| Queries | SQL com bindings, tempo, duplicados, EXPLAIN |
-| Timeline | Boot + execution timing, memoria por fase |
-| Models | Frequencia de loading — detecta N+1 |
-| Route | Rota actual, middleware stack |
-| Views | Templates renderizados |
-| Exceptions | Exceptions com stack trace |
+| Queries | SQL with bindings, time, duplicates, EXPLAIN |
+| Timeline | Boot + execution timing, memory per phase |
+| Models | Loading frequency — detects N+1 |
+| Route | Current route, middleware stack |
+| Views | Rendered templates |
+| Exceptions | Exceptions with stack trace |
 | Memory | Peak memory usage |
-| Cache | Hits/misses (activar em config) |
-| Mail | Emails enviados com preview (activar) |
-| Events | Eventos disparados (activar) |
-| Auth | Estado de login (activar) |
+| Cache | Hits/misses (enable in config) |
+| Mail | Emails sent, with preview (enable) |
+| Events | Events fired (enable) |
+| Auth | Login state (enable) |
 
 ### Recommended config
 ```php
@@ -64,8 +64,8 @@ Real-time overlay at bottom of browser:
     'auth'    => true,   // login state
     'mail'    => true,   // email preview
     'gate'    => true,   // authorization checks
-    'config'  => false,  // NUNCA — expoe secrets
-    'logs'    => false,  // NUNCA — expoe log content
+    'config'  => false,  // NEVER — exposes secrets
+    'logs'    => false,  // NEVER — exposes log content
 ],
 ```
 
@@ -85,12 +85,12 @@ composer require beyondcode/laravel-query-detector --dev
 ### Measure code blocks
 ```php
 Debugbar::startMeasure('render', 'Render blade');
-// ... codigo ...
+// ... code ...
 Debugbar::stopMeasure('render');
 
-// Ou com closure
+// Or with a closure
 Debugbar::measure('complex-op', function () {
-    // codigo a medir
+    // code to measure
 });
 ```
 
@@ -126,13 +126,13 @@ public function register(): void
 // config/telescope.php
 Watchers\QueryWatcher::class => [
     'enabled' => true,
-    'slow'    => 100,   // ms — marca queries lentas
+    'slow'    => 100,   // ms — marks slow queries
 ],
 Watchers\ExceptionWatcher::class  => true,
 Watchers\JobWatcher::class        => true,
 Watchers\MailWatcher::class       => true,
 Watchers\CacheWatcher::class     => true,
-Watchers\DumpWatcher::class      => true,   // dump() aparece no Telescope
+Watchers\DumpWatcher::class      => true,   // dump() appears in Telescope
 Watchers\RequestWatcher::class   => true,
 Watchers\ModelWatcher::class     => ['enabled' => true, 'hydrations' => true],
 ```
@@ -169,8 +169,8 @@ class InvalidConfigException extends \RuntimeException implements ProvidesSoluti
     public function getSolution(): Solution
     {
         return new class implements Solution {
-            public function getSolutionTitle(): string { return 'Config invalida'; }
-            public function getSolutionDescription(): string { return 'Corre php artisan config:clear'; }
+            public function getSolutionTitle(): string { return 'Invalid config'; }
+            public function getSolutionDescription(): string { return 'Run php artisan config:clear'; }
             public function getDocumentationLinks(): array { return []; }
         };
     }
@@ -190,14 +190,14 @@ composer require spatie/laravel-ray --dev
 ```php
 ray('hello world');
 ray($user)->label('User payload');
-ray()->showQueries();       // mostra todas as queries
-ray()->showEvents();        // mostra eventos
-ray()->showJobs();          // mostra jobs
+ray()->showQueries();       // shows all queries
+ray()->showEvents();        // shows events
+ray()->showJobs();          // shows jobs
 ray()->measure();           // start timer
-// ... codigo ...
-ray()->measure();           // stop — mostra elapsed + memory delta
+// ... code ...
+ray()->measure();           // stop — shows elapsed + memory delta
 ray()->trace();             // stack trace
-ray()->pause();             // pausa execucao
+ray()->pause();             // pauses execution
 ```
 
 License: EUR 49/year. Free tier: 20 messages per session.
@@ -262,15 +262,15 @@ RAY_ENABLED=true
 
 ## When to use each tool
 
-| Contexto | Ferramenta |
+| Context | Tool |
 |----------|-----------|
 | Browser (HTML responses) | Debugbar |
-| API debugging (JSON) | Clockwork ou Telescope |
+| API debugging (JSON) | Clockwork or Telescope |
 | Jobs, mail, queues | Telescope |
-| Investigar exception especifica | Ignition |
-| Debug sem poluir output | Ray |
-| Ler logs sem SSH | Log Viewer |
-| Tail logs no terminal | Pail |
+| Investigate a specific exception | Ignition |
+| Debug without polluting output | Ray |
+| Read logs without SSH | Log Viewer |
+| Tail logs in the terminal | Pail |
 | N+1 detection | Debugbar + query-detector |
 
 ---

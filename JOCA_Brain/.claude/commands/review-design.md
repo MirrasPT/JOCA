@@ -1,35 +1,35 @@
-# /review-design — Review de Design (router)
+# /review-design — Design Review (router)
 
-Despacha o reviewer certo por **tipo de alvo** e **necessidade**. Não invoca sempre o mesmo agente.
+Dispatches the right reviewer by **target type** and **need**. Does not always invoke the same agent.
 
-## 1. Determinar alvo
+## 1. Determine the target
 
-- PLAN / PRD / spec `.md` (UI ainda não construída) → **plan-mode**
-- URL staging/local, ou ficheiro(s) `.tsx`/`.html`/componente → **live/code**
-- Nada especificado → perguntar
+- PLAN / PRD / `.md` spec (UI not built yet) → **plan-mode**
+- Staging/local URL, or `.tsx`/`.html` file(s)/component → **live/code**
+- Nothing specified → ask
 
-## 2. Despachar
+## 2. Dispatch
 
-### Plan-mode (shift-left, antes do código)
-`Read(".claude/skills/design-review.md")` → modo §2:
-- classificar marketing vs app
-- matriz de estados (Loading/Empty/Error/Success/Partial)
-- storyboard da user journey + tabela de decisões por resolver
-- escreve fixes de volta no plano
+### Plan-mode (shift-left, before the code)
+`Read(".claude/skills/design-review.md")` → mode §2:
+- classify marketing vs app
+- state matrix (Loading/Empty/Error/Success/Partial)
+- storyboard of the user journey + table of decisions still to resolve
+- writes fixes back into the plan
 
 ### Live / code
-Combinar conforme a necessidade (não são mutuamente exclusivos):
+Combine according to the need (they are not mutually exclusive):
 
-| Necessidade | Invocar |
+| Need | Invoke |
 |-------------|---------|
-| Gosto · AI-slop · composição · rubrica + lint file:line | `design-review` (skill §1) — `Read(".claude/skills/design-review.md")` |
-| Fluxos UX · WCAG profundo · ARIA · screen-reader · keyboard | `tester-ui-ux` (agente) |
-| Drift de tokens / componentes vs design system | `design-system-audit` (agente) |
-| Performance (Lighthouse / load) | `tester-performance` (agente) |
+| Taste · AI-slop · composition · rubric + lint file:line | `design-review` (skill §1) — `Read(".claude/skills/design-review.md")` |
+| UX flows · deep WCAG · ARIA · screen-reader · keyboard | `tester-ui-ux` (agent) |
+| Token / component drift vs the design system | `design-system-audit` (agent) |
+| Performance (Lighthouse / load) | `tester-performance` (agent) |
 
-Default para "é bom?" / "revê o design" → `design-review` skill. Adicionar `tester-ui-ux` quando há fluxos/formulários/a11y a sério.
+Default for "is it any good?" / "review the design" → `design-review` skill. Add `tester-ui-ux` when there are real flows/forms/a11y at stake.
 
-## 3. Relatório
+## 3. Report
 
-`design-review`: tabela 3-pilares + reject AI-slop + litmus + findings (Blocking/Major/Minor) + score + verdict + quick wins.
-Agentes: secções unificadas Critical / High / Medium.
+`design-review`: 3-pillar table + reject AI-slop + litmus + findings (Blocking/Major/Minor) + score + verdict + quick wins.
+Agents: unified Critical / High / Medium sections.

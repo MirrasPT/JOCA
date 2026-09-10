@@ -1,244 +1,244 @@
-# /resume — Carregar contexto da sessão
+# /resume — Load the session context
 
-Corre no início de cada sessão de trabalho num projecto.
+Runs at the start of every work session on a project.
 
-## Passos
+## Steps
 
-### 1. Identificar projecto actual
-Determinar o **path-alvo**: o 1º argumento se dado (ex.: `/resume <YOUR_PROJECTS_DIR>\MeuProjecto`), senão o CWD.
+### 1. Identify the current project
+Determine the **target path**: the 1st argument if given (e.g. `/resume <YOUR_PROJECTS_DIR>\MyProject`), otherwise the CWD.
 
-**Resolver PRIMEIRO por caminho (`directorio:` do frontmatter), e só se o caminho não casar é que se cai para match por nome.** Uma pasta-mãe e um subdir podem ter entradas separadas (umbrella vs sub-projecto); casar pelo nome primeiro carrega a errada.
+**Resolve FIRST by path (`directorio:` in the frontmatter), and only fall back to matching by name if the path does not match.** A parent folder and a subdir can have separate entries (umbrella vs sub-project); matching by name first loads the wrong one.
 
-**Prioridade 1 — por CAMINHO** (`directorio:` == path-alvo):
+**Priority 1 — by PATH** (`directorio:` == target path):
 ```bash
-# match EXACTO do path — cobre as DUAS formas do campo (1 path OU lista de paths)
-grep -rIl -e "^directorio: *<path-alvo>$" \
-          -e "^directorio: *\[.*<path-alvo>[],]" memory/projects/*.md
+# EXACT path match — covers BOTH forms of the field (1 path OR list of paths)
+grep -rIl -e "^directorio: *<target-path>$" \
+          -e "^directorio: *\[.*<target-path>[],]" memory/projects/*.md
 ```
-⚠ Um `grep` só com a 1ª forma **não casa** entradas com `directorio: [a, b]` e manda a resolução para
-o fallback por nome sem motivo — o campo é lista desde que há projectos em 2 máquinas.
-1. **Match exacto** (`directorio:` == path-alvo) → é essa a entrada. Carregar essa.
-2. **Múltiplos matches exactos** (ex.: `<nome>.md` + `<nome>-geral.md` ambos com o mesmo `directorio`) → carregar a **umbrella** primeiro (a que tem `-geral` no nome, ou a de descrição mais abrangente) e listar as irmãs.
-3. **Path-alvo é pasta-MÃE de entradas** (nenhum match exacto, mas há entradas cujo `directorio` começa por `<path-alvo>`) → listar todas e apresentar a umbrella se existir, não uma só sub-entrada.
-4. **Path-alvo é SUBDIR de uma entrada** → carregar essa entrada-mãe.
+⚠ A `grep` with only the 1st form **does not match** entries with `directorio: [a, b]` and sends the resolution
+to the name fallback for no reason — the field has been a list ever since there are projects on 2 machines.
+1. **Exact match** (`directorio:` == target path) → that is the entry. Load it.
+2. **Multiple exact matches** (e.g. `<name>.md` + `<name>-geral.md` both with the same `directorio`) → load the **umbrella** first (the one with `-geral` in the name, or the one with the broadest description) and list the siblings.
+3. **Target path is the PARENT folder of entries** (no exact match, but there are entries whose `directorio` starts with `<target-path>`) → list them all and present the umbrella if there is one, not a single sub-entry.
+4. **Target path is a SUBDIR of an entry** → load that parent entry.
 
-**`directorio:` aceita LISTA.** Um projecto pode viver legitimamente em mais do que um path — este
-utilizador alterna entre 2 máquinas (macOS + Windows) e vários projectos existem nas duas. O
-frontmatter suporta as duas formas:
+**`directorio:` accepts a LIST.** A project can legitimately live in more than one path — this
+user alternates between 2 machines (macOS + Windows) and several projects exist on both. The
+frontmatter supports both forms:
 
 ```yaml
-directorio: /Users/<user>/Projectos/meu-projecto                  # 1 path
-directorio: [/Users/<user>/Projectos/meu-projecto, C:\Users\<user>\Projetos\meu-projecto]
+directorio: /Users/<user>/Projectos/my-project                   # 1 path
+directorio: [/Users/<user>/Projectos/my-project, C:\Users\<user>\Projetos\my-project]
 ```
 
-A Prioridade 1 casa contra **qualquer** elemento da lista. Só se nenhum casar é que se desce ao
-fallback por nome — e é aí que o aviso faz sentido.
+Priority 1 matches against **any** element of the list. Only if none matches do you drop to the
+name fallback — and that is where the warning makes sense.
 
-**Prioridade 2 — por NOME** (fallback, só se a Prioridade 1 não deu nada — ex.: o `directorio:` na memória está desactualizado/movido, ou a pasta não bate certo com nenhum `directorio`): fazer match do **basename do path-alvo** (normalizado: minúsculas, `_`/espaços→`-`) contra o `name:`/ficheiro das entradas em `memory/projects/`. Se casar, carregar essa entrada **e avisar** que se resolveu por nome porque o `directorio:` não bateu.
-⚠ **O conselho de correcção depende do caso:** se o path-alvo é uma *segunda máquina* legítima →
-**acrescentar** o path à lista `directorio:`, nunca substituir (substituir parte a resolução na
-outra máquina). Só sugerir substituição quando o path antigo já não existe.
+**Priority 2 — by NAME** (fallback, only if Priority 1 returned nothing — e.g. the `directorio:` in the memory is stale/moved, or the folder does not line up with any `directorio`): match the **basename of the target path** (normalized: lowercase, `_`/spaces→`-`) against the `name:`/file of the entries in `memory/projects/`. If it matches, load that entry **and warn** that it resolved by name because the `directorio:` did not match.
+⚠ **The correction advice depends on the case:** if the target path is a legitimate *second machine* →
+**add** the path to the `directorio:` list, never replace it (replacing breaks resolution on the
+other machine). Only suggest replacing when the old path no longer exists.
 
-> Exemplo (por caminho): `/resume <YOUR_PROJECTS_DIR>\MeuProjecto` → umbrella `meu-projecto-geral.md` (`directorio` == pasta-mãe). `/resume <YOUR_PROJECTS_DIR>\MeuProjecto\2026_Nova_Plataforma` → `meu-projecto.md` (`directorio` == subdir da plataforma). Nunca o inverso.
+> Example (by path): `/resume <YOUR_PROJECTS_DIR>\MyProject` → umbrella `my-project-geral.md` (`directorio` == parent folder). `/resume <YOUR_PROJECTS_DIR>\MyProject\2026_New_Platform` → `my-project.md` (`directorio` == the platform's subdir). Never the other way round.
 
-**Nenhuma relação nem por caminho nem por nome** → sugerir correr `/start` primeiro.
+**No relation by path or by name** → suggest running `/start` first.
 
-### 1b. Arg opcional: `<git-remote-url>`
+### 1b. Optional arg: `<git-remote-url>`
 
-Se o comando for invocado com um 2º argumento (URL de remote GitHub/GitLab):
-1. Verificar se o repo local tem esse remote: `git remote -v`
-2. Se não tiver: `git remote add origin <url>` → `git fetch origin` → comparar working tree vs `origin/<branch-default>`
-3. Reportar divergência de forma **não-destrutiva** (nunca `reset --hard` sem confirmação explícita)
-4. Se tiver mas apontar para URL diferente: reportar conflito, não alterar automaticamente
+If the command is invoked with a 2nd argument (a GitHub/GitLab remote URL):
+1. Check whether the local repo has that remote: `git remote -v`
+2. If it does not: `git remote add origin <url>` → `git fetch origin` → compare the working tree vs `origin/<default-branch>`
+3. Report divergence **non-destructively** (never `reset --hard` without explicit confirmation)
+4. If it has one but points to a different URL: report the conflict, do not change it automatically
 
-### 2. Ler contexto do projecto
-Ler a **entrada resolvida no passo 1** — estado actual, decisões tomadas, pendentes. Se for uma umbrella, seguir os `[[links]]` para as sub-entradas relevantes ao que o utilizador for fazer (não despejar todas de uma vez).
+### 2. Read the project context
+Read the **entry resolved in step 1** — current state, decisions taken, pending items. If it is an umbrella, follow the `[[links]]` to the sub-entries relevant to what the user is about to do (do not dump them all at once).
 
-#### 2a. Restaurar checkpoint + Brain (machine-readable)
+#### 2a. Restore checkpoint + Brain (machine-readable)
 
-Antes da prosa, carregar o estado estruturado (adaptado de gstack context-restore):
+Before the prose, load the structured state (adapted from gstack context-restore):
 ```bash
-node .claude/scripts/joca-checkpoint.mjs latest --slug <projecto>  # snapshot: decisões/restante/próxima acção
-node .claude/scripts/joca-brain.mjs active                          # decisões activas (event-sourced)
+node .claude/scripts/joca-checkpoint.mjs latest --slug <project>   # snapshot: decisions/remaining/next action
+node .claude/scripts/joca-brain.mjs active                          # active decisions (event-sourced)
 ```
-⚠ **`--slug <projecto>` é obrigatório, com o nome resolvido no passo 1.** Sem ele o script deriva o
-slug do **repo do cwd**, e duas sessões concorrentes escrevem na mesma pasta: já aconteceu o `latest`
-devolver o checkpoint de outro projecto (guardei o do rate-it-plus às 20:54, outra sessão gravou às
-21:29, e a minha "próxima acção" ficou invisível ao `/resume`). O ficheiro não se perde — deixa é de
-ser encontrado pelo caminho que o `/resume` usa.
-- O checkpoint dá a **próxima acção** exacta da sessão anterior (restauro cross-branch).
-- As decisões activas do Brain são a fonte de verdade atómica (sobre a prosa, em caso de conflito).
-- Nota: o hook `session-intake` já injecta o recall (decisões+aprendizagens) no arranque; este passo é o restauro explícito + próxima-acção dentro do `/resume`.
+⚠ **`--slug <project>` is mandatory, with the name resolved in step 1.** Without it the script derives the
+slug from the **cwd's repo**, and two concurrent sessions write into the same folder: `latest` has already
+returned another project's checkpoint (I saved the rate-it-plus one at 20:54, another session wrote at
+21:29, and my "next action" became invisible to `/resume`). The file is not lost — it just stops being
+found by the path `/resume` uses.
+- The checkpoint gives the exact **next action** from the previous session (cross-branch restore).
+- The Brain's active decisions are the atomic source of truth (over the prose, in case of conflict).
+- Note: the `session-intake` hook already injects the recall (decisions+learnings) at startup; this step is the explicit restore + next-action inside `/resume`.
 
-#### 2b. Detectar drift memória vs git
+#### 2b. Detect memory vs git drift
 
-Após ler a memória do projecto, comparar com o estado real do git:
+After reading the project's memory, compare it with the real git state:
 ```bash
-git log --oneline -5       # últimos 5 commits reais (branch actual)
-git branch -a | head -20   # TODAS as branches (locais + remotas)
-git log --oneline --all | head -10  # histórico de TODAS as branches
+git log --oneline -5       # last 5 real commits (current branch)
+git branch -a | head -20   # ALL branches (local + remote)
+git log --oneline --all | head -10  # history of ALL branches
 ```
-- **Antes de declarar trabalho "perdido/nunca committado": correr `git log --all` + `git branch -a` é Step 0 obrigatório.** Branches `backup/*`, `stash/*`, ou outra branch que não a actual escondem trabalho real após um switch de remote. Se detectar `backup/*` → `⚠ Existe branch de backup — verificar antes de reconstruir trabalho`. (Caso real: um backoffice completo estava em `backup/local-pre-dev` e foi declarado perdido.)
-- Extrair a data da secção **"Última sessão"** da memória
-- Se o commit mais recente for **>14 dias depois** da data de memória: alertar com `⚠ MEMÓRIA DESACTUALIZADA — último commit é X dias mais recente que a memória`
-- Se houver commits com mensagens que contradizem o "Estado actual" (ex.: memória diz "backend pendente" mas há commits "feat: complete backend"): alertar e re-inferir estado a partir do git
+- **Before declaring work "lost/never committed": running `git log --all` + `git branch -a` is a mandatory Step 0.** `backup/*` and `stash/*` branches, or any branch other than the current one, hide real work after a remote switch. If you detect `backup/*` → `⚠ A backup branch exists — check before rebuilding work`. (Real case: a complete backoffice was on `backup/local-pre-dev` and was declared lost.)
+- Extract the date from the memory's **"Last session"** section
+- If the most recent commit is **>14 days after** the memory's date: alert with `⚠ MEMORY STALE — the latest commit is X days newer than the memory`
+- If there are commits whose messages contradict the "Current state" (e.g. the memory says "backend pending" but there are "feat: complete backend" commits): alert and re-infer the state from git
 
-Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
+Never trust the memory blindly if git diverges. Read key files (e.g. the project's `CLAUDE.md`, `package.json`) to confirm the real stack/state.
 
-**Ramo obrigatório — pasta cheia mas SEM `.git`.** Os três comandos acima assumem que o repo existe;
-sem `.git` devolvem `fatal: not a git repository` e o passo **colapsa em silêncio**. Testar primeiro:
+**Mandatory branch — folder full but WITHOUT `.git`.** The three commands above assume the repo exists;
+without `.git` they return `fatal: not a git repository` and the step **collapses silently**. Test first:
 ```bash
-git rev-parse --is-inside-work-tree 2>/dev/null || echo "SEM GIT"
+git rev-parse --is-inside-work-tree 2>/dev/null || echo "NO GIT"
 ```
-Se der `SEM GIT` **e** a pasta tiver ficheiros (≠ do caso 2d, pasta vazia):
-1. **Não** declarar trabalho perdido nem re-clonar por cima — o código está ali, o que falta é a rede
-   de segurança (sem `git diff`, sem `git checkout --`, sem histórico).
-2. Procurar na memória o repo remoto e comparar os `mtime` locais com a data do último push: se
-   baterem, o conteúdo é o do push e só falta a pasta `.git`.
-3. Reportar como pendente **bloqueante**: *"restaurar o `.git` antes de editar código"* — receita:
-   clonar para outro sítio, trazer só a pasta `.git`, confirmar `git status` limpo.
-> Caso real: uma mudança de nome de pasta deixou o `.git` para trás. A pasta parecia saudável e
-> editou-se lá durante uma sessão inteira sem histórico nenhum.
+If it prints `NO GIT` **and** the folder has files (≠ case 2d, an empty folder):
+1. Do **not** declare work lost or re-clone over it — the code is there, what is missing is the safety
+   net (no `git diff`, no `git checkout --`, no history).
+2. Look up the remote repo in the memory and compare the local `mtime`s with the date of the last push: if
+   they line up, the content is the pushed content and only the `.git` folder is missing.
+3. Report it as a **blocking** pending item: *"restore the `.git` before editing code"* — recipe:
+   clone somewhere else, bring over just the `.git` folder, confirm `git status` is clean.
+> Real case: a folder rename left the `.git` behind. The folder looked healthy and a whole session was
+> spent editing in it with no history at all.
 
-#### 2b-bis. PROGRESSO.md — o estado partilhado
+#### 2b-bis. PROGRESS.md — the shared state
 
-Se a pasta do projecto tiver `PROGRESSO.md` (qualquer projecto — o `/start` cria-o de raiz, o
-`/save` cria-o em projectos a meio): lê-lo **antes** da
-memória do Brain e mostrar a fase actual no resumo. É a versão partilhada do estado — pode ter sido
-actualizado por outro colaborador ou outra máquina desde a tua última sessão, e nesse caso **ganha
-ao Brain** no que toca a fases/estado do projecto (o Brain guarda o teu contexto pessoal, não o
-estado canónico). Divergência entre os dois → assinalar como drift, igual ao 2b.
+If the project folder has `PROGRESS.md` (any project — `/start` creates it from scratch, `/save`
+creates it in mid-flight projects): read it **before** the
+Brain's memory and show the current phase in the summary. It is the shared version of the state — it may
+have been updated by another collaborator or another machine since your last session, and in that case it
+**beats the Brain** where the project's phases/state are concerned (the Brain holds your personal context, not
+the canonical state). Divergence between the two → flag it as drift, same as 2b.
 
-#### 2c. Afirmações perecíveis — a memória é pista, não facto
+#### 2c. Perishable claims — the memory is a lead, not a fact
 
-O drift do 2b compara memória ↔ **git**. Não cobre memória ↔ **estado vivo** (BD, infra, contas), que
-apodrece em silêncio e é onde mora o risco real:
+The drift in 2b compares memory ↔ **git**. It does not cover memory ↔ **live state** (DB, infra, accounts), which
+rots silently and is where the real risk lives:
 
-- A memória dizia "prod tem 2 users (id2 Mirras, id14 Joana)". Realidade: **4 users, com IDs
-  diferentes**, um deles pessoa real registada depois do go-live. Copiar dados staging→prod por
-  `user_id` a partir dessa nota teria escrito por cima de um utilizador real.
-- A memória e dois docs anunciavam há meses um admin do Bigorna que **não existia**: a BD tinha 0
-  users/0 roles. O `curl /admin/login → 200` reforçava a ilusão — a porta estava lá, faltava a chave.
-- Uma receita de FTP documentada como *a* solução tinha sido validada **uma vez, com um ficheiro**.
-  Falhou nos 2 maiores e partiu o site.
+- The memory said "prod has 2 users (id2 Mirras, id14 Joana)". Reality: **4 users, with different
+  IDs**, one of them a real person registered after go-live. Copying staging→prod data by
+  `user_id` from that note would have written over a real user.
+- The memory and two docs had for months announced a Bigorna admin that **did not exist**: the DB had 0
+  users/0 roles. The `curl /admin/login → 200` reinforced the illusion — the door was there, the key was missing.
+- An FTP recipe documented as *the* solution had been validated **once, with one file**.
+  It failed on the 2 biggest ones and broke the site.
 
-Marcar como **perecível** qualquer afirmação sobre estado vivo (contagens, IDs, credenciais, infra,
-receitas de comando) — datada e com as condições em que foi validada ("validado 1×, ficheiro de
-600 MB"). No `/resume`, listá-las como *a revalidar*, não como facto.
+Mark as **perishable** any claim about live state (counts, IDs, credentials, infra,
+command recipes) — dated and with the conditions under which it was validated ("validated 1×, a
+600 MB file"). In `/resume`, list them as *to be revalidated*, not as fact.
 
-**Regra dura: antes de qualquer escrita em produção derivada da memória, revalidar contra a fonte.**
+**Hard rule: before any write to production derived from the memory, revalidate against the source.**
 
-**"Está deployado" é perecível — medir paridade live ↔ repo.** Um health-check só prova que o
-endereço responde; um live um mês atrasado responde 200 na mesma. Se a memória declarar um **URL
-live** *e* um **repo**, correr o check barato:
+**"It's deployed" is perishable — measure live ↔ repo parity.** A health-check only proves the
+address responds; a live a month behind answers 200 all the same. If the memory declares a **live
+URL** *and* a **repo**, run the cheap check:
 ```bash
-git log -1 --format=%H                                  # sha local
-curl -sI <url-do-bundle-js-ou-css> | grep -i content-length   # tamanho servido
-ls -l <ficheiro-correspondente-no-build-local>                 # tamanho local
-curl -s <url-do-bundle> | grep -c "<símbolo-do-último-commit>" # o commit chegou ao ar?
+git log -1 --format=%H                                  # local sha
+curl -sI <url-of-the-js-or-css-bundle> | grep -i content-length   # size served
+ls -l <matching-file-in-the-local-build>                       # local size
+curl -s <bundle-url> | grep -c "<symbol-from-the-last-commit>"  # did the commit make it live?
 ```
-Divergência de tamanho, ou símbolo ausente → `⚠ LIVE ATRASADO face a <sha>` no resumo, como pendente.
-> Caso real: o live servia tudo e faltavam duas features. Uma delas era *esconder rascunhos* — o
-> efeito visível ("aparece tudo") é indistinguível de não estar deployada. Só a comparação do
-> ficheiro estático dos dois lados o revelou.
+Size divergence, or the symbol absent → `⚠ LIVE BEHIND <sha>` in the summary, as a pending item.
+> Real case: the live served everything and two features were missing. One of them was *hiding drafts* — the
+> visible effect ("everything shows up") is indistinguishable from it not being deployed. Only comparing the
+> static file on both sides revealed it.
 
-#### 2d. Pasta local vazia — o projecto vive noutra máquina (ou noutra nuvem)
+#### 2d. Empty local folder — the project lives on another machine (or in another cloud)
 
-**Antes de concluir "não está cá": se o path-alvo estiver debaixo de uma montagem de nuvem** (`MEGA`,
-`Dropbox`, `OneDrive`, `Google Drive`, `~/Library/CloudStorage/…`), uma pasta vazia ou com 1-2
-ficheiros é tantas vezes uma **migração a meio** como uma máquina nova. Medir e procurar o gémeo
-antes de clonar seja o que for:
+**Before concluding "it is not here": if the target path is under a cloud mount** (`MEGA`,
+`Dropbox`, `OneDrive`, `Google Drive`, `~/Library/CloudStorage/…`), a folder that is empty or has 1-2
+files is as often a **migration mid-flight** as a new machine. Measure and look for the twin
+before cloning anything:
 ```bash
-ls -A <path-alvo> | head            # vazio? stub de 1 ficheiro?
-ls -d ~/<outra-raiz-de-nuvem>/*/<basename-do-path-alvo> 2>/dev/null   # o mesmo nome noutra nuvem
+ls -A <target-path> | head          # empty? a 1-file stub?
+ls -d ~/<other-cloud-root>/*/<basename-of-target-path> 2>/dev/null   # the same name in another cloud
 ```
-⚠ Procura **dirigida** (`ls` a paths conhecidos, `-maxdepth`), nunca `find`/`grep -r` a partir de `~`
-nem da raiz da montagem: a home **contém** as montagens e o mount materializa cada pasta ao percorrê-la
-— estoura o timeout e vai para background sem resultado.
-Encontrado o gémeo com conteúdo → é esse o projecto: **corrigir o `directorio:` na memória**
-(acrescentar o path novo à lista, não substituir às cegas) e reportar a migração no resumo.
-> Caso real: o path de nuvem da memória apareceu como stub de 1 ficheiro e o código estava noutra
-> nuvem. Sem esta verificação, trabalha-se por cima de uma pasta incompleta.
+⚠ Search in a **targeted** way (`ls` on known paths, `-maxdepth`), never `find`/`grep -r` from `~`
+or from the root of the mount: the home **contains** the mounts and the mount materializes every folder as it is walked
+— it blows the timeout and goes to background with no result.
+Twin found with content → that is the project: **fix the `directorio:` in the memory**
+(add the new path to the list, do not replace blindly) and report the migration in the summary.
+> Real case: the cloud path in the memory showed up as a 1-file stub and the code was in another
+> cloud. Without this check, you work on top of an incomplete folder.
 
-Se o path-alvo existe mas está **vazio** (pasta com ficheiros e sem `.git` → ver o ramo do 2b, não
-este), e a memória tem o projecto com repo remoto:
-não é um projecto novo, é esta máquina que ainda não o tem. Fluxo (repetível — 2 máquinas alternadas):
+If the target path exists but is **empty** (a folder with files and no `.git` → see the 2b branch, not
+this one), and the memory has the project with a remote repo:
+it is not a new project, it is this machine that does not have it yet. Flow (repeatable — 2 alternating machines):
 
-1. `gh repo clone <owner>/<repo> <path>` — para repos **privados** usar o `gh`; o `git clone https`
-   pendura à espera de credenciais.
-2. Listar o que é **gitignored e portanto não veio**: `.env`, base de dados, `uploads/`, `storage/`.
-   Ir buscá-los à origem real (VPS/cPanel/backup) — a memória do projecto diz onde.
-3. Instalar dependências (`npm install` / `composer install`).
-4. **Verificar coerência BD ↔ disco**: registos que apontem para ficheiros que não existem localmente.
-5. Só depois arrancar. Portas: respeitar as hard rules do projecto.
+1. `gh repo clone <owner>/<repo> <path>` — for **private** repos use `gh`; `git clone https`
+   hangs waiting for credentials.
+2. List what is **gitignored and therefore did not come**: `.env`, database, `uploads/`, `storage/`.
+   Fetch them from the real origin (VPS/cPanel/backup) — the project's memory says where.
+3. Install dependencies (`npm install` / `composer install`).
+4. **Check DB ↔ disk coherence**: records pointing to files that do not exist locally.
+5. Only then start it up. Ports: respect the project's hard rules.
 
-Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
+If the project involves image generation: check whether `Branding.md` or the memory entry defines `default_model`. If so, include it in the final summary to avoid using the wrong model.
 
-### 3. Verificar knowledge graphs
+### 3. Check the knowledge graphs
 
-⚠ **Nota:** `graphify update .` e `graphify . --update` não funcionam (bug CLI). Usar sempre a Python API:
+⚠ **Note:** `graphify update .` and `graphify . --update` do not work (CLI bug). Always use the Python API:
 ```bash
 python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path>'))"
 ```
 
-⚠ **Interpretador (Windows):** usar `python`, **não** `python3` — neste ambiente `python3` é o stub vazio da Microsoft Store (`ModuleNotFoundError: No module named 'graphify'`) e o passo falha silenciosamente. macOS/Linux usam `python3`. Detectar o que tem graphify:
+⚠ **Interpreter (Windows):** use `python`, **not** `python3` — in this environment `python3` is the empty Microsoft Store stub (`ModuleNotFoundError: No module named 'graphify'`) and the step fails silently. macOS/Linux use `python3`. Detect which one has graphify:
 ```bash
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
 ```
 
-⚠ **Exclusões:** em projectos PHP/JS, o scan recursivo apanha `vendor/`, `node_modules/`, `storage/`, `bootstrap/cache/`, `out/`, `public/` → dezenas de milhar de nós de ruído (>5000 = HTML saltado). Garantir que estes patterns ficam excluídos antes de reconstruir (o `graphify-deps.py` já os ignora por omissão).
+⚠ **Exclusions:** in PHP/JS projects, the recursive scan picks up `vendor/`, `node_modules/`, `storage/`, `bootstrap/cache/`, `out/`, `public/` → tens of thousands of noise nodes (>5000 = HTML skipped). Make sure these patterns stay excluded before rebuilding (`graphify-deps.py` already ignores them by default).
 
-**Graph do projecto:**
-- Se não existir `graphify-out/graph.json`:
-  - Projecto com código (Python/JS/PHP): correr Python API acima
-  - Projecto HTML/design/docs: correr `python JOCA/.claude/scripts/graphify-deps.py <path>` + `graphify cluster-only <path>`
-- Se existir mas for antigo (>7 dias): correr Python API para actualizar
-- Se existir: ler `graphify-out/GRAPH_REPORT.md`
+**Project graph:**
+- If `graphify-out/graph.json` does not exist:
+  - Project with code (Python/JS/PHP): run the Python API above
+  - HTML/design/docs project: run `python JOCA/.claude/scripts/graphify-deps.py <path>` + `graphify cluster-only <path>`
+- If it exists but is old (>7 days): run the Python API to update it
+- If it exists: read `graphify-out/GRAPH_REPORT.md`
 
-**Graph do JOCA:**
-- Se existir `<caminho JOCA>/graphify-out/GRAPH_REPORT.md`: ler para contexto de agentes e skills disponíveis
-- Se não existir: correr Python API com path do JOCA
+**JOCA graph:**
+- If `<JOCA path>/graphify-out/GRAPH_REPORT.md` exists: read it for context on the available agents and skills
+- If it does not exist: run the Python API with JOCA's path
 
-### 3b. Se o projecto actual É o toolkit JOCA
+### 3b. If the current project IS the JOCA toolkit
 
-Quando a pasta de trabalho é o próprio repo JOCA (contém `JOCA_Brain/CLAUDE.md`), surgir no resumo as workflows de manutenção disponíveis:
-- `/upgrade-joca` — processa feedback acumulado em `memory/feedback/`
-- Nota Windows: o JOCA_OS é desenvolvido em macOS; em Windows a skill `joca-os-windows` adapta/testa/corrige o UI.
+When the working folder is the JOCA repo itself (it contains `JOCA_Brain/CLAUDE.md`), surface the available maintenance workflows in the summary:
+- `/upgrade-joca` — processes the feedback accumulated in `memory/feedback/`
+- Windows note: the JOCA_OS is developed on macOS; on Windows the `joca-os-windows` skill adapts/tests/fixes the UI.
 
-### 3c. Para projectos com código existente — propor iteration flow
+### 3c. For projects with existing code — propose an iteration flow
 
-Se o projecto já tem código (detectável por existência de `package.json`, `composer.json`, `src/`, `app/`):
-- **Não** apresentar apenas o contexto passivamente
-- Propor o flow de iteração adequado ao estado:
+If the project already has code (detectable by the existence of `package.json`, `composer.json`, `src/`, `app/`):
+- Do **not** just present the context passively
+- Propose the iteration flow that fits the state:
 
-| Estado detectado | Flow sugerido |
+| Detected state | Suggested flow |
 |-----------------|---------------|
-| Tem pendentes de bug/fix | → `[/debug]` ou fix directo |
-| Tem pendentes de feature | → `[/plan]` → implement |
-| Estado: "completo" mas sem deploy | → `[/deploy-executor]` ou checklist de deploy |
-| Sem pendentes claros | → "O que queres fazer? (review, feature, fix, deploy)" |
+| Has bug/fix pending items | → `[/debug]` or a direct fix |
+| Has feature pending items | → `[/plan]` → implement |
+| State: "complete" but not deployed | → `[/deploy-executor]` or a deploy checklist |
+| No clear pending items | → "What do you want to do? (review, feature, fix, deploy)" |
 
-Indicar o flow em 1 linha no resumo, não como pergunta — o utilizador redirige se quiser outra coisa.
+State the flow in 1 line in the summary, not as a question — the user redirects if they want something else.
 
-**Projectos com `composer.json` (Laravel/PHP) em Windows:** verificar `php -v 2>&1` no arranque. Se falhar (PHP não está no PATH), alertar com o path do binário PHP local — `<YOUR_PHP_PATH>` — e sugerir add ao PATH ou usar `& <YOUR_PHP_PATH> artisan ...`. Sem isto, qualquer operação artisan/composer falha silenciosamente e acaba-se a usar Python/sqlite directamente para a BD.
+**Projects with `composer.json` (Laravel/PHP) on Windows:** check `php -v 2>&1` at startup. If it fails (PHP is not on the PATH), alert with the path of the local PHP binary — `<YOUR_PHP_PATH>` — and suggest adding it to the PATH or using `& <YOUR_PHP_PATH> artisan ...`. Without this, any artisan/composer operation fails silently and you end up using Python/sqlite directly for the DB.
 
-### 4. Apresentar resumo ao utilizador
+### 4. Present the summary to the user
 
 ```
-Projecto: <nome>
+Project: <name>
 Stack: <stack>
 
-Estado: <estado actual>
+State: <current state>
 
-Última sessão:
-- <o que foi feito>
+Last session:
+- <what was done>
 
-Pendente:
+Pending:
 - <item 1>
 - <item 2>
 
-Graph projecto: ✓ actualizado em <data>
-Graph JOCA:     ✓ disponível
+Project graph: ✓ updated on <date>
+JOCA graph:    ✓ available
 ```
 
-Pronto para trabalhar.
+Ready to work.

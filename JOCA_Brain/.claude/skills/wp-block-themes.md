@@ -25,8 +25,8 @@ compatibility: "WordPress 6.9+ (PHP 7.2.24+). Filesystem agent with bash + node.
 ### 0) Triage and locate block theme roots
 
 1. Run triage:
-   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
-2. Detect theme roots + key folders manualmente: procurar `theme.json` + `templates/`/`parts/` (Glob) — o script não existe nesta instalação.
+   - Read(".claude/skills/wp-project-triage.md") and do the triage by hand (the script does not exist in this installation).
+2. Detect theme roots + key folders by hand: look for `theme.json` + `templates/`/`parts/` (Glob) — the script does not exist in this installation.
 
 If multiple themes exist, pick one and scope all changes to that theme root.
 

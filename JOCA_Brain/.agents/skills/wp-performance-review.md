@@ -183,8 +183,8 @@ grep -rn "wp_schedule_event" . | grep -v "wp_next_scheduled"  # Missing schedule
 | Recommending object cache on shared hosting | Many shared hosts lack persistent cache | Check hosting environment first |
 | Only reviewing PHP, missing JS polling | JS `setInterval` + fetch = self-DDoS | Review `.js` files for polling patterns |
 
-## Referências (carregar on-demand)
+## References (load on-demand)
 
-| Referência | Quando |
+| Reference | When |
 |---|---|
-| `Read(".claude/reference/wp-performance-review/anti-patterns.md")` | Ao reportar/corrigir um issue detectado — confirmar o padrão ❌/✅ exacto (queries, hooks, PHP, caching, AJAX, cron, cache bypass, transients, assets, APIs externas, sitemaps, post meta) e citar o fix |
+| `Read(".claude/reference/wp-performance-review/anti-patterns.md")` | When reporting/fixing a detected issue — confirm the exact ❌/✅ pattern (queries, hooks, PHP, caching, AJAX, cron, cache bypass, transients, assets, external APIs, sitemaps, post meta) and cite the fix |

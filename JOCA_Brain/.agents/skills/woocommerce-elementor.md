@@ -1,7 +1,7 @@
 ---
 name: woocommerce-elementor
 description: "Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello Elementor child theme, where pages are editable Elementor `_elementor_data` JSON and the child theme CSS does the look. MUST be invoked when the user says: Elementor, _elementor_data, Hello Elementor, WooCommerce storefront, WooCommerce + Elementor, HFE, Header Footer Elementor, WPForms, content-product.php. SHOULD also invoke when: WordPress shop build, programmatic Elementor pages, editable WordPress pages without code blocks, WooCommerce theme override."
-triggers: elementor, _elementor_data, hello elementor, elementor free, woocommerce, woocommerce storefront, woocommerce elementor, HFE, header footer elementor, wpforms, content-product.php, woocommerce template override, programmatic elementor, elementor json, css_classes, _css_classes, loja woocommerce, storefront, wp post meta elementor, coming_soon
+triggers: elementor, _elementor_data, hello elementor, elementor free, woocommerce, woocommerce storefront, woocommerce elementor, HFE, header footer elementor, wpforms, content-product.php, woocommerce template override, programmatic elementor, elementor json, css_classes, _css_classes, woocommerce store, storefront, wp post meta elementor, coming_soon
 origin: local
 ---
 
@@ -93,7 +93,7 @@ Emit your card markup; add the BEM class via `wc_product_class()`:
   <div class="bd-wine-card-img"><a href="<?php echo esc_url(get_permalink()); ?>"><?php echo $product->get_image('large'); ?></a></div>
   <div class="bd-wine-card-body">
     <h3 class="bd-card-name"><?php echo esc_html($product->get_name()); ?></h3>
-    <a class="bd-card-link" href="<?php echo esc_url(get_permalink()); ?>">Ver &rarr;</a>
+    <a class="bd-card-link" href="<?php echo esc_url(get_permalink()); ?>">View &rarr;</a>
   </div>
 </li>
 ```
@@ -124,13 +124,13 @@ Run with `wp --user=admin eval`. A form needs the COMPLETE structure (fields + `
 
 Prize lists, news grids, contact info, gallery filters → register a PHP shortcode in an MU plugin and drop ONE Elementor Shortcode widget. Keeps `_elementor_data` compact, keeps content editable without rebuilding JSON, and avoids Elementor's editor timing out (slows ~150 widgets, may fail to save at 250+).
 
-**Anti-fabrication:** when content comes from a real source (an existing site, a brief), validate each block against that source and mark `TODO: não consta da fonte` for anything missing — by default, not only when asked (prior sessions fabricated prizes/news; see `workflows-and-tooling.md`).
+**Anti-fabrication:** when content comes from a real source (an existing site, a brief), validate each block against that source and mark `TODO: not in the source` for anything missing — by default, not only when asked (prior sessions fabricated prizes/news; see `workflows-and-tooling.md`).
 
 ---
 
 ## 8. Kit / theme gotchas
 
-- Elementor default kit forces headings to blue (`#6EC1E4`) + Roboto → override in CSS with your font/colour (`!important`, rules placed AFTER the kit); dark sections re-override to `#fff!important`.
+- Elementor default kit forces headings to blue (`#6EC1E4`) + Roboto → override in CSS with your font/color (`!important`, rules placed AFTER the kit); dark sections re-override to `#fff!important`.
 - `add_theme_support('woocommerce')`: Hello Elementor declares it — if you disable `hello_elementor_add_woocommerce_support`, re-add it in the child `after_setup_theme` or gallery zoom/lightbox/slider break.
 - Hero full-bleed under a fixed nav: `body:has(.bd-hero){padding-top:0!important}`.
 - **Container inside a flex header → size it with `max-width` in px.** Elementor containers carry a declared width that poisons `flex-basis`. Measured on a real HFE custom header, in order: `flex:0 0 auto` → 335px (inherits the parent width), `width:max-content` → collapses to 0, `min-width:max-content` → 852px (counts the positioned menu dropdown as content), `flex:0 0 content` → overflows. Only `max-width: <n>px` gave a predictable width. Don't burn 4 attempts rediscovering this.
@@ -155,4 +155,4 @@ Prize lists, news grids, contact info, gallery filters → register a PHP shortc
 - [ ] Product card = `content-product.php` override (path strips `/templates/`), loop add-to-cart removed via hook
 - [ ] Thumbnails uncropped + regenerated before QA; single gallery `opacity:1` static
 - [ ] Data-driven lists as shortcodes, not many widgets; content validated against source
-- [ ] Heading kit colour/font overridden; asset version bumped for cache-bust
+- [ ] Heading kit color/font overridden; asset version bumped for cache-bust

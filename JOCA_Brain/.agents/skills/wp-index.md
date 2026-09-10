@@ -1,58 +1,58 @@
 ---
 name: wp-index
 origin: local
-description: "Porta única de entrada para QUALQUER trabalho em WordPress — encaminha para a skill wp-* certa (triagem do repo, blocos Gutenberg/block.json, block themes/theme.json, Interactivity API, plugins e submissão ao WP.org, REST API do WP, Abilities API, WP-CLI e ops/migrações, performance em runtime e review de código, PHPStan em WP, Playground, design system WPDS) e para WooCommerce+Elementor. Invocar ao primeiro sinal de WordPress: site WP, wp-content, plugin, tema, Gutenberg, WP-CLI, wp-admin."
-triggers: wordpress, wp, wp-content, wp-admin, plugin wp, tema wp, gutenberg, bloco gutenberg, block.json, theme.json, block theme, wp-cli, wp search-replace, wp db, rest api wordpress, register_rest_route, interactivity api, data-wp-, wp-env, wordpress playground, phpstan wordpress, wordpress lento, performance wordpress, wpds, elementor
+description: "Single entry point for ANY WordPress work — routes to the right wp-* skill (repo triage, Gutenberg blocks/block.json, block themes/theme.json, Interactivity API, plugins and WP.org submission, WP REST API, Abilities API, WP-CLI and ops/migrations, runtime performance and code review, PHPStan on WP, Playground, WPDS design system) and to WooCommerce+Elementor. Invoke at the first sign of WordPress: WP site, wp-content, plugin, theme, Gutenberg, WP-CLI, wp-admin."
+triggers: wordpress, wp, wp-content, wp-admin, wp plugin, wp theme, gutenberg, gutenberg block, block.json, theme.json, block theme, wp-cli, wp search-replace, wp db, wordpress rest api, register_rest_route, interactivity api, data-wp-, wp-env, wordpress playground, phpstan wordpress, wordpress slow, wordpress performance, wpds, elementor
 chain: wp-project-triage, wordpress-router
 ---
 
-# WP Index — routing de WordPress
+# WP Index — WordPress routing
 
-## Regra de entrada
+## Entry rule
 
-**Qualquer trabalho de WordPress passa por aqui primeiro.** Esta skill **não executa nada** — só
-encaminha. Depois de escolher o destino: `Read(".claude/skills/<nome>.md")` e notificar
-`[skill: <nome>]`. Se o pedido cobrir ≥2 destinos independentes, despachar os `<skill>-agent`
-correspondentes no mesmo turno (`rules/task-intake.md`).
+**Any WordPress work goes through here first.** This skill **executes nothing** — it only
+routes. After picking the destination: `Read(".claude/skills/<name>.md")` and notify
+`[skill: <name>]`. If the request covers ≥2 independent destinations, dispatch the matching
+`<skill>-agent`s in the same turn (`rules/task-intake.md`).
 
-Não escolher às cegas: com repo à frente e rota ambígua, corre o **triage** primeiro (ver abaixo) —
-é a classificação do repo que desambigua plugin vs tema vs site.
+Do not pick blind: with a repo in front of you and an ambiguous route, run the **triage** first (see
+below) — it is the repo classification that disambiguates plugin vs theme vs site.
 
-## Ordem de execução
+## Execution order
 
-1. **`wp-project-triage`** — sempre que houver repo e a rota não for óbvia. Determina kind
-   (plugin/tema/block theme/core/full site), tooling, versões, testes.
-2. **`wordpress-router`** — classificação + guardrails + rota; e é ele que tem o pipeline de
-   **migração de conteúdo** local→staging por FTP (sem SSH/WP-CLI), já validado ponta-a-ponta.
-3. Skill(s) de domínio da tabela.
-4. Gate antes de entregar: `wp-phpstan` (PHP) e/ou `wp-playground` (reproduzir num WP limpo).
+1. **`wp-project-triage`** — whenever there is a repo and the route is not obvious. Determines kind
+   (plugin/theme/block theme/core/full site), tooling, versions, tests.
+2. **`wordpress-router`** — classification + guardrails + route; and it is the one that has the
+   **content migration** pipeline local→staging over FTP (no SSH/WP-CLI), already validated end-to-end.
+3. Domain skill(s) from the table.
+4. Gate before delivering: `wp-phpstan` (PHP) and/or `wp-playground` (reproduce on a clean WP).
 
-## Tabela de routing
+## Routing table
 
-| Sinal no pedido / no repo | Skill | O que faz |
+| Signal in the request / in the repo | Skill | What it does |
 |---|---|---|
-| "que projecto WP é este", primeiro contacto, `wp-content/`, `style.css`, `composer.json` na raiz | `wp-project-triage` | Inspecção determinística do repo → JSON com `project.kind`, `signals`, `tooling`. Correr antes de mudar código |
-| Classificar + escolher rota; migrar conteúdo local→staging, `.wpress`, All-in-One WP Migration, alojamento partilhado sem SSH | `wordpress-router` | Classifica o repo e encaminha; secção própria com o pipeline de migração (export UI → FTP → restore → fix de URLs → purgar caches) |
-| `block.json`, "bloco inválido / não guarda", atributos não persistem, `render.php`/`render_callback`, `deprecated`, `@wordpress/create-block`, `@wordpress/scripts`, apiVersion 3 | `wp-block-development` | Criar/actualizar blocos Gutenberg: metadata, serialização de atributos, render dinâmico, deprecations, build |
-| `theme.json`, `templates/*.html`, `parts/*.html`, `patterns/*.php`, `styles/*.json`, Site Editor, "os estilos não aplicam" | `wp-block-themes` | Block themes: presets/settings/styles, templates e partes, patterns, style variations, hierarquia de estilos |
-| `data-wp-interactive`, `data-wp-on--*`, `data-wp-bind--*`, `data-wp-context`, `viewScriptModule`, `@wordpress/interactivity`, "as directivas não disparam" | `wp-interactivity-api` | Interactivity API: store/state/actions, SSR das directivas, hidratação, integração com o bloco |
-| Header `Plugin Name:`, hooks/actions/filters, activation/uninstall, Settings API, nonces/capabilities/escaping, wp-cron, empacotar release | `wp-plugin-development` | Arquitectura de plugin: bootstrap, loader de hooks, opções/admin, segurança, packaging |
-| Submeter ao WP.org, GPL, cabeçalho de licença, nome/marca, trialware/upsell/freemium, código de terceiros embebido | `wp-plugin-directory-guidelines` | Review contra as 18 guidelines do Plugin Directory: licenciamento, naming, trialware, compatibilidade GPL |
-| `register_rest_route`, `WP_REST_Controller`, `rest_api_init`, `show_in_rest`, `rest_base`, 401/403/404 em REST, meta/CPT na resposta | `wp-rest-api` | Criar/estender/depurar endpoints REST do WP: schema e validação de args, permissões/nonces, links e paginação |
-| `wp_register_ability`, `wp_register_ability_category`, `wp-abilities/v1`, `@wordpress/abilities`, "a ability não aparece" | `wp-abilities-api` | Registar, expor por REST e consumir Abilities (WP 6.9+) |
-| `wp search-replace`, `wp db export/import`, migração de domínio, `wp plugin/theme/user`, `wp cron`, multisite `--url`/`--network`, `wp-cli.yml` | `wp-wpcli-and-ops` | Operações WP-CLI com guardrails de blast radius (ambiente, targeting, backup antes de escrever) |
-| Site/admin/REST **lento agora**, TTFB alto, `wp profile`/`wp doctor`, autoloaded options, object cache, WP-Cron, chamadas HTTP remotas | `wp-performance` | Diagnóstico de runtime backend-only: baseline, profiling, cache, queries. Sem browser |
-| Rever **código** à procura de anti-padrões: `query_posts()`, `posts_per_page => -1`, `session_start()`, `update_option` no frontend, `wp_remote_*` sem cache, antes de pico de tráfego | `wp-performance-review` | Análise estática por tipo de ficheiro com severidade + nº de linha. Comandos `/wp-perf` (rápido) e `/wp-perf-review` (completo) |
-| `phpstan.neon`, `phpstan-baseline.neon`, stubs de core, erros de tipo em hooks/REST/`$wpdb`, classes de plugins terceiros | `wp-phpstan` | Configurar/correr/corrigir PHPStan em WP: stubs, baseline, PHPDoc WordPress-friendly, ignores estreitos |
-| WP descartável para testar, blueprint JSON, `@wp-playground/cli`, `--auto-mount`, trocar versão WP/PHP, snapshot, Xdebug isolado | `wp-playground` | Instâncias WP efémeras (WASM+SQLite) para reproduzir bugs, testar plugin/tema e correr blueprints |
-| Escrever/editar/rever o **JSON** do blueprint em si: `blueprint.json`, `run-blueprint`, steps do Playground | `blueprint` | Autoria de blueprints do Playground. Par natural do `wp-playground` (que corre a instância; este descreve-a) |
-| UI em contexto WordPress: `@wordpress/components`, `@wordpress/ui`, tokens de cor/spacing/tipografia, padrões de UI do Gutenberg/Woo/Jetpack | `wpds` | WordPress Design System via MCP WPDS (fonte canónica — não pesquisar na web). ⚠ requer o MCP configurado |
-| **(adjacente, não `wp-*`)** Elementor, `_elementor_data`, Hello Elementor, HFE, WPForms, `content-product.php`, loja WooCommerce editável | `woocommerce-elementor` | Construir loja Woo + Elementor Free programaticamente: import de `_elementor_data`, child theme, overrides de template |
+| "what WP project is this", first contact, `wp-content/`, `style.css`, `composer.json` at the root | `wp-project-triage` | Deterministic inspection of the repo → JSON with `project.kind`, `signals`, `tooling`. Run before changing code |
+| Classify + pick a route; migrate content local→staging, `.wpress`, All-in-One WP Migration, shared hosting without SSH | `wordpress-router` | Classifies the repo and routes; has its own section with the migration pipeline (export UI → FTP → restore → URL fix → purge caches) |
+| `block.json`, "invalid block / not saving", attributes not persisting, `render.php`/`render_callback`, `deprecated`, `@wordpress/create-block`, `@wordpress/scripts`, apiVersion 3 | `wp-block-development` | Create/update Gutenberg blocks: metadata, attribute serialization, dynamic render, deprecations, build |
+| `theme.json`, `templates/*.html`, `parts/*.html`, `patterns/*.php`, `styles/*.json`, Site Editor, "the styles don't apply" | `wp-block-themes` | Block themes: presets/settings/styles, templates and parts, patterns, style variations, style hierarchy |
+| `data-wp-interactive`, `data-wp-on--*`, `data-wp-bind--*`, `data-wp-context`, `viewScriptModule`, `@wordpress/interactivity`, "the directives don't fire" | `wp-interactivity-api` | Interactivity API: store/state/actions, SSR of the directives, hydration, integration with the block |
+| `Plugin Name:` header, hooks/actions/filters, activation/uninstall, Settings API, nonces/capabilities/escaping, wp-cron, package a release | `wp-plugin-development` | Plugin architecture: bootstrap, hook loader, options/admin, security, packaging |
+| Submit to WP.org, GPL, license header, name/trademark, trialware/upsell/freemium, embedded third-party code | `wp-plugin-directory-guidelines` | Review against the 18 Plugin Directory guidelines: licensing, naming, trialware, GPL compatibility |
+| `register_rest_route`, `WP_REST_Controller`, `rest_api_init`, `show_in_rest`, `rest_base`, 401/403/404 in REST, meta/CPT in the response | `wp-rest-api` | Create/extend/debug WP REST endpoints: schema and arg validation, permissions/nonces, links and pagination |
+| `wp_register_ability`, `wp_register_ability_category`, `wp-abilities/v1`, `@wordpress/abilities`, "the ability doesn't show up" | `wp-abilities-api` | Register, expose over REST and consume Abilities (WP 6.9+) |
+| `wp search-replace`, `wp db export/import`, domain migration, `wp plugin/theme/user`, `wp cron`, multisite `--url`/`--network`, `wp-cli.yml` | `wp-wpcli-and-ops` | WP-CLI operations with blast-radius guardrails (environment, targeting, backup before writing) |
+| Site/admin/REST **slow right now**, high TTFB, `wp profile`/`wp doctor`, autoloaded options, object cache, WP-Cron, remote HTTP calls | `wp-performance` | Backend-only runtime diagnosis: baseline, profiling, cache, queries. No browser |
+| Review **code** looking for anti-patterns: `query_posts()`, `posts_per_page => -1`, `session_start()`, `update_option` on the frontend, `wp_remote_*` without cache, before a traffic spike | `wp-performance-review` | Static analysis by file type with severity + line number. Commands `/wp-perf` (quick) and `/wp-perf-review` (full) |
+| `phpstan.neon`, `phpstan-baseline.neon`, core stubs, type errors in hooks/REST/`$wpdb`, third-party plugin classes | `wp-phpstan` | Configure/run/fix PHPStan on WP: stubs, baseline, WordPress-friendly PHPDoc, narrow ignores |
+| Throwaway WP to test with, blueprint JSON, `@wp-playground/cli`, `--auto-mount`, swap WP/PHP version, snapshot, isolated Xdebug | `wp-playground` | Ephemeral WP instances (WASM+SQLite) to reproduce bugs, test a plugin/theme and run blueprints |
+| Write/edit/review the blueprint **JSON** itself: `blueprint.json`, `run-blueprint`, Playground steps | `blueprint` | Authoring Playground blueprints. Natural pair of `wp-playground` (which runs the instance; this one describes it) |
+| UI in a WordPress context: `@wordpress/components`, `@wordpress/ui`, color/spacing/typography tokens, Gutenberg/Woo/Jetpack UI patterns | `wpds` | WordPress Design System via the WPDS MCP (canonical source — do not search the web). ⚠ requires the MCP configured |
+| **(adjacent, not `wp-*`)** Elementor, `_elementor_data`, Hello Elementor, HFE, WPForms, `content-product.php`, editable WooCommerce store | `woocommerce-elementor` | Build a Woo + Elementor Free store programmatically: `_elementor_data` import, child theme, template overrides |
 
-## Combinações frequentes
+## Frequent combinations
 
-- **Bloco novo** → `wp-block-development` → `wp-interactivity-api` (se tiver interacção no frontend) → `wp-phpstan` antes de entregar; reproduzir em `wp-playground`.
-- **Publicar plugin no WP.org** → `wp-plugin-development` → `wp-plugin-directory-guidelines` (licença/naming/trialware antes da submissão).
-- **"O site está lento"** → `wp-performance` para medir em runtime e localizar o culpado → `wp-performance-review` para rever o código desse culpado. As duas não se substituem.
-- **Mudança de domínio / levar conteúdo para staging** → `wordpress-router` (§ Migração de conteúdo) quando não há SSH; `wp-wpcli-and-ops` (`wp search-replace`) quando há.
-- **Loja WooCommerce** → `wp-project-triage` → `woocommerce-elementor`; pós-restore de migração, o `wordpress-router` já aponta para lá.
+- **New block** → `wp-block-development` → `wp-interactivity-api` (if it has frontend interaction) → `wp-phpstan` before delivering; reproduce in `wp-playground`.
+- **Publish a plugin on WP.org** → `wp-plugin-development` → `wp-plugin-directory-guidelines` (license/naming/trialware before submission).
+- **"The site is slow"** → `wp-performance` to measure at runtime and locate the culprit → `wp-performance-review` to review that culprit's code. The two do not replace each other.
+- **Domain change / taking content to staging** → `wordpress-router` (§ Content migration) when there is no SSH; `wp-wpcli-and-ops` (`wp search-replace`) when there is.
+- **WooCommerce store** → `wp-project-triage` → `woocommerce-elementor`; post-restore of a migration, `wordpress-router` already points there.

@@ -1,4 +1,4 @@
-Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/testing.md")`. Cobre §9: testes multi-tenant com Pest.
+Part of the `saas-patterns` skill — loaded on-demand via `Read(".claude/reference/saas-patterns/testing.md")`. Covers §9: multi-tenant tests with Pest.
 
 ## 9. Testing Multi-Tenant Code (Pest)
 

@@ -1,7 +1,7 @@
 ---
 name: task-breakdown
-description: "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo. SHOULD also invoke when: how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas."
-triggers: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto tempo, how long, sizing, sprint, sprint planning, backlog, quebrar em tarefas, break into tasks, TASKS.md, work breakdown, WBS, priorizar, prioritize, RICE
+description: "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimation. SHOULD also invoke when: how long, sizing, sprint, sprint planning, backlog, break into tasks."
+triggers: tasks, task breakdown, breakdown, epics, stories, estimation, how long, sizing, sprint, sprint planning, backlog, break into tasks, TASKS.md, work breakdown, WBS, prioritize, RICE
 ---
 # Task Breakdown
 
@@ -14,70 +14,70 @@ Generates `TASKS.md` — persistent ledger of epics/stories/tasks that survives 
 ## TASKS.md Structure
 
 ```markdown
-# TASKS — [Nome do Projecto/Feature]
+# TASKS — [Project/Feature Name]
 
 **PRD:** [link]
 **Tech Spec:** [link]
-**Ultima actualizacao:** [data]
+**Last updated:** [date]
 
 ---
 
-## Prioridades (RICE)
+## Priorities (RICE)
 
-| ID | Story | Reach | Impact | Confidence | Effort | Score | Prioridade |
+| ID | Story | Reach | Impact | Confidence | Effort | Score | Priority |
 |----|-------|-------|--------|-----------|--------|-------|-----------|
-| S1 | [nome] | [1-10] | [1-3] | [0.5-1] | [T-shirt] | [calc] | P0 |
-| S2 | [nome] | [1-10] | [1-3] | [0.5-1] | [T-shirt] | [calc] | P1 |
+| S1 | [name] | [1-10] | [1-3] | [0.5-1] | [T-shirt] | [calc] | P0 |
+| S2 | [name] | [1-10] | [1-3] | [0.5-1] | [T-shirt] | [calc] | P1 |
 
 *RICE Score = (Reach x Impact x Confidence) / Effort*
 *Effort: S=1, M=2, L=4, XL=8*
 
 ---
 
-## [Epic 1: Nome]
+## [Epic 1: Name]
 
 ### S1: [Story name]
-**Como** [persona], **quero** [accao] **para** [beneficio].
-**Size:** M (1-2 dias) | **Prioridade:** P0 | **Estado:** TODO
+**As** [persona], **I want** [action] **so that** [benefit].
+**Size:** M (1-2 days) | **Priority:** P0 | **Status:** TODO
 
-- [ ] `T1.1` Setup migration [ficheiro] — S
-- [ ] `T1.2` Create model + relationships [ficheiro] — S
-- [ ] `T1.3` Implement controller + form request [ficheiro] — M
-- [ ] `T1.4` Write feature tests [ficheiro] — S
-  - **Depende de:** T1.1, T1.2, T1.3
+- [ ] `T1.1` Setup migration [file] — S
+- [ ] `T1.2` Create model + relationships [file] — S
+- [ ] `T1.3` Implement controller + form request [file] — M
+- [ ] `T1.4` Write feature tests [file] — S
+  - **Depends on:** T1.1, T1.2, T1.3
 
 ### S2: [Story name]
-**Como** [persona], **quero** [accao] **para** [beneficio].
-**Size:** L (3-5 dias) | **Prioridade:** P0 | **Estado:** TODO
-**Bloqueia:** S5 (precisa deste endpoint)
+**As** [persona], **I want** [action] **so that** [benefit].
+**Size:** L (3-5 days) | **Priority:** P0 | **Status:** TODO
+**Blocks:** S5 (needs this endpoint)
 
-- [ ] `T2.1` [descricao] [ficheiro] — S
-- [ ] `T2.2` [descricao] [ficheiro] — M
-- [ ] `T2.3` [descricao] [ficheiro] — S
+- [ ] `T2.1` [description] [file] — S
+- [ ] `T2.2` [description] [file] — M
+- [ ] `T2.3` [description] [file] — S
 
 ---
 
-## [Epic 2: Nome]
+## [Epic 2: Name]
 
 ### S3: [Story name]
 ...
 
 ---
 
-## Legenda
+## Legend
 
-| Simbolo | Significado |
+| Symbol | Meaning |
 |---------|------------|
 | S | Small: <= 4h |
-| M | Medium: 1-2 dias |
-| L | Large: 3-5 dias |
-| XL | Extra Large: > 1 semana (subdividir) |
+| M | Medium: 1-2 days |
+| L | Large: 3-5 days |
+| XL | Extra Large: > 1 week (subdivide) |
 | `[ ]` | TODO |
 | `[x]` | DONE |
 | `[-]` | IN_PROGRESS |
 | `[!]` | BLOCKED |
-| **Depende de:** | Task so pode comecar apos estas |
-| **Bloqueia:** | Estas stories/tasks dependem desta |
+| **Depends on:** | Task can only start after these |
+| **Blocks:** | These stories/tasks depend on this one |
 ```
 
 ---
@@ -105,23 +105,23 @@ Generates `TASKS.md` — persistent ledger of epics/stories/tasks that survives 
 
 ### Decomposition rules
 
-| Regra | Descricao |
+| Rule | Description |
 |-------|-----------|
-| Atomico | Each task completable in <= 4h |
-| Verificavel | Clear, observable "done when" |
-| Ficheiros explicitos | Each task lists files it touches |
-| XL = subdividir | If > 1 week, split into smaller stories |
-| Dependencias explicitas | Never assume order — declare with "Depende de" |
-| 1 responsabilidade | 1 task = 1 thing. "Create model and controller and tests" = 3 tasks |
+| Atomic | Each task completable in <= 4h |
+| Verifiable | Clear, observable "done when" |
+| Explicit files | Each task lists files it touches |
+| XL = subdivide | If > 1 week, split into smaller stories |
+| Explicit dependencies | Never assume order — declare with "Depends on" |
+| 1 responsibility | 1 task = 1 thing. "Create model and controller and tests" = 3 tasks |
 
 ### T-shirt sizing
 
-| Size | Tempo | Exemplos tipicos |
+| Size | Time | Typical examples |
 |------|-------|-----------------|
 | S | <= 4h | Migration, simple model, config, seed |
-| M | 1-2 dias | Controller + form request + tests, simple integration |
-| L | 3-5 dias | Full feature with UI + API + tests, complex integration |
-| XL | > 1 semana | Must be subdivided |
+| M | 1-2 days | Controller + form request + tests, simple integration |
+| L | 3-5 days | Full feature with UI + API + tests, complex integration |
+| XL | > 1 week | Must be subdivided |
 
 ### RICE scoring
 
@@ -168,10 +168,10 @@ For small features that don't justify epics:
 
 **PRD:** [link]
 
-- [ ] `T1` [descricao] [ficheiro] — S
-- [ ] `T2` [descricao] [ficheiro] — M
-  - **Depende de:** T1
-- [ ] `T3` [descricao] [ficheiro] — S
+- [ ] `T1` [description] [file] — S
+- [ ] `T2` [description] [file] — M
+  - **Depends on:** T1
+- [ ] `T3` [description] [file] — S
 ```
 
 ---
@@ -183,4 +183,4 @@ Pipeline position in JOCA sequence:
 -> **before**: `tech-spec` + `c4-diagram` (technical design as input)
 -> **after**: `plan` (per-session execution plan based on chosen tasks)
 
-Notify on completion: `-> proximo: plan (para iniciar execucao)`
+Notify on completion: `-> next: plan (to start execution)`

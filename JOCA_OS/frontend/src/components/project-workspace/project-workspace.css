@@ -1,8 +1,8 @@
-/* ─── Workspace de um projecto — o terminal é o palco ─────────────────────────────────────────
-   Três faixas: barra fina de identidade, tabs dos terminais, e o resto TODO é terminal.
+/* ─── A project's workspace — the terminal is the stage ───────────────────────────────────────
+   Three bands: thin identity bar, terminal tabs, and ALL the rest is terminal.
 
-   `min-height: 0` em cada nível é o que permite encolher — sem isso um filho flex nunca fica
-   menor que o conteúdo e o `overflow` do pai nunca chega a ser usado. */
+   `min-height: 0` at each level is what allows shrinking — without it a flex child never gets
+   smaller than the content and the parent's `overflow` is never used. */
 
 .project-workspace {
   display: flex;
@@ -17,7 +17,7 @@
   justify-content: center;
 }
 
-/* ─── Barra fina de identidade ──────────────────────────────────────────────────────────────── */
+/* ─── Thin identity bar ─────────────────────────────────────────────────────────────────────── */
 .pw-bar {
   flex: 0 0 auto;
   display: flex;
@@ -65,10 +65,10 @@
 }
 .pw-bar-settings:hover { color: var(--text-bright); border-color: var(--border-default); }
 
-/* ─── Tabs dos terminais ────────────────────────────────────────────────────────────────────── */
-/* `position: relative` + `z-index` na BARRA, não só no menu: sem contexto de empilhamento próprio,
-   o menu do CLI ficava por baixo do palco (que vem depois no DOM) por muito z-index que levasse.
-   A barra também não pode cortar o que sai dela — daí o `overflow: visible` explícito. */
+/* ─── Terminal tabs ─────────────────────────────────────────────────────────────────────────── */
+/* `position: relative` + `z-index` on the BAR, not just the menu: with no stacking context of its
+   own, the CLI menu sat under the stage (later in the DOM) whatever z-index it carried. The bar
+   also must not clip what leaves it — hence the explicit `overflow: visible`. */
 .pw-tabbar {
   position: relative;
   z-index: 50;
@@ -87,9 +87,9 @@
   gap: 2px;
   flex: 1 1 auto;
   min-width: 0;
-  /* Scrolla na horizontal quando há tabs a mais. O botão de terminal novo NÃO vive aqui dentro:
-     um eixo em `auto` força o outro a `auto`, portanto qualquer menu que descesse daqui era
-     podado — e além disso o "+" desaparecia ao fazer scroll. */
+  /* Scrolls horizontally when there are too many tabs. The new-terminal button does NOT live in
+     here: one axis on `auto` forces the other to `auto`, so any menu dropping from here was
+     clipped — and besides, the "+" disappeared on scroll. */
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -128,7 +128,7 @@
   color: var(--text-bright);
   font: 600 12px var(--font-ui);
 }
-/* A tab é `div[role=tab]`, não um <button> — o foco de teclado tem de ser visível à mesma. */
+/* The tab is a `div[role=tab]`, not a <button> — keyboard focus has to be visible all the same. */
 .pw-tab-main:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
@@ -149,8 +149,8 @@
   opacity: 0;
   transition: opacity var(--t-fast), color var(--t-fast), background var(--t-fast);
 }
-/* O fechar aparece no hover ou quando a tab tem foco de teclado — quem navega por Tab também
-   precisa de lhe chegar, e `opacity:0` permanente tirava-lho. */
+/* Close appears on hover or when the tab has keyboard focus — whoever navigates by Tab also
+   needs to reach it, and a permanent `opacity:0` took it away. */
 .pw-tab:hover .pw-tab-close,
 .pw-tab:focus-within .pw-tab-close,
 .pw-tab--active .pw-tab-close { opacity: 1; }
@@ -164,8 +164,8 @@
 .pw-tab-confirm-yes { color: var(--danger, #f85149); border-color: color-mix(in srgb, var(--danger, #f85149) 45%, transparent); }
 .pw-tab-confirm-no { color: var(--text-dim); }
 
-/* O "+" que segue a última tab. Vive DENTRO da fila, portanto scrolla com ela e fica sempre
-   encostado ao fim — é o gesto rápido. Sem menu: um menu aqui seria podado pelo scroller. */
+/* The "+" that follows the last tab. It lives INSIDE the row, so it scrolls with it and stays
+   glued to the end — the quick gesture. No menu: a menu here would be clipped by the scroller. */
 .pw-tab-add {
   flex: 0 0 auto;
   align-self: center;
@@ -189,8 +189,8 @@
 .pw-tab-new-caret { width: 18px; font-size: 9px; }
 .pw-tab-new:hover, .pw-tab-new-caret:hover { color: var(--text-bright); border-color: var(--border-default); }
 
-/* Ancorado à DIREITA: o botão vive encostado à borda direita da barra, e com `left: 0` o
-   menu saía do ecrã (a última opção ficava cortada ao meio). */
+/* Anchored to the RIGHT: the button sits against the bar's right edge, and with `left: 0` the
+   menu went off screen (the last option was cut in half). */
 .pw-cli-menu {
   position: absolute; top: calc(100% + 4px); right: 0; z-index: 60;
   min-width: 190px; padding: 4px;
@@ -209,7 +209,7 @@
 .pw-cli-item:disabled { color: var(--text-ghost); cursor: not-allowed; }
 .pw-cli-item--loading { color: var(--text-ghost); cursor: default; }
 
-/* ─── O palco ───────────────────────────────────────────────────────────────────────────────── */
+/* ─── The stage ─────────────────────────────────────────────────────────────────────────────── */
 .pw-stage {
   flex: 1 1 auto;
   min-height: 0;
@@ -223,8 +223,8 @@
   flex-direction: column;
   overflow: hidden;
 }
-/* O TerminalView foi desenhado para ser o ecrã todo; aqui é o palco dentro do workspace. Enche o
-   espaço e perde a moldura exterior — as bordas já são as das faixas acima. */
+/* The TerminalView was designed to be the whole screen; here it is the stage inside the workspace.
+   It fills the space and loses the outer frame — the borders are already those of the bands above. */
 .pw-terminal-slot > .terminal-area {
   flex: 1 1 auto;
   min-height: 0;
@@ -233,7 +233,7 @@
   padding: 10px 14px 12px;
 }
 
-/* Palco sem nada — centrado nos dois eixos, não encostado ao canto de cima. */
+/* Empty stage — centered on both axes, not stuck to the top corner. */
 .pw-stage-empty {
   flex: 1 1 auto;
   min-height: 0;

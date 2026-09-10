@@ -1,35 +1,35 @@
 ---
 name: notion
-description: Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell no Windows. Query/criar/actualizar/arquivar páginas e tarefas em databases (data sources). Cobre os gotchas reais (MSYS_NO_PATHCONV, body por stdin no PATCH, data sources vs databases, UTF-8). Triggers Notion, ntn, tarefa Notion, base de dados Notion, workspace de clientes Notion, arquivar tarefa Notion.
+description: Manage a Notion workspace via the official `ntn` CLI (winget Notion.ntn) from Git Bash/PowerShell on Windows. Query/create/update/archive pages and tasks in databases (data sources). Covers the real gotchas (MSYS_NO_PATHCONV, body via stdin on PATCH, data sources vs databases, UTF-8). Triggers Notion, ntn, Notion task, Notion database, Notion client workspace, archive Notion task.
 triggers:
   - notion
   - ntn
-  - tarefa notion
-  - base de dados notion
-  - data source notion
+  - notion task
+  - notion database
+  - notion data source
 origin: local
 ---
 
 # Notion (`ntn` CLI)
 
-Wrapper fino sobre o CLI oficial **`ntn`** (Notion CLI, `winget install Notion.ntn`). Acesso programático ao workspace (ex.: tarefas de clientes). A API expõe **data sources** (não "databases" no sentido antigo) — cada database tem um ou mais data sources com `id` próprio.
+Thin wrapper over the official **`ntn`** CLI (Notion CLI, `winget install Notion.ntn`). Programmatic access to the workspace (e.g. client tasks). The API exposes **data sources** (not "databases" in the old sense) — each database has one or more data sources with their own `id`.
 
-## Uso
+## Usage
 ```bash
-ntn api <METHOD> /v1/<path> [-d @file | (body por stdin)]
+ntn api <METHOD> /v1/<path> [-d @file | (body via stdin)]
 ```
-- Read-only (`GET`/query) → corre sem perguntar. Escrita em massa / arquivar → confirmar 1 linha (irreversível-ish).
+- Read-only (`GET`/query) → run without asking. Bulk writes / archiving → confirm 1 line (irreversible-ish).
 
-## Gotchas (vividos — não inferir)
-- **Git Bash converte paths que começam por `/`** → `MSYS_NO_PATHCONV=1 ntn api GET /v1/...` (senão o path vira `C:/Program Files/Git/v1/...`). Ou correr via PowerShell.
-- **`ntn api -d @file` PENDURA (timeout) no `PATCH /v1/blocks/{id}/children`** — embora funcione no `POST /v1/pages`. **Passar o body por stdin** no PATCH de children (não `-d @file`). (Custou 2 timeouts de 2min.)
-- **Data sources com nomes duplicados** (ex.: cópia de backup "Save DD-MM" criada hoje + a real): distinguir a real por **metadados** (`created_time`/`parent`/`id`) e confirmar 1 linha **antes** de escrita em massa — fácil editar a errada. (Ver `rules/workflows-and-tooling.md`.)
-- **UTF-8**: garantir encoding correcto no body (acentos PT-PT).
+## Gotchas (lived — do not infer)
+- **Git Bash converts paths that start with `/`** → `MSYS_NO_PATHCONV=1 ntn api GET /v1/...` (otherwise the path becomes `C:/Program Files/Git/v1/...`). Or run it via PowerShell.
+- **`ntn api -d @file` HANGS (timeout) on `PATCH /v1/blocks/{id}/children`** — even though it works on `POST /v1/pages`. **Pass the body via stdin** on the children PATCH (not `-d @file`). (Cost 2 timeouts of 2 min.)
+- **Data sources with duplicate names** (e.g. a backup copy "Save DD-MM" created today + the real one): tell the real one apart by **metadata** (`created_time`/`parent`/`id`) and confirm 1 line **before** a bulk write — easy to edit the wrong one. (See `rules/workflows-and-tooling.md`.)
+- **UTF-8**: make sure the body encoding is correct (PT-PT accents).
 
-## Padrões comuns
-- Listar tarefas de um data source: `POST /v1/data_sources/<id>/query` (filtros no body).
-- Criar tarefa: `POST /v1/pages` com `parent: { data_source_id | database_id }` + properties.
-- Editar conteúdo de página: `PATCH /v1/blocks/<page_id>/children` (**body por stdin**).
-- Arquivar: `PATCH /v1/pages/<id>` com `{ "archived": true }`.
+## Common patterns
+- List the tasks of a data source: `POST /v1/data_sources/<id>/query` (filters in the body).
+- Create a task: `POST /v1/pages` with `parent: { data_source_id | database_id }` + properties.
+- Edit page content: `PATCH /v1/blocks/<page_id>/children` (**body via stdin**).
+- Archive: `PATCH /v1/pages/<id>` with `{ "archived": true }`.
 
-> Skill fina por design — só vale enquanto o uso de Notion recorrer. Capacidades/gotchas adicionais → registar aqui à medida que aparecem. (Fonte: sessão 2026-06-27.)
+> Thin skill by design — only worth it while Notion use keeps recurring. Additional capabilities/gotchas → record them here as they show up. (Source: session 2026-06-27.)

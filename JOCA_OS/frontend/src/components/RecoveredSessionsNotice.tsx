@@ -1,14 +1,15 @@
-// O aviso de que o JOCA reiniciou e levou conversas à frente.
+// The notice that JOCA restarted and took conversations down with it.
 //
-// O problema que resolve: o backend reinicia, os PTYs morrem, e o `sessions_list` seguinte — que é
-// o retrato autoritativo do servidor — poda tudo. A lista esvazia-se em silêncio e quem estava a
-// meio de uma conversa fica sem perceber para onde ela foi. A poda está certa; o que faltava era a
-// explicação e a única saída honesta: ler o que a conversa tinha escrito. Reabrir não existe de
-// propósito — arrancava um CLI NOVO, sem memória nenhuma do que ali se tinha passado.
+// The problem it solves: the backend restarts, the PTYs die, and the next `sessions_list` — which
+// is the server's authoritative snapshot — prunes everything. The list empties silently and
+// whoever was mid-conversation is left not understanding where it went. The pruning is right; what
+// was missing was the explanation and the only honest way out: reading what the conversation had
+// written. Reopening deliberately does not exist — it would start a NEW CLI, with no memory
+// whatsoever of what had happened there.
 //
-// Não é um modal: não rouba o foco nem tranca a app. Um reinício não é uma decisão a tomar, é uma
-// coisa a saber — fica no topo, à espera, até alguém lhe tocar. Só a leitura do output (que é uma
-// coisa que se vai LER, e ocupa o ecrã) abre em diálogo.
+// It is not a modal: it does not steal focus nor lock the app. A restart is not a decision to
+// make, it is a thing to know — it stays at the top, waiting, until someone touches it. Only
+// reading the output (which is a thing you go and READ, and takes up the screen) opens as a dialog.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Terminal } from '@xterm/xterm';
 import type { RecoveredSession, RecoveredSnapshot } from '../types';
@@ -20,14 +21,14 @@ interface Props {
   onLoadTail: (sessionId: string) => Promise<string>;
 }
 
-// Selector do que é alcançável por Tab — o mesmo que o App usa no modal de Definições.
+// Selector for what is reachable by Tab — the same one the App uses in the Settings modal.
 const FOCUSAVEIS = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-/** Geometria de recurso: retrato de um backend anterior aos campos `cols`/`rows`. O valor é o
- *  tamanho com que o backend cria cada PTY — ver `sessions-snapshot.ts`, que normaliza o mesmo. */
+/** Fallback geometry: a snapshot from a backend older than the `cols`/`rows` fields. The value is
+ *  the size the backend creates each PTY with — see `sessions-snapshot.ts`, which normalizes the same. */
 const GEOMETRIA_FALLBACK = { cols: 120, rows: 30 };
 
-/** Linhas guardadas acima do ecrã. Uma cauda são <= 256 KB, logo isto nunca é o que a corta. */
+/** Lines kept above the screen. A tail is <= 256 KB, so this is never what cuts it. */
 const SCROLLBACK = 10_000;
 
 function RestartIcon() {
@@ -47,8 +48,8 @@ function CloseIcon() {
   );
 }
 
-/** Quando o retrato foi guardado. Formato absoluto de propósito: um "há 4 min" calculado no render
- *  envelhece no ecrã sem ninguém o actualizar, e mente a quem deixou o separador aberto. */
+/** When the snapshot was saved. Absolute format deliberately: a "4 min ago" computed in the render
+ *  ages on screen with nobody updating it, and lies to whoever left the tab open. */
 function quando(savedAt?: number): string | null {
   if (typeof savedAt !== 'number' || !Number.isFinite(savedAt) || savedAt <= 0) return null;
   try {
@@ -76,15 +77,15 @@ export default function RecoveredSessionsNotice({ snapshot, onDismiss, onLoadTai
 
   return (
     <>
-      {/* `role="status"` (aria-live polite) — anuncia-se a quem usa leitor de ecrã sem interromper
-          o que estiver a ser lido. Um reinício não é uma emergência. */}
-      <section className="rec-notice" role="status" aria-label="Conversas fechadas por reinício">
+      {/* `role="status"` (aria-live polite) — it announces itself to screen-reader users without
+          interrupting whatever is being read. A restart is not an emergency. */}
+      <section className="rec-notice" role="status" aria-label="Conversations closed by a restart">
         <header className="rec-notice-head">
           <span className="rec-notice-icon" aria-hidden><RestartIcon /></span>
           <div className="rec-notice-titles">
-            <h2 className="rec-notice-title">O JOCA reiniciou</h2>
+            <h2 className="rec-notice-title">JOCA restarted</h2>
             <p className="rec-notice-sub">
-              {total === 1 ? 'Uma conversa foi fechada' : `${total} conversas foram fechadas`}
+              {total === 1 ? 'One conversation was closed' : `${total} conversations were closed`}
               {data ? ` · ${data}` : ''}
             </p>
           </div>
@@ -92,15 +93,15 @@ export default function RecoveredSessionsNotice({ snapshot, onDismiss, onLoadTai
             type="button"
             className="rec-notice-x"
             onClick={onDismiss}
-            aria-label="Dispensar aviso e apagar o registo das conversas fechadas"
+            aria-label="Dismiss the notice and delete the record of the closed conversations"
           >
             <CloseIcon />
           </button>
         </header>
 
         <p className="rec-notice-explain">
-          Os terminais não sobrevivem a um reinício do servidor. O output de cada conversa ficou
-          guardado e podes lê-lo aqui.
+          Terminals do not survive a server restart. The output of each conversation was saved and
+          you can read it here.
         </p>
 
         <ul className="rec-notice-list">
@@ -121,10 +122,10 @@ export default function RecoveredSessionsNotice({ snapshot, onDismiss, onLoadTai
                     className="rec-btn"
                     onClick={() => setALer(s)}
                     disabled={!peso}
-                    aria-label={`Ver o output de ${s.name}`}
-                    title={peso ? `${peso} de output guardado` : 'Sem output guardado'}
+                    aria-label={`View the output of ${s.name}`}
+                    title={peso ? `${peso} of saved output` : 'No saved output'}
                   >
-                    Ver output
+                    View output
                   </button>
                 </div>
               </li>
@@ -133,7 +134,7 @@ export default function RecoveredSessionsNotice({ snapshot, onDismiss, onLoadTai
         </ul>
 
         <footer className="rec-notice-foot">
-          <button type="button" className="rec-btn" onClick={onDismiss}>Dispensar</button>
+          <button type="button" className="rec-btn" onClick={onDismiss}>Dismiss</button>
         </footer>
       </section>
 
@@ -143,18 +144,18 @@ export default function RecoveredSessionsNotice({ snapshot, onDismiss, onLoadTai
 }
 
 /**
- * O output que a conversa tinha quando morreu, repintado por um terminal a sério.
+ * The output the conversation had when it died, repainted by a real terminal.
  *
- * Porquê o xterm e não uma limpeza de escapes: o CLI por omissão é o `claude`, um TUI, e um TUI
- * não escreve linhas — redesenha o ecrã por posição (sobe o cursor, apaga a linha, escreve por
- * cima). Quem limpa os escapes e parte o texto por `\n` vê dezenas de linhas visuais coladas num
- * só pedaço e fica com a última, porque foi o último `apagar linha` que mandou. Medido numa cauda
- * real de 2767 caracteres: a limpeza dava 150 caracteres em 2 linhas; o mesmo texto repintado no
- * xterm, na geometria original, dá o ecrã inteiro do Claude Code (nome, versão, modelo, pasta,
- * caixa de escrita e barra de estado).
+ * Why xterm and not a strip of the escapes: the default CLI is `claude`, a TUI, and a TUI does not
+ * write lines — it redraws the screen by position (moves the cursor up, clears the line, writes
+ * over it). Whoever strips the escapes and splits the text by `\n` sees dozens of visual lines glued
+ * into a single chunk and keeps the last one, because the last `clear line` was the one that won.
+ * Measured on a real 2767-character tail: the strip gave 150 characters over 2 lines; the same text
+ * repainted in xterm, at the original geometry, gives the entire Claude Code screen (name, version,
+ * model, folder, composer and status bar).
  *
- * O terminal é só de leitura — nasce sem entrada e sem cursor a piscar, e nada volta para trás:
- * os PTYs morreram com o backend anterior.
+ * The terminal is read-only — it is born with no input and no blinking cursor, and nothing goes
+ * back: the PTYs died with the previous backend.
  */
 function TailDialog({ session, onLoadTail, onClose }: {
   session: RecoveredSession;
@@ -172,14 +173,15 @@ function TailDialog({ session, onLoadTail, onClose }: {
     let vivo = true;
     onLoadTail(session.id)
       .then((texto) => { if (vivo) setCru(texto); })
-      .catch(() => { if (vivo) setErro('Não foi possível ler o output guardado desta conversa.'); });
+      .catch(() => { if (vivo) setErro('Could not read this conversation\'s saved output.'); });
     return () => { vivo = false; };
   }, [session.id, onLoadTail]);
 
-  // Foco: capturar quem abriu ANTES de focar o que quer que seja, e devolver-lho ao fechar. Sem
-  // `autoFocus` — competir com ele é o caminho conhecido para o foco acabar no <body>.
-  // Efeito separado do teclado de propósito: se `onClose` mudar de identidade, só o listener é que
-  // se refaz; recapturar o "quem abriu" a meio guardaria o botão de fechar em vez do gatilho.
+  // Focus: capture whoever opened it BEFORE focusing anything at all, and give it back on close.
+  // No `autoFocus` — competing with it is the known road to focus ending up on <body>.
+  // Deliberately a separate effect from the keyboard one: if `onClose` changes identity, only the
+  // listener is rebuilt; recapturing "who opened it" mid-flight would store the close button
+  // instead of the trigger.
   useEffect(() => {
     const abriu = document.activeElement as HTMLElement | null;
     fecharRef.current?.focus();
@@ -205,8 +207,8 @@ function TailDialog({ session, onLoadTail, onClose }: {
       if (e.shiftKey && (activo === primeiro || activo === caixa)) { e.preventDefault(); ultimo.focus(); }
       else if (!e.shiftKey && activo === ultimo) { e.preventDefault(); primeiro.focus(); }
     };
-    // Fase de captura, como o resto da app: o Escape desta caixa não pode escapar para os handlers
-    // globais do App (que fechariam outra coisa qualquer).
+    // Capture phase, like the rest of the app: this box's Escape must not leak to the App's global
+    // handlers (which would close something else entirely).
     document.addEventListener('keydown', aoTeclado, true);
     return () => document.removeEventListener('keydown', aoTeclado, true);
   }, [onClose]);
@@ -230,25 +232,25 @@ function TailDialog({ session, onLoadTail, onClose }: {
             <h2 id="rec-tail-title">{session.name}</h2>
             <p className="rec-tail-cwd">{session.cwd}</p>
           </div>
-          <button ref={fecharRef} type="button" className="rec-tail-x" onClick={onClose} aria-label="Fechar">
+          <button ref={fecharRef} type="button" className="rec-tail-x" onClick={onClose} aria-label="Close">
             <CloseIcon />
           </button>
         </header>
 
-        {/* `tabIndex={0}`: uma caixa que faz scroll tem de ser alcançável por teclado, senão quem
-            navega sem rato não consegue lá chegar. */}
-        <div className="rec-tail-body" tabIndex={0} role="region" aria-label="Output guardado">
+        {/* `tabIndex={0}`: a box that scrolls has to be reachable by keyboard, otherwise whoever
+            navigates without a mouse cannot get there. */}
+        <div className="rec-tail-body" tabIndex={0} role="region" aria-label="Saved output">
           {erro ? <p className="rec-tail-msg">{erro}</p> : null}
-          {!erro && cru === null ? <p className="rec-tail-msg">A ler…</p> : null}
+          {!erro && cru === null ? <p className="rec-tail-msg">Reading…</p> : null}
           {!erro && cru !== null ? (
             cru.length > 0 ? <TailReplay cru={cru} cols={cols} rows={rows} />
-              : <p className="rec-tail-msg">Esta conversa não tinha output guardado.</p>
+              : <p className="rec-tail-msg">This conversation had no saved output.</p>
           ) : null}
         </div>
 
         <footer className="rec-tail-foot">
-          <span className="rec-tail-note">Repintado como estava no terminal ({cols}×{rows}).</span>
-          <button type="button" className="rec-btn" onClick={onClose}>Fechar</button>
+          <span className="rec-tail-note">Repainted as it was in the terminal ({cols}×{rows}).</span>
+          <button type="button" className="rec-btn" onClick={onClose}>Close</button>
         </footer>
       </div>
     </div>
@@ -256,16 +258,18 @@ function TailDialog({ session, onLoadTail, onClose }: {
 }
 
 /**
- * Um xterm só de leitura, com o output cru escrito lá dentro.
+ * A read-only xterm, with the raw output written inside it.
  *
- * A geometria é a ORIGINAL, e não a que caberia na caixa: um TUI posiciona em absoluto (`ESC[29;3H`)
- * e apaga por linha, portanto reproduzi-lo mais estreito parte as réguas ao meio e reproduzi-lo mais
- * baixo manda a barra de estado para fora do ecrã. Medido na mesma cauda: 180×32 mostra as 10 linhas
- * do ecrã; 180×24 mostra 6. Se não couber na caixa, é a caixa que faz scroll — a geometria não cede.
+ * The geometry is the ORIGINAL one, and not the one that would fit the box: a TUI positions in
+ * absolute terms (`ESC[29;3H`) and clears by line, so replaying it narrower breaks the rules in half
+ * and replaying it shorter sends the status bar off screen. Measured on the same tail: 180×32 shows
+ * the screen's 10 lines; 180×24 shows 6. If it does not fit the box, it is the box that scrolls —
+ * the geometry does not give.
  *
- * Cores: só o fundo e o texto vêm dos tokens da app (`--bg-terminal`, `--text-normal`), para o leitor
- * pertencer ao tema activo. As 16 cores ANSI ficam as do xterm; o `minimumContrastRatio` é o mesmo
- * do terminal a sério e é ele que impede um branco cravado de desaparecer sobre fundo claro.
+ * Colors: only the background and the text come from the app's tokens (`--bg-terminal`,
+ * `--text-normal`), so the reader belongs to the active theme. The 16 ANSI colors stay xterm's own;
+ * `minimumContrastRatio` is the same as the real terminal's and it is what stops a hardcoded white
+ * from disappearing over a light background.
  */
 function TailReplay({ cru, cols, rows }: { cru: string; cols: number; rows: number }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -281,13 +285,13 @@ function TailReplay({ cru, cols, rows }: { cru: string; cols: number; rows: numb
       cols,
       rows,
       fontFamily: token('--font-mono') ?? 'ui-monospace, monospace',
-      // 11px e não os 13 do terminal a sério: aqui o ecrã inteiro de uma sessão (30-32 linhas) tem
-      // de caber numa caixa, e cada linha custa quase o dobro do tamanho da fonte em altura.
+      // 11px and not the real terminal's 13: here the entire screen of a session (30-32 lines) has
+      // to fit in a box, and each line costs almost twice the font size in height.
       fontSize: 11,
       lineHeight: 1.4,
       scrollback: SCROLLBACK,
-      // Conversa morta: não se escreve nela, e um cursor a piscar num terminal que já não recebe
-      // nada é uma promessa falsa.
+      // Dead conversation: nothing is written into it, and a blinking cursor in a terminal that no
+      // longer receives anything is a false promise.
       disableStdin: true,
       cursorBlink: false,
       cursorInactiveStyle: 'none',
@@ -301,7 +305,7 @@ function TailReplay({ cru, cols, rows }: { cru: string; cols: number; rows: numb
     return () => term.dispose();
   }, [cru, cols, rows]);
 
-  // `width: max-content` (no CSS) para o flex da caixa não encolher o terminal abaixo da largura
-  // que a geometria exige — encolher aqui era o mesmo que reproduzir noutra largura.
+  // `width: max-content` (in the CSS) so the box's flex does not shrink the terminal below the
+  // width the geometry requires — shrinking here would be the same as replaying at another width.
   return <div className="rec-tail-term" ref={hostRef} />;
 }

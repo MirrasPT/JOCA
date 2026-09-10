@@ -20,9 +20,9 @@ interface ClientMessage {
   name?: string;
   cols?: number;
   rows?: number;
-  /** Etiqueta do cliente que pediu — devolvida no `session_created` (ver SpawnOptions). */
+  /** Label of the client that asked — returned in `session_created` (see SpawnOptions). */
   clientId?: string;
-  /** Abrir com `--remote-control` (só claude). */
+  /** Open with `--remote-control` (claude only). */
   remoteControl?: boolean;
 }
 
@@ -32,9 +32,9 @@ export function attachConnectionHandler(wss: WebSocketServer) {
   wss.on('connection', (ws) => {
     addClient(ws);
 
-    // `bootId` é ADITIVO: identifica esta instância do backend. Um cliente que reencontre um
-    // bootId diferente do que tinha sabe que o backend reiniciou — e que os terminais que estava a
-    // ver morreram (ver sessions-snapshot.ts e GET /sessions/recovered).
+    // `bootId` is ADDITIVE: it identifies this backend instance. A client that meets a bootId
+    // different from the one it had knows the backend restarted — and that the terminals it was
+    // watching died (see sessions-snapshot.ts and GET /sessions/recovered).
     send(ws, {
       type: 'sessions_list',
       sessions: sessionManager.listInfo(),

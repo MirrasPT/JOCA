@@ -1,7 +1,7 @@
 ---
 name: deploy-docker
-description: "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy. SHOULD also invoke when: containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker."
-triggers: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy, containerizar, containerize, Traefik, Caddy, nginx docker, php-fpm docker, docker production, docker deploy, imagem docker, docker image, registry, docker hub
+description: "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy. SHOULD also invoke when: containerize, Traefik, Caddy, nginx docker, php-fpm docker."
+triggers: docker, container, docker compose, docker-compose, Dockerfile, VPS, vps deploy, containerize, Traefik, Caddy, nginx docker, php-fpm docker, docker production, docker deploy, docker image, registry, docker hub
 chain: deploy-executor
 ---
 # Deploy -- Docker on VPS
@@ -291,17 +291,17 @@ Retention: daily 7 days, weekly 4 weeks.
 
 ## Common pitfalls
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |----------|-------|-----|
-| Container nao liga a DB no startup | Sem health check dependency | `condition: service_healthy` no `depends_on` |
-| Codigo antigo apos deploy | OPcache cached | Reload php-fpm ou rebuild imagem |
-| `.env` baked na imagem | `COPY .env` no Dockerfile | Nunca copiar -- montar ou `env_file` |
-| Imagem grande (500MB+) | Dev deps incluidas | Multi-stage build + `--no-dev` |
-| Queue worker perde jobs no deploy | Kill abrupto | `stop_signal: SIGTERM` + `stop_grace_period: 30s` |
-| Let's Encrypt rate limits | Muitos pedidos | Usar staging ACME em testes |
-| Storage perdido entre deploys | Sem named volume | Volume nomeado, nunca bind mount |
-| Projecto "sincronizado" por cloud-sync mas nao arranca na outra maquina | Named volumes (DB/storage) vivem no daemon Docker, **nao** na pasta; e o cloud-sync (MEGA/Drive/OneDrive) **nao sincroniza dotfiles** (`.git`, `.env`, `.gitignore` desaparecem na travessia Mac↔Windows) | Pasta partilhada ≠ projecto sincronizado. Definir e registar o **artefacto-ponte** explicito (dump SQL + tar do volume, versionado ou copiado a mao) e trazer o `.env` por outro canal |
-| DB/Redis expostos publicamente | Ports mapeados | Nao expor -- rede interna Docker |
+| Container does not connect to the DB at startup | No health check dependency | `condition: service_healthy` in `depends_on` |
+| Stale code after deploy | OPcache cached | Reload php-fpm or rebuild the image |
+| `.env` baked into the image | `COPY .env` in the Dockerfile | Never copy it -- mount it or use `env_file` |
+| Large image (500MB+) | Dev deps included | Multi-stage build + `--no-dev` |
+| Queue worker loses jobs on deploy | Abrupt kill | `stop_signal: SIGTERM` + `stop_grace_period: 30s` |
+| Let's Encrypt rate limits | Too many requests | Use staging ACME in tests |
+| Storage lost between deploys | No named volume | Named volume, never a bind mount |
+| Project "synced" by cloud-sync but does not start on the other machine | Named volumes (DB/storage) live in the Docker daemon, **not** in the folder; and cloud-sync (MEGA/Drive/OneDrive) **does not sync dotfiles** (`.git`, `.env`, `.gitignore` vanish in the Mac↔Windows crossing) | A shared folder ≠ a synced project. Define and record the explicit **bridge artifact** (SQL dump + tar of the volume, versioned or copied by hand) and bring the `.env` in through another channel |
+| DB/Redis publicly exposed | Ports mapped | Do not expose them -- internal Docker network |
 
 ---
 

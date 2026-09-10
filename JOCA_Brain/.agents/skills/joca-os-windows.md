@@ -1,7 +1,7 @@
 ---
 name: joca-os-windows
-description: "Adapt, test, verify and fix the JOCA_OS for Windows. The JOCA_OS was developed and validated on macOS — this skill makes it run correctly on Windows in one pass. MUST be invoked when installing or upgrading JOCA on Windows (process.platform === 'win32'), or when the user says: joca os windows, joca não abre no windows, node-pty windows, terminal não arranca windows, powershell joca, fix joca windows, adaptar joca windows. SHOULD also invoke when: rate limits vazios no windows, statusline windows, start.bat falha."
-triggers: joca os windows, joca windows, node-pty windows, powershell joca, fix joca windows, adaptar joca windows, terminal não arranca windows, statusline windows, start.bat falha, rate limits windows
+description: "Adapt, test, verify and fix the JOCA_OS for Windows. The JOCA_OS was developed and validated on macOS — this skill makes it run correctly on Windows in one pass. MUST be invoked when installing or upgrading JOCA on Windows (process.platform === 'win32'), or when the user says: joca os windows, joca does not open on windows, node-pty windows, terminal does not start windows, powershell joca, fix joca windows, adapt joca windows. SHOULD also invoke when: empty rate limits on windows, statusline windows, start.bat fails."
+triggers: joca os windows, joca windows, node-pty windows, powershell joca, fix joca windows, adapt joca windows, terminal does not start windows, statusline windows, start.bat fails, rate limits windows
 origin: local
 ---
 # JOCA_OS — Windows Adaptation & Verification
@@ -10,7 +10,7 @@ The JOCA_OS (`JOCA_OS/backend` Node+Express+node-pty, `JOCA_OS/frontend` React+V
 
 **Activate this skill on every Windows install/upgrade.** Run the checklist top-to-bottom, fix what fails, and report. Goal: get JOCA_OS fully working on Windows **in one pass** instead of discovering breakage piecemeal.
 
-**Hard rule:** macOS/Linux behaviour is canonical. Never change cross-platform code in a way that breaks macOS — guard every Windows-specific branch behind `process.platform === 'win32'` (backend) / `$IsWindows` or `%OS%` (scripts). Prefer additive `if (IS_WINDOWS)` branches over rewrites.
+**Hard rule:** macOS/Linux behavior is canonical. Never change cross-platform code in a way that breaks macOS — guard every Windows-specific branch behind `process.platform === 'win32'` (backend) / `$IsWindows` or `%OS%` (scripts). Prefer additive `if (IS_WINDOWS)` branches over rewrites.
 
 ---
 
@@ -71,7 +71,7 @@ const shellArgs = IS_WINDOWS && SHELL.includes('powershell') ? ['-NoLogo'] : [];
 ## Phase 3 — Paths & filesystem
 
 - Rate-limit cache: `path.join(os.tmpdir(), 'joca-ui')` → `%TEMP%\joca-ui` on Windows. Confirm the dir is created and writable.
-- `safePath()` / `safePathForRead()` sensitive-dir blocklist is POSIX-flavoured (`.ssh`, `Library/Keychains`, `.zshrc`...). On Windows the home-root sentinel and `..` handling still apply, but verify path normalization works with backslashes and drive letters (`C:\Users\...`). FileBrowser must list fixed drives.
+- `safePath()` / `safePathForRead()` sensitive-dir blocklist is POSIX-flavored (`.ssh`, `Library/Keychains`, `.zshrc`...). On Windows the home-root sentinel and `..` handling still apply, but verify path normalization works with backslashes and drive letters (`C:\Users\...`). FileBrowser must list fixed drives.
 - "Open in external app": `server.ts` picks an open command — must be `start ""` (cmd) / `Invoke-Item` on Windows, `open` on macOS, `xdg-open` on Linux. Verify `/open` and "reveal in explorer" resolve to the Windows command.
 
 ---

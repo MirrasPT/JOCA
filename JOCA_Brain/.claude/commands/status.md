@@ -1,34 +1,34 @@
-# /status — Mostrar limites e uso de recursos do Claude Code
+# /status — Show Claude Code limits and resource usage
 
-Apresenta o estado actual de rate limits, contexto e modelo em uso do JOCA.
+Presents JOCA's current state of rate limits, context and model in use.
 
-## Passos
+## Steps
 
-### 1. Localizar ficheiro de limites
-Ler o ficheiro `rate-limits.json` localizado no directório temporário do sistema operativo:
-- macOS/Linux: directório de `os.tmpdir()/joca-ui/rate-limits.json` (geralmente `/tmp/joca-ui/rate-limits.json` ou sob `/var/folders/`)
+### 1. Locate the limits file
+Read the `rate-limits.json` file located in the operating system's temporary directory:
+- macOS/Linux: the `os.tmpdir()/joca-ui/rate-limits.json` directory (usually `/tmp/joca-ui/rate-limits.json` or under `/var/folders/`)
 - Windows: `%TEMP%\joca-ui\rate-limits.json`
 
-Se o ficheiro não existir ou não puder ser lido, mostrar a mensagem:
-"Erro: Ficheiro de limites não encontrado. Garanta que o statusline está activo ou corre `/install`."
+If the file does not exist or cannot be read, show the message:
+"Error: Limits file not found. Make sure the statusline is active or run `/install`."
 
-### 2. Formatar e apresentar
-Apresentar uma tabela limpa e compacta com barras de progresso de 10 caracteres (`█` e `░`):
+### 2. Format and present
+Present a clean, compact table with 10-character progress bars (`█` and `░`):
 
 ```
 STATUS JOCA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Modelo: <model>
-Contexto: in: <input_tokens> | out: <output_tokens>
-  Barra: [<barra>] <used_pct>%
+Model: <model>
+Context: in: <input_tokens> | out: <output_tokens>
+  Bar: [<bar>] <used_pct>%
 
-Limites de Mensagens:
-  5 horas:    [<barra>] <used_pct>%  (reseta em: <tempo>)
-  7 dias:     [<barra>] <used_pct>%  (reseta em: <tempo>)
-  Sonnet 7d:  [<barra>] <used_pct>%  (reseta em: <tempo>)
+Message limits:
+  5 hours:    [<bar>] <used_pct>%  (resets in: <time>)
+  7 days:     [<bar>] <used_pct>%  (resets in: <time>)
+  Sonnet 7d:  [<bar>] <used_pct>%  (resets in: <time>)
 
-Actualizado: <data/hora local ou tempo decorrido desde updated_at>
+Updated: <local date/time or time elapsed since updated_at>
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Calcular o tempo restante para o reset com base em `resets_at` (epoch timestamp em segundos) face à hora actual. Se não houver `resets_at` ou se for nulo, omitir a secção `(reseta em: ...)` ou mostrar `(reset: ?)`.
+Calculate the time remaining until the reset based on `resets_at` (epoch timestamp in seconds) against the current time. If there is no `resets_at` or it is null, omit the `(resets in: ...)` section or show `(reset: ?)`.

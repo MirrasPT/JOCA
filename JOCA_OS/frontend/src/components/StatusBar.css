@@ -1,6 +1,6 @@
-/* ─── Rodapé de estado: consumo das CLIs + hora ───────────────────
-   Fica sempre visível, por isso é deliberadamente silencioso: alturas pequenas, cinzentos, e
-   cor só quando o consumo está alto. O detalhe vive num popover (hover / foco / clique). */
+/* ─── Status footer: CLI usage + time ─────────────────────────────
+   It is always visible, so it is deliberately quiet: small heights, greys, and color only when
+   usage is high. The detail lives in a popover (hover / focus / click). */
 
 .statusbar {
   display: flex;
@@ -23,7 +23,7 @@
   align-items: center;
   gap: var(--sp-3);
   min-width: 0;
-  /* sem overflow:hidden — cortaria o popover, que sobe para fora do rodapé */
+  /* no overflow:hidden — it would cut the popover, which rises out of the footer */
   flex-wrap: nowrap;
 }
 
@@ -63,7 +63,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Provedor sem dados: presente mas apagado — não se esconde nem se finge 0%. */
+/* Provider with no data: present but dimmed — it is neither hidden nor faked as 0%. */
 .sb-provider--empty .sb-provider-name,
 .sb-provider--empty .sb-pct { color: var(--text-ghost); }
 .sb-provider--empty .sb-track { opacity: 0.4; }
@@ -105,7 +105,7 @@
   font-size: 10px;
 }
 
-/* Consumo alto passa a ter cor no texto — --accent-text porque o --accent não lê no tema claro. */
+/* High usage gets color in the text — --accent-text because --accent does not read in the light theme. */
 .sb-slot[data-level='high'] .sb-pct { color: var(--accent-text); }
 
 /* ─── Popover de detalhe ─────────────────────────────────────────── */
@@ -126,7 +126,7 @@
   transition: opacity var(--t-fast), visibility var(--t-fast);
 }
 
-/* Alcançável por teclado (o botão apanha o foco), não só por rato. */
+/* Reachable by keyboard (the button takes focus), not only by mouse. */
 .sb-provider:hover .sb-pop,
 .sb-provider:focus-within .sb-pop,
 .sb-provider.is-pinned .sb-pop {
@@ -188,10 +188,10 @@
   font-size: 10px;
 }
 
-/* ─── Actividade (quem está a trabalhar) ─────────────────────────────
-   Vive à direita, encostada ao relógio. Mesma linguagem do resto do rodapé — 11px, cinzento,
-   sem caixas nem cor — porque foi pedido explicitamente que não chamasse a atenção. O único
-   sinal de vida é um ponto de 5px a pulsar, e mesmo esse desliga com reduced-motion. */
+/* ─── Activity (who is working) ──────────────────────────────────────
+   It lives on the right, up against the clock. Same language as the rest of the footer — 11px,
+   grey, no boxes and no color — because it was explicitly asked not to draw attention. The only
+   sign of life is a 5px pulsing dot, and even that switches off with reduced-motion. */
 
 .sb-right {
   display: flex;
@@ -238,7 +238,7 @@
   font-size: 11px;
 }
 
-/* O total fica um tom abaixo: o número que interessa é quantos estão a trabalhar AGORA. */
+/* The total sits a shade lower: the number that matters is how many are working RIGHT NOW. */
 .sb-act-of { color: var(--text-dim); }
 
 .sb-act-dot {
@@ -263,7 +263,7 @@
   .sb-act-dot[data-on='true'] { animation: none; }
 }
 
-/* ─── Relógio ────────────────────────────────────────────────────── */
+/* ─── Clock ──────────────────────────────────────────────────────── */
 
 .sb-clock {
   flex: 0 0 auto;
@@ -273,9 +273,9 @@
   letter-spacing: 0.04em;
 }
 
-/* ─── Ecrãs estreitos ────────────────────────────────────────────────
-   Degrada por camadas em vez de quebrar a linha: primeiro caem as percentagens em texto,
-   depois a janela semanal, depois o nome do provedor. A hora nunca cai — é o pedido central. */
+/* ─── Narrow screens ─────────────────────────────────────────────────
+   It degrades in layers instead of breaking the line: first the percentages in text drop, then the
+   weekly window, then the provider's name. The time never drops — it is the central request. */
 
 @media (max-width: 900px) {
   .sb-providers { gap: var(--sp-2); }
@@ -290,16 +290,16 @@
   .sb-slot[data-window='7d'] { display: none; }
 }
 
-/* Aqui cai a etiqueta da janela, não o nome do provedor: sem nome, três barras iguais deixariam
-   de se distinguir umas das outras. */
+/* Here the window label drops, not the provider's name: with no name, three identical bars would
+   stop being distinguishable from one another. */
 @media (max-width: 560px) {
-  /* O total de agentes cai antes do número de activos: "2" diz mais do que "de 5". */
+  /* The agent total drops before the number of active ones: "2" says more than "of 5". */
   .sb-act-of { display: none; }
 }
 
 @media (max-width: 420px) {
   .sb-slot-label { display: none; }
   .sb-track { width: 20px; }
-  /* Fica o ponto e os números; os ícones eram o que ainda dava para perder sem perder sentido. */
+  /* The dot and the numbers stay; the icons were what could still be lost without losing meaning. */
   .sb-act-chip svg { display: none; }
 }

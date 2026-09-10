@@ -1,47 +1,47 @@
 ---
 name: social-scheduler
-description: Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Executor do flow create→upload→attach→privacy→publish, com os gotchas por plataforma (TikTok privacy_level, joint-post re-list, ordem do carrossel). Distinto de content-calendar (planeamento) — esta skill EXECUTA. Triggers agendar post, publicar nas redes, schedule social, TryPost, carrossel Instagram, publicar TikTok, agendar campanha social.
+description: Schedule and publish social media posts via TryPost (self-hosted MCP, mcp__trypost__*). Executor of the create→upload→attach→privacy→publish flow, with the per-platform gotchas (TikTok privacy_level, joint-post re-list, carousel order). Distinct from content-calendar (planning) — this skill EXECUTES. Triggers schedule post, publish to social, schedule social, TryPost, Instagram carousel, publish TikTok, schedule social campaign.
 triggers:
-  - agendar post
-  - publicar nas redes
+  - schedule post
+  - publish to social
   - schedule social post
   - trypost
-  - carrossel instagram
-  - publicar tiktok
-  - agendar campanha social
+  - instagram carousel
+  - publish tiktok
+  - schedule social campaign
 chain: content-calendar
 origin: local
 ---
 
 # Social Scheduler — TryPost (MCP)
 
-Executor de agendamento/publicação social via **TryPost** self-hosted (ex.: `trypost.<YOUR_DOMAIN>`, MCP `mcp__trypost__*`, OAuth, user scope). A skill `content-calendar` faz o *planeamento* (calendário, captions, rollout); esta faz a *execução*. Ver `memory/projects/<your-vps>.md` (stack/creds TryPost).
+Executor for social scheduling/publishing via self-hosted **TryPost** (e.g. `trypost.<YOUR_DOMAIN>`, MCP `mcp__trypost__*`, OAuth, user scope). The `content-calendar` skill does the *planning* (calendar, captions, rollout); this one does the *execution*. See `memory/projects/<your-vps>.md` (TryPost stack/creds).
 
-## Pré-requisitos
-- Contas sociais ligadas: `mcp__trypost__list-social-accounts-tool` (confirmar `id` + estado de cada plataforma antes de publicar).
+## Prerequisites
+- Connected social accounts: `mcp__trypost__list-social-accounts-tool` (confirm each platform's `id` + state before publishing).
 - Workspace: `mcp__trypost__get-workspace-tool`.
 
-## Flow canónico (post com média)
+## Canonical flow (post with media)
 
-1. **Criar draft** — `create-post-tool` (texto + plataformas + `scheduled_at` se agendado).
-2. **Pedir upload** — `request-media-upload-tool` → devolve URL/credenciais de upload.
-3. **Upload do ficheiro** — `curl` para a URL devolvida (o MCP não faz o upload do binário).
-4. **Anexar** — `attach-media-from-upload-tool` (ou `attach-media-from-url-tool` se a média já está num URL público).
-5. **Privacy/meta** — `update-post-tool` com os campos por plataforma (ver gotchas).
-6. **Publicar/confirmar** — `publish-post-tool` (imediato) ou deixar agendado; `get-post-tool` p/ estado, `get-post-metrics-tool` p/ métricas.
+1. **Create draft** — `create-post-tool` (text + platforms + `scheduled_at` if scheduled).
+2. **Request upload** — `request-media-upload-tool` → returns the upload URL/credentials.
+3. **Upload the file** — `curl` to the returned URL (the MCP does not upload the binary).
+4. **Attach** — `attach-media-from-upload-tool` (or `attach-media-from-url-tool` if the media is already at a public URL).
+5. **Privacy/meta** — `update-post-tool` with the per-platform fields (see gotchas).
+6. **Publish/confirm** — `publish-post-tool` (immediate) or leave it scheduled; `get-post-tool` for state, `get-post-metrics-tool` for metrics.
 
-## Gotchas (vividos — não inferir)
-- **TikTok exige `meta.privacy_level`** no `update-post`/`create-post` senão a publicação falha. (Sandbox: agenda mas pode **não publicar realmente** — verificar com `get-post`.)
-- **Joint post (multi-plataforma):** o `update-post-tool` tem de **re-listar TODAS as plataformas** sempre — omitir uma **desactiva-a** (não é merge, é replace).
-- **Carrossel (Instagram):** anexar múltiplas médias ao MESMO post; a **capa** vai num passo de attach isolado primeiro (a ordem do attach = ordem do carrossel).
-- **`list-posts-tool` grande estoura tokens** → escrever a resposta para ficheiro e ler com `jq`, não inline.
-- **Anti-fabricação:** nunca inventar `account_id`/`media_id` — obter sempre de `list-social-accounts`/`request-media-upload`. Sem conta ligada para uma plataforma → reportar `TODO: conta <plat> não ligada`, não publicar às cegas.
+## Gotchas (lived — do not infer)
+- **TikTok requires `meta.privacy_level`** in `update-post`/`create-post` or publishing fails. (Sandbox: it schedules but may **not actually publish** — check with `get-post`.)
+- **Joint post (multi-platform):** `update-post-tool` must **re-list ALL platforms** every time — omitting one **deactivates it** (it is not a merge, it is a replace).
+- **Carousel (Instagram):** attach several media to the SAME post; the **cover** goes in an isolated attach step first (attach order = carousel order).
+- **A large `list-posts-tool` blows up tokens** → write the response to a file and read it with `jq`, not inline.
+- **Anti-fabrication:** never invent an `account_id`/`media_id` — always get them from `list-social-accounts`/`request-media-upload`. No account connected for a platform → report `TODO: <plat> account not connected`, do not publish blindly.
 
-## Outras ops
+## Other ops
 - Labels: `list-labels-tool`, `create-label-tool`, `update-label-tool`, `delete-label-tool`.
-- Assinaturas: `list-signatures-tool`, `create-signature-tool`.
-- Tipos de conteúdo: `list-content-types-tool`.
+- Signatures: `list-signatures-tool`, `create-signature-tool`.
+- Content types: `list-content-types-tool`.
 - API keys: `list-api-keys-tool`, `create-api-key-tool`.
 
 ## Chain
-`content-calendar` — planeamento que alimenta esta execução. Para gerar a criatividade antes de agendar: `social-content` / `img-gen` → esta skill publica.
+`content-calendar` — the planning that feeds this execution. To generate the creative before scheduling: `social-content` / `img-gen` → this skill publishes.

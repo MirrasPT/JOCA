@@ -21,12 +21,12 @@ import { installSessionsSnapshot } from './sessions-snapshot';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
 
 // Forward SessionManager lifecycle events to the WS broadcast — identical message shapes to v1.
-// ('done' nao e difundido.)
+// ('done' is not broadcast.)
 // 'spawn' is the single broadcast source for session_created — covers both UI-created sessions
 // and workers spawned programmatically, so workers show in the UI.
 sessionManager.on('spawn', ({ session, requestedBy }: { session: Session; requestedBy?: string }) => {
-  // `requestedBy` volta tal e qual: é o que deixa o cliente que pediu saltar para o terminal novo
-  // sem arrastar os outros com ele.
+  // `requestedBy` comes back verbatim: it is what lets the client that asked jump to the new
+  // terminal without dragging the others along with it.
   broadcast({ type: 'session_created', session: sessionManager.info(session), requestedBy });
 });
 sessionManager.on('output', ({ sessionId, data }: { sessionId: string; data: string }) => {
@@ -41,10 +41,10 @@ sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
 });
 
-// Retrato periódico das sessões vivas em `data/sessions-snapshot.json`, mais o flush em
-// SIGTERM/SIGINT. Quando este processo morre, os PTYs morrem com ele — isto é o que permite à
-// instância seguinte dizer ao dono o que estava aberto, em vez de a lista aparecer vazia sem
-// explicação. Instalado DEPOIS dos broadcasts para não se meterem à frente deles.
+// Periodic snapshot of the live sessions in `data/sessions-snapshot.json`, plus the flush on
+// SIGTERM/SIGINT. When this process dies, the PTYs die with it — this is what lets the next
+// instance tell the owner what was open, instead of the list showing up empty with no
+// explanation. Installed AFTER the broadcasts so they do not get in front of them.
 installSessionsSnapshot();
 
 // New persistent notifications reach connected clients live; offline clients pick them up from the
@@ -52,21 +52,21 @@ installSessionsSnapshot();
 setNotificationsBroadcaster((n) => broadcast({ type: 'notification', notification: n }));
 
 /**
- * Rede de segurança: uma falha de socket não pode matar o servidor inteiro.
+ * Safety net: a socket failure cannot kill the whole server.
  *
- * EPIPE/ECONNRESET/ECONNABORTED acontecem quando o outro lado desaparece — um PTY que morreu, um
- * browser que fechou a meio de uma resposta, um subprocesso do SDK que saiu. São normais e locais.
- * Sem este guarda, o Node trata-os como excepção fatal e derruba o backend com TODAS as sessões,
- * e as filas atrás — um worker mal arrancado apagava o JOCA inteiro.
+ * EPIPE/ECONNRESET/ECONNABORTED happen when the other side disappears — a PTY that died, a
+ * browser that closed mid-response, an SDK subprocess that exited. They are normal and local.
+ * Without this guard, Node treats them as a fatal exception and takes the backend down with ALL the
+ * sessions, and the queues behind them — one badly started worker wiped out the whole of JOCA.
  *
- * Deliberadamente estreito: só estes três códigos. Qualquer outra excepção não-apanhada continua a
- * derrubar o processo, que é o que deve acontecer a um bug a sério — engolir tudo aqui era esconder
- * problemas em vez de resolver.
+ * Deliberately narrow: only these three codes. Any other uncaught exception still takes the
+ * process down, which is what should happen to a real bug — swallowing everything here would be
+ * hiding problems instead of solving them.
  */
 const SOCKET_NOISE = new Set(['EPIPE', 'ECONNRESET', 'ECONNABORTED']);
 process.on('uncaughtException', (err: NodeJS.ErrnoException) => {
   if (err && SOCKET_NOISE.has(err.code ?? '')) {
-    console.warn(`[socket] ${err.code} ignorado: ${err.message}`);
+    console.warn(`[socket] ${err.code} ignored: ${err.message}`);
     return;
   }
   throw err;
@@ -120,9 +120,9 @@ const PORT = Number(process.env.PORT || 7491);
 const HOST = process.env.JOCA_HOST || '127.0.0.1';
 const isLoopback = HOST === '127.0.0.1' || HOST === 'localhost' || HOST === '::1';
 if (!isLoopback && !authEnabled()) {
-  console.error(`✗ JOCA_HOST=${HOST} requer autenticação configurada.`);
-  console.error('  Define JOCA_PASSWORD=<password forte> (ou configura a password na UI local antes do deploy).');
-  console.error('  Em VPS, recomenda-se ainda TLS via reverse proxy (Caddy/nginx) ou rede privada (Tailscale).');
+  console.error(`✗ JOCA_HOST=${HOST} requires authentication configured.`);
+  console.error('  Set JOCA_PASSWORD=<strong password> (or configure the password in the local UI before deploying).');
+  console.error('  On a VPS, TLS via reverse proxy (Caddy/nginx) or a private network (Tailscale) is also recommended.');
   process.exit(1);
 }
 
@@ -131,11 +131,11 @@ server.listen(PORT, HOST, () => {
   // Terminals reach the API on the port we actually bound to (PORT may be overridden).
   setApiPort(PORT);
   console.log(`JOCA_OS → http://${isLoopback ? 'localhost' : HOST}:${PORT}${authEnabled() ? ' (auth ON)' : ''}`);
-  console.log(`Ponte de agentes → ${fs.existsSync(JOCA_CLI_PATH) ? 'node "$JOCA_CLI" help' : 'cli/joca.mjs em falta'}`);
+  console.log(`Agent bridge → ${fs.existsSync(JOCA_CLI_PATH) ? 'node "$JOCA_CLI" help' : 'cli/joca.mjs missing'}`);
   console.log(`JOCA_Brain → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);
   if (logicConnected) {
     const items = collectToolkitItems();
     console.log(`  Skills: ${items.skills.length} · Agents: ${items.agents.length} · Commands: ${items.commands.length}`);
   }
-  // Nenhum terminal nasce sozinho: os projectos abrem VAZIOS e quem abre terminais é o dono.
+  // No terminal is born on its own: projects open EMPTY and the one who opens terminals is the owner.
 });

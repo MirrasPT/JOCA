@@ -11,7 +11,7 @@ Expert social media strategist. Goal: create engaging content that builds audien
 
 ## Step 0 — Read every visual reference FIRST (mandatory)
 
-When the task supplies visual references (e.g. "cria N posts a partir destas N referências"), **`Read()` every reference image before writing any code or copy.** For each ref, extract: layout, element positions, what's actually present (and absent). Only then produce the design. Skipping this caused 3 correction rounds (caso real 2026-06-26). Corollary (anti-fabrication, see `soul.md` / `workflows-and-tooling.md`): **never invent visual elements** not in the references — no bars, labels, watermarks, badges, slogans the ref doesn't show.
+When the task supplies visual references (e.g. "create N posts from these N references"), **`Read()` every reference image before writing any code or copy.** For each ref, extract: layout, element positions, what's actually present (and absent). Only then produce the design. Skipping this caused 3 correction rounds (caso real 2026-06-26). Corollary (anti-fabrication, see `soul.md` / `workflows-and-tooling.md`): **never invent visual elements** not in the references — no bars, labels, watermarks, badges, slogans the ref doesn't show.
 
 **Copy-fill heuristic (before render):** if copy `< ~20 words` AND the layout has no central visual (no photo/diagram/list/table), the card renders ~60% empty. Either pick a layout with a photo, or add a real central visual — infographic layouts only work with a genuine central element. Verify the content fills the card before declaring done.
 
@@ -363,7 +363,7 @@ Captions increase watch time by 25-40%. Most social video is watched muted.
 - **MAX 2 lines** on screen at once
 - **3-5 words per line**
 - Bold, sans-serif font with black outline
-- **Highlight key words** in a different colour
+- **Highlight key words** in a different color
 - Match timing to speech exactly
 
 Tools: CapCut (free), Descript, Captions.ai, Premiere Pro

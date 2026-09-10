@@ -1,54 +1,54 @@
 ---
 name: gauntlet-loop
-description: "Reformula QUALQUER pedido num workflow de desenvolvimento medido contra uma referência real e nomeada: preenche o aim prompt de três parágrafos do Matt Shumer, EXECUTA-O, faz fan-out de sub-agentes, põe um crítico separado e severo a comparar às cegas com a referência, e repete até o HUMANO travar. Agnóstico de domínio (jogo, app, API, site, deck, marca, refactor). Prompt puro — sem harness, sem state machine, sem scripts auxiliares. MUST be invoked when the user says: gauntlet, gauntlet loop, aim prompt, ao nível de, tão bom como, benchmark contra, loop até ficar perfeito, /gauntlet-loop. SHOULD also invoke when: o user pede algo comparado a um produto real existente e quer qualidade máxima em vez de rapidez."
-triggers: gauntlet, gauntlet loop, gauntlet-loop, aim prompt, prompt do Shumer, ao nível de, ao nível do, tão bom como, melhor que o, benchmark contra, comparado com, loop até ficar perfeito, qualidade AAA, top studio quality, build like, as good as
+description: "Reframes ANY request into a development workflow measured against a real, named reference: fills in Matt Shumer's three-paragraph aim prompt, EXECUTES IT, fans out sub-agents, puts a separate harsh critic to compare blind against the reference, and repeats until the HUMAN pulls the brake. Domain-agnostic (game, app, API, site, deck, brand, refactor). Pure prompt — no harness, no state machine, no helper scripts. MUST be invoked when the user says: gauntlet, gauntlet loop, aim prompt, at the level of, as good as, benchmark against, loop until it's perfect, /gauntlet-loop. SHOULD also invoke when: the user asks for something compared to a real existing product and wants maximum quality instead of speed."
+triggers: gauntlet, gauntlet loop, gauntlet-loop, aim prompt, Shumer prompt, at the level of, better than, benchmark against, compared with, loop until it's perfect, AAA quality, top studio quality, build like, as good as
 chain: tester-code, design-review, tester-performance
 ---
-# gauntlet-loop — construir contra uma referência real, em loop
+# gauntlet-loop — build against a real reference, in a loop
 
-**Meta-skill.** Recebe um pedido em linguagem natural sobre **qualquer** assunto e reformula-o no aim prompt
-de três parágrafos — depois **corre-o**. Adaptado de
-[duolahypercho/gauntlet-loop](https://github.com/duolahypercho/gauntlet-loop), que empacota o aim prompt de
-152 palavras do [Matt Shumer](https://github.com/mshumer/Claude-of-Duty). O upstream é só para jogos; **esta
-versão é agnóstica de domínio** — o que muda por domínio é a referência e o método de comparação, não o método.
+**Meta-skill.** Takes a natural-language request about **any** subject and reframes it into the three-paragraph
+aim prompt — then **runs it**. Adapted from
+[duolahypercho/gauntlet-loop](https://github.com/duolahypercho/gauntlet-loop), which packages
+[Matt Shumer](https://github.com/mshumer/Claude-of-Duty)'s 152-word aim prompt. The upstream is games only; **this
+version is domain-agnostic** — what changes per domain is the reference and the comparison method, not the method.
 
-## A ideologia (as 5 peças que fazem isto funcionar)
+## The ideology (the 5 pieces that make this work)
 
-1. **Referência real e nomeada.** Não "de alta qualidade" — *ao nível do Linear*, *ao nível do Stripe*.
-   Um alvo abstracto não se consegue falhar; um alvo concreto sim.
-2. **Fan-out.** Cada área do trabalho tem um sub-agente próprio, a correr em paralelo.
-3. **Crítico separado e severo.** Um agente **diferente** de quem escreveu, cuja função é reprovar.
-   Quem produz nunca se avalia.
-4. **Comparação cega lado-a-lado** contra a referência: *qual destes dois é melhor?* sem saber qual é qual.
-5. **Sem condição de paragem.** A fasquia é inalcançável de propósito. Qualidade = função do tempo de
-   execução. **O humano é o travão.**
+1. **A real, named reference.** Not "high quality" — *at the level of Linear*, *at the level of Stripe*.
+   An abstract target cannot be missed; a concrete one can.
+2. **Fan-out.** Each area of the work has its own sub-agent, running in parallel.
+3. **A separate, harsh critic.** An agent **different** from whoever wrote it, whose job is to fail it.
+   Whoever produces never evaluates themselves.
+4. **Blind side-by-side comparison** against the reference: *which of these two is better?* without knowing which is which.
+5. **No stopping condition.** The bar is deliberately unreachable. Quality = a function of execution
+   time. **The human is the brake.**
 
-Se tiras qualquer uma das cinco, isto vira um workflow normal. Não tires.
+If you remove any one of the five, this becomes a normal workflow. Don't remove any.
 
-## Ao invocar
+## On invocation
 
-1. **Inferir o domínio** do pedido (jogo / web app / API-backend / landing / deck / marca / refactor / conteúdo / …).
-2. **Preencher os slots** — `THING`, `REFERENCE`, `LOOK`, `TIER`, `AREA_1`, `AREA_2`, `CHECK`, `STACK` — a
-   partir dos args, do cwd, do `CLAUDE.md` do projecto e da conversa. **Uma pergunta no máximo**, e só se
-   `THING` ou `REFERENCE` faltarem e não forem inferíveis.
-3. **Fixar o método de comparação** do domínio (tabela abaixo). Sem método de comparação verificável, o
-   passo 4 é teatro — resolve isto antes de arrancar.
-4. **Preencher o esqueleto** e guardá-lo como brief interno. **Não despejar o prompt e esperar.**
-5. **Executar**: fan-out de `Agent()` no mesmo turno, crítico separado, comparação cega, corrigir, repetir.
-6. **Continuar até o humano travar** (ou até um budget declarado). **Nunca perguntar "continuo?"**
+1. **Infer the domain** from the request (game / web app / API-backend / landing / deck / brand / refactor / content / …).
+2. **Fill in the slots** — `THING`, `REFERENCE`, `LOOK`, `TIER`, `AREA_1`, `AREA_2`, `CHECK`, `STACK` — from
+   the args, the cwd, the project's `CLAUDE.md` and the conversation. **One question at most**, and only if
+   `THING` or `REFERENCE` are missing and cannot be inferred.
+3. **Lock the domain's comparison method** (table below). Without a verifiable comparison method,
+   step 4 is theater — settle this before starting.
+4. **Fill in the skeleton** and keep it as an internal brief. **Do not dump the prompt and wait.**
+5. **Execute**: fan-out of `Agent()` in the same turn, separate critic, blind comparison, fix, repeat.
+6. **Continue until the human pulls the brake** (or until a declared budget). **Never ask "shall I continue?"**
 
-Linha de estado, uma vez, depois trabalho:
+Status line, once, then work:
 
 ```text
-Gauntlet: [THING] contra [REFERENCE] em [STACK]. Comparação: [CHECK]. Tu és o travão.
+Gauntlet: [THING] against [REFERENCE] in [STACK]. Comparison: [CHECK]. You are the brake.
 ```
 
-Linha honesta, uma vez:
+Honest line, once:
 
-> Não acaba pela definição dele. A comparação cega contra [REFERENCE] vai continuar a falhar. É por isso
-> que a qualidade continua a subir. Quem pára és tu.
+> It does not end, by its own definition. The blind comparison against [REFERENCE] will keep failing. That is why
+> the quality keeps rising. The one who stops is you.
 
-## O prompt (preencher e correr — é o procedimento inteiro)
+## The prompt (fill in and run — it is the entire procedure)
 
 ```text
 I want you to build [THING] at the level of [REFERENCE]. It should
@@ -67,87 +67,87 @@ Fan out sub-agents[CLOSING_TAIL].
 ```
 
 `LOOP_VERB` = `/loop` · `CLOSING_TAIL` = ` and ultracode` (Claude Code).
-Em Codex: `LOOP_VERB` = `/goal`, `CLOSING_TAIL` vazio — nunca misturar verbos de harnesses diferentes.
+In Codex: `LOOP_VERB` = `/goal`, `CLOSING_TAIL` empty — never mix verbs from different harnesses.
 
-Mais nada. Sem outro protocolo.
+Nothing else. No other protocol.
 
-## Escolher a `REFERENCE`
+## Choosing the `REFERENCE`
 
-- **Real, nomeada, verificável.** Um produto/repo/artefacto que existe e a que se consegue chegar.
-- **Do mesmo desporto.** Comparar um dashboard com o Linear, não com "o Apple".
-- **Se o modelo a bate no dia 1 → sobe.** A referência tem de doer.
-- Se o user já nomeou uma, é essa. Se não, propor a melhor da categoria **na linha de estado** — não parar a perguntar.
-- Se a referência for fechada e inacessível (backend proprietário), usar o **substituto verificável**:
-  um repo open source de topo do mesmo tipo, um benchmark público, ou a spec/documentação pública.
-  **Nunca inventar como a referência funciona por dentro** — usa o que se consegue observar.
+- **Real, named, verifiable.** A product/repo/artifact that exists and that you can get to.
+- **Same sport.** Compare a dashboard with Linear, not with "Apple".
+- **If the model beats it on day 1 → raise it.** The reference has to hurt.
+- If the user already named one, it is that one. If not, propose the best in the category **in the status line** — do not stop to ask.
+- If the reference is closed and inaccessible (proprietary backend), use the **verifiable substitute**:
+  a top open source repo of the same kind, a public benchmark, or the public spec/documentation.
+  **Never invent how the reference works inside** — use what can be observed.
 
-## Perfis por domínio — o que preencher e **como o crítico compara**
+## Domain profiles — what to fill in and **how the critic compares**
 
-O `CHECK` é a peça que a versão original resolvia só para o caso visual. Por domínio:
+The `CHECK` is the piece that the original version solved only for the visual case. By domain:
 
-| Domínio | `REFERENCE` típica | `AREA_1` / `AREA_2` | `CHECK` — como o crítico compara às cegas |
+| Domain | typical `REFERENCE` | `AREA_1` / `AREA_2` | `CHECK` — how the critic compares blind |
 |---|---|---|---|
-| Jogo | Call of Duty · Hades · Brotato | texturas / física · combat feel / luz | frame leve in-game vs still real do jogo |
-| Web app / produto | Linear · Notion · Stripe Dashboard | densidade de informação / motion | screenshot do ecrã vs screenshot do real, mesmo viewport |
-| Landing / marketing | Linear · Vercel · Framer | tipografia / motion | screenshot full-page vs a página real, mesmo viewport |
-| API / backend | Stripe API · GitHub API | contratos / erros · performance | ler os dois contratos lado-a-lado (endpoint, payload, erro, paginação, versionamento) + números de latência |
-| Código / refactor | um repo de topo do mesmo stack | legibilidade / arquitectura | diff lado-a-lado do mesmo módulo + métricas (complexidade, LOC, cobertura, Larastan/tsc limpos) |
-| Performance | orçamento real (LCP<2.0s, p95<200ms) | carga / percepção | número medido vs número alvo — Lighthouse/k6, não opinião |
-| Deck / apresentação | um pitch deck famoso nomeado | arco narrativo / craft do slide | ler em voz alta + screenshot de cada slide vs os da referência |
-| Marca / identidade | um brand book real nomeado | sistema / aplicação | pranchas lado-a-lado + teste de redução e monocromático |
-| Copy / conteúdo | uma peça publicada nomeada | clareza / voz | os dois textos às cegas: qual é que um leitor da audiência prefere e porquê |
+| Game | Call of Duty · Hades · Brotato | textures / physics · combat feel / light | light in-game frame vs real still from the game |
+| Web app / product | Linear · Notion · Stripe Dashboard | information density / motion | screenshot of the screen vs screenshot of the real one, same viewport |
+| Landing / marketing | Linear · Vercel · Framer | typography / motion | full-page screenshot vs the real page, same viewport |
+| API / backend | Stripe API · GitHub API | contracts / errors · performance | read both contracts side by side (endpoint, payload, error, pagination, versioning) + latency numbers |
+| Code / refactor | a top repo in the same stack | readability / architecture | side-by-side diff of the same module + metrics (complexity, LOC, coverage, clean Larastan/tsc) |
+| Performance | real budget (LCP<2.0s, p95<200ms) | load / perception | measured number vs target number — Lighthouse/k6, not opinion |
+| Deck / presentation | a named famous pitch deck | narrative arc / slide craft | read aloud + screenshot of each slide vs the reference's |
+| Brand / identity | a named real brand book | system / application | boards side by side + reduction and monochrome test |
+| Copy / content | a named published piece | clarity / voice | the two texts blind: which one a reader from the audience prefers and why |
 
-Domínio fora da tabela: escolher o `CHECK` **mais barato que ainda seja falsificável** — um artefacto que se
-possa pôr ao lado do da referência. Se não existe nenhum, o gauntlet não se aplica: di-lo e propõe a via normal
-(`/goal`, skill do domínio).
+Domain outside the table: pick the **cheapest `CHECK` that is still falsifiable** — an artifact that can be
+put side by side with the reference's. If none exists, the gauntlet does not apply: say so and propose the normal route
+(`/goal`, the domain's skill).
 
-## Execução no JOCA (só os verbos, não uma máquina nova)
+## Execution in JOCA (just the verbs, not a new machine)
 
-- **Fan-out** = várias chamadas `Agent()` **no mesmo turno**. Cap 3-5 concorrentes
-  (`rules/orchestration-patterns.md`). Agrupar por **ficheiro/área disjunta**, nunca por tema — dois agentes
-  no mesmo ficheiro pisam-se. Componentes partilhados definem-se numa **fase de fundação sequencial** antes
-  do fan-out; os workers importam, não recriam.
-- **Brief de cada worker** (obrigatório): objectivo em 2 frases · ficheiros/paths · constraints do projecto ·
-  o que NÃO fazer · Step 0 `Read()` das skills do domínio · anti-fabricação (sem credencial → `TODO`, nunca inventar).
-- **Crítico** = agente **separado**, brief próprio, só avalia. Nunca quem escreveu o código. O brief do
-  crítico leva o `CHECK` do domínio e a instrução de reprovar por defeito.
-- **Loop** = skill `loop` do harness. `ultracode`/`Workflow` só se o user o pedir — custo alto.
-- Workers escrevem para disco (`scratchpad/gauntlet/<stream>.md`) e devolvem só resumo + path.
-  ⚠ fora da árvore do projecto se houver content-scan (Tailwind v4 e afins).
-- **Irreversível continua a ser gate**: deploy/push/migration/delete/payment/auth → 1 linha de confirmação.
-  O loop não é licença para publicar sozinho.
+- **Fan-out** = several `Agent()` calls **in the same turn**. Cap 3-5 concurrent
+  (`rules/orchestration-patterns.md`). Group by **disjoint file/area**, never by topic — two agents
+  in the same file step on each other. Shared components are defined in a **sequential foundation phase** before
+  the fan-out; the workers import, they do not recreate.
+- **Each worker's brief** (mandatory): objective in 2 sentences · files/paths · project constraints ·
+  what NOT to do · Step 0 `Read()` of the domain's skills · anti-fabrication (no credential → `TODO`, never invent).
+- **Critic** = a **separate** agent, its own brief, it only evaluates. Never whoever wrote the code. The
+  critic's brief carries the domain's `CHECK` and the instruction to fail by default.
+- **Loop** = the harness's `loop` skill. `ultracode`/`Workflow` only if the user asks for it — high cost.
+- Workers write to disk (`scratchpad/gauntlet/<stream>.md`) and return only a summary + path.
+  ⚠ outside the project tree if there is a content-scan (Tailwind v4 and the like).
+- **Irreversible is still a gate**: deploy/push/migration/delete/payment/auth → 1 line of confirmation.
+  The loop is not a license to publish on its own.
 
-## Buracos de asset
+## Asset holes
 
-Defeito que é falta de material, não de código: image gen (`img-gen` → `img-gen-openai`/`img-gen-google`) para
-pixels planos — sprites, texturas, ícones, UI; skill `blender` / Blender MCP para malha 3D que a câmara orbita.
-O asset aterra **sempre** no artefacto jogável/navegável, e o crítico avalia esse artefacto — nunca a grelha de
-geração nem a viewport do Blender.
+A defect that is missing material, not code: image gen (`img-gen` → `img-gen-openai`/`img-gen-google`) for
+flat pixels — sprites, textures, icons, UI; the `blender` skill / Blender MCP for 3D mesh the camera orbits.
+The asset **always** lands in the playable/navigable artifact, and the critic evaluates that artifact — never the
+generation grid nor the Blender viewport.
 
-## Não inventar
+## Do not invent
 
-É assim que os agentes saem do prompt puro e partem o loop:
+This is how agents leave the pure prompt and break the loop:
 
-- Scripts auxiliares, capture harnesses, ferramentas de blind-compare, templates de relatório, scoreboards
-- `GAUNTLET_STATE.md` / ledgers de rondas / contratos de arquitectura **como sendo o trabalho**
-- Regras de paragem inventadas ("N rondas planas", "já chega", "pronto para review")
-- Amaciar o crítico ou baixar a referência a meio
-- Perguntar "queres que continue?" ao fim de um ciclo — continua
-- Gastar a run em tooling em vez de no artefacto
-- **Fingir a comparação**: descrever a referência de memória em vez de a ir buscar. Se não a consegues
-  observar, di-lo e usa o substituto verificável.
-- Pegar o sistema para alimentar o crítico (loops headless, captura a 100% CPU). Se a espreitadela trava o
-  produto, a espreitadela está errada — tira uma medida mais leve.
-- Rondas infinitas de geração de assets que nunca aterram no artefacto
+- Helper scripts, capture harnesses, blind-compare tools, report templates, scoreboards
+- `GAUNTLET_STATE.md` / round ledgers / architecture contracts **as if they were the work**
+- Invented stopping rules ("N flat rounds", "that's enough", "ready for review")
+- Softening the critic or lowering the reference mid-flight
+- Asking "do you want me to continue?" at the end of a cycle — continue
+- Spending the run on tooling instead of on the artifact
+- **Faking the comparison**: describing the reference from memory instead of going to fetch it. If you cannot
+  observe it, say so and use the verifiable substitute.
+- Seizing up the system to feed the critic (headless loops, capture at 100% CPU). If the peek freezes the
+  product, the peek is wrong — take a lighter measurement.
+- Endless rounds of asset generation that never land in the artifact
 
 ## Compose-only
 
-Só se o user disser "dá-me só o prompt" / "compose only": devolver os três parágrafos preenchidos num bloco
-` ```text `. Caso contrário, **executar sempre**.
+Only if the user says "just give me the prompt" / "compose only": return the three filled-in paragraphs in a
+` ```text ` block. Otherwise, **always execute**.
 
-## Exemplos preenchidos
+## Filled-in examples
 
-**Jogo — Call of Duty / ThreeJS** (o original):
+**Game — Call of Duty / ThreeJS** (the original):
 
 ```text
 I want you to build a first-person shooter at the level of the most recent Call of Duty games. It should be utterly perfect, visually beautiful, with every single thing done at AAA quality—from textures to physics to anything you could think of.
@@ -157,7 +157,7 @@ Fan out sub-agents and have sub-agents tackle each one individually so that the 
 Don't stop until each sub-agent is utterly wowed with the quality when compared with the actual Call of Duty game. It should literally compare them side by side blind and say which one looks better. Do this in ThreeJS. /loop until it's utterly perfect. Fan out sub-agents and ultracode.
 ```
 
-**API — Stripe / Laravel** (domínio não-visual; repara no `CHECK`):
+**API — Stripe / Laravel** (non-visual domain; note the `CHECK`):
 
 ```text
 I want you to build the billing API at the level of the Stripe API. It should be utterly perfect, a joy to integrate against, with every single thing done at top-tier quality, from resource naming and error contracts to pagination and idempotency to anything you could think of.
@@ -177,5 +177,5 @@ Fan out sub-agents and have sub-agents tackle each one individually so that the 
 Don't stop until each sub-agent is utterly wowed with the quality when compared with linear.app. It should literally compare them side by side blind and say which one looks better. Do this in Next.js and Tailwind. /loop until it's utterly perfect. Fan out sub-agents and ultracode.
 ```
 
-Crédito: aim prompt de [Matt Shumer](https://x.com/mattshumer_) · empacotamento de
-[duolahypercho/gauntlet-loop](https://github.com/duolahypercho/gauntlet-loop) (MIT) · generalização de domínio: JOCA.
+Credit: aim prompt by [Matt Shumer](https://x.com/mattshumer_) · packaging by
+[duolahypercho/gauntlet-loop](https://github.com/duolahypercho/gauntlet-loop) (MIT) · domain generalization: JOCA.

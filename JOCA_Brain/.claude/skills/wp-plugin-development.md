@@ -1,6 +1,6 @@
 ---
 name: wp-plugin-development
-description: "WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Invoke on: criar plugin WP, settings page, nonces/capabilities."
+description: "WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Invoke on: create WP plugin, settings page, nonces/capabilities."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent with bash + node. Some workflows require WP-CLI."
 ---
 
@@ -10,7 +10,7 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 
 - Creating or refactoring plugin structure (bootstrap, includes, namespaces/classes)
 - Adding hooks/actions/filters
-- Activation/deactivation/uninstall behaviour and migrations
+- Activation/deactivation/uninstall behavior and migrations
 - Settings pages / options / admin UI (Settings API)
 - Security fixes (nonces, capabilities, sanitization/escaping, SQL safety)
 - Packaging a release (build artifacts, readme, assets)
@@ -26,8 +26,8 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 ### 0) Triage and locate entrypoints
 
 1. Run triage:
-   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
-2. Detect plugin headers manualmente: grep por `Plugin Name:` em `*.php` — o script não existe nesta instalação.
+   - Read(".claude/skills/wp-project-triage.md") and do the triage manually (the script does not exist in this installation).
+2. Detect plugin headers manually: grep for `Plugin Name:` in `*.php` — the script does not exist in this installation.
 
 For full site repos, pick the specific plugin under `wp-content/plugins/` or `mu-plugins/` before editing.
 

@@ -1,6 +1,6 @@
 ---
 name: pt-pt-translator
-description: "Translate/localize content into European Portuguese with register control (tu/você/senhor). Invoke on: traduzir para PT-PT, localizar UI, rever português."
+description: "Translate/localize content into European Portuguese with register control (tu/você/senhor). Invoke on: translate to PT-PT, localize UI, review Portuguese."
 argument-hint: "[content or file path] [--register tu|voce|senhor|auto]"
 when_to_use: |
   - Translating UI copy (buttons, labels, errors, toasts, empty states)
@@ -21,14 +21,14 @@ Before writing:
 1. **Identify content type:** UI/UX · marketing · technical · legal/editorial
 2. **Determine register** — use `--register` if provided, otherwise:
 
-| Sinal no conteúdo | Register |
+| Signal in the content | Register |
 |---|---|
-| App consumer, chatbot, onboarding casual | `tu` — imperativo directo |
-| SaaS B2B, backoffice, painel admin | `você` — neutro formal |
-| Legal, financeiro, saúde, governamental | `o senhor / a senhora` |
-| UI sem sujeito (botões, labels) | omitir pronome — "Guardar", não "Guarde você" |
-| Ambíguo após análise + conteúdo >200 palavras | perguntar ao utilizador |
-| Ambíguo + conteúdo ≤200 palavras | entregar variante A (tu) + variante B (você) com explicação |
+| Consumer app, chatbot, casual onboarding | `tu` — direct imperative |
+| B2B SaaS, backoffice, admin panel | `você` — formal neutral |
+| Legal, financial, health, governmental | `o senhor / a senhora` |
+| UI with no subject (buttons, labels) | omit the pronoun — "Guardar", not "Guarde você" |
+| Ambiguous after analysis + content >200 words | ask the user |
+| Ambiguous + content ≤200 words | deliver variant A (tu) + variant B (você) with an explanation |
 
 3. **Flag brand names, code snippets, acronyms** — never translate; keep as-is.
 

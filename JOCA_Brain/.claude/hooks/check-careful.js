@@ -1,31 +1,31 @@
 #!/usr/bin/env node
 // PreToolUse(Bash) hook — /careful guard-rail.
-// Avisa (permissionDecision: "ask") antes de comandos destrutivos. NÃO bloqueia —
-// o user pode confirmar. Armado por estado: só actua se existir `.joca/careful.flag`
-// no cwd (escrito por /careful ou /guard; removido por /unfreeze ou fim de sessão).
-// Sem estado → no-op (allow). Fail-OPEN: erro → allow.
-// Adaptado de gstack careful/bin/check-careful.sh; reescrito Node + padrões Windows.
+// Warns (permissionDecision: "ask") before destructive commands. Does NOT block —
+// the user can confirm. Armed by state: only acts if `.joca/careful.flag` exists
+// in the cwd (written by /careful or /guard; removed by /unfreeze or end of session).
+// No state → no-op (allow). Fail-OPEN: error → allow.
+// Adapted from gstack careful/bin/check-careful.sh; rewritten in Node + Windows patterns.
 const fs = require('fs');
 const path = require('path');
 
 function allow() { process.exit(0); }
 
-// Padrões destrutivos (Unix + Windows/PowerShell). Cada um: [regex, rótulo].
+// Destructive patterns (Unix + Windows/PowerShell). Each one: [regex, label].
 const PATTERNS = [
-  [/\brm\s+(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r)\b/i, 'rm -rf (apagar recursivo forçado)'],
+  [/\brm\s+(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r)\b/i, 'rm -rf (forced recursive delete)'],
   [/\bRemove-Item\b.*-Recurse\b.*-Force\b/i, 'Remove-Item -Recurse -Force'],
-  [/\b(rmdir|rd)\s+\/s\b/i, 'rmdir /s (apagar árvore)'],
-  [/\bdel\s+\/[a-z]*s\b/i, 'del /s (apagar recursivo)'],
+  [/\b(rmdir|rd)\s+\/s\b/i, 'rmdir /s (delete tree)'],
+  [/\bdel\s+\/[a-z]*s\b/i, 'del /s (recursive delete)'],
   [/\bgit\s+push\b.*(--force\b|-f\b|--force-with-lease\b)/i, 'git push --force'],
-  [/\bgit\s+reset\s+--hard\b/i, 'git reset --hard (descarta alterações)'],
-  [/\bgit\s+clean\s+-[a-z]*f/i, 'git clean -f (apaga ficheiros não-tracked)'],
-  [/\bgit\s+checkout\s+--\s+\./i, 'git checkout -- . (descarta working tree)'],
+  [/\bgit\s+reset\s+--hard\b/i, 'git reset --hard (discards changes)'],
+  [/\bgit\s+clean\s+-[a-z]*f/i, 'git clean -f (deletes untracked files)'],
+  [/\bgit\s+checkout\s+--\s+\./i, 'git checkout -- . (discards the working tree)'],
   [/\b(DROP|TRUNCATE)\s+(TABLE|DATABASE|SCHEMA)\b/i, 'SQL DROP/TRUNCATE'],
-  [/\bDELETE\s+FROM\b(?!.*\bWHERE\b)/i, 'DELETE FROM sem WHERE'],
-  [/\btaskkill\b.*\/f\b/i, 'taskkill /F (mata processo forçado)'],
-  [/\b(mkfs|format)\b/i, 'format / mkfs (formatar disco)'],
-  [/>\s*\/dev\/[sh]d[a-z]/i, 'escrita directa em device de disco'],
-  [/\bdd\s+.*of=\/dev\//i, 'dd of=/dev/... (escrita raw em disco)'],
+  [/\bDELETE\s+FROM\b(?!.*\bWHERE\b)/i, 'DELETE FROM without WHERE'],
+  [/\btaskkill\b.*\/f\b/i, 'taskkill /F (forced process kill)'],
+  [/\b(mkfs|format)\b/i, 'format / mkfs (format disk)'],
+  [/>\s*\/dev\/[sh]d[a-z]/i, 'direct write to a disk device'],
+  [/\bdd\s+.*of=\/dev\//i, 'dd of=/dev/... (raw write to disk)'],
   [/:\(\)\s*\{.*\|.*&.*\};:/, 'fork bomb'],
   [/\bDROP\s+/i, 'SQL DROP'],
 ];
@@ -51,8 +51,8 @@ try {
           hookEventName: 'PreToolUse',
           permissionDecision: 'ask',
           permissionDecisionReason:
-            `[careful] Comando destrutivo detectado: ${label}.\n` +
-            `Confirma que queres mesmo correr isto. (/unfreeze para desligar o modo careful.)`,
+            `[careful] Destructive command detected: ${label}.\n` +
+            `Confirm that you really want to run this. (/unfreeze to turn careful mode off.)`,
         },
       }));
       process.exit(0);

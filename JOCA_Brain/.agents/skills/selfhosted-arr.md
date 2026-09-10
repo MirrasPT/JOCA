@@ -133,7 +133,7 @@ POST /Startup/Complete       # server becomes fully operational
 ## 7. Credentials & anti-fabrication
 
 - App passwords / API keys → write to a **local file outside git** (e.g. `~/.<host>/media-stack-creds.json`), leave a pointer in the project memory. Never commit.
-- **Indexers are the user's choice** (private trackers / accounts) — NEVER invent indexer names or credentials. Wire everything else, then leave `TODO: indexers (escolha do user no Prowlarr)` and report. They auto-sync to Sonarr/Radarr once the user adds them.
+- **Indexers are the user's choice** (private trackers / accounts) — NEVER invent indexer names or credentials. Wire everything else, then leave `TODO: indexers (user's choice in Prowlarr)` and report. They auto-sync to Sonarr/Radarr once the user adds them.
 
 ---
 

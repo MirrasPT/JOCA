@@ -1,30 +1,30 @@
-# Arquitetura
+# Architecture
 
-Escrito na Fase F, depois de os ecrãs existirem. Modelar em abstrato produz
-tabelas elegantes que não suportam o que o ecrã precisa de mostrar.
+Written in Phase F, after the screens exist. Modeling in the abstract produces
+elegant tables that do not support what the screen needs to show.
 
-## Modelo de dados
-As entidades, os seus campos e as relações entre elas.
-Diagrama ou lista — o que for mais legível.
+## Data model
+The entities, their fields and the relations between them.
+Diagram or list — whichever is more readable.
 
-| Entidade | Descrição | Relações |
+| Entity | Description | Relations |
 |---|---|---|
 | | | |
 
-## Módulos e fronteiras
-Como o código está organizado, e o que não deve depender de quê.
+## Modules and boundaries
+How the code is organized, and what must not depend on what.
 
-## Packages escolhidos
-| Package | Para quê | Porque este |
+## Chosen packages
+| Package | What for | Why this one |
 |---|---|---|
 | | | |
 
-## Integrações externas
-Serviços, APIs, webhooks. O que acontece quando ficam indisponíveis.
+## External integrations
+Services, APIs, webhooks. What happens when they become unavailable.
 
-## Fora do Laravel padrão
-Tudo o que se afasta das convenções do framework, e a razão.
-Se esta secção estiver vazia, ótimo.
+## Outside standard Laravel
+Everything that departs from the framework's conventions, and the reason.
+If this section is empty, great.
 
-## Filas e trabalho assíncrono
-O que corre em background e porquê.
+## Queues and asynchronous work
+What runs in the background and why.

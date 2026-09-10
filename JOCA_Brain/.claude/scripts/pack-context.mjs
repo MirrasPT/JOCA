@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * pack-context — empacota uma árvore de código num único ficheiro AI-readable
- * (repomix-style, node puro, zero dependências). Para briefs de sub-agentes
- * (1 ficheiro em vez de N paths) e modelos de contexto longo (gemini-brain 1M).
+ * pack-context — packs a code tree into a single AI-readable file
+ * (repomix-style, pure node, zero dependencies). For sub-agent briefs
+ * (1 file instead of N paths) and long-context models (gemini-brain 1M).
  *
- * Uso:
+ * Usage:
  *   node pack-context.mjs <dir> [--out <file>] [--max-kb 512] [--ext ts,tsx,php] [--exclude glob1,glob2]
  *
- * Regras:
- * - Respeita .gitignore via `git ls-files` (fallback: walk com exclusões standard).
- * - Output NUNCA por omissão dentro da árvore do projecto-alvo (gotcha content-scan
- *   Tailwind v4 — ver rules/orchestration-patterns.md #4). Default: %TEMP%.
- * - Corta ao budget (--max-kb, default 512): ficheiros maiores primeiro ficam de fora,
- *   listados no cabeçalho como "excluídos por budget" (sem truncar a meio — sem caps silenciosos).
+ * Rules:
+ * - Respects .gitignore via `git ls-files` (fallback: walk with standard exclusions).
+ * - Output NEVER defaults to inside the target project's tree (Tailwind v4 content-scan
+ *   gotcha — see rules/orchestration-patterns.md #4). Default: %TEMP%.
+ * - Cuts to budget (--max-kb, default 512): the biggest files are the first left out,
+ *   listed in the header as "excluded by budget" (no truncating mid-file — no silent caps).
  */
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, statSync, readdirSync, existsSync } from 'fs';
@@ -25,7 +25,7 @@ function arg(name, def) {
 }
 
 const root = resolve(process.argv[2] || '.');
-if (!existsSync(root)) { console.error(`pack-context: directório não existe: ${root}`); process.exit(1); }
+if (!existsSync(root)) { console.error(`pack-context: directory does not exist: ${root}`); process.exit(1); }
 
 const maxBytes = parseInt(arg('max-kb', '512'), 10) * 1024;
 const extFilter = arg('ext', '') ? arg('ext', '').split(',').map((e) => e.trim().replace(/^\./, '').toLowerCase()) : null;
@@ -57,7 +57,7 @@ let files = (gitFiles() || walk(root))
   .filter((f) => !extFilter || extFilter.includes(extname(f).slice(1).toLowerCase()))
   .filter((f) => !excludes.some((g) => f.includes(g)));
 
-// budget: pequenos primeiro maximiza cobertura; grandes de fora ficam listados
+// budget: smallest first maximizes coverage; the big ones left out get listed
 const sized = files.map((f) => {
   try { return { f, size: statSync(join(root, f)).size }; } catch (_) { return null; }
 }).filter(Boolean).sort((a, b) => a.size - b.size);
@@ -70,8 +70,8 @@ for (const { f, size } of sized) {
 }
 
 let outStr = `# pack-context — ${root}\n`;
-outStr += `# ${included.length} ficheiros incluídos, ${(used / 1024).toFixed(0)}kb de ${(maxBytes / 1024).toFixed(0)}kb budget\n`;
-if (skipped.length) outStr += `# EXCLUÍDOS POR BUDGET (${skipped.length}): ${skipped.join(', ')}\n`;
+outStr += `# ${included.length} files included, ${(used / 1024).toFixed(0)}kb of ${(maxBytes / 1024).toFixed(0)}kb budget\n`;
+if (skipped.length) outStr += `# EXCLUDED BY BUDGET (${skipped.length}): ${skipped.join(', ')}\n`;
 outStr += '\n';
 for (const f of included) {
   let body;
@@ -79,4 +79,4 @@ for (const f of included) {
   outStr += `=== ${f} ===\n\`\`\`\n${body}\n\`\`\`\n\n`;
 }
 writeFileSync(out, outStr, 'utf8');
-console.log(`[pack-context] ${included.length} ficheiros (${(used / 1024).toFixed(0)}kb)${skipped.length ? `, ${skipped.length} fora por budget` : ''} → ${out}`);
+console.log(`[pack-context] ${included.length} files (${(used / 1024).toFixed(0)}kb)${skipped.length ? `, ${skipped.length} out by budget` : ''} → ${out}`);

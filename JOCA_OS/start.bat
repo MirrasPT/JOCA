@@ -42,9 +42,9 @@ if !errorlevel! neq 0 (
 
 :: Start backend (write launcher to avoid nested quoting)
 set "BACKEND_LAUNCHER=%LOG_DIR%\run-backend.bat"
-rem O backend abre processos `claude`. Arrancado de dentro de uma sessao Claude Code, estas
-rem variaveis herdadas fazem cada `claude` filho julgar-se sub-sessao dessa: herda o orcamento
-rem dela e acaba a recusar arrancar. Limpar antes de o lancar (ver o mesmo bloco no start.sh).
+rem The backend opens `claude` processes. Started from inside a Claude Code session, these inherited
+rem variables make each child `claude` believe itself to be a sub-session of that one: it inherits its
+rem budget and ends up refusing to start. Clear them before launching it (see the same block in start.sh).
 > "!BACKEND_LAUNCHER!" echo @set "CLAUDECODE="
 >>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_ENTRYPOINT="
 >>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_CODE_CHILD_SESSION="

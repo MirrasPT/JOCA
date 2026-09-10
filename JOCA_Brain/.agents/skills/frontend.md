@@ -1,7 +1,7 @@
 ---
 name: frontend
-description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, protótipo, prototype, ui, ux. Also answers to the legacy name 'frontend-design' — the skills are flat in .claude/skills/, there is no skills/design/ tree."
-triggers: frontend-design, frontend design, website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, protótipo, prototype, ui, ux, design web, fazer site, criar página, homepage, componentes, components, design de interface, design de website, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, painel, formulário, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, converter design, implementar design, codificar, página web, redesign, redesenhar, novo site, design system, component library, dark mode, light mode, tema, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, jogo grelha, jogo cartas react
+description: "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, interface, react. SHOULD also invoke when: next.js, nextjs, prototype, ui, ux. Also answers to the legacy name 'frontend-design' — the skills are flat in .claude/skills/, there is no skills/design/ tree."
+triggers: frontend-design, frontend design, website, landing page, site, webapp, web app, frontend, interface, react, next.js, nextjs, prototype, ui, ux, web design, make a site, create page, homepage, components, interface design, website design, mockup, wireframe, tailwind, shadcn, radix, layout, hero, navbar, footer, dashboard, panel, form, checkout, onboarding, portfolio, blog design, e-commerce frontend, SaaS frontend, convert design, implement design, code up, web page, redesign, new site, design system, component library, dark mode, light mode, theme, board game, card game, game UI, deckbuilder, tile grid, engineStore, uiStore, game state react, grid game, card game react
 chain: design-review, tester-ui-ux
 ---
 # Frontend — Design Director + Router
@@ -14,13 +14,13 @@ Each project is different. Never converge on the same choices. If someone looks 
 
 ---
 
-## Decisao: prototype vs production
+## Decision: prototype vs production
 
-| Sinal | Modo |
+| Signal | Mode |
 |-------|------|
-| "protótipo", "mockup", "mostra-me", "testa isto", explorar ideias, sem repo React existente | **Prototype** -- single-file HTML+React+Babel via CDN, abre com duplo-clique |
-| Repo React/Next.js existente, "implementa", "componente", "produção", PR, deploy | **Production** -- React+TypeScript+Tailwind, component architecture |
-| Ambiguo | Perguntar |
+| "prototype", "mockup", "show me", "test this", exploring ideas, no existing React repo | **Prototype** -- single-file HTML+React+Babel via CDN, opens with a double-click |
+| Existing React/Next.js repo, "implement", "component", "production", PR, deploy | **Production** -- React+TypeScript+Tailwind, component architecture |
+| Ambiguous | Ask |
 
 ---
 
@@ -37,7 +37,7 @@ The director decides direction, then delegates craft. Notify in 1 line: `[+ <ski
 | **shadcn/ui project** (has `components.json`, Radix+Tailwind copy-paste components) | `shadcn` | `Read(".claude/skills/shadcn.md")` |
 | **Email templates** (React Email, client-safe HTML) | `react-email` | `Read(".claude/skills/react-email.md")` |
 | **Motion** (GSAP scroll/hero/hover, Lottie icons) | `anima` | `Read(".claude/skills/anima.md")` |
-| **CSS nativo moderno** (scroll-driven, container queries, `:has()`, `color-mix`, `content-visibility`) | modern-css reference | `Read(".claude/reference/frontend/modern-css.md")` |
+| **Modern native CSS** (scroll-driven, container queries, `:has()`, `color-mix`, `content-visibility`) | modern-css reference | `Read(".claude/reference/frontend/modern-css.md")` |
 | **Responsive/touch depth** | `mobile` | `Read(".claude/skills/mobile.md")` |
 | **Images** | `img-gen` | `Read(".claude/skills/img-gen.md")` |
 | **Review the result** (taste, AI-slop, composition critique) | `design-review` | `Read(".claude/skills/design-review.md")` |
@@ -71,7 +71,7 @@ If present in project -- **read before any code.** Extract `--color-*` tokens, t
 
 If absent and brand exists -- suggest `brand-guidelines` skill first (via `design-system`).
 
-Brand Asset Protocol (prioridade de assets reais + protocolo de recolha) → `Read(".claude/reference/frontend/design-craft.md")`.
+Brand Asset Protocol (priority of real assets + collection protocol) → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
@@ -109,8 +109,8 @@ If vision is maximalist -- code is elaborate with extensive animations.
 If vision is minimal -- restraint, precision, spacing and typography.
 Match execution depth to vision intensity.
 
-Eixos de estilo/paleta/fontes → `Read(".claude/reference/design-dataset.md")` (banco de paletas OKLCH + pares de fontes + estilos nomeados; anti-convergence obrigatório).
-Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(".claude/reference/frontend/design-craft.md")`.
+Style/palette/font axes → `Read(".claude/reference/design-dataset.md")` (bank of OKLCH palettes + font pairs + named styles; anti-convergence mandatory).
+Detailed rules for Color / Theme (dark vs light) / Typography / Layout → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
@@ -122,9 +122,9 @@ Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(
 
 **Rule:** if removing an element loses no info, don't add it.
 
-**Ban nomeado — `border-left` de acento.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global do utilizador, já reincidente (Kromway, bolhas da Sala) — aplicar na escrita, não esperar pelo review.
+**Named ban — accent `border-left`.** A 2-4px colored bar on the left of a card / callout / message bubble = AI-slop tell. Use a **tinted background** (the same color at low opacity) instead of the bar. Global user rule, already a repeat offender (Kromway, Sala bubbles) — apply it while writing, do not wait for the review.
 
-Tabela de bans absolutos + naming adblock-safe (tokens proibidos em nomes de ficheiros/componentes/ids/classes/`data-*`) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
+Table of absolute bans + adblock-safe naming (forbidden tokens in file/component/id/class/`data-*` names) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
 
 ### Anti-convergence (output diversity)
 
@@ -132,69 +132,69 @@ Before committing fonts / accent / aesthetic: check `memory/projects/` for the l
 
 ---
 
-## #4b Anti-slop guard-rails (geração)
+## #4b Anti-slop guard-rails (generation)
 
-Guard-rails de escrita hard-stop (em-dash ban, serif/Inter discipline, anti AI-purple, beige+brass banida, consistency lock, anti-center-hero, italic clearance) → `Read(".claude/reference/frontend/anti-slop-bans.md")`. Aplicar na ESCRITA, não só no review.
+Hard-stop writing guard-rails (em-dash ban, serif/Inter discipline, anti AI-purple, beige+brass banned, consistency lock, anti-center-hero, italic clearance) → `Read(".claude/reference/frontend/anti-slop-bans.md")`. Apply while WRITING, not only in review.
 
-### Mecanismo dos 3 dials calibráveis
+### Mechanism of the 3 calibrated dials
 
-Antes de gerar, fixar 3 dials (cada 0–10). Declarar os valores no Design Read (abaixo). Determinam quão longe a peça se afasta do default seguro:
+Before generating, fix 3 dials (each 0–10). Declare the values in the Design Read (below). They determine how far the piece moves away from the safe default:
 
-| Dial | 0 | 10 | Efeito |
+| Dial | 0 | 10 | Effect |
 |------|---|----|--------|
-| **Density** | arejado, muito whitespace, poucos elementos | denso, editorial, informação justaposta | espaçamento, tamanho de blocos, nº de elementos por viewport |
-| **Boldness** | contido, neutro, corporativo seguro | extremo, contraste alto, escala dramática, cor commited/drenched | escala tipográfica, saturação do accent, tamanho do hero |
-| **Warmth** | frio, técnico, geométrico, neutro azulado | quente, orgânico, humano, tom terroso/textura | temperatura da paleta, curvatura das formas, textura, tom de copy |
+| **Density** | airy, lots of whitespace, few elements | dense, editorial, juxtaposed information | spacing, block size, no. of elements per viewport |
+| **Boldness** | restrained, neutral, safe corporate | extreme, high contrast, dramatic scale, committed/drenched color | type scale, accent saturation, hero size |
+| **Warmth** | cold, technical, geometric, blueish neutral | warm, organic, human, earthy tone/texture | palette temperature, shape curvature, texture, copy tone |
 
-Regra: os dials NÃO podem cair todos no meio (5/5/5) — isso É o slop. Pelo menos um dial a ≥8 ou ≤2 (commitment). Cada projecto diverge nos dials do anterior (ver Anti-convergence #4).
+Rule: the dials must NOT all land in the middle (5/5/5) — that IS the slop. At least one dial at ≥8 or ≤2 (commitment). Each project diverges in dials from the previous one (see Anti-convergence #4).
 
-### Padrão "Design Read de 1 linha" (antes de gerar)
+### "1-line Design Read" pattern (before generating)
 
-Antes de escrever qualquer código de geração, emitir UMA linha que trava as decisões e os dials:
+Before writing any generation code, emit ONE line that locks the decisions and the dials:
 
 ```
-Design Read: <tone> · display=<face> body=<face> · accent=<cor/hex não-banido> · density=<n> boldness=<n> warmth=<n> · âncora=<elemento memorável>
+Design Read: <tone> · display=<face> body=<face> · accent=<color/non-banned hex> · density=<n> boldness=<n> warmth=<n> · anchor=<memorable element>
 ```
 
-Exemplo: `Design Read: editorial brutalista · display=Söhne body=Georgia · accent=#1f6f43 · density=8 boldness=9 warmth=3 · âncora=número gigante a sangrar fora da grelha`
+Example: `Design Read: brutalist editorial · display=Söhne body=Georgia · accent=#1f6f43 · density=8 boldness=9 warmth=3 · anchor=giant number bleeding outside the grid`
 
-Se algum campo cair num default banido (Inter, roxo, beige+brass, center-hero, dials 5/5/5) → corrigir a linha ANTES de gerar, não depois. A linha é o contrato; o código segue-a.
+If any field lands on a banned default (Inter, purple, beige+brass, center-hero, 5/5/5 dials) → fix the line BEFORE generating, not after. The line is the contract; the code follows it.
 
 ---
 
 ## #5 Design Advisor (direction undefined)
 
-Trigger: "faz algo bonito", "nao sei que estilo", "ajuda-me a desenhar", "faz o que achares melhor".
+Trigger: "make something beautiful", "I don't know what style", "help me design", "do whatever you think is best".
 
-Modo advisor completo (max 3 perguntas → brief → 3 direcções de 3 escolas → 3 demos HTML → escolha) → `Read(".claude/reference/frontend/design-craft.md")`.
-
----
-
-## #11 Verificação (antes de dizer "feito")
-
-**Provar antes de editar (fixes de CSS/layout).** Não editar o ficheiro-fonte à primeira: reproduzir a página no viewport do problema (ex.: 390×844), medir com `getBoundingClientRect()` / `getComputedStyle()`, **injectar o fix candidato** (`page.addStyleTag`), re-medir, e só depois escrever no ficheiro. Poupa um ciclo editar→deploy→ver e produz números concretos (`left`/`right` vs largura do viewport, rácio de contraste medido em vez de estimado).
-
-**Gate de paridade de conteúdo** quando a tarefa é "reconstruir / reestilizar preservando o conteúdo": comparar contra o ficheiro-fonte, a cada build, (a) a contagem de palavras visíveis e (b) o conjunto de `src` de imagens. O QA de layout (sangramento, contraste, alvos de toque) dá tudo verde e não vê conteúdo em falta — num caso real desapareceram 9 descrições e 7 imagens sem nenhum alarme.
-
-**Depois de correcções de frontend em lote**, o passo seguinte por omissão é verificação em **browser real** (Playwright headless: screenshot de cada página + consola limpa). `node --check`, HTML bem aninhado e chavetas CSS equilibradas passam a 100% num site que pode estar inerte ao toque. O relatório declara sempre o que **não** foi verificado.
+Full advisor mode (max 3 questions → brief → 3 directions from 3 schools → 3 HTML demos → choice) → `Read(".claude/reference/frontend/design-craft.md")`.
 
 ---
 
-## Referências (carregar on-demand)
+## #11 Verification (before saying "done")
 
-| Tema | Reference | Carregar quando |
+**Prove before editing (CSS/layout fixes).** Do not edit the source file first: reproduce the page at the problem viewport (e.g. 390×844), measure with `getBoundingClientRect()` / `getComputedStyle()`, **inject the candidate fix** (`page.addStyleTag`), re-measure, and only then write to the file. It saves an edit→deploy→look cycle and produces concrete numbers (`left`/`right` vs viewport width, contrast ratio measured instead of estimated).
+
+**Content parity gate** when the task is "rebuild / restyle preserving the content": compare against the source file, on every build, (a) the visible word count and (b) the set of image `src`s. Layout QA (bleed, contrast, touch targets) comes back all green and does not see missing content — in a real case 9 descriptions and 7 images disappeared without a single alarm.
+
+**After batch frontend fixes**, the next step by default is verification in a **real browser** (headless Playwright: screenshot of each page + clean console). `node --check`, well-nested HTML and balanced CSS braces pass 100% on a site that may be inert to the touch. The report always declares what was **not** verified.
+
+---
+
+## References (load on-demand)
+
+| Topic | Reference | Load when |
 |---|---|---|
-| Game UI (Zustand engine/UI stores, DOM vs Canvas, checklist) | `Read(".claude/reference/frontend/game-ui.md")` | jogo tabuleiro/cartas, engineStore/uiStore, grelha |
-| Bans anti-slop (tabela absoluta, naming adblock-safe, guard-rails taste-skill) | `Read(".claude/reference/frontend/anti-slop-bans.md")` | antes de gerar UI nova; review de slop |
-| Design craft (brand assets, cor, tema, tipografia, layout, design advisor) | `Read(".claude/reference/frontend/design-craft.md")` | fixar direcção visual; direcção indefinida |
-| Design dataset (paletas OKLCH + pares de fontes + estilos nomeados) | `Read(".claude/reference/design-dataset.md")` | antes do Design Read; anti-convergence |
-| Produção + UX + validação (#6 stack/foundation, #7 UX rules, #9 /components, #10 critique, checklists, quality gate) | `Read(".claude/reference/frontend/production-ux.md")` | escrever código de produção; antes de entregar |
-| Prototype mode (single-file HTML+React+Babel) | `Read(".claude/reference/frontend/prototype-mode.md")` | modo Prototype (sem repo React) |
+| Game UI (Zustand engine/UI stores, DOM vs Canvas, checklist) | `Read(".claude/reference/frontend/game-ui.md")` | board/card game, engineStore/uiStore, grid |
+| Anti-slop bans (absolute table, adblock-safe naming, taste-skill guard-rails) | `Read(".claude/reference/frontend/anti-slop-bans.md")` | before generating new UI; slop review |
+| Design craft (brand assets, color, theme, typography, layout, design advisor) | `Read(".claude/reference/frontend/design-craft.md")` | locking the visual direction; undefined direction |
+| Design dataset (OKLCH palettes + font pairs + named styles) | `Read(".claude/reference/design-dataset.md")` | before the Design Read; anti-convergence |
+| Production + UX + validation (#6 stack/foundation, #7 UX rules, #9 /components, #10 critique, checklists, quality gate) | `Read(".claude/reference/frontend/production-ux.md")` | writing production code; before delivering |
+| Prototype mode (single-file HTML+React+Babel) | `Read(".claude/reference/frontend/prototype-mode.md")` | Prototype mode (no React repo) |
 
 ---
 
-## Próximo passo (chain)
-Após construir UI nova, encadear automaticamente (reversível → sem perguntar, notificar `[chain → x]`):
-1. `design-review` — gosto/composição/AI-slop. Se levantar violações WCAG → `a11y-fixer`.
-2. `tester-ui-ux` (agente) — flows + acessibilidade WCAG.
-Irreversível (deploy/push) → 1 linha de confirmação. Ver `rules/chaining.md`.
+## Next step (chain)
+After building new UI, chain automatically (reversible → without asking, notify `[chain → x]`):
+1. `design-review` — taste/composition/AI-slop. If it raises WCAG violations → `a11y-fixer`.
+2. `tester-ui-ux` (agent) — flows + WCAG accessibility.
+Irreversible (deploy/push) → 1 line of confirmation. See `rules/chaining.md`.

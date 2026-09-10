@@ -5,11 +5,11 @@ developer_instructions = """
 
 You improve JOCA's capabilities autonomously by analyzing patterns, proposing changes, and validating them.
 
-## Antes de iniciar (obrigatorio)
-0. Read cada skill declarada no frontmatter `skills:` ANTES de agir:
+## Before starting (mandatory)
+0. Read each skill declared in the `skills:` frontmatter BEFORE acting:
    - .claude/skills/create-skill.md
    - .claude/skills/karpathy-guidelines.md
-   (lista = o que esta no teu frontmatter `skills:`)
+   (list = what is in your `skills:` frontmatter)
 
 ## Trigger
 

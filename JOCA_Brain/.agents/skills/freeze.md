@@ -1,32 +1,32 @@
 ---
 name: freeze
-description: "Tranca as edições (Edit/Write) a UM directório durante a sessão — qualquer edição fora dele é BLOQUEADA pelo hook check-freeze. Usar quando o user disser: freeze, trancar edições, lock scope, só editar esta pasta, restringir alterações, não mexer fora de X, scope-lock. Guard-rail de segurança adaptado do gstack."
-triggers: freeze, trancar edicoes, trancar edições, lock scope, scope lock, so editar esta pasta, só editar esta pasta, restringir alteracoes, restringir alterações, nao mexer fora, não mexer fora, lock edits, freeze edits
+description: "Locks edits (Edit/Write) to ONE directory for the session — any edit outside it is BLOCKED by the check-freeze hook. Use when the user says: freeze, lock edits, lock scope, only edit this folder, restrict changes, don't touch anything outside X, scope-lock. Safety guard-rail adapted from gstack."
+triggers: freeze, lock edits, lock scope, scope lock, only edit this folder, restrict changes, don't touch anything outside, freeze edits
 chain: unfreeze
 ---
-# /freeze — Trancar edições a um directório
+# /freeze — Lock edits to one directory
 
-Limita Edit/Write a um directório durante a sessão. Edições fora são **bloqueadas** (não só avisadas) pelo hook `check-freeze.js` (PreToolUse). Útil em debug (evita "arranjar" código não-relacionado) ou para scope cirúrgico.
+Limits Edit/Write to one directory for the session. Edits outside it are **blocked** (not merely warned about) by the `check-freeze.js` hook (PreToolUse). Useful while debugging (stops you "fixing" unrelated code) or for surgical scope.
 
-## Mecanismo
-- O hook `check-freeze.js` corre em cada Edit/Write e lê `.joca/freeze-dir.txt` no cwd.
-- Se o ficheiro existir, edições fora do path → `permissionDecision: "deny"`.
-- Sem ficheiro → no-op. Fail-open (bug no hook nunca tranca o user fora).
+## Mechanism
+- The `check-freeze.js` hook runs on every Edit/Write and reads `.joca/freeze-dir.txt` in the cwd.
+- If the file exists, edits outside the path → `permissionDecision: "deny"`.
+- No file → no-op. Fail-open (a bug in the hook never locks the user out).
 
-## Setup (executar)
-1. Perguntar ao user qual o directório a trancar (input de texto, não escolha múltipla), salvo se já indicado no pedido.
-2. Resolver para absoluto e gravar o estado:
+## Setup (run this)
+1. Ask the user which directory to lock (text input, not multiple choice), unless it was already given in the request.
+2. Resolve it to an absolute path and save the state:
 ```bash
 mkdir -p .joca
-# <DIR> = caminho dado pelo user, resolvido a absoluto
+# <DIR> = path given by the user, resolved to absolute
 node -e "const p=require('path'),fs=require('fs');const d=p.resolve(process.argv[1]);fs.writeFileSync('.joca/freeze-dir.txt',d);console.log('Freeze:',d)" "<DIR>"
 ```
-3. Confirmar ao user: "Edições trancadas a `<DIR>/`. Qualquer Edit/Write fora é bloqueado. `/freeze` outra vez muda o scope; `/unfreeze` remove."
+3. Confirm to the user: "Edits locked to `<DIR>/`. Any Edit/Write outside it is blocked. `/freeze` again changes the scope; `/unfreeze` removes it."
 
-## Notas
-- Trailing sep evita `/src` casar com `/src-old`.
-- Aplica-se a Edit/Write — Read/Bash/Glob/Grep não são afectados (NÃO é fronteira de segurança: `sed` via Bash ainda escreve fora; combinar com `/careful` ou usar `/guard`).
-- Desactivar: `/unfreeze` ou fim de sessão.
+## Notes
+- The trailing separator stops `/src` from matching `/src-old`.
+- Applies to Edit/Write — Read/Bash/Glob/Grep are unaffected (it is NOT a security boundary: `sed` via Bash still writes outside; combine it with `/careful` or use `/guard`).
+- Disable: `/unfreeze` or end of session.
 
-## Próximo passo (chain)
-- Para desligar → `/unfreeze`. Para também avisar de comandos destrutivos no Bash → `/careful` (ou usar `/guard` desde o início, que é freeze+careful).
+## Next step (chain)
+- To turn it off → `/unfreeze`. To also get warnings about destructive commands in Bash → `/careful` (or use `/guard` from the start, which is freeze+careful).

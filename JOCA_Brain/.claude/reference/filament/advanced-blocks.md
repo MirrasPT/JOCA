@@ -1,4 +1,4 @@
-> Parte da skill `filament` — carregado on-demand via Read().
+> Part of the `filament` skill — loaded on-demand via Read().
 
 ## Enums -- 3 contracts required
 
@@ -66,7 +66,7 @@ public static function infolist(Schema $schema): Schema
     return $schema->components([
         Section::make('Order')->schema([
             TextEntry::make('reference')->copyable(),
-            TextEntry::make('status')->badge(),          // enum HasColor/HasIcon → coloured badge
+            TextEntry::make('status')->badge(),          // enum HasColor/HasIcon → colored badge
             TextEntry::make('total')->money('EUR'),
         ])->columns(3),
     ]);

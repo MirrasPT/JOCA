@@ -1,6 +1,6 @@
 import type { Project } from '../types';
 
-// Paleta partilhada por CreateProjectModal (picker) e pelo fallback determinístico abaixo.
+// Palette shared by CreateProjectModal (picker) and by the deterministic fallback below.
 export const PROJECT_COLORS = [
   '#ff4500', '#ff7a1a', '#f2c94c', '#58d879',
   '#25c2a0', '#6da8ff', '#3a7cff', '#a98cff',
@@ -9,10 +9,10 @@ export const PROJECT_COLORS = [
   '#8b5cf6', '#ec4899',
 ];
 
-// Projectos sem cor escolhida caíam todos no mesmo laranja por defeito — na sidebar colapsada
-// (só a cor distingue, o nome está escondido) ficavam indistinguíveis. Hash determinístico do id
-// em vez de fallback único: mesmo projecto = sempre a mesma cor, projectos diferentes = cores
-// diferentes na maioria dos casos.
+// Projects with no chosen color all fell into the same default orange — in the collapsed sidebar
+// (only the color tells them apart, the name is hidden) they were indistinguishable. A deterministic
+// hash of the id instead of a single fallback: same project = always the same color, different
+// projects = different colors in most cases.
 export function projectColor(project: Pick<Project, 'id' | 'color'>): string {
   if (project.color) return project.color;
   let hash = 0;

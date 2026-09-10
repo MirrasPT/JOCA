@@ -1,4 +1,4 @@
-> Parte da skill `wp-performance-review` — carregado on-demand via Read().
+> Part of the `wp-performance-review` skill — loaded on-demand via Read().
 
 ## Anti-Pattern Reference
 

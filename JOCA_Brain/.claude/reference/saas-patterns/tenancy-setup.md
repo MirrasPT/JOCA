@@ -1,4 +1,4 @@
-Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/tenancy-setup.md")`. Cobre §1-3: setup stancl/tenancy, identificação de tenant e isolamento.
+Part of the `saas-patterns` skill — loaded on-demand via `Read(".claude/reference/saas-patterns/tenancy-setup.md")`. Covers §1-3: stancl/tenancy setup, tenant identification and isolation.
 
 ## 1. stancl/tenancy Setup
 
@@ -41,7 +41,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 // routes/tenant.php
 Route::middleware([
     'web',
-    InitializeTenancyBySubdomain::class,        // empresa.app.com
+    InitializeTenancyBySubdomain::class,        // company.app.com
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     // all tenant routes
@@ -56,9 +56,9 @@ Set `tenancy.central_domains` in `config/tenancy.php` to block central domain re
 
 | Strategy | Middleware | Use case |
 |---|---|---|
-| Subdomain | `InitializeTenancyBySubdomain` | empresa.app.com |
-| Full domain | `InitializeTenancyByDomain` | empresa.com (custom domains) |
-| Path | `InitializeTenancyByPath` | app.com/empresa (no DNS needed) |
+| Subdomain | `InitializeTenancyBySubdomain` | company.app.com |
+| Full domain | `InitializeTenancyByDomain` | company.com (custom domains) |
+| Path | `InitializeTenancyByPath` | app.com/company (no DNS needed) |
 | Request data | `InitializeTenancyByRequestData` | API, header `X-Tenant-ID` |
 
 If tenant not found: `InitializeTenancyByDomain` throws `TenantCouldNotBeIdentifiedException`. Catch in `Handler.php`, return 404 with "tenant not found" page -- not 500.

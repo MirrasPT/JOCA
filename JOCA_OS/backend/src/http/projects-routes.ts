@@ -17,8 +17,8 @@ import { iconsRouter, parseIconInput, collectIconIfUnused } from './icons-routes
 export function projectsRouter(): Router {
   const r = Router();
 
-  // Os ícones (projecto E grupo) vivem num router próprio mas entram por aqui — assim herdam o
-  // mesmo requireAuth do server.ts sem precisar de mais um app.use().
+  // The icons (project AND group) live in a router of their own but come in through here — that
+  // way they inherit the same requireAuth from server.ts without needing one more app.use().
   r.use(iconsRouter());
 
   r.get('/projects', (_req, res) => {
@@ -66,7 +66,7 @@ export function projectsRouter(): Router {
       path: resolvedP,
       color: cleanColor,
       icon: parsedIcon.icon,
-      // Contexto permanente do projecto: entra no brief das tarefas que lá correm.
+      // Permanent project context: it goes into the brief of the tasks that run there.
       description: typeof description === 'string' && description.trim()
         ? description.trim().slice(0, 2000) : undefined,
       hasCode: typeof hasCode === 'boolean' ? hasCode : undefined,
@@ -86,7 +86,7 @@ export function projectsRouter(): Router {
       updatedAt: new Date().toISOString(),
     };
     saveProjectMemory(memory);
-    // Um projecto novo nasce VAZIO — sem terminais.
+    // A new project is born EMPTY — with no terminals.
     res.json(project);
   });
 
@@ -110,8 +110,8 @@ export function projectsRouter(): Router {
       p.path = resolvedNext;
     }
     if (typeof req.body.color === 'string') p.color = (req.body.color.trim().slice(0, 50)) || undefined;
-    // icon: objecto {type,value} define; null/'' limpa. O ficheiro antigo é recolhido no fim, já
-    // depois do saveProjects — antes disso ele ainda conta como referência a si próprio.
+    // icon: an object {type,value} sets; null/'' clears. The old file is collected at the end,
+    // after saveProjects — before that it still counts as a reference to itself.
     const previousIcon = p.icon;
     let iconChanged = false;
     if (req.body.icon !== undefined) {
@@ -138,9 +138,9 @@ export function projectsRouter(): Router {
       if (next && !loadProjectGroups().some((g) => g.id === next)) {
         return res.status(404).json({ error: 'Group not found' });
       }
-      // Muda de grupo directamente (não só "sai para nenhum") também deixa o grupo antigo por
-      // podar — sem isto ficava um "grupo de 1" fantasma quando se arrastava um projecto já
-      // agrupado directamente para outro grupo.
+      // Changing group directly (not just "leaving to none") also leaves the old group to be
+      // pruned — without this a phantom "group of 1" was left behind when an already-grouped
+      // project was dragged straight into another group.
       if (p.groupId && p.groupId !== (next || undefined)) groupChanged = true;
       p.groupId = next || undefined;
     }
@@ -261,23 +261,23 @@ export function projectsRouter(): Router {
     const boilerplateContent = type === 'skills'
       ? `---
 name: ${yamlString(safeNameDisplay)}
-description: ${yamlString(`Exclusiva para o projeto ${safeProjectName}`)}
+description: ${yamlString(`Exclusive to the ${safeProjectName} project`)}
 triggers:
   - ${yamlString(safeName)}
 ---
 
 # ${safeNameDisplay}
 
-Instruções para a skill ${safeNameDisplay} no projeto ${safeProjectName}.
+Instructions for the ${safeNameDisplay} skill in the ${safeProjectName} project.
 `
       : `---
 name: ${yamlString(safeNameDisplay)}
-description: ${yamlString(`Agente exclusivo para o projeto ${safeProjectName}`)}
+description: ${yamlString(`Agent exclusive to the ${safeProjectName} project`)}
 ---
 
 # ${safeNameDisplay}
 
-Instruções para o agente ${safeNameDisplay} no projeto ${safeProjectName}.
+Instructions for the ${safeNameDisplay} agent in the ${safeProjectName} project.
 `;
 
     fs.writeFileSync(itemPath, boilerplateContent, 'utf8');

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { BRAND_CHANGED, readBrand, type BrandTheme } from '../lib/brand';
 
 /**
- * Marca activa, reactiva. O `index.html` já aplicou o `data-brand` antes do primeiro paint (sem
- * isso via-se o tema errado a piscar); este hook só serve para o NOME e o LOGO, que vivem em JSX
- * e não em CSS. Ouve o evento de troca para o painel de definições não obrigar a recarregar.
+ * Active brand, reactive. `index.html` already applied the `data-brand` before the first paint
+ * (without that you saw the wrong theme flash); this hook only serves the NAME and the LOGO, which
+ * live in JSX and not in CSS. It listens to the switch event so the settings panel does not force a reload.
  */
 export function useBrand(): BrandTheme {
   const [brand, setBrand] = useState<BrandTheme>(() => readBrand());
@@ -12,7 +12,7 @@ export function useBrand(): BrandTheme {
   useEffect(() => {
     const sync = () => setBrand(readBrand());
     window.addEventListener(BRAND_CHANGED, sync);
-    // Outro separador aberto no mesmo JOCA muda a marca → o `storage` chega só aos OUTROS.
+    // Another tab open on the same JOCA changes the brand → `storage` reaches only the OTHERS.
     window.addEventListener('storage', sync);
     return () => {
       window.removeEventListener(BRAND_CHANGED, sync);

@@ -201,5 +201,5 @@ Tap into someone else's audience for shortcut discovery.
 - **copywriting**: Announcement copy and landing page
 - **social-content**: Social posts around launch
 
-## Leitura de mercado pré-lançamento — `/last30days`
-Antes de fechar a estratégia de lançamento, correr **`/last30days <categoria/problema>`** (plugin externo) para ler o estado real do mercado nos últimos 30 dias: o que a comunidade pede, reacções a lançamentos parecidos, odds de mercado (Polymarket), velocidade de concorrentes (GitHub). Valida timing/posicionamento contra sinal de engagement real, não só desk research.
+## Pre-launch market reading — `/last30days`
+Before closing the launch strategy, run **`/last30days <category/problem>`** (external plugin) to read the real state of the market over the last 30 days: what the community is asking for, reactions to similar launches, market odds (Polymarket), competitor velocity (GitHub). It validates timing/positioning against real engagement signal, not just desk research.

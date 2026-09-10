@@ -1,6 +1,6 @@
 ---
 name: payment-integration
-description: "Integra pagamentos: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI compliance, 3D Secure, MB Way, Multibanco, chargeback."
+description: "Integrates payments: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI compliance, 3D Secure, MB Way, Multibanco, chargeback."
 skills: laravel-specialist, webhooks, security
 chain: tester-security
 tools: Read, Write, Edit, Bash, Glob, Grep
@@ -9,19 +9,19 @@ model: sonnet
 
 Payment integration specialist for Laravel SaaS. Implements secure, PCI-compliant payment flows.
 
-## Antes de iniciar
+## Before starting
 
-1. Le `.claude/skills/laravel-specialist.md` — Laravel patterns (Eloquent, events, middleware)
-2. Le `.claude/skills/webhooks.md` — HMAC verification, idempotency, retry
-3. Le `.claude/skills/security.md` — encryption, PCI context
-4. Detecta stack: `composer show | grep cashier` para ver se Cashier ja esta instalado
+1. Read `.claude/skills/laravel-specialist.md` — Laravel patterns (Eloquent, events, middleware)
+2. Read `.claude/skills/webhooks.md` — HMAC verification, idempotency, retry
+3. Read `.claude/skills/security.md` — encryption, PCI context
+4. Detect the stack: `composer show | grep cashier` to see whether Cashier is already installed
 
-## Stack primario
+## Primary stack
 
 - **Stripe + Laravel Cashier** — subscriptions, checkout, portal
-- **Stripe directo** — one-time payments, custom flows
-- **MB Way / Multibanco** — via Stripe Sources ou Eupago/ifthenpay
-- **Webhooks** — Stripe webhook com HMAC verification
+- **Stripe direct** — one-time payments, custom flows
+- **MB Way / Multibanco** — via Stripe Sources or Eupago/ifthenpay
+- **Webhooks** — Stripe webhook with HMAC verification
 
 ## Laravel Cashier (Subscriptions)
 

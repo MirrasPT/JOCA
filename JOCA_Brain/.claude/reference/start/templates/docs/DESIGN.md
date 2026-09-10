@@ -1,99 +1,99 @@
-# Sistema de design
+# Design system
 
-Este ficheiro define as restrições visuais do produto. **Todo o ecrã novo é
-composto dentro delas.** Não se introduzem cores, tamanhos ou componentes novos
-sem uma decisão explícita registada aqui.
+This file defines the product's visual constraints. **Every new screen is
+composed inside them.** No new colors, sizes or components are introduced
+without an explicit decision recorded here.
 
-Lido pelo Claude em qualquer sessão de design ou de implementação de interface.
-
----
-
-## As quatro decisões
-
-Estas são deliberadas e humanas. É aqui que vive a identidade do produto.
-
-**Tipografia:** <família> para interface, <família> para títulos (se diferente)
-Escala: 12 / 14 / 16 / 20 / 24 / 32 / 48
-
-**Cor de marca:** <hex> — usada em ações primárias e estados ativos. Nada mais.
-**Neutra:** <escala, ex. slate / zinc / stone>
-
-**Forma:** raio de cantos <valor> · bordas <espessura e cor>
-
-**Densidade:** <compacta | equilibrada | espaçosa>
-Unidade base de espaçamento: <4px | 8px>
+Read by Claude in any design or interface-implementation session.
 
 ---
 
-## Cores
+## The four decisions
 
-| Uso | Token | Quando |
+These are deliberate and human. This is where the product's identity lives.
+
+**Typography:** <family> for interface, <family> for headings (if different)
+Scale: 12 / 14 / 16 / 20 / 24 / 32 / 48
+
+**Brand color:** <hex> — used in primary actions and active states. Nothing more.
+**Neutral:** <scale, e.g. slate / zinc / stone>
+
+**Shape:** corner radius <value> · borders <thickness and color>
+
+**Density:** <compact | balanced | spacious>
+Base spacing unit: <4px | 8px>
+
+---
+
+## Colors
+
+| Use | Token | When |
 |---|---|---|
-| Primária | `brand-600` | Ação principal do ecrã — **uma por ecrã** |
-| Texto | `neutral-900` | Corpo |
-| Texto secundário | `neutral-500` | Metadados, legendas |
-| Fundo | `white` / `neutral-50` | Página e superfícies |
-| Borda | `neutral-200` | Separadores, contornos |
-| Sucesso / Aviso / Erro | `emerald-600` / `amber-600` / `red-600` | Apenas feedback de estado |
+| Primary | `brand-600` | Main action of the screen — **one per screen** |
+| Text | `neutral-900` | Body |
+| Secondary text | `neutral-500` | Metadata, captions |
+| Background | `white` / `neutral-50` | Page and surfaces |
+| Border | `neutral-200` | Separators, outlines |
+| Success / Warning / Error | `emerald-600` / `amber-600` / `red-600` | State feedback only |
 
-Regra: **cor comunica, não decora.** Se um elemento não muda de significado com a cor, é neutro.
+Rule: **color communicates, it does not decorate.** If an element does not change meaning with color, it is neutral.
 
 ---
 
-## Componentes base
+## Base components
 
-Vivem em `resources/views/components/`. Um ecrã compõe-se destes:
+They live in `resources/views/components/`. A screen is composed of these:
 
-- `x-button` — variantes: primary, secondary, ghost, danger
-- `x-input` / `x-select` / `x-textarea` — com label, hint e erro
-- `x-card` — superfície com padding consistente
-- `x-badge` — estados e etiquetas
-- `x-table` — cabeçalho, linhas, estado vazio
+- `x-button` — variants: primary, secondary, ghost, danger
+- `x-input` / `x-select` / `x-textarea` — with label, hint and error
+- `x-card` — surface with consistent padding
+- `x-badge` — states and labels
+- `x-table` — header, rows, empty state
 - `x-modal`
-- `x-empty-state` — ícone, título, descrição, ação
-- `x-alert` — info, sucesso, aviso, erro
+- `x-empty-state` — icon, title, description, action
+- `x-alert` — info, success, warning, error
 
-**Criar componente novo exige justificação.** Se algo aparece em dois ecrãs, é
-componente. Se aparece num, é composição.
-
----
-
-## Regras de composição
-
-1. **Uma ação primária por ecrã.** As restantes são secundárias ou ghost.
-2. **Largura máxima de texto:** ~70 caracteres. Conteúdo largo em `max-w-3xl`.
-3. **Espaçamento vertical** entre secções: sempre o mesmo valor. Não afinar caso a caso.
-4. **Alinhamento à esquerda** por defeito. Números alinhados à direita em tabelas.
-5. **Nada de sombras** exceto em elementos flutuantes (modal, dropdown).
+**Creating a new component requires justification.** If something appears in two
+screens, it is a component. If it appears in one, it is composition.
 
 ---
 
-## Estados obrigatórios
+## Composition rules
 
-Todo o ecrã que mostra dados tem de definir os quatro:
-
-- **Vazio** — primeira utilização. Explica o que aparecerá aqui e dá a ação para começar.
-- **A carregar** — skeleton, não spinner, quando a estrutura é conhecida.
-- **Erro** — o que falhou, em linguagem humana, e o que fazer a seguir.
-- **Cheio** — com muitos dados. Onde a paginação ou o scroll entram.
-
-Um ecrã sem estado vazio definido não está desenhado.
+1. **One primary action per screen.** The rest are secondary or ghost.
+2. **Maximum text width:** ~70 characters. Wide content in `max-w-3xl`.
+3. **Vertical spacing** between sections: always the same value. Do not tune case by case.
+4. **Left alignment** by default. Numbers right-aligned in tables.
+5. **No shadows** except on floating elements (modal, dropdown).
 
 ---
 
-## Acessibilidade — mínimos
+## Mandatory states
 
-- Contraste de texto ≥ 4.5:1 (≥ 3:1 para texto grande)
-- Todos os controlos alcançáveis por teclado, com foco visível
-- Ícone sozinho como ação leva sempre `aria-label`
-- A informação nunca é transmitida só por cor
+Every screen that shows data has to define all four:
+
+- **Empty** — first use. Explains what will show up here and gives the action to start.
+- **Loading** — skeleton, not spinner, when the structure is known.
+- **Error** — what failed, in human language, and what to do next.
+- **Full** — with a lot of data. Where pagination or scroll comes in.
+
+A screen with no empty state defined is not designed.
 
 ---
 
-## Registo de alterações
+## Accessibility — minimums
 
-Alterações ao sistema ficam aqui, com data e razão.
+- Text contrast ≥ 4.5:1 (≥ 3:1 for large text)
+- All controls reachable by keyboard, with visible focus
+- An icon alone as an action always carries `aria-label`
+- Information is never conveyed by color alone
 
-| Data | Alteração | Porquê |
+---
+
+## Change log
+
+Changes to the system go here, with date and reason.
+
+| Date | Change | Why |
 |---|---|---|
 | | | |

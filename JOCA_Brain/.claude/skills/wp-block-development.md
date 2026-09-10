@@ -28,8 +28,8 @@ Activate for block work:
 ### 0) Triage and locate blocks
 
 1. Run triage:
-   - Read(".claude/skills/wp-project-triage.md") e fazer o triage manualmente (o script não existe nesta instalação).
-2. List blocks: procurar ficheiros `block.json` no repo (Glob) — o script não existe nesta instalação.
+   - Read(".claude/skills/wp-project-triage.md") and do the triage by hand (the script does not exist in this installation).
+2. List blocks: look for `block.json` files in the repo (Glob) — the script does not exist in this installation.
 3. Identify the block root (directory with `block.json`) you're changing.
 
 For full site repos (`wp-content/` present), specify which plugin/theme contains the block.

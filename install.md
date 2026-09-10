@@ -1,13 +1,13 @@
-# JOCA — Bootstrap de Instalação
+# JOCA — Install Bootstrap
 
-Estás a executar o bootstrap do JOCA. Segue estas instruções exactamente.
-Faz cada passo pela ordem indicada — aguarda resposta antes de avançar.
+You are running the JOCA bootstrap. Follow these instructions exactly.
+Do each step in the order given — wait for an answer before moving on.
 
 ---
 
-## Passo 1 — Verificar instalação existente
+## Step 1 — Check for an existing installation
 
-Detectar SO e procurar instalação:
+Detect the OS and look for an installation:
 
 **macOS/Linux:**
 ```bash
@@ -19,105 +19,105 @@ find ~ -maxdepth 5 -name "JOCA_Brain" -type d 2>/dev/null | head -5
 Get-ChildItem -Path $env:USERPROFILE -Recurse -Directory -Filter "JOCA_Brain" -Depth 4 -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
 ```
 
-**Se encontrou:** informar o caminho e perguntar:
+**If found:** report the path and ask:
 ```
-Encontrei JOCA em [caminho]. O que queres fazer?
-[1] Reconfigurar esta instalação (corre /install)
-[2] Instalar noutra pasta (nova cópia)
-[3] Cancelar
+I found JOCA at [path]. What do you want to do?
+[1] Reconfigure this installation (runs /install)
+[2] Install in another folder (new copy)
+[3] Cancel
 ```
 
-- Se [1]: navegar para `[caminho]/JOCA_Brain` e executar `/install`. Fim deste bootstrap.
-- Se [2]: continuar para Passo 2.
-- Se [3]: parar.
+- If [1]: navigate to `[path]/JOCA_Brain` and run `/install`. End of this bootstrap.
+- If [2]: continue to Step 2.
+- If [3]: stop.
 
-**Se não encontrou:** continuar para Passo 2.
+**If not found:** continue to Step 2.
 
 ---
 
-## Passo 2 — Escolher destino
+## Step 2 — Choose a destination
 
-Texto livre: "Onde queres instalar o JOCA? (ex: `~/`, `~/Documents/`, `~/Dev/`, `C:\Users\[nome]\Desktop\`)"
+Free text: "Where do you want to install JOCA? (e.g.: `~/`, `~/Documents/`, `~/Dev/`, `C:\Users\[name]\Desktop\`)"
 
-A pasta `JOCA/` será criada dentro do destino escolhido.
+The `JOCA/` folder will be created inside the chosen destination.
 
 ---
 
-## Passo 3 — Clonar repositório
+## Step 3 — Clone the repository
 
 ```bash
-git clone https://github.com/MirrasPT/JOCA.git "<destino>/JOCA"
+git clone https://github.com/MirrasPT/JOCA.git "<destination>/JOCA"
 ```
 
-Se `git` não disponível:
-- macOS: `brew install git` ou `xcode-select --install`
+If `git` is not available:
+- macOS: `brew install git` or `xcode-select --install`
 - Windows: `winget install Git.Git`
-- Linux: `sudo apt install git` ou `sudo dnf install git`
+- Linux: `sudo apt install git` or `sudo dnf install git`
 
-Verificar que a estrutura ficou correcta:
+Check that the structure came out right:
 
 ```bash
-ls "<destino>/JOCA/JOCA_Brain/.claude/commands/" | head -5
+ls "<destination>/JOCA/JOCA_Brain/.claude/commands/" | head -5
 ```
 
 ---
 
-## Passo 4 — Executar /install
+## Step 4 — Run /install
 
-Navegar para `JOCA_Brain/` e executar o comando de instalação:
+Navigate to `JOCA_Brain/` and run the install command:
 
 ```
-cd "<destino>/JOCA/JOCA_Brain"
+cd "<destination>/JOCA/JOCA_Brain"
 ```
 
-Executar `/install` — o assistente configura:
-- Identidade e personalidade (soul calibration)
-- Skills (127 disponíveis, sistema de triggers) + auto-orquestração (task-intake 4 vias)
-- Browser automation (Playwright CLI — nunca browser-use, nunca MCP) + Graphify (obrigatório)
-- MCPs (markitdown — motor do /know)
-- CLIs externos (gh, ffmpeg, codex, agy, gws, …) — inventário completo com comandos de instalação por plataforma em `JOCA_Brain/memory/tools/clis.md`
+Run `/install` — the wizard configures:
+- Identity and personality (soul calibration)
+- Skills (127 available, trigger system) + auto-orchestration (task-intake, 4 routes)
+- Browser automation (Playwright CLI — never browser-use, never MCP) + Graphify (mandatory)
+- MCPs (markitdown — the engine behind /know)
+- External CLIs (gh, ffmpeg, codex, agy, gws, …) — full inventory with per-platform install commands in `JOCA_Brain/memory/tools/clis.md`
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_OS (browser interface)
 - StatusLine + Rate Limits tracking (Node.js cross-platform)
-- `~/CLAUDE.md` (perfil global)
+- `~/CLAUDE.md` (global profile)
 
-> **Plataforma:** o JOCA_OS foi desenvolvido e validado em **macOS** (plataforma de referência). Em **Windows**, o `/install` activa automaticamente a skill `joca-os-windows`, que testa, verifica e corrige numa só passagem os pontos sensíveis (build do node-pty — requer Visual Studio Build Tools + Python, PTY PowerShell, paths, statusline/Keychain, launchers).
+> **Platform:** JOCA_OS was developed and validated on **macOS** (the reference platform). On **Windows**, `/install` automatically activates the `joca-os-windows` skill, which tests, checks and fixes the sensitive points in a single pass (node-pty build — requires Visual Studio Build Tools + Python, PowerShell PTY, paths, statusline/Keychain, launchers).
 
-> **Reinstalação segura:** o `/install` detecta instalação existente e preserva `memory/projects/`, `memory/feedback/`, `memory/soul.md` e `JOCA_OS/data/` (projectos, sessões, settings do utilizador).
+> **Safe reinstall:** `/install` detects an existing installation and preserves `memory/projects/`, `memory/feedback/`, `memory/soul.md` and `JOCA_OS/data/` (projects, sessions, user settings).
 
 ---
 
-## Placeholders — o que o `/install` preenche
+## Placeholders — what `/install` fills in
 
-O repositório é publicado sem estado pessoal. Onde havia um caminho de máquina ou um dado
-do utilizador, está um placeholder `<...>`. O `/install` preenche-os a partir das respostas
-do questionário; esta secção existe para saberes o que é cada um se precisares de o fazer à mão.
+The repository is published without personal state. Where there was a machine path or a piece of
+user data, there is a `<...>` placeholder. `/install` fills them in from the questionnaire answers;
+this section exists so you know what each one is if you need to do it by hand.
 
-**Obrigatório — sem isto o JOCA não funciona:**
+**Mandatory — without this JOCA does not work:**
 
-| Placeholder | Onde | O que é |
+| Placeholder | Where | What it is |
 |-------------|------|---------|
-| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (11 hooks) | Caminho absoluto da pasta que contém `JOCA_Brain/`, com barras `/` e sem barra final. **Se não for substituído, os 11 hooks falham em silêncio** — sem erro visível. Verificar com `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (tem de dar `0`). |
-| `<YOUR_NAME>` · `<YOUR_ROLE>` · `<YOUR_STRENGTHS>` · `<YOUR_LEARNING_AREAS>` · `<STRONG_DOMAIN>` · `<LEARNING_DOMAIN>` · `<YOUR_FRUSTRATION_TRIGGERS>` | `JOCA_Brain/memory/soul.md` | O teu perfil, recolhido nas perguntas Q1/Q2 e Q-SOUL-5/6/7. Enquanto não estiverem preenchidos o JOCA usa os defaults de `Communication` + `Calibration Parameters`. |
+| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (11 hooks) | Absolute path of the folder that contains `JOCA_Brain/`, with `/` slashes and no trailing slash. **If it is not replaced, the 11 hooks fail silently** — with no visible error. Check with `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (must return `0`). |
+| `<YOUR_NAME>` · `<YOUR_ROLE>` · `<YOUR_STRENGTHS>` · `<YOUR_LEARNING_AREAS>` · `<STRONG_DOMAIN>` · `<LEARNING_DOMAIN>` · `<YOUR_FRUSTRATION_TRIGGERS>` | `JOCA_Brain/memory/soul.md` | Your profile, collected in questions Q1/Q2 and Q-SOUL-5/6/7. While they are not filled in, JOCA uses the defaults from `Communication` + `Calibration Parameters`. |
 
-**Contextuais — só interessam se usares a skill respectiva** (são exemplos na documentação,
-não configuração a preencher no arranque): `<YOUR_PROJECTS_DIR>`, `<YOUR_PHP_PATH>`,
+**Contextual — they only matter if you use the respective skill** (they are examples in the
+documentation, not configuration to fill in at startup): `<YOUR_PROJECTS_DIR>`, `<YOUR_PHP_PATH>`,
 `<YOUR_DOMAIN>`, `<YOUR_SERVER_IP>`, `<YOUR_CPANEL_USER>`, `<YOUR_CPANEL_HOST>`,
 `<YOUR_COMFYUI_DIR>`.
 
-Listar todos os que restam a qualquer momento:
+List every one still left at any time:
 ```bash
 grep -rohE "<(YOUR_[A-Z_]+|JOCA_ROOT|STRONG_DOMAIN|LEARNING_DOMAIN)>" . --exclude-dir=.git | sort | uniq -c
 ```
 
 ---
 
-## Depois da instalação
+## After the install
 
-- **Iniciar interface:** `bash JOCA_OS/start.sh` (macOS/Linux) ou `JOCA_OS\start.bat` (Windows)
-- **Começar ou ligar um projecto:** navegar para a pasta e correr **`/start`** — entrevista completa
-  para projectos novos (produto → fluxos/PRD → stack da casa → infra → direcção de design, com
-  formulários interactivos), ou liga um projecto existente sem questionário
-- **Início de sessão:** `/resume`
-- **Referência rápida:** `/help-joca`
-- **Actualizar JOCA:** `/update-joca` (sync com GitHub, protege ficheiros locais)
+- **Start the interface:** `bash JOCA_OS/start.sh` (macOS/Linux) or `JOCA_OS\start.bat` (Windows)
+- **Start or connect a project:** navigate to the folder and run **`/start`** — a full interview
+  for new projects (product → flows/PRD → house stack → infra → design direction, with interactive
+  forms), or it connects an existing project with no questionnaire
+- **Session start:** `/resume`
+- **Quick reference:** `/help-joca`
+- **Update JOCA:** `/update-joca` (sync with GitHub, protects local files)

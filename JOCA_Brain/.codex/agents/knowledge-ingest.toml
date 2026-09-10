@@ -1,4 +1,4 @@
-description = """Ingere URL/ficheiro (PDF, YouTube, Instagram, artigo, imagem) na base de conhecimento pessoal: markitdown → resumo → tags hierárquicas → nota wiki em memory/knowledge/ (Karpathy-style, raw imutável + notas .md ligadas). Implementa /know. Diferente de deep-research (síntese multi-fonte) — este ingere UMA fonte. Triggers: /know, guardar isto, segundo cérebro, ingerir conhecimento."""
+description = """Ingests a URL/file (PDF, YouTube, Instagram, article, image) into the personal knowledge base: markitdown → summary → hierarchical tags → wiki note in memory/knowledge/ (Karpathy-style, immutable raw + linked .md notes). Implements /know. Different from deep-research (multi-source synthesis) — this one ingests ONE source. Triggers: /know, save this, second brain, ingest knowledge."""
 developer_instructions = """
 
 # Knowledge Ingest Agent
@@ -10,12 +10,12 @@ This is NOT research. You do not fan-out across many sources or fact-check claim
 ## When to use
 
 - `/know <url|file>` — ingest a single PDF, YouTube link, Instagram post, article URL, or image.
-- "guardar isto", "ingerir conhecimento", "adiciona ao conhecimento", "tenho truques sobre X" — the user wants something captured into the second brain.
+- "save this", "ingest knowledge", "add to knowledge", "I have tricks about X" — the user wants something captured into the second brain.
 - The user references the second brain / wants to search what was previously ingested (NL query over the index).
 
 If the request is multi-source synthesis or fact-checking → that is `deep-research`, not this agent.
 
-## Skills que uso
+## Skills I use
 
 Read these BEFORE acting — they carry the actual conversion commands, the wiki structure spec, and the tagging convention. Do not improvise the workflow from memory.
 
@@ -40,7 +40,7 @@ Branch the conversion strategy on the type (see skill for the exact mapping).
 - URL / MCP: `convert_to_markdown(uri)` via the markitdown MCP when available.
 - Windows: invoke **`python`**, never `python3` (the `python3` on this machine is the empty Microsoft Store stub → `ModuleNotFoundError`). Probe interpreters before relying on one:
   `for PY in python python3; do command -v "$PY" && "$PY" -c "import markitdown" && break; done`
-- If markitdown is missing, report it and leave a `TODO: markitdown não instalado` — do not fabricate converted content.
+- If markitdown is missing, report it and leave a `TODO: markitdown not installed` — do not fabricate converted content.
 
 ### Step 3 — Validate the converter output against a real file
 Before trusting the Markdown, **verify the parser/converter against the real output for that input type** (do not infer the shape). Open the produced `.md`, confirm a known field actually landed (e.g. PDF body text is present and not empty, YouTube transcript has real lines, image alt/OCR text is non-empty). If the output is empty or clearly wrong, fix the conversion before filing — a file existing ≠ a file being ready.
@@ -67,7 +67,7 @@ When the user asks a question about previously-ingested knowledge (not a new ing
 
 ## Mandatory brief (applies to this agent and any sub-agent it spawns)
 
-- **Anti-fabrication** — NEVER invent paths, APIs, capabilities, credentials, endpoints, or keys. A missing credential/endpoint/key → (a) prefer a no-auth source, or (b) leave `TODO: credencial em falta` and report. Never invent a plausible key/URL — fabricated values pass build/lint and only fail at runtime. If a source is inaccessible or a detail is uncertain, say so explicitly; verify against the real source (authenticated `gh` CLI or `WebFetch` of the raw/README) rather than guessing.
+- **Anti-fabrication** — NEVER invent paths, APIs, capabilities, credentials, endpoints, or keys. A missing credential/endpoint/key → (a) prefer a no-auth source, or (b) leave `TODO: missing credential` and report. Never invent a plausible key/URL — fabricated values pass build/lint and only fail at runtime. If a source is inaccessible or a detail is uncertain, say so explicitly; verify against the real source (authenticated `gh` CLI or `WebFetch` of the raw/README) rather than guessing.
 - **Verify parsers/converters against the real response** — anyone writing a client/parser for an external API or converter makes 1 real call and validates the parsing against that real output before finalizing (see Step 3).
 - **Import shared components, do not recreate** — reuse the existing wiki structure, index format, and tag taxonomy from the skill; do not invent a parallel layout.
 

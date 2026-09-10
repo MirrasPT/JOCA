@@ -1,33 +1,33 @@
 ---
 name: deploy-cpanel
-description: "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, Passenger, Node.js cPanel, Setup Node.js App. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, restart.txt, nodevenv."
-triggers: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
+description: "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, public_html, FTP, phpMyAdmin, .htaccess, Passenger, Node.js cPanel, Setup Node.js App. SHOULD also invoke when: cheap hosting, hosting, traditional hosting, cpanel deploy, deploy cpanel, file manager, simple hosting, restart.txt, nodevenv."
+triggers: shared hosting, public_html, FTP, phpMyAdmin, .htaccess, cheap hosting, hosting, traditional hosting, cpanel deploy, deploy cpanel, file manager, simple hosting, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
 chain: deploy-executor
 ---
 # Deploy — cPanel
 
-Deploy Laravel/PHP e Node.js (Passenger) em cPanel. Workarounds para shared hosting.
+Deploy Laravel/PHP and Node.js (Passenger) on cPanel. Workarounds for shared hosting.
 
-> **WordPress?** Esta skill cobre codigo. Levar **conteudo** WP (BD+uploads) de local/Docker para
-> shared hosting sem SSH/WP-CLI tem pipeline propria (All-in-One WP Migration + FTP do `.wpress` +
-> restore pela wp-admin + caches) → `Read(".claude/skills/wordpress-router.md")`, seccao "Migracao de
-> conteudo". Nao improvisar: ja custou horas uma vez.
+> **WordPress?** This skill covers code. Moving WP **content** (DB+uploads) from local/Docker to
+> shared hosting without SSH/WP-CLI has its own pipeline (All-in-One WP Migration + FTP of the `.wpress` +
+> restore through wp-admin + caches) → `Read(".claude/skills/wordpress-router.md")`, section "Content
+> migration". Do not improvise: it already cost hours once.
 
 ---
 
-## Estrutura de pastas (CRITICO — ambos os stacks)
+## Folder structure (CRITICAL — both stacks)
 
 **Laravel/PHP:**
 ```
 /home/username/
-├── laravel/              <- projecto Laravel inteiro (FORA do public_html)
+├── laravel/              <- the whole Laravel project (OUTSIDE public_html)
 │   ├── app/
 │   ├── bootstrap/
 │   ├── config/
 │   ├── vendor/
 │   └── ...
-└── public_html/          <- SO conteudo de Laravel public/
-    ├── index.php          <- paths corrigidos
+└── public_html/          <- ONLY the contents of Laravel public/
+    ├── index.php          <- corrected paths
     ├── .htaccess
     └── assets/
 ```
@@ -35,26 +35,26 @@ Deploy Laravel/PHP e Node.js (Passenger) em cPanel. Workarounds para shared host
 **Node.js (Passenger):**
 ```
 /home/username/
-├── myapp/                <- app root (FORA do public_html; definida no UI)
+├── myapp/                <- app root (OUTSIDE public_html; set in the UI)
 │   ├── app.js            <- startup file
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── src/
-│   ├── data/             <- SQLite + uploads (nunca dentro de public/)
-│   ├── public/           <- criado pelo Passenger automaticamente
-│   └── tmp/              <- restart.txt aqui
-└── public_html/          <- nao toca aqui para apps Node
+│   ├── data/             <- SQLite + uploads (never inside public/)
+│   ├── public/           <- created automatically by Passenger
+│   └── tmp/              <- restart.txt goes here
+└── public_html/          <- do not touch this for Node apps
 ```
 
-**NUNCA colocar raiz do projecto dentro de `public_html/`** — expoe `.env`, config, código, e base de dados.
+**NEVER put the project root inside `public_html/`** — it exposes `.env`, config, code, and the database.
 
 ---
 
 ## Laravel/PHP
 
-### Corrigir index.php
+### Fix index.php
 
-Copiar `laravel/public/*` para `public_html/`, corrigir paths em `public_html/index.php`:
+Copy `laravel/public/*` to `public_html/`, fix the paths in `public_html/index.php`:
 
 ```php
 // Laravel < 11
@@ -62,21 +62,21 @@ require __DIR__.'/../laravel/vendor/autoload.php';
 $app = require_once __DIR__.'/../laravel/bootstrap/app.php';
 
 // Laravel 11+
-// Actualizar maintenance file path e autoloader path
+// Update the maintenance file path and the autoloader path
 ```
 
 ---
 
 ### .htaccess security
 
-Em `public_html/.htaccess`:
+In `public_html/.htaccess`:
 
 ```apache
 RewriteEngine On
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Bloquear ficheiros sensiveis
+# Block sensitive files
 <FilesMatch "\.(env|log|json|lock|config|yml|yaml|xml)$">
     Order allow,deny
     Deny from all
@@ -85,13 +85,13 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 ---
 
-### Metodos de deploy (Laravel)
+### Deploy methods (Laravel)
 
-#### A. File upload (sem SSH)
-1. Upload via File Manager ou FTP para `/home/username/laravel/`
-2. Copiar `public/` para `public_html/`
-3. Corrigir `index.php`
-4. Permissoes: `storage/` e `bootstrap/cache/` = 775
+#### A. File upload (no SSH)
+1. Upload via File Manager or FTP to `/home/username/laravel/`
+2. Copy `public/` to `public_html/`
+3. Fix `index.php`
+4. Permissions: `storage/` and `bootstrap/cache/` = 775
 
 #### B. SSH + Git pull
 ```bash
@@ -107,9 +107,9 @@ php artisan view:cache
 
 #### C. cPanel Git Version Control + .cpanel.yml (Laravel)
 1. cPanel → Git Version Control → Create
-2. URL do repo (SSH para privados)
-3. Adicionar deploy key do cPanel ao GitHub
-4. Criar `.cpanel.yml` na raiz do repo:
+2. Repo URL (SSH for private ones)
+3. Add the cPanel deploy key to GitHub
+4. Create `.cpanel.yml` at the repo root:
 
 ```yaml
 ---
@@ -124,34 +124,34 @@ deployment:
     - cd $DEPLOYPATH && php artisan route:cache
 ```
 
-**Limitacao:** `.cpanel.yml` usa `cp` nao `rsync` — ficheiros apagados do repo NAO sao removidos do servidor.
+**Limitation:** `.cpanel.yml` uses `cp` not `rsync` — files deleted from the repo are NOT removed from the server.
 
 ---
 
-### Workarounds Laravel (sem SSH)
+### Laravel workarounds (no SSH)
 
 #### Storage symlink
-Criar `public_html/symlink.php`:
+Create `public_html/symlink.php`:
 ```php
 <?php
 symlink('/home/username/laravel/storage/app/public', '/home/username/public_html/storage');
 echo 'done';
 ```
-Aceder via browser uma vez, depois apagar.
+Open it in the browser once, then delete it.
 
 #### Artisan commands
 ```php
-// routes/web.php (temporario)
+// routes/web.php (temporary)
 Route::get('/run-migrate', function() {
     \Artisan::call('migrate', ['--force' => true]);
     return \Artisan::output();
 });
 ```
-Correr uma vez, depois remover.
+Run it once, then remove it.
 
 ---
 
-### Scheduler e queues
+### Scheduler and queues
 
 #### Scheduler (cPanel → Cron Jobs)
 ```
@@ -162,71 +162,71 @@ Correr uma vez, depois remover.
 ```
 * * * * *   /usr/local/bin/php /home/username/laravel/artisan queue:work --stop-when-empty --tries=3 --timeout=90
 ```
-`--stop-when-empty` CRITICO — previne processos long-running que cPanel mata.
+`--stop-when-empty` is CRITICAL — it prevents long-running processes that cPanel kills.
 
-Usar `QUEUE_CONNECTION=database` se Redis indisponivel.
+Use `QUEUE_CONNECTION=database` if Redis is unavailable.
 
 ---
 
 ### PHP version
 
-- cPanel → MultiPHP Manager → seleccionar versao por dominio
-- Verificar CLI: `php -v` via SSH
-- `.user.ini` em `public_html/` para override de settings
+- cPanel → MultiPHP Manager → select the version per domain
+- Check the CLI: `php -v` via SSH
+- `.user.ini` in `public_html/` to override settings
 
 ---
 
 ### SSL
 
-- AutoSSL (Let's Encrypt): cPanel → SSL/TLS → AutoSSL (automatico)
+- AutoSSL (Let's Encrypt): cPanel → SSL/TLS → AutoSSL (automatic)
 - Manual: cPanel → SSL/TLS → Install SSL Certificate
 
 ---
 
 ### Database (MySQL)
 
-- Criar: cPanel → MySQL Databases → Create Database + Create User + Add User to Database
-- Nomes prefixados com username cPanel (ex: `john_myapp`, nao `myapp`)
-- Import: phpMyAdmin → seleccionar DB → Import → upload `.sql`
+- Create: cPanel → MySQL Databases → Create Database + Create User + Add User to Database
+- Names are prefixed with the cPanel username (e.g. `john_myapp`, not `myapp`)
+- Import: phpMyAdmin → select the DB → Import → upload the `.sql`
 - `.env`: `DB_HOST=localhost`, `DB_USERNAME=cpanel_prefix_user`
 
 ---
 
-## Node.js apps em cPanel (Passenger)
+## Node.js apps on cPanel (Passenger)
 
-cPanel usa Phusion Passenger + CloudLinux Node.js Selector. Passenger substitui PM2/forever — nao correr process manager proprio.
+cPanel uses Phusion Passenger + CloudLinux Node.js Selector. Passenger replaces PM2/forever — do not run your own process manager.
 
-### 1. Criar app no UI
+### 1. Create the app in the UI
 
 cPanel → **Setup Node.js App** → Create Application:
 
-| Campo | Valor |
+| Field | Value |
 |-------|-------|
-| Node.js version | versao desejada (ex: 20) |
+| Node.js version | the version you want (e.g. 20) |
 | Application mode | Production |
-| Application root | `myapp` (relativo a `/home/username/`) — FORA de public_html |
-| Application URL | dominio ou subdominio |
-| Application startup file | `app.js` (ou `server.js`) — entry point da app |
+| Application root | `myapp` (relative to `/home/username/`) — OUTSIDE public_html |
+| Application URL | domain or subdomain |
+| Application startup file | `app.js` (or `server.js`) — the app's entry point |
 
-Passenger cria automaticamente `~/myapp/public/` e `~/myapp/tmp/` e configura o reverse proxy.
+Passenger automatically creates `~/myapp/public/` and `~/myapp/tmp/` and configures the reverse proxy.
 
 ### 2. Startup file
 
-O ficheiro definido em "Application startup file" e o entry point. Regras criticas:
+The file set in "Application startup file" is the entry point. Critical rules:
 
 ```js
-// CORRECTO — Passenger injeta PORT via env
+// CORRECT — Passenger injects PORT via env
 app.listen(process.env.PORT);
 
-// ERRADO — porta hardcoded impede Passenger de funcionar
+// WRONG — a hardcoded port stops Passenger from working
 app.listen(3000);
 ```
 
-Mudar o nome do ficheiro requer actualizar o campo no UI.
+Renaming the file requires updating the field in the UI.
 
-### 3. Variaveis de ambiente
+### 3. Environment variables
 
-Adicionar em cPanel → Setup Node.js App → **Environment variables** (nao commitar `.env`):
+Add them in cPanel → Setup Node.js App → **Environment variables** (do not commit `.env`):
 
 ```
 NODE_ENV=production
@@ -234,32 +234,32 @@ DB_PATH=/home/username/myapp/data/app.db
 UPLOAD_DIR=/home/username/myapp/uploads
 ```
 
-Passenger injeta-as no processo. Mais seguro que `.env` ficheiro e sobrevive a restarts. dotenv funciona como fallback mas e secundario.
+Passenger injects them into the process. Safer than an `.env` file and it survives restarts. dotenv works as a fallback but it is secondary.
 
-### 4. Instalar dependencias (virtualenv)
+### 4. Install dependencies (virtualenv)
 
-Cada app tem um virtualenv isolado em `~/nodevenv/<app-root>/<version>/`. O comando exacto de activacao aparece na caixa azul da pagina de setup.
+Each app has an isolated virtualenv in `~/nodevenv/<app-root>/<version>/`. The exact activation command appears in the blue box on the setup page.
 
-**Via SSH** (recomendado para reproducibilidade):
+**Via SSH** (recommended for reproducibility):
 ```bash
 source /home/username/nodevenv/myapp/20/bin/activate && cd /home/username/myapp
 npm ci
 ```
 
-`npm ci` e preferido sobre `npm install` — instala exactamente o que esta no `package-lock.json`. Requer `package-lock.json` commitado.
+`npm ci` is preferred over `npm install` — it installs exactly what is in `package-lock.json`. It requires `package-lock.json` to be committed.
 
-Nunca correr `npm` bare fora do virtualenv — usa o binario errado.
+Never run bare `npm` outside the virtualenv — it uses the wrong binary.
 
-O botao "Run NPM Install" no UI e equivalente mas menos determinista.
+The "Run NPM Install" button in the UI is equivalent but less deterministic.
 
 ### 5. Restart
 
 ```bash
-# Graceful restart (deploy-friendly, sem downtime)
+# Graceful restart (deploy-friendly, no downtime)
 touch ~/myapp/tmp/restart.txt
 ```
 
-Passenger faz rolling restart na proxima request. Nao requer acesso ao UI. O botao Restart no UI e o equivalente manual.
+Passenger does a rolling restart on the next request. It does not require UI access. The Restart button in the UI is the manual equivalent.
 
 ### 6. Deploy via .cpanel.yml (Node.js)
 
@@ -274,84 +274,84 @@ deployment:
     - /bin/touch $DEPLOYPATH/tmp/restart.txt
 ```
 
-**Regras criticas:**
-- Tasks correm como `sh`, uma shell por linha — encadear venv-activate + cd + npm com `&&` na mesma linha
-- `npm ci --omit=dev` para producao (exclui devDependencies)
-- NAO copiar `node_modules/` do repo
-- NAO incluir `data/` ou `uploads/` na lista de copia (ver Persistencia abaixo)
-- O numero da versao no path do venv (`/20/`) deve corresponder ao seleccionado no UI
+**Critical rules:**
+- Tasks run as `sh`, one shell per line — chain venv-activate + cd + npm with `&&` on the same line
+- `npm ci --omit=dev` for production (excludes devDependencies)
+- Do NOT copy `node_modules/` from the repo
+- Do NOT include `data/` or `uploads/` in the copy list (see Persistence below)
+- The version number in the venv path (`/20/`) must match the one selected in the UI
 
-### 7. Persistencia — SQLite e uploads
+### 7. Persistence — SQLite and uploads
 
-Guardar base de dados e uploads no app root, FORA de `public/`:
+Keep the database and uploads in the app root, OUTSIDE `public/`:
 
 ```
 ~/myapp/data/app.db      <- SQLite
-~/myapp/uploads/         <- ficheiros de utilizador
+~/myapp/uploads/         <- user files
 ```
 
-Nunca dentro de `~/myapp/public/` — seriam servidos directamente pela web.
+Never inside `~/myapp/public/` — they would be served directly by the web.
 
-**CRITICO para git deploy:** `.cpanel.yml` nao deve sobrescrever nem apagar estes directórios em cada deploy. Excluir da lista de `cp`. Adicionar ao `.gitignore`:
+**CRITICAL for a git deploy:** `.cpanel.yml` must not overwrite or delete these directories on every deploy. Exclude them from the `cp` list. Add to `.gitignore`:
 ```
 data/
 uploads/
 ```
 
-### Gotchas Node.js/Passenger
+### Node.js/Passenger gotchas
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |----------|-------|-----|
-| App nao inicia | Porta hardcoded | `app.listen(process.env.PORT)` |
-| `npm` usa versao errada | Fora do virtualenv | `source .../nodevenv/.../bin/activate` antes de npm |
-| Deploy apaga dados | `.cpanel.yml` copia data/ | Excluir data/ e uploads/ do cp |
-| Restart nao funciona | tmp/ nao existe | `/bin/mkdir -p $DEPLOYPATH/tmp` no .cpanel.yml |
-| Env vars em branco | Definidas em .env em vez do UI | Mover para Setup Node.js App → Environment variables |
-| Versao Node errada no venv | Path `/18/` vs `/20/` | Verificar versao no UI e ajustar path no .cpanel.yml |
+| App does not start | Hardcoded port | `app.listen(process.env.PORT)` |
+| `npm` uses the wrong version | Outside the virtualenv | `source .../nodevenv/.../bin/activate` before npm |
+| Deploy wipes data | `.cpanel.yml` copies data/ | Exclude data/ and uploads/ from the cp |
+| Restart does not work | tmp/ does not exist | `/bin/mkdir -p $DEPLOYPATH/tmp` in .cpanel.yml |
+| Blank env vars | Set in .env instead of in the UI | Move them to Setup Node.js App → Environment variables |
+| Wrong Node version in the venv | Path `/18/` vs `/20/` | Check the version in the UI and adjust the path in .cpanel.yml |
 
 ---
 
 ## Common pitfalls (Laravel/PHP)
 
-| Problema | Causa | Fix |
+| Problem | Cause | Fix |
 |----------|-------|-----|
-| `vendor` nao existe | Git ignora `vendor/` | Upload zip + unzip, ou `composer install` via SSH |
-| Migrate nao corre | Sem SSH | Route workaround temporario |
-| Ficheiros antigos no servidor | `.cpanel.yml` usa `cp` nao `rsync` | Sem solucao nativa |
-| Queue worker morto | Shared host mata processos longos | `--stop-when-empty` |
-| PHP version errada | MultiPHP nao configurado | cPanel MultiPHP Manager |
-| `.env` exposto | Laravel root dentro de `public_html` | Mover para fora |
-| DB username errado | cPanel prefixa com account name | Usar nome completo prefixado |
+| `vendor` does not exist | Git ignores `vendor/` | Upload a zip + unzip, or `composer install` via SSH |
+| Migrate does not run | No SSH | Temporary route workaround |
+| Old files left on the server | `.cpanel.yml` uses `cp` not `rsync` | No native solution |
+| Dead queue worker | The shared host kills long processes | `--stop-when-empty` |
+| Wrong PHP version | MultiPHP not configured | cPanel MultiPHP Manager |
+| `.env` exposed | Laravel root inside `public_html` | Move it outside |
+| Wrong DB username | cPanel prefixes it with the account name | Use the full prefixed name |
 
 ---
 
-## Checklist deploy cPanel
+## cPanel deploy checklist
 
 ### Laravel/PHP
-- [ ] Laravel root FORA de `public_html/`
-- [ ] `index.php` paths corrigidos
-- [ ] `.htaccess` com HTTPS redirect + file blocking
-- [ ] Permissoes: storage/ e bootstrap/cache/ = 775
-- [ ] `.env` fora do web root
+- [ ] Laravel root OUTSIDE `public_html/`
+- [ ] `index.php` paths fixed
+- [ ] `.htaccess` with HTTPS redirect + file blocking
+- [ ] Permissions: storage/ and bootstrap/cache/ = 775
+- [ ] `.env` outside the web root
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`
-- [ ] Database criada com user + privileges
-- [ ] Cron job para scheduler configurado
-- [ ] SSL activo (AutoSSL)
-- [ ] Storage symlink criado
-- [ ] **Teste negativo corrido**: `.git/config`, `.env`, logs, docs internos e versoes antigas do
-      entregavel dao **403/404** no URL publico (200 = credencial exposta, deploy falhado)
-- [ ] **Health-check pelo CORPO**, nao so pelo status — rota de API devolve JSON, nao o fallback HTML
-- [ ] Tamanho remoto de cada entry point (HTML, bundle JS/CSS) bate com o local
-> Bloco completo dos 4 passos de verificacao: agente `deploy-executor`, Step 4.
+- [ ] Database created with a user + privileges
+- [ ] Cron job for the scheduler configured
+- [ ] SSL active (AutoSSL)
+- [ ] Storage symlink created
+- [ ] **Negative test run**: `.git/config`, `.env`, logs, internal docs and old versions of the
+      deliverable return **403/404** on the public URL (200 = exposed credential, failed deploy)
+- [ ] **Health-check by the BODY**, not just by the status — an API route returns JSON, not the HTML fallback
+- [ ] The remote size of each entry point (HTML, JS/CSS bundle) matches the local one
+> Full block of the 4 verification steps: `deploy-executor` agent, Step 4.
 
 ### Node.js (Passenger)
-- [ ] App root definido FORA de `public_html/`
-- [ ] Startup file correcto no UI (app.js / server.js)
-- [ ] `app.listen(process.env.PORT)` — sem porta hardcoded
-- [ ] Env vars definidas no UI (nao em .env commitado)
-- [ ] Deps instaladas via `npm ci` dentro do virtualenv
-- [ ] `package-lock.json` commitado
-- [ ] `data/` e `uploads/` em `.gitignore` e excluidos do cp
-- [ ] `.cpanel.yml` com venv-activate + npm ci + touch tmp/restart.txt numa linha
-- [ ] Path do venv no .cpanel.yml corresponde a versao Node seleccionada no UI
-- [ ] SSL activo (AutoSSL)
+- [ ] App root set OUTSIDE `public_html/`
+- [ ] Correct startup file in the UI (app.js / server.js)
+- [ ] `app.listen(process.env.PORT)` — no hardcoded port
+- [ ] Env vars set in the UI (not in a committed .env)
+- [ ] Deps installed via `npm ci` inside the virtualenv
+- [ ] `package-lock.json` committed
+- [ ] `data/` and `uploads/` in `.gitignore` and excluded from the cp
+- [ ] `.cpanel.yml` with venv-activate + npm ci + touch tmp/restart.txt on one line
+- [ ] The venv path in .cpanel.yml matches the Node version selected in the UI
+- [ ] SSL active (AutoSSL)

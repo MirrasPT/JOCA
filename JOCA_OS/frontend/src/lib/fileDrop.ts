@@ -76,9 +76,9 @@ export function captureDrop(e: DragEvent): DropCapture {
 // ── upload ──
 interface UploadOpts { relPath?: string; name?: string }
 
-// O que uma remessa de uploads produziu. Os erros SOBEM até ao interface de propósito: em silêncio,
-// um ficheiro recusado pelo backend (extensão fora da allowlist, >200 MB) parecia um botão morto —
-// só havia console.error e nada no ecrã.
+// What a batch of uploads produced. The errors RISE up to the interface deliberately: silently,
+// a file refused by the backend (extension outside the allowlist, >200 MB) looked like a dead button —
+// there was only console.error and nothing on screen.
 export interface UploadOutcome { paths: string[]; errors: string[] }
 
 function failureText(name: string, detail: string): string {
@@ -111,10 +111,10 @@ async function uploadFile(file: File, opts: UploadOpts = {}): Promise<{ path: st
       return { path: '', error: failureText(name, detail) };
     }
     const data = (await res.json()) as { path?: string; root?: string };
-    return data.path ? { path: data.path, root: data.root } : { path: '', error: failureText(name, 'resposta sem caminho') };
+    return data.path ? { path: data.path, root: data.root } : { path: '', error: failureText(name, 'response with no path') };
   } catch (err) {
     console.error('[upload] request failed', err);
-    return { path: '', error: failureText(opts.name || file.name || '', 'o pedido falhou') };
+    return { path: '', error: failureText(opts.name || file.name || '', 'the request failed') };
   }
 }
 
@@ -126,7 +126,7 @@ export async function uploadPastedImages(files: File[], stamp: number): Promise<
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const ext = extOf(f.name, f.type);
-    const r = await uploadFile(f, { name: `colado-${stamp}-${i + 1}.${ext}` });
+    const r = await uploadFile(f, { name: `pasted-${stamp}-${i + 1}.${ext}` });
     if (r?.path) out.push(r.path);
     else if (r?.error) errors.push(r.error);
   }

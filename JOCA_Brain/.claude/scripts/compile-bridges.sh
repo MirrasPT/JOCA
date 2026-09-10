@@ -5,8 +5,8 @@
 # Source of truth: .claude/ (skills, agents, commands, settings)
 # Targets: GEMINI.md, .agents/skills/, .codex/agents/, AGENTS.md
 #
-# Sincroniza E poda: o que desaparece da fonte é removido do espelho (enumerado
-# nome a nome antes de apagar). --dry-run lista sem tocar em nada.
+# Syncs AND prunes: what disappears from the source is removed from the mirror
+# (enumerated name by name before deleting). --dry-run lists without touching anything.
 
 set -euo pipefail
 
@@ -71,17 +71,17 @@ sync_skills() {
   log "  Skills synced: $count files updated"
 }
 
-# ─── 1b. Prune: remover do espelho o que já não existe na fonte ───────────────
-# Regra dura (rules/task-intake.md, Segurança): alvo definido por CRITÉRIO e não
-# por lista explícita → ENUMERAR e MOSTRAR antes de apagar. Nunca apagar em
-# silêncio, nunca uma pasta, nunca `rm -rf`.
+# ─── 1b. Prune: remove from the mirror what no longer exists in the source ────
+# Hard rule (rules/task-intake.md, Safety): a target defined by CRITERION and not
+# by an explicit list → ENUMERATE and SHOW before deleting. Never delete silently,
+# never a folder, never `rm -rf`.
 #
-# Sem isto, uma skill/agente apagado da fonte ficava no espelho para sempre — e
-# já aconteceu pior: host/utilizador/chave SSH reais sobreviveram num espelho
-# depois de limpos no canónico.
+# Without this, a skill/agent deleted from the source stayed in the mirror forever — and
+# worse has already happened: a real host/user/SSH key survived in a mirror after
+# being cleaned out of the canonical source.
 
-# Ficheiros que vivem no espelho por desenho e NÃO vêm da fonte (nunca podados).
-# Nomes relativos à raiz do respectivo espelho.
+# Files that live in the mirror by design and do NOT come from the source (never pruned).
+# Names relative to the root of the respective mirror.
 PRUNE_KEEP_SKILLS=( "README.md" )
 PRUNE_KEEP_CODEX=( "README.md" )
 
@@ -92,78 +92,78 @@ in_list() {
   return 1
 }
 
-# prune_mirror <rótulo> <dir_espelho> <extensão_gerada> <função_de_origem> <keep...>
-# <função_de_origem> recebe o path relativo e devolve 0 se a fonte existe.
+# prune_mirror <label> <mirror_dir> <generated_ext> <source_probe> <keep...>
+# <source_probe> takes the relative path and returns 0 if the source exists.
 prune_mirror() {
   local label="$1" mirror_dir="$2" ext="$3" src_probe="$4"; shift 4
   local keep=( "$@" )
 
-  # ── GUARDAS (correm ANTES de qualquer remoção) ──────────────────────────────
-  [[ -n "$mirror_dir" ]] || die "prune $label: dir de espelho vazio"
+  # ── GUARDS (they run BEFORE any removal) ────────────────────────────────────
+  [[ -n "$mirror_dir" ]] || die "prune $label: empty mirror dir"
   if [[ ! -d "$mirror_dir" ]]; then
-    log "  Prune $label: espelho não existe ainda — nada a podar"
+    log "  Prune $label: mirror does not exist yet — nothing to prune"
     return 0
   fi
 
-  # Recolher: total de ficheiros gerados no espelho + os órfãos.
+  # Collect: total generated files in the mirror + the orphans.
   local total=0
   local -a orphans=()
   local f rel
   while IFS= read -r -d '' f; do
     rel="${f#$mirror_dir/}"
-    in_list "$rel" "${keep[@]}" && continue   # ficheiro legítimo do espelho
+    in_list "$rel" "${keep[@]}" && continue   # legitimate mirror file
     total=$((total + 1))
     "$src_probe" "$rel" || orphans+=("$rel")
   done < <(find "$mirror_dir" -type f -name "*$ext" -print0 2>/dev/null)
 
   if [[ ${#orphans[@]} -eq 0 ]]; then
-    log "  Prune $label: 0 órfãos (${total} ficheiros espelhados)"
+    log "  Prune $label: 0 orphans (${total} mirrored files)"
     return 0
   fi
 
-  # Travão de segurança: apagar mais de metade do espelho é sinal de fonte
-  # partida (dir errado, checkout a meio), não de limpeza. Aborta sem tocar.
+  # Safety brake: deleting more than half the mirror is a sign of a broken source
+  # (wrong dir, mid-flight checkout), not of a cleanup. It aborts without touching.
   if [[ "$total" -gt 0 && $(( ${#orphans[@]} * 2 )) -gt "$total" ]]; then
-    die "prune $label: ${#orphans[@]} de ${total} ficheiros dados como órfãos (>50%) — fonte provavelmente inválida. Nada foi apagado."
+    die "prune $label: ${#orphans[@]} of ${total} files declared orphans (>50%) — source probably invalid. Nothing was deleted."
   fi
 
-  # ── ENUMERAR antes de apagar (nome a nome) ─────────────────────────────────
-  log "  Prune $label: ${#orphans[@]} órfão(s) a remover (já não existem na fonte):"
+  # ── ENUMERATE before deleting (name by name) ───────────────────────────────
+  log "  Prune $label: ${#orphans[@]} orphan(s) to remove (they no longer exist in the source):"
   for rel in "${orphans[@]}"; do log "    - $rel"; done
 
   if $DRY_RUN; then
-    echo "[dry-run] não removido (--dry-run)"
+    echo "[dry-run] not removed (--dry-run)"
     return 0
   fi
 
-  # ── REMOVER: ficheiro a ficheiro, só ficheiros regulares, dentro do espelho ─
+  # ── REMOVE: file by file, regular files only, inside the mirror ─────────────
   local removed=0
   for rel in "${orphans[@]}"; do
     local victim="$mirror_dir/$rel"
-    [[ -f "$victim" && ! -L "$victim" ]] || { log "    ⚠ ignorado (não é ficheiro regular): $rel"; continue; }
+    [[ -f "$victim" && ! -L "$victim" ]] || { log "    ⚠ skipped (not a regular file): $rel"; continue; }
     rm -f -- "$victim"
     removed=$((removed + 1))
   done
-  log "  Prune $label: $removed removido(s)"
+  log "  Prune $label: $removed removed"
 }
 
-# Origem de um .md espelhado em .agents/skills/ → .claude/skills/<mesmo path>
+# Source of a .md mirrored in .agents/skills/ → .claude/skills/<same path>
 _src_has_skill() { [[ -f "$SKILLS_DIR/$1" ]]; }
-# Origem de um .toml em .codex/agents/ → .claude/agents/<nome>.md
+# Source of a .toml in .codex/agents/ → .claude/agents/<name>.md
 _src_has_agent() { [[ -f "$AGENTS_DIR/${1%.toml}.md" ]]; }
 
 prune_skills() {
-  log "Prune .agents/skills/ (órfãos face a .claude/skills/)..."
-  [[ -d "$SKILLS_DIR" ]] || die "prune skills: fonte inexistente: $SKILLS_DIR"
-  [[ "$(count_md "$SKILLS_DIR")" -gt 0 ]] || die "prune skills: 0 skills na fonte — recusado"
+  log "Prune .agents/skills/ (orphans against .claude/skills/)..."
+  [[ -d "$SKILLS_DIR" ]] || die "prune skills: source does not exist: $SKILLS_DIR"
+  [[ "$(count_md "$SKILLS_DIR")" -gt 0 ]] || die "prune skills: 0 skills in the source — refused"
   prune_mirror "skills" "$BRIDGE_SKILLS_DIR" ".md" _src_has_skill "${PRUNE_KEEP_SKILLS[@]}"
 }
 
 prune_codex_agents() {
-  log "Prune .codex/agents/ (órfãos face a .claude/agents/)..."
-  [[ -d "$AGENTS_DIR" ]] || die "prune agentes: fonte inexistente: $AGENTS_DIR"
-  [[ "$(count_md "$AGENTS_DIR")" -gt 0 ]] || die "prune agentes: 0 agentes na fonte — recusado"
-  prune_mirror "agentes" "$CODEX_AGENTS_DIR" ".toml" _src_has_agent "${PRUNE_KEEP_CODEX[@]}"
+  log "Prune .codex/agents/ (orphans against .claude/agents/)..."
+  [[ -d "$AGENTS_DIR" ]] || die "prune agents: source does not exist: $AGENTS_DIR"
+  [[ "$(count_md "$AGENTS_DIR")" -gt 0 ]] || die "prune agents: 0 agents in the source — refused"
+  prune_mirror "agents" "$CODEX_AGENTS_DIR" ".toml" _src_has_agent "${PRUNE_KEEP_CODEX[@]}"
 }
 
 # ─── 2. Generate .codex/agents/*.toml from .claude/agents/*.md ─────────────────
@@ -186,7 +186,7 @@ compile_codex_agents() {
     local in_desc_block=false
 
     while IFS= read -r line; do
-      line="${line%$'\r'}"  # CRLF safety — com \r o "---" nunca casa e o frontmatter inteiro vaza para o body
+      line="${line%$'\r'}"  # CRLF safety — with \r the "---" never matches and the whole frontmatter leaks into the body
       if [[ "$line" == "---" && "$past_frontmatter" == false ]]; then
         if $in_frontmatter; then
           past_frontmatter=true
@@ -199,7 +199,7 @@ compile_codex_agents() {
       if $in_frontmatter && ! $past_frontmatter; then
         if $in_desc_block; then
           if [[ "$line" =~ ^[[:space:]]+(.*)$ ]]; then
-            # continuação do block scalar (description: | / >) — juntar com espaço
+            # block scalar continuation (description: | / >) — join with a space
             local cont="${BASH_REMATCH[1]}"
             if [[ -n "$cont" ]]; then
               [[ -n "$description" ]] && description+=" "
@@ -207,10 +207,10 @@ compile_codex_agents() {
             fi
             continue
           fi
-          in_desc_block=false  # linha sem indentação = chave nova; processar abaixo
+          in_desc_block=false  # unindented line = new key; process it below
         fi
         if [[ "$line" =~ ^description:[[:space:]]*([\|\>][+-]?)[[:space:]]*$ ]]; then
-          # YAML block scalar (description: | ou >) — valor vem nas linhas indentadas seguintes
+          # YAML block scalar (description: | or >) — the value comes on the following indented lines
           in_desc_block=true
           description=""
         elif [[ "$line" =~ ^description:\ *(.+)$ ]]; then
@@ -244,16 +244,16 @@ TOML
   log "  Codex agents compiled: $count"
 }
 
-# ─── Extracção de secções canónicas (fail-loud) ───────────────────────────────
-die() { echo "[compile] ERRO: $*" >&2; exit 1; }
+# ─── Extraction of canonical sections (fail-loud) ─────────────────────────────
+die() { echo "[compile] ERROR: $*" >&2; exit 1; }
 
-# extract_section <ficheiro> <heading literal>
-# Imprime o heading e tudo até ao próximo heading de nível igual ou superior.
-# Não encontrar o heading (ou encontrar secção vazia) é ERRO FATAL — nunca escrever
-# um ficheiro-ponte meio-vazio em silêncio.
+# extract_section <file> <literal heading>
+# Prints the heading and everything up to the next heading of equal or higher level.
+# Not finding the heading (or finding an empty section) is a FATAL ERROR — never write
+# a half-empty bridge file silently.
 extract_section() {
   local file="$1" heading="$2" out=""
-  [[ -f "$file" ]] || die "extract_section: ficheiro inexistente: $file"
+  [[ -f "$file" ]] || die "extract_section: file does not exist: $file"
   out="$(JOCA_HEADING="$heading" awk '
     BEGIN {
       h = ENVIRON["JOCA_HEADING"]; lvl = 0
@@ -268,21 +268,21 @@ extract_section() {
       }
       print
     }
-  ' "$file")" || die "extract_section: awk falhou em $file"
-  [[ -n "$out" ]] || die "secção não encontrada (ou vazia): '$heading' em ${file#$JOCA_ROOT/}"
-  # heading sozinho, sem corpo → também é falha
+  ' "$file")" || die "extract_section: awk failed on $file"
+  [[ -n "$out" ]] || die "section not found (or empty): '$heading' in ${file#$JOCA_ROOT/}"
+  # heading alone, with no body → also a failure
   [[ "$(printf '%s\n' "$out" | wc -l | tr -d ' ')" -gt 1 ]] \
-    || die "secção sem corpo: '$heading' em ${file#$JOCA_ROOT/}"
+    || die "section with no body: '$heading' in ${file#$JOCA_ROOT/}"
   printf '%s\n' "$out"
 }
 
-# count_md <dir> — nº de .md à profundidade 1
+# count_md <dir> — number of .md at depth 1
 count_md() {
   find -L "$1" -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' '
 }
 
-# Cruza as contagens do disco com o índice gerado; divergência = aviso (o índice
-# pode estar por regenerar), nunca um número inventado no ficheiro-ponte.
+# Cross-checks the disk counts against the generated index; divergence = warning (the
+# index may be pending regeneration), never an invented number in the bridge file.
 check_index_counts() {
   local fs_skills="$1" fs_agents="$2" idx="$JOCA_ROOT/memory/SKILL_INDEX.json"
   [[ -f "$idx" ]] || return 0
@@ -295,16 +295,16 @@ print(sum(1 for x in d if x.get("type")=="skill"), sum(1 for x in d if x.get("ty
   [[ -n "$pair" ]] || return 0
   local idx_skills="${pair% *}" idx_agents="${pair#* }"
   if [[ "$idx_skills" != "$fs_skills" || "$idx_agents" != "$fs_agents" ]]; then
-    log "  ⚠ SKILL_INDEX.json desactualizado (índice: ${idx_skills} skills / ${idx_agents} agentes · disco: ${fs_skills}/${fs_agents}) — será regenerado no fim"
+    log "  ⚠ SKILL_INDEX.json stale (index: ${idx_skills} skills / ${idx_agents} agents · disk: ${fs_skills}/${fs_agents}) — it will be regenerated at the end"
   fi
 }
 
-# ─── 3. Corpo partilhado dos ficheiros-ponte (AGENTS.md + GEMINI.md) ──────────
-# Regra (rules/orchestration-patterns.md, anti-patterns): "listas de capacidades
-# escritas à mão nos prompts desactualizam-se em silêncio — apontar ao índice
-# gerado, não transcrever". Por isso: contagens derivadas do `ls`, inventário por
-# PONTEIRO ao SKILL_INDEX.json, e todas as secções doutrinárias EXTRAÍDAS do
-# canónico (CLAUDE.md / soul.md / rules/*.md), nunca reescritas.
+# ─── 3. Shared body of the bridge files (AGENTS.md + GEMINI.md) ───────────────
+# Rule (rules/orchestration-patterns.md, anti-patterns): "capability lists written
+# by hand into prompts go stale silently — point at the generated index, do not
+# transcribe". Hence: counts derived from `ls`, inventory by POINTER to
+# SKILL_INDEX.json, and every doctrinal section EXTRACTED from the canonical source
+# (CLAUDE.md / soul.md / rules/*.md), never rewritten.
 build_bridge_body() {
   local skills_count agents_count commands_count rules_count
   skills_count="$(count_md "$SKILLS_DIR")"
@@ -312,26 +312,26 @@ build_bridge_body() {
   commands_count="$(count_md "$CLAUDE_DIR/commands")"
   rules_count="$(count_md "$CLAUDE_DIR/rules")"
 
-  [[ "$skills_count" -gt 0 ]]   || die "0 skills em $SKILLS_DIR"
-  [[ "$agents_count" -gt 0 ]]   || die "0 agentes em $AGENTS_DIR"
-  [[ "$commands_count" -gt 0 ]] || die "0 comandos em $CLAUDE_DIR/commands"
+  [[ "$skills_count" -gt 0 ]]   || die "0 skills in $SKILLS_DIR"
+  [[ "$agents_count" -gt 0 ]]   || die "0 agents in $AGENTS_DIR"
+  [[ "$commands_count" -gt 0 ]] || die "0 commands in $CLAUDE_DIR/commands"
 
   check_index_counts "$skills_count" "$agents_count"
 
   cat <<BODY_HEAD
-## Inventário (derivado em tempo de compilação — não transcrito)
+## Inventory (derived at compile time — not transcribed)
 
-| Componente | Nº | Fonte canónica |
+| Component | No. | Canonical source |
 |---|---|---|
-| Skills | ${skills_count} | \`.claude/skills/<nome>.md\` |
-| Agentes | ${agents_count} | \`.claude/agents/<nome>.md\` |
-| Comandos | ${commands_count} | \`.claude/commands/<nome>.md\` |
-| Rules (globais) | ${rules_count} | \`.claude/rules/<nome>.md\` |
+| Skills | ${skills_count} | \`.claude/skills/<name>.md\` |
+| Agents | ${agents_count} | \`.claude/agents/<name>.md\` |
+| Commands | ${commands_count} | \`.claude/commands/<name>.md\` |
+| Rules (global) | ${rules_count} | \`.claude/rules/<name>.md\` |
 
-⚠ **Não existe aqui lista de skills nem de agentes, de propósito.** O inventário completo
-(nome · tipo · path · triggers) vive em \`memory/SKILL_INDEX.json\`, que é **gerado**. Ler esse
-índice para descobrir o que existe; uma lista transcrita neste ficheiro desactualizava-se em
-silêncio e uma lista errada é pior do que nenhuma.
+⚠ **There is no list of skills or agents here, deliberately.** The full inventory
+(name · type · path · triggers) lives in \`memory/SKILL_INDEX.json\`, which is **generated**. Read
+that index to find out what exists; a list transcribed into this file went stale silently, and a
+wrong list is worse than none.
 BODY_HEAD
 
   echo
@@ -347,42 +347,42 @@ BODY_HEAD
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "## Decision Filter (sequential, before any action)"
   echo
-  extract_section "$CLAUDE_DIR/rules/task-intake.md" "## As 4 vias"
+  extract_section "$CLAUDE_DIR/rules/task-intake.md" "## The 4 routes"
   echo
   extract_section "$CLAUDE_DIR/rules/task-intake.md" "## Thresholds"
   echo
-  extract_section "$CLAUDE_DIR/rules/task-intake.md" "## Segurança (não negociável)"
+  extract_section "$CLAUDE_DIR/rules/task-intake.md" "## Safety (non-negotiable)"
   echo
-  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Doutrina de projecto — vale SEMPRE, com ou sem \`/start\`"
+  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Project doctrine — it ALWAYS holds, with or without \`/start\`"
   echo
-  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Catálogo de pipelines"
+  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Pipeline catalog"
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "## Context & Agents"
   echo
   cat <<'BODY_ORCH'
-## Regra crítica de orquestração
+## Critical orchestration rule
 BODY_ORCH
   extract_section "$CLAUDE_DIR/rules/orchestration-patterns.md" \
-    "## REGRA CRÍTICA — sub-agentes não fazem spawn de sub-agentes" | tail -n +2
+    "## CRITICAL RULE — sub-agents do not spawn sub-agents" | tail -n +2
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "### Trigger Map"
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "## Commands"
   echo
   cat <<'BODY_TAIL'
-## Doutrina completa (ler on-demand, não transcrita aqui)
+## Full doctrine (read on-demand, not transcribed here)
 
-| Ficheiro | O que traz |
+| File | What it brings |
 |---|---|
-| `CLAUDE.md` | fonte canónica de tudo o que está acima |
-| `memory/soul.md` | personalidade, princípios, limites, calibração |
-| `memory/SKILL_INDEX.json` | inventário gerado de skills + agentes (nome/path/triggers) |
-| `memory/INDEX.md` | índice legível dos componentes |
-| `.claude/rules/task-intake.md` | classificação em 4 vias + thresholds + gate de plano |
-| `.claude/rules/pipelines.md` | auto-runner, gates estático≠runtime, catálogo completo |
-| `.claude/rules/chaining.md` | convenção `chain:` e encadeamento automático |
+| `CLAUDE.md` | canonical source of everything above |
+| `memory/soul.md` | personality, principles, limits, calibration |
+| `memory/SKILL_INDEX.json` | generated inventory of skills + agents (name/path/triggers) |
+| `memory/INDEX.md` | readable index of the components |
+| `.claude/rules/task-intake.md` | classification into 4 routes + thresholds + plan gate |
+| `.claude/rules/pipelines.md` | auto-runner, static≠runtime gates, full catalog |
+| `.claude/rules/chaining.md` | the `chain:` convention and automatic chaining |
 | `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, anti-patterns |
-| `.claude/rules/stack-padrao.md` | stack da casa para projectos novos |
+| `.claude/rules/default-stack.md` | house stack for new projects |
 BODY_TAIL
 }
 
@@ -392,32 +392,32 @@ compile_gemini() {
 
   local gemini_file="$JOCA_ROOT/GEMINI.md"
   local body
-  body="$(build_bridge_body)" || die "falha a construir o corpo do GEMINI.md"
+  body="$(build_bridge_body)" || die "failed to build the body of GEMINI.md"
 
   if dry "write GEMINI.md"; then
     {
       cat <<'GEMINI_HEAD'
 # GEMINI.md
 
-> ⚠ **FICHEIRO GERADO — não editar à mão.**
-> Gerado por `.claude/scripts/compile-bridges.sh` a partir de `CLAUDE.md`, `memory/soul.md`,
-> `.claude/rules/*.md` e do índice gerado `memory/SKILL_INDEX.json`.
-> Qualquer edição manual é apagada na próxima compilação. Editar a **fonte**, e correr
+> ⚠ **GENERATED FILE — do not edit by hand.**
+> Generated by `.claude/scripts/compile-bridges.sh` from `CLAUDE.md`, `memory/soul.md`,
+> `.claude/rules/*.md` and the generated index `memory/SKILL_INDEX.json`.
+> Any manual edit is wiped on the next compilation. Edit the **source**, and run
 > `bash .claude/scripts/compile-bridges.sh`.
 
-Contexto de projecto para o Antigravity CLI (`agy`) / Gemini CLI.
-Fonte canónica: `CLAUDE.md` + `.claude/`. O JOCA é Claude-first — este ficheiro é uma ponte.
+Project context for the Antigravity CLI (`agy`) / Gemini CLI.
+Canonical source: `CLAUDE.md` + `.claude/`. JOCA is Claude-first — this file is a bridge.
 
-## Onde vivem as coisas (neste CLI)
-- Skills: `.claude/skills/<nome>.md` — ler directamente com o teu leitor de ficheiros.
-- Agentes: `.claude/agents/<nome>.md` — cada um é um prompt de sub-tarefa especializada.
-- Comandos: `.claude/commands/<nome>.md`.
-- Activar uma skill = **ler o ficheiro antes de escrever código** (relevância ≥ 60%).
+## Where things live (in this CLI)
+- Skills: `.claude/skills/<name>.md` — read them directly with your file reader.
+- Agents: `.claude/agents/<name>.md` — each is a specialized sub-task prompt.
+- Commands: `.claude/commands/<name>.md`.
+- Activating a skill = **read the file before writing code** (relevance ≥ 60%).
 GEMINI_HEAD
       echo
       printf '%s\n' "$body"
     } > "$gemini_file"
-    log "  GEMINI.md generated ($(wc -l < "$gemini_file" | tr -d ' ') linhas)"
+    log "  GEMINI.md generated ($(wc -l < "$gemini_file" | tr -d ' ') lines)"
   fi
 }
 
@@ -427,32 +427,32 @@ compile_agents_md() {
 
   local agents_file="$JOCA_ROOT/AGENTS.md"
   local body
-  body="$(build_bridge_body)" || die "falha a construir o corpo do AGENTS.md"
+  body="$(build_bridge_body)" || die "failed to build the body of AGENTS.md"
 
   if dry "write AGENTS.md"; then
     {
       cat <<'AGENTS_HEAD'
 # AGENTS.md
 
-> ⚠ **FICHEIRO GERADO — não editar à mão.**
-> Gerado por `.claude/scripts/compile-bridges.sh` a partir de `CLAUDE.md`, `memory/soul.md`,
-> `.claude/rules/*.md` e do índice gerado `memory/SKILL_INDEX.json`.
-> Qualquer edição manual é apagada na próxima compilação. Editar a **fonte**, e correr
+> ⚠ **GENERATED FILE — do not edit by hand.**
+> Generated by `.claude/scripts/compile-bridges.sh` from `CLAUDE.md`, `memory/soul.md`,
+> `.claude/rules/*.md` and the generated index `memory/SKILL_INDEX.json`.
+> Any manual edit is wiped on the next compilation. Edit the **source**, and run
 > `bash .claude/scripts/compile-bridges.sh`.
 
-Ponte de compatibilidade para ferramentas que lêem `AGENTS.md` (Codex/GPT e afins).
-A orientação canónica do JOCA vive em `CLAUDE.md`. Manter o JOCA Claude-first.
+Compatibility bridge for tools that read `AGENTS.md` (Codex/GPT and the like).
+JOCA's canonical guidance lives in `CLAUDE.md`. Keep JOCA Claude-first.
 
-## Onde vivem as coisas (neste CLI)
-- Skills: `.agents/skills/<nome>.md` — espelho de `.claude/skills/`, sincronizado por este script.
-- Agentes: `.codex/agents/<nome>.toml` — compilados de `.claude/agents/*.md` por este script.
-- Comandos: `.claude/commands/<nome>.md` (sem espelho próprio).
-- Activar uma skill = **ler o ficheiro antes de escrever código** (relevância ≥ 60%).
+## Where things live (in this CLI)
+- Skills: `.agents/skills/<name>.md` — mirror of `.claude/skills/`, synced by this script.
+- Agents: `.codex/agents/<name>.toml` — compiled from `.claude/agents/*.md` by this script.
+- Commands: `.claude/commands/<name>.md` (no mirror of their own).
+- Activating a skill = **read the file before writing code** (relevance ≥ 60%).
 AGENTS_HEAD
       echo
       printf '%s\n' "$body"
     } > "$agents_file"
-    log "  AGENTS.md updated ($(wc -l < "$agents_file" | tr -d ' ') linhas)"
+    log "  AGENTS.md updated ($(wc -l < "$agents_file" | tr -d ' ') lines)"
   fi
 }
 

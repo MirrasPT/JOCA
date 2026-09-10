@@ -1,6 +1,6 @@
 ---
 name: wp-performance
-description: "Profile and fix WordPress backend performance via WP-CLI profile/doctor, Server-Timing, Query Monitor headless. Invoke on: WordPress slow, TTFB alto, admin lento."
+description: "Profile and fix WordPress backend performance via WP-CLI profile/doctor, Server-Timing, Query Monitor headless. Invoke on: WordPress slow, high TTFB, slow admin."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Backend-only agent; prefers WP-CLI (doctor/profile) when available."
 ---
 
@@ -33,7 +33,7 @@ No browser UI. Prefer WP-CLI, logs, and HTTP requests.
 
 ### 1) Generate backend-only performance report (deterministic)
 
-Verificar manualmente (o script perf_inspect não existe nesta instalação):
+Check by hand (the perf_inspect script does not exist in this installation):
 
 - WP-CLI availability and core version
 - `wp doctor` / `wp profile` availability

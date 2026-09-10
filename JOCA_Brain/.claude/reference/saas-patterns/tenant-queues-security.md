@@ -1,4 +1,4 @@
-Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/tenant-queues-security.md")`. Cobre §7-8: jobs com contexto de tenant e segurança SaaS.
+Part of the `saas-patterns` skill — loaded on-demand via `Read(".claude/reference/saas-patterns/tenant-queues-security.md")`. Covers §7-8: jobs with tenant context and SaaS security.
 
 ## 7. Background Jobs with Tenant Context
 
@@ -79,7 +79,7 @@ class GdprExportAction
     }
 }
 
-// Anonymise (irreversible — wrap in DB::transaction)
+// Anonymize (irreversible — wrap in DB::transaction)
 class GdprDeleteAction
 {
     public function execute(User $user): void

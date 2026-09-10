@@ -1,57 +1,57 @@
 ---
 name: rest-api
 description: REST API design specialist. RFC 9457 errors, URL conventions, versioning with Sunset headers, pagination, rate limiting, OpenAPI 3.1 specs, ForceJsonResponse middleware. Callable autonomously by laravel-specialist for endpoint design.
-triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination, API error, rate limit, throttle, CORS, API documentation, api route, api resource, API contract, problema+json, RFC 9457, RFC 7807, API endpoint, desenhar API, definir endpoints, API architecture
+triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination, API error, rate limit, throttle, CORS, API documentation, api route, api resource, API contract, problem+json, RFC 9457, RFC 7807, API endpoint, design API, define endpoints, API architecture
 ---
 
 # REST API
 
-Design de APIs REST. URLs resource-oriented, RFC 9457 errors, versioning com Sunset, pagination eficiente.
+REST API design. Resource-oriented URLs, RFC 9457 errors, versioning with Sunset, efficient pagination.
 
-Invocada autonomamente pela skill `laravel-specialist` quando preciso desenhar endpoints ou definir contratos.
+Invoked autonomously by the `laravel-specialist` skill when endpoints must be designed or contracts defined.
 
 ---
 
-## URL design -- recursos, nao verbos
+## URL design -- resources, not verbs
 
 ```
-GET    /api/v1/team-members          # listar
+GET    /api/v1/team-members          # list
 GET    /api/v1/team-members/{id}     # single
-POST   /api/v1/team-members          # criar
+POST   /api/v1/team-members          # create
 PUT    /api/v1/team-members/{id}     # full replace
 PATCH  /api/v1/team-members/{id}     # partial update
-DELETE /api/v1/team-members/{id}     # remover
+DELETE /api/v1/team-members/{id}     # remove
 
-# Nested para relacoes:
+# Nested for relations:
 GET    /api/v1/posts/{postId}/comments
 POST   /api/v1/posts/{postId}/comments
 
-# Accoes nao-CRUD -- nomes, nao verbos:
-POST   /api/v1/orders/{id}/cancellation      # nao /cancelOrder
-POST   /api/v1/users/{id}/email-verification  # nao /verifyEmail
+# Non-CRUD actions -- nouns, not verbs:
+POST   /api/v1/orders/{id}/cancellation      # not /cancelOrder
+POST   /api/v1/users/{id}/email-verification  # not /verifyEmail
 ```
 
-**Convencoes:** plural, kebab-case, `/v1/` desde o dia 1.
+**Conventions:** plural, kebab-case, `/v1/` from day 1.
 
 ---
 
-## Status codes -- constantes Symfony
+## Status codes -- Symfony constants
 
 ```php
-Response::HTTP_OK                    // 200 GET sucesso
-Response::HTTP_CREATED               // 201 POST cria recurso
-Response::HTTP_ACCEPTED              // 202 job async dispatched
-Response::HTTP_NO_CONTENT            // 204 DELETE sucesso
-Response::HTTP_BAD_REQUEST           // 400 pedido malformado
-Response::HTTP_UNAUTHORIZED          // 401 nao autenticado
-Response::HTTP_FORBIDDEN             // 403 autenticado mas sem permissao
-Response::HTTP_NOT_FOUND             // 404 recurso nao encontrado
-Response::HTTP_UNPROCESSABLE_ENTITY  // 422 validacao falhou
+Response::HTTP_OK                    // 200 GET success
+Response::HTTP_CREATED               // 201 POST creates resource
+Response::HTTP_ACCEPTED              // 202 async job dispatched
+Response::HTTP_NO_CONTENT            // 204 DELETE success
+Response::HTTP_BAD_REQUEST           // 400 malformed request
+Response::HTTP_UNAUTHORIZED          // 401 not authenticated
+Response::HTTP_FORBIDDEN             // 403 authenticated but no permission
+Response::HTTP_NOT_FOUND             // 404 resource not found
+Response::HTTP_UNPROCESSABLE_ENTITY  // 422 validation failed
 Response::HTTP_TOO_MANY_REQUESTS     // 429 rate limit
-Response::HTTP_INTERNAL_SERVER_ERROR // 500 erro inesperado
+Response::HTTP_INTERNAL_SERVER_ERROR // 500 unexpected error
 ```
 
-Nunca usar inteiros bare (422). Sempre `Response::HTTP_*`.
+Never use bare integers (422). Always `Response::HTTP_*`.
 
 ---
 
@@ -69,12 +69,12 @@ Nunca usar inteiros bare (422). Sempre `Response::HTTP_*`.
 }
 ```
 
-- Content-Type: `application/problem+json` (nao `application/json`)
-- `type` e URI estavel e documentada
-- `detail` e human-readable e actionable
-- `errors` para validacao field-level
+- Content-Type: `application/problem+json` (not `application/json`)
+- `type` is a stable, documented URI
+- `detail` is human-readable and actionable
+- `errors` for field-level validation
 
-### ForceJsonResponse middleware -- PRIMEIRO na stack
+### ForceJsonResponse middleware -- FIRST in the stack
 ```php
 final class ForceJsonResponse
 {
@@ -85,14 +85,14 @@ final class ForceJsonResponse
     }
 }
 ```
-Garante que exceptions nunca retornam HTML na API.
+Guarantees that exceptions never return HTML on the API.
 
 ---
 
 ## Versioning -- URL path + Sunset header
 
 ```php
-// Ambas as versoes coexistem:
+// Both versions coexist:
 Route::prefix('v1/posts')
     ->middleware(['auth:sanctum', 'throttle:api', 'sunset:2026-12-31'])
     ->group(function (): void { ... });
@@ -102,20 +102,20 @@ Route::prefix('v2/posts')
     ->group(function (): void { ... });
 ```
 
-Regras:
-- Maximo 2 versoes activas (actual + anterior)
-- Minimo 6 meses de deprecation notice
-- Sunset header (RFC 8594) em rotas deprecated
+Rules:
+- Maximum 2 active versions (current + previous)
+- Minimum 6 months of deprecation notice
+- Sunset header (RFC 8594) on deprecated routes
 
 ---
 
-## Pagination -- simplePaginate sempre
+## Pagination -- always simplePaginate
 
 ```php
-// simplePaginate(): sem COUNT(*), mais eficiente
+// simplePaginate(): no COUNT(*), more efficient
 $posts = Post::query()->simplePaginate(20);
 
-// Resposta:
+// Response:
 {
     "data": [...],
     "links": {
@@ -130,24 +130,24 @@ $posts = Post::query()->simplePaginate(20);
 }
 ```
 
-Cursor pagination para datasets grandes:
+Cursor pagination for large datasets:
 ```php
 $posts = Post::query()->cursorPaginate(20);
 ```
 
 ---
 
-## Filtering e sorting
+## Filtering and sorting
 
 ```
 GET /api/v1/products?status=active&sort=-created_at
-    # prefixo - = descendente
+    # prefix - = descending
 
 GET /api/v1/products?price[gte]=10&price[lte]=100
-    # bracket notation para comparacoes
+    # bracket notation for comparisons
 
 GET /api/v1/products?include=category,tags
-    # controlo de eager loading
+    # eager loading control
 ```
 
 ---
@@ -158,13 +158,13 @@ GET /api/v1/products?include=category,tags
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 87
 X-RateLimit-Reset: 1718000000
-Retry-After: 60       # incluido na resposta 429
+Retry-After: 60       # included in the 429 response
 ```
 
 Tiers:
-- Anonimo: 30/min
-- Autenticado: 100/min
-- Redis-backed (nunca in-memory per-process)
+- Anonymous: 30/min
+- Authenticated: 100/min
+- Redis-backed (never in-memory per-process)
 
 ---
 
@@ -172,87 +172,87 @@ Tiers:
 ```
 Authorization: Bearer <token>
 ```
-Sanctum stateless tokens para APIs. Nunca session-based para APIs puras.
+Sanctum stateless tokens for APIs. Never session-based for pure APIs.
 
 ## CORS
 ```php
 // config/cors.php
 'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '*')),
-// Em producao: explicitar origens
+// In production: list origins explicitly
 ```
 
 ---
 
-## Consumir APIs de terceiros -- verificar parser contra resposta real
+## Consuming third-party APIs -- verify the parser against the real response
 
-Ao escrever um cliente/parser para uma API externa, **nunca inferir o formato da resposta** — fazer 1 chamada real e validar o parsing contra ela ANTES de finalizar. `tsc`/build passam com um regex/shape errado; o bug é invisível à validação automática e só aparece em runtime (campo sempre `0`/`null`, ordenação silenciosamente partida).
+When writing a client/parser for an external API, **never infer the response format** — make 1 real call and validate the parsing against it BEFORE finalising. `tsc`/build pass with a wrong regex/shape; the bug is invisible to automatic validation and only shows up at runtime (a field always `0`/`null`, ordering silently broken).
 
-Regras:
-- **1 chamada real** (`curl`/`fetch`) → inspeccionar o JSON/HTML/texto efectivo → escrever o parser contra ESSE output.
-- Validar campos críticos com um valor conhecido (ex.: confirmar que `seeders` não é sempre `0`, que o emoji/separador no regex corresponde ao real).
-- Sem credencial fornecida: preferir endpoint sem auth, ou deixar `TODO: credencial em falta` e reportar — **nunca inventar uma key** (ver `soul.md` Hard Limits; aplica-se a sub-agentes de workflow).
-- Em **workflows com agentes paralelos** que escrevem clientes de API: incluir este passo de verificação no brief de cada agente.
+Rules:
+- **1 real call** (`curl`/`fetch`) → inspect the effective JSON/HTML/text → write the parser against THAT output.
+- Validate critical fields against a known value (e.g. confirm that `seeders` is not always `0`, that the emoji/separator in the regex matches the real one).
+- With no credential supplied: prefer a no-auth endpoint, or leave `TODO: missing credential` and report — **never invent a key** (see `soul.md` Hard Limits; applies to workflow sub-agents).
+- In **workflows with parallel agents** writing API clients: include this verification step in every agent's brief.
 
 ---
 
-## Flag de visibilidade (publicado/rascunho, activo/arquivado)
+## Visibility flag (published/draft, active/archived)
 
-Introduzir um estado de visibilidade numa entidade **não é uma mudança de CRUD** — é uma mudança de contrato em TODAS as rotas que tocam a tabela. O erro por omissão é filtrar o resource óbvio e esquecer as rotas laterais que fazem JOIN à mesma tabela.
+Introducing a visibility state on an entity **is not a CRUD change** — it is a contract change on EVERY route that touches the table. The default mistake is filtering the obvious resource and forgetting the side routes that JOIN the same table.
 
-Checklist ao adicionar a flag:
-- `grep` por **todas** as rotas/queries que referenciam a tabela (não só o resource) e verificar cada `JOIN` — agregadores, destaques, feeds, sitemaps, pesquisa, contadores.
-- **Testar o lado anónimo** com uma chamada sem credenciais: o registo despublicado desaparece do output público?
-- Assertar por **contagem**, não por leitura de código (vivido: `/api/featured/:section` continuou a servir um projecto despublicado na homepage; só se apanhou porque os destaques anónimos passaram de 6 para 5).
+Checklist when adding the flag:
+- `grep` for **all** routes/queries referencing the table (not just the resource) and check every `JOIN` — aggregators, featured lists, feeds, sitemaps, search, counters.
+- **Test the anonymous side** with a credential-less call: does the unpublished record disappear from the public output?
+- Assert by **count**, not by reading code (lived: `/api/featured/:section` kept serving an unpublished project on the homepage; it was only caught because the anonymous featured list went from 6 to 5).
 
 ---
 
 ## Anti-patterns
 
-| Errado | Correcto |
-|--------|----------|
-| Inferir shape da resposta de API externa | 1 chamada real + validar parser contra ela |
-| Inventar API key/endpoint em falta | No-auth source ou `TODO` + reportar |
-| Verbos em URLs: `/getUser` | Resource-based: `/users/{id}` |
-| Inteiros bare para status | `Response::HTTP_CREATED` |
-| JSON error ad-hoc | RFC 9457 ProblemResponse |
-| Breaking changes sem migracao | Sunset header + 6 meses |
-| Envelope inconsistente | `JsonResource::withoutWrapping()` global |
-| IDs auto-increment em URLs | ULIDs (previne enumeration) |
+| Wrong | Right |
+|--------|--------|
+| Infer the shape of an external API response | 1 real call + validate the parser against it |
+| Invent a missing API key/endpoint | No-auth source or `TODO` + report |
+| Verbs in URLs: `/getUser` | Resource-based: `/users/{id}` |
+| Bare integers for status | `Response::HTTP_CREATED` |
+| Ad-hoc JSON error | RFC 9457 ProblemResponse |
+| Breaking changes with no migration | Sunset header + 6 months |
+| Inconsistent envelope | `JsonResource::withoutWrapping()` globally |
+| Auto-increment IDs in URLs | ULIDs (prevents enumeration) |
 | `paginate()` | `simplePaginate()` |
-| Rate limiting in-memory | Redis ou gateway |
-| Erros HTML em rotas API | `ForceJsonResponse` middleware |
-| Route group sem `throttle:api` | Incluir sempre |
-| Flag de visibilidade aplicada só ao resource | `grep` a tabela + filtrar todos os JOIN + teste anónimo por contagem |
+| In-memory rate limiting | Redis or gateway |
+| HTML errors on API routes | `ForceJsonResponse` middleware |
+| Route group without `throttle:api` | Always include it |
+| Visibility flag applied only to the resource | `grep` the table + filter every JOIN + anonymous test by count |
 
 ---
 
-## OpenAPI 3.1 -- spec obrigatoria
+## OpenAPI 3.1 -- mandatory spec
 
-Cada API deve ter spec OpenAPI:
-- Todos os endpoints documentados
-- Schemas de erro RFC 9457 incluidos
-- `operationId` em cada operacao
-- Exemplos de request/response
-- Validar com: `npx @redocly/cli lint openapi.yaml`
+Every API must have an OpenAPI spec:
+- All endpoints documented
+- RFC 9457 error schemas included
+- `operationId` on every operation
+- Request/response examples
+- Validate with: `npx @redocly/cli lint openapi.yaml`
 
 ---
 
-## Checklist pre-deploy
+## Pre-deploy checklist
 
-- [ ] URLs: plural, kebab-case, sem verbos
-- [ ] HTTP verbs correctos (PUT = full replace, PATCH = partial)
-- [ ] Status codes via constantes Symfony
-- [ ] RFC 9457 errors com `application/problem+json`
-- [ ] `ForceJsonResponse` como primeiro middleware
-- [ ] `throttle:api` em todos os route groups
-- [ ] `simplePaginate()` em todas as listas
-- [ ] ULIDs em modelos API-exposed
-- [ ] CORS com origens explicitas em producao
-- [ ] `/v1/` prefix desde dia 1
-- [ ] OpenAPI spec validada
-- [ ] Auth middleware em rotas protegidas
+- [ ] URLs: plural, kebab-case, no verbs
+- [ ] Correct HTTP verbs (PUT = full replace, PATCH = partial)
+- [ ] Status codes via Symfony constants
+- [ ] RFC 9457 errors with `application/problem+json`
+- [ ] `ForceJsonResponse` as the first middleware
+- [ ] `throttle:api` on every route group
+- [ ] `simplePaginate()` on every list
+- [ ] ULIDs on API-exposed models
+- [ ] CORS with explicit origins in production
+- [ ] `/v1/` prefix from day 1
+- [ ] OpenAPI spec validated
+- [ ] Auth middleware on protected routes
 
 ---
 
 ## Quality gate
-Apos implementar rate limiting: "Queres `tester-ratelimit`?" -- testa threshold, bypass headers, path manipulation, config.
+After implementing rate limiting: "Do you want `tester-ratelimit`?" -- tests threshold, bypass headers, path manipulation, config.

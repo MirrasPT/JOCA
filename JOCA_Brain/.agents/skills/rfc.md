@@ -1,7 +1,7 @@
 ---
 name: rfc
-description: "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande. SHOULD also invoke when: big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar."
-triggers: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, migrate from, breaking change, mudanca grande, big change, afecta multiplos modulos, cross-cutting, nova abordagem, new approach, reestruturar, restructure, mudar API, change API, decisao que afecta tudo
+description: "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, change proposal, migrate from, breaking change. SHOULD also invoke when: big change, affects multiple modules, cross-cutting, new approach, restructure."
+triggers: RFC, request for comments, change proposal, migrate from, breaking change, big change, affects multiple modules, cross-cutting, new approach, restructure, change API, decision that affects everything
 ---
 # RFC -- Request for Comments
 
@@ -21,126 +21,126 @@ Structured proposals for cross-cutting changes. Files in `docs/rfcs/`.
 ## RFC Format
 
 ```markdown
-# RFC: [Titulo descritivo]
+# RFC: [Descriptive title]
 
-**Data:** YYYY-MM-DD
-**Autor:** [quem propoe]
-**Estado:** draft | em review | aceite | rejeitado | implementado
-**ADRs relacionados:** [links se existirem]
-
----
-
-## Sumario
-
-[2-3 frases: o que se propoe e porque]
+**Date:** YYYY-MM-DD
+**Author:** [who is proposing]
+**Status:** draft | in review | accepted | rejected | implemented
+**Related ADRs:** [links if any exist]
 
 ---
 
-## Problema
+## Summary
 
-[Descricao clara do problema actual. Evidencia: metricas, incidentes, pain points concretos. Sem solucao aqui — so o problema.]
-
----
-
-## Problemas que isto NAO resolve
-
-[Scope explicito: o que fica de fora desta proposta. Evita scope creep e expectativas falsas.]
+[2-3 sentences: what is being proposed and why]
 
 ---
 
-## Estado actual
+## Problem
 
-[Como funciona hoje. Codigo, arquitectura, fluxos relevantes. Suficiente para alguem sem contexto perceber o ponto de partida.]
+[Clear description of the current problem. Evidence: metrics, incidents, concrete pain points. No solution here — only the problem.]
 
 ---
 
-## Solucao proposta
+## Problems this does NOT solve
 
-[Descricao tecnica da mudanca. Detalhada o suficiente para implementar, mas sem ser codigo final.]
+[Explicit scope: what is left out of this proposal. Avoids scope creep and false expectations.]
+
+---
+
+## Current state
+
+[How it works today. Code, architecture, relevant flows. Enough for someone with no context to grasp the starting point.]
+
+---
+
+## Proposed solution
+
+[Technical description of the change. Detailed enough to implement, but not final code.]
 
 ### Data model changes
-[Novas tabelas, campos, relacoes]
+[New tables, fields, relations]
 
 ### API changes
-[Novos endpoints, mudancas a existentes, deprecations]
+[New endpoints, changes to existing ones, deprecations]
 
 ### Component changes
-[Que modulos mudam, como interagem pos-mudanca]
+[Which modules change, how they interact after the change]
 
 ---
 
-## Alternativas consideradas
+## Alternatives considered
 
-### [Alternativa A]
-- **Descricao:** [como funcionaria]
-- **Pros:** [beneficios]
-- **Cons:** [desvantagens]
-- **Rejeitada porque:** [razao concreta]
+### [Alternative A]
+- **Description:** [how it would work]
+- **Pros:** [benefits]
+- **Cons:** [drawbacks]
+- **Rejected because:** [concrete reason]
 
-### [Alternativa B]
-- **Descricao:** [como funcionaria]
-- **Pros:** [beneficios]
-- **Cons:** [desvantagens]
-- **Rejeitada porque:** [razao concreta]
+### [Alternative B]
+- **Description:** [how it would work]
+- **Pros:** [benefits]
+- **Cons:** [drawbacks]
+- **Rejected because:** [concrete reason]
 
 ---
 
-## Plano de migracao
+## Migration plan
 
-### Fase 1: [descricao]
-- [passo 1]
-- [passo 2]
-- **Rollback:** [como reverter se correr mal]
+### Phase 1: [description]
+- [step 1]
+- [step 2]
+- **Rollback:** [how to revert if it goes wrong]
 
-### Fase 2: [descricao]
-- [passo 1]
-- **Rollback:** [como reverter]
+### Phase 2: [description]
+- [step 1]
+- **Rollback:** [how to revert]
 
 ### Deprecation plan
-- [o que e deprecado]
-- [timeline de remocao]
-- [como comunicar aos consumidores]
+- [what gets deprecated]
+- [removal timeline]
+- [how to communicate it to consumers]
 
 ---
 
 ## Timeline
 
-| Fase | Duracao estimada | Dependencias |
+| Phase | Estimated duration | Dependencies |
 |------|-----------------|-------------|
-| Fase 1 | [X dias/semanas] | [de que depende] |
-| Fase 2 | [X dias/semanas] | [Fase 1 concluida] |
+| Phase 1 | [X days/weeks] | [what it depends on] |
+| Phase 2 | [X days/weeks] | [Phase 1 finished] |
 
 ---
 
-## Dependencias
+## Dependencies
 
-| Dependencia | Tipo | Owner | Estado |
+| Dependency | Type | Owner | Status |
 |------------|------|-------|--------|
-| [servico/equipa/recurso] | [hard/soft] | [quem] | [disponivel/pendente] |
+| [service/team/resource] | [hard/soft] | [who] | [available/pending] |
 
 ---
 
-## Riscos
+## Risks
 
-| Risco | Probabilidade | Impacto | Mitigacao |
+| Risk | Probability | Impact | Mitigation |
 |-------|-------------|---------|-----------|
-| [risco 1] | [alta/media/baixa] | [alto/medio/baixo] | [como mitigar] |
+| [risk 1] | [high/medium/low] | [high/medium/low] | [how to mitigate] |
 
 ---
 
 ## Open Questions
 
-| # | Questao | Owner | Prazo |
+| # | Question | Owner | Deadline |
 |---|---------|-------|-------|
-| Q1 | [questao] | [quem] | [data] |
+| Q1 | [question] | [who] | [date] |
 
 ---
 
-## Revisores
+## Reviewers
 
-| Nome | Area | Estado |
+| Name | Area | Status |
 |------|------|--------|
-| [nome] | [backend/frontend/infra/product] | [pendente/aprovado/preocupacoes] |
+| [name] | [backend/frontend/infra/product] | [pending/approved/concerns] |
 ```
 
 ---
@@ -150,18 +150,18 @@ Structured proposals for cross-cutting changes. Files in `docs/rfcs/`.
 ```
 docs/
 └── rfcs/
-    ├── README.md                          ← indice
-    └── RFC-2026-05-25-migrate-auth.md     ← RFC individual
+    ├── README.md                          ← index
+    └── RFC-2026-05-25-migrate-auth.md     ← individual RFC
 ```
 
-### README.md (indice)
+### README.md (index)
 
 ```markdown
 # RFCs
 
-| RFC | Titulo | Estado | Data |
+| RFC | Title | Status | Date |
 |-----|--------|--------|------|
-| [2026-05-25](RFC-2026-05-25-migrate-auth.md) | Migrate auth to Laravel Sanctum | aceite | 2026-05-25 |
+| [2026-05-25](RFC-2026-05-25-migrate-auth.md) | Migrate auth to Laravel Sanctum | accepted | 2026-05-25 |
 ```
 
 ---

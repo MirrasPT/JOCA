@@ -1,17 +1,17 @@
 ---
 name: unfreeze
-description: "Remove os guard-rails activos — apaga o lock de edição (/freeze), o flag de avisos (/careful) e o modo test-first (/tdd), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar, remover lock, desligar guard, desligar careful, desligar tdd, voltar ao normal."
-triggers: unfreeze, destrancar, remover lock, desligar guard, desligar careful, desligar tdd, unlock edits, voltar ao normal, remove guard
+description: "Removes the active guard-rails — deletes the edit lock (/freeze), the warnings flag (/careful) and test-first mode (/tdd), turning off /guard mode. Use when the user says: unfreeze, unlock, remove lock, turn off guard, turn off careful, turn off tdd, back to normal."
+triggers: unfreeze, unlock, remove lock, turn off guard, turn off careful, turn off tdd, unlock edits, back to normal, remove guard
 ---
-# /unfreeze — Remover guard-rails
+# /unfreeze — Remove guard-rails
 
-Desliga `/freeze`, `/careful`, `/tdd` e `/guard` removendo o estado em `.joca/`.
+Turns off `/freeze`, `/careful`, `/tdd` and `/guard` by removing the state in `.joca/`.
 
-## Executar
+## Run
 ```bash
-rm -f .joca/freeze-dir.txt .joca/careful.flag .joca/tdd.flag .joca/tdd-last-test.txt 2>/dev/null; echo "Guard-rails removidos (freeze + careful + tdd desligados)."
+rm -f .joca/freeze-dir.txt .joca/careful.flag .joca/tdd.flag .joca/tdd-last-test.txt 2>/dev/null; echo "Guard-rails removed (freeze + careful + tdd off)."
 ```
-Confirmar ao user: "Lock de edição, avisos destrutivos e modo test-first removidos. Edições e comandos voltam ao normal."
+Confirm to the user: "Edit lock, destructive warnings and test-first mode removed. Edits and commands are back to normal."
 
-## Nota
-Os hooks `check-freeze.js`/`check-careful.js`/`check-tdd.js` continuam registados em `settings.json` mas tornam-se no-op sem os ficheiros de estado (é o design: sempre-registados, só-activos-quando-armados).
+## Note
+The `check-freeze.js`/`check-careful.js`/`check-tdd.js` hooks stay registered in `settings.json` but become no-ops without the state files (that is the design: always-registered, only-active-when-armed).

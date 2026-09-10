@@ -1,7 +1,7 @@
 ---
 name: planning
-description: "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planear, planning, planeia o projecto, project planning, como comecar, how to start, documentacao do projecto, project documentation. SHOULD also invoke when: antes de comecar, before coding, setup do projecto, project setup, iniciar projecto, kick off."
-triggers: planear, planning, planeia o projecto, project planning, como comecar, how to start, documentacao do projecto, project documentation, antes de comecar, before coding, setup do projecto, project setup, iniciar projecto, kick off
+description: "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planning, plan the project, project planning, how to start, project documentation. SHOULD also invoke when: before starting, before coding, project setup, start project, kick off."
+triggers: planning, plan the project, project planning, how to start, project documentation, before starting, before coding, project setup, start project, kick off
 ---
 # Planning -- Router
 
@@ -30,14 +30,14 @@ First layer of the stack. Everything before touching code or design.
 
 | User says | Activate |
 |-----------|----------|
-| "planeia", "como fariamos", "implementa X e Y e Z" | `plan` |
-| "PRD", "requisitos", "especificacao", "o que vamos construir" | `prd` |
-| "tech spec", "como implementar", "data model", "API design", "arquitectura tecnica" | `tech-spec` |
-| "ADR", "decisao", "porque escolhemos X", "regista esta decisao" | `adr` |
-| "diagrama", "C4", "arquitectura visual", "como o sistema se estrutura" | `c4-diagram` |
-| "tasks", "breakdown", "epics", "stories", "estimativa", "quanto tempo" | `task-breakdown` |
-| "RFC", "proposta de mudanca", "migrar de X para Y", "breaking change" | `rfc` |
-| "gerar html", "html review", "visualizar documento", "preview", "exportar" | `html-review` |
+| "plan it", "how would we do it", "implement X and Y and Z" | `plan` |
+| "PRD", "requirements", "specification", "what are we going to build" | `prd` |
+| "tech spec", "how to implement", "data model", "API design", "technical architecture" | `tech-spec` |
+| "ADR", "decision", "why did we choose X", "record this decision" | `adr` |
+| "diagram", "C4", "visual architecture", "how the system is structured" | `c4-diagram` |
+| "tasks", "breakdown", "epics", "stories", "estimate", "how long" | `task-breakdown` |
+| "RFC", "change proposal", "migrate from X to Y", "breaking change" | `rfc` |
+| "generate html", "html review", "view document", "preview", "export" | `html-review` |
 
 ### Full pipeline (new project)
 
@@ -61,15 +61,15 @@ Lateral (invoked when relevant, not sequentially):
 
 ### No clear match
 
-If request is generic ("planeia este projecto"), ask:
+If request is generic ("plan this project"), ask:
 
 ```
-O que precisas agora?
-1. Definir O QUE construir → PRD
-2. Definir COMO construir → Tech Spec
-3. Quebrar em tarefas → Task Breakdown
-4. Documentar uma decisao → ADR
-5. Tudo do inicio → Pipeline completo
+What do you need now?
+1. Define WHAT to build → PRD
+2. Define HOW to build it → Tech Spec
+3. Break into tasks → Task Breakdown
+4. Document a decision → ADR
+5. Everything from the start → Full pipeline
 ```
 
 ---
@@ -90,4 +90,4 @@ Read(".claude/skills/html-review.md")     # docs → HTML for stakeholders
 ---
 
 ## Quality gate
-After planning complete: "Queres `prd-reviewer`?" (validates PRD if generated)
+After planning complete: "Do you want `prd-reviewer`?" (validates PRD if generated)

@@ -1,96 +1,96 @@
-# /one-shot — Desenvolvimento Autónomo End-to-End
+# /one-shot — Autonomous End-to-End Development
 
-Ponto de entrada único para produção autónoma. Lê documentação de planeamento, o **main loop adopta o playbook `master-orchestrator`** e executa até conclusão sem interrupções.
+Single entry point for autonomous production. Reads the planning documentation, the **main loop adopts the `master-orchestrator` playbook** and executes to completion without interruptions.
 
-## Pré-requisitos
+## Prerequisites
 
-O projecto DEVE ter pelo menos um destes ficheiros:
-- `PRD.md` — requisitos de produto
-- `TECH_SPEC.md` — especificação técnica
-- `TASKS.md` — decomposição de tarefas
+The project MUST have at least one of these files:
+- `PRD.md` — product requirements
+- `TECH_SPEC.md` — technical specification
+- `TASKS.md` — task breakdown
 
-Se nenhum existir: sugerir `/start` ou `/plan` primeiro. Não prosseguir sem documentação.
+If none exists: suggest `/start` or `/plan` first. Do not proceed without documentation.
 
-## Fluxo
+## Flow
 
-### 1. Carregar Contexto (Lazy)
+### 1. Load Context (Lazy)
 
 ```
-Ler: CLAUDE.md (constraints do projecto)
-Ler: memory/SKILL_INDEX.json (índice de skills disponíveis)
-Ler: PRD.md → scope e requisitos
-Ler: TECH_SPEC.md → stack decisions (se existir)
-Ler: TASKS.md → tarefas decompostas (se existir)
+Read: CLAUDE.md (project constraints)
+Read: memory/SKILL_INDEX.json (index of available skills)
+Read: PRD.md → scope and requirements
+Read: TECH_SPEC.md → stack decisions (if it exists)
+Read: TASKS.md → decomposed tasks (if it exists)
 ```
 
-### 2. Validar Prontidão
+### 2. Validate Readiness
 
-Verificar:
-- [ ] Stack definida (Laravel? React? Flutter?)
-- [ ] Pelo menos 1 feature descrita com acceptance criteria
-- [ ] Nenhuma decisão bloqueante em aberto (Open Questions no PRD sem owner)
+Check:
+- [ ] Stack defined (Laravel? React? Flutter?)
+- [ ] At least 1 feature described with acceptance criteria
+- [ ] No blocking decision left open (Open Questions in the PRD with no owner)
 
-Se faltar algo crítico → reportar e parar. Não inventar requisitos.
+If something critical is missing → report and stop. Do not invent requirements.
 
-### 3. Orquestrar (o main loop adopta o playbook)
+### 3. Orchestrate (the main loop adopts the playbook)
 
-O **main loop lê `.claude/agents/master-orchestrator.md` e age como orquestrador ELE PRÓPRIO** — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não despacha workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop decompõe o PRD/TASKS em work-streams e dispara os *workers* via `Agent()`, cada um com o brief canónico obrigatório (8 cláusulas), sob:
+The **main loop reads `.claude/agents/master-orchestrator.md` and acts as the orchestrator ITSELF** — you do **not** do `Agent(subagent_type="master-orchestrator")` (a subagent does not dispatch workers; the 1-level rule in `rules/orchestration-patterns.md`). Following the playbook, the main loop decomposes the PRD/TASKS into work-streams and fires the *workers* via `Agent()`, each one with the mandatory canonical brief (8 clauses), under:
 
-- **Objectivo:** implementar as features do PRD/TASKS de forma autónoma.
-- **Documentação:** PRD (resumo 3 linhas), stack detectada, constraints do `CLAUDE.md`, ficheiros `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
-- **Regras:** zero confirmações (excepto acção irreversível → gate); auto-trigger dos testers após cada stream; relatório final estruturado.
+- **Objective:** implement the features of the PRD/TASKS autonomously.
+- **Documentation:** PRD (3-line summary), detected stack, constraints from `CLAUDE.md`, files `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
+- **Rules:** zero confirmations (except an irreversible action → gate); auto-trigger of the testers after each stream; structured final report.
 
-### 4. Pós-Execução
+### 4. Post-Execution
 
-Após o orchestrator completar:
-1. **Worker que devolveu `null` não é worker que falhou.** Antes de reportar um stream como perdido,
-   verificar em disco (`git status`, `ls` dos ficheiros do stream). Caso real: num workflow de 8
-   agentes, o `feat:contactos` escreveu ContactModal (249 linhas) + 4 endpoints + AdminInbox (418
-   linhas), tudo a compilar, e só falhou a chamada final de `StructuredOutput` ("retry cap (5)
-   exceeded") — o relatório disse `contact: null` e deu a impressão de trabalho perdido. Distinguir
-   sempre **"output-shape falhou"** de **"agente morreu"**, e sinalizá-lo assim no relatório
-   ("trabalho em disco OK, retorno estruturado falhou — verificar").
-2. Apresentar relatório ao utilizador
-3. Listar ficheiros criados/modificados
-4. **Revisão por leitura ≠ verificação.** Se a pipeline acabou em deploy, correr uma fase pós-deploy
-   de smoke test end-to-end (HTTP real + estado da BD), separada da revisão de código. Caso real:
-   revisão adversarial até 9/10, 0 bloqueadores — e chegaram a produção assets em falta e uma coluna
-   sem privilégio `ALTER`, ambos invisíveis à leitura e triviais para um smoke test.
-5. Sugerir próximos passos (deploy? PR? review manual?)
+After the orchestrator completes:
+1. **A worker that returned `null` is not a worker that failed.** Before reporting a stream as lost,
+   check on disk (`git status`, `ls` of the stream's files). Real case: in a workflow of 8
+   agents, `feat:contactos` wrote ContactModal (249 lines) + 4 endpoints + AdminInbox (418
+   lines), all compiling, and only the final `StructuredOutput` call failed ("retry cap (5)
+   exceeded") — the report said `contact: null` and gave the impression of lost work. Always
+   distinguish **"the output shape failed"** from **"the agent died"**, and flag it that way in the report
+   ("work on disk OK, structured return failed — check").
+2. Present the report to the user
+3. List files created/modified
+4. **Review by reading ≠ verification.** If the pipeline ended in a deploy, run a post-deploy phase
+   of end-to-end smoke testing (real HTTP + DB state), separate from the code review. Real case:
+   adversarial review up to 9/10, 0 blockers — and missing assets and a column without the
+   `ALTER` privilege reached production, both invisible to reading and trivial for a smoke test.
+5. Suggest next steps (deploy? PR? manual review?)
 
-## Argumentos Opcionais
+## Optional Arguments
 
-- `/one-shot --scope "feature X"` — limita a uma feature específica do PRD
-- `/one-shot --dry-run` — planeia mas não executa (mostra work streams sem dispatch)
+- `/one-shot --scope "feature X"` — limits it to a specific feature of the PRD
+- `/one-shot --dry-run` — plans but does not execute (shows work streams without dispatch)
 - `/one-shot --no-tests` — skip validation agents (faster, less safe)
 
-## Exemplo de Uso
+## Usage Example
 
 ```
 /one-shot
 ```
 
-Resultado: Lê PRD, decompõe em streams (DB → API → Frontend), dispatcha agentes em paralelo, corre testes, reporta.
+Result: Reads the PRD, decomposes it into streams (DB → API → Frontend), dispatches agents in parallel, runs tests, reports.
 
-## Quando NÃO Usar
+## When NOT to Use
 
-- Projecto sem documentação (usar `/plan` ou `/start` primeiro)
-- Bug fix simples (usar `/debug`)
-- Tarefa de 1 ficheiro (fazer directamente)
-- Refactor sem spec (usar `/plan` para definir scope primeiro)
+- Project with no documentation (use `/plan` or `/start` first)
+- Simple bug fix (use `/debug`)
+- 1-file task (do it directly)
+- Refactor with no spec (use `/plan` to define the scope first)
 
 
 ---
 
-## Autorização do `Workflow` (ferramenta do harness)
+## `Workflow` authorization (harness tool)
 
-**Correr `/one-shot` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
-podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
-Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+**Running `/one-shot` is the user's explicit opt-in to the `Workflow` tool.** Do not ask whether you
+may orchestrate — if the work splits into phases with fan-out, author the script and **call `Workflow`**.
+When the script is unnecessary, `Agent()` in parallel in the same turn serves just as well.
 
-Travões que **não** caem com esta autorização:
-- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
-- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
-- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
-- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.
+Brakes that do **not** fall away with this authorization:
+- **Cheap recon BEFORE authoring** the script (`rules/pipelines.md`) — `grep`/`ls` on the domain, inline.
+- **1-line gate** on anything irreversible (deploy · push · migration · delete · payment · auth).
+- **Verifier ≠ producer** — whoever writes does not sign off the gate (`.joca/loop.json`).
+- **Size** comes from `/config` ("Dynamic workflow size"), not from this command.
+- **Cost announced**: ≥6 agents or a loop of rounds → order of magnitude of tokens before launching.

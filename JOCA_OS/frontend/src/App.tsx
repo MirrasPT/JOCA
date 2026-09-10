@@ -20,8 +20,8 @@ import StatusBar from './components/StatusBar';
 import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RuntimeInfo, SessionInfo, TerminalRef } from './types';
 import './components/sidebar-icons.css';
 
-// Igualdade por valor de WorkflowState — evita um setState (e re-render global) quando o
-// output parseado produz um estado idêntico ao anterior (ex.: mesmo marcador repetido).
+// Value equality for WorkflowState — avoids a setState (and a global re-render) when the parsed
+// output produces a state identical to the previous one (e.g. the same marker repeated).
 function workflowEquals(a: WorkflowState, b: WorkflowState): boolean {
   return a.activeSkill === b.activeSkill
     && a.activeType === b.activeType
@@ -44,11 +44,11 @@ interface ServiceConnection {
 const OUTPUT_BUFFER_MAX = 64 * 1024;
 
 const SERVICE_CONNECTIONS: ServiceConnection[] = [
-  { id: 'filesystem', name: 'Ficheiros locais', status: 'connected', scope: 'Leitura real, pré-visualização e arrastar para o terminal' },
-  { id: 'terminal', name: 'Terminais', status: 'connected', scope: 'Um PTY real por sessão' },
+  { id: 'filesystem', name: 'Local files', status: 'connected', scope: 'Real reading, preview and drag to the terminal' },
+  { id: 'terminal', name: 'Terminals', status: 'connected', scope: 'One real PTY per session' },
 ];
 
-// Selector de "o que é alcançável por Tab" — usado pelo foco preso do modal de Definições.
+// Selector for "what is reachable by Tab" — used by the focus trap of the Settings modal.
 const FOCUSAVEIS = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 export default function App() {
@@ -59,16 +59,16 @@ export default function App() {
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
-  // As definições passaram do rail direito (removido) para um modal, aberto pelo ícone no fundo
-  // da sidebar esquerda.
+  // Settings moved from the right rail (removed) to a modal, opened by the icon at the bottom
+  // of the left sidebar.
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const settingsOpenerRef = useRef<HTMLElement | null>(null);
 
   /**
-   * Um diálogo com `aria-modal` cujo foco fica no gatilho é pior do que nenhum: quem navega por
-   * teclado percorre a app inteira POR TRÁS dele e nunca lá entra. Três coisas em falta, e as três
-   * são exigidas pelo padrão: entrar ao abrir, prender o Tab, devolver o foco ao fechar.
+   * A dialog with `aria-modal` whose focus stays on the trigger is worse than none: whoever
+   * navigates by keyboard walks the whole app BEHIND it and never gets in. Three things missing,
+   * and the standard requires all three: enter on open, trap Tab, return focus on close.
    */
   useEffect(() => {
     if (!settingsOpen) return;
@@ -91,8 +91,8 @@ export default function App() {
     document.addEventListener('keydown', prendeTab, true);
     return () => {
       document.removeEventListener('keydown', prendeTab, true);
-      // Devolver o foco a quem abriu: sem isto, fechar deixa o foco no <body> e o utilizador
-      // recomeça a navegação do topo da app.
+      // Return focus to whoever opened it: without this, closing leaves focus on <body> and the
+      // user restarts navigation from the top of the app.
       settingsOpenerRef.current?.focus?.();
     };
   }, [settingsOpen]);
@@ -108,16 +108,16 @@ export default function App() {
 
   const [jocaLogicInfo, setJocaLogicInfo] = useState<JocaLogicInfo | null>(null);
 
-  // Claude/Codex/Gemini usage limits, from GET /rate-limits. Fonte única — passada ao DashboardView por prop.
+  // Claude/Codex/Gemini usage limits, from GET /rate-limits. Single source — passed to DashboardView by prop.
   const [rateLimits, setRateLimits] = useState<RateLimits | null>(null);
 
   /**
-   * O que está escrito na caixa de mensagem é DE CADA TERMINAL, não da app.
+   * What is written in the message box belongs TO EACH TERMINAL, not to the app.
    *
-   * Era uma string só, partilhada: escrever aqui e saltar para outro projecto levava o texto
-   * atrás — e, pior, um Enter distraído mandava-o ao CLI errado. Guardado por `sessionId`, cada
-   * conversa guarda o seu rascunho e reencontra-o ao voltar. Limpo quando a sessão fecha
-   * (`handleCloseSession`), senão o mapa cresce para sempre com ids que já não existem.
+   * It used to be a single, shared string: writing here and jumping to another project took the
+   * text along — and, worse, a distracted Enter sent it to the wrong CLI. Stored by `sessionId`,
+   * each conversation keeps its own draft and finds it again on return. Cleared when the session
+   * closes (`handleCloseSession`), otherwise the map grows forever with ids that no longer exist.
    */
   const [terminalDrafts, setTerminalDrafts] = useState<Record<string, string>>({});
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
@@ -127,17 +127,17 @@ export default function App() {
   const [runtimeInfo, setRuntimeInfo] = useState<RuntimeInfo | null>(null);
 
   /**
-   * O separador do browser diz QUAL instalação é. Com duas a correr ao mesmo tempo (uma de
-   * trabalho e uma de desenvolvimento) os separadores eram indistinguíveis — e o título estava
-   * cravado como "JOCA - DEV" no `index.html`, portanto mentia num build de produção.
-   * Sem `JOCA_ENV` no backend fica só "JOCA".
+   * The browser tab says WHICH installation this is. With two running at the same time (one for
+   * work and one for development) the tabs were indistinguishable — and the title was hardcoded
+   * as "JOCA - DEV" in `index.html`, so it lied in a production build.
+   * Without `JOCA_ENV` in the backend it is just "JOCA".
    */
   useEffect(() => {
     document.title = runtimeInfo?.env ? `JOCA · ${runtimeInfo.env}` : 'JOCA';
   }, [runtimeInfo?.env]);
 
   // New UX States
-  // pinOutput UI removida; o ref mantém-se porque o useSessionSocket o consome.
+  // pinOutput UI removed; the ref stays because useSessionSocket consumes it.
   const pinOutputRef = useRef(false);
 
   // Workflow state — per-session parsed from terminal output
@@ -151,15 +151,15 @@ export default function App() {
   const activeIdRef = useRef<string | null>(null);
 
   const projectMemoryRef = useRef(projectMemory);
-  // Lista de projectos lida pelo resolvedor de notificações. Por ref e não pela closure do render
-  // para o handler ficar estável — ele é registado uma vez no módulo `lib/notify`.
+  // Project list read by the notification resolver. By ref and not by the render closure so the
+  // handler stays stable — it is registered once in the `lib/notify` module.
   const projectsRef = useRef(projects);
 
-  // `false` = a próxima sessão criada não rouba o ecrã. Vive aqui porque quem o consome é o router
-  // de mensagens do WebSocket, e quem o baixa é o "+" da lista de agentes.
+  // `false` = the next session created does not steal the screen. It lives here because what
+  // consumes it is the WebSocket message router, and what lowers it is the "+" of the agent list.
   const focusNewSessionRef = useRef(true);
-  // Espelho do projecto activo para os handlers que correm fora do render (o botão de Remote
-  // Control abre o terminal no projecto em que estás).
+  // Mirror of the active project for the handlers that run outside the render (the Remote
+  // Control button opens the terminal in the project you are in).
   const activeProjectIdRef = useRef<string | null>(null);
 
   useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
@@ -185,7 +185,7 @@ export default function App() {
       const update = parseWorkflowLine(line, current);
       if (update) current = update;
     }
-    // Só re-renderiza se o estado mudou de facto (não por output que produz o mesmo estado).
+    // Only re-renders if the state actually changed (not for output that produces the same state).
     if (current !== prev && !workflowEquals(current, prev)) {
       workflowRef.current.set(sessionId, current);
       setWorkflowStates(new Map(workflowRef.current));
@@ -291,21 +291,21 @@ export default function App() {
       ...prev,
     ].slice(0, 80));
     // Sound + OS notification (Windows/macOS), so the user is alerted even off-window.
-    // Com o destino: clicar na notificação do SO traz a janela para a frente E abre este terminal.
-    notify('JOCA — Terminado', session.name, { sessionId: session.id });
+    // With the target: clicking the OS notification brings the window to the front AND opens this terminal.
+    notify('JOCA — Finished', session.name, { sessionId: session.id });
   }, []);
 
-  // Toast a partir de uma notificação persistente marcada `priority:'action'` — alguém está
-  // bloqueado à espera de resposta. Até aqui só sessões terminadas geravam toast, e um pedido de
-  // decisão só aparecia se a inbox estivesse aberta.
+  // Toast from a persistent notification marked `priority:'action'` — someone is blocked waiting
+  // for an answer. Until now only finished sessions produced a toast, and a decision request only
+  // showed up if the inbox was open.
   const addNotificationToast = useCallback((n: AppNotification) => {
     setToasts((prev) => {
-      if (prev.some((t) => t.id === n.id)) return prev; // o mesmo evento não vale dois toasts
+      if (prev.some((t) => t.id === n.id)) return prev; // the same event is not worth two toasts
       return [...prev, {
         id: n.id,
         title: n.title,
         sessionName: n.text.replace(/\s+/g, ' ').trim().slice(0, 120),
-        // Pode não haver sessão: o destino real vai em `target`.
+        // There may be no session: the real target goes in `target`.
         sessionId: n.meta?.sessionId ?? '',
         timestamp: n.ts,
         priority: 'action',
@@ -314,9 +314,9 @@ export default function App() {
     });
   }, []);
 
-  // Conversas que morreram num reinício do backend. O `sessions_list` que chega a seguir poda-as
-  // (e faz bem — é o retrato autoritativo do servidor); isto é o que sobra delas para se poder
-  // explicar o que aconteceu e ler o que elas tinham escrito.
+  // Conversations that died in a backend restart. The `sessions_list` that arrives next prunes
+  // them (and rightly so — it is the server's authoritative snapshot); this is what is left of
+  // them so we can explain what happened and read what they had written.
   const recovered = useRecoveredSessions();
 
   // WebSocket lifecycle (connect / reconnect / message routing) lives in the hook; it returns a
@@ -330,14 +330,14 @@ export default function App() {
     onServerBoot: recovered.noteBootId,
   });
 
-  // Claro/escuro/dinâmico: no modo dinâmico troca sozinho à hora marcada, com a app aberta.
+  // Light/dark/dynamic: in dynamic mode it switches by itself at the set time, with the app open.
   useAutoTheme();
 
   const handleNewSession = useCallback(() => {
     send({ type: 'create_session' });
   }, [send]);
 
-  // Nova sessão num CLI alternativo (codex/agy/opencode) — usado pelo dropdown do TerminalView.
+  // New session on an alternative CLI (codex/agy/opencode) — used by the TerminalView dropdown.
   const handleNewSessionWithCli = useCallback((cli: string) => {
     if (!cli || cli === 'claude') send({ type: 'create_session' });
     else send({ type: 'create_session', cli });
@@ -356,7 +356,7 @@ export default function App() {
 
   const handleCloseSession = useCallback((id: string) => {
     send({ type: 'close_session', sessionId: id });
-    // O rascunho morre com a conversa — sem isto o mapa acumula ids fechados até ao refresh.
+    // The draft dies with the conversation — without this the map piles up closed ids until the refresh.
     setTerminalDrafts((prev) => {
       if (!(id in prev)) return prev;
       const { [id]: _fechado, ...resto } = prev;
@@ -372,8 +372,8 @@ export default function App() {
     const session = sessions.find((s) => s.id === id);
     if (!session) return;
     const { name, projectId } = session;
-    // Reiniciar repete o arranque canónico: nasce no JOCA_Brain, ligado ao mesmo projecto. O
-    // contexto do projecto NÃO é recarregado sozinho — o resume é manual, pelo botão da barra.
+    // Restarting repeats the canonical startup: it is born in JOCA_Brain, tied to the same
+    // project. The project context is NOT reloaded by itself — the resume is manual, via the bar button.
     send({ type: 'close_session', sessionId: id });
     send({ type: 'create_session', sessionName: name, projectId });
   }, [sessions, send]);
@@ -383,8 +383,8 @@ export default function App() {
     setUnreadIds((prev) => { if (!prev.has(sessionId)) return prev; const n = new Set(prev); n.delete(sessionId); return n; });
   }, [send]);
 
-  // "Save all" da dashboard. Quem decide QUAIS conversas recebem é o `planoSaveAll` (dashboard/SaveAll);
-  // aqui só se escreve o comando em cada uma, pela mesma via por onde entra o que o dono escreve.
+  // Dashboard "Save all". What decides WHICH conversations get it is `planoSaveAll` (dashboard/SaveAll);
+  // here the command is only written into each one, by the same route the owner's own typing enters by.
   const handleSaveAllSessions = useCallback((sessionIds: string[]) => {
     sessionIds.forEach((id) => handleInput(id, COMANDO_SAVE));
   }, [handleInput]);
@@ -403,8 +403,8 @@ export default function App() {
     send({ type: 'resize', sessionId, cols, rows });
   }, [send]);
 
-  // Escolher um terminal DENTRO da vista de projecto: muda o activo e monta-o, mas não troca de
-  // vista — o `handleSwitchSession` abaixo faria sair do projecto para o ecrã cheio da sessão.
+  // Choosing a terminal INSIDE the project view: changes the active one and mounts it, but does
+  // not switch view — `handleSwitchSession` below would leave the project for the session's full screen.
   const handleSelectProjectTerminal = useCallback((id: string) => {
     setActiveId(id);
     activateSession(id);
@@ -475,9 +475,9 @@ export default function App() {
       .catch(() => setProjects(snapshot)); // rollback on failure
   }, [handleProjectSaved]);
 
-  // Espelha o removeProject que vivia só na SessionSidebar: fecha primeiro as sessões do
-  // projecto (evita PTYs órfãos), só depois apaga. Se o projecto removido é o que estava aberto
-  // no workspace, volta ao dashboard global em vez de deixar o ProjectWorkspace num estado preso.
+  // Mirrors the removeProject that used to live only in SessionSidebar: it first closes the
+  // project's sessions (avoids orphan PTYs), only then deletes. If the removed project is the one
+  // open in the workspace, it goes back to the global dashboard instead of leaving ProjectWorkspace stuck.
   const handleRemoveProject = useCallback((id: string) => {
     sessions.filter((s) => s.projectId === id).forEach((s) => handleCloseSession(s.id));
     fetch(`/projects/${id}`, { method: 'DELETE' })
@@ -510,9 +510,9 @@ export default function App() {
       .catch(() => setProjects(snapshot)); // rollback on failure
   }, [reloadProjects]);
 
-  // Largar a bolinha de um projecto sobre a de outro: se um dos dois já tem grupo, o outro
-  // junta-se a esse grupo; senão cria-se um grupo novo com os dois. Puramente visual (ver
-  // project-groups-store.ts no backend).
+  // Dropping one project's dot onto another's: if either of the two already has a group, the
+  // other joins that group; otherwise a new group is created with both. Purely visual (see
+  // project-groups-store.ts in the backend).
   const handleGroupProjects = useCallback((draggedId: string, targetId: string) => {
     if (draggedId === targetId) return;
     const dragged = projects.find((p) => p.id === draggedId);
@@ -548,8 +548,8 @@ export default function App() {
       .catch(() => {});
   }, [reloadProjects, reloadProjectGroups]);
 
-  // `icon: null` é o que LIMPA o ícone no backend — `Partial<ProjectGroup>` sozinho só permitiria
-  // `undefined`, que o JSON.stringify omite e deixaria o ícone intacto.
+  // `icon: null` is what CLEARS the icon in the backend — `Partial<ProjectGroup>` alone would
+  // only allow `undefined`, which JSON.stringify omits and would leave the icon intact.
   const handleUpdateProjectGroup = useCallback((id: string, patch: Partial<Omit<ProjectGroup, 'icon'>> & { icon?: ProjectIcon | null }) => {
     fetch(`/project-groups/${id}`, {
       method: 'PATCH',
@@ -568,10 +568,10 @@ export default function App() {
 
   const handleCreateProjectSkill = useCallback((project: Project, skillName: string) => {
     setMainView('session');
-    const instruction = `Vamos criar uma skill. Para tal, usa o /create-skill para criar a skill "${skillName}" apenas para o projeto no path "${project.path}". Antes de iniciar, faz-me o questionário perguntando o que é e para que serve esta skill, e só depois de eu responder é que deves avançar com o ciclo de criação da skill.`;
+    const instruction = `We are going to create a skill. To do so, use /create-skill to create the skill "${skillName}" only for the project at the path "${project.path}". Before starting, run the questionnaire asking me what this skill is and what it is for, and only after I answer should you go ahead with the skill creation cycle.`;
     send({
       type: 'create_session',
-      sessionName: `Criar Skill: ${skillName}`,
+      sessionName: `Create Skill: ${skillName}`,
       projectId: project.id,
       initialInput: instruction,
     });
@@ -584,11 +584,11 @@ export default function App() {
   }, []);
 
   /**
-   * Abrir uma sessão a partir do panorama: se ela pertence a um projecto, o sítio dela é o
-   * workspace DESSE projecto, com a tab respectiva já escolhida — não o ecrã cheio, que arranca o
-   * terminal do contexto onde vive (as outras tabs, o projecto).
+   * Opening a session from the overview: if it belongs to a project, its place is THAT project's
+   * workspace, with the respective tab already selected — not the full screen, which rips the
+   * terminal out of the context it lives in (the other tabs, the project).
    *
-   * Sessões soltas (sem projecto) não têm workspace onde caber: essas continuam a abrir inteiras.
+   * Loose sessions (without a project) have no workspace to fit in: those keep opening in full.
    */
   const handleOpenSessionInContext = useCallback((sessionId: string) => {
     const alvo = sessionsRef.current.find((x) => x.id === sessionId);
@@ -601,19 +601,19 @@ export default function App() {
     if (termRefs.current.has(sessionId)) send({ type: 'get_buffer', sessionId });
   }, [handleSwitchSession, activateSession, send]);
 
-  // Agente novo a partir do "+" da secção Agentes: nasce no projecto e NÃO atira o utilizador para
-  // ecrã cheio (o ref é consumido uma vez pelo router do WebSocket e volta a `true` sozinho).
+  // New agent from the "+" of the Agents section: it is born in the project and does NOT throw the
+  // user into full screen (the ref is consumed once by the WebSocket router and returns to `true` by itself).
   const handleAddProjectAgent = useCallback((project: Project, cli?: string) => {
     focusNewSessionRef.current = false;
-    // SEM `cwd`: o terminal nasce no JOCA_Brain (default do backend) e recebe o contexto do
-    // projecto pelo comando de resume do perfil (`/resume "<pasta>"` no claude, `resume` nos outros).
+    // WITHOUT `cwd`: the terminal is born in JOCA_Brain (backend default) and receives the project
+    // context through the profile's resume command (`/resume "<folder>"` in claude, `resume` in the others).
     send({
       type: 'create_session', projectId: project.id,
       ...(cli && cli !== 'claude' ? { cli } : {}),
     });
   }, [send]);
 
-  // Agente novo sem projecto, da vista global de Agentes.
+  // New agent without a project, from the global Agents view.
   const handleNewLooseAgent = useCallback((cli: string) => {
     focusNewSessionRef.current = false;
     if (!cli || cli === 'claude') send({ type: 'create_session' });
@@ -621,13 +621,13 @@ export default function App() {
   }, [send]);
 
   /**
-   * Contrato ÚNICO de navegação das notificações, partilhado pelos canais que sobraram (toast e
-   * notificação do SO — o painel do rail foi removido). Quem sabe navegar é o App; os canais só
-   * transportam o `meta`.
+   * The SINGLE navigation contract for notifications, shared by the channels that remain (toast
+   * and OS notification — the rail panel was removed). What knows how to navigate is the App; the
+   * channels only carry the `meta`.
    *
-   * Precedência: sessão → projecto (do mais específico para o mais lato).
-   * Uma referência morta (sessão fechada, projecto apagado) não rebenta nem atira para um sítio ao
-   * calhar: cai para o nível seguinte e, não havendo nenhum, fica-se onde se está.
+   * Precedence: session → project (from the most specific to the broadest).
+   * A dead reference (closed session, deleted project) neither blows up nor throws you somewhere at
+   * random: it falls to the next level and, if there is none, you stay where you are.
    */
   const handleOpenNotificationTarget = useCallback((target: NotificationTarget | undefined) => {
     if (!target) return;
@@ -640,8 +640,8 @@ export default function App() {
     }
   }, [handleShowProject, handleSwitchSession]);
 
-  // O router de mensagens do WebSocket (que não é um componente) dispara notificações do SO; o
-  // handler de destino vive num módulo para lhe ser alcançável.
+  // The WebSocket message router (which is not a component) fires OS notifications; the target
+  // handler lives in a module so it can be reached from there.
   useEffect(() => {
     setNotificationTargetHandler(handleOpenNotificationTarget);
     return () => setNotificationTargetHandler(null);
@@ -652,7 +652,7 @@ export default function App() {
     fetch('/joca-items').then((r) => r.json()).then(setJocaItems).catch(() => setJocaItems({ commands: [], skills: [], agents: [] }));
   }, [jocaItems]);
 
-  // Rascunho da conversa aberta. Sem sessão activa não há caixa onde escrever, logo string vazia.
+  // Draft of the open conversation. With no active session there is no box to write in, hence an empty string.
   const terminalDraft = activeId ? terminalDrafts[activeId] ?? '' : '';
   const setTerminalDraft = useCallback((draft: string) => {
     if (!activeId) return;
@@ -695,8 +695,8 @@ export default function App() {
         setCommandPaletteOpen(false);
         return;
       }
-      // Escape fecha as Definições. A seguir à palete de propósito: com as duas abertas, a palete
-      // é a de cima e fecha primeiro.
+      // Escape closes Settings. After the palette deliberately: with both open, the palette is
+      // the one on top and closes first.
       if (event.key === 'Escape' && settingsOpen) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -781,8 +781,8 @@ export default function App() {
     : (activeSession?.projectId ?? activeProjectId);
 
   return (
-    // O rodapé é permanente em todas as vistas, por isso envolve-se o `.app` (que continua a ser a
-    // linha sidebar/conteúdo/painel) numa coluna e a StatusBar entra como último filho.
+    // The footer is permanent in every view, so `.app` (which is still the sidebar/content/panel
+    // row) is wrapped in a column and the StatusBar comes in as the last child.
     <div className="app-shell">
     <div className="app">
       <SessionSidebar
@@ -816,7 +816,7 @@ export default function App() {
 
       <div className="main-area">
         {mainView === 'agents' ? (
-          // Todos os agentes de todos os projectos num sítio só.
+          // All the agents of all the projects in a single place.
           <AgentsView
             sessions={sessions}
             projects={projects}
@@ -827,7 +827,7 @@ export default function App() {
             onRenameSession={handleRenameSession}
           />
         ) : mainView === 'project' ? (
-          // Vista de um projecto: terminais. O DashboardView trata do panorama global.
+          // A project's view: terminals. DashboardView handles the global overview.
           <ProjectWorkspace
             project={projects.find((p) => p.id === contextProjectId) ?? null}
             projects={projects}
@@ -935,8 +935,8 @@ export default function App() {
         onOpenTarget={handleOpenNotificationTarget}
       />
 
-      {/* Não aparece quando não há nada a recuperar: o próprio componente devolve `null` com o
-          retrato vazio (encerramento limpo) ou já dispensado. */}
+      {/* Does not appear when there is nothing to recover: the component itself returns `null`
+          with an empty snapshot (clean shutdown) or one already dismissed. */}
       <RecoveredSessionsNotice
         snapshot={recovered.snapshot}
         onDismiss={recovered.dismiss}
@@ -944,14 +944,14 @@ export default function App() {
       />
 
       {settingsOpen && (
-        // As definições vivem num modal desde que o rail direito saiu: o painel é o mesmo
-        // componente de sempre (com o seu cabeçalho e o seu fechar), só muda onde é desenhado.
+        // Settings live in a modal since the right rail went away: the panel is the same
+        // component as always (with its header and its close), only where it is drawn changes.
         <div
           className="settings-modal-backdrop"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setSettingsOpen(false); }}
         >
-          <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Definições" ref={settingsRef} tabIndex={-1}>
+          <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings" ref={settingsRef} tabIndex={-1}>
             <SettingsPanel
               runtimeInfo={runtimeInfo}
               jocaLogicInfo={jocaLogicInfo}
@@ -981,7 +981,7 @@ export default function App() {
       />
     </div>
 
-      {/* Com `sessions` por props o rodapé não faz pedido nenhum — já as temos do WebSocket. */}
+      {/* With `sessions` by props the footer makes no request — we already have them from the WebSocket. */}
       <StatusBar
         rateLimits={rateLimits}
         sessions={sessions}

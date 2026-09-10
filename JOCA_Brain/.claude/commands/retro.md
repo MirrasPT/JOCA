@@ -1,40 +1,40 @@
-# /retro — Retrospectiva (aprendizagens da janela → acções)
+# /retro — Retrospective (learnings from the window → actions)
 
-Adaptado do `retro` do gstack. Lê as aprendizagens/decisões recentes do projecto (Brain log), resume ganhos/problemas/padrões e **propõe acções concretas**.
+Adapted from gstack's `retro`. Reads the project's recent learnings/decisions (Brain log), summarizes wins/problems/patterns and **proposes concrete actions**.
 
 ---
 
-## Quando usar
-- "retro", "retrospectiva", "o que correu bem/mal", revisão semanal, fim de marco.
+## When to use
+- "retro", "retrospective", "what went well/badly", weekly review, end of a milestone.
 
-## Passos
+## Steps
 
-1. **Carregar a janela** — aprendizagens + decisões do projecto:
+1. **Load the window** — the project's learnings + decisions:
 ```bash
 node .claude/scripts/joca-brain.mjs recall --limit 20
 node .claude/scripts/joca-brain.mjs active
 ```
-   Opcional: `git log --since="7 days ago" --oneline` para o trabalho real da janela.
+   Optional: `git log --since="7 days ago" --oneline` for the window's real work.
 
-2. **Sintetizar** (3 blocos, terso):
-   - **Ganhos** — o que correu bem, padrões a repetir.
-   - **Problemas** — bugs recorrentes, fricção, retrabalho.
-   - **Padrões** — o que se repete (≥2x) e devia virar regra ou skill.
+2. **Synthesize** (3 blocks, terse):
+   - **Wins** — what went well, patterns to repeat.
+   - **Problems** — recurring bugs, friction, rework.
+   - **Patterns** — what repeats (≥2x) and should become a rule or a skill.
 
-3. **Propor acções** — cada problema/padrão → 1 acção concreta:
-   - Lição reutilizável → `node .claude/scripts/joca-brain.mjs learn --text "..." --tags retro`.
-   - Padrão que merece skill/regra → sugerir `/create-skill` ou nota em `rules/`.
-   - Bug recorrente → sugerir fix ou guard-rail (`/guard`).
-   - Melhoria do próprio JOCA → alimentar `/upgrade-joca` (escreve em `memory/feedback/`).
+3. **Propose actions** — each problem/pattern → 1 concrete action:
+   - Reusable lesson → `node .claude/scripts/joca-brain.mjs learn --text "..." --tags retro`.
+   - Pattern that deserves a skill/rule → suggest `/create-skill` or a note in `rules/`.
+   - Recurring bug → suggest a fix or a guard-rail (`/guard`).
+   - Improvement to JOCA itself → feed `/upgrade-joca` (writes to `memory/feedback/`).
 
-4. **Registar o retro** — opcional: checkpoint `--status done`:
+4. **Record the retro** — optional: checkpoint `--status done`:
 ```bash
-printf '## Retro <data>\n<síntese>' | node .claude/scripts/joca-checkpoint.mjs save --title retro --status done
+printf '## Retro <date>\n<synthesis>' | node .claude/scripts/joca-checkpoint.mjs save --title retro --status done
 ```
 
-## Regras
-- Terso. Não inventar ganhos/problemas — derivar do log real (Brain + git). Janela vazia → dizê-lo, não fabricar.
-- Acções accionáveis, não genéricas ("adicionar índice X em Y", não "melhorar performance").
+## Rules
+- Terse. Do not invent wins/problems — derive them from the real log (Brain + git). Empty window → say so, do not fabricate.
+- Actionable actions, not generic ones ("add index X on Y", not "improve performance").
 
-## Próximo passo (chain)
-- Acções de melhoria do JOCA → `/upgrade-joca`. Padrão novo → `/create-skill`.
+## Next step (chain)
+- Actions that improve JOCA → `/upgrade-joca`. New pattern → `/create-skill`.

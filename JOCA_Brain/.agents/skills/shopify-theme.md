@@ -1,6 +1,6 @@
 ---
 name: shopify-theme
-description: "Building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check. MUST be invoked when the user mentions: Shopify, Liquid, Dawn, Theme Check, CLI."
+description: "Building or customizing a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check. MUST be invoked when the user mentions: Shopify, Liquid, Dawn, Theme Check, CLI."
 compatibility: "Shopify CLI 3.x+. Online Store 2.0 (sections everywhere). Node.js 20.10+."
 ---
 

@@ -284,4 +284,4 @@ dataLayer.push({
 - **ab-test-setup**: For experiment tracking
 - **seo**: For organic traffic analysis
 - **page-cro**: For conversion optimization (uses this data)
-- **google-analytics**: Para queries e relatórios GA4 (em tools/)
+- **google-analytics**: For GA4 queries and reports (in tools/)

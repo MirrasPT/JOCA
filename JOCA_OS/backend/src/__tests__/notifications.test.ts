@@ -18,16 +18,16 @@ describe('notification grouping', () => {
   afterEach(wipe);
 
   it('folds repeats of the same groupKey into one entry with a count', () => {
-    pushNotification({ kind: 'system', title: 'A', text: 'primeiro', groupKey: 'p1' });
-    pushNotification({ kind: 'system', title: 'B', text: 'segundo', groupKey: 'p1' });
-    pushNotification({ kind: 'system', title: 'C', text: 'terceiro', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'A', text: 'first', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'B', text: 'second', groupKey: 'p1' });
+    pushNotification({ kind: 'system', title: 'C', text: 'third', groupKey: 'p1' });
 
     const list = loadNotifications();
     expect(list).toHaveLength(1);
     expect(list[0].count).toBe(3);
-    expect(list[0].title).toBe('C');            // o mais recente manda
-    expect(list[0].text).toContain('terceiro');
-    expect(list[0].text).toContain('+2');       // e diz quantos ficaram por baixo
+    expect(list[0].title).toBe('C');            // the most recent one wins
+    expect(list[0].text).toContain('third');
+    expect(list[0].text).toContain('+2');       // and it says how many are stacked underneath
   });
 
   it('keeps different groupKeys apart', () => {
@@ -37,8 +37,8 @@ describe('notification grouping', () => {
   });
 
   it('never groups when no key is given — two blockers stay two decisions', () => {
-    pushNotification({ kind: 'system', title: 'Q1', text: 'que cor?', priority: 'action' });
-    pushNotification({ kind: 'system', title: 'Q2', text: 'apago isto?', priority: 'action' });
+    pushNotification({ kind: 'system', title: 'Q1', text: 'which color?', priority: 'action' });
+    pushNotification({ kind: 'system', title: 'Q2', text: 'delete this?', priority: 'action' });
     const list = loadNotifications();
     expect(list).toHaveLength(2);
     expect(list.every((n) => n.priority === 'action')).toBe(true);
@@ -48,20 +48,20 @@ describe('notification grouping', () => {
     pushNotification({ kind: 'system', title: 'A', text: 'x', groupKey: 'p1' });
     markAllNotificationsRead();
     pushNotification({ kind: 'system', title: 'B', text: 'y', groupKey: 'p1' });
-    // Agrupar numa lida ressuscitava-a silenciosamente; melhor entrada nova.
+    // Folding into an already-read entry resurrected it silently; a new entry is better.
     expect(loadNotifications()).toHaveLength(2);
   });
 
-  it('agrupa falhas repetidas por motivo, para que um motivo diferente ainda apareça', () => {
+  it('groups repeated failures by reason, so that a different reason still shows up', () => {
     const key = (reason: string) => `auto-fail:proj:${reason}`;
-    pushNotification({ kind: 'system', title: 'T1', text: 'CLI em baixo', priority: 'action', groupKey: key('CLI em baixo') });
-    pushNotification({ kind: 'system', title: 'T2', text: 'CLI em baixo', priority: 'action', groupKey: key('CLI em baixo') });
-    pushNotification({ kind: 'system', title: 'T3', text: 'ficheiro em falta', priority: 'action', groupKey: key('ficheiro em falta') });
+    pushNotification({ kind: 'system', title: 'T1', text: 'CLI down', priority: 'action', groupKey: key('CLI down') });
+    pushNotification({ kind: 'system', title: 'T2', text: 'CLI down', priority: 'action', groupKey: key('CLI down') });
+    pushNotification({ kind: 'system', title: 'T3', text: 'missing file', priority: 'action', groupKey: key('missing file') });
 
     const list = loadNotifications();
     expect(list).toHaveLength(2);
-    expect(list.find((n) => n.text.includes('CLI em baixo'))?.count).toBe(2);
-    expect(list.find((n) => n.text.includes('ficheiro em falta'))?.count).toBeUndefined();
+    expect(list.find((n) => n.text.includes('CLI down'))?.count).toBe(2);
+    expect(list.find((n) => n.text.includes('missing file'))?.count).toBeUndefined();
   });
 });
 
@@ -76,11 +76,11 @@ describe('notification priority', () => {
 
   it('pendingActions returns only unread action items', () => {
     pushNotification({ kind: 'system', title: 'info', text: 'x' });
-    pushNotification({ kind: 'system', title: 'bloqueio', text: 'y', priority: 'action' });
-    expect(pendingActions().map((n) => n.title)).toEqual(['bloqueio']);
+    pushNotification({ kind: 'system', title: 'blocker', text: 'y', priority: 'action' });
+    expect(pendingActions().map((n) => n.title)).toEqual(['blocker']);
 
     markAllNotificationsRead();
-    expect(pendingActions()).toHaveLength(0);   // respondido deixa de contar
+    expect(pendingActions()).toHaveLength(0);   // answered stops counting
   });
 
   it('a grouped entry counts as one unread, not N', () => {

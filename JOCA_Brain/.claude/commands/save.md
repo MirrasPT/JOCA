@@ -1,272 +1,272 @@
-# /save — Guardar sessao + feedback do projecto
+# /save — Save the session + project feedback
 
-Corre no fim de cada sessao. Guarda estado, actualiza memoria, captura feedback do projecto e do JOCA. Zero perguntas ao utilizador — tudo inferido da sessao.
-
----
-
-## PASSO 1 — Identificar projecto
-
-Detectar directorio actual. Resolver `memory/projects/<nome>.md`.
-Se nao existir, criar entrada minima com frontmatter.
+Runs at the end of every session. Saves state, updates the memory, captures feedback about the project and about JOCA. Zero questions to the user — everything inferred from the session.
 
 ---
 
-## PASSO 2 — Guardar estado da sessao
+## STEP 1 — Identify the project
 
-Actualizar `memory/projects/<nome>.md`:
+Detect the current directory. Resolve `memory/projects/<name>.md`.
+If it does not exist, create a minimal entry with frontmatter.
 
-| Seccao | Accao |
+---
+
+## STEP 2 — Save the session state
+
+Update `memory/projects/<name>.md`:
+
+| Section | Action |
 |--------|-------|
-| **Estado actual** | Substituir com descricao breve do estado presente |
-| **Decisoes tomadas** | Append com data `YYYY-MM-DD` |
-| **Pendente** | Substituir com lista actual |
-| **Ultima sessao** | Data + resumo de 1 linha |
+| **Current state** | Replace with a brief description of the present state |
+| **Decisions taken** | Append with the date `YYYY-MM-DD` |
+| **Pending** | Replace with the current list |
+| **Last session** | Date + 1-line summary |
 
-**⚠ Sessões concorrentes — `Edit`, nunca `Write`.** Se houver outras sessões Claude activas
-(`ListAgents`), a memória do projecto tem mais do que um autor. **Reler o ficheiro imediatamente
-antes de escrever** e usar sempre `Edit` cirúrgico. Um `Write` teria apagado o trabalho da outra
-sessão — só se soube porque o `Edit` avisou "the file had been modified on disk". Entradas do mesmo
-dia numeram-se com sufixo `(a)`/`(b)`/`(c)` para não colidirem.
+**⚠ Concurrent sessions — `Edit`, never `Write`.** If there are other active Claude sessions
+(`ListAgents`), the project's memory has more than one author. **Re-read the file immediately
+before writing** and always use a surgical `Edit`. A `Write` would have wiped the other session's
+work — it only came to light because `Edit` warned "the file had been modified on disk". Entries from the same
+day are numbered with the suffix `(a)`/`(b)`/`(c)` so they do not collide.
 
-**Sub-repos git (repo aninhado num sub-directório):** alguns projectos têm um repo git PRÓPRIO num subdir (ex.: `<JOCA_ROOT>` = repo `JOCA`, mas `JOCA_OS/` é repo local-only separado). Detectar sub-repos (`git -C <subdir> rev-parse --is-inside-work-tree`) e reportar pendências de commit POR repo no PASSO 8 — senão trabalho num repo aninhado fica por commitar e invisível no `git status` do repo-pai. (Fonte: JOCA 2026-06-25.)
-
----
-
-## PASSO 2a-bis — PROGRESSO.md (estado partilhado por git)
-
-Se a raiz do projecto tiver `PROGRESSO.md` (formato em
-`.claude/reference/start/progresso-formato.md`):
-1. Actualizar **Estado actual** (1-3 linhas) e a tabela de **Fases** se alguma mudou — sempre com a
-   coluna Prova (caminho/comando), nunca so o ✅.
-2. Acrescentar 1 linha ao **Diario**: `- <data> · <maquina/utilizador> · <o que aconteceu>`.
-3. **Commitar junto com o resto do trabalho** — e a memoria PARTILHADA: o que nao for commitado nao
-   existe para os outros colaboradores. (A memoria do Brain continua individual; as duas apontam uma
-   para a outra, nao se duplicam.)
-4. **Se NAO existir** e o projecto ja levou trabalho de mais do que uma sessao: cria-o com o estado
-   observado (git + docs + issues), sem entrevista. E o estado partilhado; a sua ausencia e a razao
-   por que o proximo colaborador pergunta o que ja esta escrito.
-
-## PASSO 2b — Check de Conceito (projectos com regras mutáveis)
-
-Se o projecto tiver um `CLAUDE.md` com secção `### Conceito` (comum em jogos, motores de regras, apps com domínio mutável):
-1. Ler a secção `### Conceito` do `CLAUDE.md` do projecto
-2. Comparar com o `memory/projects/<nome>.md` actual
-3. Se houver divergência (ex.: campo mudou de 9×10 para 7×9, cartas novas adicionadas, regras alteradas) → propor actualização cirúrgica (1 linha de diff, não reescrever a secção inteira)
-4. Se não houver divergência ou não existir `### Conceito`: saltar silenciosamente
+**Git sub-repos (a repo nested in a sub-directory):** some projects have their OWN git repo in a subdir (e.g. `<JOCA_ROOT>` = the `JOCA` repo, but `JOCA_OS/` is a separate local-only repo). Detect sub-repos (`git -C <subdir> rev-parse --is-inside-work-tree`) and report pending commits PER repo in STEP 8 — otherwise work in a nested repo stays uncommitted and invisible in the parent repo's `git status`. (Source: JOCA 2026-06-25.)
 
 ---
 
-## PASSO 2c — Checkpoint estruturado (restaurável)
+## STEP 2a-bis — PROGRESS.md (state shared through git)
 
-Escrever um snapshot machine-readable da sessão (adaptado de gstack context-save) — restaurado pelo `/resume`. Complementa a prosa do PASSO 2, não a substitui.
+If the project root has `PROGRESS.md` (format in
+`.claude/reference/start/progress-format.md`):
+1. Update **Current state** (1-3 lines) and the **Phases** table if any changed — always with the
+   Evidence column (path/command), never just the ✅.
+2. Add 1 line to the **Diary**: `- <date> · <machine/user> · <what happened>`.
+3. **Commit it together with the rest of the work** — it is the SHARED memory: what is not committed does
+   not exist for the other collaborators. (The Brain's memory stays individual; the two point at each
+   other, they do not duplicate.)
+4. **If it does NOT exist** and the project has already taken work from more than one session: create it with
+   the observed state (git + docs + issues), without an interview. It is the shared state; its absence is the
+   reason the next collaborator asks what is already written.
+
+## STEP 2b — Concept check (projects with mutable rules)
+
+If the project has a `CLAUDE.md` with a `### Concept` section (common in games, rules engines, apps with a mutable domain):
+1. Read the `### Concept` section of the project's `CLAUDE.md`
+2. Compare it with the current `memory/projects/<name>.md`
+3. If there is divergence (e.g. the field changed from 9×10 to 7×9, new cards added, rules altered) → propose a surgical update (1 line of diff, do not rewrite the whole section)
+4. If there is no divergence or no `### Concept` exists: skip silently
+
+---
+
+## STEP 2c — Structured checkpoint (restorable)
+
+Write a machine-readable snapshot of the session (adapted from gstack context-save) — restored by `/resume`. It complements the prose of STEP 2, it does not replace it.
 
 ```bash
-printf '## Decisões desta sessão\n- <...>\n## Trabalho restante\n- <...>\n## Próxima acção\n- <...>' | node .claude/scripts/joca-checkpoint.mjs save --slug <projecto> --title "<slug-curto>" --status wip
+printf '## Decisions this session\n- <...>\n## Remaining work\n- <...>\n## Next action\n- <...>' | node .claude/scripts/joca-checkpoint.mjs save --slug <project> --title "<short-slug>" --status wip
 ```
-⚠ **`--slug <projecto>`** com o nome do PASSO 1, não o default. Sem ele o slug vem do repo do cwd e
-sessões concorrentes misturam checkpoints na mesma pasta — o `latest` do `/resume` passa a devolver o
-de outro projecto.
-- Body = decisões desta sessão + trabalho restante + próxima acção (1 linha cada).
-- `--status done` se a tarefa ficou concluída; senão `wip`.
-- O helper escreve `memory/checkpoints/<slug>/<ts>.md` (frontmatter branch/ts/status), poda aos últimos 12, rename atómico.
+⚠ **`--slug <project>`** with the name from STEP 1, not the default. Without it the slug comes from the cwd's
+repo and concurrent sessions mix checkpoints in the same folder — `/resume`'s `latest` starts returning
+another project's.
+- Body = decisions this session + remaining work + next action (1 line each).
+- `--status done` if the task ended up finished; otherwise `wip`.
+- The helper writes `memory/checkpoints/<slug>/<ts>.md` (frontmatter branch/ts/status), prunes to the last 12, atomic rename.
 
-**Decisões/aprendizagens atómicas** desta sessão (não-óbvias, reutilizáveis) → registar no Brain log (reversível, sem perguntar) — sintaxe do `joca-brain decide/learn`: ver `/learn` (fonte única).
+**Atomic decisions/learnings** from this session (non-obvious, reusable) → record them in the Brain log (reversible, without asking) — `joca-brain decide/learn` syntax: see `/learn` (single source).
 
 ---
 
-## PASSO 2d — Estado que vive fora do git
+## STEP 2d — State that lives outside git
 
-Guardar a memória não serve de nada se o **conteúdo** do projecto ficar para trás. Antes de fechar:
+Saving the memory is worth nothing if the project's **content** is left behind. Before closing:
 
-**a) Artefacto-ponte desactualizado.** Se o `CLAUDE.md` do projecto declarar um artefacto de estado
-exportável (padrão `snapshot/`, `*.sql`, `dump/`, `backup/`), comparar o `mtime` do artefacto com o do
-estado vivo (volume Docker, BD local, `wp-content/uploads`). Artefacto mais velho → **re-exportar**
-(reversível, sem perguntar) ou reportar como pendente **crítico** no PASSO 8.
-> Caso real: uma sessão fez trabalho de conteúdo numa BD dentro de um volume Docker e nunca
-> re-exportou o snapshot. 12 dias depois a outra máquina abriu um site silenciosamente velho — assets
-> de Julho na pasta, BD de Junho no volume — e custou uma migração staging→local completa.
+**a) Stale bridge artifact.** If the project's `CLAUDE.md` declares an exportable state artifact
+(pattern `snapshot/`, `*.sql`, `dump/`, `backup/`), compare the artifact's `mtime` with that of the
+live state (Docker volume, local DB, `wp-content/uploads`). Older artifact → **re-export**
+(reversible, without asking) or report it as a **critical** pending item in STEP 8.
+> Real case: a session did content work in a DB inside a Docker volume and never
+> re-exported the snapshot. 12 days later the other machine opened a silently old site — July assets
+> in the folder, a June DB in the volume — and it cost a complete staging→local migration.
 
-**b) Cloud-sync não é sincronização de projecto.** Uma pasta em MEGA/Drive **não** leva dotfiles
-(`.git`, `.env`, `.gitignore`) nem estado de runtime (volumes, BDs). "Está no MEGA, deve estar
-actualizado" é falso por omissão. Registar na memória do projecto **qual é o artefacto-ponte** entre
-máquinas.
+**b) Cloud sync is not project synchronization.** A folder in MEGA/Drive does **not** carry dotfiles
+(`.git`, `.env`, `.gitignore`) or runtime state (volumes, DBs). "It's in MEGA, it must be up to
+date" is false by default. Record in the project's memory **what the bridge artifact between
+machines is**.
 
-**c) A memória do Brain pode não viajar por git — CONFIRMAR, não presumir.** O que é ignorado e para
-onde aponta o `origin` **varia por instalação** (clone público vs privado, `.gitignore` editado à
-mão). Não tomar nenhuma das duas coisas como facto: medir, em 2 comandos, antes de decidir.
+**c) The Brain's memory may not travel through git — CONFIRM, do not assume.** What is ignored and where
+`origin` points **varies per installation** (public vs private clone, `.gitignore` edited by
+hand). Do not take either of those as fact: measure, in 2 commands, before deciding.
 
 ```bash
-git remote -v                                    # o origin daqui é público ou privado?
+git remote -v                                    # is the origin here public or private?
 for p in memory/projects/x.md memory/feedback/x.md memory/decisions/x.md \
          memory/learnings/x.md memory/knowledge/x.md memory/checkpoints/x.md; do
-  printf '%-32s ' "$p"; git check-ignore -v "$p" || echo 'NAO IGNORADO'
+  printf '%-32s ' "$p"; git check-ignore -v "$p" || echo 'NOT IGNORED'
 done
 ```
-⚠ Testar um **ficheiro dentro** da pasta, não a pasta: um padrão `memory/projects/*` ignora o
-conteúdo e `git check-ignore memory/projects` devolve **nada** — parece não estar ignorado e está.
-⚠ Há **excepções por negação** (`!memory/projects/JOCA.md`): "a pasta está ignorada" não implica que
-todos os ficheiros lá dentro estejam.
+⚠ Test a **file inside** the folder, not the folder: a `memory/projects/*` pattern ignores the
+content and `git check-ignore memory/projects` returns **nothing** — it looks as if it is not ignored, but it is.
+⚠ There are **negation exceptions** (`!memory/projects/JOCA.md`): "the folder is ignored" does not imply that
+every file inside it is.
 
-Leitura do resultado:
-| Medição | Consequência |
+Reading the result:
+| Measurement | Consequence |
 |---|---|
-| Ignorado | Commitar `memory/` não leva nada a lado nenhum → travessia por **`/sync-brain`** (pasta-ponte) |
-| Não ignorado + `origin` **privado** | A memória viaja por git → basta commit+push; dizê-lo no PASSO 8 |
-| Não ignorado + `origin` **público** | ⚠ **Pendente crítico**: memória de projectos privados a caminho de um repo público — parar e reportar antes de qualquer `git add` |
+| Ignored | Committing `memory/` takes nothing anywhere → crossing via **`/sync-brain`** (bridge folder) |
+| Not ignored + **private** `origin` | The memory travels through git → commit+push is enough; say so in STEP 8 |
+| Not ignored + **public** `origin` | ⚠ **Critical pending item**: memory of private projects on its way to a public repo — stop and report before any `git add` |
 
-Se a sessão produziu decisões/checkpoints que a outra máquina precisa, dizê-lo no PASSO 8 com a via
-que a medição indicou (`/sync-brain` ou push).
+If the session produced decisions/checkpoints the other machine needs, say so in STEP 8 with the route
+the measurement indicated (`/sync-brain` or push).
 
-> Foi um facto cravado que criou este defeito: a versão anterior deste passo afirmava "estão todos no
-> `.gitignore`" e "o `origin` daqui é o público". Numa instalação de produção as duas eram falsas.
+> It was a hardcoded fact that created this defect: the previous version of this step claimed "they are all in the
+> `.gitignore`" and "the `origin` here is the public one". In a production installation both were false.
 
-**d) Um aviso na documentação não é um fix.** Se estiveres a escrever "⚠ não corras X", regista-o
-também como **pendente de correcção** — um `⚠ não corras npm test` sobreviveu semanas a esconder um
-defeito de perda de dados (os testes faziam `fs.rmSync` sobre o `DATA_DIR` real e apagavam
-notificações e chat).
-
----
-
-## PASSO 3 — Feedback do projecto (inline, auto-extract)
-
-Analisar a conversa e extrair aprendizagens com impacto em sessoes futuras:
-
-### A. Terminologia clarificada
-Expressoes que causaram ambiguidade, com definicao correcta.
-
-### B. Regras e preferencias descobertas
-Constraints ou comportamentos que se revelaram importantes.
-
-### C. Limitacoes de ferramentas
-Limitacoes documentaveis de modelos, MCPs, ou APIs que afectaram o resultado.
-
-### D. Templates ou formatos validados
-Estruturas testadas e aprovadas durante a sessao.
-
-### E. Correccoes de workflow
-Passos do processo do projecto que foram corrigidos ou melhorados.
-
-**Destinos:**
-- Glossarios, regras, templates, limitacoes → append cirurgico ao `CLAUDE.md` do projecto (seccao relevante)
-- Contexto estrutural novo → append a `memory/projects/<nome>.md`
-
-**Regra:** so escrever o que a sessao trouxe de novo. Edicoes cirurgicas — nao reescrever ficheiros inteiros. Se nao ha nada relevante, saltar este passo silenciosamente.
-
-**Regra de validade — receitas e estado vivo.** Ao registar uma receita de comando (deploy, rsync,
-FTP, invocação de CLI), guardar **as condições em que foi validada**: nº de casos, tamanho/tipo de
-ficheiro, versão da ferramenta, data. Amostra única marca-se `validado 1×`. Uma receita de FTP
-generalizada a partir de um só ficheiro grande foi seguida como facto e partiu um site. O mesmo vale
-para afirmações sobre estado vivo (contagens, IDs, credenciais): datar e marcar como perecível — o
-`/resume` (2c) lista-as para revalidação.
+**d) A warning in the documentation is not a fix.** If you are writing "⚠ do not run X", also record it
+as a **pending fix** — a `⚠ do not run npm test` survived for weeks hiding a data-loss
+defect (the tests did `fs.rmSync` on the real `DATA_DIR` and deleted notifications
+and chat).
 
 ---
 
-## PASSO 4 — Feedback do JOCA (auto-extract, alimenta /upgrade-joca)
+## STEP 3 — Project feedback (inline, auto-extract)
 
-Verificar se a sessao revelou gaps no toolkit JOCA:
+Analyze the conversation and extract learnings with an impact on future sessions:
 
-| Categoria | Exemplos |
+### A. Terminology clarified
+Expressions that caused ambiguity, with the correct definition.
+
+### B. Rules and preferences discovered
+Constraints or behaviors that turned out to be important.
+
+### C. Tool limitations
+Documentable limitations of models, MCPs, or APIs that affected the result.
+
+### D. Templates or formats validated
+Structures tested and approved during the session.
+
+### E. Workflow corrections
+Steps of the project's process that were corrected or improved.
+
+**Destinations:**
+- Glossaries, rules, templates, limitations → surgical append to the project's `CLAUDE.md` (relevant section)
+- New structural context → append to `memory/projects/<name>.md`
+
+**Rule:** only write what the session brought that is new. Surgical edits — do not rewrite whole files. If there is nothing relevant, skip this step silently.
+
+**Validity rule — recipes and live state.** When recording a command recipe (deploy, rsync,
+FTP, a CLI invocation), save **the conditions under which it was validated**: number of cases, file
+size/type, tool version, date. A single sample is marked `validated 1×`. An FTP recipe
+generalized from one large file was followed as fact and broke a site. The same holds
+for claims about live state (counts, IDs, credentials): date them and mark them perishable — `/resume`
+(2c) lists them for revalidation.
+
+---
+
+## STEP 4 — JOCA feedback (auto-extract, feeds /upgrade-joca)
+
+Check whether the session revealed gaps in the JOCA toolkit:
+
+| Category | Examples |
 |-----------|----------|
-| `workflow-gap` | Passo em falta num processo que causou retrabalho |
-| `doc-gap` | Skill/comando documentado diferente do que realmente faz |
-| `missing-skill` | Skill ou comando que devia existir e nao existe |
-| `skill-improvement` | Skill existente que precisa de melhorias |
-| `tool-reliability` | MCP ou ferramenta que falhou, timeout, bloqueado |
-| `discovery-gap` | Info que devia ser pedida upfront mas nao foi |
-| `command-improvement` | Comando existente que precisa de ajuste |
+| `workflow-gap` | Missing step in a process that caused rework |
+| `doc-gap` | Skill/command documented differently from what it actually does |
+| `missing-skill` | Skill or command that should exist and does not |
+| `skill-improvement` | Existing skill that needs improvements |
+| `tool-reliability` | MCP or tool that failed, timed out, was blocked |
+| `discovery-gap` | Info that should have been asked upfront but was not |
+| `command-improvement` | Existing command that needs adjusting |
 
-Se encontrar items, escrever `memory/feedback/session-<YYYY-MM-DD>-<HH-MM>.md` com frontmatter:
+If you find items, write `memory/feedback/session-<YYYY-MM-DD>-<HH-MM>.md` with frontmatter:
 
 ```yaml
 ---
 type: feedback-joca
 source: auto-extracted-by-save
 session_date: <YYYY-MM-DD>
-project: <nome>
+project: <name>
 ---
 ```
 
-Cada entry com: `**Categoria:** ... | **Severidade:** critical/high/medium/low | **Descricao:** ... | **Componente afectado:** ... | **Fix sugerido:** ...`
+Each entry with: `**Category:** ... | **Severity:** critical/high/medium/low | **Description:** ... | **Affected component:** ... | **Suggested fix:** ...`
 
-Se nao ha nada relevante, nao criar ficheiro. Nunca perguntar ao utilizador.
+If there is nothing relevant, do not create a file. Never ask the user.
 
 ---
 
-## PASSO 5 — Knowledge graphs (opcional, nao bloqueante)
+## STEP 5 — Knowledge graphs (optional, non-blocking)
 
 ```bash
-# Interpretador: Windows usa `python` (o `python3` e o stub vazio da Store); macOS/Linux usam `python3`.
+# Interpreter: Windows uses `python` (`python3` is the empty Store stub); macOS/Linux use `python3`.
 for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
-# Tentar rebuild — se graphify nao disponivel, saltar silenciosamente
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-projecto>'))" 2>/dev/null || true
+# Try a rebuild — if graphify is not available, skip silently
+"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<project-path>'))" 2>/dev/null || true
 "$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))" 2>/dev/null || true
 ```
 
-Nota: usar sempre API Python directamente. CLI `graphify` tem bugs conhecidos.
-Nota: o scan exclui `vendor/`, `node_modules/`, `storage/`, `out/`, `public/` por omissao (evitar dezenas de milhar de nos de ruido).
+Note: always use the Python API directly. The `graphify` CLI has known bugs.
+Note: the scan excludes `vendor/`, `node_modules/`, `storage/`, `out/`, `public/` by default (to avoid tens of thousands of noise nodes).
 
 ---
 
-## PASSO 6 — Reindexar o toolkit (se o JOCA foi alterado)
+## STEP 6 — Reindex the toolkit (if JOCA was changed)
 
-Só corre se ficheiros em `.claude/skills/`, `.claude/agents/` ou `.claude/commands/` foram modificados nesta sessao.
+Only runs if files in `.claude/skills/`, `.claude/agents/` or `.claude/commands/` were modified in this session.
 
 ```bash
 bash .claude/scripts/compile-bridges.sh 2>/dev/null || true
 ```
 
-Se foram **adicionadas, renomeadas ou removidas** skills/agents/comandos, o inventario derivado fica a mentir. Realinhar **agora**, nao noutro comando:
+If skills/agents/commands were **added, renamed or removed**, the derived inventory ends up lying. Realign **now**, not in another command:
 
 ```bash
-python .claude/scripts/build-skill-index.py    # macOS/Linux: python3 — regenera memory/SKILL_INDEX.json
-node   .claude/scripts/joca-doctor.mjs         # apanha paths/indices mortos (exit 1 se houver ✗)
+python .claude/scripts/build-skill-index.py    # macOS/Linux: python3 — regenerates memory/SKILL_INDEX.json
+node   .claude/scripts/joca-doctor.mjs         # catches dead paths/indexes (exit 1 if there is a ✗)
 ```
 
-Depois, edicao cirurgica em `memory/INDEX.md` (contagens + a linha do componente novo) e, se for um comando novo, na tabela `## Commands` do `JOCA_Brain/CLAUDE.md`. **Um componente que nenhum indice expoe e um componente invisivel** — o matching por relevancia nunca lhe chega.
+Then a surgical edit in `memory/INDEX.md` (the counts + the new component's line) and, if it is a new command, in the `## Commands` table of `JOCA_Brain/CLAUDE.md`. **A component that no index surfaces is an invisible component** — relevance matching never reaches it.
 
-> Nota historica: isto era o antigo `/sync-questionnaires`, que auditava questionarios de formulario. Os questionarios deixaram de existir (o levantamento passou a ser conversa — ver `/start`), portanto o que sobra e reindexar, e o sitio certo e aqui.
+> Historical note: this used to be the old `/sync-questionnaires`, which audited form questionnaires. The questionnaires no longer exist (the survey became a conversation — see `/start`), so what is left is reindexing, and the right place is here.
 
 ---
 
-## PASSO 7 — Actualizar ~/CLAUDE.md (se aplicavel)
+## STEP 7 — Update ~/CLAUDE.md (if applicable)
 
-Se a sessao trouxe informacao nova sobre o projecto (novo directorio, mudanca de stack, novo status), actualizar a tabela de projectos em `~/CLAUDE.md`.
+If the session brought new information about the project (new directory, stack change, new status), update the projects table in `~/CLAUDE.md`.
 
 ---
 
-## PASSO 8 — Relatorio
+## STEP 8 — Report
 
 ```
-SAVE — <nome-projecto>
+SAVE — <project-name>
 ═══════════════════════
 
-Estado:
-  ✓ memory/projects/<nome>.md actualizado
-  ✓ Decisoes: N registadas | Pendentes: N items
+State:
+  ✓ memory/projects/<name>.md updated
+  ✓ Decisions: N recorded | Pending: N items
 
-Feedback projecto:
-  ✓ CLAUDE.md — N actualizacoes (glossario, regras, templates)
-  ✓ memory/projects/<nome>.md — contexto novo adicionado
-  — Sem aprendizagens novas nesta sessao
+Project feedback:
+  ✓ CLAUDE.md — N updates (glossary, rules, templates)
+  ✓ memory/projects/<name>.md — new context added
+  — No new learnings this session
 
-Feedback JOCA:
-  ✓ memory/feedback/session-<data>.md — N items (X critical, Y high)
-    → Considerar /upgrade-joca
-  — Sem gaps detectados
+JOCA feedback:
+  ✓ memory/feedback/session-<date>.md — N items (X critical, Y high)
+    → Consider /upgrade-joca
+  — No gaps detected
 
 Extras:
-  [✓ Graphs actualizados]
-  [✓ Bridges recompilados]
-  [✓ SKILL_INDEX + INDEX.md realinhados | joca-doctor limpo]
-  [✓ ~/CLAUDE.md actualizado]
+  [✓ Graphs updated]
+  [✓ Bridges recompiled]
+  [✓ SKILL_INDEX + INDEX.md realigned | joca-doctor clean]
+  [✓ ~/CLAUDE.md updated]
 
-Sessao guardada.
+Session saved.
 ```
 
 ---
 
-## Notas
+## Notes
 
-- ZERO perguntas. Tudo inferido da sessao.
-- Feedback do projecto (PASSO 3) e do JOCA (PASSO 4) sao auto-extraidos aqui — os antigos comandos `/feedback-projeto` e `/feedback-joca` foram removidos (fundidos neste `/save`).
-- Se nao ha nada a guardar num passo, saltar silenciosamente — nao reportar "nada encontrado" para cada seccao vazia.
+- ZERO questions. Everything inferred from the session.
+- Project feedback (STEP 3) and JOCA feedback (STEP 4) are auto-extracted here — the old `/feedback-projeto` and `/feedback-joca` commands were removed (merged into this `/save`).
+- If there is nothing to save in a step, skip silently — do not report "nothing found" for every empty section.

@@ -1,16 +1,16 @@
-/* Aviso de conversas perdidas num reinício do backend + leitor do output que elas deixaram.
-   Só tokens da app — nada de valores novos de cor, espaço ou raio.
+/* Warning about conversations lost in a backend restart + reader of the output they left behind.
+   App tokens only — no new color, spacing or radius values.
 
-   Onde vive: topo, ao centro. Não é canto inferior direito porque os toasts já lá estão e os dois
-   podem coexistir (uma sessão termina no mesmo instante em que o servidor volta); e não é modal
-   porque um reinício não é uma decisão a tomar. */
+   Where it lives: top, centered. Not the bottom right corner because the toasts are already there
+   and the two can coexist (a session ends at the very moment the server comes back); and not a
+   modal because a restart is not a decision to take. */
 
 .rec-notice {
   position: fixed;
   top: var(--sp-4);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 210;              /* acima dos toasts (200), abaixo do modal de definições (1200) */
+  z-index: 210;              /* above the toasts (200), below the settings modal (1200) */
   width: min(520px, calc(100vw - 2 * var(--sp-4)));
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* ─── Cabeçalho ────────────────────────────────────────────────────── */
+/* ─── Header ───────────────────────────────────────────────────────── */
 
 .rec-notice-head {
   display: flex;
@@ -36,7 +36,7 @@
   gap: var(--sp-3);
 }
 
-/* Tinta de fundo, não barra à esquerda: a barra de acento é o tell visual que a casa não usa. */
+/* Background tint, not a left bar: the accent bar is the visual tell the house does not use. */
 .rec-notice-icon {
   flex: 0 0 auto;
   display: inline-flex;
@@ -47,7 +47,7 @@
   border-radius: 10px;
   border: 1px solid var(--accent-border);
   background: var(--accent-soft);
-  /* --accent-text e não --accent: o laranja puro não passa AA sobre fundo claro. */
+  /* --accent-text and not --accent: pure orange does not pass AA on a light background. */
   color: var(--accent-text);
 }
 
@@ -93,7 +93,7 @@
   color: var(--text-dim);
 }
 
-/* ─── Lista de conversas ───────────────────────────────────────────── */
+/* ─── Conversation list ────────────────────────────────────────────── */
 
 .rec-notice-list {
   display: flex;
@@ -155,9 +155,9 @@
   color: var(--text-ghost);
   white-space: nowrap;
   overflow: hidden;
-  /* Sem `direction: rtl` para cortar pelo princípio: a barra inicial de um caminho saltaria para o
-     fim (regra bidi), e um caminho ao contrário é pior do que um caminho cortado. O caminho
-     completo vive no `title` da linha. */
+  /* No `direction: rtl` to cut from the start: a path's leading slash would jump to the end
+     (bidi rule), and a reversed path is worse than a truncated one. The full path lives in the
+     row's `title`. */
   text-overflow: ellipsis;
 }
 
@@ -167,7 +167,7 @@
   gap: 6px;
 }
 
-/* ─── Botões ──────────────────────────────────────────────────────── */
+/* ─── Buttons ─────────────────────────────────────────────────────── */
 
 .rec-btn {
   min-height: 32px;
@@ -188,8 +188,8 @@
 .rec-btn:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .rec-btn:disabled { opacity: 0.5; cursor: default; }
 
-/* --on-accent é a tinta medida para ficar POR CIMA do accent da marca activa (o accent claro de
-   alguns temas torna o branco cravado ilegível). */
+/* --on-accent is the ink measured to sit ON TOP of the active brand's accent (the light accent of
+   some themes makes hardcoded white illegible). */
 
 
 .rec-notice-foot {
@@ -202,12 +202,12 @@
 
 .rec-notice-foot .rec-btn { min-height: 36px; padding: 0 14px; font-size: 12px; }
 
-/* ─── Leitor do output ────────────────────────────────────────────── */
+/* ─── Output reader ───────────────────────────────────────────────── */
 
 .rec-tail-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1210;             /* por cima do aviso que o abriu */
+  z-index: 1210;             /* on top of the warning that opened it */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,16 +216,16 @@
   backdrop-filter: blur(3px);
 }
 
-/* Mais larga que os outros diálogos da app de propósito: o que está lá dentro é um terminal
-   reproduzido na largura ORIGINAL (120 colunas de série, mais quando a janela era grande), e
-   estreitar a caixa não estreita o terminal — só acrescenta scroll horizontal a quem lê. */
+/* Wider than the app's other dialogs on purpose: what is inside is a terminal reproduced at its
+   ORIGINAL width (120 columns as standard, more when the window was large), and narrowing the box
+   does not narrow the terminal — it only adds horizontal scroll for whoever reads. */
 .rec-tail {
   display: flex;
   flex-direction: column;
   width: min(1200px, 100%);
-  /* Mais alta que o normal pela mesma razão que é mais larga: o ecrã de uma sessão tem 30 a 50
-     linhas, e cortar a barra de estado ao meio é cortar a parte que diz o que a conversa estava
-     a fazer. Passando disto, a caixa faz scroll. */
+  /* Taller than normal for the same reason it is wider: a session's screen has 30 to 50 lines,
+     and cutting the status bar in half is cutting the part that says what the conversation was
+     doing. Past this, the box scrolls. */
   max-height: min(88vh, 1000px);
   overflow: hidden;
   border: 1px solid var(--border-default);
@@ -288,9 +288,9 @@
 
 .rec-tail-body:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
 
-/* O terminal repintado. `max-content` porque a largura vem da geometria da sessão morta, não do
-   espaço disponível: deixá-lo encolher no flex da caixa seria reproduzi-lo noutra largura, que é
-   exactamente o que parte o desenho de um TUI. Não cabendo, é a caixa que faz scroll. */
+/* The repainted terminal. `max-content` because the width comes from the dead session's geometry,
+   not from the space available: letting it shrink in the box's flex would reproduce it at another
+   width, which is exactly what breaks a TUI's layout. If it does not fit, the box is what scrolls. */
 .rec-tail-term {
   width: max-content;
 }

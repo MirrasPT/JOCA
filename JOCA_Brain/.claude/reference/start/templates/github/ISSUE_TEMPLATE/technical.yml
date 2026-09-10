@@ -1,0 +1,48 @@
+name: Technical
+description: Refactor, technical debt, dependencies, infrastructure
+labels: ["type: technical"]
+body:
+  - type: textarea
+    id: situacao
+    attributes:
+      label: Current situation
+      description: What exists today and why it is a problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposal
+      description: What is going to change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: risco
+    attributes:
+      label: Risk and rollback
+      description: What can break, and how to go back.
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Done when
+      value: |
+        - [ ] External behavior unchanged (existing tests pass)
+        - [ ]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgencia
+    attributes:
+      label: Urgency
+      options:
+        - Blocks work that comes next
+        - Slows the pace but is liveable
+        - Opportunistic improvement
+    validations:
+      required: true

@@ -1,19 +1,19 @@
 // Multi-CLI profiles — how to launch each supported coding agent inside a JOCA_OS PTY session.
 // Claude Code is the base; Codex CLI, Antigravity (agy) and OpenCode are alternatives selectable
-// por sessao. Defaults below are best-effort for each CLI's current flags;
+// per session. Defaults below are best-effort for each CLI's current flags;
 // everything is overridable via DATA_DIR/cli-profiles.json (partial merge by id) so a flag rename
 // upstream is a config fix, not a code change.
 //
-// startupSequence: correr a coreografia de arranque — esperar que a TUI esteja pronta e responder
-// aos diálogos que aparecem sozinhos ("trust this folder?", "Update available!"). NÃO envia nenhum
-// comando de contexto: o resume é MANUAL, pelo botão da barra do chat (ver session-manager).
-//   ⚠ O comentário anterior dizia que esta flag mandava um resume no arranque. Nunca mandou: a
-//   coreografia era disparada por haver resume ou brief, e a flag não era lida em lado nenhum.
-//   Deixar um terminal parado no diálogo de update é pior do que qualquer contexto em falta — um
-//   Enter cego nesse diálogo dispara um `npm install -g` e mata o terminal.
-// resumeCmd: a forma do comando que o BOTÃO manual compõe. Claude Code entende o `/resume` custom;
-// os outros CLIs não têm comandos custom e recebem `resume "<pasta>"` em texto simples (o
-// AGENTS.md/GEMINI.md compilado no JOCA_Brain diz-lhes o que isso significa).
+// startupSequence: run the startup choreography — wait for the TUI to be ready and answer the
+// dialogs that show up on their own ("trust this folder?", "Update available!"). It sends NO
+// context command: the resume is MANUAL, from the button on the chat bar (see session-manager).
+//   ⚠ The previous comment said this flag sent a resume at startup. It never did: the
+//   choreography was fired by there being a resume or a brief, and the flag was not read anywhere.
+//   Leaving a terminal stuck on the update dialog is worse than any missing context — a blind
+//   Enter on that dialog fires an `npm install -g` and kills the terminal.
+// resumeCmd: the shape of the command the manual BUTTON composes. Claude Code understands the
+// custom `/resume`; the other CLIs have no custom commands and receive `resume "<folder>"` as plain
+// text (the AGENTS.md/GEMINI.md compiled in JOCA_Brain tells them what that means).
 import path from 'path';
 import { DATA_DIR, readJsonFile } from './project-store';
 
@@ -27,7 +27,7 @@ export interface CliProfile {
   modelFlag?: string;        // e.g. '--model' → `--model <m>`; undefined = CLI has no model flag
   autonomousFlags: string[]; // appended when JOCA's skip-permissions/autonomous toggle is on
   extraFlags: string[];      // always appended (user-configurable)
-  startupSequence: boolean;  // correr a coreografia de arranque (diálogos); ver nota no topo
+  startupSequence: boolean;  // run the startup choreography (dialogs); see the note at the top
   resumeCmd: string;         // how this CLI receives the project folder: '/resume' | 'resume'
 }
 
@@ -43,7 +43,7 @@ const DEFAULTS: Record<CliId, CliProfile> = {
   codex: {
     id: 'codex', label: 'Codex CLI', bin: 'codex',
     modelFlag: '--model',
-    // O codex ≥0.146 removeu o `--full-auto`; o equivalente ao skip-permissions do claude é este.
+    // codex ≥0.146 removed `--full-auto`; this is the equivalent of claude's skip-permissions.
     autonomousFlags: ['--dangerously-bypass-approvals-and-sandbox'],
     extraFlags: [],
     startupSequence: true,
@@ -55,7 +55,7 @@ const DEFAULTS: Record<CliId, CliProfile> = {
     autonomousFlags: [],
     extraFlags: [],
     startupSequence: true,
-    // O agy não reconhece comandos custom com `/` — recebe `resume "<pasta>"` como prompt normal.
+    // agy does not recognize custom commands with `/` — it takes `resume "<folder>"` as a normal prompt.
     resumeCmd: 'resume',
   },
   opencode: {
@@ -105,8 +105,8 @@ export function buildLaunchLine(
   opts: { model?: string; autonomous?: boolean; remoteControl?: boolean },
 ): string {
   const parts = [binPath];
-  // `--remote-control` é uma flag de ARRANQUE do Claude Code: não há como ligá-la a meio de uma
-  // conversa, o terminal tem de nascer com ela. Só se aplica ao claude — os outros CLIs não a têm.
+  // `--remote-control` is a Claude Code STARTUP flag: there is no turning it on mid conversation,
+  // the terminal has to be born with it. It only applies to claude — the other CLIs do not have it.
   if (opts.remoteControl && profile.id === 'claude') parts.push('--remote-control');
   if (opts.model && profile.modelFlag && MODEL_SAFE.test(opts.model)) {
     parts.push(profile.modelFlag, opts.model);

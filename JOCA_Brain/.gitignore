@@ -25,6 +25,6 @@ memory/feedback/*
 # Nota: o git continua a seguir ficheiros JA rastreados, mesmo cobertos por estas regras — e o caso
 # de feedback/archive/session-2026-07-30-20-31.md, que e sobre o proprio JOCA. Se um dia arquivares
 # feedback de um projecto de cliente e ele aparecer no `git status`, e porque ja estava rastreado:
-# `git rm --cached <ficheiro>` tira-o do repo sem o apagar do disco.
+# `git rm --cached <file>` tira-o do repo sem o apagar do disco.
 .playwright-mcp/
 /*.png

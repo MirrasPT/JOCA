@@ -29,7 +29,7 @@ export const OPEN_ALLOWED_EXTS = new Set([
 
 // Allowlist of droppable extensions. Executables (exe/bat/cmd/ps1/msi/…) stay OUT — no reason to
 // land them via a drop.
-// 'svg'/'html'/'htm' ARE allowed (2026-08-13, decisão do dono). They can carry script, but the risk
+// 'svg'/'html'/'htm' ARE allowed (2026-08-13, owner's decision). They can carry script, but the risk
 // lives in the RENDER path, and /file-content already contains it: SVG is served under a CSP
 // sandbox, HTML is forced to Content-Disposition: attachment on any active-render context. An
 // attachment only hands the agent a PATH — the composer never renders it.

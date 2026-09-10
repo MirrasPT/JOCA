@@ -362,5 +362,5 @@ Visual or structured representation of how content interconnects.
 - **email-sequence**: For email-based content
 - **social-content**: For social media content
 
-## O que está a bombar agora — `/last30days`
-Para descobrir o que a audiência **realmente** discute/quer (não o que parece bem em teoria), correr **`/last30days <tema/nicho>`** (plugin externo instalado) antes de planear conteúdo. Dá sinal pontuado por engagement de Reddit/X/YouTube/TikTok/HN — ângulos, dores e perguntas reais da comunidade nos últimos 30 dias. Alimenta o calendário/temas com o que tem tracção comprovada, não suposições. (Reddit/HN/GitHub keyless; resto via keys opcionais.)
+## What is taking off right now — `/last30days`
+To find out what the audience **really** discusses/wants (not what looks good in theory), run **`/last30days <topic/niche>`** (external plugin installed) before planning content. It gives engagement-scored signal from Reddit/X/YouTube/TikTok/HN — real angles, pains and questions from the community in the last 30 days. Feed the calendar/topics with what has proven traction, not assumptions. (Reddit/HN/GitHub keyless; the rest via optional keys.)

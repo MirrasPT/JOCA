@@ -1,36 +1,36 @@
 # JOCA
 
-Joint Orchestrator of Cognitive Agents — toolkit centralizado para Claude Code.
+Joint Orchestrator of Cognitive Agents — centralized toolkit for Claude Code.
 
-## Estrutura
+## Structure
 
 ```
 JOCA/
-├── install.md           <- bootstrap de instalacao (maquina nova)
-├── JOCA_Brain/          <- Motor: skills, agents, commands, memory
+├── install.md           <- install bootstrap (new machine)
+├── JOCA_Brain/          <- Engine: skills, agents, commands, memory
 │   ├── .claude/         <- agents, commands, hooks, scripts, settings
 │   ├── memory/          <- INDEX, SKILL_INDEX, soul, tools, projects
-│   └── CLAUDE.md        <- configuracao base
-├── JOCA_OS/             <- Interface: terminais multi-sessao
+│   └── CLAUDE.md        <- base configuration
+├── JOCA_OS/             <- Interface: multi-session terminals
 │   ├── backend/         <- Node.js + Express + WebSocket + node-pty
 │   └── frontend/        <- React + Vite + xterm.js
 └── README.md
 ```
 
-## Navegação de Código + Conhecimento
+## Code + Knowledge Navigation
 
-**Mapa de CONHECIMENTO** (skills · agentes · comandos · projectos + como se ligam) → `/map-joca`:
+**KNOWLEDGE map** (skills · agents · commands · projects + how they connect) → `/map-joca`:
 - `node JOCA_Brain/.claude/scripts/joca-graph.mjs` → `python -m graphify cluster-only JOCA_Brain/graphify-out/joca-knowledge`
-- Output interactivo: `JOCA_Brain/graphify-out/joca-knowledge/graphify-out/graph.html` (click/filtra/pesquisa).
-- Extractor JOCA-aware: lê `chain:`/`triggers:`/frontmatter — o que o graphify não vê sozinho.
+- Interactive output: `JOCA_Brain/graphify-out/joca-knowledge/graphify-out/graph.html` (click/filter/search).
+- JOCA-aware extractor: reads `chain:`/`triggers:`/frontmatter — what graphify does not see on its own.
 
-**Mapa de CÓDIGO** (app/scripts):
-1. Consultar `graphify-out/GRAPH_REPORT.md` — god nodes, comunidades, perguntas sugeridas
-2. Consultar `graphify-out/graph.json` para estrutura e dependências detalhadas
-3. Ler ficheiros raw só quando necessário para editar ou o graph não tiver a resposta
-4. Actualizar: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"` + `python JOCA_Brain/.claude/scripts/graphify-deps.py .` (pastas + links markdown)
-   (Windows: usar `python` — o `python3` é o stub vazio da Microsoft Store, sem graphify. macOS/Linux: `python3`.)
-   graphify v0.8.5+ mapeia código **+ docs/PDF/imagens/vídeo**; `graphify query/explain/path` para interrogar o grafo.
+**CODE map** (app/scripts):
+1. Check `graphify-out/GRAPH_REPORT.md` — god nodes, communities, suggested questions
+2. Check `graphify-out/graph.json` for detailed structure and dependencies
+3. Read raw files only when needed to edit, or when the graph has no answer
+4. Update: `python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"` + `python JOCA_Brain/.claude/scripts/graphify-deps.py .` (folders + markdown links)
+   (Windows: use `python` — `python3` is the empty Microsoft Store stub, without graphify. macOS/Linux: `python3`.)
+   graphify v0.8.5+ maps code **+ docs/PDF/images/video**; `graphify query/explain/path` to interrogate the graph.
 
 ## Quick Start
 

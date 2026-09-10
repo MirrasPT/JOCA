@@ -1,19 +1,19 @@
 #!/bin/bash
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Portas configuráveis. Os defaults são 7491/7492, mas QUALQUER instalação que não seja a principal
-# deve arrancar noutras — duas árvores do JOCA na mesma máquina (ex.: uma de trabalho e um clone do
-# repo público) colidem, e a limpeza de portas abaixo mataria a outra.
+# Configurable ports. The defaults are 7491/7492, but ANY installation that is not the main one
+# must start on other ones — two JOCA trees on the same machine (e.g. a working one and a clone of
+# the public repo) collide, and the port cleanup below would kill the other one.
 #   JOCA_BACKEND_PORT=7591 JOCA_FRONTEND_PORT=7592 ./start.sh
-# (Não se usa `PORT` como fallback de propósito: é uma variável genérica que muitos projectos já
-# exportam na shell, e herdá-la aqui faria o JOCA arrancar numa porta que ninguém pediu.)
+# (`PORT` is deliberately not used as a fallback: it is a generic variable that many projects
+# already export in the shell, and inheriting it here would make JOCA start on a port nobody asked for.)
 BACKEND_PORT="${JOCA_BACKEND_PORT:-7491}"
 FRONTEND_PORT="${JOCA_FRONTEND_PORT:-7492}"
 URL="http://localhost:$FRONTEND_PORT"
 FRONTEND_VITE="$DIR/frontend/node_modules/.bin/vite"
 
-# Ficheiros de runtime por porta — senão duas instalações partilham o mesmo .pids e o mesmo log,
-# e o stop.sh de uma mata os processos da outra.
+# Runtime files per port — otherwise two installations share the same .pids and the same log,
+# and the stop.sh of one kills the processes of the other.
 PIDFILE="/tmp/joca-os-$BACKEND_PORT.pids"
 BACKEND_LOG="/tmp/joca-backend-$BACKEND_PORT.log"
 BUILD_LOG="/tmp/joca-backend-$BACKEND_PORT-build.log"
@@ -27,18 +27,18 @@ else
   echo "⚠ JOCA_Brain not found at $LOGIC_DIR — running in standalone mode"
 fi
 
-# Quem é que está À ESCUTA nesta porta? `lsof -ti:<porta>` devolve o servidor E todos os clientes
-# ligados a ele — o browser aberto na interface, o vite ligado por proxy ao backend. Um cliente não
-# é dono da porta: decidir por ele fazia o arranque recusar-se com uma mensagem falsa ("ocupada por
-# um processo que NÃO é desta instalação", quando era), e fazia um `kill` escolher o vite em vez do
-# backend. Só o listener conta — tanto para decidir a propriedade como para escolher quem morre.
+# Who is LISTENING on this port? `lsof -ti:<port>` returns the server AND every client connected
+# to it — the browser open on the interface, the vite proxied to the backend. A client does not own
+# the port: deciding by it made startup refuse with a false message ("occupied by a process that is
+# NOT from this installation", when it was), and made a `kill` pick vite instead of the backend.
+# Only the listener counts — both to decide ownership and to choose who dies.
 listeners_on() {
   lsof -ti:"$1" -sTCP:LISTEN 2>/dev/null
 }
 
-# O processo que está nesta porta é NOSSO? Compara o cwd do processo com esta árvore.
-# Sem isto, arrancar esta instalação matava outro JOCA (ou outro serviço qualquer) que estivesse
-# na porta — foi assim que um clone do repo público quase derrubou a instalação de trabalho.
+# Is the process on this port OURS? Compares the process's cwd with this tree.
+# Without this, starting this installation killed another JOCA (or any other service) that was
+# on the port — that is how a clone of the public repo nearly took down the working installation.
 is_ours() {
   local pid="$1" cwd
   cwd=$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | grep '^n' | sed 's/^n//')
@@ -53,11 +53,11 @@ port_is_ours() {
   return 0
 }
 
-# Se ESTA instalação já estiver a correr, só abre o browser. A verificação de propriedade tem de vir
-# antes: sem ela, uma segunda árvore encontrava as portas ocupadas pela primeira, dizia "já está a
-# correr" e abria o browser na instalação do vizinho.
+# If THIS installation is already running, it only opens the browser. The ownership check has to come
+# first: without it, a second tree found the ports occupied by the first, said "it is already
+# running" and opened the browser on the neighbor's installation.
 if port_is_ours "$BACKEND_PORT" && port_is_ours "$FRONTEND_PORT"; then
-  echo "✓ JOCA OS (esta instalação) já está a correr → $URL"
+  echo "✓ JOCA OS (this installation) is already running → $URL"
   open "$URL"
   exit 0
 fi
@@ -67,11 +67,11 @@ for PORT_TO_FREE in $BACKEND_PORT $FRONTEND_PORT; do
   [ -z "$PIDS" ] && continue
   for pid in $PIDS; do
     if ! is_ours "$pid"; then
-      echo "✗ A porta $PORT_TO_FREE está ocupada por um processo que NÃO é desta instalação (PID $pid):"
+      echo "✗ Port $PORT_TO_FREE is occupied by a process that is NOT from this installation (PID $pid):"
       echo "    $(ps -o command= -p "$pid" 2>/dev/null | cut -c1-100)"
       echo "    cwd: $(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | grep '^n' | sed 's/^n//')"
       echo ""
-      echo "  Não vou matá-lo. Arranca noutras portas:"
+      echo "  I am not going to kill it. Start on other ports:"
       echo "    JOCA_BACKEND_PORT=7591 JOCA_FRONTEND_PORT=7592 $0"
       exit 1
     fi
@@ -83,7 +83,7 @@ for PORT_TO_FREE in $BACKEND_PORT $FRONTEND_PORT; do
   done
 done
 
-echo "▶ JOCA OS a arrancar... (backend :$BACKEND_PORT · frontend :$FRONTEND_PORT)"
+echo "▶ JOCA OS starting... (backend :$BACKEND_PORT · frontend :$FRONTEND_PORT)"
 [ -n "$JOCA_LOGIC_PATH" ] && echo "  JOCA_Brain → $JOCA_LOGIC_PATH"
 
 # Backend
@@ -93,12 +93,12 @@ if [ $? -ne 0 ]; then
   echo "ERROR: Backend build failed. See $BUILD_LOG"
   exit 1
 fi
-# O backend abre processos `claude` (o SDK do gestor e os terminais dos agentes). Se o JOCA for
-# arrancado de DENTRO de uma sessão Claude Code (terminal do próprio Claude Code, ou o .command
-# lançado a partir dela), estas variáveis são herdadas e cada `claude` filho julga-se uma
-# sub-sessão dessa: herda o orçamento dela ("Reached maximum budget") e acaba a recusar arrancar,
-# com uma mensagem enganadora sobre libc/musl que nada tem a ver com macOS.
-# Limpar aqui, no arranque, é o único sítio que cobre os dois lançadores.
+# The backend opens `claude` processes (the manager's SDK and the agents' terminals). If JOCA is
+# started from INSIDE a Claude Code session (Claude Code's own terminal, or the .command launched
+# from it), these variables are inherited and each child `claude` believes itself to be a
+# sub-session of that one: it inherits its budget ("Reached maximum budget") and ends up refusing to
+# start, with a misleading message about libc/musl that has nothing to do with macOS.
+# Clearing them here, at startup, is the only place that covers both launchers.
 nohup env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_CHILD_SESSION \
   -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_EXECPATH -u CLAUDE_PID -u CLAUDE_EFFORT \
   PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
@@ -120,7 +120,7 @@ echo "$BACKEND_PID $FRONTEND_PID" > "$PIDFILE"
 echo "✓ Backend  → http://localhost:$BACKEND_PORT  (PID $BACKEND_PID)"
 echo "✓ Frontend → $URL  (PID $FRONTEND_PID)"
 echo ""
-echo "Podes fechar esta janela — os servidores continuam."
-echo "Para parar: ./stop.sh   (mesmas variáveis de porta, se as usaste no arranque)"
+echo "You can close this window — the servers keep running."
+echo "To stop: ./stop.sh   (same port variables, if you used them at startup)"
 
 sleep 3 && open "$URL"

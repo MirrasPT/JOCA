@@ -1,6 +1,6 @@
 ---
 name: laravel-refactor
-description: "Refactoriza/optimiza Laravel para escala — remove código morto, reduz complexidade, corrige N+1, extrai para Actions, corre Larastan/PHPStan. Lê código, analisa estaticamente, aplica refactors cirúrgicos. Diferente de security-review (segurança) e query-debugger (1 query). Triggers: refactor laravel, dead code, fat controller, larastan, reduce complexity, scale this."
+description: "Refactors/optimizes Laravel for scale — removes dead code, reduces complexity, fixes N+1, extracts to Actions, runs Larastan/PHPStan. Reads code, analyzes statically, applies surgical refactors. Different from security-review (security) and query-debugger (1 query). Triggers: refactor laravel, dead code, fat controller, larastan, reduce complexity, scale this."
 skills: laravel-specialist, caching
 chain: tester-code
 tools: Read, Grep, Glob, Bash, Edit, Write
@@ -11,11 +11,11 @@ Laravel code-quality + scalability specialist. Reads real code, runs static anal
 
 Complements: `security-review` (owns security), `query-debugger` (owns single-query EXPLAIN deep-dives), the generic `simplify` skill (this is Laravel-aware). Hands off to those for their domains.
 
-## Antes de iniciar
+## Before starting
 
-1. Lê `.claude/skills/laravel-specialist.md` — architecture standards (single-action controllers, Actions, DTOs, strict types, ULIDs)
-2. Lê `.claude/skills/caching.md` — cache layers for scalability fixes
-3. Usa estes como o "estado correcto" para onde refactorizar
+1. Read `.claude/skills/laravel-specialist.md` — architecture standards (single-action controllers, Actions, DTOs, strict types, ULIDs)
+2. Read `.claude/skills/caching.md` — cache layers for scalability fixes
+3. Use these as the "correct state" to refactor towards
 
 ---
 
@@ -120,4 +120,4 @@ php artisan test → all green · phpstan → 0 errors · behavior preserved
 - Don't add features or change public contracts while refactoring.
 - Prefer deleting code over adding it. The best refactor removes lines.
 - Larastan/PHPStan is the objective gate — raise the level, don't just silence errors.
-- Relatório completo → escreve em `.joca/intermediate/laravel-refactor-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+- Full report → write it to `.joca/intermediate/laravel-refactor-<slug>.md` (confirm that `.joca/` is in the project's .gitignore; otherwise use the session scratchpad) and return to the caller only a summary of ≤15 lines + the path.

@@ -1,67 +1,67 @@
-# /map-joca — Mapa de conhecimento do JOCA (skills · agentes · projectos · conexões)
+# /map-joca — JOCA knowledge map (skills · agents · projects · connections)
 
-Gera um grafo navegável de **todo o conhecimento do JOCA** — não só código: skills, agentes, comandos, rules, projectos, e **como se ligam** (chains reais do frontmatter). Renderiza um `graph.html` interactivo + report via graphify.
+Generates a navigable graph of **all of JOCA's knowledge** — not just code: skills, agents, commands, rules, projects, and **how they connect** (the real chains from the frontmatter). Renders an interactive `graph.html` + report via graphify.
 
-Extractor JOCA-aware (`joca-graph.mjs`) → graphify (motor de viz/cluster). Porquê custom: o graphify mapeia código/docs por imports e links markdown; o conhecimento do JOCA conecta-se por `chain:`/`triggers:`/tipo, que o graphify não vê sozinho.
+JOCA-aware extractor (`joca-graph.mjs`) → graphify (viz/cluster engine). Why custom: graphify maps code/docs by imports and markdown links; JOCA's knowledge connects by `chain:`/`triggers:`/type, which graphify does not see on its own.
 
-## Correr
+## Run
 ```bash
 node .claude/scripts/joca-graph.mjs
 python -m graphify cluster-only graphify-out/joca-knowledge
 ```
-Outputs em `graphify-out/joca-knowledge/graphify-out/`:
-- `graph.html` — **interactivo** (click nós, filtra, pesquisa). Abrir: `Start-Process graphify-out/joca-knowledge/graphify-out/graph.html` (Windows).
-- `GRAPH_REPORT.md` — comunidades, conceitos-chave, conexões surpreendentes.
-- `graph.json` — o grafo (queryável: `graphify query "..." --graph <path>`).
+Outputs in `graphify-out/joca-knowledge/graphify-out/`:
+- `graph.html` — **interactive** (click nodes, filter, search). Open: `Start-Process graphify-out/joca-knowledge/graphify-out/graph.html` (Windows).
+- `GRAPH_REPORT.md` — communities, key concepts, surprising connections.
+- `graph.json` — the graph (queryable: `graphify query "..." --graph <path>`).
 
-## O que mapeia
-- **Nós** por tipo (hubs): Skills · Agentes · Comandos · Rules · Projectos. Cada item é um nó com a sua descrição.
-- **Edges:** `contains` (hub→item, agrupamento por tipo) + `chains-to` (a conexão REAL: skill/agente → próximo passo declarado em `chain:`).
-- Quanto mais skills tiverem `chain:` no frontmatter, mais rica fica a teia de conexões (ver `rules/chaining.md`).
+## What it maps
+- **Nodes** by type (hubs): Skills · Agents · Commands · Rules · Projects. Each item is a node with its description.
+- **Edges:** `contains` (hub→item, grouping by type) + `chains-to` (the REAL connection: skill/agent → next step declared in `chain:`).
+- The more skills carry `chain:` in the frontmatter, the richer the web of connections becomes (see `rules/chaining.md`).
 
-## Grafo-de-grafos: projectos ligam ao grafo PRÓPRIO de cada projecto
-Cada projecto (`memory/projects/*.md`) tem o caminho real no frontmatter (`directorio:`/`path:`/`repo:`). O extractor:
-- Resolve o caminho, e se o projecto já tem `<path>/graphify-out/graph.json` → adiciona um nó `grafo: <projecto>` (drill-down) ligado ao projecto por edge `has-graph`. O `source_file` do nó aponta para o `graph.html` do projecto → abrir esse para ver o grafo do projecto.
-- Imprime a tabela "Projecto → grafo próprio" (quais já têm grafo, quais faltam, pastas ausentes).
+## Graph-of-graphs: projects link to each project's OWN graph
+Each project (`memory/projects/*.md`) has the real path in the frontmatter (`directorio:`/`path:`/`repo:`). The extractor:
+- Resolves the path, and if the project already has `<path>/graphify-out/graph.json` → it adds a `graph: <project>` node (drill-down) linked to the project by a `has-graph` edge. The node's `source_file` points to the project's `graph.html` → open that one to see the project's graph.
+- Prints the "Project → own graph" table (which already have a graph, which are missing, absent folders).
 
-**Gerar os grafos em falta** (best-effort, só código, sem LLM):
+**Generate the missing graphs** (best-effort, code only, no LLM):
 ```bash
 node .claude/scripts/joca-graph.mjs --build-projects
 ```
-⚠ Corre `graphify` em cada pasta de projecto que exista no disco. **Cuidado com projectos enormes** (ex.: ComfyUI = gigabytes de modelos) — preferir gerar o grafo desses manualmente na própria pasta. Projectos remotos (VPS) ou ausentes nesta máquina são saltados.
+⚠ Runs `graphify` in every project folder that exists on disk. **Careful with enormous projects** (e.g.: ComfyUI = gigabytes of models) — prefer generating the graph for those manually in the folder itself. Remote projects (VPS) or ones absent from this machine are skipped.
 
-Abrir o grafo de um projecto específico: `Start-Process "<path-do-projecto>/graphify-out/graph.html"`.
+Open the graph of a specific project: `Start-Process "<project-path>/graphify-out/graph.html"`.
 
-## Graph GIGANTE (tudo fundido num só) — `--merge`
-Para **um único graph com tudo** (JOCA + o código real de cada projecto, ligado):
+## GIANT graph (everything merged into one) — `--merge`
+For **a single graph with everything** (JOCA + the real code of each project, connected):
 ```bash
-node .claude/scripts/joca-graph.mjs --merge          # funde o graph.json de cada projecto
+node .claude/scripts/joca-graph.mjs --merge          # merges each project's graph.json
 python -m graphify cluster-only graphify-out/joca-knowledge-merged --no-viz
 ```
-- Funde os subgrafos dos projectos, **namespaced** (`<projecto>::<nó>`, sem colisões) + **bridge** `project:X --project-code--> <god-node do projecto>` (liga o nó do projecto ao seu código). Tudo num só componente conectado.
-- **Filtra ruído de bibliotecas** (node_modules/vendor/dist/.venv/site-packages…) — só o código REAL.
-- Escreve para `graphify-out/joca-knowledge-merged/` (SEPARADO do mapa limpo, que fica intacto).
-- ⚠ **É enorme** (dezenas de milhar de nós) → **sem `graph.html` estático** (limite viz 5000). Explorar por:
-  - `python -m graphify serve` (servidor interactivo para grafos grandes), OU
-  - `python -m graphify query "<pergunta>" --graph graphify-out/joca-knowledge-merged/graphify-out/graph.json` (atravessa JOCA + todos os projectos).
-- Combinar com `--build-projects` para incluir projectos sem grafo (⚠ saltar ComfyUI).
-- **Nota:** um projecto com grafo inchado (ex.: um projecto grande trazia 61k mesmo após filtro) → rebuild limpo do grafo PRÓPRIO desse projecto (graphify na pasta dele com exclusões) antes de fundir.
+- Merges the projects' subgraphs, **namespaced** (`<project>::<node>`, no collisions) + a **bridge** `project:X --project-code--> <the project's god-node>` (links the project's node to its code). All in a single connected component.
+- **Filters library noise** (node_modules/vendor/dist/.venv/site-packages…) — only the REAL code.
+- Writes to `graphify-out/joca-knowledge-merged/` (SEPARATE from the clean map, which stays intact).
+- ⚠ **It is enormous** (tens of thousands of nodes) → **no static `graph.html`** (viz limit 5000). Explore via:
+  - `python -m graphify serve` (interactive server for large graphs), OR
+  - `python -m graphify query "<question>" --graph graphify-out/joca-knowledge-merged/graphify-out/graph.json` (traverses JOCA + every project).
+- Combine with `--build-projects` to include projects with no graph (⚠ skip ComfyUI).
+- **Note:** a project with a bloated graph (e.g.: one large project brought 61k even after filtering) → clean rebuild of that project's OWN graph (graphify in its folder with exclusions) before merging.
 
-**Dois mapas, dois usos:** mapa limpo (`joca-knowledge`, 217 nós, **visual/navegável**, drill-down) · graph gigante (`joca-knowledge-merged`, dezenas de milhar, **query cross-projecto**).
+**Two maps, two uses:** clean map (`joca-knowledge`, 217 nodes, **visual/navigable**, drill-down) · giant graph (`joca-knowledge-merged`, tens of thousands, **cross-project query**).
 
-## Mapa de CÓDIGO (complementar)
-Para o grafo do código (a app JOCA_OS, scripts) — o graphify normal:
+## CODE map (complementary)
+For the code graph (the JOCA_OS app, scripts) — plain graphify:
 ```bash
 python -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"
-python .claude/scripts/graphify-deps.py .   # + pastas + links markdown
-python -m graphify cluster-only . --no-viz  # >5000 nós → sem viz; query via graphify
+python .claude/scripts/graphify-deps.py .   # + folders + markdown links
+python -m graphify cluster-only . --no-viz  # >5000 nodes → no viz; query via graphify
 ```
-- Windows: `python`, não `python3` (stub da Store).
+- Windows: `python`, not `python3` (the Store stub).
 
-## Quando correr
-- Depois de adicionar/mudar skills/agentes/chains → re-correr para o mapa reflectir o estado.
-- Onboarding / "como é que isto se liga?" → abrir o `graph.html`.
+## When to run
+- After adding/changing skills/agents/chains → re-run so the map reflects the state.
+- Onboarding / "how does this connect?" → open the `graph.html`.
 
-## Próximo passo (chain)
-- Explorar um nó: `python -m graphify explain "<nome>" --graph graphify-out/joca-knowledge/graphify-out/graph.json`.
-- Caminho entre dois: `python -m graphify path "A" "B" --graph <...>`.
+## Next step (chain)
+- Explore a node: `python -m graphify explain "<name>" --graph graphify-out/joca-knowledge/graphify-out/graph.json`.
+- Path between two: `python -m graphify path "A" "B" --graph <...>`.

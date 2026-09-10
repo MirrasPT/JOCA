@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 /**
- * joca-checkpoint — snapshots de sessão restauráveis (adaptado de gstack context-save/restore).
- * Append-only por projecto, frontmatter (ts/branch/slug/status), poda aos últimos N.
- * Restauro cross-branch (não filtra por branch — permite handoff entre branches/sessões).
+ * joca-checkpoint — restorable session snapshots (adapted from gstack context-save/restore).
+ * Append-only per project, frontmatter (ts/branch/slug/status), pruned to the last N.
+ * Cross-branch restore (does not filter by branch — allows handoff between branches/sessions).
  *
  * Store: <JOCA_Brain>/memory/checkpoints/<slug>/<ts>-<title>.md
  *
- * Uso:
+ * Usage:
  *   echo "<markdown body>" | joca-checkpoint save [--slug X] [--title "x"] [--status wip|done]
- *   joca-checkpoint latest [--slug X]      # imprime o checkpoint mais recente
- *   joca-checkpoint list   [--slug X]      # lista checkpoints (mais recente primeiro)
+ *   joca-checkpoint latest [--slug X]      # prints the most recent checkpoint
+ *   joca-checkpoint list   [--slug X]      # lists checkpoints (most recent first)
  *
- * ⚠ Sem --slug o slug é inferido do repo git do CWD DO PROCESSO — sob JOCA_OS/`/save` o cwd é
- * quase sempre `JOCA_Brain`, e o checkpoint de outro projecto cai em `checkpoints/JOCA...`
- * (aconteceu com Novanor, Kromway, Livro de Elogios, ComfyUI). Passar sempre
- * `--slug <projecto resolvido no PASSO 1 do /save>`. `--project` é alias de `--slug`.
+ * ⚠ Without --slug the slug is inferred from the git repo of the PROCESS CWD — under JOCA_OS/`/save`
+ * the cwd is almost always `JOCA_Brain`, and another project's checkpoint lands in `checkpoints/JOCA...`
+ * (it happened with Novanor, Kromway, Livro de Elogios, ComfyUI). Always pass
+ * `--slug <project resolved in STEP 1 of /save>`. `--project` is an alias of `--slug`.
  */
 import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -32,7 +32,7 @@ function arg(name, def) {
 function sanitize(s) { return String(s).replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown'; }
 let slugInferido = false;
 function slug() {
-  const ex = arg('slug') || arg('project'); // --project = alias de --slug
+  const ex = arg('slug') || arg('project'); // --project = alias of --slug
   if (ex) return sanitize(ex);
   slugInferido = true;
   try { return sanitize(basename(execSync('git rev-parse --show-toplevel', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim())); }
@@ -46,7 +46,7 @@ function dirFor(s) { return join(MEM, 'checkpoints', s); }
 function ckptList(s) {
   const d = dirFor(s);
   if (!existsSync(d)) return [];
-  return readdirSync(d).filter((f) => f.endsWith('.md')).sort().reverse(); // ts prefix → reverse = recente 1º
+  return readdirSync(d).filter((f) => f.endsWith('.md')).sort().reverse(); // ts prefix → reverse = most recent first
 }
 
 const cmd = process.argv[2];
@@ -54,7 +54,7 @@ const s = slug();
 
 if (cmd === 'save') {
   let body = '';
-  try { body = readFileSync(0, 'utf8'); } catch (_) { /* sem stdin */ }
+  try { body = readFileSync(0, 'utf8'); } catch (_) { /* no stdin */ }
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const title = sanitize(arg('title', 'checkpoint'));
   const status = arg('status', 'wip');
@@ -63,29 +63,29 @@ if (cmd === 'save') {
   const fm = `---\nts: ${new Date().toISOString()}\nbranch: ${branch()}\nslug: ${s}\nstatus: ${status}\n---\n\n`;
   const file = join(d, `${ts}-${title}.md`);
   const tmp = `${file}.tmp.${process.pid}`;
-  writeFileSync(tmp, fm + (body.trim() || '(sem corpo)') + '\n', 'utf8');
-  renameSync(tmp, file); // atómico
-  // poda
+  writeFileSync(tmp, fm + (body.trim() || '(no body)') + '\n', 'utf8');
+  renameSync(tmp, file); // atomic
+  // prune
   const all = ckptList(s);
   for (const old of all.slice(KEEP)) { try { unlinkSync(join(d, old)); } catch (_) { /* best-effort */ } }
   console.log(`[checkpoint] ${s} → ${basename(file)} (${status})`);
-  if (slugInferido) console.error(`[checkpoint] ⚠ slug inferido do cwd (${s}) — se o trabalho foi noutro projecto, re-corre com --slug <projecto> e apaga este ficheiro`);
+  if (slugInferido) console.error(`[checkpoint] ⚠ slug inferred from the cwd (${s}) — if the work was in another project, re-run with --slug <project> and delete this file`);
 } else if (cmd === 'latest') {
   const all = ckptList(s);
-  if (!all.length) { console.log(`(sem checkpoints para ${s})`); process.exit(0); }
+  if (!all.length) { console.log(`(no checkpoints for ${s})`); process.exit(0); }
   console.log(readFileSync(join(dirFor(s), all[0]), 'utf8'));
 } else if (cmd === 'list') {
   const all = ckptList(s);
-  if (!all.length) { console.log(`(sem checkpoints para ${s})`); process.exit(0); }
+  if (!all.length) { console.log(`(no checkpoints for ${s})`); process.exit(0); }
   console.log(`# Checkpoints — ${s}`);
   for (const f of all) console.log(`- ${f}`);
 } else {
   console.log([
-    'joca-checkpoint — uso:',
+    'joca-checkpoint — usage:',
     '  echo "<md>" | joca-checkpoint save [--slug X] [--title "x"] [--status wip|done]',
     '  joca-checkpoint latest [--slug X]',
     '  joca-checkpoint list   [--slug X]',
-    '  (--project = alias de --slug; sem ele o slug vem do repo git do cwd do processo)',
+    '  (--project = alias of --slug; without it the slug comes from the git repo of the process cwd)',
   ].join('\n'));
   process.exit(cmd && cmd !== '--help' && cmd !== '-h' && cmd !== 'help' ? 1 : 0);
 }

@@ -1,20 +1,20 @@
 ---
 name: tester-security
-description: "Auditoria de segurança para SaaS Laravel+React: scan em 7 fases — CVEs (composer+npm), secrets (gitleaks), headers HTTP, exposição .env/config, config Laravel (APP_DEBUG, sessão, CORS), padrões de código (mass assignment, SQL raw, XSS, IDOR, rate limiting, PII em logs), integridade supply chain. Relatório por severidade: Critical/High/Medium/Low."
+description: "Security audit for Laravel+React SaaS: 7-phase scan — CVEs (composer+npm), secrets (gitleaks), HTTP headers, .env/config exposure, Laravel config (APP_DEBUG, session, CORS), code patterns (mass assignment, raw SQL, XSS, IDOR, rate limiting, PII in logs), supply chain integrity. Report by severity: Critical/High/Medium/Low."
 skills: security, auth
 chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write
 model: sonnet
-triggers: auditoria de seguranca, scan de seguranca, CVEs, secrets no repo
+triggers: security audit, security scan, CVEs, secrets in the repo
 ---
 
 Security auditor for Laravel + React SaaS. Runs real tools and grep patterns to find actual vulnerabilities. Never fix without showing the user first.
 
-## Antes de iniciar o audit
+## Before starting the audit
 
-1. Lê `.claude/skills/security.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
-2. Lê `.claude/skills/auth.md` — padrões de autenticação e sessão
-3. Aplica estes standards em todas as fases do scan
+1. Read `.claude/skills/security.md` — OWASP Top 10:2025 + ASVS 5.0 patterns
+2. Read `.claude/skills/auth.md` — authentication and session patterns
+3. Apply these standards in every phase of the scan
 
 ## Preflight
 
@@ -29,7 +29,7 @@ which gitleaks 2>/dev/null && echo "gitleaks: OK" || echo "gitleaks: not install
 
 ## Phase 1 — Dependency CVEs
 
-O dono canónico de CVEs/outdated/unused é o `dependency-auditor` — se o scan de dependências for o foco principal, delega (chain) em vez de duplicar. Aqui corre só o scan rápido de gate.
+The canonical owner of CVEs/outdated/unused is `dependency-auditor` — if the dependency scan is the main focus, delegate (chain) instead of duplicating. Here run only the quick gate scan.
 
 ### Composer
 ```bash
@@ -223,4 +223,4 @@ grep -r '"post-install-cmd"\|"post-update-cmd"' vendor/*/composer.json 2>/dev/nu
 - CVE findings include CVE ID
 - If tools missing, explain install and run manual grep patterns
 - After audit, suggest follow-ups: `security-review` (deep code review) + `tester-ratelimit` (rate limit probing)
-- Relatório completo → escreve em `.joca/intermediate/tester-security-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path.
+- Full report → write it to `.joca/intermediate/tester-security-<slug>.md` (confirm `.joca/` is in the project's .gitignore; otherwise use the session scratchpad) and return to the caller only a summary ≤15 lines + the path.

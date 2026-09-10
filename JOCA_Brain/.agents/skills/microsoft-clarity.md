@@ -62,7 +62,7 @@ numOfDays: 3, dimension1: "Device", dimension2: "Browser"
 numOfDays: 2, dimension1: "Source", dimension2: "Medium"
 ```
 
-**Geographic behaviour:**
+**Geographic behavior:**
 ```
 numOfDays: 3, dimension1: "Country/Region", dimension2: "Device"
 ```

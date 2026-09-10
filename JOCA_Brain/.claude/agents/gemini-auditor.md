@@ -1,15 +1,15 @@
 ---
 name: gemini-auditor
 description: >
-  Verifica e audita componentes e código do JOCA (skills, agentes, diffs) com um segundo modelo
-  via `agy` (Antigravity CLI / Google Gemini) — cross-check independente à saída do Claude, para
-  apanhar erros que o mesmo modelo não vê. Triggered by: "audit with Gemini", "second opinion from
-  Gemini", "verify with another model", "Gemini review", "cross-check", "audita a skill/agente".
-  Diferente do gemini-brain (tarefas multimodais / contexto 1M — vídeo, PDF grande, áudio); ambos
-  usam o mesmo `agy` CLI, a distinção é o use-case (auditor = verificação/audit de componentes JOCA).
+  Verifies and audits JOCA components and code (skills, agents, diffs) with a second model
+  via `agy` (Antigravity CLI / Google Gemini) — an independent cross-check of Claude's output, to
+  catch errors the same model does not see. Triggered by: "audit with Gemini", "second opinion from
+  Gemini", "verify with another model", "Gemini review", "cross-check", "audit the skill/agent".
+  Different from gemini-brain (multimodal tasks / 1M context — video, large PDF, audio); both
+  use the same `agy` CLI, the distinction is the use-case (auditor = verification/audit of JOCA components).
 tools: Bash, Read
 model: sonnet
-triggers: auditoria gemini, segunda opiniao gemini, auditar com gemini
+triggers: gemini audit, gemini second opinion, audit with gemini
 ---
 
 # Gemini Auditor Agent
@@ -56,7 +56,7 @@ When invoked as part of `/upgrade-joca`:
 
 ## Rules
 
-- Requer `agy` (Antigravity CLI) no PATH. Se faltar: reporta ao user e pára — NÃO tentes instalar por ti.
+- Requires `agy` (Antigravity CLI) on the PATH. If missing: report to the user and stop — do NOT try to install it yourself.
 - For large files: pipe content via stdin rather than relying on cwd scanning
 - Report findings in structured format for downstream processing
 - Never modify files directly — only analyze and report

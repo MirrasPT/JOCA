@@ -1,14 +1,14 @@
 ---
 name: blender-render
-description: "Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output, animacao e sequencias. MUST be invoked when the user says: render 3d, renderizar, cycles, eevee, turntable, product shot 3d, material pbr, iluminar cena 3d, camara 3d, animacao 3d. SHOULD also invoke when: render transparente, passes, denoise, samples, hdri, depth of field, sequencia de frames, mp4 a partir de blender."
-triggers: render 3d, renderizar, cycles, eevee, turntable, product shot, material pbr, shader blender, iluminar cena, three point lighting, hdri, world background, camara 3d, focal length, depth of field, dof, samples, denoise, denoiser, render transparente, film transparent, render passes, exr, sequencia de frames, animacao 3d, keyframe, mp4 blender, agx, view transform, metal gpu, render gpu
+description: "Render in Blender by code: engine (Cycles/EEVEE), camera, lights, PBR materials, output, animation and sequences. MUST be invoked when the user says: render 3d, render, cycles, eevee, turntable, 3d product shot, pbr material, light a 3d scene, 3d camera, 3d animation. SHOULD also invoke when: transparent render, passes, denoise, samples, hdri, depth of field, frame sequence, mp4 from blender."
+triggers: render 3d, render, cycles, eevee, turntable, product shot, pbr material, blender shader, light a scene, three point lighting, hdri, world background, 3d camera, focal length, depth of field, dof, samples, denoise, denoiser, transparent render, film transparent, render passes, exr, frame sequence, 3d animation, keyframe, mp4 blender, agx, view transform, metal gpu, render gpu
 chain: design-review
 ---
 
-# Blender Render — câmara, luz, material, output
+# Blender Render — camera, light, material, output
 
-Produzir imagens e sequências por código. Valores verificados em **Blender 5.1.1 / Apple M4 Pro**;
-noutra versão, confirmar com `Read(".claude/reference/blender-api-5x.md")`.
+Produce images and sequences by code. Values verified on **Blender 5.1.1 / Apple M4 Pro**; on
+another version, confirm with `Read(".claude/reference/blender-api-5x.md")`.
 
 ## Engine
 
@@ -16,11 +16,11 @@ noutra versão, confirmar com `Read(".claude/reference/blender-api-5x.md")`.
 import bpy
 sc = bpy.context.scene
 
-# EEVEE — rasterizador. Segundos por frame. Usar para ITERAR.
-sc.render.engine = 'BLENDER_EEVEE'        # ⚠ 5.x. Em 4.2–4.5 é 'BLENDER_EEVEE_NEXT'
+# EEVEE — rasteriser. Seconds per frame. Use it to ITERATE.
+sc.render.engine = 'BLENDER_EEVEE'        # ⚠ 5.x. On 4.2–4.5 it is 'BLENDER_EEVEE_NEXT'
 sc.eevee.taa_render_samples = 64
 
-# Cycles — path tracing. Usar para ENTREGAR.
+# Cycles — path tracing. Use it to DELIVER.
 sc.render.engine = 'CYCLES'
 sc.cycles.samples = 128
 sc.cycles.use_denoising = True
@@ -29,9 +29,9 @@ sc.cycles.use_adaptive_sampling = True
 sc.cycles.adaptive_threshold = 0.01
 ```
 
-Enum de engines em 5.1: `('BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'CYCLES')` — **`BLENDER_EEVEE_NEXT`
-não existe** e atribuí-lo levanta `TypeError`. É o erro que a maioria dos exemplos públicos de bpy
-traz, porque foram escritos para 4.2.
+Engine enum on 5.1: `('BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'CYCLES')` — **`BLENDER_EEVEE_NEXT`
+does not exist** and assigning it raises `TypeError`. It is the error most public bpy examples carry,
+because they were written for 4.2.
 
 ### GPU — Apple Silicon (Metal)
 
@@ -40,17 +40,17 @@ prefs = bpy.context.preferences.addons['cycles'].preferences
 prefs.compute_device_type = 'METAL'        # NVIDIA: 'OPTIX' (>'CUDA') · AMD: 'HIP' · Intel: 'ONEAPI'
 prefs.get_devices()
 for d in prefs.devices:
-    d.use = True                            # ou só os que d.type == 'METAL'
+    d.use = True                            # or only those where d.type == 'METAL'
 sc.cycles.device = 'GPU'
 ```
 
-Verificado nesta máquina: `prefs.devices` devolve `Apple M4 Pro (CPU)` e
+Verified on this machine: `prefs.devices` returns `Apple M4 Pro (CPU)` and
 `Apple M4 Pro (GPU - 20 cores) (METAL)`.
 
-⚠ **O primeiro render Cycles GPU paga compilação de kernels** — medido, ~90 s para 320×240 @16
-samples num processo novo. Não é a cena a ser pesada. Consequências: não estimar tempo total a
-partir do primeiro frame, e num batch renderizar tudo **no mesmo processo Blender** em vez de um
-processo por frame.
+⚠ **The first Cycles GPU render pays for kernel compilation** — measured, ~90 s for 320×240 @16
+samples in a fresh process. It is not the scene being heavy. Consequences: do not estimate total time
+from the first frame, and in a batch render everything **in the same Blender process** instead of one
+process per frame.
 
 ## Output
 
@@ -58,51 +58,51 @@ processo por frame.
 r = sc.render
 r.resolution_x, r.resolution_y, r.resolution_percentage = 1920, 1080, 100
 r.image_settings.file_format = 'PNG'        # PNG · JPEG · OPEN_EXR · OPEN_EXR_MULTILAYER · TIFF · WEBP
-r.image_settings.color_mode  = 'RGBA'       # 'RGBA' exige film_transparent para ter alfa útil
+r.image_settings.color_mode  = 'RGBA'       # 'RGBA' requires film_transparent for a useful alpha
 r.image_settings.compression = 15
-r.film_transparent = True                   # fundo transparente
+r.film_transparent = True                   # transparent background
 
 sc.view_settings.view_transform = 'AgX'     # 5.1: 'Standard' · 'AgX' · 'Filmic' · 'Khronos PBR Neutral'
 sc.view_settings.look = 'None'
 sc.view_settings.exposure = 0.0
 
-r.filepath = "/out/render_"                 # still: sai "/out/render_.png"
+r.filepath = "/out/render_"                 # still: comes out as "/out/render_.png"
 bpy.ops.render.render(write_still=True)
 ```
 
-### Render region — ligar por omissão em cenas com câmara
+### Render region — turn it on by default in scenes with a camera
 
 ```python
 r.use_border = True
 r.border_min_x, r.border_min_y = 0.0, 0.0
 r.border_max_x, r.border_max_y = 1.0, 1.0
-r.use_crop_to_border = False      # True corta a imagem final ao tamanho da região
+r.use_crop_to_border = False      # True crops the final image to the size of the region
 ```
 
-Sem isto, o viewport Rendered calcula também a zona cinzenta fora do passepartout — GPU gasta em
-pixels que ninguém vê. Com os limites a 0–1 o enquadramento não muda; só se deixa de renderizar
-fora da câmara.
+Without this, the Rendered viewport also computes the grey area outside the passepartout — GPU spent
+on pixels nobody sees. With the bounds at 0–1 the framing does not change; you only stop rendering
+outside the camera.
 
-Equivale a **Ctrl+B** em vista de câmara. Duas propriedades distintas, e a descrição da API é que
-as separa:
+Equivalent to **Ctrl+B** in camera view. Two distinct properties, and it is the API description that
+tells them apart:
 
-| Contexto | Propriedade | Alcance |
+| Context | Property | Reach |
 |---|---|---|
-| pela câmara (Numpad 0) | `scene.render.use_border` | viewport Rendered **e** render final |
-| fora da câmara | `space.use_render_border` | só o viewport — *"when not viewing through the camera"* |
+| through the camera (Numpad 0) | `scene.render.use_border` | Rendered viewport **and** final render |
+| outside the camera | `space.use_render_border` | viewport only — *"when not viewing through the camera"* |
 
-É **por cena**, guardado no `.blend` — não é preferência global, cada ficheiro novo nasce sem ela.
-Por isso vai no script.
+It is **per scene**, saved in the `.blend` — not a global preference, every new file is born without
+it. That is why it goes in the script.
 
-`Standard` para composição/UI onde as cores têm de sair como foram definidas; `AgX` para imagem
-fotográfica (comprime highlights, dessatura no clipping); **`Khronos PBR Neutral` para produto/
-e-commerce** — preserva a cor do material sem a lavagem do AgX. Entregar um swatch de cor de marca
-em AgX devolve a cor errada.
+`Standard` for composition/UI where the colors have to come out as they were defined; `AgX` for
+photographic imagery (compresses highlights, desaturates on clipping); **`Khronos PBR Neutral` for
+product/e-commerce** — preserves the material color without AgX's washout. Delivering a brand color
+swatch in AgX returns the wrong color.
 
-⚠ **`sc.cycles.samples` vem a 4096 por omissão na 5.1.** Não o baixar explicitamente é a diferença
-entre 30 s e uma hora por frame — e o script não avisa.
+⚠ **`sc.cycles.samples` comes at 4096 by default on 5.1.** Not lowering it explicitly is the
+difference between 30 s and an hour per frame — and the script gives no warning.
 
-## Câmara
+## Camera
 
 ```python
 import math
@@ -112,52 +112,52 @@ bpy.ops.object.camera_add(location=(7, -6, 5))
 cam = bpy.context.active_object
 sc.camera = cam
 
-cam.data.lens = 50            # mm. 35 = amplo · 50 = neutro · 85+ = comprime, favorece produto
+cam.data.lens = 50            # mm. 35 = wide · 50 = neutral · 85+ = compresses, flatters product
 cam.data.sensor_width = 36
 cam.data.clip_start, cam.data.clip_end = 0.1, 1000
 
-# Apontar a um ponto (uma vez)
+# Point at a location (once)
 direction = Vector((0, 0, 1)) - cam.location
 cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
 
-# Ou seguir um objecto (mantém-se apontada se algo se mexer) — preferir em animação
+# Or track an object (stays pointed if something moves) — prefer this in animation
 track = cam.constraints.new(type='TRACK_TO')
-track.target, track.track_axis, track.up_axis = alvo, 'TRACK_NEGATIVE_Z', 'UP_Y'
-# ⚠ up_axis='UP_Z' numa câmara é DEGENERADO: medido, a matriz fica em euler [0,0,0] — a câmara
-# não aponta a nada e olha a direito para baixo. Para câmaras é sempre 'UP_Y'.
-# Verificado equivalente ao quaternion directo: ambos dão euler [72.6, 0, 45] (Y=0 → sem roll).
+track.target, track.track_axis, track.up_axis = target, 'TRACK_NEGATIVE_Z', 'UP_Y'
+# ⚠ up_axis='UP_Z' on a camera is DEGENERATE: measured, the matrix ends up at euler [0,0,0] — the
+# camera points at nothing and looks straight down. For cameras it is always 'UP_Y'.
+# Verified equivalent to the direct quaternion: both give euler [72.6, 0, 45] (Y=0 → no roll).
 
-# Profundidade de campo
+# Depth of field
 cam.data.dof.use_dof = True
-cam.data.dof.focus_object = alvo
+cam.data.dof.focus_object = target
 cam.data.dof.aperture_fstop = 2.8
 ```
 
-Enquadrar tudo o que existe sem adivinhar posições:
+Frame everything that exists without guessing positions:
 ```python
 bpy.ops.object.select_all(action='SELECT')
-bpy.ops.view3d.camera_to_view_selected()   # precisa de contexto 3D; em headless, calcular a bbox
+bpy.ops.view3d.camera_to_view_selected()   # needs a 3D context; in headless, compute the bbox
 ```
-Em `-b` não há área 3D — calcular à mão a partir das `bound_box` dos objectos e recuar a câmara pela
-diagonal da bounding box a dividir por `2*tan(fov/2)`, com margem de ~15%.
+In `-b` there is no 3D area — compute it by hand from the objects' `bound_box` and pull the camera
+back by the bounding box diagonal divided by `2*tan(fov/2)`, with ~15% margin.
 
-## Luz
+## Light
 
 ```python
 bpy.ops.object.light_add(type='AREA', location=(3, -3, 4))
 key = bpy.context.active_object.data
-key.energy = 500          # WATTS em AREA/POINT/SPOT — números grandes são normais
-key.size = 2.0            # maior = sombra mais suave
+key.energy = 500          # WATTS on AREA/POINT/SPOT — big numbers are normal
+key.size = 2.0            # bigger = softer shadow
 
 bpy.ops.object.light_add(type='SUN', location=(0, 0, 10))
 sun = bpy.context.active_object.data
-sun.energy = 3            # SUN é irradiância, não watts — 1–5 é a gama útil
-sun.angle = math.radians(0.526)   # disco solar; maior = sombra mais suave
+sun.energy = 3            # SUN is irradiance, not watts — 1–5 is the useful range
+sun.angle = math.radians(0.526)   # solar disc; bigger = softer shadow
 ```
 
-Three-point de partida (produto/prop, objecto na origem, ~1 m):
-`key` AREA 500 W a 45° à frente-esquerda · `fill` AREA 150 W do lado oposto, mais afastada ·
-`rim` AREA 300 W atrás e acima, a separar do fundo.
+Starting three-point (product/prop, object at the origin, ~1 m):
+`key` AREA 500 W at 45° front-left · `fill` AREA 150 W on the opposite side, further away ·
+`rim` AREA 300 W behind and above, separating it from the background.
 
 ### World / HDRI
 
@@ -169,15 +169,15 @@ bg = world.node_tree.nodes['Background']
 bg.inputs['Color'].default_value = (0.05, 0.05, 0.06, 1)
 bg.inputs['Strength'].default_value = 1.0
 
-# HDRI a partir de ficheiro
+# HDRI from a file
 env = world.node_tree.nodes.new('ShaderNodeTexEnvironment')
 env.image = bpy.data.images.load("/path/studio.hdr")
 world.node_tree.links.new(env.outputs['Color'], bg.inputs['Color'])
 ```
 
-Sem HDRI e sem luz, o Cycles devolve preto — não é bug.
+With no HDRI and no light, Cycles returns black — it is not a bug.
 
-## Material PBR
+## PBR material
 
 ```python
 def pbr(name, base=(0.8, 0.8, 0.8, 1), roughness=0.5, metallic=0.0):
@@ -192,21 +192,21 @@ def pbr(name, base=(0.8, 0.8, 0.8, 1), roughness=0.5, metallic=0.0):
 obj.data.materials.append(pbr("MAT_Metal", (0.7, 0.7, 0.75, 1), 0.25, 1.0))
 ```
 
-Nomes de sockets do Principled **mudaram na 4.0** (`Specular`→`Specular IOR Level`,
-`Emission`→`Emission Color`+`Emission Strength`, `Subsurface`→`Subsurface Weight`). Não confiar de
-memória — listar antes de escrever:
+The Principled socket names **changed in 4.0** (`Specular`→`Specular IOR Level`,
+`Emission`→`Emission Color`+`Emission Strength`, `Subsurface`→`Subsurface Weight`). Do not trust
+memory — list them before writing:
 ```python
 print([s.name for s in mat.node_tree.nodes["Principled BSDF"].inputs])
 ```
 
-Emissivo (luz vinda do próprio objecto):
+Emissive (light coming from the object itself):
 ```python
 b.inputs["Emission Color"].default_value = (1, 0.6, 0.2, 1)
 b.inputs["Emission Strength"].default_value = 5.0
 ```
-Não pôr emissão num material partilhado por várias peças — acende tudo o que o usa.
+Do not put emission on a material shared by several pieces — it lights up everything that uses it.
 
-## Animação e sequências
+## Animation and sequences
 
 ```python
 sc.frame_start, sc.frame_end, sc.render.fps = 1, 120, 24
@@ -214,24 +214,24 @@ sc.frame_start, sc.frame_end, sc.render.fps = 1, 120, 24
 obj.location = (0, 0, 0);  obj.keyframe_insert("location", frame=1)
 obj.location = (0, 0, 3);  obj.keyframe_insert("location", frame=60)
 
-for fc in obj.animation_data.action.fcurves:      # interpolação
+for fc in obj.animation_data.action.fcurves:      # interpolation
     for kp in fc.keyframe_points:
         kp.interpolation = 'BEZIER'; kp.easing = 'EASE_IN_OUT'
 
-r.filepath = "/out/frames/f_"       # sequência: f_0001.png …
+r.filepath = "/out/frames/f_"       # sequence: f_0001.png …
 bpy.ops.render.render(animation=True)
 ```
 
-**Renderizar sempre para sequência de PNG/EXR, não para vídeo directo.** Um crash a 80% de um MP4
-perde tudo; com frames, retoma-se. Montar depois com ffmpeg:
+**Always render to a PNG/EXR sequence, never straight to video.** A crash at 80% of an MP4 loses
+everything; with frames, you resume. Assemble afterwards with ffmpeg:
 
 ```bash
 ffmpeg -framerate 24 -i /out/frames/f_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 18 /out/video.mp4
-# com alfa (ProRes 4444):
+# with alpha (ProRes 4444):
 ffmpeg -framerate 24 -i /out/frames/f_%04d.png -c:v prores_ks -profile:v 4444 -pix_fmt yuva444p10le /out/video.mov
 ```
 
-Turntable — rodar a **câmara**, não o objecto (o objecto a rodar arrasta sombras e reflexos):
+Turntable — rotate the **camera**, not the object (a rotating object drags shadows and reflections):
 ```python
 bpy.ops.object.empty_add(location=(0, 0, 0.5))
 pivot = bpy.context.active_object
@@ -240,46 +240,46 @@ pivot.rotation_euler.z = 0;                 pivot.keyframe_insert("rotation_eule
 pivot.rotation_euler.z = math.radians(360); pivot.keyframe_insert("rotation_euler", frame=121)
 for fc in pivot.animation_data.action.fcurves:
     for kp in fc.keyframe_points:
-        kp.interpolation = 'LINEAR'         # senão a volta acelera e trava — não faz loop
+        kp.interpolation = 'LINEAR'         # otherwise the turn speeds up and stalls — no loop
 ```
 
-## Passes (composição posterior)
+## Passes (later compositing)
 
 ```python
 vl = sc.view_layers[0]
 vl.use_pass_combined = vl.use_pass_z = vl.use_pass_normal = True
 vl.use_pass_diffuse_color = vl.use_pass_ambient_occlusion = True
-vl.use_pass_cryptomatte_object = True            # máscaras por objecto — vive no VIEW LAYER,
-vl.use_pass_cryptomatte_material = True          # não em sc.cycles (erro comum)
+vl.use_pass_cryptomatte_object = True            # per-object masks — lives on the VIEW LAYER,
+vl.use_pass_cryptomatte_material = True          # not on sc.cycles (common error)
 r.image_settings.file_format = 'OPEN_EXR_MULTILAYER'
 r.image_settings.color_depth = '32'
 ```
 
-## Orçamento de tempo
+## Time budget
 
-| Fim | Engine | Samples | Resolução |
+| Purpose | Engine | Samples | Resolution |
 |---|---|---|---|
-| iterar enquadramento/composição | EEVEE | 16–32 | 480–720p |
-| preview para mostrar | EEVEE | 64 | 1080p |
-| entrega still | Cycles | 128–256 + denoise | 1080p–4K |
-| entrega animação | Cycles | 64–128 + denoise | 1080p |
+| iterating framing/composition | EEVEE | 16–32 | 480–720p |
+| preview to show | EEVEE | 64 | 1080p |
+| still delivery | Cycles | 128–256 + denoise | 1080p–4K |
+| animation delivery | Cycles | 64–128 + denoise | 1080p |
 
-Passar de 256 samples com denoise ligado raramente muda o que se vê — custa tempo, não qualidade.
+Going past 256 samples with denoise on rarely changes what you see — it costs time, not quality.
 
-## Gotchas medidos
+## Measured gotchas
 
-| Sintoma | Causa | Fix |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `TypeError: enum "BLENDER_EEVEE_NEXT" not found` | exemplo escrito para 4.2 | `'BLENDER_EEVEE'` na 5.x |
-| Primeiro frame demora ~90 s sem motivo | compilação de kernels Metal | normal; renderizar tudo no mesmo processo |
-| Render preto | sem luz e sem world | adicionar luz ou HDRI |
-| Alfa não aparece no PNG | falta `film_transparent` | `r.film_transparent = True` + `RGBA` |
-| Cor de marca sai errada | `view_transform='AgX'` | `'Standard'` para cor exacta |
-| `KeyError` num input do Principled | nomes mudaram na 4.0 | listar `inputs` antes de escrever |
-| Turntable com solavanco no loop | interpolação Bézier | `LINEAR` nas keyframes de rotação |
-| MP4 perdido a meio do render | render directo para vídeo | frames + ffmpeg |
+| `TypeError: enum "BLENDER_EEVEE_NEXT" not found` | example written for 4.2 | `'BLENDER_EEVEE'` on 5.x |
+| First frame takes ~90 s for no reason | Metal kernel compilation | normal; render everything in the same process |
+| Black render | no light and no world | add a light or an HDRI |
+| Alpha does not show in the PNG | `film_transparent` missing | `r.film_transparent = True` + `RGBA` |
+| Brand color comes out wrong | `view_transform='AgX'` | `'Standard'` for exact color |
+| `KeyError` on a Principled input | names changed in 4.0 | list `inputs` before writing |
+| Turntable jolts at the loop | Bézier interpolation | `LINEAR` on the rotation keyframes |
+| MP4 lost mid-render | rendering straight to video | frames + ffmpeg |
 
-## Próximo passo (chain)
+## Next step (chain)
 
-- Render entregue e há julgamento visual a fazer → `design-review`.
-- O render não bate com o pedido → voltar ao loop de verificação da skill `blender` (máx. 3 voltas).
+- Render delivered and there is a visual judgement to make → `design-review`.
+- The render does not match the request → back to the `blender` skill's verification loop (max 3 rounds).

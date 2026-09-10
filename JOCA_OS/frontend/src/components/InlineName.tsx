@@ -2,35 +2,37 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 /**
- * Nome editável por duplo-clique.
+ * Name editable by double-click.
  *
- * UM componente com estado PRÓPRIO, montado por linha — de propósito. A primeira versão disto
- * partilhava um único `editingId` + um ref entre todos os nomes de uma grelha, e bastava haver
- * dois campos com o mesmo id (título e linha do mesmo item) para o ref ficar agarrado ao último e
- * o blur de um fechar o outro. Estado local por instância elimina a classe inteira de bugs.
+ * ONE component with its OWN state, mounted per row — deliberately. The first version of this
+ * shared a single `editingId` + one ref across every name in a grid, and it took only two fields
+ * with the same id (the title and the row of the same item) for the ref to end up stuck on the
+ * last one and the blur of one to close the other. Local state per instance eliminates the whole
+ * class of bugs.
  *
- * Usado nos três sítios onde se renomeia inline: dashboard global, agentes do projecto e vista
- * global de Agentes. Sem `onRename` fica texto simples — é assim que se desliga a edição.
+ * Used in the three places where renaming happens inline: global dashboard, project agents and the
+ * global Agents view. Without `onRename` it is plain text — that is how editing is turned off.
  *
- * ⚠ O nome vive quase sempre DENTRO de uma linha clicável (`role="button"` que abre o agente). Aí,
- * o 1.º clique do duplo-clique sobe até à linha, que navega e desmonta esta árvore — o modo de
- * edição nem chega a aparecer. `stopPropagation` no `onDoubleClick` não salva: o `dblclick` só é
- * emitido DEPOIS dos dois `click`. Por isso existe o `onActivate`: quem tem linha clicável passa lá
- * a acção da linha, e nós seguramos o clique 250 ms para ver se vem um segundo. Sem `onActivate` o
- * comportamento fica o de sempre (o clique sobe), para não mudar quem não precisa.
+ * ⚠ The name almost always lives INSIDE a clickable row (a `role="button"` that opens the agent).
+ * There, the 1st click of the double-click bubbles up to the row, which navigates and unmounts this
+ * tree — edit mode never even appears. `stopPropagation` on `onDoubleClick` does not save it: the
+ * `dblclick` is only emitted AFTER the two `click`s. That is why `onActivate` exists: whoever has a
+ * clickable row passes the row's action in there, and we hold the click for 250 ms to see if a
+ * second one comes. Without `onActivate` the behavior is the usual one (the click bubbles), so as
+ * not to change those who do not need it.
  */
 const DBL_CLICK_MS = 250;
 
 export default function InlineName({ value, onRename, onActivate, className, inputClassName = 'card-name-input', inputStyle, title }: {
   value: string;
-  /** Ausente = não editável. */
+  /** Absent = not editable. */
   onRename?: (name: string) => void;
-  /** Acção da linha clicável em que este nome vive (ex.: abrir o agente). Ver o aviso acima. */
+  /** Action of the clickable row this name lives in (e.g. open the agent). See the warning above. */
   onActivate?: () => void;
   className?: string;
   inputClassName?: string;
   inputStyle?: CSSProperties;
-  /** Tooltip em modo leitura. Sem isto usa-se o próprio nome + a dica de renome. */
+  /** Tooltip in read mode. Without this the name itself + the rename hint is used. */
   title?: string;
 }) {
   const [editing, setEditing] = useState(false);
@@ -41,7 +43,7 @@ export default function InlineName({ value, onRename, onActivate, className, inp
   const cancelPendingClick = () => {
     if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
   };
-  useEffect(() => cancelPendingClick, []);   // desmontar a meio não deixa o timer a disparar
+  useEffect(() => cancelPendingClick, []);   // unmounting mid-flight does not leave the timer firing
 
   useEffect(() => {
     if (editing) { setDraft(value); inputRef.current?.focus(); inputRef.current?.select(); }
@@ -52,13 +54,13 @@ export default function InlineName({ value, onRename, onActivate, className, inp
       <span
         className={className}
         onClick={onRename && onActivate ? (e) => {
-          // Segura a acção da linha: se vier um 2.º clique, era um renome e este nunca corre.
+          // Holds the row's action: if a 2nd click comes, it was a rename and this one never runs.
           e.stopPropagation();
           cancelPendingClick();
           clickTimer.current = setTimeout(() => { clickTimer.current = null; onActivate(); }, DBL_CLICK_MS);
         } : undefined}
         onDoubleClick={onRename ? (e) => { e.stopPropagation(); cancelPendingClick(); setEditing(true); } : undefined}
-        title={title ?? (onRename ? `${value} — duplo-clique renomeia` : value)}
+        title={title ?? (onRename ? `${value} — double-click to rename` : value)}
         style={onRename ? { cursor: 'pointer' } : undefined}
       >
         {value}
@@ -82,7 +84,7 @@ export default function InlineName({ value, onRename, onActivate, className, inp
       onKeyDown={(e) => {
         if (e.key === 'Enter') { e.preventDefault(); commit(); }
         if (e.key === 'Escape') setEditing(false);
-        // O pai é um role="button" que abre o agente ao Enter — sem isto, renomear abria o terminal.
+        // The parent is a role="button" that opens the agent on Enter — without this, renaming opened the terminal.
         e.stopPropagation();
       }}
       onClick={(e) => e.stopPropagation()}

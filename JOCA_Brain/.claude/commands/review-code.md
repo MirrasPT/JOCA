@@ -1,14 +1,14 @@
 # /review-code — Code Review
 
-Determina o alvo do review:
-- Ficheiro(s) especificado(s) pelo utilizador
-- Selecção IDE se existir
-- Directório actual se nada especificado — confirmar antes de prosseguir
+Determine the review target:
+- File(s) specified by the user
+- IDE selection if there is one
+- Current directory if nothing is specified — confirm before proceeding
 
-Invoca agente `tester-code` com o alvo determinado.
+Invoke the `tester-code` agent with the determined target.
 
-Após o review, perguntar:
-> "Quer review adversarial adicional com Codex (OpenAI)? Nota: código sai da máquina para API OpenAI."
+After the review, ask:
+> "Do you want an additional adversarial review with Codex (OpenAI)? Note: code leaves the machine for the OpenAI API."
 
-- Se sim: invocar agente `codex-review` e destacar onde diverge do tester-code
-- Se não: apresentar só o relatório do tester-code
+- If yes: invoke the `codex-review` agent and highlight where it diverges from tester-code
+- If no: present only the tester-code report

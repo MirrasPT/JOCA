@@ -16,7 +16,7 @@ interface Props {
   setHistoryIndex: (idx: number | null) => void;
   selectedPath: string | null;
   onClearSelectedPath: () => void;
-  /** Para o botão `Resume` saber a pasta do projecto da sessão activa. */
+  /** So the `Resume` button knows the project folder of the active session. */
   projects: Project[];
   projectMemory: Record<string, ProjectMemory>;
   onSaveSession: () => void;
@@ -35,14 +35,14 @@ interface Props {
   onLoadJocaItems: () => void;
 }
 
-// O mesmo limiar da media query de `TerminalView.css` — a caixa de escrita mede-se de maneira
-// diferente abaixo dele (ver o efeito que ajusta a altura do textarea).
+// The same threshold as the `TerminalView.css` media query — the composer is measured differently
+// below it (see the effect that adjusts the textarea height).
 const ECRA_ESTREITO = '(max-width: 860px)';
 
 /**
- * Caixa de escrita colapsada — preferencia GLOBAL (nao por terminal) e guardada no browser.
- * Vai para `localStorage` e nao para `/ui-settings` de proposito: e uma escolha de vista, do
- * tamanho da ordenacao de projectos na barra lateral, e nao precisa de viajar entre maquinas.
+ * Collapsed composer — a GLOBAL preference (not per terminal) and stored in the browser.
+ * It goes to `localStorage` and not to `/ui-settings` deliberately: it is a view choice, on a par
+ * with the sidebar's project ordering, and does not need to travel between machines.
  */
 const CAIXA_COLAPSADA_KEY = 'joca.composer.colapsado';
 
@@ -114,7 +114,7 @@ function LinkIcon() {
   );
 }
 
-// Foguete — arrancar o projecto (`/start`). Distinto do Resume (play), que retoma o que já existe.
+// Rocket — start the project (`/start`). Distinct from Resume (play), which picks up what exists.
 function StartIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
@@ -126,7 +126,7 @@ function StartIcon() {
   );
 }
 
-// Borracha — apagar o TEXTO da caixa, não o ecrã do terminal nem o processo.
+// Eraser — clear the TEXT in the box, not the terminal screen nor the process.
 function EraserIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="term-svg-icon">
@@ -136,8 +136,8 @@ function EraserIcon() {
   );
 }
 
-/** Menus da barra. `/model` e `/effort` são comandos reais do Claude Code 2.1.237 (verificado no
- *  binário); os níveis de esforço são os que o `claude --help` anuncia, mais o `auto` do default. */
+/** Bar menus. `/model` and `/effort` are real Claude Code 2.1.237 commands (verified in the
+ *  binary); the effort levels are the ones `claude --help` announces, plus the `auto` default. */
 const MODELOS: { valor: string; label: string }[] = [
   { valor: 'opus', label: 'Opus' },
   { valor: 'sonnet', label: 'Sonnet' },
@@ -189,8 +189,8 @@ const CLAUDE_BASE_COMMANDS: { name: string; description: string }[] = [
 
 export default function TerminalView({
   sessions, activeId, activatedIds, terminalDraft, setTerminalDraft, terminalHistory,
-  // `projectMemory` ficou sem leitor quando a fila de comandos deixou de vir da memória do projecto
-  // e passou a ser fixa (save · resume · start). A prop mantém-se para não mexer nos dois callers.
+  // `projectMemory` lost its reader when the command row stopped coming from the project memory
+  // and became fixed (save · resume · start). The prop stays so as not to touch the two callers.
   historyIndex, setHistoryIndex, selectedPath, onClearSelectedPath, projects, projectMemory: _projectMemory,
   onSaveSession: _onSaveSession, onCompactSession: _onCompactSession, onInterruptSession,
   onRestartSession, onInput, onResize, onReady, submitTerminalDraft, onOpenCommandPalette, termRefs, onNewSession,
@@ -204,9 +204,9 @@ export default function TerminalView({
   const inputAreaRef = useRef<HTMLTextAreaElement>(null);
 
   /**
-   * Colapsar a caixa de escrita deixa a fila de atalhos rapidos sozinha e devolve ~110px ao
-   * terminal — o modo de quem esta so a LER o que o CLI faz. Nao desmonta nada (ver a classe
-   * `--oculta` no CSS): o rascunho, os anexos e a altura medida ficam onde estavam.
+   * Collapsing the composer leaves the quick-shortcut row alone and gives ~110px back to the
+   * terminal — the mode for whoever is only READING what the CLI does. It unmounts nothing (see
+   * the `--oculta` class in the CSS): the draft, the attachments and the measured height stay put.
    */
   const [caixaColapsada, setCaixaColapsada] = useState<boolean>(() => {
     try { return localStorage.getItem(CAIXA_COLAPSADA_KEY) === '1'; } catch { return false; }
@@ -221,9 +221,9 @@ export default function TerminalView({
   }, []);
 
   /**
-   * Qualquer coisa que ESCREVA na caixa reabre-a primeiro. Sem isto, carregar em `save` ou largar
-   * um ficheiro com a caixa fechada punha texto/anexos num sitio invisivel — o gesto parecia nao
-   * ter feito nada.
+   * Anything that WRITES into the box reopens it first. Without this, pressing `save` or dropping
+   * a file with the box closed put text/attachments in an invisible place — the gesture looked
+   * like it had done nothing.
    */
   const abrirCaixa = useCallback(() => {
     setCaixaColapsada((prev) => {
@@ -234,18 +234,18 @@ export default function TerminalView({
   }, []);
 
   /**
-   * Entrar num terminal põe o cursor NA CAIXA DE MENSAGEM, não no xterm.
+   * Entering a terminal puts the cursor IN THE MESSAGE BOX, not in the xterm.
    *
-   * A caixa é a via normal de falar com o CLI (tem histórico, menu de `/`, anexos); o xterm por
-   * baixo é para ler. Sem isto, abrir uma conversa e começar a escrever mandava as teclas
-   * directamente ao processo, à revelia de tudo isso.
+   * The box is the normal route for talking to the CLI (it has history, the `/` menu, attachments);
+   * the xterm underneath is for reading. Without this, opening a conversation and starting to type
+   * sent the keys straight to the process, bypassing all of that.
    *
-   * `preventScroll` porque focar um elemento no fundo da página faz o contentor saltar — o que
-   * empurrava o terminal para fora de vista no próprio gesto de o abrir.
+   * `preventScroll` because focusing an element at the bottom of the page makes the container jump —
+   * which pushed the terminal out of view in the very gesture of opening it.
    */
   useEffect(() => {
-    // Com a caixa colapsada nao ha onde por o cursor — focar um `display:none` e um no-op que
-    // deixava o teclado sem dono. Reabrir volta a passar aqui e devolve o foco a caixa.
+    // With the box collapsed there is nowhere to put the cursor — focusing a `display:none` is a
+    // no-op that left the keyboard ownerless. Reopening passes here again and returns the focus.
     if (!activeId || caixaColapsada) return;
     const t = window.setTimeout(() => inputAreaRef.current?.focus({ preventScroll: true }), 0);
     return () => window.clearTimeout(t);
@@ -264,10 +264,10 @@ export default function TerminalView({
   }, []);
 
   /**
-   * Model e Effort são o mesmo gesto: escolher de uma lista curta e mandar `/<cmd> <valor>` ao CLI.
-   * Um só estado guarda QUAL dos dois está aberto — abrir um fecha o outro, que é o que se espera
-   * de dois menus lado a lado (dois booleanos independentes deixavam-nos abertos ao mesmo tempo,
-   * sobrepostos).
+   * Model and Effort are the same gesture: choose from a short list and send `/<cmd> <value>` to
+   * the CLI. A single state holds WHICH of the two is open — opening one closes the other, which
+   * is what two menus side by side are expected to do (two independent booleans left them open at
+   * the same time, overlapping).
    */
   const [barMenu, setBarMenu] = useState<null | 'model' | 'effort'>(null);
   const barMenuWrapRef = useRef<HTMLDivElement>(null);
@@ -276,7 +276,7 @@ export default function TerminalView({
     onInput(activeId, `/${cmd} ${valor}\r`);
     setBarMenu(null);
   }, [activeId, onInput]);
-  // Fecha ao clicar fora, e no Escape — um menu aberto sem saída de teclado prende quem navega assim.
+  // Closes on outside click, and on Escape — a menu with no keyboard exit traps whoever navigates that way.
   useEffect(() => {
     if (!barMenu) return;
     const onDoc = (ev: MouseEvent) => {
@@ -288,8 +288,8 @@ export default function TerminalView({
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [barMenu]);
 
-  // Split-button do empty state: "+ New Session" abre no claude; o "▾" ao lado deixa escolher o CLI
-  // (codex/agy/opencode). Perfis são carregados lazy na primeira abertura do menu.
+  // Empty-state split button: "+ New Session" opens in claude; the "▾" beside it lets you choose
+  // the CLI (codex/agy/opencode). Profiles are loaded lazily the first time the menu opens.
   const [cliMenuOpen, setCliMenuOpen] = useState(false);
   const [cliProfiles, setCliProfiles] = useState<CliProfileInfo[] | null>(null);
   const cliWrapRef = useRef<HTMLDivElement>(null);
@@ -310,9 +310,9 @@ export default function TerminalView({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [cliMenuOpen]);
 
-  // Aviso não-bloqueante do anexo: o caminho original escondido pelo SO (sandbox do Explorer) OU um
-  // upload recusado pelo backend. `tone` separa informação de falha — uma recusa silenciosa fazia o
-  // botão do clip parecer morto (o erro só ia para a consola).
+  // Non-blocking attachment warning: the original path hidden by the OS (Explorer sandbox) OR an
+  // upload refused by the backend. `tone` separates information from failure — a silent refusal
+  // made the clip button look dead (the error only went to the console).
   const [dropHint, setDropHint] = useState<{ text: string; tone: 'info' | 'erro' } | null>(null);
   const dropHintTimer = useRef<number | null>(null);
   const flashDropHint = useCallback((text: string, tone: 'info' | 'erro' = 'info') => {
@@ -368,24 +368,24 @@ export default function TerminalView({
     const el = inputAreaRef.current;
     if (!el) return;
     const ajusta = () => {
-      // ⚠ `height:auto` num textarea NÃO cai no `min-height` do CSS — cai no intrínseco do
-      // `rows` (rows=4 → 4×19.5 + 20 de padding = 98px), e é esse o valor que o `scrollHeight`
-      // devolve. Por isso os 98px de repouso eram fixos em qualquer ecrã: a 360×640 comiam 61%
-      // do orçamento vertical do terminal e deixavam o xterm com ~61px. Medir contra `0` devolve
-      // ao `min-height` o papel de chão real — e só aí a media query de ≤860px (que baixa esse
-      // chão e põe o tecto em `max-height`) consegue mexer na altura.
-      // O desktop continua a medir contra `auto`: mesma altura de sempre, medida.
+      // ⚠ `height:auto` on a textarea does NOT fall back to the CSS `min-height` — it falls back to
+      // the intrinsic height of `rows` (rows=4 → 4×19.5 + 20 of padding = 98px), and that is the
+      // value `scrollHeight` returns. So the 98px at rest were fixed on any screen: at 360×640 they
+      // ate 61% of the terminal's vertical budget and left the xterm with ~61px. Measuring against
+      // `0` gives `min-height` back the role of a real floor — and only then can the ≤860px media
+      // query (which lowers that floor and puts the ceiling in `max-height`) change the height.
+      // The desktop still measures against `auto`: the same height as always, measured.
       el.style.height = window.matchMedia(ECRA_ESTREITO).matches ? '0px' : 'auto';
       el.style.height = `${Math.min(el.scrollHeight, window.innerHeight * 0.4)}px`;
     };
     ajusta();
-    // Rodar o telemóvel atravessa a media query; sem isto a caixa ficava com a altura do outro
-    // modo até à tecla seguinte.
+    // Rotating the phone crosses the media query; without this the box kept the height of the
+    // other mode until the next keystroke.
     const mq = window.matchMedia(ECRA_ESTREITO);
     mq.addEventListener('change', ajusta);
     return () => mq.removeEventListener('change', ajusta);
-    // `caixaColapsada` esta nas dependencias porque reabrir com um rascunho longo nao mexe no
-    // `terminalDraft`: sem isto a caixa voltava com a altura de repouso e cortava o texto.
+    // `caixaColapsada` is in the dependencies because reopening with a long draft does not touch
+    // `terminalDraft`: without this the box came back at the rest height and cut the text off.
   }, [terminalDraft, caixaColapsada]);
 
   const sendSelectedPath = useCallback(() => {
@@ -405,33 +405,33 @@ export default function TerminalView({
     onInput(activeId, 'git pull\r');
   }, [activeId, activeSession?.projectId, onInput]);
 
-  // Pasta do projecto da sessão activa — o argumento do resume.
+  // Project folder of the active session — the resume's argument.
   const activeProjectPath = useMemo(() => {
     if (!activeSession?.projectId) return null;
     return projects.find((p) => p.id === activeSession.projectId)?.path ?? null;
   }, [projects, activeSession?.projectId]);
 
   /**
-   * Reenvia à MÃO o comando de contexto do arranque: `/resume "<pasta do projecto>"`.
+   * Resends the startup context command BY HAND: `/resume "<project folder>"`.
    *
-   * O backend já o manda sozinho quando o terminal nasce (session-manager, runStartupSequence),
-   * mas isso depende de apanhar a TUI pronta — num arranque lento, ou com o prompt "trust this
-   * folder?" pelo meio, o comando pode perder-se e o terminal fica sem saber em que projecto está.
-   * Este botão é a saída manual desse caso: mesma forma de comando, mesma pasta.
+   * The backend already sends it itself when the terminal is born (session-manager,
+   * runStartupSequence), but that depends on catching the TUI ready — on a slow startup, or with
+   * the "trust this folder?" prompt in the way, the command can be lost and the terminal no longer
+   * knows which project it is in. This button is the manual way out: same command form, same folder.
    */
   const resumeProject = useCallback(() => {
     if (!activeId || !activeProjectPath) return;
-    // A forma do comando vem do perfil do CLI (`/resume` no claude, `resume` nos outros) porque é
-    // sobreponível em cli-profiles.json; o fallback só cobre o profile ainda não ter carregado.
+    // The command form comes from the CLI profile (`/resume` in claude, `resume` in the others)
+    // because it is overridable in cli-profiles.json; the fallback only covers a profile not loaded yet.
     const profile = cliProfiles?.find((p) => p.id === (activeSession?.cli ?? 'claude'));
     const verb = profile?.resumeCmd ?? (activeSession?.cli && activeSession.cli !== 'claude' ? 'resume' : '/resume');
     onInput(activeId, `${verb} "${activeProjectPath}"\r`);
   }, [activeId, activeProjectPath, activeSession?.cli, cliProfiles, onInput]);
 
   /**
-   * `/start "<pasta do projecto>"` — o arranque de projecto (entrevista → PRD → stack → design).
-   * Leva a pasta pela mesma razão que o resume: é o que diz ao comando em que projecto está.
-   * Só existe com projecto activo; numa sessão solta não há pasta para lhe dar.
+   * `/start "<project folder>"` — the project startup (interview → PRD → stack → design).
+   * It carries the folder for the same reason as the resume: it tells the command which project
+   * it is in. It only exists with an active project; a loose session has no folder to give it.
    */
   const startProject = useCallback(() => {
     if (!activeId || !activeProjectPath) return;
@@ -439,8 +439,8 @@ export default function TerminalView({
   }, [activeId, activeProjectPath, onInput]);
 
   /**
-   * Liga o Remote Control NA conversa aberta: `/remote-control <nome do projecto>`.
-   * Sem projecto activo vai só `/remote-control` — o comando não leva argumento a inventar.
+   * Turns Remote Control on IN the open conversation: `/remote-control <project name>`.
+   * With no active project it sends just `/remote-control` — the command takes no argument to invent.
    */
   const sendRemoteControl = useCallback(() => {
     if (!activeId) return;
@@ -449,14 +449,14 @@ export default function TerminalView({
   }, [activeId, activeSession?.projectId, projects, onInput]);
 
   /**
-   * Reiniciar e parar são irreversíveis do ponto de vista de quem lá está a trabalhar: o Restart
-   * mata o CLI e leva a conversa com ele, o Stop manda Ctrl-C ao que está a correr. Ambos ficavam
-   * a um clique de distância de botões vizinhos inofensivos.
+   * Restart and stop are irreversible from the point of view of whoever is working there: Restart
+   * kills the CLI and takes the conversation with it, Stop sends Ctrl-C to what is running. Both
+   * sat one click away from harmless neighboring buttons.
    */
   const restartComAviso = useCallback(() => {
     if (!activeSession) return;
     const ok = window.confirm(
-      `Reiniciar o terminal "${activeSession.name}"?\n\nO processo que lá está a correr é morto e a conversa aberta perde-se.`,
+      `Restart the terminal "${activeSession.name}"?\n\nThe process running there is killed and the open conversation is lost.`,
     );
     if (ok) onRestartSession(activeSession.id);
   }, [activeSession, onRestartSession]);
@@ -464,18 +464,18 @@ export default function TerminalView({
   const interromperComAviso = useCallback(() => {
     if (!activeSession) return;
     const ok = window.confirm(
-      `Parar o que está a correr em "${activeSession.name}"?\n\nManda Ctrl-C ao processo. A conversa fica, o trabalho a meio é interrompido.`,
+      `Stop what is running in "${activeSession.name}"?\n\nSends Ctrl-C to the process. The conversation stays, the work mid-flight is interrupted.`,
     );
     if (ok) onInterruptSession();
   }, [activeSession, onInterruptSession]);
 
   /**
-   * Apaga a linha que está escrita DENTRO do terminal (o input do CLI), sem interromper nada.
+   * Clears the line written INSIDE the terminal (the CLI's input), without interrupting anything.
    *
-   * Num terminal a via habitual é o Ctrl-C, mas esse manda SIGINT: limpa a linha E pára o trabalho
-   * a correr — exactamente o que não se quer. Aqui vai `\x05` (Ctrl-E, ir para o fim da linha)
-   * seguido de `\x15` (Ctrl-U, apagar até ao início): limpa a linha toda independentemente de onde
-   * o cursor esteja, e nenhum dos dois é um sinal — são operações de edição de linha.
+   * In a terminal the usual route is Ctrl-C, but that sends SIGINT: it clears the line AND stops
+   * the running work — exactly what is not wanted. Here it sends `\x05` (Ctrl-E, go to the end of
+   * the line) followed by `\x15` (Ctrl-U, delete to the start): it clears the whole line wherever
+   * the cursor is, and neither of the two is a signal — they are line-editing operations.
    */
   const apagarTexto = useCallback(() => {
     if (!activeId) return;
@@ -483,19 +483,19 @@ export default function TerminalView({
   }, [activeId, onInput]);
 
   /**
-   * O que estava a ser escrito quando se entrou no histórico com a seta para cima. Recuperado ao
-   * sair do histórico pela outra ponta — sem isto, espreitar uma mensagem anterior deitava fora o
-   * que se tinha escrito.
+   * What was being typed when the history was entered with the up arrow. Recovered on leaving the
+   * history at the other end — without this, peeking at an earlier message threw away whatever had
+   * been typed.
    */
   const rascunhoGuardado = useRef('');
 
   /**
-   * Um clique no acesso rápido ESCREVE o comando no campo de input — não o envia.
-   * Quem carrega no Enter é sempre o utilizador: dá-lhe hipótese de acrescentar argumentos
-   * (`/save arrumei os botões`) ou de desistir sem ter mandado nada ao CLI.
+   * A click on the quick access WRITES the command into the input field — it does not send it.
+   * Whoever presses Enter is always the user: it gives them the chance to add arguments
+   * (`/save tidied up the buttons`) or to give up without having sent anything to the CLI.
    *
-   * O `Resume` e o `Start` são a excepção deliberada: levam a pasta do projecto e não há nada que
-   * lhes acrescentar, portanto vão logo (ver `resumeProject`/`startProject`).
+   * `Resume` and `Start` are the deliberate exception: they carry the project folder and there is
+   * nothing to add to them, so they go straight away (see `resumeProject`/`startProject`).
    */
   const runQuickCommand = useCallback((cmd: string) => {
     if (!activeId) return;
@@ -510,9 +510,9 @@ export default function TerminalView({
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
       onDrop={(e) => {
         e.preventDefault();
-        // Drag = referência ao caminho real do ficheiro (sem cópia). Só o Ctrl+V grava em JOCA_Drops.
-        // O browser esconde o path de drags do explorador do SO → dragRealPaths fica vazio nesses
-        // casos; arrastar do file browser do JOCA (ou Finder) dá o caminho. Ver lib/fileDrop.ts.
+        // Drag = reference to the file's real path (no copy). Only Ctrl+V writes into JOCA_Drops.
+        // The browser hides the path of drags from the OS explorer → dragRealPaths is empty in
+        // those cases; dragging from JOCA's file browser (or Finder) gives the path. See lib/fileDrop.ts.
         const cap = captureDrop(e.nativeEvent);
         const paths = dragRealPaths(cap);
         if (paths.length > 0) {
@@ -522,11 +522,11 @@ export default function TerminalView({
         } else if (dropHadFilesWithoutPath(cap)) {
           // Explorer drag: the browser sandbox hides the real path (#3). Fall back to uploading a copy
           // to JOCA_Drops and attach that path, so the drop WORKS instead of doing nothing.
-          flashDropHint('A copiar para JOCA_Drops e anexar… (o Explorer não expõe o caminho original)');
+          flashDropHint('Copying to JOCA_Drops and attaching… (Explorer does not expose the original path)');
           void resolveDrop(cap).then(({ paths: uploaded, errors }) => {
             uploaded.forEach((p) => addAttachment(p));
             if (uploaded.length) inputAreaRef.current?.focus();
-            if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+            if (errors.length) flashDropHint(`Not attached — ${errors.join(' · ')}`, 'erro');
           });
         }
       }}
@@ -575,13 +575,13 @@ export default function TerminalView({
                 onClick={openCliMenu}
                 aria-haspopup="menu"
                 aria-expanded={cliMenuOpen}
-                aria-label="Escolher CLI para a nova sessão"
-                data-tooltip="Escolher CLI"
+                aria-label="Choose CLI for the new session"
+                data-tooltip="Choose CLI"
               >
                 ▾
               </button>
               {cliMenuOpen && (
-                <div className="cli-split-menu" role="menu" aria-label="CLIs disponíveis">
+                <div className="cli-split-menu" role="menu" aria-label="Available CLIs">
                   {(cliProfiles ?? []).map((p) => (
                     <button
                       key={p.id}
@@ -591,11 +591,11 @@ export default function TerminalView({
                       disabled={!p.available}
                       onClick={() => { setCliMenuOpen(false); onNewSessionWithCli(p.id); }}
                     >
-                      {p.label}{p.available ? '' : ' (não instalado)'}
+                      {p.label}{p.available ? '' : ' (not installed)'}
                     </button>
                   ))}
-                  {cliProfiles === null && <div className="cli-split-item cli-split-item--loading">A carregar…</div>}
-                  {cliProfiles?.length === 0 && <div className="cli-split-item cli-split-item--loading">Sem perfis CLI.</div>}
+                  {cliProfiles === null && <div className="cli-split-item cli-split-item--loading">Loading…</div>}
+                  {cliProfiles?.length === 0 && <div className="cli-split-item cli-split-item--loading">No CLI profiles.</div>}
                 </div>
               )}
             </div>
@@ -625,29 +625,29 @@ export default function TerminalView({
       {activeSession && (
         <div className="terminal-command-bar">
           <div className="quick-command-row">
-            {/* ORDEM (decidida pelo dono, 2026-08-20):
-                  com projecto: Save · Resume · Start | Pull · Push | Model · Effort | Stop · Restart · Remote · Apagar texto | + · ↓
-                  sem projecto: Save | Model · Effort | Stop · Restart · Remote · Apagar texto | + · ↓
-                Os grupos separados por `|` são os `command-bar-divider`. O que depende de haver
-                projecto (pasta) desaparece nas sessões soltas em vez de ficar morto ao clique. */}
+            {/* ORDER (decided by the owner, 2026-08-20):
+                  with project: Save · Resume · Start | Pull · Push | Model · Effort | Stop · Restart · Remote · Clear | + · ↓
+                  without project: Save | Model · Effort | Stop · Restart · Remote · Clear | + · ↓
+                The groups separated by `|` are the `command-bar-divider`. What depends on there
+                being a project (folder) disappears in loose sessions instead of sitting dead to the click. */}
 
-            {/* Save escreve no campo em vez de enviar: `/save <nota>` é uso corrente, e enviar
-                sozinho tirava a hipótese de acrescentar a nota. Resume e Start já levam a pasta,
-                não têm nada a acrescentar, e vão logo. */}
-            <button type="button" onClick={() => runQuickCommand('save')} className="quick-command-btn" data-tooltip="Escrever /save no campo (podes juntar uma nota)">
+            {/* Save writes into the field instead of sending: `/save <note>` is current usage, and
+                sending on its own removed the chance to add the note. Resume and Start already
+                carry the folder, have nothing to add, and go straight away. */}
+            <button type="button" onClick={() => runQuickCommand('save')} className="quick-command-btn" data-tooltip="Write /save into the field (you can add a note)">
               save
             </button>
 
             {activeProjectPath && (
               <>
-                {/* Rede de segurança para carregar o contexto do projecto: o envio automático no
-                    arranque foi removido, portanto este botão é agora a via normal do resume. */}
+                {/* Safety net for loading the project context: the automatic send at startup was
+                    removed, so this button is now the normal route for the resume. */}
                 <button
                   type="button"
                   className="quick-command-btn"
                   onClick={resumeProject}
-                  data-tooltip={`/resume "${basename(activeProjectPath)}" — carregar o contexto do projecto`}
-                  aria-label="Carregar o contexto do projecto"
+                  data-tooltip={`/resume "${basename(activeProjectPath)}" — load the project context`}
+                  aria-label="Load the project context"
                 >
                   <ResumeIcon /> Resume
                 </button>
@@ -655,8 +655,8 @@ export default function TerminalView({
                   type="button"
                   className="quick-command-btn"
                   onClick={startProject}
-                  data-tooltip={`/start "${basename(activeProjectPath)}" — arrancar o projecto`}
-                  aria-label="Arrancar o projecto"
+                  data-tooltip={`/start "${basename(activeProjectPath)}" — start the project`}
+                  aria-label="Start the project"
                 >
                   <StartIcon /> Start
                 </button>
@@ -678,15 +678,15 @@ export default function TerminalView({
             {selectedPath && (
               <>
                 <div className="command-bar-divider" />
-                <button type="button" onClick={sendSelectedPath} className="quick-command-btn quick-command-btn--highlight" data-tooltip="Colar caminho do ficheiro">
+                <button type="button" onClick={sendSelectedPath} className="quick-command-btn quick-command-btn--highlight" data-tooltip="Paste file path">
                   <LinkIcon /> Paste Path
                 </button>
               </>
             )}
 
             <div className="command-bar-divider" />
-            {/* Model e Effort partilham UM contentor com o ref: o clique-fora fecha quando sai do
-                par, e não a cada salto de um para o outro. */}
+            {/* Model and Effort share ONE container with the ref: the outside click closes when it
+                leaves the pair, and not on every jump from one to the other. */}
             <div className="cmd-menu-group" ref={barMenuWrapRef}>
               <div className="cmd-menu-wrap">
                 <button
@@ -696,12 +696,12 @@ export default function TerminalView({
                   disabled={!activeId}
                   aria-haspopup="menu"
                   aria-expanded={barMenu === 'model'}
-                  data-tooltip="Mudar o modelo (/model)"
+                  data-tooltip="Change the model (/model)"
                 >
                   Model ▾
                 </button>
                 {barMenu === 'model' && (
-                  <div role="menu" className="cmd-menu" aria-label="Modelo">
+                  <div role="menu" className="cmd-menu" aria-label="Model">
                     {MODELOS.map((m) => (
                       <button key={m.valor} type="button" role="menuitem" className="cmd-menu-item" onClick={() => sendBarMenuChoice('model', m.valor)}>
                         {m.label}
@@ -719,12 +719,12 @@ export default function TerminalView({
                   disabled={!activeId}
                   aria-haspopup="menu"
                   aria-expanded={barMenu === 'effort'}
-                  data-tooltip="Mudar o nível de esforço (/effort)"
+                  data-tooltip="Change the effort level (/effort)"
                 >
                   Effort ▾
                 </button>
                 {barMenu === 'effort' && (
-                  <div role="menu" className="cmd-menu" aria-label="Esforço">
+                  <div role="menu" className="cmd-menu" aria-label="Effort">
                     {ESFORCOS.map((e) => (
                       <button key={e.valor} type="button" role="menuitem" className="cmd-menu-item" onClick={() => sendBarMenuChoice('effort', e.valor)}>
                         {e.label}
@@ -740,7 +740,7 @@ export default function TerminalView({
               type="button"
               className="quick-command-btn quick-command-btn--stop"
               onClick={interromperComAviso}
-              data-tooltip="Parar o que está a correr (Ctrl-C)"
+              data-tooltip="Stop what is running (Ctrl-C)"
             >
               <StopIcon /> Stop
             </button>
@@ -748,64 +748,64 @@ export default function TerminalView({
               type="button"
               className="quick-command-btn"
               onClick={restartComAviso}
-              data-tooltip="Reiniciar terminal (mata o processo e a conversa)"
+              data-tooltip="Restart terminal (kills the process and the conversation)"
             >
               <RefreshIcon /> Restart
             </button>
-            {/* Manda `/remote-control <projecto>` na conversa ABERTA — não abre terminal novo. */}
+            {/* Sends `/remote-control <project>` in the OPEN conversation — it does not open a new terminal. */}
             <button
               type="button"
               className="quick-command-btn"
               onClick={sendRemoteControl}
-              data-tooltip="Ligar Remote Control neste terminal"
-              aria-label="Ligar Remote Control neste terminal"
+              data-tooltip="Turn on Remote Control in this terminal"
+              aria-label="Turn on Remote Control in this terminal"
             >
               <RemoteIcon /> Remote
             </button>
-            {/* Limpa a linha de input DENTRO do terminal. Existe porque a alternativa habitual
-                (Ctrl-C) também mata o trabalho a correr. */}
+            {/* Clears the input line INSIDE the terminal. It exists because the usual alternative
+                (Ctrl-C) also kills the running work. */}
             <button
               type="button"
               className="quick-command-btn"
               onClick={apagarTexto}
               disabled={!activeId}
-              data-tooltip="Apagar o texto escrito no terminal (sem interromper o que está a correr)"
-              aria-label="Apagar o texto escrito no terminal"
+              data-tooltip="Clear the text written in the terminal (without interrupting what is running)"
+              aria-label="Clear the text written in the terminal"
             >
-              <EraserIcon /> Apagar texto
+              <EraserIcon /> Clear
             </button>
 
             <div className="command-bar-divider" />
-            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Comandos, skills e agentes" aria-label="Comandos, skills e agentes">+</button>
+            <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Commands, skills and agents" aria-label="Commands, skills and agents">+</button>
             <button
               type="button"
               className="quick-command-btn quick-command-btn--plus"
               onClick={() => activeId && termRefs.current.get(activeId)?.scrollToBottom?.()}
-              data-tooltip="Ir para o fim do terminal"
-              aria-label="Ir para o fim do terminal"
+              data-tooltip="Go to the end of the terminal"
+              aria-label="Go to the end of the terminal"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12l7 7 7-7"/></svg>
             </button>
-            {/* Colapsar/mostrar a caixa de escrita. Fica no fim da fila porque e um controlo da
-                VISTA, nao um comando para o CLI — e porque o que ele esconde comeca logo abaixo. */}
+            {/* Collapse/show the composer. It sits at the end of the row because it is a VIEW
+                control, not a command for the CLI — and because what it hides starts right below. */}
             <button
               type="button"
               className="quick-command-btn quick-command-btn--plus"
               onClick={alternarCaixa}
               aria-expanded={!caixaColapsada}
               aria-controls="caixa-de-escrita"
-              data-tooltip={caixaColapsada ? 'Mostrar a caixa de escrita' : 'Esconder a caixa de escrita (ficam so os atalhos)'}
-              aria-label={caixaColapsada ? 'Mostrar a caixa de escrita' : 'Esconder a caixa de escrita'}
+              data-tooltip={caixaColapsada ? 'Show the composer' : 'Hide the composer (only the shortcuts stay)'}
+              aria-label={caixaColapsada ? 'Show the composer' : 'Hide the composer'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d={caixaColapsada ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
               </svg>
             </button>
 
-            {/* O estado vivia no canto da barra de título; sem ele não se via daqui se o terminal
-                está a trabalhar. Empurrado para a direita, longe dos botões. */}
+            {/* The state used to live in the corner of the title bar; without it you could not see
+                from here whether the terminal is working. Pushed to the right, away from the buttons. */}
             <span className={`cmd-bar-status cmd-bar-status--${activeSession.status}`}>
-              {activeSession.status === 'working' ? 'a trabalhar' : 'parado'}
+              {activeSession.status === 'working' ? 'working' : 'idle'}
             </span>
           </div>
 
@@ -834,7 +834,7 @@ export default function TerminalView({
                 const files = e.target.files;
                 if (files) void uploadPickedFiles(Array.from(files)).then(({ paths, errors }) => {
                   paths.forEach(addAttachment);
-                  if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+                  if (errors.length) flashDropHint(`Not attached — ${errors.join(' · ')}`, 'erro');
                 });
                 e.target.value = '';
               }}
@@ -843,12 +843,12 @@ export default function TerminalView({
               type="button"
               className="terminal-command-attach"
               onClick={() => fileInputRef.current?.click()}
-              data-tooltip="Anexar ficheiro"
+              data-tooltip="Attach file"
             >
               <PaperclipIcon />
             </button>
             {showSlashMenu && (
-              <div className="slash-menu" id="slash-listbox" ref={slashMenuRef} role="listbox" aria-label="Comandos disponíveis">
+              <div className="slash-menu" id="slash-listbox" ref={slashMenuRef} role="listbox" aria-label="Available commands">
                 {slashItems.map((item, i) => (
                   <div
                     key={`${item.type}-${item.name}`}
@@ -870,8 +870,8 @@ export default function TerminalView({
               ref={inputAreaRef}
               className="terminal-command-input"
               value={terminalDraft}
-              placeholder="Escrever mensagem ou comando..."
-              aria-label="Mensagem ou comando"
+              placeholder="Write a message or command..."
+              aria-label="Message or command"
               role="combobox"
               aria-expanded={showSlashMenu}
               aria-controls={showSlashMenu ? 'slash-listbox' : undefined}
@@ -889,7 +889,7 @@ export default function TerminalView({
                 e.preventDefault();
                 void uploadPastedImages(imgs, Date.now()).then(({ paths, errors }) => {
                   paths.forEach(addAttachment);
-                  if (errors.length) flashDropHint(`Não anexado — ${errors.join(' · ')}`, 'erro');
+                  if (errors.length) flashDropHint(`Not attached — ${errors.join(' · ')}`, 'erro');
                 });
               }}
               onKeyDown={(e) => {
@@ -912,9 +912,9 @@ export default function TerminalView({
                     submitTerminalDraft();
                   }
                 }
-                // Setas: primeiro andam no TEXTO, só nos extremos é que andam no HISTÓRICO.
-                // Antes, qualquer ArrowUp saltava logo para a mensagem anterior — num rascunho de
-                // várias linhas era impossível subir uma linha para corrigir o que se escreveu.
+                // Arrows: they move in the TEXT first, only at the ends do they move in the HISTORY.
+                // Before, any ArrowUp jumped straight to the previous message — in a multi-line
+                // draft it was impossible to go up one line to fix what had been typed.
                 const campo = e.currentTarget;
                 const antesDoCursor = campo.value.slice(0, campo.selectionStart ?? 0);
                 const depoisDoCursor = campo.value.slice(campo.selectionEnd ?? 0);
@@ -923,8 +923,8 @@ export default function TerminalView({
 
                 if (e.key === 'ArrowUp' && naPrimeiraLinha && terminalHistory.length > 0) {
                   e.preventDefault();
-                  // Ao ENTRAR no histórico, guarda o que estava a ser escrito — é o que a seta
-                  // para baixo devolve no fim, em vez de o deitar fora.
+                  // On ENTERING the history, it saves what was being typed — it is what the down
+                  // arrow returns at the end, instead of throwing it away.
                   if (historyIndex === null) rascunhoGuardado.current = terminalDraft;
                   const nextIndex = historyIndex === null
                     ? terminalHistory.length - 1
@@ -960,9 +960,9 @@ export default function TerminalView({
                 }
               }}
               disabled={!activeId || (!terminalDraft.trim() && attachments.length === 0)}
-              data-tooltip="Enviar para o terminal"
+              data-tooltip="Send to the terminal"
             >
-              enviar
+              send
             </button>
           </div>
         </div>

@@ -53,7 +53,7 @@ Write complete `SKILL.md` following `templates/skill-template.md`.
 - Include `when_to_use` for additional trigger patterns
 - Set `allowed-tools` if needed
 - Under 500 lines; reference supporting files for heavy content
-- Every sentence must change Claude's behaviour concretely.
+- Every sentence must change Claude's behavior concretely.
 
 Store as `current_version`. Set `best_version` = v1, `best_score` = 0, `all_versions` = [v1].
 
@@ -139,11 +139,11 @@ Write `.claude/skills/created-skills/[name]/skill-creation-log.md`:
 ```
 
 ### 4c.5 — Validate frontmatter (gate)
-Antes de registar, correr o linter no ficheiro escrito:
+Before registering it, run the linter on the file that was written:
 ```bash
 python .claude/scripts/validate-skill.py .claude/skills/created-skills/[name]/SKILL.md
 ```
-(Windows: `python`, não `python3` — stub da Store.) Se devolver `[FAIL]` (frontmatter em falta, `name` não-kebab-case, `description` vazia) → corrigir e re-correr até `OK`/`WARN`. Não registar uma skill que falha o linter — a auto-selecção por triggers depende de frontmatter válido.
+(Windows: `python`, not `python3` — the Store stub.) If it returns `[FAIL]` (missing frontmatter, non-kebab-case `name`, empty `description`) → fix it and re-run until `OK`/`WARN`. Do not register a skill that fails the linter — trigger-based auto-selection depends on valid frontmatter.
 
 ### 4d — Register in JOCA
 1. Add entry to `memory/INDEX.md` under `### Created Skills` (create if missing)
@@ -171,4 +171,4 @@ How to use:
 - For upgrades, preserve existing skill's name and directory
 - All new skills go to `created-skills/` — never to category directories
 - Pipeline is fully autonomous — report only at the end
-- **Chaining (obrigatório):** toda a skill/agente novo nasce com (a) frontmatter `chain:` (próximos skills/agentes prováveis, se houver) e (b) secção `## Próximo passo (chain)` no corpo a dizer quando disparar cada um + o gate (irreversível → confirmar). Agentes novos incluem **Step 0: Read das skills relevantes** no corpo. Ver `rules/chaining.md`.
+- **Chaining (mandatory):** every new skill/agent is born with (a) a `chain:` frontmatter (the likely next skills/agents, if any) and (b) a `## Next step (chain)` section in the body saying when to fire each one + the gate (irreversible → confirm). New agents include **Step 0: Read the relevant skills** in the body. See `rules/chaining.md`.

@@ -9,7 +9,7 @@ import { PATH_SAFE } from '../security-fs';
 // ── paced PTY writes (the "long message gets truncated" fix) ─────────────────
 describe('chunkText', () => {
   it('short text stays a single write', () => {
-    expect(chunkText('olá', 800)).toEqual(['olá']);
+    expect(chunkText('hello', 800)).toEqual(['hello']);
   });
 
   it('splits long text and loses nothing', () => {
@@ -32,7 +32,7 @@ describe('chunkText', () => {
   });
 
   it('handles a payload with newlines (bracketed-paste body)', () => {
-    const body = Array.from({ length: 200 }, (_, i) => `linha ${i}`).join('\n');
+    const body = Array.from({ length: 200 }, (_, i) => `line ${i}`).join('\n');
     expect(chunkText(body, 100).join('')).toBe(body);
   });
 });
@@ -66,7 +66,7 @@ describe('cli-profiles', () => {
     expect(profiles.agy.startupSequence).toBe(true);
     expect(profiles.opencode.startupSequence).toBe(true);
     expect(profiles.claude.resumeCmd).toBe('/resume');
-    // codex/agy não reconhecem comandos custom com `/` — recebem `resume` em texto simples.
+    // codex/agy do not recognize custom commands with `/` — they receive `resume` as plain text.
     expect(profiles.codex.resumeCmd).toBe('resume');
     expect(profiles.agy.resumeCmd).toBe('resume');
     expect(profiles.opencode.resumeCmd).toBe('resume');
@@ -78,7 +78,7 @@ describe('cli-profiles', () => {
       .toBe('/usr/local/bin/claude --model opus --dangerously-skip-permissions');
     expect(buildLaunchLine(claude, 'claude', {})).toBe('claude');
     const codex = getCliProfile('codex');
-    // codex ≥0.146 removeu o --full-auto; o equivalente ao skip-permissions é este.
+    // codex ≥0.146 removed --full-auto; this is the equivalent of skip-permissions.
     expect(buildLaunchLine(codex, 'codex', { autonomous: true })).toBe('codex --dangerously-bypass-approvals-and-sandbox');
   });
 
@@ -92,11 +92,11 @@ describe('cli-profiles', () => {
   });
 });
 
-// ── selector de pasta nativo (cross-platform) ─────────────────────────────────
-// O bug era só do Windows e esta máquina é macOS: não há como o reproduzir ao vivo.
-// O que se trava aqui é a FORMA do comando — as três propriedades cuja ausência o matava.
+// ── native folder picker (cross-platform) ─────────────────────────────────────
+// The bug was Windows-only and this machine is macOS: there is no way to reproduce it live.
+// What is pinned here is the SHAPE of the command — the three properties whose absence killed it.
 describe('folderPickerCommand', () => {
-  it('macOS: osascript (comportamento de referência, intacto)', () => {
+  it('macOS: osascript (reference behavior, untouched)', () => {
     const spec = folderPickerCommand('darwin');
     expect(spec.cmd).toBe('osascript');
     expect(spec.args[0]).toBe('-e');
@@ -104,7 +104,7 @@ describe('folderPickerCommand', () => {
     expect(spec.trimTrailingSlash).toBe(true); // `/Users/x/` → `/Users/x`
   });
 
-  it('Linux: zenity em modo directório', () => {
+  it('Linux: zenity in directory mode', () => {
     const spec = folderPickerCommand('linux');
     expect(spec.cmd).toBe('zenity');
     expect(spec.args).toContain('--directory');
@@ -115,26 +115,26 @@ describe('folderPickerCommand', () => {
     expect(spec.cmd).toBe('powershell.exe');
     expect(spec.args.slice(0, 3)).toEqual(['-NoProfile', '-STA', '-Command']);
     expect(spec.args[3]).toBe(WINDOWS_PICKER_PS);
-    // `C:\` é um caminho válido; cortar a barra final dava `C:` (relativo à unidade).
+    // `C:\` is a valid path; cutting the trailing slash gave `C:` (relative to the drive).
     expect(spec.trimTrailingSlash).toBe(false);
   });
 
-  it('Windows: script sem UMA aspa dupla (o escape \\" na linha de comando é o risco)', () => {
+  it('Windows: script without a SINGLE double quote (the \\" escape on the command line is the risk)', () => {
     expect(WINDOWS_PICKER_PS).not.toContain('"');
   });
 
-  it('Windows: diálogo com janela dona TopMost activada — senão abre atrás do browser', () => {
+  it('Windows: dialog with an activated TopMost owner window — otherwise it opens behind the browser', () => {
     expect(WINDOWS_PICKER_PS).toContain('$owner.TopMost=$true');
     expect(WINDOWS_PICKER_PS).toContain('$owner.Activate()');
-    expect(WINDOWS_PICKER_PS).toContain('$d.ShowDialog($owner)'); // nunca ShowDialog() sem dono
+    expect(WINDOWS_PICKER_PS).toContain('$d.ShowDialog($owner)'); // never ShowDialog() without an owner
     expect(WINDOWS_PICKER_PS).not.toContain('$d.ShowDialog()');
   });
 
-  it('Windows: nível de topo = as unidades (não há raiz única como em POSIX)', () => {
+  it('Windows: top level = the drives (there is no single root like on POSIX)', () => {
     expect(WINDOWS_PICKER_PS).toContain('[System.Environment+SpecialFolder]::MyComputer');
   });
 
-  it('Windows: cancelar (1) distingue-se de rebentar (2)', () => {
+  it('Windows: canceling (1) is distinguishable from blowing up (2)', () => {
     expect(WINDOWS_PICKER_PS).toContain('exit 0');
     expect(WINDOWS_PICKER_PS).toContain('exit 1');
     expect(WINDOWS_PICKER_PS).toContain('exit 2');
@@ -142,23 +142,23 @@ describe('folderPickerCommand', () => {
   });
 });
 
-// ── forma de caminho do Windows ───────────────────────────────────────────────
-// PATH_SAFE guarda tudo o que é escrito na linha do PTY. Um caminho vindo do selector
-// do Windows (`C:\Users\...`, com espaços) tem de passar; metacaracteres de shell não.
-describe('PATH_SAFE com caminhos Windows', () => {
-  it('aceita caminhos absolutos com letra de unidade', () => {
-    expect(PATH_SAFE.test('C:\\Users\\dev\\Desktop\\projecto')).toBe(true);
-    // Espaços, acentos e parênteses são correntes em pastas do Drive/OneDrive.
-    expect(PATH_SAFE.test('D:\\Dados\\Meu Projecto\\2026_Nova Plataforma')).toBe(true);
-    expect(PATH_SAFE.test('G:\\O meu disco\\Clientes\\Acme Lda (Norte)')).toBe(true);
+// ── Windows path shape ────────────────────────────────────────────────────────
+// PATH_SAFE guards everything written on the PTY line. A path coming from the Windows
+// picker (`C:\Users\...`, with spaces) has to pass; shell metacharacters must not.
+describe('PATH_SAFE with Windows paths', () => {
+  it('accepts absolute paths with a drive letter', () => {
+    expect(PATH_SAFE.test('C:\\Users\\dev\\Desktop\\project')).toBe(true);
+    // Spaces, accents and parentheses are common in Drive/OneDrive folders.
+    expect(PATH_SAFE.test('D:\\Data\\My Project\\2026_New Platform')).toBe(true);
+    expect(PATH_SAFE.test('G:\\My Drive\\Clients\\Acme Lda (North)')).toBe(true);
     expect(PATH_SAFE.test('C:\\')).toBe(true);
   });
 
-  it('continua a aceitar caminhos POSIX', () => {
-    expect(PATH_SAFE.test('/Users/dev/Projetos/o-meu-projecto')).toBe(true);
+  it('still accepts POSIX paths', () => {
+    expect(PATH_SAFE.test('/Users/dev/Projects/my-project')).toBe(true);
   });
 
-  it('continua a recusar metacaracteres de shell', () => {
+  it('still refuses shell metacharacters', () => {
     expect(PATH_SAFE.test('C:\\Users\\dev"; calc')).toBe(false);
     expect(PATH_SAFE.test('C:\\Users\\dev | del')).toBe(false);
     expect(PATH_SAFE.test('C:\\Users\\$env:TEMP')).toBe(false);

@@ -1,4 +1,4 @@
-Parte da skill `frontend` — carregado on-demand via `Read(".claude/reference/frontend/game-ui.md")` quando a tarefa é UI de jogo (board/card/tactical, engineStore/uiStore, grelha).
+Part of the `frontend` skill — loaded on-demand via `Read(".claude/reference/frontend/game-ui.md")` when the task is game UI (board/card/tactical, engineStore/uiStore, grid).
 
 ## Game UI
 
