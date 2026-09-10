@@ -4,10 +4,10 @@ node_modules/
 .DS_Store
 *.pyc
 __pycache__/
-# Memoria de trabalho — ESTE REPO E PUBLICO (github.com/MirrasPT/JOCA).
-# decisions/learnings/checkpoints ja estavam cobertos; faltavam knowledge/projects/feedback,
-# que sao exactamente onde o /know e o /save escrevem. Um PDF de cliente ingerido pelo /know, ou
-# um /start num projecto privado, ia parar ao repo publico sem nada a travar.
+# Working memory — THIS REPO IS PUBLIC (github.com/MirrasPT/JOCA).
+# decisions/learnings/checkpoints were already covered; knowledge/projects/feedback were not,
+# and those are exactly where /know and /save write. A client PDF ingested by /know, or a /start
+# in a private project, would land in the public repo with nothing to stop it.
 memory/decisions/
 memory/learnings/
 memory/checkpoints/
@@ -16,15 +16,15 @@ memory/knowledge/
 memory/projects/*
 memory/feedback/*
 
-# Excepcoes: memoria sobre o PROPRIO JOCA — o toolkit documenta-se a si mesmo e isso e publico.
-# Qualquer memoria de OUTRO projecto fica de fora por omissao; para partilhar uma, e preciso
-# acrescenta-la aqui de proposito.
+# Exceptions: memory about JOCA ITSELF — the toolkit documents itself and that is public.
+# Memory about ANY OTHER project stays out by default; to share one you have to add it here
+# deliberately.
 !memory/projects/.gitkeep
 !memory/projects/JOCA.md
 !memory/feedback/.gitkeep
-# Nota: o git continua a seguir ficheiros JA rastreados, mesmo cobertos por estas regras — e o caso
-# de feedback/archive/session-2026-07-30-20-31.md, que e sobre o proprio JOCA. Se um dia arquivares
-# feedback de um projecto de cliente e ele aparecer no `git status`, e porque ja estava rastreado:
-# `git rm --cached <file>` tira-o do repo sem o apagar do disco.
+# Note: git keeps tracking files that are ALREADY tracked, even when covered by these rules — that
+# is the case of feedback/archive/session-2026-07-30-20-31.md, which is about JOCA itself. If you
+# ever archive feedback from a client project and it shows up in `git status`, it is because it was
+# already tracked: `git rm --cached <file>` removes it from the repo without deleting it from disk.
 .playwright-mcp/
 /*.png
