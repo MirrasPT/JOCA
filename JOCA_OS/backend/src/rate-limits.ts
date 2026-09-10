@@ -22,7 +22,7 @@ const RL_CACHE_DIR = path.join(os.tmpdir(), 'joca-ui');
 const OAUTH_CACHE_FILE = path.join(RL_CACHE_DIR, 'oauth-usage.json');
 const OAUTH_TTL_MS = 60_000;
 
-// Normalise any reset timestamp (ISO string | epoch seconds | epoch ms) to epoch SECONDS.
+// Normalize any reset timestamp (ISO string | epoch seconds | epoch ms) to epoch SECONDS.
 function toEpochSeconds(v: unknown): number | null {
   if (v == null) return null;
   if (typeof v === 'number') return v > 1e12 ? Math.floor(v / 1000) : Math.floor(v);

@@ -39,7 +39,7 @@ At the start of any Shopify task to:
 |------------------|------------------------|-----------------------------------------------|
 | App / Extension  | `shopify-app`          | `shopify.app.toml`, extensions, Admin API     |
 | Theme            | `shopify-theme`        | Liquid, `theme.liquid`, `theme.json`          |
-| Store audit      | `shopify-store-audit`  | Store URL provided, analyse-only request      |
+| Store audit      | `shopify-store-audit`  | Store URL provided, analyze-only request      |
 | Store fix        | `shopify-store-fixer`  | Admin API + write permission + fix request    |
 
 ## Decision: App vs Extension vs Theme

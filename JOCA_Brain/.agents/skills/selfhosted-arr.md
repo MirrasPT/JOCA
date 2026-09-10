@@ -118,7 +118,7 @@ The response carries `implementation`, `configContract`, `fields[]` (exact names
 
 The API is not fully open until the wizard completes. Programmatic order (no web UI):
 ```
-GET  /Startup/User          # initialises admin, returns current username — REQUIRED first
+GET  /Startup/User          # initializes admin, returns current username — REQUIRED first
 POST /Startup/User          # {Name, Password}
 POST /Startup/Configuration # UI language / metadata locale
 POST /Startup/RemoteAccess
@@ -126,7 +126,7 @@ POST /Startup/Complete       # server becomes fully operational
 ```
 - Calling `POST /Startup/User` (or `/Users/authenticatebyname`) **before** `GET /Startup/User` → **400**.
 - After a config wipe, poll **`/Startup/User`==200** (not `/System/Info/Public`, which returns 200 too early while the DB still migrates → later 503). Concrete poll: every 2 s, max ~30 tries (~60 s), then fail loud.
-- Jellyseerr: initialise its owner by logging in **with the Jellyfin admin account**, then set Radarr/Sonarr as defaults.
+- Jellyseerr: initialize its owner by logging in **with the Jellyfin admin account**, then set Radarr/Sonarr as defaults.
 
 ---
 

@@ -5,7 +5,7 @@ triggers: responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe are
 ---
 # Mobile — Responsive & Mobile Specialist
 
-Takes a design (from `frontend` skill or standalone) and optimises it for mobile. Touch-first, performance-first, native-feel.
+Takes a design (from `frontend` skill or standalone) and optimizes it for mobile. Touch-first, performance-first, native-feel.
 
 Auto-invoked by `frontend` after first draft, or directly by user.
 

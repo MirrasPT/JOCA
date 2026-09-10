@@ -37,7 +37,7 @@ Any task involving a Wix CLI project — apps (dashboard/backend/site extensions
 
 ## First move — bootstrap official skills
 
-Wix ships 16 specialised skills + an MCP server as a Claude Code plugin. They live **per-project** in `.claude/`, not in JOCA. Always ensure they are present before coding:
+Wix ships 16 specialized skills + an MCP server as a Claude Code plugin. They live **per-project** in `.claude/`, not in JOCA. Always ensure they are present before coding:
 
 ```bash
 # inside the Wix project root (has wix.config.json):

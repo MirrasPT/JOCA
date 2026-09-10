@@ -223,7 +223,7 @@ Before writing each slide, answer 4 questions:
 | Bullet list after bullet list | Death by PowerPoint |
 | Purple gradients | AI-generated cliche |
 | Emoji in business context | Amateur signal |
-| Centred title + centered body on every slide | Default PowerPoint template |
+| Centered title + centered body on every slide | Default PowerPoint template |
 | Decorative icons on every bullet | Icon slop — visual noise, zero meaning |
 | Decorative stats with gradient fills | Data slop — only real, relevant data |
 | Identical repeated cards | Grid slop |

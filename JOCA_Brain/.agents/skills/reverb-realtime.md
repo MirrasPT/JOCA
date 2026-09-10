@@ -1,7 +1,7 @@
 ---
 name: reverb-realtime
 description: "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. MUST be invoked when the user says: real-time, WebSockets, broadcasting, Reverb, Echo, presence."
-when_to_use: Activate for broadcasting or WebSocket work in Laravel: ShouldBroadcast events, channel auth in routes/channels.php, Echo frontend integration, Reverb production deploy (Nginx/Caddy, SSL, scaling), client events (whisper), notification broadcasting, or Event::fake() testing.
+when_to_use: "Activate for broadcasting or WebSocket work in Laravel: ShouldBroadcast events, channel auth in routes/channels.php, Echo frontend integration, Reverb production deploy (Nginx/Caddy, SSL, scaling), client events (whisper), notification broadcasting, or Event::fake() testing."
 disable-model-invocation: false
 allowed-tools: Read Write Edit Bash
 chain: tester-code

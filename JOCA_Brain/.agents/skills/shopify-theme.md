@@ -10,7 +10,7 @@ compatibility: "Shopify CLI 3.x+. Online Store 2.0 (sections everywhere). Node.j
 
 - Building a custom theme from scratch or forking Dawn
 - Adding/modifying sections, blocks, templates, snippets
-- Customising `settings_schema.json` / `config/settings_data.json`
+- Customizing `settings_schema.json` / `config/settings_data.json`
 - Theme Check linting and fixing Liquid issues
 - Pushing, pulling, publishing themes via CLI
 

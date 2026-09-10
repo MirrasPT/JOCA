@@ -168,7 +168,7 @@ Rules:
 |---|---|
 | **Access** | Admin endpoint/action that exports all personal data linked to the data subject (JSON) |
 | **Rectification** | Profile edit form, or a manual update flow on request |
-| **Erasure** | Anonymise/delete in **all** related tables — a soft-delete on the main table is not enough (see gotcha §6) |
+| **Erasure** | Anonymize/delete in **all** related tables — a soft-delete on the main table is not enough (see gotcha §6) |
 | **Portability** | Structured export (JSON/CSV), machine-readable, not an image PDF |
 | **Objection** | Marketing opt-out without deleting the account — its own flag, separate from "account deleted" |
 

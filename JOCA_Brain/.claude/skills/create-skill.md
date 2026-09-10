@@ -30,7 +30,7 @@ Read `templates/skill-template.md` for canonical format before starting.
    - `"[REQUEST] best practices site:github.com"`
    - `"Claude Code skill [REQUEST]"`
    - `"[REQUEST] examples implementation"`
-3. Summarise findings in 3-5 actionable bullets.
+3. Summarize findings in 3-5 actionable bullets.
 
 ### Mode: upgrade
 1. **Find skill path**:

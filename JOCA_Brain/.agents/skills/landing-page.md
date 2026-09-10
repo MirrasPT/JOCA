@@ -245,7 +245,7 @@ Deliver in sections:
 ## Related Skills
 
 - `copywriting` — copy-only (no structure design)
-- `page-cro` — analyse and optimize an existing page
+- `page-cro` — analyze and optimize an existing page
 - `lead-capture` — opt-in form and lead magnet strategy
 - `email-sequence` — post-conversion sequence
 - `paid-ads` — driving traffic to the page

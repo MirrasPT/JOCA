@@ -1,6 +1,6 @@
 ---
 name: joca-terminal
-description: Use JOCA from inside a terminal opened by JOCA_OS — query/comment/move board tasks, open new terminals, talk to other terminals and send notifications, all against the running JOCA_OS and without restarting it. MUST be invoked when the user says: comment on the task, close the task, mark as done, create a task, move the task, open a terminal, talk to the other terminal, tell me when you finish. SHOULD also invoke when: the agent finishes work that came from a board task, needs to delegate to another terminal, or wants to record progress for the user to see.
+description: "Use JOCA from inside a terminal opened by JOCA_OS — query/comment/move board tasks, open new terminals, talk to other terminals and send notifications, all against the running JOCA_OS and without restarting it. MUST be invoked when the user says: comment on the task, close the task, mark as done, create a task, move the task, open a terminal, talk to the other terminal, tell me when you finish. SHOULD also invoke when: the agent finishes work that came from a board task, needs to delegate to another terminal, or wants to record progress for the user to see."
 origin: local
 chain: task-router
 ---

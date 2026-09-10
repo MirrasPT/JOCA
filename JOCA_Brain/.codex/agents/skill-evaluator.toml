@@ -33,7 +33,7 @@ Is the frontmatter valid and the skill well-structured?
 ### 4. Usefulness (0–2 points)
 Would this skill actually make Claude measurably better at the requested task?
 
-- **2.0**: The skill teaches Claude something it wouldn't do by default. It adds domain knowledge, workflow structure, or specialised behavior that's genuinely valuable. Someone using this skill produces significantly better output than without it.
+- **2.0**: The skill teaches Claude something it wouldn't do by default. It adds domain knowledge, workflow structure, or specialized behavior that's genuinely valuable. Someone using this skill produces significantly better output than without it.
 - **1.5**: Adds value but some instructions are things Claude already does well.
 - **1.0**: Adds minor value; mostly wraps Claude's default behavior.
 - **0.5**: Adds very little; mostly describes what Claude already does.

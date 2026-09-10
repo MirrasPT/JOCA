@@ -1,6 +1,6 @@
 ---
 name: agent-sdk
-description: Build apps on @anthropic-ai/claude-agent-sdk (the SDK that powers Claude Code CLI). Use when: building Claude Code orchestrators, programmatic Claude sessions, subscription-billed (zero-cost) Claude invocations, JOCA_OS-style multi-terminal apps, MCP server creation with agent-sdk tools.
+description: "Build apps on @anthropic-ai/claude-agent-sdk (the SDK that powers Claude Code CLI). Use when: building Claude Code orchestrators, programmatic Claude sessions, subscription-billed (zero-cost) Claude invocations, JOCA_OS-style multi-terminal apps, MCP server creation with agent-sdk tools."
 triggers: claude-agent-sdk, agent sdk, programmatic claude, subscription claude, zero-cost claude, JOCA_OS backend, claude code orchestrator, query sdk, createSdkMcpServer
 origin: local
 ---

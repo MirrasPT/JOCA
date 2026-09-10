@@ -1,6 +1,6 @@
 ---
 name: shopify-store-audit
-description: "Auditing a public Shopify store across 8 dimensions: trust, conversion, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO, GEO. MUST be invoked when the user mentions: Shopify, Core Web Vitals, SEO, AEO, Answer Engine Optimisation, GEO."
+description: "Auditing a public Shopify store across 8 dimensions: trust, conversion, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO, GEO. MUST be invoked when the user mentions: Shopify, Core Web Vitals, SEO, AEO, Answer Engine Optimization, GEO."
 compatibility: "Read-only. Works with any public Shopify store. No API credentials required for public audit; Admin API needed for detailed data."
 ---
 
@@ -82,14 +82,14 @@ Check per key product page:
 - Review markup valid (no manual inflation)
 - Test with Google Rich Results Test
 
-### Module 7 — AEO (Answer Engine Optimisation)
+### Module 7 — AEO (Answer Engine Optimization)
 
 - FAQ sections on key pages (purchase-intent questions)
 - Policy pages clear and scannable (returns, shipping, warranty)
 - "How it works" / explainer content for complex products
 - Content answers common questions AI assistants receive about the category
 
-### Module 8 — GEO (Generative Engine Optimisation)
+### Module 8 — GEO (Generative Engine Optimization)
 
 - AI crawlers not blocked in `robots.txt`:
   - GPTBot, Claude-Web, Google-Extended, PerplexityBot, FacebookBot

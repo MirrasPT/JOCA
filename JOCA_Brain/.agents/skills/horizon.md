@@ -1,7 +1,7 @@
 ---
 name: horizon
 description: "Laravel queues and Horizon monitoring for production SaaS. MUST be invoked when the user says: queues, jobs, Horizon, workers, dispatching, chaining."
-when_to_use: Activate for any queue-related work in Laravel projects: job classes, event listeners with ShouldQueue, queue connections (Redis/database/SQS), supervisor daemon setup, Horizon configuration, queue priorities, tenant-scoped jobs, or production worker monitoring.
+when_to_use: "Activate for any queue-related work in Laravel projects: job classes, event listeners with ShouldQueue, queue connections (Redis/database/SQS), supervisor daemon setup, Horizon configuration, queue priorities, tenant-scoped jobs, or production worker monitoring."
 disable-model-invocation: false
 allowed-tools: Read Write Edit Bash
 ---

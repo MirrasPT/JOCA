@@ -15,7 +15,7 @@ Converts planning `.md` docs to a self-contained `.html` for human review.
 ## When to activate
 
 - End of planning pipeline (after generating any document)
-- Explicit review/visualisation request
+- Explicit review/visualization request
 - Before sharing with stakeholders
 
 ---

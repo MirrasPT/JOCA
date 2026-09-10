@@ -121,7 +121,7 @@ Turn one piece of content into many. The best social content is extracted from l
 | LinkedIn | Carousel of main points |
 | Twitter/X | Thread of key takeaways |
 | Instagram | Carousel with visuals |
-| Instagram | Reel summarising the post |
+| Instagram | Reel summarizing the post |
 
 ### Podcast / Video → Social Content
 
@@ -148,7 +148,7 @@ Extract "content atoms" — self-contained moments from long-form content that w
 - 3-5 short video clips or audiograms (15-60s) for Reels/TikTok/Shorts
 - 1-2 LinkedIn text posts from key insights
 - 1 Twitter/X thread of takeaways
-- 1 carousel summarising the main framework or list
+- 1 carousel summarizing the main framework or list
 - 1 newsletter section or blog post from the best segment
 
 ### Webinar / Live Event → Social Content
@@ -229,7 +229,7 @@ Extract "content atoms" — self-contained moments from long-form content that w
 
 ---
 
-## Analytics and Optimisation
+## Analytics and Optimization
 
 ### Metrics That Matter
 
@@ -247,7 +247,7 @@ Extract "content atoms" — self-contained moments from long-form content that w
 - Engagement rate trend
 - Best posting times (from data)
 
-### Optimisation Actions
+### Optimization Actions
 
 **If engagement is low:**
 - Test new hooks
@@ -298,11 +298,11 @@ Extract "content atoms" — self-contained moments from long-form content that w
 
 ## Reverse Engineering Viral Content
 
-Analyse what works for top creators in your niche instead of guessing:
+Analyze what works for top creators in your niche instead of guessing:
 
 1. **Find creators** — 10-20 accounts with high engagement
 2. **Collect data** — 500+ posts for analysis
-3. **Analyse patterns** — Hooks, formats, CTAs that work
+3. **Analyze patterns** — Hooks, formats, CTAs that work
 4. **Codify playbook** — Document repeatable patterns
 5. **Layer your voice** — Apply patterns with authenticity
 6. **Convert** — Bridge attention to business results

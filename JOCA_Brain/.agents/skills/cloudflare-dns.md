@@ -1,6 +1,6 @@
 ---
 name: cloudflare-dns
-description: Manage DNS records and Email Routing on Cloudflare via API, idempotent, per domain. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, DNS record, SPF merge, MX Cloudflare, forward email domain, DKIM Cloudflare. SHOULD invoke when: new domain on Cloudflare, configure noreply@, check MX/TXT, Cloudflare zone, upsert DNS record, create DNS subdomain.
+description: "Manage DNS records and Email Routing on Cloudflare via API, idempotent, per domain. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, DNS record, SPF merge, MX Cloudflare, forward email domain, DKIM Cloudflare. SHOULD invoke when: new domain on Cloudflare, configure noreply@, check MX/TXT, Cloudflare zone, upsert DNS record, create DNS subdomain."
 triggers: cloudflare dns, cloudflare-dns, email routing, dns record, spf merge, mx cloudflare, forward email domain, dkim cloudflare, cloudflare zone, upsert dns, idempotent dns
 origin: local
 ---

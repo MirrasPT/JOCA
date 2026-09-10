@@ -145,7 +145,7 @@ Symptom that cost a full diagnosis cycle: origin 200, public 404.
 - **Docker:** container `Up`/healthy (`docker ps`, healthcheck status), not restart-looping.
 - **Admin / authenticated area:** submit the login and confirm the panel renders — the login page
   answering 200 proves nothing (a database with 0 users returns `/admin/login → 200` all the same).
-  For Filament/Livewire, confirm `window.Livewire` initialises and that the JS assets are served with
+  For Filament/Livewire, confirm `window.Livewire` initializes and that the JS assets are served with
   a JS `content-type`, not HTML.
 - **Laravel:** `storage:link` resolving to the **current** release path (an image via the public URL,
   not `ls` on the symlink) · `robots.txt` present in review environments.

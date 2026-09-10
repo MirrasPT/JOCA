@@ -23,7 +23,7 @@ Before recommending, identify:
 **If the user provides a URL or HTML file:** launch in parallel before analyzing — agents find real issues that inform CRO recommendations:
 
 ```
-Agent(subagent_type="tester-ui-ux", prompt="Analyse this page from a conversion perspective. URL/path: [URL or file path]. Act as a frustrated first-time visitor. Find: confusing flows, unclear CTAs, missing trust signals, form friction, dead ends, broken interactions, spacing/layout issues that hurt conversion. Report: Critical (blocking conversions) / Important / Suggestions.")
+Agent(subagent_type="tester-ui-ux", prompt="Analyze this page from a conversion perspective. URL/path: [URL or file path]. Act as a frustrated first-time visitor. Find: confusing flows, unclear CTAs, missing trust signals, form friction, dead ends, broken interactions, spacing/layout issues that hurt conversion. Report: Critical (blocking conversions) / Important / Suggestions.")
 
 Agent(subagent_type="tester-performance", prompt="Run Lighthouse on this page. URL: [URL]. Report performance score, LCP, CLS, INP. Slow pages kill conversions — flag anything below 70 performance score or LCP > 3s as Critical.")
 ```

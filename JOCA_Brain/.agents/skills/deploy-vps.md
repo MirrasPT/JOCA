@@ -215,7 +215,7 @@ Measured pitfalls, all specific to this pattern:
 | `/livewire/*` in the matcher | Livewire serves its JS at a hashed path (`/livewire/livewire.min.js?id=…`) that `/livewire/*` does **not** catch | use the glob `/livewire*` |
 | `/images/*` exists on both sides | The backend's email/PDF logo collides with the SPA's assets | copy the backend ones into the SPA and serve everything from the SPA |
 | Caddy matchers are case-**insensitive**; the Linux disk is case-sensitive | `redir /design /Design` also catches `/Design` → a 301 to itself | solve it with a **symlink on disk**, never with a redirect |
-| Admin panel taken as verified because the login page returns 200 | The panel was unusable for a whole day | submit the login and confirm that `window.Livewire` initialises; check the `content-type` of the JS assets served, not just the status |
+| Admin panel taken as verified because the login page returns 200 | The panel was unusable for a whole day | submit the login and confirm that `window.Livewire` initializes; check the `content-type` of the JS assets served, not just the status |
 
 ---
 
