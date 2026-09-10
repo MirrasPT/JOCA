@@ -96,6 +96,8 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | Blender · 3D · .blend · bpy · malha · modelo 3D · render 3D | `blender` (director — CLI headless, routes to scripting/render) |
 | bpy · script Blender · importar/exportar 3D · glTF/GLB/FBX/OBJ/STL/USD · batch .blend · modificadores | `blender-scripting` |
 | render 3D · Cycles · EEVEE · turntable · material PBR · iluminar cena 3D · câmara 3D | `blender-render` |
+| Meshy · gerar modelo 3D por IA · text-to-3D · image-to-3D · retexturar · remesh · auto-rig | `meshy` (director — MCP oficial, routes to meshy-3d-print) |
+| imprimibilidade · watertight · non-manifold · reparar malha · multicolor 3MF · slicer · fatiar | `meshy-3d-print` |
 | slides · pitch deck | `slides` |
 | roll-up · flyer · folheto · cartaz · trifold · brochura · material impresso · sangria/bleed | `graphic-design` |
 | generate image · illustration | `img-gen` |
@@ -206,6 +208,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube | `/last30days` (plugin externo) |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
+| ver o meu email · dashboard da inbox · resumo do email em HTML | `email-dashboard` |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
 | deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
 | cPanel · UAPI · addon domain · gerir hosting · conta de email cPanel · zona DNS cPanel · criar subdomínio | `cpanel` |

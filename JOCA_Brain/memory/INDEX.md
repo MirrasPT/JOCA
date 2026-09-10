@@ -71,7 +71,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
 
-## Agents (103 = 67 gerados + 36 curados)
+## Agents (105 = 69 gerados + 36 curados)
 
 **67 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
 por `node .claude/scripts/skill-agents.mjs` a partir das próprias skills. Cada um lê a sua skill como
@@ -93,7 +93,7 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 
 ⚠ `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (145)
+## Skills (151)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o

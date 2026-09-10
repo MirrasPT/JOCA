@@ -28,3 +28,19 @@ lê a skill e segue-a à letra (regras de formulário, Fase 0 de leitura do disc
 
 - Documentos e decisões fechados → skill `executar-projeto` (fundação → design → gate → ondas).
   Notificar `[chain → executar-projeto]`. Ver `rules/chaining.md`.
+
+
+---
+
+## Autorização do `Workflow` (ferramenta do harness)
+
+**Correr `/start` é opt-in explícito do utilizador para a ferramenta `Workflow`.** Não perguntes se
+podes orquestrar — se o trabalho se parte em fases com fan-out, autora o script e **chama `Workflow`**.
+Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve na mesma.
+
+Travões que **não** caem com esta autorização:
+- **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
+- **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
+- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
+- **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
+- **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.

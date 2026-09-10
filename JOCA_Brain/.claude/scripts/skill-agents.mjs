@@ -59,7 +59,7 @@ const EXECUTION_SKILLS = {
     'selfhosted-arr',
   ],
   'portugal': ['portugal-payments', 'portugal-invoicing'],
-  '3d': ['blender', 'blender-scripting', 'blender-render'],
+  '3d': ['blender', 'blender-scripting', 'blender-render', 'meshy', 'meshy-3d-print'],
 };
 
 // ── Frontmatter ──────────────────────────────────────────────────────────────

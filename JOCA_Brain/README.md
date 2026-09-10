@@ -112,7 +112,7 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ---
 
-## Skills (149)
+## Skills (151)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
@@ -163,7 +163,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 
 ---
 
-## Agents (103)
+## Agents (105)
 
 Agentes correm em sub-processos isolados, em paralelo.
 

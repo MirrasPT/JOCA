@@ -9,10 +9,17 @@ Carregado em todas as sessões. Determinístico por thresholds — "decidir sozi
 uma da outra são duas coisas que podiam correr ao mesmo tempo; fazê-las em série é tempo deitado
 fora, não prudência. **≥2 partes independentes → despachar em paralelo.**
 
-> **Default: delegar.** O modo normal é **workflow com agentes em paralelo**, não o chat principal a
+> **Default: workflow.** O modo normal é **workflow com agentes em paralelo**, não o chat principal a
 > escrever. O principal orquestra — decide a via, despacha, verifica o artefacto, reporta; **o código
-> escrevem-no os agentes**. Na dúvida, despacha. "Quando NÃO escalar" (abaixo) é o travão, não o
-> default. Não é preciso o utilizador pedir: o hook `prompt-triage.js` já entrega o sinal (partes,
+> escrevem-no os agentes**.
+>
+> Na dúvida, despacha. E na dúvida **entre 1 agente (C) e fan-out (D) → escolhe D**: um agente sozinho
+> é o caso raro (trabalho mesmo indivisível), não o meio-termo confortável. **Trabalho que toque ≥2
+> ficheiros ou passe de uma edição trivial vai para agentes**, mesmo quando é "uma coisa só" —
+> parte-se por ficheiro/área e despacham-se em paralelo no mesmo turno.
+>
+> "Quando NÃO escalar" (abaixo) é a lista **FECHADA** de excepções, não um convite a ponderar de cada
+> vez. Não é preciso o utilizador pedir: o hook `prompt-triage.js` já entrega o sinal (partes,
 > domínios, escala) antes de tu responderes.
 >
 > ⚠ **Eixo: agentes na EXECUÇÃO.** Não colide com `planear-ondas`, que fala de **issues em curso**.
@@ -38,9 +45,9 @@ componente de login em react" = 1 tarefa). O teste é o nº de acções pedidas,
 | Via | Quando | Acção |
 |---|---|---|
 | A — Directa | 0 ficheiros · pergunta/decisão/conversa | Responder inline |
-| B — 1 Skill | 1 parte · 1 domínio · **1 ficheiro** · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
-| C — 1 Agente | 1 parte, mas isolável e longa (review/debug/research/deploy/build) · beneficia de contexto próprio | `Agent(subagent_type="<x>")` com brief obrigatório |
-| D — Fan-out | **≥2 partes independentes** · OU escala (mesmo trabalho em N sítios) · OU feature completa cross-stack | Despachar N agentes **no mesmo turno**. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo. |
+| B — 1 Skill | 1 parte · 1 domínio · **1 ficheiro** · **edição curta** · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
+| C — 1 Agente | 1 parte **mesmo indivisível**, isolável e longa (review/debug/research/deploy/build) · beneficia de contexto próprio. **Caso raro** — na dúvida entre C e D, é D | `Agent(subagent_type="<x>")` com brief obrigatório |
+| D — Fan-out | **≥2 partes independentes** · OU **1 parte que toque ≥2 ficheiros/áreas** · OU escala (mesmo trabalho em N sítios) · OU feature completa cross-stack · OU qualquer trabalho não-trivial fora do gate de valor | Despachar N agentes **no mesmo turno**. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo, **sem perguntar**. |
 
 ## Plano antes de executar (o gate de plano)
 
@@ -80,24 +87,29 @@ skill no disco é a falha mais cara do sistema (`soul.md` Hard Limits).
 ## Thresholds
 
 - Partes independentes: 1=A/B/C · **≥2=D**
-- Ficheiros: 0=A · **1=B** · 2 isolado=C · **≥2 paralelizável=D** (era 1-2=B, ≥3=D — o default desceu)
+- Ficheiros: 0=A · **1 (edição curta)=B** · **≥2=D** — C só quando o trabalho for mesmo indivisível
+  (o default desceu duas vezes: era 1-2=B/≥3=D, depois ≥2 paralelizável=D, agora ≥2=D)
 - Domínios **com acção própria**: 0=A · 1=B/C · ≥2=D
 - Escala (N sítios, mesmo trabalho) → D, um agente por sítio
 - Skill match ≥60% → preferir B sobre A
+- **Empate entre duas vias → escolhe sempre a mais paralela.** Serializar trabalho paralelizável
+  custa tempo em CADA pedido; delegar a mais custa tokens uma vez
 - `orchestration_threshold` e `loop_max_iterations` calibráveis em `soul.md`
 
 ## Quando NÃO escalar (o gate de valor)
 
-Fan-out custa ~15x tokens por agente e coordenação. Não vale quando:
+Fan-out custa ~15x tokens por agente e coordenação. Esta é a lista **fechada** — fora dela, escala.
+Não vale quando:
 - é **pergunta, decisão ou conversa** — responde;
-- é **uma** edição pequena (mudar um valor, corrigir um typo, renomear);
+- é **uma** edição trivial num só ficheiro (mudar um valor, corrigir um typo, renomear);
 - as partes **dependem umas das outras** (o passo 2 precisa do output do passo 1) → sequencial, e
   aí é uma pipeline, não fan-out;
 - as partes **tocam nos mesmos ficheiros** → dois agentes a escrever no mesmo sítio pisam-se.
   Reagrupa: um agente por ficheiro/área, não por tarefa.
 
-Em caso de dúvida entre inline e fan-out num trabalho de 2 partes: **despacha**. O custo de
-serializar trabalho paralelizável é maior, e repete-se em cada pedido.
+Em caso de dúvida entre inline e fan-out: **despacha**. O custo de serializar trabalho
+paralelizável é maior, e repete-se em cada pedido. "Isto era capaz de fazer eu" não é excepção —
+as quatro alíneas acima são.
 
 ## Segurança (não negociável)
 

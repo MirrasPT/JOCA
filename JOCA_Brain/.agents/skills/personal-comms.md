@@ -155,6 +155,32 @@ Um MCP configurado pode nao estar exposto ao loop principal — so a sub-agentes
 
 ---
 
+## Descarregar ANEXOS de email (o MCP do Gmail nao os descarrega)
+
+O `mcp__claude_ai_Gmail__*` **le** metadados de anexos (`filename`, `mimeType`, `attachmentIds`)
+mas **nao tem tool para os gravar em disco**. Nao improvisar nem pedir ao utilizador que os
+descarregue a mao — a via e o CLI `gws`, e o payload vem em **base64url**, nao em bytes:
+
+```bash
+# 1. obter messageId + attachment id  -> mcp__claude_ai_Gmail__get_thread (messageFormat: PLAIN_TEXT)
+# 2. puxar o anexo (o id do anexo tem ~700 chars; usar variavel, nunca inline)
+gws gmail users messages attachments get \
+  --params "{\"userId\":\"me\",\"messageId\":\"$MSG\",\"id\":\"$ATT\"}" > att.json
+# 3. descodificar base64url (o `base64 -d` do macOS NAO aceita -_ nem falta de padding)
+python3 -c "import json,base64,pathlib;d=json.load(open('att.json'))['data'];\
+pathlib.Path('saida.pdf').write_bytes(base64.urlsafe_b64decode(d+'='*(-len(d)%4)))"
+```
+
+Verificar sempre pelo **efeito**: `head -c4` do ficheiro tem de dar `%PDF` (ou o magic do tipo),
+nao basta o JSON ter vindo com bytes. O `gws` escreve `Using keyring backend: keyring` no **stderr**
+— nao e erro; redirecionar stderr ou o ficheiro fica corrompido se se capturar `2>&1`.
+
+⚠ PDF de banco/financeira costuma vir **cifrado** (`pdftotext` devolve `Incorrect password`).
+A senha e uma convencao do emissor (na Cetelem: ano de nascimento + 4 ultimos digitos do NIF) e
+vive na memoria do projecto, nunca aqui.
+
+---
+
 ## Checklist pre-accao
 - [ ] Tool de email/calendario CONFIRMADA ligada (ToolSearch / `claude mcp list` / config)
 - [ ] Schema da tool MCP carregado antes de invocar
@@ -163,3 +189,4 @@ Um MCP configurado pode nao estar exposto ao loop principal — so a sub-agentes
 - [ ] Zero credenciais/endpoints/IDs inventados
 - [ ] Fuso explicito (Europe/Lisbon default) e datas relativas resolvidas
 - [ ] Sem tool -> `TODO` + reportado, NAO improvisado
+- [ ] Anexos: descarregados via `gws` + base64url, e verificados pelo magic do ficheiro

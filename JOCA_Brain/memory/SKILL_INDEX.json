@@ -822,6 +822,26 @@
   },
   {
     "type": "skill",
+    "name": "email-dashboard",
+    "category": "general",
+    "path": ".claude/skills/email-dashboard.md",
+    "description": "Lê a inbox do Gmail (read-only) e entrega um dashboard HTML local, aberto no browser, com os emails triados por Acção / A aguardar / FYI / Ruído. MUST be invoked when the user says: email-dashboard, v",
+    "triggers": [
+      "email-dashboard",
+      "ve o meu email",
+      "dashboard do email",
+      "dashboard da inbox",
+      "check my email",
+      "inbox dashboard",
+      "o que tenho no email",
+      "ponto de situacao do email",
+      "o que ficou por responder",
+      "vê o meu email",
+      "vê a minha caixa de correio"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "email-sequence",
     "category": "general",
     "path": ".claude/skills/email-sequence.md",
@@ -1518,6 +1538,54 @@
       "plano de marketing",
       "estrategia de marketing",
       "como crescer"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "meshy-3d-print",
+    "category": "general",
+    "path": ".claude/skills/meshy-3d-print.md",
+    "description": "Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e entrega ao slicer, via MCP da Meshy. MUST be invoked when the user says: imprimir modelo 3d, imprimibili",
+    "triggers": [
+      "imprimibilidade",
+      "imprimivel",
+      "malha imprimivel",
+      "watertight",
+      "estanque",
+      "non-manifold",
+      "nao manifold",
+      "buracos na malha",
+      "faces degeneradas",
+      "reparar malha",
+      "print analyze",
+      "print repair",
+      "multicolor",
+      "multicor",
+      "3mf"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "meshy",
+    "category": "general",
+    "path": ".claude/skills/meshy.md",
+    "description": "Director de geração 3D por IA na Meshy (MCP oficial). MUST be invoked when the user says: meshy, gerar modelo 3d, criar modelo 3d por ia, text-to-3d, image-to-3d, texto para 3d, imagem para 3d, retext",
+    "triggers": [
+      "meshy",
+      "meshy.ai",
+      "gerar modelo 3d",
+      "criar modelo 3d",
+      "modelo 3d por ia",
+      "text-to-3d",
+      "texto para 3d",
+      "image-to-3d",
+      "imagem para 3d",
+      "foto para 3d",
+      "retexture",
+      "retexturar",
+      "remesh",
+      "decimar malha",
+      "uv unwrap"
     ]
   },
   {
@@ -3194,14 +3262,14 @@
     "name": "deploy-vps-agent",
     "category": "agents",
     "path": ".claude/agents/deploy-vps-agent.md",
-    "description": "deploy · Deploy static sites or apps to a fresh Linux VPS using Caddy reverse proxy and Cloudflare DNS. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "description": "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "deploy VPS",
       "VPS setup",
       "Caddy",
-      "Caddy server",
-      "SSH key VPS",
-      "Cloudflare DNS API"
+      "Caddyfile",
+      "caddy validate",
+      "caddy reload"
     ]
   },
   {
@@ -3548,6 +3616,36 @@
       "multi-agente",
       "decompor tarefa",
       "workstreams paralelos"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "meshy-3d-print-agent",
+    "category": "agents",
+    "path": ".claude/agents/meshy-3d-print-agent.md",
+    "description": "3d · Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e. Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "imprimibilidade",
+      "imprimivel",
+      "malha imprimivel",
+      "watertight",
+      "estanque",
+      "non-manifold"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "meshy-agent",
+    "category": "agents",
+    "path": ".claude/agents/meshy-agent.md",
+    "description": "3d · Director de geração 3D por IA na Meshy (MCP oficial). Despachar para trabalho isolável deste domínio, em paralelo.",
+    "triggers": [
+      "meshy",
+      "meshy.ai",
+      "gerar modelo 3d",
+      "criar modelo 3d",
+      "modelo 3d por ia",
+      "text-to-3d"
     ]
   },
   {

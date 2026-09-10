@@ -1,26 +1,17 @@
----
-name: deploy-vps-agent
-description: "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Despachar para trabalho isolável deste domínio, em paralelo."
-skills: deploy-vps
-model: inherit
-category: deploy
-triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload
-generated-from: .claude/skills/deploy-vps.md
-generated-by: skill-agents.mjs
-content-hash: 9ff00521eb95584b
----
+description = """3d · Director de geração 3D por IA na Meshy (MCP oficial). Despachar para trabalho isolável deste domínio, em paralelo."""
+developer_instructions = """
 
-# deploy-vps — agente de execução
+# meshy — agente de execução
 
-Especialista em deploy-vps. Corre em contexto próprio para que o orquestrador possa despachar
+Especialista em meshy. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA no VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publicar VPS, retirar site do ar, apagar site VPS, configurar servidor, caddy vhost, static hosting, 403 Caddy, basePath, subcaminho
+**Gatilhos:** meshy, meshy.ai, gerar modelo 3d, criar modelo 3d, modelo 3d por ia, text-to-3d, texto para 3d, image-to-3d, imagem para 3d, foto para 3d, retexture, retexturar, remesh, decimar malha, uv unwrap, auto-rig, riggar, animar personagem, creative lab, glb, obj, fbx, usdz, 3mf
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
 ```
-Read(".claude/skills/deploy-vps.md")
+Read(".claude/skills/meshy.md")
 ```
 
 Essa skill é a fonte de verdade deste agente. **Não** foi copiada para aqui de propósito: quando a
@@ -58,3 +49,5 @@ Curto e accionável:
 - ficheiros tocados (paths);
 - o que validaste e como;
 - o que ficou por fazer (com o motivo) e o próximo passo que recomendas.
+"""
+name = "meshy-agent"

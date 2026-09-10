@@ -11,7 +11,7 @@ model: sonnet
 triggers: gerar imagem, imagem com openai, dall-e, gpt-image
 ---
 
-Image generation agent using OpenAI's `gpt-image-2` via the **Codex CLI**.
+Image generation agent for OpenAI's GPT Image models. **Pede-se sempre o 2.5** — pela via que estiver disponível; ver «Modelo» abaixo antes de gerar.
 
 ## Step 0 — Read the skill (mandatory)
 
@@ -61,6 +61,34 @@ codex --version 2>/dev/null || echo "CODEX_NOT_INSTALLED"
 ```
 
 If not installed: `npm install -g @openai/codex` then `codex login`.
+
+## Modelo: pede-se **GPT Image 2.5** (2026-09-09)
+
+Ordem de resolução, decidida sem perguntar — detalhe e armadilhas em `.claude/skills/img-gen.md`:
+
+1. **`OPENAI_API_KEY` presente → 2.5 pelo CLI de fallback da OpenAI**, que aceita `--model`:
+   ```bash
+   python3 ~/.codex/skills/.system/imagegen/scripts/image_gen.py generate \
+     --model gpt-image-2.5-flare --prompt-file prompt.txt \
+     --size 1024x1536 --quality high --out dest.png
+   ```
+   `gpt-image-2.5-sunburst` quando o trabalho é texto, marca ou precisão de edição. `edit` aceita
+   `--image` + **`--mask`** (inpainting real). O script é da OpenAI — **não se edita**.
+   ⚠ Com 2.5 os validadores deste script só aceitam `--size` `1024x1024|1536x1024|1024x1536|auto` e
+   `--quality low|medium|high|auto`; tamanho arbitrário ou `xhigh`/`max` exigem curl a
+   `v1/images/generations`.
+2. **Sem chave** (estado desta máquina — auth por subscrição ChatGPT, campo `OPENAI_API_KEY` vazio no
+   `~/.codex/auth.json`) → `codex exec` com a ferramenta interna, que é **`gpt-image-2`**: modelo fixo
+   no binário do `codex-cli 0.153.4`, sem flag de modelo. Não escrever `gpt-image-2.5-*` em prompts,
+   flags ou relatórios nesta via — não há por onde passar o parâmetro.
+
+Testar a chave antes de escolher:
+```bash
+python3 -c "import json,os,pathlib;p=pathlib.Path.home()/'.codex/auth.json';print('key:', bool(os.getenv('OPENAI_API_KEY') or (p.exists() and json.load(open(p)).get('OPENAI_API_KEY'))))"
+```
+
+**O relatório final nomeia o modelo que gerou de facto** (`gpt-image-2.5-flare` · `-sunburst` ·
+`gpt-image-2`). Nunca «2.5» numa imagem que saiu pela via 2.
 
 ## Image generation via Codex CLI
 

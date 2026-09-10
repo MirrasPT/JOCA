@@ -1,26 +1,17 @@
----
-name: deploy-vps-agent
-description: "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Despachar para trabalho isolável deste domínio, em paralelo."
-skills: deploy-vps
-model: inherit
-category: deploy
-triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload
-generated-from: .claude/skills/deploy-vps.md
-generated-by: skill-agents.mjs
-content-hash: 9ff00521eb95584b
----
+description = """3d · Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e. Despachar para trabalho isolável deste domínio, em paralelo."""
+developer_instructions = """
 
-# deploy-vps — agente de execução
+# meshy-3d-print — agente de execução
 
-Especialista em deploy-vps. Corre em contexto próprio para que o orquestrador possa despachar
+Especialista em meshy-3d-print. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA no VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publicar VPS, retirar site do ar, apagar site VPS, configurar servidor, caddy vhost, static hosting, 403 Caddy, basePath, subcaminho
+**Gatilhos:** imprimibilidade, imprimivel, malha imprimivel, watertight, estanque, non-manifold, nao manifold, buracos na malha, faces degeneradas, reparar malha, print analyze, print repair, multicolor, multicor, 3mf, slicer, fatiar, orcaslicer, bambu studio, prusaslicer, cura, anycubic slicer, print ready, figurina, miniatura, imprimir em 3d, creative lab
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
 ```
-Read(".claude/skills/deploy-vps.md")
+Read(".claude/skills/meshy-3d-print.md")
 ```
 
 Essa skill é a fonte de verdade deste agente. **Não** foi copiada para aqui de propósito: quando a
@@ -58,3 +49,5 @@ Curto e accionável:
 - ficheiros tocados (paths);
 - o que validaste e como;
 - o que ficou por fazer (com o motivo) e o próximo passo que recomendas.
+"""
+name = "meshy-3d-print-agent"

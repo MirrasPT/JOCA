@@ -19,8 +19,8 @@ A orientação canónica do JOCA vive em `CLAUDE.md`. Manter o JOCA Claude-first
 
 | Componente | Nº | Fonte canónica |
 |---|---|---|
-| Skills | 149 | `.claude/skills/<nome>.md` |
-| Agentes | 103 | `.claude/agents/<nome>.md` |
+| Skills | 152 | `.claude/skills/<nome>.md` |
+| Agentes | 105 | `.claude/agents/<nome>.md` |
 | Comandos | 29 | `.claude/commands/<nome>.md` |
 | Rules (globais) | 8 | `.claude/rules/<nome>.md` |
 
@@ -44,6 +44,7 @@ Hierarchy: Integrity > Autonomy > Precision > Economy > Speed.
 - Never skip irreversible-action warnings
 - Never rewrite adjacent code when surgical change suffices
 - Never respond generically when a skill exists for the domain
+- **Publishing an Artifact to claude.ai is opt-in, not default.** Reports, questionnaires, guides and similar deliverables default to a local `.html` file (project/scratchpad), opened in the browser — never `Artifact()` unless the user explicitly asks. If sharing is needed, ask where to publish (e.g. the user's own VPS) instead of assuming claude.ai.
 
 ## Calibration Parameters
 ```yaml
@@ -91,17 +92,20 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 | Via | Quando | Acção |
 |---|---|---|
 | A — Directa | 0 ficheiros · pergunta/decisão/conversa | Responder inline |
-| B — 1 Skill | 1 parte · 1 domínio · **1 ficheiro** · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
-| C — 1 Agente | 1 parte, mas isolável e longa (review/debug/research/deploy/build) · beneficia de contexto próprio | `Agent(subagent_type="<x>")` com brief obrigatório |
-| D — Fan-out | **≥2 partes independentes** · OU escala (mesmo trabalho em N sítios) · OU feature completa cross-stack | Despachar N agentes **no mesmo turno**. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo. |
+| B — 1 Skill | 1 parte · 1 domínio · **1 ficheiro** · **edição curta** · reversível · skill match ≥60% | Read `.claude/skills/<x>.md` → executar inline. Notify `[skill: <x>]` |
+| C — 1 Agente | 1 parte **mesmo indivisível**, isolável e longa (review/debug/research/deploy/build) · beneficia de contexto próprio. **Caso raro** — na dúvida entre C e D, é D | `Agent(subagent_type="<x>")` com brief obrigatório |
+| D — Fan-out | **≥2 partes independentes** · OU **1 parte que toque ≥2 ficheiros/áreas** · OU escala (mesmo trabalho em N sítios) · OU feature completa cross-stack · OU qualquer trabalho não-trivial fora do gate de valor | Despachar N agentes **no mesmo turno**. Se casar uma **pipeline nomeada** (`rules/pipelines.md`) → o **auto-runner** corre-a a fundo, **sem perguntar**. |
 
 ## Thresholds
 
 - Partes independentes: 1=A/B/C · **≥2=D**
-- Ficheiros: 0=A · **1=B** · 2 isolado=C · **≥2 paralelizável=D** (era 1-2=B, ≥3=D — o default desceu)
+- Ficheiros: 0=A · **1 (edição curta)=B** · **≥2=D** — C só quando o trabalho for mesmo indivisível
+  (o default desceu duas vezes: era 1-2=B/≥3=D, depois ≥2 paralelizável=D, agora ≥2=D)
 - Domínios **com acção própria**: 0=A · 1=B/C · ≥2=D
 - Escala (N sítios, mesmo trabalho) → D, um agente por sítio
 - Skill match ≥60% → preferir B sobre A
+- **Empate entre duas vias → escolhe sempre a mais paralela.** Serializar trabalho paralelizável
+  custa tempo em CADA pedido; delegar a mais custa tokens uma vez
 - `orchestration_threshold` e `loop_max_iterations` calibráveis em `soul.md`
 
 ## Segurança (não negociável)
@@ -242,6 +246,8 @@ Se um design exige "agente que coordena agentes", o coordenador tem de ser o mai
 | Blender · 3D · .blend · bpy · malha · modelo 3D · render 3D | `blender` (director — CLI headless, routes to scripting/render) |
 | bpy · script Blender · importar/exportar 3D · glTF/GLB/FBX/OBJ/STL/USD · batch .blend · modificadores | `blender-scripting` |
 | render 3D · Cycles · EEVEE · turntable · material PBR · iluminar cena 3D · câmara 3D | `blender-render` |
+| Meshy · gerar modelo 3D por IA · text-to-3D · image-to-3D · retexturar · remesh · auto-rig | `meshy` (director — MCP oficial, routes to meshy-3d-print) |
+| imprimibilidade · watertight · non-manifold · reparar malha · multicolor 3MF · slicer · fatiar | `meshy-3d-print` |
 | slides · pitch deck | `slides` |
 | roll-up · flyer · folheto · cartaz · trifold · brochura · material impresso · sangria/bleed | `graphic-design` |
 | generate image · illustration | `img-gen` |
@@ -352,6 +358,7 @@ Se um design exige "agente que coordena agentes", o coordenador tem de ser o mai
 | o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube | `/last30days` (plugin externo) |
 | ingerir conhecimento · /know · guardar isto · PDF/YouTube/Instagram/artigo · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | ler email · resumo de emails · caixa de entrada · calendário · marcar evento | `personal-comms` (agent + skill) |
+| ver o meu email · dashboard da inbox · resumo do email em HTML | `email-dashboard` |
 | reparar PR · resolver conflitos · CI vermelho · reviews de bot | `pr-repair` (agent) |
 | deploy VPS · VPS setup · Caddy · SSH key VPS · Cloudflare DNS API · scp site · bootstrap SSH · publicar VPS | `deploy-vps` |
 | cPanel · UAPI · addon domain · gerir hosting · conta de email cPanel · zona DNS cPanel · criar subdomínio | `cpanel` |

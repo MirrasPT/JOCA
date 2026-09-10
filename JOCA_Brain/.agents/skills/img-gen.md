@@ -28,6 +28,72 @@ silêncio no vizinho** (4:5 → 3:4, 896×1200). Consequência dura: **medir as 
 antes de o aceitar, sempre** — e calcular qualquer cover-fit a partir do rácio **real do ficheiro**,
 nunca do pedido.
 
+### GPT Image 2.5 — o que existe (verificado 2026-09-09)
+
+A OpenAI lançou o **GPT Image 2.5** a **2026-09-08** — na app é «ChatGPT Images 2.5» (latência até
+50 % menor, melhor preservação do sujeito das fotos de referência, edições mais consistentes ao longo
+de vários turnos, Sketch, Templates, comentários pousados na imagem). Na API são **dois** modelos:
+
+| Modelo | Para quê |
+|---|---|
+| `gpt-image-2.5-flare` (snapshot `-2026-09-08`) | rápido, dia-a-dia e volume |
+| `gpt-image-2.5-sunburst` (snapshot `-2026-09-08`) | máxima precisão de edição, gerações mais longas |
+
+Ambos em `v1/images/generations` + `v1/images/edits`, com inpainting. `quality` ganha **`xhigh`** e
+**`max`** acima de `high`, e o tamanho passa a **arbitrário** (cada lado ≤ 3840 px, ambos múltiplos de
+16, rácio ≤ 3:1, total entre 0,65 MP e 8,3 MP; acima de 3,69 MP é experimental). Tarifas **iguais às do
+gpt-image-2**: $5/1M texto-in · $8/1M imagem-in · $30/1M imagem-out (verificado 2026-09-09; o
+calculador do gpt-image-2 não estima o consumo do 2.5).
+
+⚠ **A ferramenta interna do `codex` não chega lá.** No `codex-cli 0.153.4` (a última no npm a
+2026-09-09) o modelo está **fixo no binário** — a extensão `ext/image-generation` só conhece
+`gpt-image-2` e não há flag de modelo. Quem dá acesso ao 2.5 é o **CLI de fallback** da própria OpenAI
+(via 1 da política abaixo). Reverificar depois de cada `codex update`:
+
+```bash
+strings "$(npm root -g)"/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex \
+  | grep -oiE 'gpt-image[a-z0-9.-]*' | sort -u
+```
+
+### Modelo por omissão: **GPT Image 2.5** (decidido pelo Renato, 2026-09-09)
+
+Sempre que o modelo for **escolhível**, pede-se o 2.5 — `gpt-image-2.5-flare` por omissão,
+`gpt-image-2.5-sunburst` quando o que está em jogo é **texto, marca ou precisão de edição**. Ordem de
+resolução, sem perguntar:
+
+| # | Condição | Via | Modelo que sai |
+|---|---|---|---|
+| 1 | `OPENAI_API_KEY` presente | CLI de fallback da OpenAI (`image_gen.py`, ver abaixo) — aceita `--model` | **2.5 flare/sunburst** |
+| 2 | sem chave (estado desta máquina, auth por subscrição ChatGPT) | `codex exec` → ferramenta interna `image_gen` | `gpt-image-2` (fixo no binário, sem parâmetro de modelo) |
+
+Testar a chave **antes** de escolher a via — não inferir:
+
+```bash
+python3 -c "import json,os,pathlib;p=pathlib.Path.home()/'.codex/auth.json';print('key:', bool(os.getenv('OPENAI_API_KEY') or (p.exists() and json.load(open(p)).get('OPENAI_API_KEY'))))"
+```
+
+**Via 1 — o CLI que o próprio `codex` traz** (`~/.codex/skills/.system/imagegen/scripts/image_gen.py`,
+subcomandos `generate` · `edit` · `generate-batch`; é ficheiro da OpenAI, **não se edita**):
+
+```bash
+python3 ~/.codex/skills/.system/imagegen/scripts/image_gen.py generate \
+  --model gpt-image-2.5-flare --prompt-file prompt.txt \
+  --size 1024x1536 --quality high --out dest.png
+# edição/inpainting com máscara real:
+python3 ~/.codex/skills/.system/imagegen/scripts/image_gen.py edit \
+  --model gpt-image-2.5-sunburst --image base.png --mask mascara.png \
+  --prompt-file prompt.txt --out dest.png
+```
+
+⚠ **Duas armadilhas deste script, lidas no código (2026-09-09):** os validadores são anteriores ao 2.5,
+logo (a) `--size` arbitrário só é aceite quando `--model` é exactamente `gpt-image-2` — com 2.5 só passam
+`1024x1024`, `1536x1024`, `1024x1536` e `auto`; (b) `--quality` só aceita `low|medium|high|auto` — `xhigh`
+e `max` são recusados. Para tamanho arbitrário ou `xhigh`/`max` **no 2.5** é preciso chamar
+`v1/images/generations` directamente (curl), não este script.
+
+⚠ **O relatório nomeia sempre o modelo que gerou de facto** — `gpt-image-2.5-flare`, `-sunburst` ou
+`gpt-image-2`. Escrever «2.5» num entregável que saiu pela via 2 é relatório falso.
+
 ### Use Codex CLI / OpenAI (`img-gen-openai`) when:
 - **Text in image** -- labels, signs, product names, headlines, packaging copy, any readable text requiring accuracy
 - **Product shots** -- branded packaging, bottles with labels, logo mockups, exact brand identity
@@ -36,7 +102,7 @@ nunca do pedido.
 - **Reference-image editing** -- heavy transforms or restyle of existing image
 - **Dense typography / diagrams** -- infographics with labels, data viz with text
 - **High-fidelity delivery** -- final hero image, client deliverable
-- **Rácio fora da lista do `agy`** (ex.: 21:9) ou rácio que tem de sair exacto -- gpt-image-2 honra rácios nativamente (~1672x941 para 16:9); upscale para 2K via `ffmpeg scale=2048:1152:flags=lanczos`. Para 16:9/9:16/4:3/3:4/3:2/2:3 o `agy` chega
+- **Rácio fora da lista do `agy`** (ex.: 21:9) ou rácio que tem de sair exacto -- gpt-image-2 honra rácios nativamente (~1672x941 para 16:9); upscale para 2K via `ffmpeg scale=2048:1152:flags=lanczos`. Para 16:9/9:16/4:3/3:4/3:2/2:3 o `agy` chega (⚠ tamanho arbitrário é capacidade do **2.5 na API**, não do `codex` — ver acima)
 
 ### Use Antigravity CLI / Gemini (`img-gen-google`) when:
 - **General imagery** -- people, animals, landscapes, scenes, abstract patterns, textures, backgrounds

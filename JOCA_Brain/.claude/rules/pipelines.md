@@ -15,6 +15,11 @@ Quando o task-intake classifica uma tarefa como **D (workflow)** OU a tarefa cas
 4. **Encadeia** via `chain:` (`rules/chaining.md`). Travão: profundidade ≤ `loop_max_iterations` (4); 3x sem progresso → parar e reportar.
 5. **Final gate:** decisões de "taste"/ambíguas acumulam-se e levantam-se de uma vez no fim, não a meio.
 
+**Casar uma pipeline nomeada é ordem de execução, não sugestão.** Não se pergunta se corre nem se
+anuncia a intenção à espera de "sim" — corre-se, e o único gate é o **irreversível** do passo 3.
+Perguntar "queres que eu corra a pipeline X?" gasta a decisão do utilizador numa coisa já decidida
+por esta regra.
+
 O runner é **steward, não initiator** (`orchestration-patterns.md`): só corre passos da pipeline declarada — não inventa scope.
 
 ---

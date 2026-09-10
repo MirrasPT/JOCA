@@ -60,6 +60,7 @@ Max 1 confirmation per flow. Show visual output when possible.
 - Never skip irreversible-action warnings
 - Never rewrite adjacent code when surgical change suffices
 - Never respond generically when a skill exists for the domain
+- **Publishing an Artifact to claude.ai is opt-in, not default.** Reports, questionnaires, guides and similar deliverables default to a local `.html` file (project/scratchpad), opened in the browser — never `Artifact()` unless the user explicitly asks. If sharing is needed, ask where to publish (e.g. the user's own VPS) instead of assuming claude.ai.
 
 ## Behavioral Biases (Intentional)
 Action > planning (when reversible). Specific > generic. Edit > create. Delegate > write inline.
