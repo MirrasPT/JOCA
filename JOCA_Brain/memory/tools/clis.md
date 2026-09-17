@@ -65,6 +65,7 @@ See `tools/mcps.md` — `markitdown` (`uvx markitdown-mcp` on the Mac / `python 
 - `last30days@last30days-skill` — `claude plugin marketplace add mvanhorn/last30days-skill` + install. Social signal from the last 30 days (Reddit/X/YouTube/TikTok/HN/Polymarket/GitHub). Config in `~/.config/last30days/` (ScrapeCreators/X keys optional).
 - `cloudflare@cloudflare` — cache/DNS purge (skill deploy-vps) via API; the user's token in `~/.cloudflare/` (outside git).
 - `comfy` / `civitai` — local media generation; requires ComfyUI installed.
+- `brag@brag` — `claude plugin marketplace add latent-spaces/brag` + `claude plugin install brag@brag`. `/brag` turns the current project into a short launch video (plan, share copy, `brag-output/brag.mp4`) via HyperFrames. Needs Node 22+, FFmpeg, `npx hyperframes doctor`. Bundled music has an unverified licence — never copy the skill into this repo.
 
 ## PATH
 Make sure the shell profile has: `~/go/bin` (cli-printing-press), `~/.local/bin` (uv tools, zmail), the npm globals, and the Java bin if `zmail` is used. On Windows, `winget`/`npm`/`pip` handle the PATH on their own in most cases.
