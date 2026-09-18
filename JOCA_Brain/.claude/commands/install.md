@@ -146,7 +146,7 @@ KEYS:              <the ones given> | PENDING: <the missing ones>
 
 WILL CREATE/UPDATE
   memory/soul.md                 <- parameters + alignment with the user
-  ~/CLAUDE.md                    <- profile + commands + project table
+  ~/CLAUDE.md                    <- profile + commands + list of project names
   .claude/settings.json          <- real paths (replaces <JOCA_ROOT>)
   JOCA_OS                        <- dependencies + frontend build
   <launcher>                     <- startup shortcut
@@ -185,10 +185,10 @@ Startup: start.bat (Windows) or bash start.sh (macOS/Linux)
 
 ## Workspace
 
-## Active projects
-| Directory | Description |
-|-----------|-----------|
-<!-- Entries added by /start and /save -->
+## Projects
+> Names only. Folder, status and detail -> `memory/INDEX.md` §Projects and `memory/projects/<x>.md`.
+
+**Active:** <!-- name only, separated by ` · `; added by /start and /save -->
 
 @[joca_path]/JOCA_Brain/CLAUDE.md
 ```

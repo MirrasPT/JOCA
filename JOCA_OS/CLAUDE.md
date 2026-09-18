@@ -46,9 +46,7 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 
 ## Code Navigation
 
-1. Check `graphify-out/GRAPH_REPORT.md` if it exists
-2. Read raw files when needed to edit
-3. Update: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
+Read raw files when needed to edit.
 
 ## Key decisions
 

@@ -230,7 +230,15 @@ Then a surgical edit in `memory/INDEX.md` (the counts + the new component's line
 
 ## STEP 7 — Update ~/CLAUDE.md (if applicable)
 
-If the session brought new information about the project (new directory, stack change, new status), update the projects table in `~/CLAUDE.md`.
+`~/CLAUDE.md` holds **only the project name** — never folders, stack, status or dates.
+
+| Level | File | What you write |
+|---|---|---|
+| 1 | `~/CLAUDE.md` | **name only**, and only when the project is **new** or no longer exists |
+| 2 | `memory/INDEX.md` §Projects | 1-line summary + folder paths |
+| 3 | `memory/projects/<slug>.md` | **everything else** — the default destination |
+
+New directory, stack change or new status → levels 2/3, never level 1.
 
 ---
 
@@ -258,7 +266,7 @@ Extras:
   [✓ Graphs updated]
   [✓ Bridges recompiled]
   [✓ SKILL_INDEX + INDEX.md realigned | joca-doctor clean]
-  [✓ ~/CLAUDE.md updated]
+  [✓ ~/CLAUDE.md — new project name added]
 
 Session saved.
 ```

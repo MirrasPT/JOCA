@@ -62,7 +62,7 @@ search_threads(query="in:inbox newer_than:2d -in:draft", pageSize=50, view="THRE
 
 Per thread, store: `sender`, `subject`, `date`, `threadId`, `snippet` (max. 160 characters), bucket, and a **suggested action in 1 line** (Action only).
 
-Mark the project on the card when the sender/subject matches a project in the inventory — the canonical list is `memory/PROJECTOS.md` (or the projects table in `~/CLAUDE.md`); **never** keep a copy of clients inside this skill, which rots silently. No match → no label, **never guess the project**.
+Mark the project on the card when the sender/subject matches a project in the inventory — the canonical list is `memory/INDEX.md` §Projects (`~/CLAUDE.md` holds names only); **never** keep a copy of clients inside this skill, which rots silently. No match → no label, **never guess the project**.
 
 ## Step 5 — Content rules (non-negotiable)
 

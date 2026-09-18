@@ -356,6 +356,7 @@ If a design requires an "agent that coordinates agents", the coordinator has to 
 | cso · security audit · threat model · STRIDE · OWASP review | `cso` |
 | map the knowledge · how everything connects · graph of skills/agents/projects · JOCA map | `/map-joca` |
 | what people are saying · last 30 days · social signal · recon before a meeting · real trending · Reddit/X/YouTube | `/last30days` (external plugin) |
+| brag · launch video of this project · turn this into a video · share what I built | `/brag` (external plugin — story + music on top of HyperFrames) |
 | ingest knowledge · /know · save this · PDF/YouTube/Instagram/article · second brain | `knowledge-ingest` (agent + skill) |
 | read email · email summary · inbox · calendar · schedule an event | `personal-comms` (agent + skill) |
 | see my email · inbox dashboard · email summary in HTML | `email-dashboard` |
