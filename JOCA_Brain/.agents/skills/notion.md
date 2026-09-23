@@ -23,7 +23,7 @@ ntn api <METHOD> /v1/<path> [-d @file | (body via stdin)]
 ## Gotchas (lived — do not infer)
 - **Git Bash converts paths that start with `/`** → `MSYS_NO_PATHCONV=1 ntn api GET /v1/...` (otherwise the path becomes `C:/Program Files/Git/v1/...`). Or run it via PowerShell.
 - **`ntn api -d @file` HANGS (timeout) on `PATCH /v1/blocks/{id}/children`** — even though it works on `POST /v1/pages`. **Pass the body via stdin** on the children PATCH (not `-d @file`). (Cost 2 timeouts of 2 min.)
-- **Data sources with duplicate names** (e.g. a backup copy "Save DD-MM" created today + the real one): tell the real one apart by **metadata** (`created_time`/`parent`/`id`) and confirm 1 line **before** a bulk write — easy to edit the wrong one. (See `rules/workflows-and-tooling.md`.)
+- **Data sources with duplicate names** (e.g. a backup copy "Save DD-MM" created today + the real one): tell the real one apart by **metadata** (`created_time`/`parent`/`id`) and confirm 1 line **before** a bulk write — easy to edit the wrong one. (See `.claude/reference/workflows-and-tooling.md`.)
 - **UTF-8**: make sure the body encoding is correct (PT-PT accents).
 
 ## Common patterns

@@ -7,7 +7,7 @@ Gather context:
 
 Formulate hypotheses ordered by probability (max 3).
 
-Routing (canonical Debug pipeline — `rules/pipelines.md`):
+Routing (canonical Debug pipeline — `.claude/reference/pipelines-catalog.md`):
 1. **Triage** — classify the error (stack, type, surface).
 2. **Stack skill** — `Read()` the skill via the Trigger Map in `CLAUDE.md` (e.g.: Laravel/PHP → `laravel-specialist` · frontend/React → `frontend` · WordPress → `wordpress-router` · SQL → `mysql` · deploy/infra → `deploy-*`).
 3. **Logs / stack trace present** → dispatch the `log-debugger` agent (Iron Law: root cause first).

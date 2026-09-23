@@ -137,7 +137,7 @@ Write rules: `readJsonFile` returns the fallback on any error (**swallows corrup
 | Layer | Folder | Loading | Rule |
 |---|---|---|---|
 | **soul** | `memory/soul.md` | `@import` in `CLAUDE.md` — **the whole session** | personality + calibratable parameters (`autonomy_level`, `loop_max_iterations`…) |
-| **rules** | `.claude/rules/*.md` | **auto-loaded in the whole session** | global directives only; see the cost warning in `rules/README.md`. Extensive detail goes to `.claude/reference/` (on-demand) |
+| **rules** | `.claude/rules/*.md` | **auto-loaded in the whole session** | global directives only; see the cost warning in `reference/rules-README.md`. Extensive detail goes to `.claude/reference/` (on-demand) |
 | **skills** | `.claude/skills/*.md` — **flat, depth 1** | on-demand via `Read()` | activation by relevance ≥ 60%; notify `[skill: <name>]` |
 | **agents** | `.claude/agents/*.md` | `Agent(subagent_type=…)` | isolated context, ~15x cost; **1 level only** |
 | **commands** | `.claude/commands/*.md` | `/<name>` | human entry point; this (or the main loop) is where orchestration lives |

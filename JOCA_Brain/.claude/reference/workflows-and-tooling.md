@@ -1,6 +1,6 @@
 # Workflows & Tooling
 
-Recurring gotchas in multi-agent workflows and the local environment. **Loaded on-demand** (`Read()`), NOT in every session — the auto-loaded pointer is `rules/workflows-and-tooling.md`. Terse by design.
+Recurring gotchas in multi-agent workflows and the local environment. **Loaded on-demand** (`Read()`), NOT in every session — the pointer is one line in `CLAUDE.md` (Repository Structure). Terse by design.
 
 ---
 

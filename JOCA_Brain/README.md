@@ -28,7 +28,7 @@ JOCA/
 │       ├── agents/          <- 103 agents (tester-*, debug, research, media, orchestration, ...)
 │       ├── skills/          <- 145 flat skills (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
-│       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
+│       ├── rules/           <- task-intake, pipelines, chaining, orchestration-patterns, default-stack
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
 └── JOCA_OS/                 <- Interface: multi-session terminals

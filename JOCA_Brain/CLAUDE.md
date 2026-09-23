@@ -39,10 +39,11 @@ Disable: "stop caveman" / "normal mode". Auto-clarify on: security warnings, irr
 
 ## Repository Structure
 `memory/` — `soul.md` (personality, `@import`ed) · `INDEX.md`+`SKILL_INDEX.json` (component index) · `projects/`+`feedback/` (per-project, by `/save`).
-`.claude/` — `skills/` (flat, depth 1) · `rules/` (global directives — task-intake/pipelines/chaining/orchestration/api-design/workflows-and-tooling) · `commands/` · `agents/` · `hooks/` (auto-test) · `scripts/` · `settings.json`.
+`.claude/` — `skills/` (flat, depth 1) · `rules/` (global directives — task-intake/pipelines/chaining/orchestration/default-stack) · `reference/` (on-demand `Read()`) · `commands/` · `agents/` · `hooks/` (auto-test) · `scripts/` · `settings.json`.
 ⚠ `.claude/` is **canonical**; `.agents/` and `.codex/` are **compiled mirrors** that publish all the same —
 any edit to skills/agents requires `bash .claude/scripts/compile-bridges.sh`, otherwise they diverge
 silently (a real host/user/SSH key already survived in a mirror after being cleaned in the source).
+On-demand reference: designing endpoints / API contracts → `.claude/reference/api-design.md` · multi-agent workflow, Windows scripts touching credentials/binaries/paths, or an environment gotcha → `.claude/reference/workflows-and-tooling.md` · adding a rule → `.claude/reference/rules-README.md`.
 Add a **skill** = `.claude/skills/<name>.md` (frontmatter `name`+`description`, add to `INDEX.md`) · **agent** = `.claude/agents/<name>.md` (`Agent(subagent_type=…)`) · **command** = `.claude/commands/<name>.md` (`/<name>`).
 
 ## Context & Agents
@@ -227,7 +228,7 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | auto-orchestration · when to trigger a workflow · sub-agents | `orchestration-patterns` (rule) |
 
 ### Pipelines
-Named cross-stack sequences (Laravel Feature, Production frontend, Full-stack e-commerce, Debug, Ship, CSO, etc.) run through the **auto-runner** — JOCA drives the whole sequence on its own (each step in depth, auto-decides the reversible ones, gate only on irreversible, chains via `chain:`). **Full catalog + auto-decision principles: `rules/pipelines.md`** (do not duplicate here).
+Named cross-stack sequences (Laravel Feature, Production frontend, Full-stack e-commerce, Debug, Ship, CSO, etc.) run through the **auto-runner** — JOCA drives the whole sequence on its own (each step in depth, auto-decides the reversible ones, gate only on irreversible, chains via `chain:`). **Auto-runner + auto-decision principles: `rules/pipelines.md`; full catalog (on-demand): `.claude/reference/pipelines-catalog.md`** (do not duplicate here).
 
 ## Cross-CLI Bridge
 Claude Code (canonical) + Codex (GPT) + agy (Gemini). Source = `skills/`+`.claude/` → `GEMINI.md`/`AGENTS.md` compiled via `bash .claude/scripts/compile-bridges.sh`.

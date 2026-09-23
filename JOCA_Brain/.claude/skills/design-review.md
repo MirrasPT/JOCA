@@ -119,7 +119,7 @@ Per dimension, **0–10 → state why not a 10 → "a 10 would have X" → fix �
 
 When the brief asks you to **fix** (not just score) on a live/renderable UI:
 1. **Issue** — identify 1 concrete visual problem (file:line).
-2. **BEFORE screenshot** — capture the current state (Playwright MCP, or `Start-Process <url>` + ask the user for a capture if the MCP is absent — see `rules/workflows-and-tooling.md`).
+2. **BEFORE screenshot** — capture the current state (Playwright MCP, or `Start-Process <url>` + ask the user for a capture if the MCP is absent — see `.claude/reference/workflows-and-tooling.md`).
 3. **Fix** — edit the CSS/markup (surgical, through the design system tokens — never invented hardcoding).
 4. **AFTER screenshot** — re-capture.
 5. **Compare** — confirm the issue is gone and that it did not break the surrounding layout. If it got worse → revert.

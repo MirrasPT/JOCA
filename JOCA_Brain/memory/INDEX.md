@@ -17,23 +17,22 @@ Catalog of the Brain's components. **Inventory verified on disk on 2026-08-20:**
 - [tools/clis.md](tools/clis.md) — inventory of external CLIs (function + macOS/Windows installation + interactive auth).
 
 ## Rules (`.claude/rules/`) — auto-loaded in ALL sessions
-⚠ Recurring cost: every line here is re-sent in every message. Read `rules/README.md` before adding.
+⚠ Recurring cost: every line here is re-sent in every message. Read `reference/rules-README.md` before adding.
 
 | Rule | Function |
 |---|---|
 | `task-intake.md` | classifies any request into the 4 routes (direct / skill / agent / fan-out). **Parallelism rule: ≥2 independent parts → dispatch in parallel.** |
 | `default-stack.md` | the house stack (Next.js · Laravel+Livewire+Filament · MySQL/PostgreSQL · Flutter · Unity 6) — /start picks the pieces, leaving it requires a reason in DECISIONS.md |
-| `pipelines.md` | catalog of named sequences + the auto-runner that runs them in depth |
+| `pipelines.md` | the auto-runner that runs named sequences in depth + list of names (full catalog in `reference/pipelines-catalog.md`) |
 | `chaining.md` | `chain:` convention — how one step hands over to the next without the user asking |
 | `orchestration-patterns.md` | fan-out, cap 3-5 workers, agents-write-to-disk, steward-not-initiator, **parallel sessions**. **Critical rule: sub-agents do not spawn sub-agents.** |
-| `api-design.md` · `workflows-and-tooling.md` | **pointers** — the extensive content lives in `.claude/reference/` and is loaded with `Read()` |
 
 > `testing.md` was **removed** from `rules/` — it was the `test-master` skill duplicated in
 > permanent context. The testing doctrine lives in `.claude/skills/test-master.md` (on-demand); the
 > **static gate vs runtime gate** lives in `pipelines.md`.
 
 ## Reference (`.claude/reference/`) — NOT auto-loaded, `Read()` on-demand
-`api-design.md` · `workflows-and-tooling.md` · `blender-api-5x.md` · `design-dataset.md` · `availability/` · `filament/` · `frontend/` · `reverb-realtime/` · `saas-patterns/` · `wp-performance-review/`
+`api-design.md` · `workflows-and-tooling.md` · `pipelines-catalog.md` · `orchestration-cases.md` · `rules-README.md` · `blender-api-5x.md` · `design-dataset.md` · `availability/` · `filament/` · `frontend/` · `reverb-realtime/` · `saas-patterns/` · `wp-performance-review/`
 
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analyze-platform` — total analysis of a platform: recon → 8 audit lenses in parallel (backend/frontend/security/performance/dead-code/admin/production/UX) → adversarial verification of Critical/High → report in `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.

@@ -44,7 +44,7 @@ According to the intent:
 - **Send email** — an IRREVERSIBLE action: NEVER send without explicit authorization from the user. Show recipient + subject + body and ask for confirmation 1x before sending.
 
 ### 4. Verify the parser against the real response
-- When reading the response of an email or calendar API/MCP, **do not infer the shape** — make 1 real call and validate the parsing against it before finalizing (e.g. confirm that the sender/date field does not always come back empty, that the subject regex matches the real one). Validate a critical field with a known value (see `rules/api-design.md`).
+- When reading the response of an email or calendar API/MCP, **do not infer the shape** — make 1 real call and validate the parsing against it before finalizing (e.g. confirm that the sender/date field does not always come back empty, that the subject regex matches the real one). Validate a critical field with a known value (see `.claude/reference/api-design.md`).
 
 ### 5. Report
 - A concise summary of what was read/done.

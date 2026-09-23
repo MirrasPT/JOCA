@@ -22,7 +22,7 @@ JOCA's canonical guidance lives in `CLAUDE.md`. Keep JOCA Claude-first.
 | Skills | 152 | `.claude/skills/<name>.md` |
 | Agents | 105 | `.claude/agents/<name>.md` |
 | Commands | 29 | `.claude/commands/<name>.md` |
-| Rules (global) | 8 | `.claude/rules/<name>.md` |
+| Rules (global) | 5 | `.claude/rules/<name>.md` |
 
 ⚠ **There is no list of skills or agents here, deliberately.** The full inventory
 (name · type · path · triggers) lives in `memory/SKILL_INDEX.json`, which is **generated**. Read
@@ -187,7 +187,7 @@ Each pipeline = sequence of steps + gates. (⛔ = irreversible confirmation gate
 | **New screen in an existing project** | `prepare-design` (Artifact) → `validate-design` → `new-issue` if there are new components → implement → `write-tests` |
 | **Backlog → plan** | `new-issue` (×N) → `plan-waves` (milestones + `blocked-by` + `docs/WAVES.md`) |
 
-⚠ **In any project** (see §Doctrine): `write-tests` runs in a session separate from the one that
+⚠ **In any project** (see `rules/pipelines.md` §Project doctrine): `write-tests` runs in a session separate from the one that
 implemented — tests written right after the code verify the code, not the requirement.
 
 ### Knowledge
@@ -196,8 +196,6 @@ implemented — tests written right after the code verify the code, not the requ
 | **Knowledge ingest** (`/know`) | `knowledge-ingest` (markitdown → summary → tags → `memory/knowledge/`) |
 | **Market/recency research** | `/last30days <topic>` (social signal scored by engagement, external plugin) + `deep-research` (depth+citations) → merge → `competitor-profiling`/`content-strategy`/`launch-strategy` |
 | **Self-improvement** (`/upgrade-joca`) | `self-improver` → `gemini-auditor` → apply |
-
----
 
 ## Context & Agents
 Sub-agents isolate context, not divide roles. Real cost ~15x tokens. Cap supervisor 3-5 workers. Compress at 70-80% (anchored iterative). U-curve: critical info at start+end, middle loses 10-40% recall.
@@ -418,7 +416,9 @@ If a design requires an "agent that coordinates agents", the coordinator has to 
 | `memory/SKILL_INDEX.json` | generated inventory of skills + agents (name/path/triggers) |
 | `memory/INDEX.md` | readable index of the components |
 | `.claude/rules/task-intake.md` | classification into 4 routes + thresholds + plan gate |
-| `.claude/rules/pipelines.md` | auto-runner, static≠runtime gates, full catalog |
+| `.claude/rules/pipelines.md` | auto-runner, static≠runtime gates, project doctrine |
+| `.claude/reference/pipelines-catalog.md` | full catalog of named pipelines |
 | `.claude/rules/chaining.md` | the `chain:` convention and automatic chaining |
-| `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, anti-patterns |
+| `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, critical rule |
+| `.claude/reference/orchestration-cases.md` | orchestration anti-patterns |
 | `.claude/rules/default-stack.md` | house stack for new projects |

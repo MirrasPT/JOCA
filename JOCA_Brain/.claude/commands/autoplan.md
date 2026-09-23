@@ -1,6 +1,6 @@
 # /autoplan — Full plan, self-reviewed (NL → approved plan)
 
-Adapted from gstack's `autoplan`. Takes an objective in natural language and produces a **plan that is already reviewed** by running the `autoplan` pipeline (`rules/pipelines.md`) **in depth and on its own** — auto-deciding the reversible choices and raising only "taste"/ambiguity at the **final gate**.
+Adapted from gstack's `autoplan`. Takes an objective in natural language and produces a **plan that is already reviewed** by running the `autoplan` pipeline (`.claude/reference/pipelines-catalog.md`) **in depth and on its own** — auto-deciding the reversible choices and raising only "taste"/ambiguity at the **final gate**.
 
 Difference from `/plan`: `/plan` produces ONE plan; `/autoplan` runs the chain of reviews (product → design → engineering) automatically, like a team, without stopping at every step.
 

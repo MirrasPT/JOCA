@@ -28,12 +28,12 @@ You are the JOCA master orchestrator. Your job is to take a complex development 
    - `memory/SKILL_INDEX.json` (lazy-loaded index of all skills and agents)
 
 3. Read the pipeline catalog + chaining doctrine:
-   - `.claude/rules/pipelines.md` (named pipelines + auto-decision principles)
+   - `.claude/rules/pipelines.md` (auto-decision principles) + `.claude/reference/pipelines-catalog.md` (named pipelines)
    - `.claude/rules/chaining.md` (step→step chaining)
 
 ## Pipeline Runner Mode (runs the pipeline in depth)
 
-BEFORE decomposing from scratch: check whether the GOAL matches a **named pipeline** in `rules/pipelines.md` (new UI, Laravel feature, API design, Hardening, Ship, Debug, autoplan…).
+BEFORE decomposing from scratch: check whether the GOAL matches a **named pipeline** in `.claude/reference/pipelines-catalog.md` (new UI, Laravel feature, API design, Hardening, Ship, Debug, autoplan…).
 
 If it matches → run it as a **runner** (gstack `autoplan` pattern):
 1. For each pipeline step: `Read()` the skill / dispatch the step's agent and execute it **in depth** (not superficially).

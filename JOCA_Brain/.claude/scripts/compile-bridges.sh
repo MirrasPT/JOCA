@@ -300,7 +300,7 @@ print(sum(1 for x in d if x.get("type")=="skill"), sum(1 for x in d if x.get("ty
 }
 
 # ─── 3. Shared body of the bridge files (AGENTS.md + GEMINI.md) ───────────────
-# Rule (rules/orchestration-patterns.md, anti-patterns): "capability lists written
+# Rule (reference/orchestration-cases.md, anti-patterns): "capability lists written
 # by hand into prompts go stale silently — point at the generated index, do not
 # transcribe". Hence: counts derived from `ls`, inventory by POINTER to
 # SKILL_INDEX.json, and every doctrinal section EXTRACTED from the canonical source
@@ -355,7 +355,7 @@ BODY_HEAD
   echo
   extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Project doctrine — it ALWAYS holds, with or without \`/start\`"
   echo
-  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Pipeline catalog"
+  extract_section "$CLAUDE_DIR/reference/pipelines-catalog.md" "## Pipeline catalog"
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "## Context & Agents"
   echo
@@ -379,9 +379,11 @@ BODY_ORCH
 | `memory/SKILL_INDEX.json` | generated inventory of skills + agents (name/path/triggers) |
 | `memory/INDEX.md` | readable index of the components |
 | `.claude/rules/task-intake.md` | classification into 4 routes + thresholds + plan gate |
-| `.claude/rules/pipelines.md` | auto-runner, static≠runtime gates, full catalog |
+| `.claude/rules/pipelines.md` | auto-runner, static≠runtime gates, project doctrine |
+| `.claude/reference/pipelines-catalog.md` | full catalog of named pipelines |
 | `.claude/rules/chaining.md` | the `chain:` convention and automatic chaining |
-| `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, anti-patterns |
+| `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, critical rule |
+| `.claude/reference/orchestration-cases.md` | orchestration anti-patterns |
 | `.claude/rules/default-stack.md` | house stack for new projects |
 BODY_TAIL
 }

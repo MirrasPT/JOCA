@@ -26,7 +26,7 @@ Difference from `frontend`: `frontend` builds the React/Next app; `design-html` 
 1. **Ingest the mockup** — read the approved design + the system (`DESIGN.md`/tokens/`brand-guidelines`). Skill-first: `Read(".claude/skills/tailwind.md")` if the project uses Tailwind; otherwise native CSS.
 2. **Structure** — semantics first (landmarks, headings), then layout (grid/flex), then visual detail.
 3. **Implement section by section** — faithful to the mockup; real content where it exists, a marked placeholder where it does not (`<!-- TODO: real copy -->`).
-4. **Verify** — a real render (Playwright MCP, or `Start-Process <file.html>` + ask the user for visual confirmation — `rules/workflows-and-tooling.md`). Confirm reflow, responsiveness, no overflow.
+4. **Verify** — a real render (Playwright MCP, or `Start-Process <file.html>` + ask the user for visual confirmation — `.claude/reference/workflows-and-tooling.md`). Confirm reflow, responsiveness, no overflow.
 
 ## Replicating the chrome of an existing site (header/footer/nav)
 
