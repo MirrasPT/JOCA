@@ -255,12 +255,13 @@ New directory, stack change or new status → levels 2/3, never level 1.
 **Startup-context budget — compare with the STEP 1 snapshot:**
 
 ```bash
+[ -s /tmp/joca-save-bytes-<slug>.txt ] || echo "NO SNAPSHOT — STEP 1 skipped: report the total, no delta"
 before=$(awk '{print $1}' /tmp/joca-save-bytes-<slug>.txt)
 after=$(wc -c ~/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/.claude/rules/*.md \
   <project-root>/CLAUDE.md 2>/dev/null | tail -1 | awk '{print $1}')
 echo "startup: $before → $after ($((after-before)) bytes)"
 ```
-Grew by more than **250 bytes** → do not close: move the excess to `memory/projects/<slug>.md` (or `reference/`) and measure again.
+Grew by more than **500 bytes** (≈ one accented 250-char line + one name in `~/CLAUDE.md`) → do not close: move the excess to `memory/projects/<slug>.md` (or `reference/`) and measure again.
 The number always goes into the report — that is what makes the bloat visible session after session.
 
 ```
@@ -273,7 +274,7 @@ State:
 
 Project feedback:
   ✓ CLAUDE.md — 0 or 1 line (rule + pointer; the detail went to memory/projects/)
-  ✓ Startup: <before> → <after> bytes (<delta>; ceiling +250)
+  ✓ Startup: <before> → <after> bytes (<delta>; ceiling +500)
   ✓ memory/projects/<name>.md — new context added
   — No new learnings this session
 
