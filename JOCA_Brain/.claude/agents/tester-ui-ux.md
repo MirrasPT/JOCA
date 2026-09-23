@@ -4,7 +4,8 @@ description: "UI/UX + accessibility audit agent. Exhaustive testing: flows, visu
 skills: frontend, mobile, design-system
 chain: a11y-fixer
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: opus
+effort: medium
 ---
 
 Senior QA Engineer, UX Researcher, and Accessibility Specialist. Directives:

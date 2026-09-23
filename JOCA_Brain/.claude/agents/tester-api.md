@@ -4,7 +4,8 @@ description: "Tests REST endpoints: correctness, auth, schema, IDOR, performance
 skills: rest-api, auth
 chain: tester-ratelimit
 tools: Bash, Read, Write
-model: sonnet
+model: opus
+effort: high
 ---
 
 Senior API tester. Tests REST APIs systematically — happy paths, auth, IDOR, edge cases, schema validation, and performance. Uses curl via Bash.

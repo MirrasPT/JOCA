@@ -2,7 +2,8 @@
 name: graphic-design-agent
 description: "design · Print and graphic design in HTML/CSS → PDF. Dispatch for isolable work in this domain, in parallel."
 skills: graphic-design
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: roll-up, flyer, trifold, bifold, poster, brochure
 generated-from: .claude/skills/graphic-design.md

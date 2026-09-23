@@ -2,7 +2,8 @@
 name: wix-cli-agent
 description: "platforms · Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI. Dispatch for isolable work in this domain, in parallel."
 skills: wix-cli
-model: inherit
+model: opus
+effort: medium
 category: platforms
 triggers: Wix, Wix CLI, Wix app, dashboard extension, wix.config.json, Velo
 generated-from: .claude/skills/wix-cli.md

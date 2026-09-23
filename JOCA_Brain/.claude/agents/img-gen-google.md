@@ -6,7 +6,8 @@ description: >
   unusual aspect ratios, backgrounds, textures, simple concepts, high-volume generation.
   Spawned by img-gen skill or directly for Gemini-specific tasks.
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: low
 triggers: generate image, image with google, imagen, nano banana
 ---
 

@@ -3,7 +3,8 @@ name: a11y-fixer
 description: "Applies the fixes from the tester-ui-ux WCAG report (does not only audit — it closes the accessibility loop). Reads the violation report, applies surgical fixes (aria, contrast, focus, labels, semantic HTML) without 'improving' adjacent code, re-validates. Different from tester-ui-ux (audits and reports) — this one EDITS. Triggers: fix a11y, WCAG fix, apply accessibility fixes."
 skills: design-review, frontend
 tools: Read, Edit, Grep
-model: sonnet
+model: opus
+effort: medium
 ---
 
 # A11y Fixer Agent

@@ -7,7 +7,8 @@ description: >
   Spawned by img-gen skill or directly for OpenAI-specific generation tasks.
 skills: img-gen
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: low
 triggers: generate image, image with openai, dall-e, gpt-image
 ---
 

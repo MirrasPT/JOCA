@@ -2,7 +2,8 @@
 name: wp-rest-api-agent
 description: "wordpress · Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route. Dispatch for isolable work in this domain, in parallel."
 skills: wp-rest-api
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: WordPress REST API, CPTs
 generated-from: .claude/skills/wp-rest-api.md

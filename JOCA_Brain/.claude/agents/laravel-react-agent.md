@@ -2,7 +2,8 @@
 name: laravel-react-agent
 description: "code · Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA. Dispatch for isolable work in this domain, in parallel."
 skills: laravel-react
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: laravel react, connect admin to frontend, ligar admin ao frontend, inertia, inertiajs, sanctum spa
 generated-from: .claude/skills/laravel-react.md

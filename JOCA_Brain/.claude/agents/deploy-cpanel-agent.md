@@ -2,7 +2,8 @@
 name: deploy-cpanel-agent
 description: "deploy · Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. Dispatch for isolable work in this domain, in parallel."
 skills: deploy-cpanel
-model: inherit
+model: opus
+effort: medium
 category: deploy
 triggers: shared hosting, public_html, FTP, phpMyAdmin, .htaccess, cheap hosting
 generated-from: .claude/skills/deploy-cpanel.md

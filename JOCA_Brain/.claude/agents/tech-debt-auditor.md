@@ -8,7 +8,8 @@ tools:
   - Read
   - Grep
   - Glob
-model: sonnet
+model: opus
+effort: xhigh
 ---
 
 # Tech-Debt Auditor Agent

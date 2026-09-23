@@ -2,7 +2,8 @@
 name: queues-agent
 description: "code · Router skill for job queues and background processing. Dispatch for isolable work in this domain, in parallel."
 skills: queues
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: queue, bullmq, background jobs, worker, job processing, task queue
 generated-from: .claude/skills/queues.md

@@ -2,7 +2,8 @@
 name: shopify-store-fixer-agent
 description: "platforms · Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with. Dispatch for isolable work in this domain, in parallel."
 skills: shopify-store-fixer
-model: inherit
+model: opus
+effort: medium
 category: platforms
 triggers: fix shopify store, bulk update products, apply audit fixes
 generated-from: .claude/skills/shopify-store-fixer.md

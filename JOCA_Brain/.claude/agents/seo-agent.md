@@ -2,7 +2,8 @@
 name: seo-agent
 description: "content · Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO). Dispatch for isolable work in this domain, in parallel."
 skills: seo
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: SEO audit, technical SEO, why am I not ranking, traffic dropped, lost rankings, crawl errors
 generated-from: .claude/skills/seo.md

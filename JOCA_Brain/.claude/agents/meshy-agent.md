@@ -2,7 +2,8 @@
 name: meshy-agent
 description: "3d · Director of AI 3D generation on Meshy (official MCP). Dispatch for isolable work in this domain, in parallel."
 skills: meshy
-model: inherit
+model: opus
+effort: medium
 category: 3d
 triggers: meshy, meshy.ai, generate 3d model, create 3d model, ai 3d model, text-to-3d
 generated-from: .claude/skills/meshy.md

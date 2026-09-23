@@ -4,7 +4,8 @@ description: "Diagnoses slow or broken database queries: analyzes EXPLAIN plans,
 skills: mysql
 chain: tester-code
 tools: Bash, Read, Write
-model: sonnet
+model: opus
+effort: high
 ---
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.

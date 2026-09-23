@@ -2,7 +2,8 @@
 name: img-gen-agent
 description: "design · Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). Dispatch for isolable work in this domain, in parallel."
 skills: img-gen
-model: inherit
+model: opus
+effort: low
 category: design
 triggers: generate image, create image, illustration, product shot, mockup, hero image
 generated-from: .claude/skills/img-gen.md

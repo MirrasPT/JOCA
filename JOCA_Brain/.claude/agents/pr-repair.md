@@ -3,7 +3,8 @@ name: pr-repair
 description: "Autonomous PR repair agent: resolves conflicts, applies unresolved bot comments, fixes red CI, commits in coherent phases, PUSHES once at the end — a fixed-order pipeline with an anti-loop brake. Different from review-code (audits) — this one FIXES and pushes. Uses the gh CLI. Triggers: repair PR, red CI, resolve conflicts, fix failing CI."
 skills: github, security
 tools: Bash, Read, Edit, Grep
-model: sonnet
+model: opus
+effort: high
 ---
 
 # PR Repair Agent

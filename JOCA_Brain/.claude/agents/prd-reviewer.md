@@ -6,7 +6,8 @@ description: |
   Triggers: "review the PRD", "validate the PRD", "is the PRD complete?", "PRD review", after generating PRD.md
 skills: planning-prd
 chain: plan
-model: sonnet
+model: opus
+effort: medium
 tools:
   - Read
   - Bash

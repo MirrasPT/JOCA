@@ -3,7 +3,8 @@ name: task-router
 description: "Lightweight task classifier: takes any NL task and returns the right route — A (direct), B (skill), C (agent), D (workflow) — by thresholds (file count, domains, reversibility, skill-match≥60%, cross-stack). Returns a JSON decision; does NOT execute or dispatch anything. Triggers: classify task, which route, do I need a workflow?"
 skills:
 tools: Read, Glob, Grep
-model: inherit
+model: opus
+effort: low
 ---
 
 # Task Router Agent

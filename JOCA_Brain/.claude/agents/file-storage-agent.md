@@ -2,7 +2,8 @@
 name: file-storage-agent
 description: "code · Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation. Dispatch for isolable work in this domain, in parallel."
 skills: file-storage
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: file upload, S3, R2, presigned URL, ClamAV
 generated-from: .claude/skills/file-storage.md

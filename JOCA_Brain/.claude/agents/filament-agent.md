@@ -2,7 +2,8 @@
 name: filament-agent
 description: "code · Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. Dispatch for isolable work in this domain, in parallel."
 skills: filament
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: Filament, admin panel, admin, backoffice, Resource, Panel
 generated-from: .claude/skills/filament.md

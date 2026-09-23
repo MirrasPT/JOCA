@@ -2,7 +2,8 @@
 name: blender-agent
 description: "3d · Director/router for 3D work in Blender via headless Python (bpy). Dispatch for isolable work in this domain, in parallel."
 skills: blender
-model: inherit
+model: opus
+effort: medium
 category: 3d
 triggers: blender, bpy, 3d, 3d model, 3d modelling, 3d scene
 generated-from: .claude/skills/blender.md

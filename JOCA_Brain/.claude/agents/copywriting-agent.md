@@ -2,7 +2,8 @@
 name: copywriting-agent
 description: "content · Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing. Dispatch for isolable work in this domain, in parallel."
 skills: copywriting
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: write copy for, improve this copy, rewrite this page, marketing copy, headline help, CTA copy
 generated-from: .claude/skills/copywriting.md

@@ -2,7 +2,8 @@
 name: shopify-theme-agent
 description: "platforms · Building or customizing a Shopify theme: Liquid templating, theme architecture. Dispatch for isolable work in this domain, in parallel."
 skills: shopify-theme
-model: inherit
+model: opus
+effort: medium
 category: platforms
 triggers: Shopify, Liquid, Dawn, Theme Check, CLI
 generated-from: .claude/skills/shopify-theme.md

@@ -8,7 +8,8 @@ description: >
   old copies). Read-only: never applies, never deletes, never moves anything — it only writes a
   structured report to disk and returns a short summary. Used only by /clean-install.
 tools: Read, Write, Bash, Glob, Grep
-model: sonnet
+model: opus
+effort: medium
 skills:
   - create-skill
 ---

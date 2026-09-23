@@ -2,7 +2,8 @@
 name: rest-api-agent
 description: "code · REST API design specialist. Dispatch for isolable work in this domain, in parallel."
 skills: rest-api
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec
 generated-from: .claude/skills/rest-api.md

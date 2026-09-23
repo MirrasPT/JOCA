@@ -2,7 +2,8 @@
 name: wp-plugin-development-agent
 description: "wordpress · WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Dispatch for isolable work in this domain, in parallel."
 skills: wp-plugin-development
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: create WP plugin, settings page, nonces/capabilities
 generated-from: .claude/skills/wp-plugin-development.md

@@ -2,7 +2,8 @@
 name: remotion-agent
 description: "design · Create programmatic videos with React and Remotion. Dispatch for isolable work in this domain, in parallel."
 skills: remotion
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: remotion, react video, programmatic video, useCurrentFrame, interpolate, spring animation
 generated-from: .claude/skills/remotion.md

@@ -2,7 +2,8 @@
 name: landing-page-agent
 description: "design · End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Dispatch for isolable work in this domain, in parallel."
 skills: landing-page
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page
 generated-from: .claude/skills/landing-page.md

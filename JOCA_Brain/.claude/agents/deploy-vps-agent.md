@@ -2,7 +2,8 @@
 name: deploy-vps-agent
 description: "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Dispatch for isolable work in this domain, in parallel."
 skills: deploy-vps
-model: inherit
+model: opus
+effort: high
 category: deploy
 triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload
 generated-from: .claude/skills/deploy-vps.md

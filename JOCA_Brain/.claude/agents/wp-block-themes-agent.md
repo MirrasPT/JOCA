@@ -2,7 +2,8 @@
 name: wp-block-themes-agent
 description: "wordpress · Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor. Dispatch for isolable work in this domain, in parallel."
 skills: wp-block-themes
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: theme.json, block theme, styles not applying
 generated-from: .claude/skills/wp-block-themes.md

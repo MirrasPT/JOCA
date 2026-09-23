@@ -2,7 +2,8 @@
 name: search-agent
 description: "code · Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering. Dispatch for isolable work in this domain, in parallel."
 skills: search
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: search, meilisearch, typesense, algolia, full-text search, faceted search
 generated-from: .claude/skills/search.md

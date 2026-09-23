@@ -2,7 +2,8 @@
 name: deploy-ploi-agent
 description: "deploy · Deploying via Ploi.io, managing servers, or configuring Ploi deployments. Dispatch for isolable work in this domain, in parallel."
 skills: deploy-ploi
-model: inherit
+model: opus
+effort: medium
 category: deploy
 triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, server
 generated-from: .claude/skills/deploy-ploi.md

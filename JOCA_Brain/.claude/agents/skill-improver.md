@@ -5,7 +5,8 @@ description: >
   improvement context, applies targeted enhancements, and returns the improved skill content.
   Used internally by the create-skill pipeline. Not for direct user invocation.
 tools: Read, Write, Edit, WebSearch, WebFetch
-model: sonnet
+model: opus
+effort: xhigh
 triggers: melhorar skill, optimizar skill, reescrever skill
 ---
 

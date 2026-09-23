@@ -4,7 +4,8 @@ description: "Integrates payments: Stripe, Laravel Cashier, MB Way, Multibanco, 
 skills: laravel-specialist, webhooks, security
 chain: tester-security
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: opus
+effort: xhigh
 ---
 
 Payment integration specialist for Laravel SaaS. Implements secure, PCI-compliant payment flows.

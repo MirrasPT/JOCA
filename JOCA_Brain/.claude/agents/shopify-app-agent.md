@@ -2,7 +2,8 @@
 name: shopify-app-agent
 description: "platforms · Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Dispatch for isolable work in this domain, in parallel."
 skills: shopify-app
-model: inherit
+model: opus
+effort: medium
 category: platforms
 triggers: shopify app init, checkout extension, admin extension
 generated-from: .claude/skills/shopify-app.md

@@ -10,7 +10,8 @@ description: |
   Triggered by: "review with Codex", "second opinion on this code", "adversarial review",
   "check with a different model", "OpenAI review".
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: xhigh
 triggers: adversarial review, second opinion, codex review, cross review
 ---
 

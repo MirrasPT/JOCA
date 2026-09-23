@@ -2,7 +2,8 @@
 name: transactional-email-agent
 description: "code · Router skill for transactional email. Dispatch for isolable work in this domain, in parallel."
 skills: transactional-email
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: transactional email, email sending, postmark, resend, email api, bounce
 generated-from: .claude/skills/transactional-email.md

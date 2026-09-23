@@ -2,7 +2,8 @@
 name: content-calendar-agent
 description: "content · Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware. Dispatch for isolable work in this domain, in parallel."
 skills: content-calendar
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: publishing plan, social calendar, launch rollout, per-platform captions, content schedule, posting schedule
 generated-from: .claude/skills/content-calendar.md

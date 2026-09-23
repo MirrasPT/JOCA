@@ -9,7 +9,8 @@ description: |
   second model — same `agy` CLI, different use-case) and from the `watch` agent (WhisperX local,
   offline, private, no API).
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: medium
 triggers: ask gemini, gemini, gemini large context
 ---
 

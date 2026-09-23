@@ -2,7 +2,8 @@
 name: social-scheduler-agent
 description: "content · Schedule and publish social media posts via TryPost (self-hosted MCP, mcp__trypost__*). Dispatch for isolable work in this domain, in parallel."
 skills: social-scheduler
-model: inherit
+model: opus
+effort: low
 category: content
 triggers: schedule post, publish to social, schedule social post, trypost, instagram carousel, publish tiktok
 generated-from: .claude/skills/social-scheduler.md

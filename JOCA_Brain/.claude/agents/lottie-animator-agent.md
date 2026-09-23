@@ -2,7 +2,8 @@
 name: lottie-animator-agent
 description: "design · Generates professional Lottie animations from static SVGs. Dispatch for isolable work in this domain, in parallel."
 skills: lottie-animator
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: animate logo, create lottie, svg animation, motion graphics, lottie, icon animation
 generated-from: .claude/skills/lottie-animator.md

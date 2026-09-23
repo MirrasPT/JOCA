@@ -6,7 +6,8 @@ description: >
   CLI) and validates the result by frame diff, never by "an mp4 exists".
   Triggered by: generate video, create video, video clip, motion, animate scene.
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: low
 chain: watch
 ---
 

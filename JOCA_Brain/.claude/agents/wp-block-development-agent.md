@@ -2,7 +2,8 @@
 name: wp-block-development-agent
 description: "wordpress · Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations. Dispatch for isolable work in this domain, in parallel."
 skills: wp-block-development
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: block invalid, block.json, create-block
 generated-from: .claude/skills/wp-block-development.md

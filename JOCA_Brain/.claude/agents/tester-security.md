@@ -4,7 +4,8 @@ description: "Security audit for Laravel+React SaaS: 7-phase scan — CVEs (comp
 skills: security, auth
 chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write
-model: sonnet
+model: opus
+effort: xhigh
 triggers: security audit, security scan, CVEs, secrets in the repo
 ---
 

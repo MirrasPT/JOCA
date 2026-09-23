@@ -2,7 +2,8 @@
 name: notion-agent
 description: "platforms · Manage a Notion workspace via the official `ntn` CLI (winget Notion.ntn) from Git Bash/PowerShell. Dispatch for isolable work in this domain, in parallel."
 skills: notion
-model: inherit
+model: opus
+effort: medium
 category: platforms
 triggers: notion, ntn, notion task, notion database, notion data source
 generated-from: .claude/skills/notion.md

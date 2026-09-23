@@ -3,7 +3,8 @@ name: tester-ratelimit
 description: "Actively tests rate limiting with real HTTP requests and bypass vectors: threshold verification, header probes (X-Forwarded-For+variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle). Uses curl/Vegeta/hey. Report by severity (OWASP API4:2019). Triggers: test rate limit, bypass rate limit, brute force test, throttle test."
 skills: rest-api, auth
 tools: Bash, Read, Write
-model: sonnet
+model: opus
+effort: high
 ---
 
 Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works correctly and cannot be bypassed. Tests authorized applications only.

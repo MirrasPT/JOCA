@@ -5,7 +5,8 @@ description: >
   original request, scores it on 5 dimensions, and returns a structured JSON verdict.
   Used internally by the create-skill pipeline. Not for direct user invocation.
 tools: Read
-model: sonnet
+model: opus
+effort: medium
 triggers: evaluate skill, is this skill good, score skill, skill eval
 ---
 

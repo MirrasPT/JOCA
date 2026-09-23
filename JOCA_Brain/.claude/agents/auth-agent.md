@@ -2,7 +2,8 @@
 name: auth-agent
 description: "code · Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security. Dispatch for isolable work in this domain, in parallel."
 skills: auth
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: auth, authentication, login, logout, register, sanctum
 generated-from: .claude/skills/auth.md

@@ -2,7 +2,8 @@
 name: tailwind-agent
 description: "code · Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn. Dispatch for isolable work in this domain, in parallel."
 skills: tailwind
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme
 generated-from: .claude/skills/tailwind.md

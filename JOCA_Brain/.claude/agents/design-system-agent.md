@@ -2,7 +2,8 @@
 name: design-system-agent
 description: "design · Building or auditing design systems, managing design tokens, component libraries, or style guides. Dispatch for isolable work in this domain, in parallel."
 skills: design-system
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: design system, tokens, design tokens, component system, visual system, UI system
 generated-from: .claude/skills/design-system.md

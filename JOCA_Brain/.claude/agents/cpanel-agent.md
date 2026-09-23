@@ -2,7 +2,8 @@
 name: cpanel-agent
 description: "deploy · Manage cPanel accounts (files, domains, DNS, email, databases, cron, SSL) via UAPI with an API token. Dispatch for isolable work in this domain, in parallel."
 skills: cpanel
-model: inherit
+model: opus
+effort: medium
 category: deploy
 triggers: cpanel, uapi, addon domain, manage hosting, cpanel email account, cpanel dns zone
 generated-from: .claude/skills/cpanel.md

@@ -2,7 +2,8 @@
 name: react-patterns-agent
 description: "code · Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data. Dispatch for isolable work in this domain, in parallel."
 skills: react-patterns
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: react performance, re-render, useEffect, server component, RSC, waterfall
 generated-from: .claude/skills/react-patterns.md

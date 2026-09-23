@@ -2,7 +2,8 @@
 name: wp-interactivity-api-agent
 description: "wordpress · Building or debugging WordPress Interactivity API features (data-wp-* directives. Dispatch for isolable work in this domain, in parallel."
 skills: wp-interactivity-api
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: WordPress Interactivity API
 generated-from: .claude/skills/wp-interactivity-api.md

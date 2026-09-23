@@ -7,7 +7,8 @@ description: >
   Triggered by: video URL, local video file path, "watch this", "what's in this video",
   "transcribe this video", "summarize this video".
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: low
 triggers: watch, monitor files, watch mode
 ---
 

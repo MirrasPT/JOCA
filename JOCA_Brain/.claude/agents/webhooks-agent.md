@@ -2,7 +2,8 @@
 name: webhooks-agent
 description: "code · Implement webhook receivers with signature verification, idempotent processing, retry handling, and. Dispatch for isolable work in this domain, in parallel."
 skills: webhooks
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook
 generated-from: .claude/skills/webhooks.md

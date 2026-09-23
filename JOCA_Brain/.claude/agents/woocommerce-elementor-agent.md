@@ -2,7 +2,8 @@
 name: woocommerce-elementor-agent
 description: "wordpress · Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello. Dispatch for isolable work in this domain, in parallel."
 skills: woocommerce-elementor
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: elementor, _elementor_data, hello elementor, elementor free, woocommerce, woocommerce storefront
 generated-from: .claude/skills/woocommerce-elementor.md

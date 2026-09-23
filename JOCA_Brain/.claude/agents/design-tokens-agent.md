@@ -2,7 +2,8 @@
 name: design-tokens-agent
 description: "design · Defining or managing design tokens (colors, spacing, typography) in DTCG format. Dispatch for isolable work in this domain, in parallel."
 skills: design-tokens
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: design tokens, tokens, CSS variables, custom properties, global tokens, semantic tokens
 generated-from: .claude/skills/design-tokens.md

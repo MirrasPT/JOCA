@@ -2,7 +2,8 @@
 name: component-system-agent
 description: "code · Component inventory and per-component specification documents. Dispatch for isolable work in this domain, in parallel."
 skills: component-system
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: component system, component inventory, component spec, component states, button spec, input spec
 generated-from: .claude/skills/component-system.md

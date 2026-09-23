@@ -4,7 +4,8 @@ description: "Audits the Design System: tokens, component specs, WCAG compliance
 skills: design-tokens, component-system, brand-guidelines
 chain: a11y-fixer, frontend
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+model: opus
+effort: medium
 triggers: audit design system, token drift, inconsistent tokens, design system WCAG
 ---
 

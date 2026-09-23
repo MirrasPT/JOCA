@@ -2,7 +2,8 @@
 name: frontend-agent
 description: "code · Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend. Dispatch for isolable work in this domain, in parallel."
 skills: frontend
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: frontend-design, frontend design, website, landing page, site, webapp
 generated-from: .claude/skills/frontend.md

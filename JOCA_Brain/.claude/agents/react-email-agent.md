@@ -2,7 +2,8 @@
 name: react-email-agent
 description: "code · Authoring responsive, client-safe email templates with React Email components. Dispatch for isolable work in this domain, in parallel."
 skills: react-email
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: react email, react-email, email template, build email, transactional email template, @react-email
 generated-from: .claude/skills/react-email.md

@@ -9,7 +9,8 @@ tools:
   - Read
   - Write
   - WebFetch
-model: sonnet
+model: opus
+effort: low
 ---
 
 # Knowledge Ingest Agent

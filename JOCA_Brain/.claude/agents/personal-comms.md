@@ -3,7 +3,8 @@ name: personal-comms
 description: "PERSONAL communications assistant — reads/summarizes/(when authorized) sends email from the personal inbox, checks/creates calendar events via CLI/MCP. Distinct from the TRANSACTIONAL/MARKETING email skills (react-email etc.) — it operates the user's personal inbox. Integrations: Gmail/Outlook/Google Calendar. FUTUROS Phase 2/3. Triggers: read email, email summary, inbox, calendar, schedule event, agenda."
 skills: personal-comms
 tools: Bash, Read, Write
-model: sonnet
+model: opus
+effort: medium
 ---
 
 # Personal Comms Agent

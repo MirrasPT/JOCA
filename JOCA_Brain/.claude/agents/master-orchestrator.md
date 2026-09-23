@@ -2,6 +2,7 @@
 name: master-orchestrator
 description: "Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development."
 model: opus
+effort: xhigh
 skills:
   - plan
   - agent-context

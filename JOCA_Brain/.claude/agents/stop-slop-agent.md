@@ -2,7 +2,8 @@
 name: stop-slop-agent
 description: "content · Remove AI-writing patterns (AI slop) from PROSE — predictable tells: throat-clearing openings. Dispatch for isolable work in this domain, in parallel."
 skills: stop-slop
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: stop slop, AI slop, sounds like AI, looks like AI, AI-written, AI tells
 generated-from: .claude/skills/stop-slop.md

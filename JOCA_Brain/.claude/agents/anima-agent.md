@@ -2,7 +2,8 @@
 name: anima-agent
 description: "design · Adding motion to websites, animating UI elements, creating scroll-based animations, or building. Dispatch for isolable work in this domain, in parallel."
 skills: anima
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: animation, gsap, lottie, scroll animation, page transition, hover animation
 generated-from: .claude/skills/anima.md

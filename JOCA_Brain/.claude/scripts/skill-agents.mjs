@@ -227,7 +227,8 @@ for (const [category, skills] of Object.entries(EXECUTION_SKILLS)) {
 name: ${agentName}
 description: "${agentDescription(skillName, fm, category).replace(/"/g, "'")}"
 skills: ${skillName}
-model: inherit
+model: opus
+effort: medium
 category: ${category}
 ${agentTriggers(fm)}${MARKER} .claude/skills/${skillName}.md
 generated-by: skill-agents.mjs

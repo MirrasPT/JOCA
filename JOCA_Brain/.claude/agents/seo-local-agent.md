@@ -2,7 +2,8 @@
 name: seo-local-agent
 description: "content · Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health. Dispatch for isolable work in this domain, in parallel."
 skills: seo-local
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: local SEO, Google Business Profile, GBP, map pack, local pack, citations
 generated-from: .claude/skills/seo-local.md

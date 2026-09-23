@@ -2,7 +2,8 @@
 name: design-html-agent
 description: "design · Turn an approved mockup/design into clean, dependency-free production HTML/CSS — text really. Dispatch for isolable work in this domain, in parallel."
 skills: design-html
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: code the design, turn into HTML, build the page, implement the design, make the mockup real, finish the design
 generated-from: .claude/skills/design-html.md

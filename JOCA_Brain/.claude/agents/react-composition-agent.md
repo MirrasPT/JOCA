@@ -2,7 +2,8 @@
 name: react-composition-agent
 description: "code · Designing React component APIs that scale — compound components, context, slots/children, React 19. Dispatch for isolable work in this domain, in parallel."
 skills: react-composition
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: compound component, component api, boolean props, prop proliferation, slots, slot pattern
 generated-from: .claude/skills/react-composition.md

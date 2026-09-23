@@ -2,7 +2,8 @@
 name: portugal-payments-agent
 description: "portugal · Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. Dispatch for isolable work in this domain, in parallel."
 skills: portugal-payments
-model: inherit
+model: opus
+effort: xhigh
 category: portugal
 triggers: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referencia multibanco
 generated-from: .claude/skills/portugal-payments.md

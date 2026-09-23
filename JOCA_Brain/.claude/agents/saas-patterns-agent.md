@@ -2,7 +2,8 @@
 name: saas-patterns-agent
 description: "code · SaaS architecture patterns for Laravel 11 multi-tenant platforms. Dispatch for isolable work in this domain, in parallel."
 skills: saas-patterns
-model: inherit
+model: opus
+effort: xhigh
 category: code
 triggers: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context
 generated-from: .claude/skills/saas-patterns.md

@@ -2,7 +2,8 @@
 name: wpds-agent
 description: "wordpress · Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Dispatch for isolable work in this domain, in parallel."
 skills: wpds
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: WPDS, @wordpress/components, Gutenberg UI
 generated-from: .claude/skills/wpds.md

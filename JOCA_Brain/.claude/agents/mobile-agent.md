@@ -2,7 +2,8 @@
 name: mobile-agent
 description: "code · Mobile apps, responsive design, PWA, mobile-specific UI patterns. Dispatch for isolable work in this domain, in parallel."
 skills: mobile
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: responsive, mobile, mobile-first, touch, swipe, bottom sheet
 generated-from: .claude/skills/mobile.md

@@ -3,7 +3,8 @@ name: log-debugger
 description: "Debugs errors, stack traces, and logs — reads real code/logs, never guesses. Auto-selects mode: stack trace → root-cause fix; log file → pattern analysis; error spike/cascade → correlation; Laravel-specific → Artisan/Tinker diagnosis. Triggers: debug this error, stack trace, 500/419/CSRF, TypeError, SQLSTATE, N+1, queue job failing, route not found, error spike, cascade failure, Laravel/Eloquent/Horizon errors."
 skills: error-tracking-dev
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: opus
+effort: high
 ---
 
 Debugging specialist. Given an error, log file, or symptom, finds root cause in actual code and logs. Reads — never guesses.

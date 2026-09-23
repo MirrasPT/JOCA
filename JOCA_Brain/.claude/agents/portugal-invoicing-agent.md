@@ -2,7 +2,8 @@
 name: portugal-invoicing-agent
 description: "portugal · Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or. Dispatch for isolable work in this domain, in parallel."
 skills: portugal-invoicing
-model: inherit
+model: opus
+effort: xhigh
 category: portugal
 triggers: Moloni, faturação, fatura, fatura-recibo, invoice Portugal, nota de crédito
 generated-from: .claude/skills/portugal-invoicing.md

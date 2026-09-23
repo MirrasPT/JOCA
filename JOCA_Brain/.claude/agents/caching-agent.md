@@ -2,7 +2,8 @@
 name: caching-agent
 description: "code · Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache. Dispatch for isolable work in this domain, in parallel."
 skills: caching
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: cache, caching, Redis, Cache::remember, cache invalidation, CDN
 generated-from: .claude/skills/caching.md

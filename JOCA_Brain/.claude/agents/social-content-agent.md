@@ -2,7 +2,8 @@
 name: social-content-agent
 description: "content · Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram. Dispatch for isolable work in this domain, in parallel."
 skills: social-content
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement
 generated-from: .claude/skills/social-content.md

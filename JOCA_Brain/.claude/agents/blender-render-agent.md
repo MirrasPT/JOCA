@@ -2,7 +2,8 @@
 name: blender-render-agent
 description: "3d · Render in Blender by code: engine (Cycles/EEVEE), camera, lights, PBR materials, output, animation. Dispatch for isolable work in this domain, in parallel."
 skills: blender-render
-model: inherit
+model: opus
+effort: medium
 category: 3d
 triggers: render 3d, render, cycles, eevee, turntable, product shot
 generated-from: .claude/skills/blender-render.md

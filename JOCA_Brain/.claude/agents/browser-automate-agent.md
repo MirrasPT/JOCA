@@ -2,7 +2,8 @@
 name: browser-automate-agent
 description: "code · Automate a local canvas/litegraph web app via Playwright headless — load a workflow template. Dispatch for isolable work in this domain, in parallel."
 skills: browser-automate
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: Playwright canvas, automate ComfyUI, drive litegraph, page.evaluate workflow, headless browser automation, POST to prompt API
 generated-from: .claude/skills/browser-automate.md

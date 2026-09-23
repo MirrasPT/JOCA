@@ -2,7 +2,8 @@
 name: wp-wpcli-and-ops-agent
 description: "wordpress · WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Dispatch for isolable work in this domain, in parallel."
 skills: wp-wpcli-and-ops
-model: inherit
+model: opus
+effort: medium
 category: wordpress
 triggers: wp search-replace, domain migration, wp db
 generated-from: .claude/skills/wp-wpcli-and-ops.md

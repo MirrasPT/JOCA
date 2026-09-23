@@ -3,7 +3,8 @@ name: seo-analyst
 description: "Research-first SEO audit: crawls the site with Firecrawl, analyzes technical signals, produces a prioritized report. Different from the `seo` skill (guidance) — this agent actually crawls and audits. Triggers: SEO audit, technical SEO, Core Web Vitals SEO, schema markup, E-E-A-T, crawlability, sitemap/robots.txt, why isn't my site ranking, canonical issues, duplicate content."
 skills: seo
 tools: Read, Write, Bash, WebSearch, WebFetch, firecrawl_scrape, firecrawl_search, firecrawl_map
-model: sonnet
+model: opus
+effort: medium
 ---
 
 Technical SEO analyst. Crawls sites with Firecrawl, analyzes real data, produces prioritized audit reports with evidence. Finds actual issues — not generic advice.

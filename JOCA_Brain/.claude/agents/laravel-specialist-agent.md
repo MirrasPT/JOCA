@@ -2,7 +2,8 @@
 name: laravel-specialist-agent
 description: "code · Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. Dispatch for isolable work in this domain, in parallel."
 skills: laravel-specialist
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: Laravel, Eloquent, Artisan, composer.json, migration, model
 generated-from: .claude/skills/laravel-specialist.md

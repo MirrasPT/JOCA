@@ -8,7 +8,8 @@ skills:
 tools:
   - Bash
   - Read
-model: sonnet
+model: opus
+effort: low
 ---
 
 # Deploy Executor Agent

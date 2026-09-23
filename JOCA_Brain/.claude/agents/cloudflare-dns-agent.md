@@ -2,7 +2,8 @@
 name: cloudflare-dns-agent
 description: "deploy · Manage DNS records and Email Routing on Cloudflare via API, idempotent, per domain. Dispatch for isolable work in this domain, in parallel."
 skills: cloudflare-dns
-model: inherit
+model: opus
+effort: medium
 category: deploy
 triggers: cloudflare dns, cloudflare-dns, email routing, dns record, spf merge, mx cloudflare
 generated-from: .claude/skills/cloudflare-dns.md

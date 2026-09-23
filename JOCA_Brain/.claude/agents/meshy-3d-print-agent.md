@@ -2,7 +2,8 @@
 name: meshy-3d-print-agent
 description: "3d · Take a 3D model to print: printability analysis, mesh repair, multicolor 3MF and handoff to the. Dispatch for isolable work in this domain, in parallel."
 skills: meshy-3d-print
-model: inherit
+model: opus
+effort: medium
 category: 3d
 triggers: printability, printable, printable mesh, watertight, non-manifold, holes in the mesh
 generated-from: .claude/skills/meshy-3d-print.md

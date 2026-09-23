@@ -2,7 +2,8 @@
 name: tester-code
 description: "Code review AND fix agent — reviews the work against the plan/standards, then (if the brief asks to close it out) applies the fixes in a test→fix→verify loop with atomic commits. Has write tools. Fired after big steps: a complete feature, a batch of endpoints, a refactor. Categorizes: Critical/Important/Suggestion."
 skills: karpathy-guidelines, laravel-specialist, frontend, security
-model: inherit
+model: opus
+effort: xhigh
 triggers: review code, code review, check the implementation, does it meet the plan
 ---
 

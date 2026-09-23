@@ -2,7 +2,8 @@
 name: shadcn-agent
 description: "code · Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste. Dispatch for isolable work in this domain, in parallel."
 skills: shadcn
-model: inherit
+model: opus
+effort: medium
 category: code
 triggers: shadcn, shadcn/ui, shadcn ui, components.json, npx shadcn, shadcn add
 generated-from: .claude/skills/shadcn.md

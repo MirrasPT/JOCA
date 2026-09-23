@@ -2,7 +2,8 @@
 name: blender-scripting-agent
 description: "3d · Write and run headless bpy scripts: build scenes, transform objects, modifiers, 3D import/export. Dispatch for isolable work in this domain, in parallel."
 skills: blender-scripting
-model: inherit
+model: opus
+effort: medium
 category: 3d
 triggers: bpy, blender script, blender python, automate blender, headless blender, batch blend
 generated-from: .claude/skills/blender-scripting.md

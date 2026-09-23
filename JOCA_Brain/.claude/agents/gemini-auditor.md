@@ -8,7 +8,8 @@ description: >
   Different from gemini-brain (multimodal tasks / 1M context — video, large PDF, audio); both
   use the same `agy` CLI, the distinction is the use-case (auditor = verification/audit of JOCA components).
 tools: Bash, Read
-model: sonnet
+model: opus
+effort: medium
 triggers: gemini audit, gemini second opinion, audit with gemini
 ---
 

@@ -3,7 +3,8 @@ name: security-review
 description: "Deep security review: reads code and applies OWASP ASVS 5.0 patterns for Laravel+React. Checks: IDOR, FormRequest validation, mass assignment, file uploads, session/CORS config, PII encryption, privilege escalation. Produces findings with an exploit scenario + Laravel-native fix. Different from tester-security (tool-driven scan) — this one reads and reasons about code."
 skills: security, auth
 tools: Read, Grep, Glob, Write
-model: sonnet
+model: opus
+effort: xhigh
 triggers: security review, OWASP, IDOR, mass assignment, vulnerability in the code
 ---
 

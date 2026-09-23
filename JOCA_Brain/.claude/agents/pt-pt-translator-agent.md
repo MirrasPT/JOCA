@@ -2,7 +2,8 @@
 name: pt-pt-translator-agent
 description: "content · Translate/localize content into European Portuguese with register control (tu/você/senhor). Dispatch for isolable work in this domain, in parallel."
 skills: pt-pt-translator
-model: inherit
+model: opus
+effort: low
 category: content
 triggers: translate to PT-PT, localize UI, review Portuguese
 generated-from: .claude/skills/pt-pt-translator.md

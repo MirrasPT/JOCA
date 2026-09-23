@@ -8,7 +8,8 @@ description: >
   Triggered by "deep research", "comprehensive analysis", "research report", "compare X vs Y",
   "analyze trends", "state of the art", "market analysis".
 tools: Read, Write, Bash, WebSearch, WebFetch, firecrawl_scrape, firecrawl_search, firecrawl_crawl, firecrawl_map, firecrawl_extract
-model: sonnet
+model: opus
+effort: xhigh
 triggers: deep investigation, deep research, research with sources, citations, state of the art
 ---
 

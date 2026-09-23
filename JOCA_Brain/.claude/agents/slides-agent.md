@@ -2,7 +2,8 @@
 name: slides-agent
 description: "design · Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. Dispatch for isolable work in this domain, in parallel."
 skills: slides
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: slides, presentation, pitch deck, deck, powerpoint, pptx
 generated-from: .claude/skills/slides.md

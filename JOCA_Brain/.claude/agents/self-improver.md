@@ -7,6 +7,7 @@ description: >
   Never runs without user triggering /upgrade-joca first.
 tools: Bash, Read, Write, Edit, Glob, Grep
 model: opus
+effort: xhigh
 skills:
   - create-skill
   - karpathy-guidelines

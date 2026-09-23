@@ -2,7 +2,8 @@
 name: mysql-agent
 description: "code · MySQL query writing, performance optimization, schema design, SQL debugging. Dispatch for isolable work in this domain, in parallel."
 skills: mysql
-model: inherit
+model: opus
+effort: high
 category: code
 triggers: MySQL, slow query, EXPLAIN, index, migration, schema
 generated-from: .claude/skills/mysql.md

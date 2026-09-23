@@ -2,7 +2,8 @@
 name: design-shotgun-agent
 description: "design · Explore several design variants in parallel before coding — generates N distinct mockups, compares. Dispatch for isolable work in this domain, in parallel."
 skills: design-shotgun
-model: inherit
+model: opus
+effort: medium
 category: design
 triggers: explore variants, design variants, design options, design shotgun, show me ideas, show options
 generated-from: .claude/skills/design-shotgun.md

@@ -2,7 +2,8 @@
 name: email-sequence-agent
 description: "content · Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email. Dispatch for isolable work in this domain, in parallel."
 skills: email-sequence
-model: inherit
+model: opus
+effort: medium
 category: content
 triggers: email sequence, drip campaign, nurture sequence, onboarding emails, welcome sequence, re-engagement emails
 generated-from: .claude/skills/email-sequence.md

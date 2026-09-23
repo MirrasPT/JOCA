@@ -2,7 +2,8 @@
 name: deploy-docker-agent
 description: "deploy · Containerizing applications, writing Dockerfiles, docker-compose, or setting up container. Dispatch for isolable work in this domain, in parallel."
 skills: deploy-docker
-model: inherit
+model: opus
+effort: medium
 category: deploy
 triggers: docker, container, docker compose, docker-compose, Dockerfile, VPS
 generated-from: .claude/skills/deploy-docker.md
