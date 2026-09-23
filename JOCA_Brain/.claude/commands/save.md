@@ -9,6 +9,14 @@ Runs at the end of every session. Saves state, updates the memory, captures feed
 Detect the current directory. Resolve `memory/projects/<name>.md`.
 If it does not exist, create a minimal entry with frontmatter.
 
+**Startup-context budget — measure BEFORE writing.** Everything auto-loaded is paid for in
+every session. Snapshot the bytes now; STEP 8 compares:
+
+```bash
+wc -c ~/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/.claude/rules/*.md \
+  <project-root>/CLAUDE.md 2>/dev/null | tail -1 > /tmp/joca-save-bytes-<slug>.txt
+```
+
 ---
 
 ## STEP 2 — Save the session state
@@ -147,7 +155,7 @@ Structures tested and approved during the session.
 Steps of the project's process that were corrected or improved.
 
 **Destinations:**
-- Glossaries, rules, templates, limitations → surgical append to the project's `CLAUDE.md` (relevant section)
+- Glossaries, rules, templates, limitations → the project's `CLAUDE.md` gets **at most 1 line per `/save`, and only if the rule must hold in EVERY session of the project** (the rule in 1 sentence + pointer `→ memory/projects/<name>.md`). First `grep -n -i "<topic>" CLAUDE.md` — a line on the topic already exists → **replace or merge it, never append another**. When in doubt, it goes to the project memory: `CLAUDE.md` is context paid on every message, the memory only when it is read
 - New structural context → append to `memory/projects/<name>.md`
 
 **Rule:** only write what the session brought that is new. Surgical edits — do not rewrite whole files. If there is nothing relevant, skip this step silently.
@@ -222,7 +230,7 @@ python .claude/scripts/build-skill-index.py    # macOS/Linux: python3 — regene
 node   .claude/scripts/joca-doctor.mjs         # catches dead paths/indexes (exit 1 if there is a ✗)
 ```
 
-Then a surgical edit in `memory/INDEX.md` (the counts + the new component's line) and, if it is a new command, in the `## Commands` table of `JOCA_Brain/CLAUDE.md`. **A component that no index surfaces is an invisible component** — relevance matching never reaches it.
+Then a surgical edit in `memory/INDEX.md` (the counts + the new component's line) and, if it is a new command, in the `## Commands` table of `JOCA_Brain/CLAUDE.md` (one row, no prose — that is where the command table lives) and in the `/help-joca` list. Nothing in `/save` writes to `.claude/rules/` (auto-loaded): new doctrine goes to `.claude/reference/`. **A component that no index surfaces is an invisible component** — relevance matching never reaches it.
 
 > Historical note: this used to be the old `/sync-questionnaires`, which audited form questionnaires. The questionnaires no longer exist (the survey became a conversation — see `/start`), so what is left is reindexing, and the right place is here.
 
@@ -244,6 +252,17 @@ New directory, stack change or new status → levels 2/3, never level 1.
 
 ## STEP 8 — Report
 
+**Startup-context budget — compare with the STEP 1 snapshot:**
+
+```bash
+before=$(awk '{print $1}' /tmp/joca-save-bytes-<slug>.txt)
+after=$(wc -c ~/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/CLAUDE.md <JOCA_ROOT>/JOCA_Brain/.claude/rules/*.md \
+  <project-root>/CLAUDE.md 2>/dev/null | tail -1 | awk '{print $1}')
+echo "startup: $before → $after ($((after-before)) bytes)"
+```
+Grew by more than **250 bytes** → do not close: move the excess to `memory/projects/<slug>.md` (or `reference/`) and measure again.
+The number always goes into the report — that is what makes the bloat visible session after session.
+
 ```
 SAVE — <project-name>
 ═══════════════════════
@@ -253,7 +272,8 @@ State:
   ✓ Decisions: N recorded | Pending: N items
 
 Project feedback:
-  ✓ CLAUDE.md — N updates (glossary, rules, templates)
+  ✓ CLAUDE.md — 0 or 1 line (rule + pointer; the detail went to memory/projects/)
+  ✓ Startup: <before> → <after> bytes (<delta>; ceiling +250)
   ✓ memory/projects/<name>.md — new context added
   — No new learnings this session
 
