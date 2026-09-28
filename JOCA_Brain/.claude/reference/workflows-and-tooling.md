@@ -13,7 +13,7 @@ Cada brief de worker DEVE carregar explicitamente:
 - **Componentes partilhados antes do fan-out** — em builds paralelos por página/feature, definir player/card/layout numa fase de fundação sequencial; agentes de fan-out IMPORTAM, não recriam (ver `frontend.md`).
 - **Convenções do JOCA em briefs que mexem no próprio JOCA** — agente que escreve validador/linter/script sobre o JOCA recebe as convenções no brief, não as infere: `name:` do frontmatter é descritivo e ≠ ficheiro de propósito (ex.: `horizon`→`horizon-queues`); o campo `skills:` no frontmatter NÃO carrega skill (garantia = `Read()` no corpo); skills flat depth 1. Fonte: `CLAUDE.md` + `docs/ARQUITECTURA.md`. (Lição: um linter escrito sem isto marcou 3 skills válidas como FAIL.)
 
-Sub-agentes **não herdam** `soul.md` automaticamente — só recebem o brief. Por isso estas regras vão no brief, não se assumem.
+Sub-agentes **herdam** os `CLAUDE.md` e o `soul.md`, excepto os que têm `omitClaudeMd: true` no frontmatter (verificado no CHANGELOG do Claude Code, 2026-09-28). As regras duras vão à mesma no brief: o agente com `omitClaudeMd` não as recebe, e o brief é o que o agente lê com mais atenção.
 
 ## Workflow tool
 

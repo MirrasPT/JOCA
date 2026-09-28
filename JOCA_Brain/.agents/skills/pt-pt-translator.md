@@ -104,7 +104,7 @@ Run after every translation. Fix each failure before output:
 - [ ] No sentence starts with clitic — scan initial "me", "te", "o", "a", "nos", "vos", "lhe", "lhes"; reorder if found
 - [ ] Pronoun placement correct — proclitic after negation/subordinator/quantifier/focus adverb; enclitic otherwise
 - [ ] No PT-BR vocabulary — cross-check swap table
-- [ ] AO90 applied — no "acção", "direcção", "objecto", "facto" (when silent c)
+- [ ] AO90 applied — no "acção", "direcção", "objecto" (silent c); "facto" keeps the c (pronounced in PT-PT)
 - [ ] Register consistent — no mixing tu/você mid-text
 - [ ] Brand names, code, acronyms untouched
 - [ ] UI strings flagged if expanded >20%

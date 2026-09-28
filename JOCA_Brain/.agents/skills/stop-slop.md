@@ -40,7 +40,7 @@ Guarda de fidelidade, força dos sinais, «quando não mexer» e modos de saída
 3. **Voz activa.** Cada frase tem um sujeito humano a fazer algo. Sem passivas. Sem objectos inanimados a fazer verbos humanos ("a queixa torna-se um fix").
 4. **Sê específico.** Sem declarativas vagas ("As razões são estruturais"). Nomeia a coisa. Sem extremos preguiçosos ("todos", "sempre", "nunca") a fazer trabalho vago.
 5. **Põe o leitor na sala.** Sem voz de narrador-à-distância. "Tu/você" bate "as pessoas". Específico bate abstracto.
-6. **Varia o ritmo.** Mistura comprimentos de frase. Dois itens batem três. Termina parágrafos de forma diferente. **Sem travessões (em dash).**
+6. **Varia o ritmo.** Mistura comprimentos de frase. Dois itens batem três. Termina parágrafos de forma diferente. **Sem travessões (em dash)** em copy de UI e marketing; em texto corrido, ver a secção PT-PT.
 7. **Confia no leitor.** Afirma factos directamente. Sem amaciar, justificar, dar a mão.
 8. **Corta os "quotables".** Se soa a pull-quote, reescreve.
 

@@ -66,7 +66,7 @@ entrance patterns, stagger por personalidade) → `Read(".claude/reference/front
 
 | Tipo | Duracao | Easing |
 |------|---------|--------|
-| Micro-interaccao (hover, click) | 100-200ms | ease-out-quart |
+| Micro-interaccao (hover, click) | 100-200ms (hover: entra <100ms, sai 150-200ms) | ease-out-quart |
 | Transicao de estado (dropdown, popover) | 200-300ms | ease-out-quart |
 | Modal / dialog | 300-400ms | ease-out-quart |
 | Entrada de pagina / hero animation | 400-600ms | ease-out-expo |

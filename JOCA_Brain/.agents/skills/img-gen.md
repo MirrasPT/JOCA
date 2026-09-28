@@ -55,7 +55,7 @@ strings "$(npm root -g)"/@openai/codex/node_modules/@openai/codex-darwin-arm64/v
   | grep -oiE 'gpt-image[a-z0-9.-]*' | sort -u
 ```
 
-### Modelo por omissão: **GPT Image 2.5** (decidido pelo Renato, 2026-09-09)
+### Modelo por omissão: **GPT Image 2.5** (decisão de 2026-09-09)
 
 Sempre que o modelo for **escolhível**, pede-se o 2.5 — `gpt-image-2.5-flare` por omissão,
 `gpt-image-2.5-sunburst` quando o que está em jogo é **texto, marca ou precisão de edição**. Ordem de

@@ -73,7 +73,7 @@ Começar sempre com o que está bem antes de listar issues.
 
 **Cobertura** no topo do resumo: `total · revistos · saltados · cobertura %`, e cada saltado com a razão.
 
-**Passe final (quando te despacham como verificador de outro reviewer):** recebes o diff e os achados; tiras **só** o que o diff prova errado. Cada achado sai `confirmado`, `refutado` (com a linha que o prova) ou `não verificável` — só `refutado` sai. Regra em `cacas-e-filtros.md` §Passe final.
+**Passe final (quando te despacham como verificador de outro reviewer):** recebes o diff e os achados; tiras **só** o que o diff prova errado. Cada achado sai `confirmado`, `refutado` (com a linha que o prova) ou `não verificável` — só `refutado` sai. **Neste modo não editas nenhum ficheiro.** Regra em `cacas-e-filtros.md` §Passe final.
 
 ## Loop test→fix→verify (adaptado do `qa` do gstack)
 

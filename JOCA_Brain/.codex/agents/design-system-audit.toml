@@ -83,6 +83,7 @@ Excepções que carregam valor mas não dão token → **allowlist com razão** 
 **Modo CI** — o mesmo teste como porta de CI (sai 1 se alguma porta falhar, imprime `N/3 CLEAN`). Copiar para `scripts/token-gates.sh` do projecto e correr `bash scripts/token-gates.sh src` num passo do workflow. Testado contra 1 caso mau (acusa as 3) e 1 bom (`3/3 CLEAN`):
 ```bash
 SRC=${1:-src}; ALLOW=${2:-.token-gates-allow}; INC='--include=*.tsx --include=*.ts --include=*.jsx --include=*.vue --include=*.html'
+[ -d "$SRC" ] || { echo "SRC nao existe: $SRC"; exit 2; }  # sem isto, pasta errada = 3/3 CLEAN falso
 filtra() { if [ -f "$ALLOW" ]; then grep -vFf <(grep -v '^#' "$ALLOW" | cut -d' ' -f1 | sed '/^$/d'); else cat; fi; }
 A=$(grep -rnE $INC '(^|[^a-zA-Z0-9_/&])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(rgba?|hsla?|oklch)\(\s*[0-9.]' "$SRC" | filtra)
 B=$(grep -rnoE $INC '!?[a-z][a-z0-9-]*-\[[^] "'"'"'`]*\]:?' "$SRC" | grep -vE '\]:$|(^|:)!?([a-z]+-)?(data|aria|has|supports|not|in)(-[a-z0-9]+)*-\[' | grep -E '\[[^]]*([0-9]|#|\()' | filtra)

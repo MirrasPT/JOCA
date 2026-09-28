@@ -54,7 +54,7 @@ com `verificador === produtor`.
 
 ## Subagentes são skill-aware (garantido)
 
-Um agente despachado via `Agent()` **não herda** `soul.md` nem as skills — só o brief. Logo:
+Um agente despachado via `Agent()` **herda os `CLAUDE.md`** (e o `soul.md`, por `@import`), salvo `omitClaudeMd: true` no frontmatter do agente; **não herda as skills**. Logo:
 - **Step 0 obrigatório no brief**: `Read()` das skills relevantes ANTES de agir (o campo `skills:` do frontmatter NÃO carrega a skill).
 - Quem despacha inclui no brief as skills a ler + o `chain:` do agente.
 - O agente devolve no relatório o próximo passo sugerido; o **caller** decide e dispara. Agentes não fazem spawn de agentes (`orchestration-patterns.md`).
