@@ -64,6 +64,24 @@ Rule: `WebSearch "<product> 2026 latest"`. Read 1-3 results. If uncertain -- ask
 
 ---
 
+## #0c Redesenho — preservar ou refazer (decidir primeiro)
+
+Redesenho de um site/ecrã que existe → **antes de qualquer proposta**, fixar o modo:
+- **Preservar** — modernizar sem partir a marca: auditar primeiro (tokens, menu, conteúdo, SEO), evoluir por camadas (tipografia → espaçamento → cor → movimento → recompor blocos).
+- **Refazer** — linguagem visual nova sobre o conteúdo e a arquitectura que existem.
+- Ambíguo → **uma** pergunta: «preservar a marca actual ou recomeçar do zero no visual?»
+
+**Nunca muda sem pedido explícito** (em nenhum dos dois modos):
+- URLs e slugs das rotas (a migração de SEO é o risco nº 1 de um redesenho)
+- rótulos do menu principal
+- nomes e ordem dos campos de formulário (partem analytics e autofill)
+- logótipo / wordmark
+- textos legais, de consentimento e de cookies
+
+(Adaptado de Leonxlnx/taste-skill §11, MIT.)
+
+---
+
 ## #1 DESIGN.md + Brand Assets
 
 ### DESIGN.md
@@ -122,7 +140,7 @@ Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(
 
 **Rule:** if removing an element loses no info, don't add it.
 
-**Ban nomeado — `border-left` de acento.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global do utilizador, já reincidente (Kromway, bolhas da Sala) — aplicar na escrita, não esperar pelo review.
+**Ban nomeado — `border-left` de acento.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global do utilizador, já reincidente em dois projectos — aplicar na escrita, não esperar pelo review.
 
 Tabela de bans absolutos + naming adblock-safe (tokens proibidos em nomes de ficheiros/componentes/ids/classes/`data-*`) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
 

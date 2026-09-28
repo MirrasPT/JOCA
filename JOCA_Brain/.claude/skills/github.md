@@ -353,6 +353,14 @@ Escalate per job as needed.
   run: echo "Processing $PR_TITLE"
 ```
 
+### Regras que falham em silêncio
+Adaptado de `alibaba/open-code-review` — `rule_docs/github_workflows.md` (Apache-2.0), reescrito.
+- **`pull_request_target` + checkout do PR** — corre com token de escrita e acesso a secrets. Se fizer `actions/checkout` com `ref` do head do PR (`github.event.pull_request.head.sha`/`head.ref`), executa código de estranhos com essas permissões. Para build/testes de PR usar `pull_request`; se for mesmo preciso `pull_request_target`, não fazer checkout do head nem correr scripts dele.
+- **`timeout-minutes` em todos os jobs** — sem ele um job pendurado corre até ao limite do runner e gasta minutos. Obrigatório em runners self-hosted.
+- **`fetch-depth: 0` quando o job precisa de histórico** — tags, `merge-base`, changelog. O checkout por omissão traz 1 commit e o passo falha ou dá resultado errado sem erro.
+- **Nome de input errado é ignorado** — `fetch-detph:` ou `node_version:` onde a action espera `node-version:` não dá erro, só não faz nada. Confirmar os nomes no `action.yml` da action.
+- **Falhas escondidas e imagens móveis** — `|| true` ou `continue-on-error: true` em passo que importa esconde a falha real; `continue-on-error` só em passos opcionais, e dizendo porquê. Imagens de container (`container:`, `services:`) com versão fixa, nunca `latest`.
+
 ### OIDC (keyless cloud auth)
 ```yaml
 permissions:
@@ -430,4 +438,5 @@ jobs:
 - [ ] Branch protection on `main`
 - [ ] Environments staging + production (if auto-deploy)
 - [ ] Minimal permissions per workflow
+- [ ] `timeout-minutes` em todos os jobs; zero `pull_request_target` com checkout do PR
 - [ ] Secrets never in logs or interpolated in shell

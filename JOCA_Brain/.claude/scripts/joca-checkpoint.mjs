@@ -13,7 +13,7 @@
  *
  * ⚠ Sem --slug o slug é inferido do repo git do CWD DO PROCESSO — sob JOCA_OS/`/save` o cwd é
  * quase sempre `JOCA_Brain`, e o checkpoint de outro projecto cai em `checkpoints/JOCA...`
- * (aconteceu com Novanor, Kromway, Livro de Elogios, ComfyUI). Passar sempre
+ * (aconteceu com vários projectos). Passar sempre
  * `--slug <projecto resolvido no PASSO 1 do /save>`. `--project` é alias de `--slug`.
  */
 import { join, dirname, basename } from 'path';

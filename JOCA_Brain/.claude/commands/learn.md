@@ -12,7 +12,7 @@ assinatura (`node .claude/scripts/joca-brain.mjs learn --help`). Formas válidas
 
 ⚠ **Passar sempre `--slug <projecto>`** quando o cwd não é o projecto do trabalho. O slug default é o
 repo git do cwd — a trabalhar noutro projecto a partir do `JOCA_Brain`, as decisões ficam carimbadas
-`(JOCA)` (aconteceu com decisões que eram do Livro de Elogios). `decide`, `learn`, `active`, `search`
+`(JOCA)` (aconteceu com decisões que eram de um projecto cliente). `decide`, `learn`, `active`, `search`
 e `recall` aceitam todos `--slug`.
 
 ---

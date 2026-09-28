@@ -80,6 +80,14 @@ Each section advances one argument. Build a logical flow down the page.
 
 For line-by-line review, use the **copy-editing** skill after your draft.
 
+### Before Delivering (mandatory)
+
+Adapted from Leonxlnx/taste-skill §4.9 (MIT) and blader/humanizer (MIT).
+
+1. **Re-read every visible string.** Headlines, subheads, eyebrows, button labels, body, captions, alt text, footer, error messages. Flag anything grammatically broken, with a referent that has no antecedent ("we plan to stay that way"), cute-but-wrong wordplay, or performative humility. Rewrite each flag; if unsure a string makes sense, replace it with a plain functional sentence. Cute AI copy is worse than boring copy.
+2. **Cut falsely precise numbers.** `92%`, `4.1×`, `48k`, `5.8 mm` either come from real data (brief, brand guidelines, public metrics, the client) or are explicitly marked as mock (`<!-- mock -->`, "exemplo"). Otherwise they go. Never invent precision the brand does not claim.
+3. **Fidelity on rewrites.** Rewriting existing copy adds no number, name, testimonial, quote or client logo that was not in the source or given by the user. Missing proof → `TODO: prova em falta`, never a plausible one. Copy that will be published with numbers, dates or quotes → `fact-check` first.
+
 ---
 
 ## Best Practices

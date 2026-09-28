@@ -389,7 +389,7 @@ Balance of an SVG icon that mixes `stroke` paths with `fill` shapes is **not** p
 
 ## Poster composed by code (AI background + code-rendered lettering)
 
-Canonical sequence for the recurring print-poster flow (MICS, Montalegre, Espuma, Track Day, Acura):
+Canonical sequence for the recurring print-poster flow (event posters, recurring across several clients):
 
 1. **AI background with no text** — say so in the prompt, and keep the top/bottom bands empty so the lettering has somewhere to land.
 2. **Upscale (ESRGAN) BEFORE compositing**, never after — the lettering must be drawn at final resolution.

@@ -19,7 +19,7 @@ Fonte canónica: `CLAUDE.md` + `.claude/`. O JOCA é Claude-first — este fiche
 
 | Componente | Nº | Fonte canónica |
 |---|---|---|
-| Skills | 152 | `.claude/skills/<nome>.md` |
+| Skills | 155 | `.claude/skills/<nome>.md` |
 | Agentes | 105 | `.claude/agents/<nome>.md` |
 | Comandos | 29 | `.claude/commands/<nome>.md` |
 | Rules (globais) | 8 | `.claude/rules/<nome>.md` |

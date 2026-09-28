@@ -78,6 +78,28 @@ Use `grep` and `find` to scan. Focus on:
 - `src/**/*.css` or `*.scss`
 - `tailwind.config.*`
 
+#### Tailwind — valores soltos fora dos tokens (3 portas)
+
+O grep a hex não apanha a deriva do Tailwind. Contar por porta, **antes** de propor correcções (numa auditoria real, contar só hex deu ~220 valores; as 3 portas deram ~1 550 + ~3 100 classes de paleta):
+- **A · cor literal** — `#fff`/`#ffffff`, `rgb(`/`hsl(`/`oklch(` com número dentro (`hsl(var(--x))` passa). `repo#241` não é cor.
+- **B · colchete com valor** — `text-[13px]`, `p-[7px]`, `w-[calc(…)]`, `bg-[#…]`, `rounded-[6px]`. **Não são valores, são condições:** `data-[…]`, `aria-[…]`, `has-[…]`, `supports-[…]` e qualquer colchete seguido de `:` (`max-[480px]:hidden`). `rounded-[inherit]` (palavra-chave) passa.
+- **C · classe de paleta** — `bg-red-500`, `text-zinc-400`: paleta do Tailwind, não do projecto. Se o `@theme` do projecto redefinir essa cor como token, vai para a allowlist.
+
+Excepções que carregam valor mas não dão token → **allowlist com razão** (`.token-gates-allow`, uma linha `<caminho> <razão>`), nunca exclusão calada. 20+ ficheiros com a mesma troca → codemod idempotente, não edição à mão.
+
+**Modo CI** — o mesmo teste como porta de CI (sai 1 se alguma porta falhar, imprime `N/3 CLEAN`). Copiar para `scripts/token-gates.sh` do projecto e correr `bash scripts/token-gates.sh src` num passo do workflow. Testado contra 1 caso mau (acusa as 3) e 1 bom (`3/3 CLEAN`):
+```bash
+SRC=${1:-src}; ALLOW=${2:-.token-gates-allow}; INC='--include=*.tsx --include=*.ts --include=*.jsx --include=*.vue --include=*.html'
+[ -d "$SRC" ] || { echo "SRC nao existe: $SRC"; exit 2; }  # sem isto, pasta errada = 3/3 CLEAN falso
+filtra() { if [ -f "$ALLOW" ]; then grep -vFf <(grep -v '^#' "$ALLOW" | cut -d' ' -f1 | sed '/^$/d'); else cat; fi; }
+A=$(grep -rnE $INC '(^|[^a-zA-Z0-9_/&])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(rgba?|hsla?|oklch)\(\s*[0-9.]' "$SRC" | filtra)
+B=$(grep -rnoE $INC '!?[a-z][a-z0-9-]*-\[[^] "'"'"'`]*\]:?' "$SRC" | grep -vE '\]:$|(^|:)!?([a-z]+-)?(data|aria|has|supports|not|in)(-[a-z0-9]+)*-\[' | grep -E '\[[^]]*([0-9]|#|\()' | filtra)
+C=$(grep -rnoE $INC '\b(bg|text|border|ring|fill|stroke|from|via|to|outline|divide|decoration|shadow|accent|caret|placeholder)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}\b' "$SRC" | filtra)
+n=0; for g in A B C; do v=${!g}; if [ -z "$v" ]; then n=$((n+1)); echo "Gate $g: CLEAN"; else echo "Gate $g: $(echo "$v" | wc -l) violação(ões)"; echo "$v" | sed 's/^/  /'; fi; done
+echo "$n/3 CLEAN"; [ $n -eq 3 ]
+```
+(Ideia e portas adaptadas de `paperclipai/paperclip` `scripts/check-token-gates.mjs`, MIT; a porta C vem da `doc/design/TOKEN-AUDIT.md` do mesmo repo.)
+
 ## Output format
 
 `Write` está nas tools só para escrever o relatório em disco — não para editar código.

@@ -139,7 +139,7 @@ Getting **cited** in AI-generated answers (Google AI Overviews, ChatGPT, Perplex
 
 **Key difference:** traditional SEO = rank on page 1. AI SEO = get cited even from page 2-3 -- AI selects by content quality and structure, not just rank.
 
-**Stats:** AI Overviews appear in ~45% of Google searches. Optimized content cited 3x more. Statistics/citations boost visibility 40%+. Brands 6.5x more likely cited via third-party sources than own domain.
+**Stats:** AI Overviews appear in ~45% of Google searches. Optimized content cited 3x more. Statistics/citations boost visibility 40%+. Brands 6.5x more likely cited via third-party sources than own domain. *(não datado — verificar)*
 
 ### AI Visibility Audit
 
@@ -174,7 +174,7 @@ Rules: lead every section with direct answer, keep answer passages 40-60 words, 
 
 **2. Authority -- make content citable**
 
-Princeton GEO study (KDD 2024, tested on Perplexity):
+Princeton GEO study (KDD 2024, tested on Perplexity — numbers from the 2024 paper; re-verify before quoting them as current):
 
 | Method | Visibility Boost |
 |--------|:---------------:|
@@ -187,6 +187,14 @@ Princeton GEO study (KDD 2024, tested on Perplexity):
 
 Best combo: fluency + statistics. Low-authority sites gain up to 115% with citations.
 
+**Facts are a ceiling, not a target.** "Add statistics / quotations" means surfacing real ones, never inventing them to look authoritative.
+- Before touching the copy, list every number, date, name, quote and source already on the page (plus what the client supplied). New copy uses only items from that list.
+- A statistic enters only with its source cited **and dated** (`Source, YYYY`). No source → `TODO: fonte em falta`, never a plausible number.
+- Keep hedges ("estimated", "as of Sep 2026") — dropping them turns an estimate into a claim.
+- Default mode = audit + suggest; rewrite only when asked. Never promise citations, mentions or AI rankings.
+
+Adapted from elvisun/newsjack `ai-visibility-writing` (MIT).
+
 - Named authors with credentials
 - Specific numbers with dated sources
 - "Last updated" prominently displayed
@@ -194,8 +202,8 @@ Best combo: fluency + statistics. Low-authority sites gain up to 115% with citat
 
 **3. Presence -- be where AI looks**
 
-- Wikipedia mentions (7.8% of all ChatGPT citations)
-- Reddit discussions (1.8%)
+- Wikipedia mentions (7.8% of all ChatGPT citations) *(não datado — verificar)*
+- Reddit discussions (1.8%) *(não datado — verificar)*
 - Industry publications, guest posts
 - Review sites (G2, Capterra, TrustRadius)
 - YouTube (frequently cited in Google AI Overviews)
@@ -232,9 +240,11 @@ AI agents evaluate products for buyers. If pricing is JS-rendered or behind "con
 | Products | `Product` | Pricing, features |
 | Comparisons | `ItemList` | Structured comparison |
 
-Content with proper schema shows 30-40% higher AI visibility.
+Content with proper schema shows 30-40% higher AI visibility. *(não datado — verificar)*
 
 ### Content Types That Get Cited Most
+
+Shares below: *(não datado — verificar)*
 
 | Type | Citation Share |
 |------|:------------:|
@@ -279,7 +289,7 @@ Content with proper schema shows 30-40% higher AI visibility.
 
 ## Common Mistakes
 
-- Ignoring AI search (~45% of Google searches show AI Overviews)
+- Ignoring AI search (~45% of Google searches show AI Overviews *(não datado — verificar)*)
 - Treating AI SEO as separate from SEO -- traditional SEO is the foundation
 - Blocking AI bots in robots.txt -- prevents citation
 - Hiding pricing behind JS or "contact sales" -- AI agents skip you

@@ -71,6 +71,28 @@ Checklist binário. Cada item = ⬛ blocking se violado. Scan code/live UI, emit
 - **Anti-center-hero** — hero com tudo centrado (texto + CTA + imagem no eixo vertical) é layout default de LLM. Exigir tensão: assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything no primeiro viewport → ⬛ (excepto se a marca pedir explicitamente simetria formal).
 - **Italic descender clearance** — texto em itálico precisa de folga para os descenders (`g`, `j`, `p`, `q`, `y`) e para a inclinação do glifo final. Flag itálico com `overflow: hidden`, `line-height` apertado que corta descenders, ou itálico colado à margem direita/borda do container (a inclinação corta). Dar `padding-right`/`line-height` suficiente.
 
+### Regras por contagem (layout, CTA, tema) — adoptado de taste-skill (MIT)
+
+Cada item conta-se ou mede-se; passa ou falha, sem opinião. Emite `path:line — regra (medido: N)`. (Origem: Leonxlnx/taste-skill §4.5/§4.7/§4.11, MIT.)
+
+| Regra | Limite | Como medir |
+|---|---|---|
+| Elementos de texto no hero | **≤ 4** (eyebrow OU faixa de marca · título · subtexto · CTAs) | contar nós de texto do 1.º `<section>`; tagline por baixo dos CTAs, micro-faixa de confiança, teaser de preço, lista de features, fila de avatares = falha |
+| Subtexto do hero | **≤ 20 palavras**, ≤ 4 linhas; título ≤ 2 linhas no desktop | `innerText.split(/\s+/).length`; linhas = `height / line-height` |
+| CTA do hero | visível sem scroll | `getBoundingClientRect().bottom <= innerHeight` a 1440 px |
+| Eyebrows (rótulo pequeno `uppercase` + `tracking` acima de títulos) | **≤ ceil(secções / 3)**; o hero conta como 1 | `grep -c 'uppercase.*tracking\|tracking.*uppercase'` nos componentes de secção |
+| Imagem+texto alternados (zigzag) | **≤ 2 secções seguidas** | percorrer as secções pela ordem |
+| Família de layout repetida | cada família 1x; 8 secções ⇒ ≥ 4 famílias | listar a família de cada secção |
+| Grelha bento | nº de células = nº de itens (sem célula vazia); ≥ 2 células com variação visual real | contar filhos vs itens de conteúdo |
+| Menu de navegação | **numa linha** no desktop, altura ≤ 80 px | `nav.getBoundingClientRect().height` a 1024 e 1440 px |
+| Botões / CTA | **sem quebra** no desktop (rótulo ≤ 3 palavras) | `height` do botão vs `line-height` do rótulo |
+| Rótulo por intenção | 1 rótulo por intenção na página («Fala connosco» + «Contacta-nos» = falha) | agrupar rótulos de CTA por intenção |
+| Tema da página | **um tema**; nenhuma secção inverte a meio (excepção: 1 troca deliberada pedida no brief) | luminância do fundo de cada secção |
+| Logo wall | debaixo do hero, nunca dentro | posição no DOM |
+| Cabeçalho partido | título grande à esquerda + parágrafo pequeno a flutuar à direita = falha | inspecção do cabeçalho de cada secção |
+
+Sinais concretos de «feito por IA» (versões no hero, eyebrows numerados, UI falsa em `<div>`, faixas de cidade/hora, «Step 1/2/3», efeito Jane Doe…) → `Read(".claude/reference/frontend/anti-slop-bans.md")` §#4c. Cada um encontrado = ⬛.
+
 ### 7 hard-rejection patterns (instant fail)
 
 1. Generic SaaS card-grid as first impression

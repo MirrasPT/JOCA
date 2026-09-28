@@ -63,7 +63,7 @@ node .claude/scripts/joca-brain.mjs active                          # decisões 
 ```
 ⚠ **`--slug <projecto>` é obrigatório, com o nome resolvido no passo 1.** Sem ele o script deriva o
 slug do **repo do cwd**, e duas sessões concorrentes escrevem na mesma pasta: já aconteceu o `latest`
-devolver o checkpoint de outro projecto (guardei o do rate-it-plus às 20:54, outra sessão gravou às
+devolver o checkpoint de outro projecto (guardei o do projecto A às 20:54, outra sessão gravou às
 21:29, e a minha "próxima acção" ficou invisível ao `/resume`). O ficheiro não se perde — deixa é de
 ser encontrado pelo caminho que o `/resume` usa.
 - O checkpoint dá a **próxima acção** exacta da sessão anterior (restauro cross-branch).
@@ -114,10 +114,10 @@ estado canónico). Divergência entre os dois → assinalar como drift, igual ao
 O drift do 2b compara memória ↔ **git**. Não cobre memória ↔ **estado vivo** (BD, infra, contas), que
 apodrece em silêncio e é onde mora o risco real:
 
-- A memória dizia "prod tem 2 users (id2 Mirras, id14 Joana)". Realidade: **4 users, com IDs
+- A memória dizia "prod tem 2 users (id2 e id14)". Realidade: **4 users, com IDs
   diferentes**, um deles pessoa real registada depois do go-live. Copiar dados staging→prod por
   `user_id` a partir dessa nota teria escrito por cima de um utilizador real.
-- A memória e dois docs anunciavam há meses um admin do Bigorna que **não existia**: a BD tinha 0
+- A memória e dois docs anunciavam há meses um admin de um projecto que **não existia**: a BD tinha 0
   users/0 roles. O `curl /admin/login → 200` reforçava a ilusão — a porta estava lá, faltava a chave.
 - Uma receita de FTP documentada como *a* solução tinha sido validada **uma vez, com um ficheiro**.
   Falhou nos 2 maiores e partiu o site.

@@ -12,8 +12,16 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
    - Ambos → lê ambos
 3. Se existir `TASKS.md`, `PRD.md`, ou `PLAN.md` na raiz: lê para contexto do plano
 4. Se existir `DESIGN.md` ou `BRAND.md`: lê para contexto de design system
+5. **Checklist de cobertura:** lista todos os ficheiros do alvo (`git diff --name-status <base>`), cada um com estado `por rever`. Cada um acaba `revisto` ou `saltado` **com razão** — nenhum some em silêncio.
+6. Para cada ficheiro, escolhe as regras pelo nome em `.claude/reference/review/regras-por-tipo.md`.
+
+**Âmbito:** rever só linhas acrescentadas/alteradas; código apagado é contexto. Não comentar ficheiros fora do alvo (ler outros serve para confirmar, não para alargar). Não parar no primeiro Critical.
 
 ## Review
+
+### 0. Testes primeiro
+- Rever os testes do diff **antes** da implementação: mostram a intenção e o que ficou por cobrir.
+- Caminho novo ou alterado sem teste → achado.
 
 ### 1. Alinhamento com plano
 - Compara implementação com o plano/tasks
@@ -28,6 +36,12 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
 - Convenções: nomes claros, estrutura consistente com o existente
 - Error handling: só em boundaries (input, APIs externas), não defensivo interno
 - **Comments: devem ser raros.** Verificar que NÃO há comments desnecessários (o que, como). Só aceitar comments que explicam o porquê de algo não-óbvio
+- **Comentário que afirma um mecanismo** («impede X», «garante Y») cruza-se com o código; o código não o faz → Important.
+
+### 2b. Falhas silenciosas e fasquia a baixar
+Listas em `.claude/reference/review/cacas-e-filtros.md`. Resumo:
+- **Falhas silenciosas:** `catch` vazio, erro convertido em default, fallback que esconde a falha, dados falsos quando a fonte real falha.
+- **Fasquia a baixar** (achado mesmo com o resto certo): `@ts-ignore`, `eslint-disable`, `@phpstan-ignore`, testes saltados ou apagados, asserts removidos, config de lint/tipos alterada, `--no-verify`.
 
 ### 3. Stack-specific
 - Laravel: FormRequest validation, Eloquent patterns, N+1 queries, mass assignment
@@ -54,6 +68,12 @@ Formato por issue:
 ```
 
 Começar sempre com o que está bem antes de listar issues.
+
+**Não-achados:** a lista fechada em `cacas-e-filtros.md` §Não-achados (pré-existente, o que o lint apanha, estilo sem regra escrita…) não entra.
+
+**Cobertura** no topo do resumo: `total · revistos · saltados · cobertura %`, e cada saltado com a razão.
+
+**Passe final (quando te despacham como verificador de outro reviewer):** recebes o diff e os achados; tiras **só** o que o diff prova errado. Cada achado sai `confirmado`, `refutado` (com a linha que o prova) ou `não verificável` — só `refutado` sai. Regra em `cacas-e-filtros.md` §Passe final.
 
 ## Loop test→fix→verify (adaptado do `qa` do gstack)
 

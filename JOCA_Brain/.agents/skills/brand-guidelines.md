@@ -154,6 +154,16 @@ xl: 24px / line-height 1.3
 
 ### Passo 5 · Tone of Voice
 
+**Pesar as fontes antes de escrever** (adaptado de Tribe AI brand-voice, MIT):
+- **Autoritativa** (guia de marca oficial, aprovado pelo dono) › **operacional** (templates, emails-tipo, posts em uso) › **conversacional** (emails, mensagens e chamadas reais) › **contextual** (concorrência, docs de produto). Obsoleta (versão substituída, pré-rebrand) → só para referência.
+- Conflito entre fontes → ganha a mais recente, salvo se a mais antiga for o guia oficial.
+- Sem nenhuma fonte autoritativa (o caso comum em PME) → as conversacionais e operacionais passam a ser a prova principal. Dizê-lo no `DESIGN.md`.
+
+**Confiança por secção** (5.1, 5.2, 5.3): cada uma leva `(Confiança: Alta|Média|Baixa)` no cabeçalho.
+- **Alta:** ≥3 fontes concordantes e ≥1 autoritativa, sem conflito por resolver.
+- **Média:** 1-2 fontes, ou inferida de padrões em vez de instrução explícita.
+- **Baixa:** fonte única, prova indirecta, ou conflito por resolver → nota com o que falta e **pergunta ao cliente** para rever.
+
 3 secções:
 
 #### 5.1 Personalidade (3-5 adjectivos)
@@ -241,7 +251,7 @@ Gerar com este template:
 - Body: <fonte> (<fonte-fallback>) — texto corrido
 - Mono: <fonte> — código e dados
 
-## Tone of Voice
+## Tone of Voice (Confiança: <Alta|Média|Baixa> — fontes: <quais>)
 <Personalidade da marca em 3-5 adjectivos>
 
 **Sim:** <regras de escrita>

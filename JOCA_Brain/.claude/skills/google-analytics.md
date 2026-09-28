@@ -75,6 +75,17 @@ curl -s -X POST \
 - Realtime: endpoint `:runRealtimeReport` (mesmo shape, sem `dateRanges`).
 - Service account: key JSON no GCP + dar acesso Viewer ao email da SA na property; depois `GOOGLE_APPLICATION_CREDENTIALS=/path/key.json gcloud auth application-default print-access-token`.
 
+## Ler os números — ausente não é zero
+
+Dados em falta lêem-se como boa notícia se ninguém avisar. Antes de reportar um número:
+- **Resposta limitada descreve a sua fatia.** Com `limit` ou paginação, a soma das linhas não é o total: o total vem de um pedido sem essa dimensão, ou diz-se «parcial».
+- **Zero ≠ ausente.** Métrica a `0`, linha que falta, data vazia: tracking partido, consentimento recusado ou property errada dão o mesmo «0» que um site sem visitas. Zero implausível → «desconhecido».
+- **Vazio ≠ falhou.** Resultado vazio confronta-se com outra fonte (Realtime, DebugView) antes de afirmar «sem visitas».
+- **Total é contexto, não denominador.** Uma percentagem de um subconjunto calcula-se sobre a base que ele pode atingir (conversões do tráfego pago ÷ sessões pagas, não ÷ sessões totais). O relatório nomeia as duas bases.
+- Pergunta obrigatória: «o que faria isto parecer assim se o negócio estivesse bem, e se os dados estivessem partidos?» Se não se distingue, diz-se.
+
+Adaptado de anthropics/knowledge-work-plugins `small-business/shared/absent-is-not-zero.md` + `chain-seams.md` (Apache-2.0, reescrito).
+
 ## Referência de métricas & dimensões (runReport)
 
 **Metrics**: `totalUsers` `newUsers` `sessions` `screenPageViews` `averageSessionDuration` `bounceRate` `engagementRate` `conversions` `eventCount` `activeUsers`

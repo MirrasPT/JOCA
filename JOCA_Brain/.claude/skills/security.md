@@ -117,6 +117,20 @@ Storage::get($request->input('filename')); // ../../.env
 Storage::get(basename($request->input('filename')));
 ```
 
+### Processos e allowlists (Node/Python, CLIs, PTYs, agentes)
+Classes fora do OWASP Laravel, sem cobertura noutras skills. Ideias do plugin `security-guidance` de `anthropics/claude-code` (proprietário — texto próprio).
+
+| Classe | Padrão vulnerável | Correcção |
+|---|---|---|
+| Injecção por argumentos | valor do utilizador no argv começado por `-` vira flag: `git --upload-pack=`, `rg --pre=`, `tar --checkpoint-action=exec=`, `rsync -e`, `ssh -oProxyCommand=`. `execFile`/`spawn` sem shell não chega | `--` antes do valor, opção explícita (`['-e', padrão, '--', caminho]`) ou rejeitar `^-` |
+| Injecção por variáveis de ambiente | `spawn(cmd, args, { env: { ...process.env, ...naoConfiavel } })` — o filho lê `NODE_OPTIONS`, `LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`, `PYTHONPATH`, `BASH_ENV`, `GIT_SSH_COMMAND`, `PATH` | lista branca de chaves; lista negra esquece sempre uma. Segredo em `process.env` do pai herda-se nos filhos |
+| Allowlist de URL contornável | `url.startsWith(permitido)` ou `netloc` aceita `https://trusted.com@evil.com`; `new URL(caminho, base)` aceita `//evil.com`; redirect 3xx salta a verificação | comparar só `new URL(u).hostname` depois de resolver, com o parser que envia; `redirect: 'manual'` e revalidar cada salto |
+| Allowlist por substring / sem âncora | `includes`, `endsWith("trusted.com")` sem ponto, regex sem `^…$` → `trusted.com.evil.com`, `eviltrusted.com` | extrair o campo estruturado e comparar com `===`; regex ancorada nos dois lados; normalizar maiúsculas e ponto final |
+| Assimetria entre campos irmãos | o diff valida/sanitiza um campo e deixa o irmão que chega ao mesmo sink | ao ver uma validação nova, verificar todos os irmãos do mesmo papel |
+| Permissões de ficheiro de credenciais | token escrito sem modo (umask → 0644), com modo largo, ou `chmod` só depois | 0600 ficheiro / 0700 pasta na criação. Windows: `0o600` não mexe na ACL — restringir com `icacls` |
+| Agente lançado sem travões | spawn de Claude Code / LLM com ferramentas com `--dangerously-skip-permissions`, `bypassPermissions` ou shell livre | só dentro de sandbox ou com classificador de comandos |
+| Sink antigo, caminho novo | código novo leva input a um `eval`/`exec`/shell/SQL que já existia | é vulnerabilidade nova — em review de diff conta mesmo fora das linhas `+` |
+
 ---
 
 ## HTTP Security Headers
@@ -254,7 +268,7 @@ Agent(subagent_type="tester-security", prompt="Security scan completo. Path: [pa
 
 ### Deep code review
 ```
-Agent(subagent_type="security-review", prompt="Security code review. Files: [paths]. Apply OWASP ASVS 5.0. Check: authorization on every endpoint (IDOR), FormRequest validation, mass assignment, file upload, session config, error handling, encryption on PII. Report: vulnerability + exploit scenario + Laravel-native fix.")
+Agent(subagent_type="security-review", prompt="Security code review. Files: [paths]. Apply OWASP ASVS 5.0. Check: authorization on every endpoint (IDOR), FormRequest validation, mass assignment, file upload, session config, error handling, encryption on PII, argv/env injection em spawn, allowlists de URL (§Processos e allowlists). Report: vulnerability + exploit scenario + Laravel-native fix.")
 ```
 
 ### Rate limiting test

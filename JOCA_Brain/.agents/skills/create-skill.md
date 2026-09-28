@@ -145,6 +145,16 @@ python .claude/scripts/validate-skill.py .claude/skills/created-skills/[name]/SK
 ```
 (Windows: `python`, não `python3` — stub da Store.) Se devolver `[FAIL]` (frontmatter em falta, `name` não-kebab-case, `description` vazia) → corrigir e re-correr até `OK`/`WARN`. Não registar uma skill que falha o linter — a auto-selecção por triggers depende de frontmatter válido.
 
+### 4c.6 — Behaviour eval (gate)
+The `skill-evaluator` scores the **text**. This checks what the skill **does**.
+1. Write `.claude/skills/created-skills/[name]/evals.json` with a **balanced** set: ≥3 **should fire** (typical requests, one of them phrased without the trigger words) and ≥3 **should not fire** (neighbour requests with their owner skill named, plus one keyword-adjacency trap). Each case: `id`, `prompt`, `expected` (`fire` / `no-fire:<owner>`), `assertions` with a script-checkable `check`.
+2. **Routing half (no tokens):** each prompt against the skill's `description` + `triggers` — should-fire must match, should-not must not steal from its owner. A negative that fires → sharpen the description, not the case.
+3. **Behaviour half (costs tokens, on request):** run the should-fire prompts with the skill loaded and grade the assertions.
+4. **The eval grades the skill, it does not change it.** Failing case → fix the case if it was wrong, or log the defect in `skill-creation-log.md`. Never loosen an assertion so the number passes.
+5. Option when the skill is packaged as a plugin or skills-dir: `claude plugin eval <path>` runs `evals/**/case.yaml` with a no-plugin baseline arm (exists in Claude Code 2.1.284, `claude plugin eval --help`, verificado 2026-09-28). JOCA skills loaded by `Read()` are not a plugin — it does not see them as they are.
+
+Adapted from elvisun/newsjack `eval/newsworthiness-check` (MIT).
+
 ### 4d — Register in JOCA
 1. Add entry to `memory/INDEX.md` under `### Created Skills` (create if missing)
 2. Do NOT add to `CLAUDE.md` — `created-skills/` is auto-discovered
@@ -172,3 +182,12 @@ How to use:
 - All new skills go to `created-skills/` — never to category directories
 - Pipeline is fully autonomous — report only at the end
 - **Chaining (obrigatório):** toda a skill/agente novo nasce com (a) frontmatter `chain:` (próximos skills/agentes prováveis, se houver) e (b) secção `## Próximo passo (chain)` no corpo a dizer quando disparar cada um + o gate (irreversível → confirmar). Agentes novos incluem **Step 0: Read das skills relevantes** no corpo. Ver `rules/chaining.md`.
+
+## Maintenance — version claims and wrong phrases
+
+A skill that states a version, limit or browser support without a date reads as current forever.
+- **Claims ledger:** every version-dependent claim goes in `created-skills/[name]/VERSIONS.md` as `claim · primary source · verified YYYY-MM-DD`. Unconfirmed row → `VERIFY-NEEDED` (the only to-do list; no second tracker). Re-checking with no change still moves the date.
+- **Denylist:** a phrase that once came out wrong (API that does not exist, support claimed where there is none) goes in `created-skills/[name]/DENYLIST.tsv` as `pattern<TAB>why<TAB>narrow exemption` (the exemption covers only the sentence that teaches "never write X"). Before saving an upgrade, `grep -F` each pattern over the skill — a hit blocks the save.
+- **Upgrade mode** reads both files in Step 1 and re-verifies rows older than the subject's release cadence.
+
+Adapted from AThevon/genjutsu `VERSIONS.md` + `scripts/check-denylist.sh` (MIT).

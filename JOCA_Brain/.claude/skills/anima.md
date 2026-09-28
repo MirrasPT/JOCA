@@ -66,8 +66,9 @@ entrance patterns, stagger por personalidade) → `Read(".claude/reference/front
 
 | Tipo | Duracao | Easing |
 |------|---------|--------|
-| Micro-interaccao (hover, click) | 100-200ms | ease-out-quart |
-| Transicao de estado (modal, dropdown) | 200-300ms | ease-out-quart |
+| Micro-interaccao (hover, click) | 100-200ms (hover: entra <100ms, sai 150-200ms) | ease-out-quart |
+| Transicao de estado (dropdown, popover) | 200-300ms | ease-out-quart |
+| Modal / dialog | 300-400ms | ease-out-quart |
 | Entrada de pagina / hero animation | 400-600ms | ease-out-expo |
 | Scroll reveal (por elemento) | 300-500ms | ease-out-quart |
 | Exit animations | 60-70% do enter | ease-in-quart |
@@ -85,6 +86,8 @@ cubic-bezier(0.19, 1, 0.22, 1)  // CSS
 ```
 
 **Nunca usar:** linear para UI transitions, `ease-in` para entradas.
+**Excepcao:** rotacao continua e progresso a velocidade constante (spinner, barra) = `linear` — com
+ease-out, o spinner acelera e trava a cada volta. Ciclos que repetem = curva suave (`sine.inOut`).
 **bounce/elastic:** proibidos em Premium e Corporate; permitidos em Playful e Energetic, dentro do
 overshoot do arquetipo. Fora desses dois arquetipos, um bounce e slop.
 
@@ -93,7 +96,7 @@ overshoot do arquetipo. Fora desses dois arquetipos, um bounce e slop.
 **Multiplicador por distancia** (sobre a duracao base do arquetipo):
 50px ×0.8 · 100px ×1.0 · 200px ×1.3 · 300px ×1.5 · 400px ×1.6 · ecra inteiro ×1.8-2.0
 
-**Peso do elemento:** Heavy (modais) 300-500ms overshoot 0% · Medium (cards) 200-350ms 3-5% ·
+**Peso do elemento:** Heavy (modais) 300-400ms overshoot 0% · Medium (cards) 200-350ms 3-5% ·
 Light (tooltips, badges) 80-200ms 5-15%
 
 **Tecto de latencia** — tempo ate o feedback *comecar*, nao a duracao:
@@ -112,6 +115,10 @@ Light (tooltips, badges) 80-200ms 5-15%
 - Com 3+ elementos animados, no maximo **1/3** a mexer em simultaneo
 
 Counter-motion, camadas por velocidade e budgets por padrao → `Read(".claude/reference/frontend/motion-choreography.md")`.
+
+Receitas de estado (clique, hover entra <100ms / sai 150-200ms, abanar de erro, spinner, skeleton,
+sucesso, erro de formulario, disabled), propriedade por objectivo e overshoot por contexto → ler quando
+o pedido e feedback de UI: `Read(".claude/reference/frontend/motion-patterns.md")`.
 
 ### Performance rules (obrigatorias)
 
@@ -198,8 +205,8 @@ tl.fromTo(el, { autoAlpha: 0, y: reduceMotion ? 0 : 40 }, { autoAlpha: 1, y: 0, 
 
 ```html
 <!-- CDN (prototype) -->
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/ScrollTrigger.min.js"></script>
 
 <!-- npm -->
 npm install gsap

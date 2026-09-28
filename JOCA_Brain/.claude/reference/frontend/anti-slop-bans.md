@@ -1,4 +1,4 @@
-Parte da skill `frontend` — carregado on-demand. Bans absolutos (#4), naming adblock-safe e guard-rails de geração (#4b).
+Parte da skill `frontend` — carregado on-demand. Bans absolutos (#4), naming adblock-safe, guard-rails de geração (#4b) e sinais de «feito por IA» (#4c).
 
 ### Bans absolutos
 
@@ -38,3 +38,37 @@ Aplicar na ESCRITA, não só no review. Cada regra é hard-stop durante a geraç
 - **Color/shape consistency lock** — 1 decisão de cor + 1 linguagem de forma em toda a peça. Border-radius, sombra e borda coerentes entre componentes do mesmo nível. Parecer sistema, não sampler.
 - **Anti-center-hero** — não centrar tudo no hero. Assimetria, alinhamento à esquerda, overlap, grid-break. Center-everything = default de LLM.
 - **Italic descender clearance** — itálico precisa de `line-height`/`padding-right` para não cortar descenders (`g j p q y`) nem a inclinação contra a borda. Nunca itálico com `overflow:hidden` apertado.
+- **Regras por contagem já na escrita** — hero ≤ 4 elementos de texto · subtexto ≤ 20 palavras · eyebrow ≤ 1 por 3 secções · zigzag imagem/texto ≤ 2 seguidas · bento com células = itens · menu numa linha · botões sem quebra · 1 rótulo por intenção · um tema por página. Tabela com o como-medir: `skills/design-review.md` §Regras por contagem.
+
+## #4c Sinais concretos de «feito por IA» — adoptado de taste-skill (MIT)
+
+Banidos por defeito, salvo pedido explícito do brief. (Origem: Leonxlnx/taste-skill §9.D/§9.F, MIT.)
+
+**Topo e rótulos**
+- Etiquetas de versão no hero (`V0.6`, `BETA`, `EARLY ACCESS`) fora de um lançamento real.
+- Eyebrows numerados (`001 · Capabilities`, `06 · how it works`) e paginação `01 / 4` em imagens ou células.
+- Micro-frase de meta por baixo do eyebrow («Cada uma destas é uma feature que já existe…»). Eyebrow + título + corpo chega.
+- Rótulos genéricos de passos («Passo 1 / Passo 2 / Passo 3», «Fase 01»). O próprio verbo é o rótulo («Instalar», «Configurar»).
+- Rótulos poéticos («Notas de campo», «Na nossa bancada») em vez de funcionais («Testemunhos», «Últimos artigos»). «Discretamente usado por…» → «Clientes», ou sem título.
+
+**Decoração**
+- Ponto médio `·` como separador universal: máx. 1 por linha.
+- Pontos de estado coloridos antes de links, linhas ou badges, sem estado real por trás.
+- Título partido com `<br>` + itálico como «jogada de design»; texto vertical rodado 90°.
+- Grelhas de filetes / cruzetas desenhadas só para «parecer desenhado».
+- Faixa de texto no fundo do hero (`MARCA. MOVIMENTO. ESPAÇO.`); parágrafo pequeno a flutuar no canto superior direito do cabeçalho.
+- Pílulas/etiquetas por cima de fotografias; créditos fotográficos inventados como decoração.
+- Faixas de cidade/hora/meteorologia no header/footer; indicadores de scroll («Scroll», rato animado).
+- Barras de comparação com trilho cheio (`bg-zinc-200` + preenchimento parcial) numa landing.
+- Filete em **cada** linha de uma tabela de especificações longa — escolher um só.
+
+**Pré-visualizações falsas**
+- UI de produto falsa feita com `<div>` (tarefas, terminal, dashboard). Screenshot real, imagem gerada, ou nada.
+- Rodapés de versão (`v1.4.2`, `last sync 4s ago`) em páginas de marketing; contadores de stock decorativos.
+
+**Efeito Jane Doe (dados de exemplo)**
+- Nomes genéricos («John Doe», «Maria Silva» em série) e marcas de startup («Acme», «Nexus», «SmartFlow»).
+- Números perfeitos (`99.99%`, `50%`, `1234567`). Dados reais, ou marcados como exemplo.
+- Nomes, moradas e telefones na forma do país do público (PT: `+351`, não formato americano).
+- Verbos de enchimento («Eleva», «Sem esforço», «Liberta», «Revoluciona»). Verbos concretos.
+

@@ -92,6 +92,17 @@ Security code reviewer specializing in Laravel + React SaaS. READS code and REAS
 - Admin routes protected by middleware (not just UI hiding)
 - Password change requires current password
 
+### 13. Processos, allowlists e âmbito do diff
+Classes que o checklist Laravel não apanha. Aparecem em Node/Python, CLIs, spawn de PTYs e agentes. Tabela com exemplos: `.claude/skills/security.md` §Processos e allowlists.
+- **Injecção por argumentos**: valor do utilizador como elemento de argv começado por `-` vira flag (`git --upload-pack=`, `rg --pre=`, `tar --checkpoint-action=`, `rsync -e`, `ssh -o`). `execFile`/`spawn` sem shell **não** basta. Exigir `--` antes do valor, ou rejeitar `^-`.
+- **Injecção por variáveis de ambiente**: mapa não confiável espalhado no `env` de `spawn`/`exec`/`Popen` executa código mesmo com argv fixo (`NODE_OPTIONS`, `LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`, `PYTHONPATH`, `BASH_ENV`, `GIT_SSH_COMMAND`, `PATH`). Exigir lista branca de chaves; lista negra incompleta é achado. Segredo posto em `process.env` do pai passa aos filhos.
+- **Allowlist de URL contornável**: `startsWith`/`netloc` deixa passar `https://trusted.com@evil.com`; `new URL(caminho, base)` não fixa o host (`//evil.com`); redirects 3xx refazem o pedido. Comparar só o `hostname` depois de resolver, com o mesmo parser que envia.
+- **Allowlist por substring ou sem âncora**: `includes`, `endsWith("trusted.com")` sem ponto, regex sem `^…$` — `trusted.com.evil.com`, `eviltrusted.com`.
+- **Assimetria entre campos irmãos**: o diff sanitiza/valida um campo e deixa o irmão que chega ao mesmo sink. A linha que acrescenta a validação é a pista: ver todos os irmãos.
+- **Permissões de ficheiro de credenciais**: token/segredo escrito sem modo (umask → 0644), com modo largo, ou `chmod` depois de escrever. Exigir 0600 ficheiro / 0700 pasta. No Windows `0o600` não mexe na ACL — ver `icacls`.
+- **Agente lançado sem travões**: spawn de Claude Code / LLM com ferramentas usando `--dangerously-skip-permissions`, `bypassPermissions` ou shell sem restrições, fora de sandbox ou sem classificador de comandos.
+- **Sink antigo, caminho novo**: ver regra de âmbito em §Rules.
+
 ## Output format
 
 For each finding:
@@ -117,7 +128,7 @@ Severity levels:
 
 ## Coverage
 - Files reviewed: N
-- Domains checked: 12/12
+- Domains checked: 13/13
 
 ## Findings
 | Severity | Count | Domain |
@@ -138,4 +149,6 @@ Severity levels:
 - Always include exploit scenario (how would an attacker use this?)
 - Always include Laravel-native fix (not generic advice)
 - If you can't determine severity with certainty, mark as MEDIUM and note the uncertainty
+- **Âmbito em review de diff**: só se reportam linhas `+`. Excepção: código novo que leva dados do utilizador a um sink **pré-existente** (`eval`, `exec`, shell, SQL concatenado) é vulnerabilidade nova — citar o caminho novo e o sink antigo.
+- Classes do §13: ideias do plugin `security-guidance` de `anthropics/claude-code` (licença proprietária — texto próprio, nada copiado).
 - Relatório completo → escreve em `.joca/intermediate/security-review-<slug>.md` (confirma que `.joca/` está no .gitignore do projecto; senão usa o scratchpad da sessão) e devolve ao caller só um resumo ≤15 linhas + o path. `Write` está nas tools só para isto.

@@ -185,6 +185,23 @@ public function failed(\Throwable $e): void
 
 ---
 
+## Mudar schema com dados reais — expand/contract
+
+Renomear ou mudar uma coluna no mesmo deploy que o código que a usa parte a janela em que código velho e novo correm juntos. Nunca mudar a coluna no sítio. Por fases, cada uma deployável e reversível sozinha:
+1. **Expand** — coluna nova `nullable` ao lado da velha. Deploy.
+2. **Escrever nas duas** — a app grava a velha e a nova em cada insert/update. Deploy.
+3. **Backfill em lotes** — copiar os dados antigos com `chunkById()`, fora do caminho quente. Um `UPDATE` único bloqueia a tabela.
+4. **Ler da nova** — trocar as leituras, continuar a escrever nas duas. Deploy e observar.
+5. **Contract** — parar de escrever na velha e, num deploy **posterior e isolado**, largar a coluna.
+
+- Aditivo primeiro; destrutivo por último e sozinho.
+- `down()` escrito e corrido contra o motor de produção (MySQL, não só SQLite) antes do merge.
+- Índice grande em tabela com escrita: DDL online do MySQL — confirmar na doc do MySQL da versão alvo, não de memória.
+
+Adaptado de addyosmani/agent-skills `deprecation-and-migration` (MIT).
+
+---
+
 ## Anti-patterns
 
 | Wrong | Correct |
@@ -243,7 +260,15 @@ php artisan queue:work --once       # no exceptions
 php artisan test --coverage         # >85%, zero failures
 ./vendor/bin/pint --test            # PSR-12 OK
 vendor/bin/phpstan analyse          # Larastan — zero errors at configured level
+php artisan migrate --pretend       # read the SQL before running it in production
+composer validate                   # composer.json / lock valid
+php artisan schedule:list           # scheduled tasks registered
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+                                    # with the PRODUCTION config (staging/target) — cache failures only show on deploy
 ```
+- Locally, `php artisan optimize:clear` after the cache warm-up (otherwise the local `.env` stays frozen).
+- Production target: `APP_ENV=production` and `APP_DEBUG=false` confirmed on the server.
+- Commands from affaan-m/ECC `laravel-verification` (MIT); the `artisan` ones confirmed in Laravel 13.33.0 (`vendor/laravel/framework`, verificado 2026-09-28); `composer validate` is Composer's, not Laravel's.
 
 ---
 

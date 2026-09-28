@@ -169,7 +169,7 @@ export default async function Page({ params }) {
 
 ## 7. Modais — foco e focus-trap (bugs silenciosos)
 
-Padrão comum (focus-trap + restaurar o foco ao fechar) em Bigorna / Rate It Plus / UniMedia. Falha sem erro nem warning — só o foco a cair para `<body>`.
+Padrão comum (focus-trap + restaurar o foco ao fechar) em vários projectos. Falha sem erro nem warning — só o foco a cair para `<body>`.
 
 ### Gotcha: `autoFocus` vs captura do opener
 `autoFocus` (HTML) corre no commit síncrono do browser, **antes do paint**. O `useEffect` que guarda `document.activeElement` (o "opener" a restaurar ao fechar) corre **depois do paint** — apanha o campo autofocado, não o botão que abriu o modal. Ao fechar, foca um elemento a ser desmontado (no-op silencioso) e o foco cai para `<body>`.
