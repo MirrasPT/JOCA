@@ -6,9 +6,10 @@
 //   • um toast de `priority: 'action'` NÃO se auto-fecha. É um bloqueio à espera de resposta;
 //     evaporar-se ao fim de 5 segundos é perder o pedido, que é precisamente o oposto do que se
 //     pede a uma coisa marcada como "precisa de ti".
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { NotificationPriority } from '../types';
 import { hasNotificationTarget, type NotificationTarget } from '../lib/notify';
+import { waitedFor } from './WaitingQueue';
 import './ToastNotification.css';
 
 export interface ToastItem {
@@ -68,6 +69,7 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   onOpenTarget?: (target: NotificationTarget) => void;
 }) {
   const acao = item.priority === 'action';
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     // Um bloqueio fica até alguém lhe tocar.
@@ -75,6 +77,13 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
     const timer = setTimeout(() => onDismiss(item.id), AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [item.id, onDismiss, acao]);
+
+  // Só o toast que fica precisa de relógio: a idade dele diz há quanto tempo alguém espera.
+  useEffect(() => {
+    if (!acao) return;
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, [acao]);
 
   // Destino explícito quando existe; senão, o comportamento de sempre (abrir a sessão do toast).
   const podeAbrir = Boolean(
@@ -87,15 +96,15 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   };
 
   return (
-    // `role="alert"` só para o informativo: um pedido de resposta é `alertdialog`-like, mas o
-    // conteúdo continua a viver num botão focável — chega-se lá por Tab, sem roubar o foco.
-    <div className={`toast ${acao ? 'toast--action' : 'toast--done'}`} role={acao ? 'status' : 'alert'}>
+    // O tipo lê-se por duas vias além da cor: a forma do ícone (visto / exclamação) e o título
+    // («… precisa de ti» / «Sessão terminada»). O anúncio ao leitor de ecrã é da região (polite).
+    <div className={`toast ${acao ? 'toast--action' : 'toast--done'}`}>
       <div className="toast-icon" aria-hidden>
         {acao ? <AlertIcon /> : <CheckIcon />}
       </div>
 
-      {/* O corpo inteiro é o alvo do clique — não obriga a acertar num botão de 60px. É um
-          <button> irmão dos outros dois (nunca aninhado: botão dentro de botão é HTML inválido). */}
+      {/* O corpo inteiro é o alvo do clique — não obriga a acertar num botão pequeno. É um
+          <button> irmão do fechar (nunca aninhado: botão dentro de botão é HTML inválido). */}
       <button
         type="button"
         className="toast-open"
@@ -104,11 +113,13 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
       >
         <span className="toast-title">{item.title ?? 'Sessão terminada'}</span>
         <span className="toast-session">{item.sessionName}</span>
+        <span className="toast-meta">
+          <time dateTime={new Date(item.timestamp).toISOString()}>{waitedFor(item.timestamp, now)}</time>
+        </span>
       </button>
 
-      {acao && <span className="toast-flag">precisa de ti</span>}
-
       <button
+        type="button"
         className="toast-dismiss"
         onClick={() => onDismiss(item.id)}
         aria-label="Dispensar aviso"
@@ -120,10 +131,10 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
 }
 
 export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenTarget }: Props) {
-  if (toasts.length === 0) return null;
-
+  // A região existe sempre, vazia ou não: um aria-live só anuncia o que entra DEPOIS de ele estar
+  // no DOM — montá-lo junto com o 1.º toast fazia o leitor de ecrã calar-se precisamente nesse.
   return (
-    <div className="toast-container" role="region" aria-label="Avisos">
+    <div className="toast-container" role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
       {toasts.map((t) => (
         <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
       ))}

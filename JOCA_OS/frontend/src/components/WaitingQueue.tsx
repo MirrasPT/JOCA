@@ -13,6 +13,15 @@ const SNOOZE_OPTIONS: Array<{ minutes: number; label: string }> = [
   { minutes: 240, label: '4 h' },
 ];
 
+// Ícones em traço, no mesmo desenho dos da barra lateral (24×24, traço 2, pontas redondas).
+const svgProps = {
+  width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2,
+  strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true,
+};
+const ClockIcon = () => <svg {...svgProps}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
+const CloseIcon = () => <svg {...svgProps}><path d="M18 6 6 18M6 6l12 12" /></svg>;
+const ChevronIcon = () => <svg {...svgProps}><path d="m9 18 6-6-6-6" /></svg>;
+
 /** «há 3 min» — grão grosso de propósito: é para saber quem espera mais, não para cronometrar. */
 export function waitedFor(since: number, now: number): string {
   const min = Math.floor(Math.max(0, now - since) / 60_000);
@@ -76,6 +85,7 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
                     <time className="pw-worker-time" dateTime={new Date(since).toISOString()} title={new Date(since).toLocaleString('pt-PT')}>
                       {waitedFor(since, now)}
                     </time>
+                    <span className="wq-go" aria-hidden><ChevronIcon /></span>
                   </div>
                   {choosing ? (
                     <span className="pw-worker-confirm wq-snooze" role="group" aria-label={`Adiar ${name}`}>
@@ -85,7 +95,7 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
                           {o.label}
                         </button>
                       ))}
-                      <button type="button" aria-label="Cancelar" onClick={() => setSnoozingId(null)}>×</button>
+                      <button type="button" className="wq-snooze-cancel" aria-label="Cancelar" onClick={() => setSnoozingId(null)}><CloseIcon /></button>
                     </span>
                   ) : (
                     <button
@@ -95,6 +105,7 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
                       aria-label={`Adiar ${name}`}
                       onClick={() => setSnoozingId(n.id)}
                     >
+                      <ClockIcon />
                       Adiar
                     </button>
                   )}
