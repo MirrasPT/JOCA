@@ -645,13 +645,14 @@ export default function App() {
   const handleOpenNotificationTarget = useCallback((target: NotificationTarget | undefined) => {
     if (!target) return;
     if (target.sessionId && sessionsRef.current.some((s) => s.id === target.sessionId)) {
-      handleSwitchSession(target.sessionId);
+      // No workspace do projecto quando a sessão tem um; solta só se não tiver.
+      handleOpenSessionInContext(target.sessionId);
       return;
     }
     if (target.projectId && projectsRef.current.some((p) => p.id === target.projectId)) {
       handleShowProject(target.projectId);
     }
-  }, [handleShowProject, handleSwitchSession]);
+  }, [handleShowProject, handleOpenSessionInContext]);
 
   // O router de mensagens do WebSocket (que não é um componente) dispara notificações do SO; o
   // handler de destino vive num módulo para lhe ser alcançável.
@@ -948,7 +949,7 @@ export default function App() {
       <ToastNotification
         toasts={toasts}
         onDismiss={handleDismissToast}
-        onSelect={handleSwitchSession}
+        onSelect={handleOpenSessionInContext}
         onOpenTarget={handleOpenNotificationTarget}
       />
 

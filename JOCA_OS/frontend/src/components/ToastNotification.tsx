@@ -6,9 +6,10 @@
 //   • um toast de `priority: 'action'` NÃO se auto-fecha. É um bloqueio à espera de resposta;
 //     evaporar-se ao fim de 5 segundos é perder o pedido, que é precisamente o oposto do que se
 //     pede a uma coisa marcada como "precisa de ti".
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { NotificationPriority } from '../types';
 import { hasNotificationTarget, type NotificationTarget } from '../lib/notify';
+import { waitedFor } from './WaitingQueue';
 import './ToastNotification.css';
 
 export interface ToastItem {
@@ -68,6 +69,7 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   onOpenTarget?: (target: NotificationTarget) => void;
 }) {
   const acao = item.priority === 'action';
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     // Um bloqueio fica até alguém lhe tocar.
@@ -75,6 +77,13 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
     const timer = setTimeout(() => onDismiss(item.id), AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [item.id, onDismiss, acao]);
+
+  // Só o toast que fica precisa de relógio: a idade dele diz há quanto tempo alguém espera.
+  useEffect(() => {
+    if (!acao) return;
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, [acao]);
 
   // Destino explícito quando existe; senão, o comportamento de sempre (abrir a sessão do toast).
   const podeAbrir = Boolean(
@@ -87,15 +96,15 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   };
 
   return (
-    // `role="alert"` só para o informativo: um pedido de resposta é `alertdialog`-like, mas o
-    // conteúdo continua a viver num botão focável — chega-se lá por Tab, sem roubar o foco.
-    <div className={`toast ${acao ? 'toast--action' : 'toast--done'}`} role={acao ? 'status' : 'alert'}>
+    // O tipo lê-se por duas vias além da cor: a forma do ícone (visto / exclamação) e o título
+    // («… precisa de ti» / «Sessão terminada»). O anúncio ao leitor de ecrã é da região (polite).
+    <div className={`toast ${acao ? 'toast--action' : 'toast--done'}`}>
       <div className="toast-icon" aria-hidden>
         {acao ? <AlertIcon /> : <CheckIcon />}
       </div>
 
-      {/* O corpo inteiro é o alvo do clique — não obriga a acertar num botão de 60px. É um
-          <button> irmão dos outros dois (nunca aninhado: botão dentro de botão é HTML inválido). */}
+      {/* O corpo inteiro é o alvo do clique — não obriga a acertar num botão pequeno. É um
+          <button> irmão do fechar (nunca aninhado: botão dentro de botão é HTML inválido). */}
       <button
         type="button"
         className="toast-open"
@@ -104,11 +113,13 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
       >
         <span className="toast-title">{item.title ?? 'Sessão terminada'}</span>
         <span className="toast-session">{item.sessionName}</span>
+        <span className="toast-meta">
+          <time dateTime={new Date(item.timestamp).toISOString()}>{waitedFor(item.timestamp, now)}</time>
+        </span>
       </button>
 
-      {acao && <span className="toast-flag">precisa de ti</span>}
-
       <button
+        type="button"
         className="toast-dismiss"
         onClick={() => onDismiss(item.id)}
         aria-label="Dispensar aviso"
@@ -119,14 +130,92 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   );
 }
 
-export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenTarget }: Props) {
-  if (toasts.length === 0) return null;
+/** Quantos avisos ficam à vista antes do «+N»: 3 no ecrã largo, 1 no estreito (ver o CSS). */
+const VISIVEIS_LARGO = 3;
+const VISIVEIS_ESTREITO = 1;
 
+export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenTarget }: Props) {
+  // Recolhido por omissão: só os mais recentes à vista, o resto atrás do «+N avisos». É estado da
+  // vista, não do aviso — nenhum aviso sai da lista por estar recolhido, e o mais novo (o que o
+  // leitor de ecrã anuncia) está sempre à vista.
+  const [aberto, setAberto] = useState(false);
+  const escondidosLargo = Math.max(0, toasts.length - VISIVEIS_LARGO);
+  const escondidosEstreito = Math.max(0, toasts.length - VISIVEIS_ESTREITO);
+
+  // A pilha esvaziou: a próxima volta a começar recolhida. Ajuste durante o render (o padrão do
+  // React para estado que depende de props) — sem efeito nem render a mais.
+  const [contagem, setContagem] = useState(toasts.length);
+  if (contagem !== toasts.length) {
+    setContagem(toasts.length);
+    if (toasts.length <= VISIVEIS_ESTREITO) setAberto(false);
+  }
+
+  // Reserva de espaço: a pilha recolhida é fixa por cima da página, e no telemóvel tapava a última
+  // linha de cada lista mesmo com o scroll no fim. Publica-se a altura que ela ocupa (do topo dela ao
+  // fundo do ecrã) em --toast-reserve; as áreas de scroll juntam-na ao padding de baixo (só < 600px,
+  // no CSS). Aberta, a reserva não cresce — abrir foi escolha tua e fecha-se por fora ou Escape.
+  const ref = useRef<HTMLDivElement>(null);
+  const temAvisos = toasts.length > 0;
+  useEffect(() => {
+    const el = ref.current;
+    const root = document.documentElement;
+    if (!el || !temAvisos) { root.style.removeProperty('--toast-reserve'); return; }
+    if (aberto) return;
+    const medir = () => {
+      const top = el.getBoundingClientRect().top;
+      root.style.setProperty('--toast-reserve', `${Math.max(0, Math.ceil(window.innerHeight - top))}px`);
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    window.addEventListener('resize', medir);
+    return () => { ro.disconnect(); window.removeEventListener('resize', medir); };
+  }, [temAvisos, aberto]);
+  useEffect(() => () => { document.documentElement.style.removeProperty('--toast-reserve'); }, []);
+
+  // Aberta, fecha com um toque fora dela ou com Escape.
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setAberto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAberto(false); };
+    document.addEventListener('pointerdown', fora);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', fora); document.removeEventListener('keydown', esc); };
+  }, [aberto]);
+
+  const classes = [
+    'toast-container',
+    aberto ? 'is-open' : '',
+    escondidosLargo > 0 ? 'has-more-wide' : '',
+    escondidosEstreito > 0 ? 'has-more-narrow' : '',
+  ].filter(Boolean).join(' ');
+
+  // O «+N» fica FORA da região viva: a contagem muda a cada aviso e seria anunciada de novo.
+  // A região (só os avisos) existe sempre, vazia ou não: um aria-live só anuncia o que entra DEPOIS
+  // de ele estar no DOM — montá-lo junto com o 1.º aviso calava o leitor de ecrã nesse.
   return (
-    <div className="toast-container" role="region" aria-label="Avisos">
-      {toasts.map((t) => (
-        <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
-      ))}
+    <div ref={ref} className={classes}>
+      {escondidosEstreito > 0 && (
+        <button
+          type="button"
+          className="toast-more"
+          aria-expanded={aberto}
+          onClick={() => setAberto((v) => !v)}
+        >
+          {aberto ? 'Recolher avisos' : (
+            <>
+              <span className="toast-more-wide">+{escondidosLargo} {escondidosLargo === 1 ? 'aviso' : 'avisos'}</span>
+              <span className="toast-more-narrow">+{escondidosEstreito} {escondidosEstreito === 1 ? 'aviso' : 'avisos'}</span>
+            </>
+          )}
+        </button>
+      )}
+      {/* A pilha rola dentro de si quando aberta; o «+N» fica fora dela, sempre à vista. */}
+      <div className="toast-stack" role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
+        {toasts.map((t) => (
+          <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
+        ))}
+      </div>
     </div>
   );
 }

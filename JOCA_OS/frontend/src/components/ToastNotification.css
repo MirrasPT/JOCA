@@ -1,17 +1,125 @@
 /* ─── Toasts ──────────────────────────────────────────────────────────
-   Só o que é NOVO em relação ao bloco `.toast*` do App.css: o corpo clicável, a variante
-   "precisa de ti" e o fundo consciente do tema.
+   O aviso efémero no canto. Mesma gramática da fila «À espera de ti»: quem/o quê em cima, a idade
+   por baixo, e a cor de destaque só no que pede resposta.
 
-   Os selectores levam `.toast-container` à frente de propósito. Este ficheiro é importado pelo
-   componente, o App.css pelo App — a ordem de cascata entre os dois depende do grafo de imports do
-   bundler, e não é coisa em que valha a pena confiar. Com um nível a mais de especificidade, estas
-   regras ganham sempre. */
+   Tudo aqui vive sob `.toast-container`: o nível a mais de especificidade põe estas regras acima de
+   qualquer resto de `.toast*` noutra folha, seja qual for a ordem em que o bundler as junta.
 
-/* O fundo base do toast estava fixo em escuro; no tema claro o texto ficava escuro sobre escuro.
-   Aqui passa a sair das variáveis, e lê nos dois temas. */
+   Tipos (dois, os que existem):
+     • --done   → visto em chip verde; sai sozinho ao fim de 5 s.
+     • --action → exclamação em chip de destaque + fundo tingido; fica até alguém lhe tocar.
+   Sem barra de cor à esquerda: o tipo lê-se pela forma do ícone, pelo título e pelo fundo tingido. */
+
+.toast-container {
+  position: fixed;
+  right: var(--sp-6);
+  bottom: calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  width: min(360px, calc(100vw - 2 * var(--sp-4)));
+  pointer-events: none;   /* a coluna vazia não pode roubar cliques à app */
+}
+
+.toast-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+/* ─── Pilha recolhida ─────────────────────────────────────────────────
+   Só os mais recentes à vista (3 no ecrã largo, 1 no estreito); o resto fica atrás do «+N avisos».
+   Esconder é da vista: os avisos continuam na lista e o de «precisa de ti» continua sem prazo. */
+.toast-container:not(.is-open) .toast-stack > .toast:nth-last-child(n+4) { display: none; }
+.toast-container:not(.has-more-wide) .toast-more { display: none; }
+.toast-more-narrow { display: none; }
+
+.toast-more {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+  box-shadow: var(--shadow-float);
+  color: var(--text-primary);
+  font: 600 12px var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.toast-more:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+.toast-more:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+/* Aberta: a pilha rola dentro de si, com barra fina à vista e o topo a esvanecer — diz que há mais
+   para cima sem precisar de a experimentar. */
+.toast-container.is-open .toast-stack {
+  max-height: calc(100vh - 2 * var(--sp-8) - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+  padding-top: var(--sp-4);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black var(--sp-4));
+  mask-image: linear-gradient(to bottom, transparent 0, black var(--sp-4));
+}
+
 .toast-container .toast {
-  background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
-  border-color: var(--border-default);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-3);
+  background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  pointer-events: auto;
+  animation: toast-in 240ms var(--ease-bento);
+}
+
+@keyframes toast-in {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* «Precisa de ti»: fundo tingido do destaque e moldura da mesma cor — nunca uma barra lateral. */
+.toast-container .toast--action {
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-elevated));
+  border-color: var(--accent-border);
+}
+
+/* ─── Ícone de tipo ───────────────────────────────────────────────── */
+
+.toast-container .toast-icon {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin-top: var(--sp-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+.toast-container .toast--done .toast-icon {
+  color: var(--status-idle);
+  background: color-mix(in srgb, var(--status-idle) 12%, transparent);
+  border-color: color-mix(in srgb, var(--status-idle) 28%, transparent);
+}
+.toast-container .toast--action .toast-icon {
+  /* --accent-text e não --accent: o laranja puro não passa AA sobre fundo claro. */
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
 }
 
 /* ─── Corpo clicável ──────────────────────────────────────────────── */
@@ -19,17 +127,16 @@
 .toast-container .toast-open {
   flex: 1;
   min-width: 0;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  /* 44px de alvo, o mínimo confortável — o toast é pequeno mas não é para acertar à primeira. */
-  min-height: 44px;
   justify-content: center;
-  padding: 2px var(--sp-2);
+  gap: 2px;
+  padding: var(--sp-1) var(--sp-2);
   margin: 0;
   background: none;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--r-sm);
   color: inherit;
   font: inherit;
@@ -37,79 +144,65 @@
   cursor: pointer;
   transition: background var(--t-fast);
 }
-
 .toast-container .toast-open:hover:not(:disabled) { background: var(--surface-soft); }
 .toast-container .toast-open:focus-visible {
   outline: 2px solid var(--accent-text);
-  outline-offset: 1px;
+  outline-offset: 0;
 }
 /* Sem destino não há clique — e o cursor diz isso antes de o utilizador tentar. */
 .toast-container .toast-open:disabled { cursor: default; }
 
+/* Quem: a linha que se lê primeiro. Duas linhas antes de cortar — um nome de sessão comprido
+   cortado a meio não diz a ninguém de que sessão se trata. */
 .toast-container .toast-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  /* O título é a etiqueta ("TAREFA FALHOU: …"); a mensagem por baixo é a informação. Era ele que
-     crescia para três linhas enquanto a mensagem levava reticências. Uma linha chega. */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.toast-container .toast-session {
   max-width: 100%;
   font-size: 13px;
-  font-weight: 500;
-  color: var(--text-bright);
+  font-weight: 600;
   line-height: 1.3;
-  /* Duas linhas antes de cortar: "Sleep 25 bloq…" não dizia nada a ninguém. */
+  color: var(--text-bright);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
-/* ─── Variante "precisa de ti" ─────────────────────────────────────
-   Distingue-se pela cor da moldura e pela etiqueta, não por tamanho: um toast maior saltaria por
-   cima do conteúdo. Como não se auto-fecha, tem de conseguir ficar ali sem incomodar. */
-
-.toast-container .toast--action {
-  border-color: var(--accent-border);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 3px 0 0 var(--accent-text);
+/* O quê: a razão/mensagem, um degrau abaixo. */
+.toast-container .toast-session {
+  max-width: 100%;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
-.toast-container .toast--action .toast-icon {
-  background: var(--accent-soft);
-  border-color: var(--accent-border);
-  /* --accent-text e não --accent: o laranja puro não passa AA sobre fundo claro. */
-  color: var(--accent-text);
-}
-
-.toast-container .toast-flag {
-  flex-shrink: 0;
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  color: var(--accent-text);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+/* Quando: a idade, pequena e em algarismos de largura fixa (não dança ao mudar de minuto). */
+.toast-container .toast-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Fechar ──────────────────────────────────────────────────────── */
 
 .toast-container .toast-dismiss {
+  flex: 0 0 auto;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 44px;             /* alto como o corpo: o alvo vertical é o que falha num toast estreito */
   padding: 0;
   background: none;
   border: none;
@@ -118,15 +211,45 @@
   cursor: pointer;
   transition: color var(--t-fast), background var(--t-fast);
 }
-
 .toast-container .toast-dismiss:hover {
   color: var(--text-bright);
   background: var(--surface-soft);
 }
-
 .toast-container .toast-dismiss:focus-visible {
   outline: 2px solid var(--accent-text);
-  outline-offset: 1px;
+  outline-offset: 0;
+}
+
+/* ─── Telemóvel ───────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  /* Largura toda, UM aviso à vista e compacto (mensagem numa linha). Com a pilha inteira, quatro
+     pedidos tapavam metade do ecrã — e com ela os botões da própria fila que os resolve. */
+  .toast-container {
+    left: var(--sp-3);
+    right: var(--sp-3);
+    bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
+    width: auto;
+  }
+  .toast-container:not(.is-open) .toast-stack > .toast:nth-last-child(n+2) { display: none; }
+  .toast-container:not(.has-more-wide) .toast-more { display: inline-flex; }
+  .toast-more { min-height: 44px; }
+  .toast-more-wide { display: none; }
+  .toast-more-narrow { display: inline; }
+  .toast-container .toast-session { -webkit-line-clamp: 1; }
+  .toast-container .toast-title { -webkit-line-clamp: 1; }
+  .toast-container.is-open .toast-stack { max-height: 55vh; }
+  .toast-container .toast-dismiss { width: 44px; height: 44px; margin-top: 0; }
+}
+
+/* Reserva: a pilha recolhida fica fixa por cima do fundo do ecrã. As áreas de scroll das vistas
+   principais ganham por baixo a altura que ela ocupa (--toast-reserve, medida pelo componente e só
+   presente enquanto há avisos) — assim a última linha consegue sempre subir acima dela. */
+@media (max-width: 600px) {
+  .ag-body,
+  .dashboard-view:not(.project-workspace) .db-projects-grid {
+    padding-bottom: calc(var(--toast-reserve, 0px) + var(--sp-3));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
