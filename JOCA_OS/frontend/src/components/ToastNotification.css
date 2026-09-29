@@ -17,9 +17,56 @@
   z-index: 200;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: var(--sp-2);
   width: min(360px, calc(100vw - 2 * var(--sp-4)));
   pointer-events: none;   /* a coluna vazia não pode roubar cliques à app */
+}
+
+.toast-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+/* ─── Pilha recolhida ─────────────────────────────────────────────────
+   Só os mais recentes à vista (3 no ecrã largo, 1 no estreito); o resto fica atrás do «+N avisos».
+   Esconder é da vista: os avisos continuam na lista e o de «precisa de ti» continua sem prazo. */
+.toast-container:not(.is-open) .toast-stack > .toast:nth-last-child(n+4) { display: none; }
+.toast-container:not(.has-more-wide) .toast-more { display: none; }
+.toast-more-narrow { display: none; }
+
+.toast-more {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-elevated) 96%, transparent);
+  box-shadow: var(--shadow-float);
+  color: var(--text-primary);
+  font: 600 12px var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.toast-more:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+.toast-more:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+
+/* Aberta: a pilha rola dentro de si, com barra fina à vista e o topo a esvanecer — diz que há mais
+   para cima sem precisar de a experimentar. */
+.toast-container.is-open .toast-stack {
+  max-height: calc(100vh - 2 * var(--sp-8) - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-ghost) transparent;
+  padding-top: var(--sp-4);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black var(--sp-4));
+  mask-image: linear-gradient(to bottom, transparent 0, black var(--sp-4));
 }
 
 .toast-container .toast {
@@ -86,7 +133,7 @@
   align-items: flex-start;
   justify-content: center;
   gap: 2px;
-  padding: 6px var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
   margin: 0;
   background: none;
   border: 0;
@@ -137,7 +184,7 @@
 .toast-container .toast-meta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-1);
   margin-top: 2px;
   font-size: 11px;
   line-height: 1.2;
@@ -176,18 +223,22 @@
 /* ─── Telemóvel ───────────────────────────────────────────────────── */
 
 @media (max-width: 600px) {
-  /* Largura toda e a coluna com tecto: quatro pedidos em espera tapavam o ecrã inteiro. Acima de
-     metade da altura, a pilha rola dentro de si e o resto da app continua à vista. */
+  /* Largura toda, UM aviso à vista e compacto (mensagem numa linha). Com a pilha inteira, quatro
+     pedidos tapavam metade do ecrã — e com ela os botões da própria fila que os resolve. */
   .toast-container {
     left: var(--sp-3);
     right: var(--sp-3);
     bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
     width: auto;
-    max-height: 50vh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
   }
+  .toast-container:not(.is-open) .toast-stack > .toast:nth-last-child(n+2) { display: none; }
+  .toast-container:not(.has-more-wide) .toast-more { display: inline-flex; }
+  .toast-more { min-height: 44px; }
+  .toast-more-wide { display: none; }
+  .toast-more-narrow { display: inline; }
+  .toast-container .toast-session { -webkit-line-clamp: 1; }
+  .toast-container .toast-title { -webkit-line-clamp: 1; }
+  .toast-container.is-open .toast-stack { max-height: 55vh; }
   .toast-container .toast-dismiss { width: 44px; height: 44px; margin-top: 0; }
 }
 

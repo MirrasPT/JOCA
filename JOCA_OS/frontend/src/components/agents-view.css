@@ -267,7 +267,7 @@
 .wq-snoozed {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--sp-1);
   color: var(--text-ghost);
   font-size: 11px;
 }
@@ -275,7 +275,7 @@
 /* Linha: fundo tingido (não barra lateral) diz «pede-te acção» de relance; a hierarquia é
    quem (nome, projecto) → o quê (razão) → quando (idade, a cor de destaque) → acção (Adiar). */
 .wq-row {
-  padding-block: 4px;
+  padding-block: var(--sp-1);
   background: color-mix(in srgb, var(--accent) 4%, var(--surface-base));
   transition: border-color var(--t-fast), background var(--t-fast);
 }
@@ -296,10 +296,13 @@
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
   min-height: 32px;
-  padding: 4px 12px;
+  padding: var(--sp-1) var(--sp-3);
   font-size: 12px;
+  /* A .f-btn pinta o texto com --accent: o laranja puro dá 2,95:1 sobre accent-soft no claro (1,89:1
+     no Alfredo). --accent-text é o par afinado por tema e marca para texto sobre esse fundo. */
+  color: var(--accent-text);
 }
 .wq-snooze-btn:focus-visible,
 .wq-snooze button:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
@@ -326,7 +329,7 @@
     min-height: 44px;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
-    column-gap: 8px;
+    column-gap: var(--sp-2);
     row-gap: 2px;
     align-items: center;
   }
@@ -340,3 +343,7 @@
   .wq-snooze { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; padding-left: 13px; }
   .wq-snooze button { min-height: 44px; min-width: 44px; }
 }
+
+/* O título recebe o foco quando a última linha sai (Adiar): alvo programático, sem anel de rato. */
+.wq-title:focus { outline: none; }
+.wq-title:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; border-radius: var(--r-sm); }

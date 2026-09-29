@@ -130,14 +130,58 @@ function Toast({ item, onDismiss, onSelect, onOpenTarget }: {
   );
 }
 
+/** Quantos avisos ficam à vista antes do «+N»: 3 no ecrã largo, 1 no estreito (ver o CSS). */
+const VISIVEIS_LARGO = 3;
+const VISIVEIS_ESTREITO = 1;
+
 export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenTarget }: Props) {
+  // Recolhido por omissão: só os mais recentes à vista, o resto atrás do «+N avisos». É estado da
+  // vista, não do aviso — nenhum aviso sai da lista por estar recolhido, e o mais novo (o que o
+  // leitor de ecrã anuncia) está sempre à vista.
+  const [aberto, setAberto] = useState(false);
+  const escondidosLargo = Math.max(0, toasts.length - VISIVEIS_LARGO);
+  const escondidosEstreito = Math.max(0, toasts.length - VISIVEIS_ESTREITO);
+
+  // A pilha esvaziou: a próxima volta a começar recolhida. Ajuste durante o render (o padrão do
+  // React para estado que depende de props) — sem efeito nem render a mais.
+  const [contagem, setContagem] = useState(toasts.length);
+  if (contagem !== toasts.length) {
+    setContagem(toasts.length);
+    if (toasts.length <= VISIVEIS_ESTREITO) setAberto(false);
+  }
+
+  const classes = [
+    'toast-container',
+    aberto ? 'is-open' : '',
+    escondidosLargo > 0 ? 'has-more-wide' : '',
+    escondidosEstreito > 0 ? 'has-more-narrow' : '',
+  ].filter(Boolean).join(' ');
+
   // A região existe sempre, vazia ou não: um aria-live só anuncia o que entra DEPOIS de ele estar
   // no DOM — montá-lo junto com o 1.º toast fazia o leitor de ecrã calar-se precisamente nesse.
   return (
-    <div className="toast-container" role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
-      {toasts.map((t) => (
-        <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
-      ))}
+    <div className={classes} role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
+      {escondidosEstreito > 0 && (
+        <button
+          type="button"
+          className="toast-more"
+          aria-expanded={aberto}
+          onClick={() => setAberto((v) => !v)}
+        >
+          {aberto ? 'Recolher avisos' : (
+            <>
+              <span className="toast-more-wide">+{escondidosLargo} {escondidosLargo === 1 ? 'aviso' : 'avisos'}</span>
+              <span className="toast-more-narrow">+{escondidosEstreito} {escondidosEstreito === 1 ? 'aviso' : 'avisos'}</span>
+            </>
+          )}
+        </button>
+      )}
+      {/* A pilha rola dentro de si quando aberta; o «+N» fica fora dela, sempre à vista. */}
+      <div className="toast-stack">
+        {toasts.map((t) => (
+          <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
+        ))}
+      </div>
     </div>
   );
 }

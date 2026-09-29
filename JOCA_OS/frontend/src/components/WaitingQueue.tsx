@@ -1,7 +1,7 @@
 // Fila «à espera de ti» (issue #11) — à cabeça da vista de Agentes: só o que precisa de ti, quem
 // espera há mais tempo primeiro, com a idade a andar sozinha e um «Adiar» para o que pode esperar.
 // Mesma linha visual dos agentes (.pw-worker): é a mesma entidade, vista por outro lado.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { NotificationTarget } from '../lib/notify';
 import type { Project } from '../types';
 import type { WaitingItem } from '../hooks/useWaitingQueue';
@@ -50,12 +50,39 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
     return () => clearInterval(t);
   }, []);
 
+  // Foco a mover depois do próximo render: trocar o botão pelo grupo de prazos (ou tirar a linha da
+  // fila) remove o elemento focado, e sem isto o foco caía no <body> — o teclado perdia o sítio.
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLSpanElement>(null);
+  const focoPendente = useRef<{ alvo: 'prazos' | 'adiar' | 'seguinte'; id: string; index: number } | null>(null);
+
+  useEffect(() => {
+    const f = focoPendente.current;
+    const root = sectionRef.current;
+    if (!f || !root) return;
+    focoPendente.current = null;
+    const linha = root.querySelector<HTMLElement>(`[data-wq-id="${CSS.escape(f.id)}"]`);
+    if (f.alvo === 'prazos') { linha?.querySelector<HTMLElement>('.wq-snooze button')?.focus(); return; }
+    if (f.alvo === 'adiar') { linha?.querySelector<HTMLElement>('.wq-snooze-btn')?.focus(); return; }
+    // Adiada: a linha saiu. Vai para a que ficou no lugar dela (ou a anterior); sem linhas, o título.
+    const linhas = root.querySelectorAll<HTMLElement>('.wq-row .pw-worker-hit');
+    (linhas[Math.min(f.index, linhas.length - 1)] ?? headingRef.current)?.focus();
+  });
+
+  const abrirPrazos = (id: string, index: number) => { focoPendente.current = { alvo: 'prazos', id, index }; setSnoozingId(id); };
+  const cancelar = (id: string, index: number) => { focoPendente.current = { alvo: 'adiar', id, index }; setSnoozingId(null); };
+  const adiar = (id: string, index: number, minutes: number) => {
+    focoPendente.current = { alvo: 'seguinte', id, index };
+    setSnoozingId(null);
+    onSnooze(id, minutes);
+  };
+
   if (items.length === 0 && snoozed === 0) return null;
 
   return (
-    <section className="ag-group wq" aria-label="À espera de ti">
+    <section ref={sectionRef} className="ag-group wq" aria-label="À espera de ti">
       <div className="ag-group-head">
-        <span className="section-title">À espera de ti</span>
+        <span ref={headingRef} tabIndex={-1} className="section-title wq-title">À espera de ti</span>
         <span className="ag-group-count wq-count">{items.length}</span>
         {snoozed > 0 && <span className="wq-snoozed">{snoozed} adiad{snoozed === 1 ? 'a' : 'as'}</span>}
       </div>
@@ -63,12 +90,12 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
         <p className="tk-drawer-empty">Nada à tua espera agora — o que adiaste volta quando o prazo acabar.</p>
       ) : (
         <ul className="pw-workers">
-          {items.map(({ notification: n, session, reason, since }) => {
+          {items.map(({ notification: n, session, reason, since }, index) => {
             const name = session?.name ?? n.title;
             const project = projects.find((p) => p.id === (session?.projectId ?? n.meta?.projectId));
             const choosing = snoozingId === n.id;
             return (
-              <li key={n.id}>
+              <li key={n.id} data-wq-id={n.id}>
                 <div className="pw-worker is-waiting wq-row">
                   <div
                     role="button"
@@ -88,14 +115,19 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
                     <span className="wq-go" aria-hidden><ChevronIcon /></span>
                   </div>
                   {choosing ? (
-                    <span className="pw-worker-confirm wq-snooze" role="group" aria-label={`Adiar ${name}`}>
+                    <span
+                      className="pw-worker-confirm wq-snooze"
+                      role="group"
+                      aria-label={`Adiar ${name}`}
+                      onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); cancelar(n.id, index); } }}
+                    >
                       <span className="pw-worker-confirm-q">Adiar</span>
                       {SNOOZE_OPTIONS.map((o) => (
-                        <button key={o.minutes} type="button" onClick={() => { setSnoozingId(null); onSnooze(n.id, o.minutes); }}>
+                        <button key={o.minutes} type="button" onClick={() => adiar(n.id, index, o.minutes)}>
                           {o.label}
                         </button>
                       ))}
-                      <button type="button" className="wq-snooze-cancel" aria-label="Cancelar" onClick={() => setSnoozingId(null)}><CloseIcon /></button>
+                      <button type="button" className="wq-snooze-cancel" aria-label="Cancelar" onClick={() => cancelar(n.id, index)}><CloseIcon /></button>
                     </span>
                   ) : (
                     <button
@@ -103,7 +135,7 @@ export default function WaitingQueue({ items, snoozed, projects, onOpen, onSnooz
                       className="f-btn wq-snooze-btn"
                       title="Tirar da fila por um bocado — volta sozinho"
                       aria-label={`Adiar ${name}`}
-                      onClick={() => setSnoozingId(n.id)}
+                      onClick={() => abrirPrazos(n.id, index)}
                     >
                       <ClockIcon />
                       Adiar
