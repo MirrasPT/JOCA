@@ -131,6 +131,14 @@
   55%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--status-working) 0%, transparent); }
 }
 
+/* «À espera de ti»: o único estado que pede acção — cor de destaque da app, parada (o movimento é
+   do «a trabalhar»), como o `.status-dot--waiting` da grelha. «Acabou» fica na cor de repouso. */
+.pw-worker-dot--waiting { background: var(--accent-text); box-shadow: 0 0 0 3px var(--accent-glow); }
+.pw-worker-dot--done { background: var(--status-idle); }
+.pw-worker.is-waiting { border-color: var(--accent-border); }
+.pw-worker.is-waiting .pw-worker-time { color: var(--accent-text); font-weight: 700; }
+.pw-head-stat--waiting { color: var(--accent-text); border-color: var(--accent-border); background: var(--accent-soft); }
+
 /* `position`/`overflow` só na linha que anima — não se toca na regra base `.pw-worker`. */
 .pw-worker.is-working {
   position: relative;

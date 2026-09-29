@@ -56,6 +56,27 @@
 }
 .pw-bar-spacer { flex: 1 1 auto; }
 .pw-bar-stat { color: var(--text-dim); font: 500 11px var(--font-ui); white-space: nowrap; }
+
+/* Portas abertas (issue #13) — cabe na barra; se houver muitas, encolhe com scroll horizontal em
+   vez de empurrar o nome do projecto para fora. */
+.pw-ports {
+  display: flex; align-items: center; gap: var(--sp-2);
+  min-width: 0; overflow-x: auto; scrollbar-width: none;
+}
+.pw-ports::-webkit-scrollbar { display: none; }
+.pw-ports-label { color: var(--text-dim); font: 500 11px var(--font-ui); white-space: nowrap; }
+.pw-ports-empty { color: var(--text-ghost); font: 400 11px var(--font-ui); white-space: nowrap; }
+.pw-ports-error { color: var(--yellow); font: 400 11px var(--font-ui); white-space: nowrap; cursor: help; }
+.pw-port {
+  display: inline-flex; align-items: center; gap: var(--sp-1); flex: 0 0 auto;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--border-default); border-radius: var(--r-sm);
+  color: var(--text-normal); text-decoration: none; white-space: nowrap;
+  transition: all var(--t-fast);
+}
+.pw-port:hover { color: var(--text-bright); border-color: var(--accent-border); background: var(--accent-soft); }
+.pw-port-num { font: 600 11px var(--font-mono); color: var(--accent-text); }
+.pw-port-meta { font: 400 11px var(--font-ui); color: var(--text-dim); }
 .pw-bar-settings {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
@@ -140,6 +161,10 @@
   flex: 0 0 auto;
 }
 .pw-tab-dot--working { background: var(--ok, #3fb950); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok, #3fb950) 22%, transparent); }
+/* «À espera de ti» é o único estado que pede acção — leva a cor de destaque da app, como o
+   `.status-dot--waiting` da grelha. «Acabou» fica na cor de repouso do `.status-dot--done`. */
+.pw-tab-dot--waiting { background: var(--accent-text); box-shadow: 0 0 0 3px var(--accent-glow); }
+.pw-tab-dot--done { background: var(--status-idle); }
 
 .pw-tab-close {
   display: inline-flex; align-items: center; justify-content: center;

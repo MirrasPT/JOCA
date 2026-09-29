@@ -300,6 +300,8 @@ export default function App() {
   // decisão só aparecia se a inbox estivesse aberta.
   const addNotificationToast = useCallback((n: AppNotification) => {
     setToasts((prev) => {
+      // Resolvida no servidor (ex.: a sessão saiu de «à espera de ti»): o toast deixa de fazer sentido.
+      if (n.read) return prev.filter((t) => t.id !== n.id);
       if (prev.some((t) => t.id === n.id)) return prev; // o mesmo evento não vale dois toasts
       return [...prev, {
         id: n.id,

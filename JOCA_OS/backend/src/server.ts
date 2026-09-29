@@ -15,7 +15,7 @@ import { toolkitRouter } from './http/toolkit-routes';
 import { filesRouter } from './http/files-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
-import { setApiPort, JOCA_CLI_PATH } from './agent-bridge';
+import { setApiPort, JOCA_CLI_PATH, prepareClaudeHooksSettings } from './agent-bridge';
 import { setNotificationsBroadcaster } from './notifications/store';
 import { installSessionsSnapshot } from './sessions-snapshot';
 import { authRouter, requireAuth, authEnabled, isAuthenticated } from './auth';
@@ -36,6 +36,10 @@ sessionManager.on('status', ({ sessionId, status, isDone }: { sessionId: string;
   broadcast(status === 'idle'
     ? { type: 'session_status', sessionId, status, isDone }
     : { type: 'session_status', sessionId, status });
+});
+// Estado real do agente (hooks do Claude Code, ou a heurística nos CLIs sem hooks).
+sessionManager.on('agent_state', (s: { sessionId: string; agentState?: string; agentStateAt?: number; waitingReason?: string }) => {
+  broadcast({ type: 'session_agent_state', ...s });
 });
 sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
@@ -130,6 +134,9 @@ server.listen(PORT, HOST, () => {
   const logicConnected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
   // Terminals reach the API on the port we actually bound to (PORT may be overridden).
   setApiPort(PORT);
+  // Settings dos hooks do Claude Code numa pasta privada nova (ver agent-bridge) — já no arranque,
+  // para o primeiro terminal não pagar a escrita e uma falha aparecer logo no log.
+  prepareClaudeHooksSettings();
   console.log(`JOCA_OS → http://${isLoopback ? 'localhost' : HOST}:${PORT}${authEnabled() ? ' (auth ON)' : ''}`);
   console.log(`Ponte de agentes → ${fs.existsSync(JOCA_CLI_PATH) ? 'node "$JOCA_CLI" help' : 'cli/joca.mjs em falta'}`);
   console.log(`JOCA_Brain → ${JOCA_LOGIC_ROOT} (${logicConnected ? 'connected' : 'not found'})`);

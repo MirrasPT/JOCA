@@ -7,11 +7,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CliProfileInfo, SessionInfo } from '../../types';
 import InlineName from '../InlineName';
+import { shownState, stateText, type ShownState } from '../../lib/agent-state';
 
 export interface TerminalTab {
   id: string;
   label: string;
-  working: boolean;
+  state: ShownState;
+  /** Estado por extenso (com o pedido, se estiver à espera) — vai para o tooltip e o nome acessível. */
+  stateText: string;
 }
 
 interface Props {
@@ -32,7 +35,8 @@ export function buildTabs(projectSessions: SessionInfo[]): TerminalTab[] {
   return projectSessions.map((s) => ({
     id: s.id,
     label: s.name || 'Terminal',
-    working: s.status === 'working',
+    state: shownState(s),
+    stateText: stateText(s),
   }));
 }
 
@@ -93,16 +97,23 @@ export default function TerminalTabs({
                 // O estado vai no nome acessível (o ponto verde é decorativo) — esta app não tem
                 // classe utilitária de texto só-para-leitor, e um <span> escondido "à mão" aqui
                 // apareceu mesmo no ecrã.
-                aria-label={`${t.label}${t.working ? ' — a trabalhar' : ''}`}
+                // «Parado» não se anuncia (era assim antes): só os estados que dizem alguma coisa.
+                aria-label={`${t.label}${t.state !== 'idle' ? ` — ${t.stateText}` : ''}`}
               >
-                <span className={`pw-tab-dot ${t.working ? 'pw-tab-dot--working' : ''}`} aria-hidden />
+                <span
+                  className={`pw-tab-dot${t.state !== 'idle' ? ` pw-tab-dot--${t.state}` : ''}`}
+                  title={t.state !== 'idle' ? t.stateText : undefined}
+                  aria-hidden
+                />
                 <InlineName
                   value={t.label}
                   onRename={onRename ? (name) => onRename(t.id, name) : undefined}
                   onActivate={() => onSelect(t.id)}
                   className="pw-tab-label"
                   inputClassName="pw-tab-name-input"
-                  title={`${t.label} — duplo-clique renomeia`}
+                  title={t.state === 'waiting'
+                    ? `${t.label} — ${t.stateText} — duplo-clique renomeia`
+                    : `${t.label} — duplo-clique renomeia`}
                 />
               </div>
               {confirmId === t.id ? (

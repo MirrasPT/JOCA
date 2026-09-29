@@ -10,11 +10,12 @@
 import express, { Router, type Request } from 'express';
 import fs from 'fs';
 import path from 'path';
-import { sessionManager, MAX_SESSIONS } from '../session-manager';
+import { sessionManager, MAX_SESSIONS, AGENT_EVENTS, type AgentEvent, type AgentEventDetail } from '../session-manager';
 import { safePath } from '../security-fs';
 import { HOME } from './helpers';
 import { loadProjects } from '../project-store';
 import { recoveredSessions, recoveredTail, clearRecovered } from '../sessions-snapshot';
+import { agentTokenSession } from '../auth';
 
 // Resolve a project by id OR by (case-insensitive) name — agents think in names, not uuids.
 function resolveProject(ref: string | undefined) {
@@ -145,6 +146,38 @@ export function sessionsRouter(): Router {
     const ok = b.submit === false
       ? sessionManager.input(req.params.id, b.text)
       : sessionManager.submitMessage(req.params.id, b.text);
+    if (!ok) return res.status(404).json({ error: 'sessão não encontrada' });
+    res.json({ ok: true });
+  });
+
+  // Hooks do Claude Code (`joca hook <Evento>`): o CLI diz o estado real da sessão. Só a PRÓPRIA
+  // sessão reporta sobre si, senão um agente punha outro em «à espera de ti» e enchia a inbox.
+  //   • Com auth ligada, a fronteira é o TOKEN: o token de agente está preso à sessão a que foi
+  //     entregue (auth.mintAgentToken) e não muda outra. O token de login (browser) não está preso.
+  //   • O X-Joca-Session é só uma declaração: um valor diferente do `:id` é recusado, mas sem auth
+  //     (modo local) nada impede um terminal de o omitir — aí é cooperativo, não é fronteira de
+  //     segurança. Não piora nada: esse terminal já tem shell na máquina.
+  r.post('/sessions/:id/agent-event', express.json({ limit: '64kb' }), (req, res) => {
+    const b = (req.body ?? {}) as { event?: unknown; detail?: unknown };
+    const event = typeof b.event === 'string' ? b.event : '';
+    if (!(AGENT_EVENTS as readonly string[]).includes(event)) {
+      return res.status(400).json({ error: `event inválido (esperado: ${AGENT_EVENTS.join(', ')})` });
+    }
+    if (!sessionManager.get(req.params.id)) return res.status(404).json({ error: 'sessão não encontrada' });
+    const tokenSession = agentTokenSession(req);
+    const claimed = req.headers['x-joca-session'];
+    if ((tokenSession && tokenSession !== req.params.id)
+      || (typeof claimed === 'string' && claimed.trim() && claimed.trim() !== req.params.id)) {
+      return res.status(403).json({ error: 'só a própria sessão reporta o seu estado' });
+    }
+    const raw = (b.detail && typeof b.detail === 'object' ? b.detail : {}) as Record<string, unknown>;
+    const str = (v: unknown, n: number) => (typeof v === 'string' && v ? v.slice(0, n) : undefined);
+    const detail: AgentEventDetail = {
+      prompt: str(raw.prompt, 500),
+      tool: str(raw.tool, 200),
+      message: str(raw.message, 500),
+    };
+    const ok = sessionManager.agentEvent(req.params.id, event as AgentEvent, detail);
     if (!ok) return res.status(404).json({ error: 'sessão não encontrada' });
     res.json({ ok: true });
   });

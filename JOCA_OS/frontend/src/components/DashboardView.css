@@ -353,6 +353,21 @@
   border-color: rgba(74, 222, 128, 0.2);
 }
 
+/* Estados reais do agente (hooks). «Acabou» lê-se como repouso; «à espera de ti» é o único que
+   pede acção, por isso leva a cor de destaque da app (a mesma do `.card-agent-state--waiting`). */
+.db-project-session-status--done {
+  color: var(--status-idle);
+  background: rgba(74, 222, 128, 0.05);
+  border-color: rgba(74, 222, 128, 0.2);
+}
+
+.db-project-session-status--waiting {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  font-weight: 700;
+}
+
 .db-project-session-empty {
   color: var(--text-ghost);
   font-style: italic;
@@ -1062,6 +1077,12 @@
   font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
+}
+/* O «a trabalhar» já usa o destaque suave; o «à espera de ti» tem de ganhar-lhe ao lado: destaque
+   cheio, com a tinta própria para texto sobre --accent. */
+.db-project-working-chip--waiting {
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .db-project-session-item--row {
   display: flex;

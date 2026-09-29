@@ -15,7 +15,8 @@ import type { IncomingMessage } from 'http';
 import { DATA_DIR, readJsonFile, writeJsonFile } from './project-store';
 
 interface AuthFile { salt: string; hash: string }         // scrypt(password, salt, 64) hex
-interface TokenFile { [token: string]: { createdAt: number; expiresAt: number } }
+// `sessionId`: só nos tokens de agente — o terminal a que o token foi entregue (ver mintAgentToken).
+interface TokenFile { [token: string]: { createdAt: number; expiresAt: number; sessionId?: string } }
 
 const AUTH_FILE = path.join(DATA_DIR, 'auth.json');
 const TOKENS_FILE = path.join(DATA_DIR, 'auth-tokens.json');
@@ -70,14 +71,14 @@ function loadTokens(): TokenFile {
   return live;
 }
 
-function issueToken(): string {
+function issueToken(sessionId?: string): string {
   const token = randomBytes(32).toString('hex');
   const tokens = loadTokens();
   // Cap stored tokens (oldest evicted) so the file can't grow unbounded.
   const entries = Object.entries(tokens).sort((a, b) => a[1].createdAt - b[1].createdAt);
   while (entries.length >= MAX_TOKENS) entries.shift();
   const next = Object.fromEntries(entries);
-  next[token] = { createdAt: Date.now(), expiresAt: Date.now() + TOKEN_TTL_MS };
+  next[token] = { createdAt: Date.now(), expiresAt: Date.now() + TOKEN_TTL_MS, ...(sessionId ? { sessionId } : {}) };
   writeJsonFile(TOKENS_FILE, next);
   return token;
 }
@@ -89,9 +90,20 @@ function tokenValid(token: string | undefined): boolean {
 }
 
 // Token handed to an agent running inside a PTY (see agent-bridge). Same lifetime rules as a login
-// token — the terminal already has full shell access, so this is convenience, not privilege.
-export function mintAgentToken(): string {
-  return issueToken();
+// token — the terminal already has full shell access, so this is convenience, not privilege. It is
+// BOUND to the session it was handed to: routes that act on "this terminal itself" (agent-event)
+// read the binding with agentTokenSession and refuse any other session.
+export function mintAgentToken(sessionId: string): string {
+  return issueToken(sessionId);
+}
+
+// The session an agent token belongs to, or undefined for a login token / no token / auth off.
+export function agentTokenSession(req: { headers: IncomingMessage['headers'] }): string | undefined {
+  if (!authEnabled()) return undefined;
+  const token = tokenFromRequest(req);
+  if (!token) return undefined;
+  const meta = loadTokens()[token];
+  return meta && meta.expiresAt > Date.now() ? meta.sessionId : undefined;
 }
 
 function revokeToken(token: string): void {

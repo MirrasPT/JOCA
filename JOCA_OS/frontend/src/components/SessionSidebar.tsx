@@ -4,6 +4,7 @@ import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as Proje
 import { iconInitials, projectIconUrl } from '../types';
 import { projectColor } from '../lib/projectColor';
 import { shortPath } from '../lib/paths';
+import { attentionRank, shownState, stateText } from '../lib/agent-state';
 import ConfirmDialog from './ConfirmDialog';
 import { useBrand } from '../hooks/useBrand';
 import { probeOfficeGif, loadOfficePool, poolIndex, stillFor } from '../lib/office-gifs';
@@ -479,7 +480,8 @@ function ProjectRow({
   const [confirmRemove, setConfirmRemove] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const groupSelectRef = useRef<HTMLSelectElement>(null);
-  const workingCount = sessions.filter(s => s.status === 'working').length;
+  const workingCount = sessions.filter(s => shownState(s) === 'working').length;
+  const waitingCount = sessions.filter(s => shownState(s) === 'waiting').length;
 
   useEffect(() => {
     if (grouping) groupSelectRef.current?.focus();
@@ -575,6 +577,16 @@ function ProjectRow({
             <span className="project-group-name">{project.name}</span>
           </button>
         )}
+        {/* À espera de ti primeiro e com o destaque da app: é o único número que pede acção. */}
+        {waitingCount > 0 && (
+          <span
+            className="project-group-badge project-group-badge--waiting"
+            title={`${waitingCount} à espera de ti`}
+            aria-label={`${waitingCount} à espera de ti`}
+          >
+            {waitingCount}
+          </span>
+        )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
         <div className="project-group-actions">
           {groupCandidates && groupCandidates.length > 0 && onGroupWith && (
@@ -651,6 +663,7 @@ function LooseAgentRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(session.name);
   const inputRef = useRef<HTMLInputElement>(null);
+  const state = shownState(session);
 
   useEffect(() => {
     if (editing) { setDraft(session.name); inputRef.current?.focus(); inputRef.current?.select(); }
@@ -687,14 +700,14 @@ function LooseAgentRow({
     <div
       role="button"
       tabIndex={0}
-      className={`sidebar-loose-item${session.status === 'working' ? ' is-working' : ''}`}
+      className={`sidebar-loose-item${state === 'working' ? ' is-working' : ''}`}
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       onDoubleClick={onRename && !collapsed ? (e) => { e.stopPropagation(); setEditing(true); } : undefined}
       title={onRename && !collapsed
-        ? `${session.name} — agente sem projecto (duplo-clique renomeia)`
-        : `${session.name} — agente sem projecto`}
-      aria-label={`Abrir agente ${session.name}`}
+        ? `${session.name} — agente sem projecto${state !== 'idle' ? ` — ${stateText(session)}` : ''} (duplo-clique renomeia)`
+        : `${session.name} — agente sem projecto${state !== 'idle' ? ` — ${stateText(session)}` : ''}`}
+      aria-label={`Abrir agente ${session.name}${state !== 'idle' ? ` — ${stateText(session)}` : ''}`}
     >
       <span className="sidebar-loose-icon">{poolGif ? <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" /> : <LucideIcon name="terminal-quick" />}</span>
       <span className="sidebar-loose-name">{session.name}</span>
@@ -710,7 +723,7 @@ function LooseAgentRow({
           <LucideIcon name="x" />
         </button>
       )}
-      <span className="sidebar-loose-dot" data-on={session.status === 'working'} aria-hidden />
+      <span className="sidebar-loose-dot" data-on={state === 'working'} data-state={state} aria-hidden />
     </div>
   );
 }
@@ -748,7 +761,11 @@ function ProjectFolder({
   // por classe apanharia sempre o primeiro painel e o Tab ficaria preso no flyout errado.
   const flyoutRef = useRef<HTMLDivElement>(null);
   const workingCount = members.reduce(
-    (n, p) => n + sessions.filter((s) => s.projectId === p.id && s.status === 'working').length,
+    (n, p) => n + sessions.filter((s) => s.projectId === p.id && shownState(s) === 'working').length,
+    0,
+  );
+  const waitingCount = members.reduce(
+    (n, p) => n + sessions.filter((s) => s.projectId === p.id && shownState(s) === 'waiting').length,
     0,
   );
 
@@ -865,6 +882,16 @@ function ProjectFolder({
             <span className="project-folder-count">{members.length}</span>
           </button>
         )}
+        {/* À espera de ti primeiro e com o destaque da app: é o único número que pede acção. */}
+        {waitingCount > 0 && (
+          <span
+            className="project-group-badge project-group-badge--waiting"
+            title={`${waitingCount} à espera de ti`}
+            aria-label={`${waitingCount} à espera de ti`}
+          >
+            {waitingCount}
+          </span>
+        )}
         {workingCount > 0 && <span className="project-group-badge">{workingCount}</span>}
         {onSetIcon && (
           <div className="project-group-actions">
@@ -975,7 +1002,12 @@ export default function SessionSidebar({
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
-  const idleSessions = sessions.filter(s => s.status === 'idle');
+  // «Inativas» = sem nada a fazer. Uma sessão à espera de ti está calada (status 'idle') mas não
+  // está inativa — fechá-la em lote perdia o pedido que ela está a fazer.
+  const idleSessions = sessions.filter(s => {
+    const st = shownState(s);
+    return st === 'idle' || st === 'done';
+  });
   // Agentes "rápidos": sessões sem projecto. Seguem a MESMA ordenação escolhida no selector dos
   // projectos — é um selector só para a barra toda, e ter duas listas com critérios diferentes era
   // o que fazia parecer que a ordenação não pegava aqui.
@@ -983,7 +1015,7 @@ export default function SessionSidebar({
   // critério que já existia — a trabalhar primeiro, que é o que se vai lá ver.
   const soltas = sessions.filter(s => !s.projectId && (!searching || matchesQuery(s.name, query)));
   const looseSessions = projectSort === 'manual'
-    ? [...soltas].sort((a, b) => Number(b.status === 'working') - Number(a.status === 'working'))
+    ? [...soltas].sort((a, b) => attentionRank(b) - attentionRank(a))
     : sortProjects(soltas, projectSort);
 
   const activeProjects = projects.filter(p => !p.archived);

@@ -120,6 +120,20 @@ export function markNotificationRead(id: string, read: boolean): AppNotification
   return n;
 }
 
+// Resolve (marca como lidas) as entradas por ler de um grupo — quando a coisa que as causou deixou
+// de ser verdade (ex.: a sessão saiu de «à espera de ti», ou fechou). Cada entrada resolvida volta a
+// ser difundida já com `read: true`: é isso que deixa a UI fechar o toast de acção, que não se
+// fecha sozinho. Devolve quantas mudaram.
+export function resolveNotificationGroup(groupKey: string): number {
+  const list = loadNotifications();
+  const resolved = list.filter((n) => n.meta?.groupKey === groupKey && !n.read);
+  if (resolved.length === 0) return 0;
+  for (const n of resolved) n.read = true;
+  saveNotifications(list);
+  for (const n of resolved) { try { notificationsBroadcaster?.(n); } catch { /* inbox already persisted */ } }
+  return resolved.length;
+}
+
 export function markAllNotificationsRead(): number {
   const list = loadNotifications();
   let count = 0;

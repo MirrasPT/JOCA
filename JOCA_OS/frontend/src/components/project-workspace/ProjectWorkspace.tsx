@@ -13,6 +13,7 @@ import { shortPath } from '../../lib/paths';
 import { SettingsIcon } from '../dashboard/icons';
 import TerminalView from '../TerminalView';
 import TerminalTabs, { buildTabs } from './TerminalTabs';
+import OpenPorts from './OpenPorts';
 import './project-workspace.css';
 
 function TerminalGlyph() {
@@ -144,6 +145,7 @@ export default function ProjectWorkspace({
         )}
         <span className="pw-bar-path" title={project.path}>{shortPath(project.path)}</span>
         <span className="pw-bar-spacer" />
+        <OpenPorts key={project.id} projectId={project.id} terminalCount={tabs.length} />
         <span className="pw-bar-stat">{tabs.length} terminal{tabs.length === 1 ? '' : 'is'}</span>
         <button
           className="pw-bar-settings"

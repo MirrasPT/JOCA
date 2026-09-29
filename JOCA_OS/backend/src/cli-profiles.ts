@@ -102,9 +102,13 @@ const MODEL_SAFE = /^[A-Za-z0-9._:/-]{1,120}$/;
 export function buildLaunchLine(
   profile: CliProfile,
   binPath: string,
-  opts: { model?: string; autonomous?: boolean; remoteControl?: boolean },
+  opts: { model?: string; autonomous?: boolean; remoteControl?: boolean; hooksSettings?: string },
 ): string {
   const parts = [binPath];
+  // Hooks do JOCA (estado real da sessão — ver agent-bridge.prepareClaudeHooksSettings). Só o claude
+  // tem `--settings`; os outros CLIs ficam com a heurística de silêncio. Aspas duplas: o caminho
+  // do tmp pode ter espaços, e tanto o PowerShell como o zsh as entendem.
+  if (opts.hooksSettings && profile.id === 'claude') parts.push('--settings', `"${opts.hooksSettings}"`);
   // `--remote-control` é uma flag de ARRANQUE do Claude Code: não há como ligá-la a meio de uma
   // conversa, o terminal tem de nascer com ela. Só se aplica ao claude — os outros CLIs não a têm.
   if (opts.remoteControl && profile.id === 'claude') parts.push('--remote-control');

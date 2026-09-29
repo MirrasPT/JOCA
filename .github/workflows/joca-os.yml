@@ -1,0 +1,54 @@
+name: JOCA OS
+
+on:
+  pull_request:
+    paths:
+      - 'JOCA_OS/**'
+      - '.github/workflows/joca-os.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'JOCA_OS/**'
+      - '.github/workflows/joca-os.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: joca-os-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  SHELL: /bin/bash
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: JOCA_OS/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npx vitest run
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: JOCA_OS/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --no-audit --no-fund
+      - run: npx eslint .
+      - run: npm run build

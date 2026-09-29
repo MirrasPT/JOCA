@@ -6,7 +6,14 @@ export interface SessionInfo {
   origin?: 'user' | 'auto';   // quem a criou: 'user' (UI) ou 'auto' (spawn programático, ex.: `joca open`)
   status: 'working' | 'idle';
   cli?: string;               // 'claude' (default) | 'codex' | 'agy' | 'opencode'
+  // Estado do AGENTE (≠ `status`, que é só bytes/silêncio): vem dos hooks do Claude Code; nos CLIs
+  // sem hooks, da heurística. Ausente = ainda não se sabe (sessão acabada de abrir).
+  agentState?: AgentState;
+  agentStateAt?: number;      // epoch ms
+  waitingReason?: string;     // só em 'waiting': o que o agente está a pedir
 }
+
+export type AgentState = 'working' | 'waiting' | 'done';
 
 /**
  * Uma conversa que MORREU quando o backend reiniciou. Os PTYs não sobrevivem ao reinício do

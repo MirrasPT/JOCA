@@ -410,6 +410,13 @@ html, body, #root {
   animation:dot-flash 0.7s ease-out forwards;
 }
 
+/* «À espera de ti»: o único estado que pede uma acção, logo o único com a cor de destaque da app
+   (a mesma da toast «precisa de ti»). Anel fixo em vez de pulso: o pulso já é o «a trabalhar». */
+.status-dot--waiting {
+  background:var(--accent-text);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+
 @keyframes dot-pulse {
   0%   { box-shadow:0 0 0 0 rgba(245,147,50,0.7); transform:scale(1); }
   40%  { box-shadow:0 0 0 5px rgba(245,147,50,0); transform:scale(1.25); background:var(--status-working); }
@@ -789,6 +796,32 @@ html, body, #root {
 }
 
 .session-card--working .card-preview-text { color:rgba(245,147,50,0.45); }
+
+.session-card--waiting {
+  border-color:var(--accent-border);
+}
+.session-card--waiting::before {
+  box-shadow:0 0 24px var(--accent-glow), inset 0 0 0 1px var(--accent-border);
+  opacity:1;
+}
+
+/* Etiqueta do estado do agente no rodapé do cartão — mesma forma do chip de projecto. */
+.card-agent-state {
+  flex-shrink:0;
+  padding:1px 7px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:600;
+  border:1px solid var(--border-subtle);
+  color:var(--text-dim);
+}
+.card-agent-state--working { color:var(--status-working); }
+.card-agent-state--done    { color:var(--status-idle); }
+.card-agent-state--waiting {
+  color:var(--accent-text);
+  background:var(--accent-soft);
+  border-color:var(--accent-border);
+}
 
 .card-footer {
   display:flex;
@@ -1281,6 +1314,13 @@ html, body, #root {
   color:var(--accent-amber);
   flex-shrink:0;
   font-weight:600;
+}
+
+.project-group-badge--waiting {
+  background:var(--accent-soft);
+  border-color:var(--accent-border);
+  color:var(--accent-text);
+  font-weight:700;
 }
 
 .project-group-actions { display:flex; gap:6px; flex-shrink:0; opacity:0; max-width:0; overflow:hidden; transition:opacity var(--t-fast), max-width var(--t-fast); }
@@ -6445,6 +6485,9 @@ background: var(--surface-panel);
   background: var(--text-ghost); opacity: 0.4;
 }
 .sidebar-loose-dot[data-on='true'] { background: var(--accent); opacity: 1; }
+/* À espera de ti: o destaque da app com anel, como o `.status-dot--waiting` — distingue-se do
+   «a trabalhar» (que já usa o --accent cheio) pela forma, não só pela cor. */
+.sidebar-loose-dot[data-state='waiting'] { background: var(--accent-text); opacity: 1; box-shadow: 0 0 0 3px var(--accent-glow); }
 
 /* Em edição a linha deixa de ser botão e passa a caixa — mesma altura, para a lista não saltar. */
 .sidebar-loose-item.is-editing { cursor: default; }
@@ -7136,6 +7179,7 @@ background: var(--surface-panel);
    conta — e assim o tema inteiro lê-se num sítio só. */
 :root[data-brand="office"] .db-project-session-status--working,
 :root[data-brand="office"] .db-project-session-status--idle,
+:root[data-brand="office"] .db-project-session-status--done,
 :root[data-brand="office"] .quick-command-btn--highlight,
 :root[data-brand="office"] .quick-command-btn--highlight:hover,
 :root[data-brand="office"] .slash-menu-badge--skill {
