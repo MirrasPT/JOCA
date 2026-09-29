@@ -41,6 +41,10 @@ sessionManager.on('status', ({ sessionId, status, isDone }: { sessionId: string;
 sessionManager.on('agent_state', (s: { sessionId: string; agentState?: string; agentStateAt?: number; waitingReason?: string }) => {
   broadcast({ type: 'session_agent_state', ...s });
 });
+// Linha de estado que o agente escreveu (`joca status`). Ausente na mensagem = limpa.
+sessionManager.on('current_job', (s: { sessionId: string; currentJob?: string }) => {
+  broadcast({ type: 'session_current_job', ...s });
+});
 sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
 });

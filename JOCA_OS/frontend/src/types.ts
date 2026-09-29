@@ -11,6 +11,7 @@ export interface SessionInfo {
   agentState?: AgentState;
   agentStateAt?: number;      // epoch ms
   waitingReason?: string;     // só em 'waiting': o que o agente está a pedir
+  currentJob?: string;        // frase que o próprio agente escreveu (`joca status`); limpa num prompt novo
 }
 
 export type AgentState = 'working' | 'waiting' | 'done';

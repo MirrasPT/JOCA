@@ -113,6 +113,12 @@ export default function SessionCard({
         )}
       </div>
 
+      {/* A linha de estado que o agente escreveu. Sem ela não se reserva espaço: a altura do cartão
+          vem da grelha, e quem cede a linha é o preview (flex:1) — o cartão não salta. */}
+      {session.currentJob && (
+        <p className="card-job" title={session.currentJob}>{session.currentJob}</p>
+      )}
+
       <div className="card-preview" aria-hidden>
         <pre className="card-preview-text">{outputPreview || '…'}</pre>
       </div>
