@@ -9,6 +9,7 @@
 //   node "$JOCA_CLI" send <id> "texto"          fala com outro agente do mesmo projecto
 //   node "$JOCA_CLI" read <id> --tail 2000      lê o que outro agente escreveu
 //   node "$JOCA_CLI" cat <path>                  lê 1 ficheiro por caminho (sem navegação/listagem)
+//   node "$JOCA_CLI" status "a rever o PR #7"    frase no cartão DESTE terminal (--clear limpa)
 //
 // Os comandos de terminais são LIMITADOS AO PROJECTO de quem os corre: dois agentes do mesmo
 // projecto falam e verificam-se um ao outro, mas não vêem os de outro projecto. Quem corre o CLI
@@ -212,6 +213,16 @@ const commands = {
   },
 
 
+  // A linha de estado do cartão DESTE terminal — nunca de outro (o backend recusa). Um prompt novo
+  // do dono limpa-a; o agente volta a escrevê-la quando mudar de trabalho.
+  async status(flags, [...parts]) {
+    if (!SESSION_ID) die('só funciona dentro de um terminal aberto pelo JOCA_OS (falta JOCA_SESSION_ID).');
+    const text = flags.clear ? '' : (parts.join(' ') || (typeof flags.text === 'string' ? flags.text : ''));
+    if (!flags.clear && !text.trim()) die('falta o texto: joca status "o que estás a fazer" (ou joca status --clear)');
+    const r = await request('POST', `/sessions/${encodeURIComponent(SESSION_ID)}/current-job`, { body: { text } });
+    console.log(r?.currentJob ? `linha de estado: ${r.currentJob}` : 'linha de estado limpa');
+  },
+
   help() {
     console.log(`joca — ponte entre este terminal e o JOCA_OS (${API})
 
@@ -226,6 +237,10 @@ TERMINAIS (agentes falam entre si — só dentro do MESMO projecto)
 
 FICHEIROS (leitura pontual — sem navegação/listagem, ver skill)
   cat <path> [--tail N]                        lê um ficheiro (--tail N = últimas N linhas)
+
+ESTADO (aparece no cartão deste terminal na UI)
+  status "<frase curta>"                       o que estás a fazer agora (máx. 120 caracteres)
+  status --clear                               limpa a linha (um prompt novo do dono também a limpa)
 
 OUTROS
   projects · notify "<texto>"

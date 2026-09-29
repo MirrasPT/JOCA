@@ -43,6 +43,7 @@ export type ServerMessage =
   | { type: 'buffer'; sessionId: string; data: string }
   | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
   | { type: 'session_agent_state'; sessionId: string; agentState?: AgentState; agentStateAt?: number; waitingReason?: string }
+  | { type: 'session_current_job'; sessionId: string; currentJob?: string }
   | { type: 'projects_changed' }
   | { type: 'notification'; notification: AppNotification }
   | { type: 'error'; error: string };
@@ -281,6 +282,13 @@ export function useSessionSocket(deps: SessionSocketDeps) {
             s.id === msg.sessionId
               ? { ...s, agentState: msg.agentState, agentStateAt: msg.agentStateAt, waitingReason: msg.waitingReason }
               : s
+          ));
+          break;
+
+        // Linha de estado escrita pelo agente (`joca status`). Ausente na mensagem = limpa.
+        case 'session_current_job':
+          d.setSessions((prev) => prev.map((s) =>
+            s.id === msg.sessionId ? { ...s, currentJob: msg.currentJob } : s
           ));
           break;
 

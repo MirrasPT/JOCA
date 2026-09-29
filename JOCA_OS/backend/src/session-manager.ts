@@ -17,6 +17,8 @@
 //   'agent_event' { sessionId, event, detail } — cada hook do Claude Code que chegou (ver agentEvent).
 //   'agent_state' { sessionId, agentState, agentStateAt, waitingReason } — mudança do estado do
 //                                              agente (forwarded as 'session_agent_state').
+//   'current_job' { sessionId, currentJob }  — a linha de estado que o agente escreveu (`joca status`);
+//                                              forwarded as 'session_current_job'.
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -40,6 +42,25 @@ export type AgentState = 'working' | 'waiting' | 'done';
 export const AGENT_EVENTS = CLAUDE_HOOK_EVENTS;
 export type AgentEvent = typeof AGENT_EVENTS[number];
 export interface AgentEventDetail { prompt?: string; tool?: string; message?: string }
+
+// Tecto da linha de estado do cartão: uma frase, não um relatório.
+export const CURRENT_JOB_MAX = 120;
+
+/**
+ * Normaliza a linha de estado que um agente escreve: sem caracteres de controlo (quebras de linha,
+ * ANSI, tabs) nem de direcção de texto, espaços colapsados, cortada a CURRENT_JOB_MAX caracteres.
+ * Vazia depois disto = `undefined` (sem linha). Exportada para ser testável.
+ */
+export function limparLinhaDeEstado(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const limpa = raw
+    .replace(/\x1b\[[0-9;?]*[ -\/]*[@-~]/g, ' ')   // sequências ANSI inteiras
+    .replace(/[\p{Cc}\u2028\u2029\u202a-\u202e\u2066-\u2069]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!limpa) return undefined;
+  return [...limpa].slice(0, CURRENT_JOB_MAX).join('').trim();
+}
 
 /**
  * Que estado é que um hook implica. `undefined` = o evento não muda o estado (SessionStart só diz
@@ -96,6 +117,9 @@ export interface Session {
   // parado a desenhar um pedido de permissão cujo aviso ainda não chegou (medido: 6-10 s de atraso)
   // e a rede de 5 s não corre — só o tecto FERRAMENTA_ABERTA_MAX_MS.
   ferramentasAbertas: number;
+  // Frase curta que o PRÓPRIO agente escreveu sobre o que está a fazer (`joca status "…"`). Limpa num
+  // prompt novo teu: descrevia o pedido anterior.
+  currentJob?: string;
 }
 
 interface WriteJob { payload: string; submit: boolean }
@@ -112,6 +136,7 @@ export interface SessionInfo {
   agentState?: AgentState;
   agentStateAt?: number;
   waitingReason?: string;
+  currentJob?: string;
 }
 
 export interface SpawnOptions {
@@ -314,6 +339,7 @@ export class SessionManager extends EventEmitter {
     return {
       id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, area: s.area, status: s.status,
       agentState: s.agentState, agentStateAt: s.agentStateAt, waitingReason: s.waitingReason,
+      currentJob: s.currentJob,
     };
   }
 
@@ -747,6 +773,7 @@ export class SessionManager extends EventEmitter {
     }
     if (next) this.setAgentState(session, next, next === 'waiting' ? reason : undefined);
     this.armarSilencio(session);   // mesmo sem mudar de estado: o PreToolUse pára-a, o PostToolUse volta a armá-la
+    if (event === 'UserPromptSubmit') this.setCurrentJob(sessionId, undefined);   // pedido novo: a linha era do anterior
     return true;
   }
 
@@ -793,6 +820,21 @@ export class SessionManager extends EventEmitter {
       session.agentSilenceTimer = null;
       if (this.sessions.has(session.id) && session.agentState === 'working') this.setAgentState(session, 'done');
     }, AGENT_SILENCE_DONE_MS);
+  }
+
+  /**
+   * A linha de estado que o agente escreve sobre si (`joca status "…"`). Passa sempre por
+   * `limparLinhaDeEstado`; vazia = limpa. Emite 'current_job' só quando muda. Devolve false se a
+   * sessão não existe.
+   */
+  setCurrentJob(sessionId: string, text: string | undefined): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    const currentJob = limparLinhaDeEstado(text);
+    if (session.currentJob === currentJob) return true;
+    session.currentJob = currentJob;
+    this.emit('current_job', { sessionId, currentJob });
+    return true;
   }
 
   // A sessão vai fechar: pára a rede de silêncio e resolve um «precisa de ti» que ficou por

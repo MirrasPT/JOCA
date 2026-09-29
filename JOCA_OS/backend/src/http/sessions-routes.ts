@@ -53,6 +53,15 @@ function crossProjectDenial(req: Request, targetId: string): string | undefined 
   return 'esse terminal é de outro projecto — só podes falar com terminais do teu projecto';
 }
 
+// Rotas em que a sessão fala DE SI (estado, linha de estado): só a própria. Ver o comentário da
+// rota agent-event para o que é fronteira (token de agente) e o que é só declaração (X-Joca-Session).
+function notSelfDenial(req: Request, targetId: string): boolean {
+  const tokenSession = agentTokenSession(req);
+  const claimed = req.headers[CALLER_HEADER];
+  return Boolean((tokenSession && tokenSession !== targetId)
+    || (typeof claimed === 'string' && claimed.trim() && claimed.trim() !== targetId));
+}
+
 export function sessionsRouter(): Router {
   const r = Router();
 
@@ -164,10 +173,7 @@ export function sessionsRouter(): Router {
       return res.status(400).json({ error: `event inválido (esperado: ${AGENT_EVENTS.join(', ')})` });
     }
     if (!sessionManager.get(req.params.id)) return res.status(404).json({ error: 'sessão não encontrada' });
-    const tokenSession = agentTokenSession(req);
-    const claimed = req.headers['x-joca-session'];
-    if ((tokenSession && tokenSession !== req.params.id)
-      || (typeof claimed === 'string' && claimed.trim() && claimed.trim() !== req.params.id)) {
+    if (notSelfDenial(req, req.params.id)) {
       return res.status(403).json({ error: 'só a própria sessão reporta o seu estado' });
     }
     const raw = (b.detail && typeof b.detail === 'object' ? b.detail : {}) as Record<string, unknown>;
@@ -180,6 +186,24 @@ export function sessionsRouter(): Router {
     const ok = sessionManager.agentEvent(req.params.id, event as AgentEvent, detail);
     if (!ok) return res.status(404).json({ error: 'sessão não encontrada' });
     res.json({ ok: true });
+  });
+
+  // Linha de estado do cartão (`joca status "…"`): o agente diz numa frase o que está a fazer.
+  // `text` vazio ou ausente limpa. Mesma fronteira do agent-event: só a própria sessão. Devolve a
+  // linha como ficou guardada (limpa e cortada), para o CLI mostrar o que o cartão vai dizer.
+  r.post('/sessions/:id/current-job', express.json({ limit: '16kb' }), (req, res) => {
+    const b = (req.body ?? {}) as { text?: unknown };
+    if (b.text !== undefined && b.text !== null && typeof b.text !== 'string') {
+      return res.status(400).json({ error: 'text tem de ser texto' });
+    }
+    if (!sessionManager.get(req.params.id)) return res.status(404).json({ error: 'sessão não encontrada' });
+    if (notSelfDenial(req, req.params.id)) {
+      return res.status(403).json({ error: 'só a própria sessão escreve a sua linha de estado' });
+    }
+    if (!sessionManager.setCurrentJob(req.params.id, b.text ?? undefined)) {
+      return res.status(404).json({ error: 'sessão não encontrada' });
+    }
+    res.json({ ok: true, currentJob: sessionManager.get(req.params.id)?.currentJob ?? null });
   });
 
   // Read a terminal's output. ANSI-stripped by default so an agent gets plain text.
