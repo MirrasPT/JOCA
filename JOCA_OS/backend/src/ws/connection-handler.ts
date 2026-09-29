@@ -5,7 +5,7 @@ import { safePath } from '../security-fs';
 import { sessionManager, MAX_SESSIONS } from '../session-manager';
 import { HOME } from '../http/helpers';
 import { BOOT_ID } from '../sessions-snapshot';
-import { addClient, removeClient, broadcast, send } from './broadcast';
+import { addClient, removeClient, send } from './broadcast';
 
 interface ClientMessage {
   type: 'create_session' | 'close_session' | 'input' | 'resize' | 'get_buffer' | 'rename_session' | 'interrupt_session';
@@ -116,8 +116,7 @@ export function attachConnectionHandler(wss: WebSocketServer) {
 
           case 'rename_session': {
             if (typeof msg.name === 'string') {
-              const cleaned = sessionManager.rename(msg.sessionId!, msg.name);
-              if (cleaned !== null) broadcast({ type: 'session_renamed', sessionId: msg.sessionId, name: cleaned });
+              sessionManager.rename(msg.sessionId!, msg.name);   // o broadcast sai do evento 'renamed'
             }
             break;
           }

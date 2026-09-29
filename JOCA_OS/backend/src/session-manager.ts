@@ -17,6 +17,8 @@
 //   'agent_event' { sessionId, event, detail } — cada hook do Claude Code que chegou (ver agentEvent).
 //   'agent_state' { sessionId, agentState, agentStateAt, waitingReason } — mudança do estado do
 //                                              agente (forwarded as 'session_agent_state').
+//   'renamed' { sessionId, name }            — nome mudou, por ti ou pelo 1.º pedido (forwarded as
+//                                              'session_renamed').
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -41,6 +43,34 @@ export const AGENT_EVENTS = CLAUDE_HOOK_EVENTS;
 export type AgentEvent = typeof AGENT_EVENTS[number];
 export interface AgentEventDetail { prompt?: string; tool?: string; message?: string }
 
+// 'default' = «Session N» · 'auto' = saiu do 1.º pedido · 'user' = dado por ti (ao criar ou rename).
+export type NameSource = 'default' | 'auto' | 'user';
+export const NOME_AUTO_MAX = 40;
+
+/**
+ * Nome curto a partir do texto de um pedido, ou null se o pedido não diz nada (#12).
+ * Tira o comando de barra da frente (`/goal faz X` → `faz X`), fica com a 1.ª linha com texto,
+ * limpa markdown e controlo, e corta em NOME_AUTO_MAX numa fronteira de palavra, com «…».
+ * Exportada para ser testável.
+ */
+export function nomeDoPedido(prompt: string): string | null {
+  let texto = prompt.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, ' ').trim();
+  texto = texto.replace(/^\/[\w:.-]+(?=\s|$)/, '').trim();          // `/goal`, `/plugin:cmd`
+  const linha = texto.split('\n').map((l) => l.trim()).find((l) => l.length > 0) ?? '';
+  const limpo = linha
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')                // [texto](url) → texto
+    .replace(/^(?:#{1,6}\s+|>\s*|[-*+]\s+|\d+[.)]\s+)+/, '')   // título, citação, lista
+    .replace(/(\*\*|__|~~|`+)/g, '')                           // ênfase e código
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!limpo) return null;
+  if (limpo.length <= NOME_AUTO_MAX) return limpo;
+  let corte = limpo.slice(0, NOME_AUTO_MAX - 1);
+  const espaco = corte.lastIndexOf(' ');
+  if (espaco >= NOME_AUTO_MAX / 2) corte = corte.slice(0, espaco);
+  return `${corte.replace(/[\s.,;:!?-]+$/, '')}…`;
+}
+
 /**
  * Que estado é que um hook implica. `undefined` = o evento não muda o estado (SessionStart só diz
  * que a sessão tem hooks). Exportada para ser testável: é a regra de que a UI e a inbox dependem.
@@ -61,6 +91,7 @@ export function estadoDoEvento(event: AgentEvent): AgentState | undefined {
 export interface Session {
   id: string;
   name: string;
+  nameSource: NameSource;    // de onde veio o nome — só 'default' se deixa nomear pelo 1.º pedido (#12)
   cwd: string;
   projectId?: string;
   origin: 'user' | 'auto';   // quem a criou: 'user' (UI) ou 'auto' (spawn programático, ex.: `joca open`)
@@ -329,6 +360,8 @@ export class SessionManager extends EventEmitter {
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
+    // Nome dado ao criar (projecto, skill, reinício, `joca open --name`) é escolha de alguém.
+    const nameSource: NameSource = sessionName ? 'user' : 'default';
 
     const shellArgs = IS_WINDOWS && SHELL.includes('powershell') ? ['-NoLogo'] : [];
     const ptyProcess = pty.spawn(SHELL, shellArgs, {
@@ -344,6 +377,7 @@ export class SessionManager extends EventEmitter {
 
     const session: Session = {
       id, name, cwd, projectId, origin,
+      nameSource,
       cli: profile.id,
       area: opts.area,
       pty: ptyProcess,
@@ -728,6 +762,7 @@ export class SessionManager extends EventEmitter {
       this.setAgentState(session, undefined);
     }
     this.emit('agent_event', { sessionId, event, detail });
+    if (event === 'UserPromptSubmit') this.nomearPeloPedido(session, detail.prompt);
     const next = estadoDoEvento(event);
     // StopFailure: o turno morreu num limite ou num erro da API — quem tem de agir és tu (esperar,
     // mudar de modelo, repetir). A mensagem do evento, se vier, vai a seguir.
@@ -870,13 +905,25 @@ export class SessionManager extends EventEmitter {
   }
 
   // Returns the cleaned name on success, or null if the session is missing / the name is empty.
-  rename(sessionId: string, name: string): string | null {
+  // Único caminho de mudar o nome: emite 'renamed' (→ broadcast `session_renamed`). Sem `source`
+  // é um rename teu (UI, API, CLI) e fica para sempre — o nome automático nunca lhe passa por cima.
+  rename(sessionId: string, name: string, source: 'user' | 'auto' = 'user'): string | null {
     const session = this.sessions.get(sessionId);
     if (!session) return null;
     const cleaned = name.replace(/[\x00-\x1f]/g, '').slice(0, 80).trim();
     if (cleaned.length === 0) return null;
     session.name = cleaned;
+    session.nameSource = source;
+    this.emit('renamed', { sessionId, name: cleaned });
     return cleaned;
+  }
+
+  // 1.º pedido de uma sessão ainda com o nome por omissão → o nome passa a ser o pedido (#12).
+  // Um pedido que não dá nome (`/clear` sozinho) deixa-a à espera do seguinte.
+  private nomearPeloPedido(session: Session, prompt: string | undefined): void {
+    if (session.nameSource !== 'default' || !prompt) return;
+    const nome = nomeDoPedido(prompt);
+    if (nome) this.rename(session.id, nome, 'auto');
   }
 
   // Raw rolling buffer (with ANSI), matching the WS 'get_buffer' response.

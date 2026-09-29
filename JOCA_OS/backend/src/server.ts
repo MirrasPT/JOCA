@@ -44,6 +44,10 @@ sessionManager.on('agent_state', (s: { sessionId: string; agentState?: string; a
 sessionManager.on('closed', ({ sessionId }: { sessionId: string }) => {
   broadcast({ type: 'session_closed', sessionId });
 });
+// Rename teu (WS) ou automático pelo 1.º pedido (#12) — a mesma mensagem para as duas.
+sessionManager.on('renamed', ({ sessionId, name }: { sessionId: string; name: string }) => {
+  broadcast({ type: 'session_renamed', sessionId, name });
+});
 
 // Retrato periódico das sessões vivas em `data/sessions-snapshot.json`, mais o flush em
 // SIGTERM/SIGINT. Quando este processo morre, os PTYs morrem com ele — isto é o que permite à
