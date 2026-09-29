@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { WorkflowState } from '../components/WorkflowPanel';
-import type { AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
+import type { AgentState, AppNotification, MainView, SessionInfo, TerminalRef } from '../types';
 import { notify } from '../lib/notify';
 
 type ActivityEvent = { id: string; title: string; detail: string; timestamp: number };
@@ -42,6 +42,7 @@ export type ServerMessage =
   | { type: 'output'; sessionId: string; data: string }
   | { type: 'buffer'; sessionId: string; data: string }
   | { type: 'session_status'; sessionId: string; status: 'working' | 'idle'; isDone?: boolean }
+  | { type: 'session_agent_state'; sessionId: string; agentState?: AgentState; agentStateAt?: number; waitingReason?: string }
   | { type: 'projects_changed' }
   | { type: 'notification'; notification: AppNotification }
   | { type: 'error'; error: string };
@@ -273,6 +274,16 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           }
           break;
 
+        // Estado real do agente. Substitui os três campos de uma vez: um `waiting` que passa a
+        // `working` tem de perder a razão, e um campo ausente na mensagem quer dizer "limpo".
+        case 'session_agent_state':
+          d.setSessions((prev) => prev.map((s) =>
+            s.id === msg.sessionId
+              ? { ...s, agentState: msg.agentState, agentStateAt: msg.agentStateAt, waitingReason: msg.waitingReason }
+              : s
+          ));
+          break;
+
         case 'projects_changed':
           // A project was created/updated server-side — refresh the sidebar list + memory.
           d.reloadProjects();
@@ -283,6 +294,12 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
         // do SO só para 'system'.
         case 'notification':
+          // `read: true` = resolvida no servidor (resolveNotificationGroup): só fecha o toast, sem
+          // voltar a tocar nem a avisar o SO.
+          if (msg.notification.read) {
+            if (msg.notification.priority === 'action') d.addNotificationToast(msg.notification);
+            break;
+          }
           if (msg.notification.kind === 'system') {
             notify(
               msg.notification.title,

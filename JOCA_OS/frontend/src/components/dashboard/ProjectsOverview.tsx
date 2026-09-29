@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import type { JocaLogicInfo, Project, SessionInfo } from '../../types';
 import { shortPath } from '../../lib/paths';
 import { projectColor } from '../../lib/projectColor';
+import { STATE_LABEL, shownState, stateText } from '../../lib/agent-state';
 import { FolderIcon, TerminalIcon, ActivityIcon, ShuffleIcon, BrainIcon } from './icons';
 import InlineName from '../InlineName';
 import { SaveAllButton, SaveAllConfirm, mensagemSaveAll, planoSaveAll } from './SaveAll';
@@ -37,7 +38,7 @@ export default function ProjectsOverview({
   onCreateProject, onEditProject, onShowProject, onOpenProject, onSwitchSession, onSaveAll,
   onRenameProject, onRenameSession,
 }: Props) {
-  const workingSessions = sessions.filter((s) => s.status === 'working');
+  const workingSessions = sessions.filter((s) => shownState(s) === 'working');
   const looseSessions = sessions.filter((s) => !s.projectId);
   const visibleProjects = projects.filter((p) => !p.archived);
 
@@ -150,7 +151,8 @@ export default function ProjectsOverview({
 
         {visibleProjects.map((project) => {
           const projectSessions = sessions.filter((s) => s.projectId === project.id);
-          const working = projectSessions.filter((s) => s.status === 'working').length;
+          const working = projectSessions.filter((s) => shownState(s) === 'working').length;
+          const waiting = projectSessions.filter((s) => shownState(s) === 'waiting').length;
           return (
             <div
               key={project.id}
@@ -167,6 +169,11 @@ export default function ProjectsOverview({
                       className="db-project-card-title-text"
                       inputStyle={{ fontSize: '13px', fontWeight: 700, height: '22px' }}
                     />
+                    {waiting > 0 && (
+                      <span className="db-project-working-chip db-project-working-chip--waiting">
+                        {waiting} à espera de ti
+                      </span>
+                    )}
                     {working > 0 && <span className="db-project-working-chip">{working} a trabalhar</span>}
                   </div>
                   <div className="db-project-card-path">{shortPath(project.path)}</div>
@@ -217,8 +224,11 @@ export default function ProjectsOverview({
                         className="db-project-session-name"
                         inputStyle={{ fontSize: '11px', height: '18px', flex: 1, marginRight: '8px' }}
                       />
-                      <span className={`db-project-session-status db-project-session-status--${session.status}`}>
-                        {session.status === 'working' ? 'a trabalhar' : 'parado'}
+                      <span
+                        className={`db-project-session-status db-project-session-status--${shownState(session)}`}
+                        title={stateText(session)}
+                      >
+                        {STATE_LABEL[shownState(session)].toLowerCase()}
                       </span>
                     </div>
                   ))
@@ -243,8 +253,11 @@ export default function ProjectsOverview({
                 <div className="db-project-card-path">{shortPath(session.cwd)} · agente rápido{session.cli && session.cli !== 'claude' ? ` (${session.cli})` : ''}</div>
               </div>
               <div className="db-project-card-actions">
-                <span className={`db-project-session-status db-project-session-status--${session.status}`}>
-                  {session.status === 'working' ? 'a trabalhar' : 'parado'}
+                <span
+                  className={`db-project-session-status db-project-session-status--${shownState(session)}`}
+                  title={stateText(session)}
+                >
+                  {STATE_LABEL[shownState(session)].toLowerCase()}
                 </span>
                 <button className="db-project-card-btn" type="button" onClick={() => onSwitchSession(session.id)}>Abrir</button>
               </div>

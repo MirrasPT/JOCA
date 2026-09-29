@@ -234,7 +234,57 @@ Contexto deste terminal: sessão ${SESSION_ID ? short(SESSION_ID) : '(desconheci
   },
 };
 
+// ── hook ──────────────────────────────────────────────────────────────────────
+// `joca hook <Evento>` é chamado PELO CLAUDE CODE (hooks do settings que o JOCA_OS gera — ver
+// backend/src/agent-bridge.ts), não por pessoas. Três regras que não se negociam:
+//   1. NUNCA escrever no stdout: no UserPromptSubmit o stdout entra no contexto do modelo.
+//   2. Nunca bloquear o agente: tecto duro de 1,5 s, e falha em silêncio.
+//   3. Exit 0 sempre: um exit 2 num hook BLOQUEIA a acção do agente.
+// Fora do JOCA (sem JOCA_SESSION_ID) só drena o stdin e sai.
+const HOOK_DEADLINE_MS = 1500;
+
+function readStdin() {
+  if (process.stdin.isTTY) return Promise.resolve('');
+  return new Promise((resolve) => {
+    let data = '';
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (c) => { if (data.length < 1_000_000) data += c; });
+    process.stdin.on('end', () => resolve(data));
+    process.stdin.on('error', () => resolve(data));
+  });
+}
+
+async function runHook(event) {
+  setTimeout(() => process.exit(0), HOOK_DEADLINE_MS).unref();
+  try {
+    const input = await readStdin();
+    if (!SESSION_ID || !event) return;
+    let payload = {};
+    try { payload = JSON.parse(input) || {}; } catch { /* stdin vazio ou estranho: vai só o evento */ }
+    // Só o que o JOCA_OS usa — o JSON do hook traz o transcript_path, o cwd, o input das ferramentas…
+    const detail = {};
+    if (event === 'UserPromptSubmit' && typeof payload.prompt === 'string') detail.prompt = payload.prompt.slice(0, 500);
+    if (['PreToolUse', 'PostToolUse', 'PostToolUseFailure'].includes(event) && typeof payload.tool_name === 'string') detail.tool = payload.tool_name;
+    if (event === 'Notification' && typeof payload.message === 'string') detail.message = payload.message;
+    // StopFailure: `error` é o tipo (rate_limit, overloaded, …); `error_details` o texto, quando vem.
+    if (event === 'StopFailure') {
+      const m = typeof payload.error_details === 'string' && payload.error_details ? payload.error_details : payload.error;
+      if (typeof m === 'string' && m) detail.message = m.slice(0, 500);
+    }
+    const headers = { 'Content-Type': 'application/json', Origin: API, 'X-Joca-Session': SESSION_ID };
+    if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), HOOK_DEADLINE_MS - 200).unref();
+    await fetch(`${API}/sessions/${encodeURIComponent(SESSION_ID)}/agent-event`, {
+      method: 'POST', headers, body: JSON.stringify({ event, detail }), signal: ctrl.signal,
+    });
+  } catch { /* silêncio: o estado fica pela heurística, o agente segue */ }
+  finally { process.exit(0); }
+}
+
 const [, , cmd = 'help', ...rest] = process.argv;
+// Antes de tudo o resto: o `hook` não pode passar pelo `die()` (stderr + exit 1).
+if (cmd === 'hook') await runHook(rest[0]);
 const { flags, positional } = parseArgs(rest);
 // Object.hasOwn: `joca toString` não pode cair no Object.prototype.
 const isCommand = (name) => Object.hasOwn(commands, name);

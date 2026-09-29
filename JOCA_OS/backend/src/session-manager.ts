@@ -14,6 +14,9 @@
 //                                              consegue ir buscar depois, porque a sessão já saiu do mapa.
 //   'done'   { sessionId }                   — ADDITIVE: fired once when a programmatically dispatched
 //                                              work burst ends; quem despacha espera por isto.
+//   'agent_event' { sessionId, event, detail } — cada hook do Claude Code que chegou (ver agentEvent).
+//   'agent_state' { sessionId, agentState, agentStateAt, waitingReason } — mudança do estado do
+//                                              agente (forwarded as 'session_agent_state').
 // The existing WS flows are unchanged — the additive API (spawn/input/readBuffer/kill/resize +
 // the 'done' subscription) does not alter any pre-existing behavior.
 import { EventEmitter } from 'events';
@@ -25,7 +28,35 @@ import { execSync } from 'child_process';
 import { JOCA_LOGIC_ROOT } from './toolkit-registry';
 import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-store';
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
-import { jocaAgentEnv } from './agent-bridge';
+import { jocaAgentEnv, prepareClaudeHooksSettings, CLAUDE_HOOK_EVENTS } from './agent-bridge';
+import { pushNotification, resolveNotificationGroup } from './notifications/store';
+
+// Estado do AGENTE dentro do terminal, distinto do `status` (bytes a sair / silêncio):
+//   working → está a trabalhar num pedido · waiting → parou à espera de ti · done → acabou o turno.
+// Com hooks (claude) vem do próprio CLI; sem hooks (codex, agy, opencode) é a heurística de silêncio.
+export type AgentState = 'working' | 'waiting' | 'done';
+// Os eventos vêm da lista que gera o settings dos hooks — uma só fonte: se divergissem, a rota
+// respondia 400 a um hook ligado e o CLI engolia o erro em silêncio.
+export const AGENT_EVENTS = CLAUDE_HOOK_EVENTS;
+export type AgentEvent = typeof AGENT_EVENTS[number];
+export interface AgentEventDetail { prompt?: string; tool?: string; message?: string }
+
+/**
+ * Que estado é que um hook implica. `undefined` = o evento não muda o estado (SessionStart só diz
+ * que a sessão tem hooks). Exportada para ser testável: é a regra de que a UI e a inbox dependem.
+ */
+export function estadoDoEvento(event: AgentEvent): AgentState | undefined {
+  switch (event) {
+    case 'UserPromptSubmit':
+    case 'PreToolUse':
+    case 'PostToolUse':
+    case 'PostToolUseFailure': return 'working';
+    case 'Notification':
+    case 'StopFailure': return 'waiting';
+    case 'Stop': return 'done';
+    default: return undefined;
+  }
+}
 
 export interface Session {
   id: string;
@@ -49,6 +80,22 @@ export interface Session {
   writeQueue: WriteJob[];   // paced-write queue (see chunkText) — serialises concurrent submits
   writeTimer: ReturnType<typeof setTimeout> | null;
   writing: boolean;
+  agentState?: AgentState;
+  agentStateAt?: number;     // epoch ms da entrada no estado actual
+  waitingReason?: string;    // só em 'waiting': o texto que o CLI mostrou (ex.: pedido de permissão)
+  // Recebeu pelo menos um hook → o `agentState` passa a vir dos hooks; a heurística de rajadas
+  // continua a mexer no `status`, mas já não no `agentState` (só a rede de silêncio abaixo).
+  agentHooked: boolean;
+  // Rede de segurança do `working` com hooks: ver AGENT_SILENCE_DONE_MS.
+  agentSilenceTimer: ReturnType<typeof setTimeout> | null;
+  // Ferramenta do último PreToolUse, até ao PostToolUse (ou ao fim do turno). Diz que diálogo está
+  // no ecrã quando a sessão entra em espera (ver DIALOGOS_DE_VARIOS_PASSOS).
+  agentTool?: string;
+  // Ferramentas com PreToolUse e sem PostToolUse nem Notification (contador: o claude pode correr
+  // várias em paralelo, e o Post de uma não fecha a outra). Com alguma aberta, o claude pode estar
+  // parado a desenhar um pedido de permissão cujo aviso ainda não chegou (medido: 6-10 s de atraso)
+  // e a rede de 5 s não corre — só o tecto FERRAMENTA_ABERTA_MAX_MS.
+  ferramentasAbertas: number;
 }
 
 interface WriteJob { payload: string; submit: boolean }
@@ -62,6 +109,9 @@ export interface SessionInfo {
   cli: CliId;
   area?: string;
   status: 'working' | 'idle';
+  agentState?: AgentState;
+  agentStateAt?: number;
+  waitingReason?: string;
 }
 
 export interface SpawnOptions {
@@ -92,6 +142,23 @@ const SHELL = IS_WINDOWS
 const BUFFER_MAX = 1_500_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
+// Um turno interrompido (Esc, Ctrl+C, o botão de interromper do JOCA) NÃO emite Stop, e sem isto a
+// sessão ficava «a trabalhar» para sempre. Enquanto trabalha, o Claude Code redesenha o spinner e o
+// contador de segundos — texto VISÍVEL várias vezes por segundo, também durante uma ferramenta longa
+// (medido no 2.1.284: o maior intervalo entre rajadas visíveis a trabalhar foi 1,2 s, com 20 s de
+// `sleep` numa ferramenta pelo meio). Silêncio visível acima deste limiar com a sessão em `working`
+// = parou → `done`. Folga de 4x sobre o medido para um PC carregado não dar falsos «acabou».
+export const AGENT_SILENCE_DONE_MS = 5000;
+
+// Diálogos em que um Enter NÃO é a resposta final: o AskUserQuestion tem várias perguntas e um ecrã
+// de «submeter» (medido: Enter na 1.ª pergunta e a 2.ª continua no ecrã), e o ExitPlanMode aprova
+// um plano. Nestes, só o PostToolUse (respondeste a tudo), Esc ou Ctrl+C (cancelaste) tiram da espera.
+const DIALOGOS_DE_VARIOS_PASSOS = new Set(['AskUserQuestion', 'ExitPlanMode']);
+
+// Tecto da «ferramenta aberta» sem NENHUMA saída visível: um cancelamento que não passa pelo JOCA
+// (remote control no claude.ai) antes do aviso não emite hook nenhum e deixava a sessão «a
+// trabalhar» para sempre. Findo o tecto, a ferramenta dá-se por fechada e volta a rede de 5 s.
+export const FERRAMENTA_ABERTA_MAX_MS = 5 * 60_000;
 export const MAX_SESSIONS = 30;
 
 function ensureNodePtyHelpersExecutable() {
@@ -244,7 +311,10 @@ export class SessionManager extends EventEmitter {
   get(id: string): Session | undefined { return this.sessions.get(id); }
 
   info(s: Session): SessionInfo {
-    return { id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, area: s.area, status: s.status };
+    return {
+      id: s.id, name: s.name, cwd: s.cwd, projectId: s.projectId, origin: s.origin, cli: s.cli, area: s.area, status: s.status,
+      agentState: s.agentState, agentStateAt: s.agentStateAt, waitingReason: s.waitingReason,
+    };
   }
 
   listInfo(): SessionInfo[] { return this.list().map((s) => this.info(s)); }
@@ -287,6 +357,9 @@ export class SessionManager extends EventEmitter {
       writeQueue: [],
       writeTimer: null,
       writing: false,
+      agentHooked: false,
+      agentSilenceTimer: null,
+      ferramentasAbertas: 0,
     };
     this.sessions.set(id, session);
 
@@ -315,6 +388,7 @@ export class SessionManager extends EventEmitter {
       model: opts.model,
       autonomous: loadUiSettings().skipPermissions,
       remoteControl: opts.remoteControl,
+      hooksSettings: profile.id === 'claude' ? prepareClaudeHooksSettings() : undefined,
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
@@ -367,6 +441,9 @@ export class SessionManager extends EventEmitter {
       // detecção de fim.
       if (!temConteudoVisivel(data)) return;
 
+      // Com hooks e a trabalhar, cada rajada visível adia a rede de silêncio (ver AGENT_SILENCE_DONE_MS).
+      if (session.agentState === 'working') this.armarSilencio(session);
+
       // Status: transition to working
       const wasIdle = session.status === 'idle';
       session.status = 'working';
@@ -375,6 +452,7 @@ export class SessionManager extends EventEmitter {
 
       if (wasIdle) {
         this.emit('status', { sessionId: id, status: 'working' as const });
+        if (!session.agentHooked) this.setAgentState(session, 'working');
       }
 
       // Debounce idle detection
@@ -404,6 +482,9 @@ export class SessionManager extends EventEmitter {
         session.idleTimer = null;
 
         this.emit('status', { sessionId: id, status: 'idle' as const, isDone });
+        // Sem hooks, «acabou» é o que a heurística sabe dizer: uma rajada que alguém começou e
+        // terminou. Rajada sem dono (arranque, repintura longa) volta a «sem estado», não a «acabou».
+        if (!session.agentHooked) this.setAgentState(session, isDone ? 'done' : undefined);
         // 'done' acorda quem despachou trabalho programaticamente (POST /sessions, `joca open`).
         // Gated on awaitingDone so that YOU typing in a worker never fires a spurious 'done'.
         if (dispatchDone) this.emit('done', { sessionId: id });
@@ -427,6 +508,7 @@ export class SessionManager extends EventEmitter {
       if (session.idleTimer) clearTimeout(session.idleTimer);
       if (session.writeTimer) clearTimeout(session.writeTimer);
       session.writeQueue.length = 0;
+      this.largarEstadoDoAgente(session);
       const finalOutput = session.buffer.replace(ANSI_RE, '');
       this.sessions.delete(id);
       this.emit('closed', { sessionId: id, finalOutput });
@@ -602,6 +684,7 @@ export class SessionManager extends EventEmitter {
     const session = this.sessions.get(sessionId);
     if (!session || data === undefined) return false;
     if (data.trim().length > 0) session.notifyOnIdle = true;
+    this.respostaDoDono(session, data);
     if (data.length > 1 && data.endsWith('\r')) {
       // A submitted line (typed message or a paste from the UI composer): queue it paced+chunked,
       // otherwise a long body overflows the pty buffer and arrives truncated.
@@ -624,13 +707,139 @@ export class SessionManager extends EventEmitter {
     // Programmatic dispatch → arm BOTH: notifyOnIdle (toast) and awaitingDone (so the completion
     // fires 'done' and wakes the awaiting runner).
     if (text.trim().length > 0) { session.notifyOnIdle = true; session.awaitingDone = true; }
+    // `joca send` a um terminal à espera é responder-lhe, como um Enter (o submit leva um).
+    this.respostaDoDono(session, '\r');
     this.enqueueWrite(session, text.endsWith('\r') ? text.slice(0, -1) : text, true);
     return true;
+  }
+
+  /**
+   * Um hook do Claude Code chegou (via `joca hook <Evento>` → POST /sessions/:id/agent-event).
+   *
+   * O 1.º hook de uma sessão deita fora o estado que a heurística lá tinha posto: o arranque da TUI
+   * faz bytes, que a heurística lê como «a trabalhar», e a partir daqui ninguém o voltaria a limpar.
+   * Devolve false se a sessão não existe.
+   */
+  agentEvent(sessionId: string, event: AgentEvent, detail: AgentEventDetail = {}): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    if (!session.agentHooked) {
+      session.agentHooked = true;
+      this.setAgentState(session, undefined);
+    }
+    this.emit('agent_event', { sessionId, event, detail });
+    const next = estadoDoEvento(event);
+    // StopFailure: o turno morreu num limite ou num erro da API — quem tem de agir és tu (esperar,
+    // mudar de modelo, repetir). A mensagem do evento, se vier, vai a seguir.
+    const reason = event === 'StopFailure'
+      ? `Bateu no limite ou erro da API${detail.message ? `: ${detail.message}` : ''}`
+      : detail.message;
+    switch (event) {
+      case 'PreToolUse': session.agentTool = detail.tool; session.ferramentasAbertas++; break;
+      case 'PostToolUse':
+      case 'PostToolUseFailure':
+        session.ferramentasAbertas = Math.max(0, session.ferramentasAbertas - 1);
+        if (session.ferramentasAbertas === 0) session.agentTool = undefined;
+        break;
+      case 'Notification': session.ferramentasAbertas = 0; break;   // o aviso chegou: é espera, não silêncio
+      case 'SessionStart': break;
+      default: session.agentTool = undefined; session.ferramentasAbertas = 0;   // Stop*, novo prompt
+    }
+    if (next) this.setAgentState(session, next, next === 'waiting' ? reason : undefined);
+    this.armarSilencio(session);   // mesmo sem mudar de estado: o PreToolUse pára-a, o PostToolUse volta a armá-la
+    return true;
+  }
+
+  /**
+   * Uma tecla (ou mensagem) tua a uma sessão com hooks. Nenhuma resposta a um diálogo tem hook
+   * próprio — recusar ou cancelar nem PostToolUse emite — por isso sai de `waiting` para `working`
+   * e a rede de silêncio decide: se a ferramenta correr, o spinner mantém-no; se parou, `done`.
+   *   • Esc ou Ctrl+C: cancelaste, em qualquer diálogo.
+   *   • Enter ou um dígito 1-9 (que no pedido de permissão escolhe E confirma): respondeste — excepto
+   *     nos DIALOGOS_DE_VARIOS_PASSOS, onde o Enter só avança para a pergunta seguinte.
+   *   • Setas e letras: estás a navegar ou a escrever; nada muda.
+   * Uma resposta fecha também as ferramentas abertas, com ou sem o aviso já chegado: recusar («3»,
+   * Esc) ANTES do aviso acaba o turno em «Interrupted» sem hook nenhum — só a rede de 5 s o apanha.
+   * Se a ferramenta correr, o spinner mantém o `working` e o PostToolUse confirma.
+   */
+  private respostaDoDono(session: Session, data: string): void {
+    const cancelou = data === '\x1b' || data.includes('\x03');
+    const respondeu = cancelou || (!DIALOGOS_DE_VARIOS_PASSOS.has(session.agentTool ?? '')
+      && (data.includes('\r') || /^[1-9]$/.test(data)));
+    if (!respondeu) return;
+    session.ferramentasAbertas = 0;
+    if (session.agentState === 'waiting') this.setAgentState(session, 'working');   // já rearma
+    else this.armarSilencio(session);
+  }
+
+  // Rede de silêncio do `working` (ver AGENT_SILENCE_DONE_MS). Só com hooks: sem eles a heurística de
+  // rajadas já trata do estado. Rearmada a cada rajada visível e a cada mudança de estado.
+  private armarSilencio(session: Session): void {
+    if (session.agentSilenceTimer) clearTimeout(session.agentSilenceTimer);
+    session.agentSilenceTimer = null;
+    if (!session.agentHooked || session.agentState !== 'working') return;
+    if (session.ferramentasAbertas > 0) {
+      // Ferramenta aberta: sem rede de 5 s, só o tecto — que a fecha e devolve a vez à rede.
+      session.agentSilenceTimer = setTimeout(() => {
+        session.agentSilenceTimer = null;
+        if (!this.sessions.has(session.id)) return;
+        session.ferramentasAbertas = 0;
+        session.agentTool = undefined;
+        this.armarSilencio(session);
+      }, FERRAMENTA_ABERTA_MAX_MS);
+      return;
+    }
+    session.agentSilenceTimer = setTimeout(() => {
+      session.agentSilenceTimer = null;
+      if (this.sessions.has(session.id) && session.agentState === 'working') this.setAgentState(session, 'done');
+    }, AGENT_SILENCE_DONE_MS);
+  }
+
+  // A sessão vai fechar: pára a rede de silêncio e resolve um «precisa de ti» que ficou por
+  // responder — uma sessão que já não existe não precisa de ninguém.
+  private largarEstadoDoAgente(session: Session): void {
+    if (session.agentSilenceTimer) clearTimeout(session.agentSilenceTimer);
+    session.agentSilenceTimer = null;
+    if (session.agentState === 'waiting') resolveNotificationGroup(`agent-waiting:${session.id}`);
+  }
+
+  // Muda o estado do agente e avisa — só quando muda mesmo: um PreToolUse por ferramenta não pode
+  // virar um broadcast por ferramenta. `waiting` com outra razão conta como mudança.
+  private setAgentState(session: Session, state: AgentState | undefined, reason?: string): void {
+    const waitingReason = state === 'waiting' ? (reason?.slice(0, 500) || undefined) : undefined;
+    if (session.agentState === state && session.waitingReason === waitingReason) return;
+    const entrouEmEspera = state === 'waiting' && session.agentState !== 'waiting';
+    const saiuDaEspera = session.agentState === 'waiting' && state !== 'waiting';
+    session.agentState = state;
+    session.agentStateAt = state ? Date.now() : undefined;
+    session.waitingReason = waitingReason;
+    this.emit('agent_state', {
+      sessionId: session.id, agentState: state, agentStateAt: session.agentStateAt, waitingReason,
+    });
+    // «Precisa de ti» vai à inbox com prioridade de acção — só na ENTRADA em espera (mudar só a
+    // razão não é um bloqueio novo). groupKey por sessão: a mesma sessão a pedir outra vez antes de
+    // leres dobra-se na mesma entrada; duas sessões bloqueadas continuam a ser duas decisões.
+    if (entrouEmEspera) {
+      pushNotification({
+        kind: 'system',
+        priority: 'action',
+        title: `«${session.name}» precisa de ti`,
+        text: waitingReason ?? 'O agente parou à espera de uma resposta tua.',
+        meta: { sessionId: session.id, projectId: session.projectId },
+        groupKey: `agent-waiting:${session.id}`,
+      });
+    }
+    // Saiu da espera → o «precisa de ti» deixou de ser verdade: resolve-o (fecha o toast de acção).
+    // O bloqueio seguinte é uma decisão nova e gera uma entrada nova.
+    if (saiuDaEspera) resolveNotificationGroup(`agent-waiting:${session.id}`);
+    this.armarSilencio(session);
   }
 
   interrupt(sessionId: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
+    // Ctrl+C a meio de um pedido de permissão também é responder-lhe (ver respostaDoDono).
+    this.respostaDoDono(session, '\x03');
     return safePtyWrite(session.pty, '\x03');
   }
 
@@ -652,6 +861,7 @@ export class SessionManager extends EventEmitter {
     if (session.idleTimer) clearTimeout(session.idleTimer);
     if (session.writeTimer) clearTimeout(session.writeTimer);
     session.writeQueue.length = 0;
+    this.largarEstadoDoAgente(session);
     try { session.pty.kill(); } catch {}
     const finalOutput = session.buffer.replace(ANSI_RE, '');
     this.sessions.delete(sessionId);

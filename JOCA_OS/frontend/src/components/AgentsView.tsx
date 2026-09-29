@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CliProfileInfo, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
+import { STATE_LABEL, shownState, stateText } from '../lib/agent-state';
 import InlineName from './InlineName';
 import './agents-view.css';
 
@@ -64,24 +65,26 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
     () => sessions.filter((s) => !s.projectId || !projects.some((p) => p.id === s.projectId)),
     [sessions, projects]
   );
-  const working = sessions.filter((s) => s.status === 'working').length;
+  const working = sessions.filter((s) => shownState(s) === 'working').length;
+  const waiting = sessions.filter((s) => shownState(s) === 'waiting').length;
 
   // A linha é `role="button"` e não `<button>` porque tem os botões de abrir/fechar como IRMÃOS
   // interactivos — botão dentro de botão é HTML inválido (o browser fecha o de fora cedo) e a AT
   // trata "controlo interactivo aninhado noutro" de forma inconsistente (axe-core: serious).
   const row = (s: SessionInfo) => {
     const confirming = confirmId === s.id;
+    const state = shownState(s);
     return (
       <li key={s.id}>
         <div
           role="button"
           tabIndex={0}
-          className={`pw-worker${s.status === 'working' ? ' is-working' : ''}${confirming ? ' is-confirming' : ''}`}
+          className={`pw-worker${state === 'working' ? ' is-working' : ''}${state === 'waiting' ? ' is-waiting' : ''}${confirming ? ' is-confirming' : ''}`}
           onClick={() => onOpenSession(s.id)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenSession(s.id); } }}
           title="Abrir este agente"
         >
-          <span className={`pw-worker-dot pw-worker-dot--${s.status}`} aria-hidden />
+          <span className={`pw-worker-dot pw-worker-dot--${state}`} aria-hidden />
           <InlineName
             value={s.name}
             onRename={onRenameSession ? (name) => onRenameSession(s.id, name) : undefined}
@@ -99,7 +102,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
             <>
               {s.cli && s.cli !== 'claude' && <span className="ag-cli">{s.cli}</span>}
               <span className="pw-worker-job" title={s.cwd}>{shortPath(s.cwd)}</span>
-              <span className="pw-worker-time">{s.status === 'working' ? 'a trabalhar' : 'parado'}</span>
+              <span className="pw-worker-time" title={stateText(s)}>{STATE_LABEL[state].toLowerCase()}</span>
               <button
                 type="button"
                 className="pw-worker-btn"
@@ -136,6 +139,7 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
         </div>
         <div className="pw-head-stats">
           <span className="pw-head-stat">{sessions.length} aberto{sessions.length === 1 ? '' : 's'}</span>
+          {waiting > 0 && <span className="pw-head-stat pw-head-stat--waiting">{waiting} à espera de ti</span>}
           <span className="pw-head-stat">{working} a trabalhar</span>
         </div>
         <div className="header-actions ag-new">

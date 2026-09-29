@@ -12,5 +12,7 @@ export default defineConfig({
     env: {
       JOCA_DATA_DIR: path.join(os.tmpdir(), 'joca-os-test-data'),
     },
+    // Apaga a pasta de hooks que um terminal claude aberto nos testes cria (ver o ficheiro).
+    setupFiles: ['src/__tests__/setup-hooks.ts'],
   },
 });

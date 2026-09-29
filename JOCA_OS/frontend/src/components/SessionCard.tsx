@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import StatusDot from './StatusDot';
 import type { SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
+import { STATE_LABEL } from '../lib/agent-state';
 
 interface Props {
   session: SessionInfo;
@@ -57,12 +58,15 @@ export default function SessionCard({
     setEditing(false);
   };
 
-  const dotStatus = doneFlash ? 'done' : session.status;
+  // O estado do agente (hooks) manda quando existe; sem ele fica o de sempre (bytes/silêncio).
+  const agent = session.agentState;
+  const dotStatus = agent ?? (doneFlash ? 'done' : session.status);
+  const agentLabel = agent ? STATE_LABEL[agent] : null;
 
   const cardClass = [
     'session-card',
     isActive ? 'session-card--active' : '',
-    `session-card--${session.status}`,
+    `session-card--${agent ?? session.status}`,
   ].filter(Boolean).join(' ');
 
   return (
@@ -114,6 +118,14 @@ export default function SessionCard({
       </div>
 
       <div className="card-footer">
+        {agentLabel && (
+          <span
+            className={`card-agent-state card-agent-state--${agent}`}
+            title={agent === 'waiting' && session.waitingReason ? session.waitingReason : undefined}
+          >
+            {agentLabel}
+          </span>
+        )}
         {projectName && <span className="card-project-chip">{projectName}</span>}
         {session.cli && session.cli !== 'claude' && <span className="session-cli-badge">{session.cli}</span>}
         <span className="card-cwd">{shortPath(session.cwd)}</span>

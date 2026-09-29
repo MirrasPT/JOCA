@@ -161,6 +161,10 @@
   flex: 0 0 auto;
 }
 .pw-tab-dot--working { background: var(--ok, #3fb950); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok, #3fb950) 22%, transparent); }
+/* «À espera de ti» é o único estado que pede acção — leva a cor de destaque da app, como o
+   `.status-dot--waiting` da grelha. «Acabou» fica na cor de repouso do `.status-dot--done`. */
+.pw-tab-dot--waiting { background: var(--accent-text); box-shadow: 0 0 0 3px var(--accent-glow); }
+.pw-tab-dot--done { background: var(--status-idle); }
 
 .pw-tab-close {
   display: inline-flex; align-items: center; justify-content: center;
