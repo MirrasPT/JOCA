@@ -122,6 +122,18 @@ describe('nome automático no sessionManager', () => {
     expect(s.name).toBe('agora a sério');
   });
 
+  it('`/resume "pasta"` sozinho não dá nome; o pedido seguinte dá', () => {
+    const s = nova();
+    const antes = s.name;
+    sessionManager.agentEvent(s.id, 'UserPromptSubmit', { prompt: '/resume "/Users/x/Projetos/Bigorna"' });
+    expect(s.name).toBe(antes);
+    expect(s.nameSource).toBe('default');
+    sessionManager.agentEvent(s.id, 'Stop');
+    sessionManager.agentEvent(s.id, 'UserPromptSubmit', { prompt: 'vamos fazer o deploy da loja' });
+    expect(s.name).toBe('vamos fazer o deploy da loja');
+    expect(s.nameSource).toBe('auto');
+  });
+
   it('rename manual antes do 1.º pedido bloqueia o automático', () => {
     const s = nova();
     expect(sessionManager.rename(s.id, 'O meu nome')).toBe('O meu nome');

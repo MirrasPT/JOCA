@@ -80,23 +80,38 @@ describe('higienizarNome / avaliarResposta', () => {
   });
 });
 
-describe('semComando — comando só com caminho fica à espera', () => {
-  it('/resume com caminho e nada mais não diz em que se vai trabalhar', () => {
-    expect(semComando('/resume "/Users/x/Projetos/Bigorna"')).toBe('');
-    expect(semComando("/resume '/Users/x/Meu Projeto'")).toBe('');
-    expect(semComando('/resume ~/Projetos/Bigorna')).toBe('');
-    expect(semComando('/resume ./app')).toBe('');
-    expect(semComando('/resume C:\\Users\\renat\\Bigorna')).toBe('');
-    expect(semComando('/resume')).toBe('');
+describe('semComando — /resume só com a pasta fica à espera', () => {
+  const nada = () => false;
+  it('/resume com a pasta e nada mais não diz em que se vai trabalhar', () => {
+    expect(semComando('/resume "/Users/x/Projetos/Bigorna"', nada)).toBe('');
+    expect(semComando("/resume '/Users/x/Meu Projeto'", nada)).toBe('');
+    expect(semComando('/resume ~/Projetos/Bigorna', nada)).toBe('');
+    expect(semComando('/resume ./app', nada)).toBe('');
+    expect(semComando('/resume C:\\Users\\renat\\Bigorna', nada)).toBe('');
+    expect(semComando('/resume C:/Users/renat/Bigorna', nada)).toBe('');
+    expect(semComando('/resume', nada)).toBe('');
   });
-  it('com texto depois do caminho, o nome sai do texto', () => {
-    expect(semComando('/resume "/Users/x/Bigorna" vamos corrigir o checkout')).toBe('vamos corrigir o checkout');
-    expect(semComando('/goal corrige o login')).toBe('corrige o login');
+  it('com texto depois da pasta, o nome sai do texto', () => {
+    expect(semComando('/resume "/Users/x/Bigorna" vamos corrigir o checkout', nada)).toBe('vamos corrigir o checkout');
+    expect(semComando('/resume "/Users/x/Bigorna"\nvamos corrigir o checkout', nada)).toBe('vamos corrigir o checkout');
+    expect(semComando('/resume continua o checkout', nada)).toBe('continua o checkout');
+  });
+  it('pasta sem aspas com espaços: fica o prefixo que existe no disco', () => {
+    const existe = (p: string) => p === '/Users/x/Projetos/Meu Site' || p === '/Users/x/My Drive/Bigorna';
+    expect(semComando('/resume /Users/x/Projetos/Meu Site', existe)).toBe('');
+    expect(semComando('/resume /Users/x/Projetos/Meu Site vamos fazer o deploy', existe)).toBe('vamos fazer o deploy');
+    expect(semComando('/resume /Users/x/My\\ Drive/Bigorna', existe)).toBe('');
+  });
+  it('nos outros comandos o argumento é o assunto e fica', () => {
+    expect(semComando('/goal "corrige o login da Bigorna"', nada)).toBe('"corrige o login da Bigorna"');
+    expect(semComando('/review-code ./src/app.ts', nada)).toBe('./src/app.ts');
+    expect(semComando('/goal /tmp está cheio', nada)).toBe('/tmp está cheio');
+    expect(semComando('/goal corrige o login', nada)).toBe('corrige o login');
   });
   it('sem comando, o caminho é o assunto e fica', () => {
-    expect(semComando('/Users/x/app.ts dá erro')).toBe('/Users/x/app.ts dá erro');
+    expect(semComando('/Users/x/app.ts dá erro', nada)).toBe('/Users/x/app.ts dá erro');
   });
-  it('pedidoParaModelo e nomeDoPedido seguem a mesma regra', () => {
+  it('pedidoParaModelo segue a mesma regra', () => {
     expect(pedidoParaModelo('/resume "/Users/x/Bigorna"')).toBeNull();
     expect(pedidoParaModelo('/resume "/Users/x/Bigorna" vamos fazer o deploy')).toBe('vamos fazer o deploy');
   });

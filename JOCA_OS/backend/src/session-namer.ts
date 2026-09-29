@@ -10,6 +10,7 @@
 // ferramentas. NÃO usar `--bare`: força a autenticação por ANTHROPIC_API_KEY e deixa de fora a
 // subscrição.
 import { execFile } from 'child_process';
+import fs from 'fs';
 import os from 'os';
 
 const IS_WINDOWS = process.platform === 'win32';
@@ -42,23 +43,40 @@ export function pedidoParaModelo(prompt: string): string | null {
   return texto || null;
 }
 
-// Um caminho como argumento: entre aspas, ou começado por `/`, `~`, `.` ou `C:\`.
-const CAMINHO_A_FRENTE = /^(?:"[^"]*"|'[^']*'|[~.]?\/\S*|~|[A-Za-z]:\\\S*)(?=\s|$)/;
+// Comandos cujo argumento é a pasta do projecto: sozinhos não dizem em que se vai trabalhar.
+const CMD_DE_PASTA = /^\/(?:[\w-]+:)?resume$/i;
+const PARECE_CAMINHO = /^(?:~(?:[/\\]|$)|\.{1,2}[/\\]|\/|[A-Za-z]:[/\\])/;
+
+function expandir(caminho: string): string {
+  const semEscapes = caminho.replace(/\\ /g, ' ');
+  return semEscapes.startsWith('~') ? os.homedir() + semEscapes.slice(1) : semEscapes;
+}
 
 /**
- * Tira o comando de barra da frente e, só a seguir a um comando, os caminhos que lhe servem de
- * argumento. `/resume "pasta"` sozinho não diz em que se vai trabalhar → sobra '' e a sessão fica
- * à espera do pedido seguinte; `/resume "pasta" vamos fazer X` → `vamos fazer X`. Um pedido sem
- * comando mantém o caminho (`/Users/x/app.ts dá erro` é o assunto).
+ * Tira o comando de barra da frente. Depois de `/resume` tira também a pasta que lhe serve de
+ * argumento: `/resume "pasta"` sozinho não diz em que se vai trabalhar → sobra '' e a sessão fica à
+ * espera do pedido seguinte; `/resume "pasta" vamos fazer X` → `vamos fazer X`. Nos outros comandos
+ * o argumento é o assunto e fica (`/review-code ./src/app.ts`, `/goal "corrige o login"`).
+ * Pasta sem aspas com espaços: fica o prefixo mais comprido que existe no disco (`existe` é
+ * injectável nos testes); se nenhum existir, só a 1.ª palavra.
  */
-export function semComando(texto: string): string {
-  const semCmd = texto.replace(/^\/[\w:.-]+(?=\s|$)/, '');
-  if (semCmd === texto) return texto.trim();
-  let resto = semCmd.trim();
-  for (let m = resto.match(CAMINHO_A_FRENTE); m; m = resto.match(CAMINHO_A_FRENTE)) {
-    resto = resto.slice(m[0].length).trim();
+export function semComando(texto: string, existe: (p: string) => boolean = fs.existsSync): string {
+  const cmd = texto.match(/^\/[\w:.-]+(?=\s|$)/);
+  if (!cmd) return texto.trim();
+  const resto = texto.slice(cmd[0].length).trim();
+  if (!CMD_DE_PASTA.test(cmd[0])) return resto;
+  const aspas = resto.match(/^(["'])[^\n]*?\1(?=\s|$)/);
+  if (aspas) return resto.slice(aspas[0].length).trim();
+  const fim = resto.indexOf('\n');
+  const linha = fim < 0 ? resto : resto.slice(0, fim);
+  const depois = fim < 0 ? '' : resto.slice(fim);
+  const palavras = linha.split(/ +/);
+  if (!PARECE_CAMINHO.test(palavras[0])) return resto;
+  let n = 1;
+  for (let i = palavras.length; i > 1; i--) {
+    if (existe(expandir(palavras.slice(0, i).join(' ')))) { n = i; break; }
   }
-  return resto;
+  return (palavras.slice(n).join(' ') + depois).trim();
 }
 
 // O stdin nunca começa por `/` — vai embrulhado, para o CLI não o ler como comando.
