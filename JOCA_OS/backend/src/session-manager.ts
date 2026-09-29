@@ -32,7 +32,7 @@ import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
 import { jocaAgentEnv, prepareClaudeHooksSettings, CLAUDE_HOOK_EVENTS } from './agent-bridge';
 import { pushNotification, resolveNotificationGroup } from './notifications/store';
-import { criarNomeadorHaiku, modeloDeNomeLigado, type Nomeador } from './session-namer';
+import { criarNomeadorHaiku, binParaNomear, modeloDeNomeLigado, pedidoParaModelo, type Nomeador } from './session-namer';
 
 // Estado do AGENTE dentro do terminal, distinto do `status` (bytes a sair / silêncio):
 //   working → está a trabalhar num pedido · waiting → parou à espera de ti · done → acabou o turno.
@@ -330,15 +330,17 @@ export class SessionManager extends EventEmitter {
   readonly shell = SHELL;
   readonly claudeBin: string;
   // Quem dá o nome pelo modelo (2.º passo do #12). Trocável nos testes — nunca chamam o CLI real.
+  // Uma só chamada por sessão sem precisar de registo: só se chama com nameSource 'default', e o
+  // rename da heurística, feito antes, passa-o a 'auto' — nada o volta a pôr em 'default'.
   nomeador: Nomeador;
-  // Uma chamada ao Haiku de cada vez por sessão.
-  private nomesEmCurso = new Set<string>();
 
   constructor() {
     super();
     ensureNodePtyHelpersExecutable();
     this.claudeBin = findBin('claude');
-    this.nomeador = criarNomeadorHaiku(this.claudeBin);
+    this.nomeador = criarNomeadorHaiku(
+      binParaNomear(this.claudeBin, () => execSync('where.exe claude', { encoding: 'utf8' })),
+    );
   }
 
   get size() { return this.sessions.size; }
@@ -933,17 +935,17 @@ export class SessionManager extends EventEmitter {
     const nome = nomeDoPedido(prompt);
     if (!nome) return;
     const heuristico = this.rename(session.id, nome, 'auto');
-    if (!heuristico || !modeloDeNomeLigado() || this.nomesEmCurso.has(session.id)) return;
+    const pedido = pedidoParaModelo(prompt);
+    if (!heuristico || !pedido || !modeloDeNomeLigado()) return;
     const id = session.id;
-    this.nomesEmCurso.add(id);
-    this.nomeador(prompt)
+    // O catch cobre só o nomeador; um erro de quem ouve 'renamed' não é engolido aqui.
+    this.nomeador(pedido)
+      .catch(() => null)
       .then((proposto) => {
         const s = this.sessions.get(id);
         if (!proposto || !s || s.nameSource !== 'auto' || s.name !== heuristico || proposto === heuristico) return;
         this.rename(id, proposto, 'auto');
-      })
-      .catch(() => { /* nomeador falhou: fica a heurística */ })
-      .finally(() => { this.nomesEmCurso.delete(id); });
+      });
   }
 
   // Raw rolling buffer (with ANSI), matching the WS 'get_buffer' response.
