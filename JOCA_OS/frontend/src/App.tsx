@@ -14,6 +14,7 @@ import AgentsView from './components/AgentsView';
 import RecoveredSessionsNotice from './components/RecoveredSessionsNotice';
 import { useSessionSocket } from './hooks/useSessionSocket';
 import { useRecoveredSessions } from './hooks/useRecoveredSessions';
+import { useWaitingQueue } from './hooks/useWaitingQueue';
 import { useAutoTheme } from './hooks/useAutoTheme';
 import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
 import StatusBar from './components/StatusBar';
@@ -58,6 +59,15 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activatedIds, setActivatedIds] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  // Sobe a cada notificação de acção que chega pelo WS — é o sinal para a fila voltar a pedir-se.
+  const [inboxTick, setInboxTick] = useState(0);
+  const waitingQueue = useWaitingQueue(sessions, inboxTick);
+  const { snooze } = waitingQueue;
+  // Adiar tira da fila E fecha o toast de acção da mesma entrada — senão ficava a pedir-te na mesma.
+  const handleSnooze = useCallback((id: string, minutes: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    void snooze(id, minutes);
+  }, [snooze]);
   const [, setActivityEvents] = useState<{ id: string; title: string; detail: string; timestamp: number }[]>([]);
   // As definições passaram do rail direito (removido) para um modal, aberto pelo ícone no fundo
   // da sidebar esquerda.
@@ -299,6 +309,7 @@ export default function App() {
   // bloqueado à espera de resposta. Até aqui só sessões terminadas geravam toast, e um pedido de
   // decisão só aparecia se a inbox estivesse aberta.
   const addNotificationToast = useCallback((n: AppNotification) => {
+    setInboxTick((t) => t + 1); // a fila «à espera de ti» volta a pedir-se ao backend
     setToasts((prev) => {
       // Resolvida no servidor (ex.: a sessão saiu de «à espera de ti»): o toast deixa de fazer sentido.
       if (n.read) return prev.filter((t) => t.id !== n.id);
@@ -797,6 +808,7 @@ export default function App() {
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
         onShowDashboard={() => setMainView('dashboard')}
         onShowAgents={() => setMainView('agents')}
+        waitingCount={waitingQueue.items.length}
         onShowProject={handleShowProject}
         onOpenSession={handleOpenSessionInContext}
         onRenameSession={handleRenameSession}
@@ -827,6 +839,9 @@ export default function App() {
             onNewSession={handleNewLooseAgent}
             onOpenProject={(project) => handleShowProject(project.id)}
             onRenameSession={handleRenameSession}
+            queue={{ items: waitingQueue.items, snoozed: waitingQueue.snoozed }}
+            onOpenTarget={handleOpenNotificationTarget}
+            onSnooze={handleSnooze}
           />
         ) : mainView === 'project' ? (
           // Vista de um projecto: terminais. O DashboardView trata do panorama global.

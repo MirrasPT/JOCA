@@ -13,6 +13,9 @@ import type { CliProfileInfo, Project, SessionInfo } from '../types';
 import { shortPath } from '../lib/paths';
 import { STATE_LABEL, shownState, stateText } from '../lib/agent-state';
 import InlineName from './InlineName';
+import WaitingQueue from './WaitingQueue';
+import type { WaitingItem } from '../hooks/useWaitingQueue';
+import type { NotificationTarget } from '../lib/notify';
 import './agents-view.css';
 
 interface Props {
@@ -27,6 +30,10 @@ interface Props {
   onOpenProject: (project: Project) => void;
   /** Renomear um agente (duplo-clique no nome). */
   onRenameSession?: (id: string, name: string) => void;
+  /** Fila «à espera de ti» (vem do App, que também mostra o contador na barra lateral). */
+  queue: { items: WaitingItem[]; snoozed: number };
+  onOpenTarget: (target: NotificationTarget | undefined) => void;
+  onSnooze: (id: string, minutes: number) => void;
 }
 
 function OpenIcon() {
@@ -45,7 +52,7 @@ function CloseIcon() {
   );
 }
 
-export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession }: Props) {
+export default function AgentsView({ sessions, projects, onOpenSession, onCloseSession, onNewSession, onOpenProject, onRenameSession, queue, onOpenTarget, onSnooze }: Props) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [cli, setCli] = useState('claude');
   // Fonte única para "que CLIs existem" — respeita `available` (instalado ou não), em vez de uma
@@ -159,6 +166,14 @@ export default function AgentsView({ sessions, projects, onOpenSession, onCloseS
       </div>
 
       <div className="ag-body">
+        <WaitingQueue
+          items={queue.items}
+          snoozed={queue.snoozed}
+          projects={projects}
+          onOpen={onOpenTarget}
+          onSnooze={onSnooze}
+        />
+
         {sessions.length === 0 && (
           <p className="tk-drawer-empty">
             Nenhum agente aberto. Abre um acima — sem projecto, para uma coisa avulsa — ou entra num projecto e abre lá um terminal.

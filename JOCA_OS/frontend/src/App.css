@@ -1334,6 +1334,18 @@ html, body, #root {
   font-weight:700;
 }
 
+/* Contador na entrada «Agentes» da barra lateral. Colapsada, a etiqueta some mas o número fica,
+   pendurado no canto do ícone — é o único sítio da barra onde se vê que alguém espera por ti. */
+.nav-btn .nav-badge { margin-left: auto; }
+.session-sidebar--collapsed .nav-btn { position: relative; }
+.session-sidebar--collapsed .nav-btn span.nav-badge {
+  display: inline-block;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  margin: 0;
+}
+
 .project-group-actions { display:flex; gap:6px; flex-shrink:0; opacity:0; max-width:0; overflow:hidden; transition:opacity var(--t-fast), max-width var(--t-fast); }
 .project-group-header:hover .project-group-actions,
 .project-group-header:focus-within .project-group-actions { opacity:1; max-width:140px; }
