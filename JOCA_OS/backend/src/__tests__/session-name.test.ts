@@ -30,6 +30,11 @@ import { flushSessionsSnapshot, SNAPSHOT_FILE, type SessionsSnapshot } from '../
 afterAll(() => { try { fs.rmSync(DATA_DIR, { recursive: true, force: true }); } catch { /* ok */ } });
 
 describe('nomeDoPedido', () => {
+  it('/resume só com a pasta não dá nome: espera pelo pedido seguinte', () => {
+    expect(nomeDoPedido('/resume "/Users/x/Projetos/Bigorna"')).toBeNull();
+    expect(nomeDoPedido('/resume "/Users/x/Projetos/Bigorna" vamos fazer o deploy')).toBe('vamos fazer o deploy');
+  });
+
   it('pedido curto fica tal e qual, com os acentos', () => {
     expect(nomeDoPedido('Corrige a navegação do cabeçalho')).toBe('Corrige a navegação do cabeçalho');
   });

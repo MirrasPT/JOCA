@@ -37,10 +37,28 @@ export type Nomeador = (pedido: string) => Promise<string | null>;
  * frente (como a heurística): um `/goal …` no stdin do `claude -p` era EXECUTADO, não nomeado.
  */
 export function pedidoParaModelo(prompt: string): string | null {
-  const texto = prompt.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, ' ').trim()
-    .replace(/^\/[\w:.-]+(?=\s|$)/, '').trim()
+  const texto = semComando(prompt.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, ' ').trim())
     .slice(0, PEDIDO_MAX).trim();
   return texto || null;
+}
+
+// Um caminho como argumento: entre aspas, ou começado por `/`, `~`, `.` ou `C:\`.
+const CAMINHO_A_FRENTE = /^(?:"[^"]*"|'[^']*'|[~.]?\/\S*|~|[A-Za-z]:\\\S*)(?=\s|$)/;
+
+/**
+ * Tira o comando de barra da frente e, só a seguir a um comando, os caminhos que lhe servem de
+ * argumento. `/resume "pasta"` sozinho não diz em que se vai trabalhar → sobra '' e a sessão fica
+ * à espera do pedido seguinte; `/resume "pasta" vamos fazer X` → `vamos fazer X`. Um pedido sem
+ * comando mantém o caminho (`/Users/x/app.ts dá erro` é o assunto).
+ */
+export function semComando(texto: string): string {
+  const semCmd = texto.replace(/^\/[\w:.-]+(?=\s|$)/, '');
+  if (semCmd === texto) return texto.trim();
+  let resto = semCmd.trim();
+  for (let m = resto.match(CAMINHO_A_FRENTE); m; m = resto.match(CAMINHO_A_FRENTE)) {
+    resto = resto.slice(m[0].length).trim();
+  }
+  return resto;
 }
 
 // O stdin nunca começa por `/` — vai embrulhado, para o CLI não o ler como comando.

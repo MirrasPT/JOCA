@@ -32,7 +32,7 @@ import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
 import { jocaAgentEnv, prepareClaudeHooksSettings, CLAUDE_HOOK_EVENTS } from './agent-bridge';
 import { pushNotification, resolveNotificationGroup } from './notifications/store';
-import { criarNomeadorHaiku, binParaNomear, modeloDeNomeLigado, pedidoParaModelo, type Nomeador } from './session-namer';
+import { criarNomeadorHaiku, binParaNomear, modeloDeNomeLigado, pedidoParaModelo, semComando, type Nomeador } from './session-namer';
 
 // Estado do AGENTE dentro do terminal, distinto do `status` (bytes a sair / silêncio):
 //   working → está a trabalhar num pedido · waiting → parou à espera de ti · done → acabou o turno.
@@ -56,7 +56,7 @@ export const NOME_AUTO_MAX = 40;
  */
 export function nomeDoPedido(prompt: string): string | null {
   let texto = prompt.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, ' ').trim();
-  texto = texto.replace(/^\/[\w:.-]+(?=\s|$)/, '').trim();          // `/goal`, `/plugin:cmd`
+  texto = semComando(texto);          // `/goal`, `/plugin:cmd`; `/resume "pasta"` sozinho → ''
   const linha = texto.split('\n').map((l) => l.trim()).find((l) => l.length > 0) ?? '';
   const limpo = linha
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')                // [texto](url) → texto

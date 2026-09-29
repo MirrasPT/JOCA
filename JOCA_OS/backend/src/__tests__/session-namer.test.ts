@@ -26,7 +26,7 @@ import { DATA_DIR } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
   higienizarNome, avaliarResposta, pedidoParaModelo, embrulharPedido, ambienteDoFilho, escolherBinWindows,
-  criarNomeadorHaiku, ARGS_HAIKU, NOME_MODELO_MAX, type Nomeador,
+  criarNomeadorHaiku, ARGS_HAIKU, NOME_MODELO_MAX, semComando, type Nomeador,
 } from '../session-namer';
 
 afterAll(() => { try { fs.rmSync(DATA_DIR, { recursive: true, force: true }); } catch { /* ok */ } });
@@ -77,6 +77,28 @@ describe('higienizarNome / avaliarResposta', () => {
   it('acima do limite de caracteres descarta-se, não se corta', () => {
     expect(higienizarNome('Internacionalização Configuração')).toBeNull();
     expect(higienizarNome('Internacionalização')!.length).toBeLessThanOrEqual(NOME_MODELO_MAX);
+  });
+});
+
+describe('semComando — comando só com caminho fica à espera', () => {
+  it('/resume com caminho e nada mais não diz em que se vai trabalhar', () => {
+    expect(semComando('/resume "/Users/x/Projetos/Bigorna"')).toBe('');
+    expect(semComando("/resume '/Users/x/Meu Projeto'")).toBe('');
+    expect(semComando('/resume ~/Projetos/Bigorna')).toBe('');
+    expect(semComando('/resume ./app')).toBe('');
+    expect(semComando('/resume C:\\Users\\renat\\Bigorna')).toBe('');
+    expect(semComando('/resume')).toBe('');
+  });
+  it('com texto depois do caminho, o nome sai do texto', () => {
+    expect(semComando('/resume "/Users/x/Bigorna" vamos corrigir o checkout')).toBe('vamos corrigir o checkout');
+    expect(semComando('/goal corrige o login')).toBe('corrige o login');
+  });
+  it('sem comando, o caminho é o assunto e fica', () => {
+    expect(semComando('/Users/x/app.ts dá erro')).toBe('/Users/x/app.ts dá erro');
+  });
+  it('pedidoParaModelo e nomeDoPedido seguem a mesma regra', () => {
+    expect(pedidoParaModelo('/resume "/Users/x/Bigorna"')).toBeNull();
+    expect(pedidoParaModelo('/resume "/Users/x/Bigorna" vamos fazer o deploy')).toBe('vamos fazer o deploy');
   });
 });
 
