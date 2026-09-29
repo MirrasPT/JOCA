@@ -242,6 +242,16 @@
   .toast-container .toast-dismiss { width: 44px; height: 44px; margin-top: 0; }
 }
 
+/* Reserva: a pilha recolhida fica fixa por cima do fundo do ecrã. As áreas de scroll das vistas
+   principais ganham por baixo a altura que ela ocupa (--toast-reserve, medida pelo componente e só
+   presente enquanto há avisos) — assim a última linha consegue sempre subir acima dela. */
+@media (max-width: 600px) {
+  .ag-body,
+  .dashboard-view:not(.project-workspace) .db-projects-grid {
+    padding-bottom: calc(var(--toast-reserve, 0px) + var(--sp-3));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .toast-container .toast { animation: none; }
 }

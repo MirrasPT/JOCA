@@ -6,7 +6,7 @@
 //   • um toast de `priority: 'action'` NÃO se auto-fecha. É um bloqueio à espera de resposta;
 //     evaporar-se ao fim de 5 segundos é perder o pedido, que é precisamente o oposto do que se
 //     pede a uma coisa marcada como "precisa de ti".
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { NotificationPriority } from '../types';
 import { hasNotificationTarget, type NotificationTarget } from '../lib/notify';
 import { waitedFor } from './WaitingQueue';
@@ -150,6 +150,39 @@ export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenT
     if (toasts.length <= VISIVEIS_ESTREITO) setAberto(false);
   }
 
+  // Reserva de espaço: a pilha recolhida é fixa por cima da página, e no telemóvel tapava a última
+  // linha de cada lista mesmo com o scroll no fim. Publica-se a altura que ela ocupa (do topo dela ao
+  // fundo do ecrã) em --toast-reserve; as áreas de scroll juntam-na ao padding de baixo (só < 600px,
+  // no CSS). Aberta, a reserva não cresce — abrir foi escolha tua e fecha-se por fora ou Escape.
+  const ref = useRef<HTMLDivElement>(null);
+  const temAvisos = toasts.length > 0;
+  useEffect(() => {
+    const el = ref.current;
+    const root = document.documentElement;
+    if (!el || !temAvisos) { root.style.removeProperty('--toast-reserve'); return; }
+    if (aberto) return;
+    const medir = () => {
+      const top = el.getBoundingClientRect().top;
+      root.style.setProperty('--toast-reserve', `${Math.max(0, Math.ceil(window.innerHeight - top))}px`);
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    window.addEventListener('resize', medir);
+    return () => { ro.disconnect(); window.removeEventListener('resize', medir); };
+  }, [temAvisos, aberto]);
+  useEffect(() => () => { document.documentElement.style.removeProperty('--toast-reserve'); }, []);
+
+  // Aberta, fecha com um toque fora dela ou com Escape.
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setAberto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAberto(false); };
+    document.addEventListener('pointerdown', fora);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', fora); document.removeEventListener('keydown', esc); };
+  }, [aberto]);
+
   const classes = [
     'toast-container',
     aberto ? 'is-open' : '',
@@ -157,10 +190,11 @@ export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenT
     escondidosEstreito > 0 ? 'has-more-narrow' : '',
   ].filter(Boolean).join(' ');
 
-  // A região existe sempre, vazia ou não: um aria-live só anuncia o que entra DEPOIS de ele estar
-  // no DOM — montá-lo junto com o 1.º toast fazia o leitor de ecrã calar-se precisamente nesse.
+  // O «+N» fica FORA da região viva: a contagem muda a cada aviso e seria anunciada de novo.
+  // A região (só os avisos) existe sempre, vazia ou não: um aria-live só anuncia o que entra DEPOIS
+  // de ele estar no DOM — montá-lo junto com o 1.º aviso calava o leitor de ecrã nesse.
   return (
-    <div className={classes} role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
+    <div ref={ref} className={classes}>
       {escondidosEstreito > 0 && (
         <button
           type="button"
@@ -177,7 +211,7 @@ export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenT
         </button>
       )}
       {/* A pilha rola dentro de si quando aberta; o «+N» fica fora dela, sempre à vista. */}
-      <div className="toast-stack">
+      <div className="toast-stack" role="region" aria-label="Avisos" aria-live="polite" aria-relevant="additions">
         {toasts.map((t) => (
           <Toast key={t.id} item={t} onDismiss={onDismiss} onSelect={onSelect} onOpenTarget={onOpenTarget} />
         ))}
