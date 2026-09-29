@@ -11,6 +11,8 @@ export default defineConfig({
   test: {
     env: {
       JOCA_DATA_DIR: path.join(os.tmpdir(), 'joca-os-test-data'),
+      // O 1.º pedido de um terminal ia ao Haiku pelo `claude` real — nos testes, nunca.
+      JOCA_AUTO_NAME_MODEL: 'off',
     },
     // Apaga a pasta de hooks que um terminal claude aberto nos testes cria (ver o ficheiro).
     setupFiles: ['src/__tests__/setup-hooks.ts'],

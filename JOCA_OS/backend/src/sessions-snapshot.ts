@@ -22,11 +22,14 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { DATA_DIR, readJsonFile, writeFileAtomic } from './project-store';
 import { sessionManager } from './session-manager';
+import type { NameSource } from './session-manager';
 import type { CliId } from './cli-profiles';
 
 export interface SnapshotSession {
   id: string;
   name: string;
+  /** De onde veio o nome (#12). Opcional: retratos anteriores não o têm. */
+  nameSource?: NameSource;
   cwd: string;
   projectId?: string;
   cli: CliId;
@@ -226,6 +229,7 @@ function currentSnapshot(): SessionsSnapshot {
     sessions: sessionManager.list().map((s) => ({
       id: s.id,
       name: s.name,
+      nameSource: s.nameSource,
       cwd: s.cwd,
       ...(s.projectId ? { projectId: s.projectId } : {}),
       cli: s.cli,
@@ -282,6 +286,7 @@ export function installSessionsSnapshot(): void {
 
   sessionManager.on('output', scheduleSessionsSnapshot);
   sessionManager.on('status', scheduleSessionsSnapshot);
+  sessionManager.on('renamed', scheduleSessionsSnapshot);
   // Criar e fechar são momentos raros e caros de perder → flush imediato.
   sessionManager.on('spawn', flushSessionsSnapshot);
   sessionManager.on('closed', flushSessionsSnapshot);
