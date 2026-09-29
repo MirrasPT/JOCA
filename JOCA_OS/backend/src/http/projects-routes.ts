@@ -12,6 +12,8 @@ import {
 import { sanitizeToolkitName, sanitizeToolkitCategory } from './helpers';
 import { loadProjectGroups, pruneEmptyGroups } from '../project-groups-store';
 import { iconsRouter, parseIconInput, collectIconIfUnused } from './icons-routes';
+import { sessionManager } from '../session-manager';
+import { listOpenPorts, PortsUnavailableError } from '../ports';
 
 // Projects CRUD + per-project git status + per-project toolkit scaffolding.
 export function projectsRouter(): Router {
@@ -208,6 +210,24 @@ export function projectsRouter(): Router {
       });
     } catch (e) {
       res.json({ isRepository: false, error: String(e) });
+    }
+  });
+
+  // Portas TCP em escuta abertas pelos terminais deste projecto (issue #13) — «dev server em
+  // :5173, abrir». Só leitura; a lógica e a cache vivem em ports.ts.
+  r.get('/projects/:id/ports', async (req, res, next) => {
+    if (!loadProjects().some((pr) => pr.id === req.params.id)) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    try {
+      const sessions = sessionManager.list()
+        .filter((s) => s.projectId === req.params.id && typeof s.pty.pid === 'number')
+        .map((s) => ({ id: s.id, name: s.name, pid: s.pty.pid }));
+      res.json(await listOpenPorts(sessions));
+    } catch (e) {
+      // Não conseguir ler o sistema ≠ não haver portas: 503 para a UI dizer «não foi possível».
+      if (e instanceof PortsUnavailableError) return res.status(503).json({ error: 'indisponível' });
+      next(e);
     }
   });
 
