@@ -33,9 +33,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: JOCA_OS/backend/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npx vitest run
@@ -51,8 +49,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: JOCA_OS/frontend/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npx eslint .
       - run: npm run build
