@@ -73,7 +73,8 @@ export function semComando(texto: string, existe: (p: string) => boolean = fs.ex
   const palavras = linha.split(/ +/);
   if (!PARECE_CAMINHO.test(palavras[0])) return resto;
   let n = 1;
-  for (let i = palavras.length; i > 1; i--) {
+  // Uma pasta não tem dezenas de palavras: o tecto evita dezenas de `existsSync` numa linha longa.
+  for (let i = Math.min(palavras.length, 12); i > 1; i--) {
     if (existe(expandir(palavras.slice(0, i).join(' ')))) { n = i; break; }
   }
   return (palavras.slice(n).join(' ') + depois).trim();
