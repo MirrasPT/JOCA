@@ -1,10 +1,11 @@
 // System routes — the persistent-inbox / multi-CLI surface.
 //   /notifications  → persistent inbox (survives closed tabs; unread state)
+//   /notifications/queue · /:id/snooze → fila «à espera de ti» e o «adiar»
 //   /cli-profiles   → the CLIs a session can run on, with availability
 import express, { Router } from 'express';
 import {
   loadNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification, unreadCount,
-  pushNotification,
+  pushNotification, waitingQueue, snoozeNotification, SNOOZE_MINUTES,
 } from '../notifications/store';
 import { loadCliProfiles, CLI_IDS, type CliId } from '../cli-profiles';
 import { binExists } from '../providers/provider';
@@ -124,6 +125,23 @@ export function systemRouter(): Router {
       unread: unreadCount(),
       notifications: (onlyUnread ? list.filter((n) => !n.read) : list).slice(-200).reverse(),
     });
+  });
+
+  // Fila «à espera de ti»: só o que precisa de decisão, mais antigo primeiro, sem os adiados.
+  r.get('/notifications/queue', (_req, res) => {
+    res.json(waitingQueue());
+  });
+
+  // Adiar uma entrada da fila por uma das durações fixas (SNOOZE_MINUTES).
+  r.post('/notifications/:id/snooze', express.json(), (req, res) => {
+    const minutes = (req.body ?? {}).minutes;
+    if (!(SNOOZE_MINUTES as readonly unknown[]).includes(minutes)) {
+      return res.status(400).json({ error: `minutes tem de ser um de: ${SNOOZE_MINUTES.join(', ')}` });
+    }
+    const out = snoozeNotification(req.params.id, minutes as number);
+    if (out === 'not_found') return res.status(404).json({ error: 'not found' });
+    if (out === 'not_waiting') return res.status(409).json({ error: 'já não está à espera de ti' });
+    res.json(out);
   });
 
   // Push a notification into the inbox. Used by agents inside terminals (joca notify) to reach the

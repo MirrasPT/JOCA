@@ -38,6 +38,8 @@ interface Props {
   onShowDashboard: () => void;
   /** Vista global de agentes (todos os projectos num sítio só). */
   onShowAgents: () => void;
+  /** Quantas entradas estão na fila «à espera de ti» (vista de Agentes). */
+  waitingCount?: number;
   onShowProject: (projectId: string) => void;
   /** Abrir um agente solto (sem projecto) directamente da barra. */
   onOpenSession: (id: string) => void;
@@ -965,7 +967,7 @@ function ProjectFolder({
 // ── Main sidebar ───────────────────────────────────────────────────
 
 export default function SessionSidebar({
-  envLabel, sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAgents, onShowProject,
+  envLabel, sessions, projects, projectGroups, mainView, collapsed, onToggleCollapsed, onShowDashboard, onShowAgents, waitingCount = 0, onShowProject,
   onOpenSession, onRenameSession, onClose, onNew, onCreateProject, onOpenSettings, onInput: _onInput, onRenameProject,
   onArchiveProject, onReorderProjects, onGroupProjects, onUngroupProject, onRemoveProject, onRenameGroup, onSetGroupIcon, onToggleGroupCollapsed,
 }: Props) {
@@ -1205,11 +1207,20 @@ export default function SessionSidebar({
             className={`nav-btn ${mainView === 'agents' ? 'active' : ''}`}
             type="button"
             onClick={onShowAgents}
-            aria-label="Agentes"
+            aria-label={waitingCount > 0 ? `Agentes — ${waitingCount} à espera de ti` : 'Agentes'}
             aria-current={mainView === 'agents' ? 'page' : undefined}
           >
             <span className="nav-icon"><LucideIcon name="terminal" /></span>
             <span>Agentes</span>
+            {waitingCount > 0 && (
+              <span
+                className="project-group-badge project-group-badge--waiting nav-badge"
+                title={`${waitingCount} à espera de ti`}
+                aria-hidden
+              >
+                {waitingCount}
+              </span>
+            )}
           </button>
         </div>
 

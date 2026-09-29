@@ -191,12 +191,19 @@ export interface AppNotification {
   read: boolean;
   priority?: NotificationPriority;
   count?: number;      // >1 → repetições do mesmo evento, agrupadas
+  snoozedUntil?: number; // «Adiar» na fila «à espera de ti» (epoch ms)
   meta?: {
     sessionId?: string;
     projectId?: string; area?: string; groupKey?: string;
   };
 }
 
+/** GET /notifications/queue — só o que precisa de ti, a mais antiga primeiro, sem as adiadas. */
+export interface WaitingQueueResponse {
+  queue: AppNotification[];
+  snoozed: number;
+  nextWakeAt?: number;
+}
 
 export interface CliProfileInfo {
   id: 'claude' | 'codex' | 'agy' | 'opencode';

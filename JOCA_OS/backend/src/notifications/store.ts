@@ -26,6 +26,9 @@ export interface AppNotification {
   priority?: NotificationPriority;      // default 'info'
   // How many events this entry stands for. >1 means later events were folded in (see groupKey).
   count?: number;
+  // «Adiar» na fila «à espera de ti»: até este instante (epoch ms) a entrada sai da fila; depois
+  // volta sozinha. Só esconde — continua por ler e continua a ser resolvida como as outras.
+  snoozedUntil?: number;
   // optional deep-link context so the UI can jump to the source
   meta?: {
     sessionId?: string;
@@ -152,4 +155,45 @@ export function deleteNotification(id: string): boolean {
 
 export function unreadCount(): number {
   return loadNotifications().filter((n) => !n.read).length;
+}
+
+// ── Fila «à espera de ti» ─────────────────────────────────────────────────────
+// A mesma inbox, vista pelo lado do que te bloqueia: só entradas de acção por ler, a mais antiga
+// primeiro (quem espera há mais tempo passa à frente), sem as adiadas. Não há estado próprio — o
+// «adiar» é um campo da notificação, por isso persiste (e sobrevive a um reinício) como o resto.
+//
+// Voltar a entrar em espera DEPOIS de ter saído traz a sessão de volta mesmo com um adiamento
+// pendente: sair resolve a entrada (read) e a entrada seguinte nasce nova, sem `snoozedUntil`.
+
+// Durações oferecidas pelo botão «Adiar». Lista fechada: a rota recusa o resto.
+export const SNOOZE_MINUTES = [15, 60, 240] as const;
+
+export interface WaitingQueue {
+  queue: AppNotification[];   // por ordem de espera, a mais antiga primeiro
+  snoozed: number;            // quantas estão adiadas agora
+  nextWakeAt?: number;        // quando acaba o adiamento mais próximo (a UI refaz o pedido aí)
+}
+
+const isWaiting = (n: AppNotification) => !n.read && n.priority === 'action';
+
+export function waitingQueue(now: number = Date.now()): WaitingQueue {
+  const waiting = loadNotifications().filter(isWaiting);
+  const snoozed = waiting.filter((n) => (n.snoozedUntil ?? 0) > now);
+  const queue = waiting.filter((n) => (n.snoozedUntil ?? 0) <= now).sort((a, b) => a.ts - b.ts);
+  const nextWakeAt = snoozed.length ? Math.min(...snoozed.map((n) => n.snoozedUntil as number)) : undefined;
+  return { queue, snoozed: snoozed.length, ...(nextWakeAt ? { nextWakeAt } : {}) };
+}
+
+// Adia uma entrada da fila. Só o que está mesmo à espera (acção, por ler): adiar uma coisa já
+// resolvida não faria nada visível e escondia o erro de quem chamou.
+export function snoozeNotification(
+  id: string, minutes: number, now: number = Date.now(),
+): AppNotification | 'not_found' | 'not_waiting' {
+  const list = loadNotifications();
+  const n = list.find((x) => x.id === id);
+  if (!n) return 'not_found';
+  if (!isWaiting(n)) return 'not_waiting';
+  n.snoozedUntil = now + minutes * 60_000;
+  saveNotifications(list);
+  return n;
 }

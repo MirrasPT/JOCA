@@ -259,3 +259,13 @@
   font: 600 12px var(--font-ui);
   outline: none;
 }
+
+/* ── Fila «à espera de ti» (issue #11) ──────────────────────────────────────────
+   À cabeça da vista: as linhas são as dos agentes em espera (.pw-worker.is-waiting), mais o botão
+   «Adiar». A razão ocupa o espaço do caminho — é ela que diz o que tens de decidir. */
+.wq-count { color: var(--accent-text); border-color: var(--accent-border); background: var(--accent-soft); }
+.wq-snoozed { color: var(--text-ghost); font-size: 11px; }
+.wq-row .pw-worker-job { color: var(--text-secondary); }
+.wq-project { color: var(--text-dim); border-color: var(--border-bento); }
+.agents-view .wq-snooze-btn { min-height: 28px; padding: 4px 11px; font-size: 11.5px; flex: 0 0 auto; }
+.wq-snooze { flex: 0 0 auto; }
