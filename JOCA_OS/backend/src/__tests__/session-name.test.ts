@@ -31,8 +31,8 @@ afterAll(() => { try { fs.rmSync(DATA_DIR, { recursive: true, force: true }); } 
 
 describe('nomeDoPedido', () => {
   it('/resume só com a pasta não dá nome: espera pelo pedido seguinte', () => {
-    expect(nomeDoPedido('/resume "/Users/x/Projetos/Bigorna"')).toBeNull();
-    expect(nomeDoPedido('/resume "/Users/x/Projetos/Bigorna" vamos fazer o deploy')).toBe('vamos fazer o deploy');
+    expect(nomeDoPedido('/resume "/Users/x/Projetos/Acme"')).toBeNull();
+    expect(nomeDoPedido('/resume "/Users/x/Projetos/Acme" vamos fazer o deploy')).toBe('vamos fazer o deploy');
   });
 
   it('pedido curto fica tal e qual, com os acentos', () => {
@@ -125,7 +125,7 @@ describe('nome automático no sessionManager', () => {
   it('`/resume "pasta"` sozinho não dá nome; o pedido seguinte dá', () => {
     const s = nova();
     const antes = s.name;
-    sessionManager.agentEvent(s.id, 'UserPromptSubmit', { prompt: '/resume "/Users/x/Projetos/Bigorna"' });
+    sessionManager.agentEvent(s.id, 'UserPromptSubmit', { prompt: '/resume "/Users/x/Projetos/Acme"' });
     expect(s.name).toBe(antes);
     expect(s.nameSource).toBe('default');
     sessionManager.agentEvent(s.id, 'Stop');
@@ -143,10 +143,10 @@ describe('nome automático no sessionManager', () => {
   });
 
   it('nome dado ao criar (projecto, skill) conta como teu', () => {
-    const s = nova('Bigorna');
+    const s = nova('Acme');
     expect(s.nameSource).toBe('user');
     sessionManager.agentEvent(s.id, 'UserPromptSubmit', { prompt: 'faz o deploy' });
-    expect(s.name).toBe('Bigorna');
+    expect(s.name).toBe('Acme');
   });
 
   it('rename manual depois do automático fica teu', () => {

@@ -411,7 +411,7 @@ Known gotchas: heavy display inks bleed past their glyph box; rotating a text bl
 
 **Run an asset-readiness check at the START of any branding/print job**, not at the end. For each brand involved, a table: `format · vector? · transparent? · usable for a lockup?`. One session only discovered at inventory-close that the third-party mark existed solely as JPEG on a solid background — blocking for any co-branding lockup.
 
-**Assets in cloud-sync folders (Google Drive File Stream, `G:`, `D:\Mega`):** never run a recursive `find`/`find -iname` from the client root. File Stream materializes each folder as it is walked and the call hangs past the Bash timeout with no error (happened twice in one session). Navigate to known paths with targeted `ls` instead.
+**Assets in cloud-sync folders (Google Drive File Stream, `G:`, `<MEGA_DIR>`):** never run a recursive `find`/`find -iname` from the client root. File Stream materializes each folder as it is walked and the call hangs past the Bash timeout with no error (happened twice in one session). Navigate to known paths with targeted `ls` instead.
 
 **Also:** after structural edits to large files inside a sync folder, verify an invariant (section/page/ID count) before continuing — a whole brandbook section vanished mid-edit-sequence because the sync regressed the file between writes.
 
