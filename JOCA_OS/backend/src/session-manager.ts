@@ -195,8 +195,9 @@ const SHELL = IS_WINDOWS
   : (process.env.SHELL || '/bin/zsh');
 // Rolling per-session output buffer. 5 MB × 30 sessions was 150 MB of live strings and a real
 // cause of the "JOCA gets slow after a while" reports; 1.5 MB still covers a long scrollback for
-// the judge/tail readers (which only ever look at the last few KB).
-const BUFFER_MAX = 1_500_000;
+// the judge/tail readers (which only ever look at the last few KB). Raised to 3 MB (~90 MB with 30
+// sessions) for a longer replay after a frontend reload — a middle ground, not back to 5 MB.
+const BUFFER_MAX = 3_000_000;
 const IDLE_DEBOUNCE_MS = 1500;
 const DONE_MIN_WORK_MS = 2000;
 // Um turno interrompido (Esc, Ctrl+C, o botão de interromper do JOCA) NÃO emite Stop, e sem isto a
