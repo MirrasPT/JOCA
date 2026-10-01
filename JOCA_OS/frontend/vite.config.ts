@@ -36,6 +36,7 @@ export default defineConfig({
       '/cli-profiles': { target: http },
       '/pick-folder': { target: http },
       '/sessions': { target: http },
+      '/shutdown': { target: http },
     },
   },
 });

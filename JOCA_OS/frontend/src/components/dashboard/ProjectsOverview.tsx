@@ -7,6 +7,7 @@ import { STATE_LABEL, shownState, stateText } from '../../lib/agent-state';
 import { FolderIcon, TerminalIcon, ActivityIcon, ShuffleIcon, BrainIcon } from './icons';
 import InlineName from '../InlineName';
 import { SaveAllButton, SaveAllConfirm, mensagemSaveAll, planoSaveAll } from './SaveAll';
+import { ExitButton, ExitConfirm, ExitScreen, pedirSaida } from './Exit';
 import type { RateLimits } from './RateBar';
 
 /** Quanto tempo fica no ecrã o resultado do Save all antes de se apagar sozinho. */
@@ -46,6 +47,10 @@ export default function ProjectsOverview({
   const plano = useMemo(() => planoSaveAll(sessions), [sessions]);
   const [confirmarSaveAll, setConfirmarSaveAll] = useState(false);
   const [resultadoSaveAll, setResultadoSaveAll] = useState('');
+  // Sair: confirmar → POST /shutdown → ecrã final. `erroSaida` fica no diálogo se o backend recusar.
+  const [confirmarSaida, setConfirmarSaida] = useState(false);
+  const [erroSaida, setErroSaida] = useState('');
+  const [encerrado, setEncerrado] = useState(false);
 
   // O resultado é um aviso, não um estado permanente: sem isto ficava a dizer "enviado a 4
   // conversas" horas depois, a descrever uma coisa que já não é verdade.
@@ -65,6 +70,7 @@ export default function ProjectsOverview({
         <div className="dashboard-header-side">
           <div className="dashboard-header-actions">
             <SaveAllButton plano={plano} onClick={() => setConfirmarSaveAll(true)} />
+            <ExitButton onClick={() => { setErroSaida(''); setConfirmarSaida(true); }} />
             <button className="f-btn" type="button" onClick={onCreateProject}>
               <FolderIcon /> Novo projecto
             </button>
@@ -86,6 +92,19 @@ export default function ProjectsOverview({
           }}
         />
       )}
+
+      {confirmarSaida && (
+        <ExitConfirm
+          conversasAbertas={plano.total}
+          erro={erroSaida}
+          onCancel={() => setConfirmarSaida(false)}
+          onConfirm={async () => {
+            if (await pedirSaida()) { setConfirmarSaida(false); setEncerrado(true); }
+            else setErroSaida('O JOCA OS não aceitou o pedido. Usa o stop.bat / stop.sh na pasta JOCA_OS.');
+          }}
+        />
+      )}
+      {encerrado && <ExitScreen />}
 
       <div className="db-stats-grid">
         <div className="db-stat-card">
