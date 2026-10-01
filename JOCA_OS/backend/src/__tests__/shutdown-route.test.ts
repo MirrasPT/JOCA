@@ -25,7 +25,9 @@ describe('stopCommand', () => {
   it('Windows → stop.bat via `cmd /c start` (sai da árvore do backend)', () => {
     const s = stopCommand('win32', 'C:\\x\\JOCA_OS');
     expect(s.cmd).toBe('cmd.exe');
-    expect(s.args.join(' ')).toContain('start "" /min "C:\\x\\JOCA_OS\\stop.bat"');
+    // `/c` e não `/K`: o stop.bat corre num cmd que fecha sozinho (sem janela pendurada).
+    expect(s.args.join(' ')).toContain('start "" /min cmd /d /c "C:\\x\\JOCA_OS\\stop.bat"');
+    expect(s.args.join(' ')).not.toMatch(/\/k\b/i);
     expect(s.args.join(' ')).not.toContain('stop.sh');
     expect(s.windowsVerbatimArguments).toBe(true);
   });

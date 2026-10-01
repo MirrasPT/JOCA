@@ -22,9 +22,11 @@ export function stopCommand(platform: NodeJS.Platform = process.platform, dir = 
   if (platform === 'win32') {
     const bat = path.win32.join(dir, 'stop.bat');
     // Verbatim: o Node não re-escapa as aspas; o `/s` tira só o par exterior. `""` é o título do start.
+    // `cmd /d /c` explícito: um .bat lançado directo pelo `start` abre como `cmd /K` e a janela fica
+    // aberta para sempre (presa à pasta). Com `/c` fecha quando o stop.bat acaba.
     return {
       cmd: 'cmd.exe',
-      args: ['/d', '/s', '/c', `"start "" /min "${bat}""`],
+      args: ['/d', '/s', '/c', `"start "" /min cmd /d /c "${bat}""`],
       windowsVerbatimArguments: true,
     };
   }
