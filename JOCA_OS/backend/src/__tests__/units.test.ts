@@ -82,6 +82,20 @@ describe('cli-profiles', () => {
     expect(buildLaunchLine(codex, 'codex', { autonomous: true })).toBe('codex --dangerously-bypass-approvals-and-sandbox');
   });
 
+  it('skip-permissions: cada CLI recebe a sua flag só com a setting activa', () => {
+    const flags: Record<string, string> = {
+      claude: '--dangerously-skip-permissions',
+      codex: '--dangerously-bypass-approvals-and-sandbox',
+      agy: '--dangerously-skip-permissions',
+    };
+    for (const [id, flag] of Object.entries(flags)) {
+      const profile = getCliProfile(id);
+      expect(buildLaunchLine(profile, id, { autonomous: true })).toBe(`${id} ${flag}`);
+      expect(buildLaunchLine(profile, id, { autonomous: false })).toBe(id);
+      expect(buildLaunchLine(profile, id, {})).toBe(id);
+    }
+  });
+
   it('buildLaunchLine: rejects shell-unsafe model values', () => {
     const claude = getCliProfile('claude');
     expect(buildLaunchLine(claude, 'claude', { model: 'opus; rm -rf ~' })).toBe('claude');

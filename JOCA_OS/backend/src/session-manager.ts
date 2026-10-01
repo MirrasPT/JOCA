@@ -451,7 +451,8 @@ export class SessionManager extends EventEmitter {
     }
 
     // Launch the selected CLI. The autonomous toggle maps to each profile's own flags
-    // (claude → --dangerously-skip-permissions, codex → --dangerously-bypass-approvals-and-sandbox, …).
+    // (claude → --dangerously-skip-permissions, codex → --dangerously-bypass-approvals-and-sandbox,
+    // agy → --dangerously-skip-permissions, …).
     const launchLine = buildLaunchLine(profile, findBin(profile.bin), {
       model: opts.model,
       autonomous: loadUiSettings().skipPermissions,

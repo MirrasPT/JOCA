@@ -52,7 +52,8 @@ const DEFAULTS: Record<CliId, CliProfile> = {
   agy: {
     id: 'agy', label: 'Antigravity', bin: 'agy',
     modelFlag: '--model',
-    autonomousFlags: [],
+    // `agy --help` (1.2.14): «Auto-approve all tool permission requests without prompting».
+    autonomousFlags: ['--dangerously-skip-permissions'],
     extraFlags: [],
     startupSequence: true,
     // O agy não reconhece comandos custom com `/` — recebe `resume "<pasta>"` como prompt normal.

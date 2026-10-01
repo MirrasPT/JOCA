@@ -302,12 +302,15 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
         <div className="settings-service-card">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">claude</span>
-            <span>Claude Code</span>
+            <span>Claude Code · Codex · Antigravity</span>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer' }}>
             <input type="checkbox" checked={skipPermissions} onChange={toggleSkipPermissions} />
-            <span>Saltar os pedidos de permissão <code style={{ fontSize: '0.8em', opacity: 0.6 }}>--dangerously-skip-permissions</code></span>
+            <span>Saltar os pedidos de permissão (Claude Code, Codex e Antigravity)</span>
           </label>
+          <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>
+            <code>claude --dangerously-skip-permissions</code> · <code>codex --dangerously-bypass-approvals-and-sandbox</code> · <code>agy --dangerously-skip-permissions</code>
+          </p>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
         </div>
         {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
