@@ -29,7 +29,9 @@ brief lhe indica e este contrato.
 ## 2. Onde vive cada coisa
 
 ### Pack (instalado)
-- Skills: `skills/marketeer.md`, `skills/marketeer-review.md`, `skills/mkt-*.md`.
+- Skills: `marketeer`, `marketeer-review`, `mkt-*`. **Caminho de uma skill do pack** (`<SKILL:nome>`):
+  no JOCA `<JOCA_Brain>/.claude/skills/<nome>.md`; instalação autónoma `~/.claude/skills/<nome>/SKILL.md`.
+  Confirma-se com `ls`; o brief de um agente leva sempre o caminho absoluto.
 - Comandos: `commands/marketeer.md`, `commands/marketeer-review.md`.
 - Agentes: `agents/mkt-*-agent.md`.
 - Motor: `marketeer/` (este diretório) — `scripts/`, `modelos/`, `referencias/`, `test/`, `package.json`.

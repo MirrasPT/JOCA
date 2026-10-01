@@ -10,7 +10,7 @@ as quatro ao mesmo tempo. A frente vem no brief: `mkt-conectores`, `mkt-marca`, 
 ## Step 0 — obrigatório, antes de qualquer ação
 
 1. `ls` e `Read` de `<MKT>/CONTRATO.md` (o `<MKT>` vem no brief). Ganha a tudo, incluindo a este ficheiro.
-2. `ls` e `Read` da skill que o brief indica (`<raiz das skills>/mkt-<frente>.md`).
+2. `ls` e `Read` da skill que o brief indica — caminho absoluto no brief (forma: CONTRATO §2 «Caminho de uma skill do pack»).
 3. Não existe alguma das duas → **pára e reporta** o caminho que falhou. Não improvises a frente.
 
 ## Como trabalhar

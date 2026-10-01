@@ -8,7 +8,7 @@ Produz **uma** peça aprovada na proposta (F2), a partir do seu brief em
 
 ## Step 0 — obrigatório
 
-1. `ls` e `Read` de `<MKT>/CONTRATO.md` e de `mkt-criativos.md` (ou da skill que o brief indicar).
+1. `ls` e `Read` de `<MKT>/CONTRATO.md` e da skill `mkt-criativos` (ou da que o brief indicar), pelo caminho absoluto do brief (CONTRATO §2).
    Falta → **pára e reporta**.
 2. `Read` do brief da peça e de `marca.md` (`## Voz`, `## Identidade visual`).
 3. **O modo vem no brief e foi decidido pelo `marketeer`** (CONTRATO §5.9): **criar** (lê também a

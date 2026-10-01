@@ -4,8 +4,8 @@ argument-hint: "<marca>"
 ---
 # /marketeer-review — review do ciclo de marketing
 
-Invoca a skill **marketeer-review**: `Read(".claude/skills/marketeer-review.md")` (instalado sem o
-JOCA: `~/.claude/skills/marketeer-review.md`) e segue-a com `$ARGUMENTS`.
+Invoca a skill **marketeer-review**: `Read` do primeiro que existir: `.claude/skills/marketeer-review.md` (JOCA) ou
+`~/.claude/skills/marketeer-review/SKILL.md` (instalação autónoma), e segue-a com `$ARGUMENTS`.
 
 - `$ARGUMENTS` = `<marca>`. Sem marca → a skill pergunta.
 - Lê e propõe; as propostas entram no ciclo novo pelo gate da proposta do `/marketeer`. **Única escrita nas
