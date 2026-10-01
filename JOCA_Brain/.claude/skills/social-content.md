@@ -1,6 +1,6 @@
 ---
 name: social-content
-description: "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement,."
+description: "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post, Twitter thread, social media, engagement, social post copy. For dated publishing calendars use content-calendar; for scheduling/publishing use social-scheduler."
 metadata:
   version: 1.3.0
 ---
@@ -19,8 +19,8 @@ When the task supplies visual references (e.g. "cria N posts a partir destas N r
 
 ## Before Creating Content
 
-**Check product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for missing or task-specific information.
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather this context (ask if not provided):
 
@@ -183,6 +183,8 @@ Extract "content atoms" — self-contained moments from long-form content that w
 
 ## Content Calendar Structure
 
+> Owner of the dated, multi-platform calendar (slots, timezones, assets per slot) is **`content-calendar`**; actual scheduling/publishing is **`social-scheduler`**. Use this section only as a quick weekly sketch inside a content plan.
+
 ### Weekly Planning Template
 
 | Day | LinkedIn | Twitter/X | Instagram |
@@ -281,6 +283,8 @@ Extract "content atoms" — self-contained moments from long-form content that w
 
 ## Scheduling Best Practices
 
+> To schedule or publish, use **`social-scheduler`** (TryPost executor). Notes below are planning guidance only.
+
 ### Schedule vs. Post Live
 
 **Schedule:** Core content posts, Threads, Carousels, Evergreen content
@@ -358,7 +362,7 @@ All three should hit in the first second.
 
 ### Caption and Subtitle Best Practices
 
-Captions increase watch time by 25-40%. Most social video is watched muted.
+Captions increase watch time [unverified size]. Much social video is watched muted [unverified share].
 
 - **MAX 2 lines** on screen at once
 - **3-5 words per line**
@@ -404,4 +408,4 @@ Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
 - **copywriting**: Longer-form content that feeds social
 - **launch-strategy**: Coordinating social with launches
 - **email-sequence**: Nurturing social audience via email
-- **marketing-psychology**: Understanding what drives engagement
+- **mkt-psicologia** (marketeer pack): Understanding what drives engagement, and its ethical limits

@@ -27,6 +27,8 @@ Se a marca é conhecida (Anthropic, Nike, Stripe, marca local, etc.):
 
 ### Passo 1 · Discovery — 6 perguntas
 
+**Check the brand profile first:** If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs. Its `## Identidade visual` and `## Voz` sections feed steps 1 and 5.
+
 Uma ronda, tudo de uma vez:
 
 ```

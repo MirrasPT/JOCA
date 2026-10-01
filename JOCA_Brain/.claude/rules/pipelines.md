@@ -124,6 +124,11 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
 | **Retro** | `/retro` → lê aprendizagens da janela → propõe acções |
 
+### Marketing
+| Pipeline | Sequência |
+|---|---|
+| **Marketing de marca** (`/marketeer <marca>`) | F1 análise (`mkt-conectores`∥`mkt-marca`∥`mkt-mercado`∥`mkt-auditoria` → `mkt-relatorio`) → F2 `mkt-estrategia` → (`mkt-copy`∥`mkt-medicao`) → `mkt-psicologia` → `mkt-revisor-agent` ⛔ proposta → F3 `mkt-criativos` ⛔ artes → ⛔ gate de medição → F4 `mkt-*` por plataforma (tudo em pausa) ⛔ → `/marketeer-review` → ciclo novo. Detalhe: `.claude/marketeer/CONTRATO.md` |
+
 ### Arranque de produto
 | Pipeline | Sequência |
 |---|---|

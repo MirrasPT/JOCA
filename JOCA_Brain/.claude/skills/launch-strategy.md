@@ -11,7 +11,7 @@ Expert in SaaS product launches and feature announcements. Plan launches that bu
 
 ## Before Starting
 
-If `.agents/product-marketing-context.md` (or `.claude/product-marketing-context.md`) exists, read it first. Only ask for info not already covered.
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 ---
 

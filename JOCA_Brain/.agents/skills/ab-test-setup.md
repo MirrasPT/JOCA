@@ -11,8 +11,8 @@ Expert in experimentation and A/B testing. Design tests that produce statistical
 
 ## Initial Assessment
 
-**Check product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking questions. Use that context; only ask for info not covered or specific to this task.
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Before designing a test, understand:
 
@@ -239,7 +239,7 @@ Score each hypothesis 1-10 on three dimensions:
 | Metric | Target |
 |--------|--------|
 | Experiments launched per month | 4-8 for most teams |
-| Win rate | 20-30% is healthy |
+| Win rate | 20-30% is healthy [unverified benchmark] |
 | Average test duration | 2-4 weeks |
 | Backlog depth | 20+ hypotheses queued |
 

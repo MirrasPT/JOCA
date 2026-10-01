@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- graphify, routing
 │   └── .claude/
-│       ├── commands/        <- 25 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 103 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 145 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 31 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 109 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 173 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**281 componentes:** 149 skills + 103 agents + 29 commands.
+**313 componentes:** 173 skills + 109 agents + 31 commands.
 
 ---
 
@@ -112,7 +112,7 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ---
 
-## Skills (151)
+## Skills (173)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
@@ -163,7 +163,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 
 ---
 
-## Agents (105)
+## Agents (109)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -190,7 +190,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (29)
+## Commands (31)
 
 | Command | Funcao |
 |---------|--------|
@@ -198,6 +198,8 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/start` | Arranca um projecto novo ou liga um existente ao JOCA |
 | `/resume` | Carrega contexto no inicio da sessao |
 | `/save` | Guarda estado no fim da sessao |
+| `/marketeer <marca>` | Ciclo de marketing de uma marca: analise → proposta → artes → implementacao (em pausa) |
+| `/marketeer-review <marca>` | Revisao de resultados e ciclo seguinte |
 | `/plan` | Plan Mode — arquitectura |
 | `/debug` | Triage de erros + skill do stack detectado |
 | `/review-code` | Code review + adversarial via Codex |

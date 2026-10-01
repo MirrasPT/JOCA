@@ -42,7 +42,7 @@ Preencher **antes** de escrever código. Uma linha por ponto de recolha (formul�
 ## 2 — Banner de consentimento (padrão)
 
 Regras não-negociáveis:
-- **Opt-in prévio** — scripts não-essenciais (analytics, marketing) NÃO correm antes de haver consentimento explícito.
+- **Opt-in prévio** — scripts não-essenciais (analytics, marketing) NÃO recolhem nem enviam nada antes de haver consentimento explícito (os dois padrões aceites para o GTM estão no §3).
 - **Recusar com o mesmo peso visual do Aceitar** — mesmo tamanho, cor, contraste, posição. Nunca "Aceitar" como botão grande colorido e "Recusar" como link cinzento escondido.
 - **Granular por categoria** — necessários sempre on (não desligáveis); analytics/marketing off por defeito, ligáveis um a um.
 - **Revogável** — link "Preferências de cookies" acessível (footer) a qualquer momento, sem ter de apagar cookies manualmente.
@@ -76,7 +76,10 @@ Banner: 3 acções visíveis — **Aceitar todos**, **Recusar todos** (mesmo pes
 
 ## 3 — Gating de scripts de terceiros + limpeza ao revogar
 
-**Nunca** injectar `<script src="googletagmanager.com/...">` ou o snippet do Clarity directo no `<head>`. Carregar só depois do consentimento:
+Dois padrões aceites — os dois têm de passar a mesma prova de rede (`tracking/prova.mjs`, descrita no padrão 1):
+
+1. **Consent Mode v2 em comportamento básico (padrão do pack marketeer):** o GTM/gtag pode carregar em todas as páginas **só se** o `gtag('consent','default',{… 'denied'})` correr inline no `<head>` **antes** dele **e** todas as tags do contentor exigirem consentimento — de forma que **nenhum hit de medição ou de anúncios da Google sai antes do consentimento nem depois de Recusar**. Prova obrigatória: `node "<MKT>/scripts/tracking/prova.mjs" <url>` (pack marketeer, `.claude/marketeer/CONTRATO.md` §2) — 0 hits antes de aceitar e depois de recusar, hits depois de aceitar. Nota para a revisão jurídica: o download da biblioteca (`googletagmanager.com/gtm.js`) acontece na mesma; a prova conta hits de recolha, não esse pedido. Sem prova verde, vale o padrão 2.
+2. **Gating estrito:** **não** injectar `<script src="googletagmanager.com/...">` nem o snippet do Clarity directo no `<head>`; carregar só depois do consentimento:
 
 ```html
 <script>

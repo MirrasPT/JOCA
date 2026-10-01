@@ -1,0 +1,18 @@
+{
+  "name": "marketeer-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motor do pack marketeer: scripts de auditoria, campanhas, tracking e estado das marcas (dados em $MARKETEER_RAIZ/clientes)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "validar": "node scripts/validar-dossier.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "yaml": "^2.9.1"
+  }
+}

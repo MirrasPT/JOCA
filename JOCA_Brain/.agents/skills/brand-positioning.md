@@ -25,6 +25,9 @@ Detect from context or ask: *"Quick statement, full positioning workshop, or ful
 
 ## Context Loading Gates
 
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs. Its `## Concorrentes`, `## Público` and `## Voz` sections answer most of the gates below.
+
 Before generating positioning output, load:
 
 - [ ] **Product/service name and what it does** (1-2 sentences from user)

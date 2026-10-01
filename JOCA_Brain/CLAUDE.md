@@ -125,6 +125,8 @@ Notify: `[skill: <name>]`. No match → respond directly.
 | plano de publicação · calendário social · rollout · lançamento · captions · agendamento | `content-calendar` |
 | agendar/publicar post · publicar nas redes · TryPost · carrossel IG · publicar TikTok · executar campanha social | `social-scheduler` |
 | marketing · plano de marketing · como crescer · mais clientes · por onde começo no marketing · funil de marketing | `marketing` (router — posicionamento/landing/leads/email/ads/SEO/social/CRO) |
+| marketing de uma marca · gerir o marketing do cliente X · campanhas de uma marca · ciclo de marketing · /marketeer | **`marketeer`** (orchestrator of the marketeer pack — F0-F4; it dispatches the `mkt-*` work skills itself, they never fire on their own: `mkt-conectores` · `mkt-marca` · `mkt-mercado` · `mkt-auditoria` · `mkt-relatorio` · `mkt-estrategia` · `mkt-copy` · `mkt-medicao` · `mkt-psicologia` · `mkt-criativos` · `mkt-google-ads` · `mkt-meta-ads` · `mkt-linkedin-ads` · `mkt-email` · `mkt-gbp` · `mkt-organico`) |
+| rever resultados das campanhas · como correram as campanhas · review do ciclo de marketing · /marketeer-review | `marketeer-review` (F5 of the marketeer pack) |
 | posicionamento · proposta de valor · ICP · para quem é isto · mensagem-chave · diferenciação | `brand-positioning` |
 | construir landing page · squeeze page · opt-in page · página de captura · página de webinar | `landing-page` |
 | lead magnet · crescer lista de email · formulário de opt-in · popup de captura · content upgrade | `lead-capture` |
