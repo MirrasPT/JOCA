@@ -422,7 +422,7 @@ function sortProjects<T extends { name: string }>(list: T[], sort: ProjectSort):
 // cresce sem limite (é para lá que vão os projectos fechados) e sem pesquisa a única forma de lá
 // chegar era abrir a gaveta e percorrer a lista à vista.
 
-/** Sem acentos e em minúsculas: "sao" tem de encontrar "São", "bracaris" tem de encontrar "Bracaris".
+/** Sem acentos e em minúsculas: "sao" tem de encontrar "São", "acme" tem de encontrar "Acme".
  *  `\p{Diacritic}` em vez de um intervalo de marcas combinatórias escrito em cru — essas são
  *  invisíveis no ficheiro e o primeiro editor que o re-normalize parte o filtro em silêncio. */
 function normalizeSearch(value: string): string {
@@ -1061,7 +1061,7 @@ export default function SessionSidebar({
   }
 
   // Ordenar por nome tem de valer para as SECÇÕES também. O ciclo acima emite cada grupo na posição
-  // do seu primeiro membro, portanto uma secção "Zulu" cujo primeiro projecto fosse "Acura" aterrava
+  // do seu primeiro membro, portanto uma secção "Zulu" cujo primeiro projecto fosse "Alfa" aterrava
   // no topo do A→Z — a lista parecia desordenada sem se perceber porquê. Só se aplica às ordenações
   // por nome: em "Mais recentes"/"Mais antigos" a posição na lista É o critério.
   if (projectSort === 'name-asc' || projectSort === 'name-desc') {

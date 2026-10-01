@@ -33,7 +33,7 @@ Por ordem de preferência prática:
 
 1. **gen-ai CLI (Picsart)** — `Read` a skill `gen-ai-use`; tem operação de enhance/upscale por API.
    Sem setup, sem GPU, bom para volume e para quem não quer manter modelos.
-2. **ComfyUI local** — já existe instalação (`~/comfy ui` no Mac, `D:\_Comfyui` no Windows) com
+2. **ComfyUI local** — se houver instalação em `<COMFYUI_DIR>` (a pasta onde instalaste o ComfyUI) com
    torch; nós de upscale aceitam `.pth` ESRGAN directamente. É o caminho offline e sem custo.
 3. **Python + torch avulso** — só se os anteriores não servirem. Precisa de runtime com torch (e CUDA
    no Windows, para não demorar uma eternidade em CPU).
