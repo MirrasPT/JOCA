@@ -10,8 +10,8 @@ Expert video producer for marketing videos using AI generation, AI avatars, and 
 
 ## Before Starting
 
-**Check product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md`), read it before asking. Use that context; only ask for info not covered or task-specific.
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather this context (ask if not provided):
 
@@ -377,7 +377,7 @@ Output: Ready-to-publish video
 1. **Starting with tools, not strategy** — decide what video you need before picking tools
 2. **AI-generated text in video** — models cannot reliably render readable text; use programmatic overlays
 3. **Uncanny valley avatars** — if quality matters, invest in HeyGen Creator+ tier
-4. **No captions** — 85% of social video is watched without sound
+4. **No captions** — much social video is watched without sound [unverified share]
 5. **Wrong aspect ratio** — 9:16 for social, 16:9 for YouTube/website, 1:1 for feeds
 6. **Over-producing** — authentic often outperforms polished, especially on TikTok
 
@@ -398,8 +398,8 @@ Output: Ready-to-publish video
 
 | Tool | Type | MCP | Guide |
 |------|------|:---:|-------|
-| **HeyGen** | AI avatars | Yes | [heygen.md](../../tools/integrations/heygen.md) |
-| **Hyperframes** | Programmatic video | - | [hyperframes.md](../../tools/integrations/hyperframes.md) |
+| **HeyGen** | AI avatars | Yes | [heygen.com](https://www.heygen.com) — check current API docs |
+| **Hyperframes** | Programmatic video | - | skill `hyperframes` |
 | **Remotion** | Programmatic video | - | [remotion.dev](https://www.remotion.dev/docs) |
 | **Runway** | AI generation | - | [runwayml.com/docs](https://docs.dev.runwayml.com) |
 
@@ -408,6 +408,6 @@ Output: Ready-to-publish video
 ## Related Skills
 
 - **social-content**: Video content strategy, hooks, posting cadence
-- **ad-creative**: Paid video ad creative and iteration
+- **paid-ads**: Paid video ad creative and iteration (absorbed the former ad-creative)
 - **copywriting**: Video scripts and messaging
-- **marketing-psychology**: Hooks and persuasion in video
+- **mkt-psicologia** (marketeer pack): Hooks and persuasion in video

@@ -11,8 +11,8 @@ You are a content strategist. Plan content that drives traffic, builds authority
 
 ## Before Planning
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and ask only for missing info specific to this task.
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather this context (ask if not provided):
 
@@ -118,7 +118,7 @@ Structure: Challenge -> Solution -> Results -> Key learnings
 **Meta Content**
 Behind-the-scenes transparency. "How We Got Our First $5k MRR," "Why We Chose Debt Over VC."
 
-For programmatic content at scale, see **programmatic-seo** skill.
+Programmatic content at scale has no dedicated skill here — plan it with **seo** (indexation and thin-content risks) before generating pages.
 
 ---
 
@@ -355,10 +355,8 @@ Visual or structured representation of how content interconnects.
 ## Related Skills
 
 - **copywriting**: For writing individual content pieces
-- **seo-audit**: For technical SEO and on-page optimization
-- **ai-seo**: For optimizing content for AI search engines and getting cited by LLMs
-- **programmatic-seo**: For scaled content generation
-- **site-architecture**: For page hierarchy, navigation design, and URL structure
+- **seo**: For technical SEO, on-page optimization, AI search (AEO/GEO) and site structure (absorbed the former seo-audit and ai-seo)
+- **content-calendar**: For turning the plan into dated slots
 - **email-sequence**: For email-based content
 - **social-content**: For social media content
 

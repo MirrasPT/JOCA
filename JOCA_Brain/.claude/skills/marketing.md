@@ -6,12 +6,14 @@ triggers: marketing, grow my business, get more customers, marketing plan, marke
 
 # Marketing Router
 
-Routes marketing tasks to the correct skill via intent detection.
+Routes marketing tasks to the correct skill via intent detection. A whole brand cycle goes to `/marketeer`; the rows below are shortcuts for single-skill requests.
 
 ## Detection Matrix
 
 | If user mentions... | Route to |
 |---|---|
+| full marketing cycle for a brand/client — analyse, propose campaigns, create the assets, implement, review (`ciclo de marketing`, `marketing da marca X`, `trata do marketing de`) | `/marketeer <brand>` (marketeer pack — F0→F4; see `.claude/marketeer/CONTRATO.md`) |
+| review results of a running marketeer cycle (`como correram as campanhas`, `rever resultados`) | `/marketeer-review <brand>` (F5) |
 | positioning, value prop, ICP, differentiation, messaging | `brand-positioning` |
 | landing page, lead gen page, opt-in page, squeeze page | `landing-page` |
 | lead magnet, grow email list, email capture, popup, content upgrade | `lead-capture` |

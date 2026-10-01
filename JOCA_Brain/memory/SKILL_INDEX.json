@@ -3,7 +3,7 @@
     "type": "skill",
     "name": "ab-test-setup",
     "category": "general",
-    "path": ".claude\\skills\\ab-test-setup.md",
+    "path": ".claude/skills/ab-test-setup.md",
     "description": "Plan, design, or implement an A/B test or experiment, or build a growth experimentation program. MUST be invoked when the user says: A/B test, split test, experiment, test this change, variant copy, m",
     "triggers": [
       "A/B test",
@@ -18,7 +18,7 @@
     "type": "skill",
     "name": "adr",
     "category": "general",
-    "path": ".claude\\skills\\adr.md",
+    "path": ".claude/skills/adr.md",
     "description": "Recording architecture decisions, creating ADR documents, or documenting technical choices with context/consequences. MUST be invoked when the user says: ADR, architecture decision, decisao arquitectu",
     "triggers": [
       "ADR",
@@ -42,7 +42,7 @@
     "type": "skill",
     "name": "agent-context",
     "category": "general",
-    "path": ".claude\\skills\\agent-context.md",
+    "path": ".claude/skills/agent-context.md",
     "description": "Base principles for agent orchestration and context management (briefs, fan-out caps, compression). Invoke when orchestrating sub-agents or debugging context loss.",
     "triggers": [
       "orquestrar sub-agentes",
@@ -57,7 +57,7 @@
     "type": "skill",
     "name": "agent-sdk",
     "category": "general",
-    "path": ".claude\\skills\\agent-sdk.md",
+    "path": ".claude/skills/agent-sdk.md",
     "description": "Build apps on @anthropic-ai/claude-agent-sdk (the SDK that powers Claude Code CLI). Use when: building Claude Code orchestrators, programmatic Claude sessions, subscription-billed (zero-cost) Claude i",
     "triggers": [
       "claude-agent-sdk",
@@ -75,22 +75,31 @@
     "type": "skill",
     "name": "analytics-tracking",
     "category": "general",
-    "path": ".claude\\skills\\analytics-tracking.md",
-    "description": "Set up, improve, or audit analytics tracking and measurement. MUST be invoked when the user says: set up tracking, GA4, Google Analytics, conversion tracking, event tracking, UTM parameters,.",
+    "path": ".claude/skills/analytics-tracking.md",
+    "description": "Set up, improve, audit, verify and query analytics tracking and measurement (GA4, GTM, Consent Mode v2, UTM, GA4 Data API). MUST be invoked when the user says: set up tracking, GA4, Google Analytics, ",
     "triggers": [
       "set up tracking",
       "GA4",
       "Google Analytics",
       "conversion tracking",
       "event tracking",
-      "UTM parameters"
+      "UTM parameters",
+      "tracking plan",
+      "analytics",
+      "traffic",
+      "visitors",
+      "page views",
+      "sessions",
+      "GA4 report",
+      "GA4 Data API",
+      "DebugView"
     ]
   },
   {
     "type": "skill",
     "name": "anima",
     "category": "general",
-    "path": ".claude\\skills\\anima.md",
+    "path": ".claude/skills/anima.md",
     "description": "Adding motion to websites, animating UI elements, creating scroll-based animations, or building Lottie/GSAP animations. MUST be invoked when the user says: animacao, animation, gsap, lottie, scroll an",
     "triggers": [
       "animacao",
@@ -114,7 +123,7 @@
     "type": "skill",
     "name": "auth",
     "category": "general",
-    "path": ".claude\\skills\\auth.md",
+    "path": ".claude/skills/auth.md",
     "description": "Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security middleware. MUST be invoked when the user says: auth, authentication, login, logout, register, sanctum,",
     "triggers": [
       "auth",
@@ -138,7 +147,7 @@
     "type": "skill",
     "name": "availability",
     "category": "general",
-    "path": ".claude\\skills\\availability.md",
+    "path": ".claude/skills/availability.md",
     "description": "Availability and disaster recovery for Laravel. MUST be invoked when the user says: backup, backups, disaster recovery, failover, replication, read replica, high availability, HA. SHOULD also invoke w",
     "triggers": [
       "backup",
@@ -162,8 +171,8 @@
     "type": "skill",
     "name": "blender-render",
     "category": "general",
-    "path": ".claude\\skills\\blender-render.md",
-    "description": "Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output, animacao e sequencias. MUST be invoked when the user says: render 3d, renderizar, cycles, eevee, turntab",
+    "path": ".claude/skills/blender-render.md",
+    "description": "Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output, animacao e sequencias. MUST be invoked when the user says: render 3d, renderizar, cycles, eevee, turntabl",
     "triggers": [
       "render 3d",
       "renderizar",
@@ -186,7 +195,7 @@
     "type": "skill",
     "name": "blender-scripting",
     "category": "general",
-    "path": ".claude\\skills\\blender-scripting.md",
+    "path": ".claude/skills/blender-scripting.md",
     "description": "Escrever e correr scripts bpy headless: construir cenas, transformar objectos, modificadores, importar/exportar 3D, batch de .blend, hierarquia e custom properties. MUST be invoked when the user says:",
     "triggers": [
       "bpy",
@@ -210,7 +219,7 @@
     "type": "skill",
     "name": "blender",
     "category": "general",
-    "path": ".claude\\skills\\blender.md",
+    "path": ".claude/skills/blender.md",
     "description": "Director/router de trabalho 3D em Blender por Python headless (bpy). MUST be invoked when the user says: blender, 3d, modelo 3d, cena 3d, render 3d, .blend, bpy, glb, gltf, fbx, obj, stl, malha, mesh,",
     "triggers": [
       "blender",
@@ -234,7 +243,7 @@
     "type": "skill",
     "name": "blueprint",
     "category": "general",
-    "path": ".claude\\skills\\blueprint.md",
+    "path": ".claude/skills/blueprint.md",
     "description": "Create/edit/review WordPress Playground blueprint JSON. Invoke on: Playground blueprint, blueprint.json, run-blueprint, Playground steps.",
     "triggers": [
       "Playground blueprint",
@@ -247,7 +256,7 @@
     "type": "skill",
     "name": "brand-guidelines",
     "category": "general",
-    "path": ".claude\\skills\\brand-guidelines.md",
+    "path": ".claude/skills/brand-guidelines.md",
     "description": "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, bra",
     "triggers": [
       "brand guidelines",
@@ -271,7 +280,7 @@
     "type": "skill",
     "name": "brand-positioning",
     "category": "general",
-    "path": ".claude\\skills\\brand-positioning.md",
+    "path": ".claude/skills/brand-positioning.md",
     "description": "Helps founders and marketers nail their positioning. MUST be invoked when the user says: positioning, value proposition, who is this for, how do I describe my product, messaging, ICP,.",
     "triggers": [
       "positioning",
@@ -286,8 +295,8 @@
     "type": "skill",
     "name": "browser-automate",
     "category": "general",
-    "path": ".claude\\skills\\browser-automate.md",
-    "description": "Automate a local canvas/litegraph web app via Playwright headless — load a workflow template, serialize the graph via page.evaluate, POST to the job API, poll history. MUST be invoked when the user ",
+    "path": ".claude/skills/browser-automate.md",
+    "description": "Automate a local canvas/litegraph web app via Playwright headless — load a workflow template, serialize the graph via page.evaluate, POST to the job API, poll history. MUST be invoked when the user sa",
     "triggers": [
       "Playwright canvas",
       "automate ComfyUI",
@@ -307,7 +316,7 @@
     "type": "skill",
     "name": "bullmq",
     "category": "general",
-    "path": ".claude\\skills\\bullmq.md",
+    "path": ".claude/skills/bullmq.md",
     "description": "Implement Redis-based job queues with BullMQ for Node.js. MUST be invoked when the user says: bullmq, bull mq, job queue, task queue, background jobs, worker, redis queue, job processing. SHOULD also ",
     "triggers": [
       "bullmq",
@@ -329,7 +338,7 @@
     "type": "skill",
     "name": "c4-diagram",
     "category": "general",
-    "path": ".claude\\skills\\c4-diagram.md",
+    "path": ".claude/skills/c4-diagram.md",
     "description": "Creating C4 architecture diagrams (Context, Container, Component, Code) in Mermaid format. MUST be invoked when the user says: C4, diagrama de arquitectura, architecture diagram, container diagram, sy",
     "triggers": [
       "C4",
@@ -352,7 +361,7 @@
     "type": "skill",
     "name": "caching",
     "category": "general",
-    "path": ".claude\\skills\\caching.md",
+    "path": ".claude/skills/caching.md",
     "description": "Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache invalidation patterns. MUST be invoked when the user says: cache, caching, Redis, redis, Cache::remember, c",
     "triggers": [
       "cache",
@@ -376,8 +385,8 @@
     "type": "skill",
     "name": "careful",
     "category": "general",
-    "path": ".claude\\skills\\careful.md",
-    "description": "Liga avisos antes de comandos Bash destrutivos (rm -rf, DROP/TRUNCATE, git push --force, git reset --hard, taskkill /F, format, dd) — o hook check-careful pede confirmação antes de executar (não ",
+    "path": ".claude/skills/careful.md",
+    "description": "Liga avisos antes de comandos Bash destrutivos (rm -rf, DROP/TRUNCATE, git push --force, git reset --hard, taskkill /F, format, dd) — o hook check-careful pede confirmação antes de executar (não bloqu",
     "triggers": [
       "careful",
       "modo cauteloso",
@@ -393,7 +402,7 @@
     "type": "skill",
     "name": "caveman",
     "category": "general",
-    "path": ".claude\\skills\\caveman.md",
+    "path": ".claude/skills/caveman.md",
     "description": "Ultra-compressed communication mode. MUST be invoked when the user says: caveman mode, talk like caveman, use caveman, less tokens, be brief.",
     "triggers": [
       "caveman mode",
@@ -407,8 +416,8 @@
     "type": "skill",
     "name": "click-path-audit",
     "category": "general",
-    "path": ".claude\\skills\\click-path-audit.md",
-    "description": "Segue cada botão/acção da UI desde o handler até ao estado final e apanha o que a leitura ficheiro a ficheiro não vê: a chamada que desfaz a anterior, handlers mortos, corridas async, closures o",
+    "path": ".claude/skills/click-path-audit.md",
+    "description": "Segue cada botão/acção da UI desde o handler até ao estado final e apanha o que a leitura ficheiro a ficheiro não vê: a chamada que desfaz a anterior, handlers mortos, corridas async, closures obsolet",
     "triggers": [
       "click path",
       "click-path",
@@ -431,8 +440,8 @@
     "type": "skill",
     "name": "cloudflare-dns",
     "category": "general",
-    "path": ".claude\\skills\\cloudflare-dns.md",
-    "description": "Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, registo DNS, SPF merge, MX Cloudflare, re",
+    "path": ".claude/skills/cloudflare-dns.md",
+    "description": "Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. MUST invoke when user says Cloudflare DNS, cloudflare-dns, Email Routing, registo DNS, SPF merge, MX Cloudflare, ree",
     "triggers": [
       "cloudflare dns",
       "cloudflare-dns",
@@ -452,7 +461,7 @@
     "type": "skill",
     "name": "comfy-mcp-workarounds",
     "category": "general",
-    "path": ".claude\\skills\\comfy-mcp-workarounds.md",
+    "path": ".claude/skills/comfy-mcp-workarounds.md",
     "description": "Verified workarounds for production bugs in the comfyui-mcp plugin (comfy@comfyui-mcp). MUST be invoked when the user says: enqueue_workflow not running, comfyui mcp bug, workflow crashes via MCP, sta",
     "triggers": [
       "enqueue_workflow not running",
@@ -475,7 +484,7 @@
     "type": "skill",
     "name": "competitor-profiling",
     "category": "general",
-    "path": ".claude\\skills\\competitor-profiling.md",
+    "path": ".claude/skills/competitor-profiling.md",
     "description": "Research, profile, or analyze competitors from their URLs. MUST be invoked when the user says: competitor profile, competitor research, competitor analysis, profile this competitor, analyze competitor",
     "triggers": [
       "competitor profile",
@@ -490,7 +499,7 @@
     "type": "skill",
     "name": "component-system",
     "category": "general",
-    "path": ".claude\\skills\\component-system.md",
+    "path": ".claude/skills/component-system.md",
     "description": "Component inventory and per-component specification documents. MUST be invoked when the user says: component system, sistema de componentes, component inventory, inventario de componentes, component s",
     "triggers": [
       "component system",
@@ -514,9 +523,11 @@
     "type": "skill",
     "name": "content-calendar",
     "category": "general",
-    "path": ".claude\\skills\\content-calendar.md",
+    "path": ".claude/skills/content-calendar.md",
     "description": "Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware optimal posting slots, caption/hook generation, asset-to-slot mapping, and release rollout sequencing. M",
     "triggers": [
+      "content calendar",
+      "social calendar",
       "plano de publicacao",
       "calendario social",
       "rollout de lancamento",
@@ -534,7 +545,7 @@
     "type": "skill",
     "name": "content-strategy",
     "category": "general",
-    "path": ".claude\\skills\\content-strategy.md",
+    "path": ".claude/skills/content-strategy.md",
     "description": "Plan a content strategy, decide what content to create, or figure out what topics to cover. MUST be invoked when the user says: content strategy, what should I write about, content ideas, blog strateg",
     "triggers": [
       "content strategy",
@@ -549,8 +560,8 @@
     "type": "skill",
     "name": "context-pack",
     "category": "general",
-    "path": ".claude\\skills\\context-pack.md",
-    "description": "Empacota uma árvore de código num único ficheiro AI-readable (repomix-style) para briefs de sub-agentes ou modelos de contexto longo (gemini-brain 1M). Usar quando: preparar brief de agente sobre p",
+    "path": ".claude/skills/context-pack.md",
+    "description": "Empacota uma árvore de código num único ficheiro AI-readable (repomix-style) para briefs de sub-agentes ou modelos de contexto longo (gemini-brain 1M). Usar quando: preparar brief de agente sobre proj",
     "triggers": [
       "pack codebase",
       "empacotar repo",
@@ -567,8 +578,8 @@
     "type": "skill",
     "name": "copywriting",
     "category": "general",
-    "path": ".claude\\skills\\copywriting.md",
-    "description": "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write cop",
+    "path": ".claude/skills/copywriting.md",
+    "description": "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy ",
     "triggers": [
       "write copy for",
       "improve this copy",
@@ -582,8 +593,8 @@
     "type": "skill",
     "name": "cpanel",
     "category": "general",
-    "path": ".claude\\skills\\cpanel.md",
-    "description": "Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API token. Driver = .claude/scripts/cpanel.mjs lendo creds de ~/.cpanel/<account>.json. Triggers cPanel, ",
+    "path": ".claude/skills/cpanel.md",
+    "description": "Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API token. Driver = .claude/scripts/cpanel.mjs lendo creds de ~/.cpanel/<account>.json. Triggers cPanel, U",
     "triggers": [
       "cpanel",
       "uapi",
@@ -599,7 +610,7 @@
     "type": "skill",
     "name": "create-skill",
     "category": "general",
-    "path": ".claude\\skills\\create-skill.md",
+    "path": ".claude/skills/create-skill.md",
     "description": "Create a new SKILL.md from scratch or upgrade an existing one through an iterative AI self-improvement pipeline. MUST be invoked when the user says: --upgrade skill-name.",
     "triggers": [
       "--upgrade skill-name"
@@ -609,8 +620,8 @@
     "type": "skill",
     "name": "cso",
     "category": "general",
-    "path": ".claude\\skills\\cso.md",
-    "description": "Modo Chief Security Officer — auditoria de segurança infra-first com threat modeling estruturado (STRIDE + OWASP Top 10) e dois modos com gate de confiança: daily (zero-ruído, gate 8/10) e compre",
+    "path": ".claude/skills/cso.md",
+    "description": "Modo Chief Security Officer — auditoria de segurança infra-first com threat modeling estruturado (STRIDE + OWASP Top 10) e dois modos com gate de confiança: daily (zero-ruído, gate 8/10) e comprehensi",
     "triggers": [
       "cso",
       "auditoria de seguranca",
@@ -633,7 +644,7 @@
     "type": "skill",
     "name": "deploy-cpanel",
     "category": "general",
-    "path": ".claude\\skills\\deploy-cpanel.md",
+    "path": ".claude/skills/deploy-cpanel.md",
     "description": "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin,",
     "triggers": [
       "shared hosting",
@@ -657,7 +668,7 @@
     "type": "skill",
     "name": "deploy-docker",
     "category": "general",
-    "path": ".claude\\skills\\deploy-docker.md",
+    "path": ".claude/skills/deploy-docker.md",
     "description": "Containerizing applications, writing Dockerfiles, docker-compose, or setting up container orchestration. MUST be invoked when the user says: docker, Docker, container, docker compose, docker-compose, ",
     "triggers": [
       "docker",
@@ -681,7 +692,7 @@
     "type": "skill",
     "name": "deploy-ploi",
     "category": "general",
-    "path": ".claude\\skills\\deploy-ploi.md",
+    "path": ".claude/skills/deploy-ploi.md",
     "description": "Deploying via Ploi.io, managing servers, or configuring Ploi deployments. MUST be invoked when the user says: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar. SHOULD a",
     "triggers": [
       "ploi",
@@ -705,7 +716,7 @@
     "type": "skill",
     "name": "deploy-vps",
     "category": "general",
-    "path": ".claude\\skills\\deploy-vps.md",
+    "path": ".claude/skills/deploy-vps.md",
     "description": "Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with Cloudflare DNS. MUST invoke when the user says: deploy VPS, VPS setup, Caddy server, Caddyfile, SSH key setup ",
     "triggers": [
       "deploy VPS",
@@ -729,8 +740,8 @@
     "type": "skill",
     "name": "design-html",
     "category": "general",
-    "path": ".claude\\skills\\design-html.md",
-    "description": "Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto reflui, alturas computadas, layout dinâmico, zero deps. Adaptado do design-html do gstack. MUST be ",
+    "path": ".claude/skills/design-html.md",
+    "description": "Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto reflui, alturas computadas, layout dinâmico, zero deps. Adaptado do design-html do gstack. MUST be invoke",
     "triggers": [
       "codificar design",
       "transformar em HTML",
@@ -753,8 +764,8 @@
     "type": "skill",
     "name": "design-review",
     "category": "general",
-    "path": ".claude\\skills\\design-review.md",
-    "description": "Opinionated UI/design critique — judges taste, composition, and AI-slop on real code/live UI, or reviews a design plan BEFORE code. MUST be invoked when the user says: design review, review design, ",
+    "path": ".claude/skills/design-review.md",
+    "description": "Opinionated UI/design critique — judges taste, composition, and AI-slop on real code/live UI, or reviews a design plan BEFORE code. MUST be invoked when the user says: design review, review design, is",
     "triggers": [
       "design review",
       "review design",
@@ -777,8 +788,8 @@
     "type": "skill",
     "name": "design-shotgun",
     "category": "general",
-    "path": ".claude\\skills\\design-shotgun.md",
-    "description": "Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos, compara lado-a-lado, recolhe feedback estruturado e itera. Adaptado do design-shotgun do gstack. MUST ",
+    "path": ".claude/skills/design-shotgun.md",
+    "description": "Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos, compara lado-a-lado, recolhe feedback estruturado e itera. Adaptado do design-shotgun do gstack. MUST be ",
     "triggers": [
       "explorar variantes",
       "variantes de design",
@@ -801,7 +812,7 @@
     "type": "skill",
     "name": "design-system",
     "category": "general",
-    "path": ".claude\\skills\\design-system.md",
+    "path": ".claude/skills/design-system.md",
     "description": "Building or auditing design systems, managing design tokens, component libraries, or style guides. MUST be invoked when the user says: design system, sistema de design, tokens, design tokens, componen",
     "triggers": [
       "design system",
@@ -824,7 +835,7 @@
     "type": "skill",
     "name": "design-tokens",
     "category": "general",
-    "path": ".claude\\skills\\design-tokens.md",
+    "path": ".claude/skills/design-tokens.md",
     "description": "Defining or managing design tokens (colors, spacing, typography) in DTCG format. MUST be invoked when the user says: design tokens, tokens, CSS variables, custom properties, global tokens, semantic to",
     "triggers": [
       "design tokens",
@@ -848,8 +859,8 @@
     "type": "skill",
     "name": "email-dashboard",
     "category": "general",
-    "path": ".claude\\skills\\email-dashboard.md",
-    "description": "Lê a inbox do Gmail (read-only) e entrega um dashboard HTML local, aberto no browser, com os emails triados por Acção / A aguardar / FYI / Ruído. MUST be invoked when the user says: email-dashboar",
+    "path": ".claude/skills/email-dashboard.md",
+    "description": "Lê a inbox do Gmail (read-only) e entrega um dashboard HTML local, aberto no browser, com os emails triados por Acção / A aguardar / FYI / Ruído. MUST be invoked when the user says: email-dashboard, v",
     "triggers": [
       "email-dashboard",
       "ve o meu email",
@@ -868,7 +879,7 @@
     "type": "skill",
     "name": "email-sequence",
     "category": "general",
-    "path": ".claude\\skills\\email-sequence.md",
+    "path": ".claude/skills/email-sequence.md",
     "description": "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence, drip campaign, nurture sequence, onboarding e",
     "triggers": [
       "email sequence",
@@ -876,14 +887,22 @@
       "nurture sequence",
       "onboarding emails",
       "welcome sequence",
-      "re-engagement emails"
+      "re-engagement emails",
+      "launch sequence",
+      "sales sequence",
+      "conversion emails",
+      "email funnel",
+      "convert my list",
+      "post-purchase emails",
+      "sequência de emails",
+      "emails de boas-vindas"
     ]
   },
   {
     "type": "skill",
     "name": "error-tracking-dev",
     "category": "general",
-    "path": ".claude\\skills\\error-tracking-dev.md",
+    "path": ".claude/skills/error-tracking-dev.md",
     "description": "Development error tracking and debugging for Laravel. MUST be invoked when the user says: debugbar, telescope, ignition, ray, debug, debug panel, query inspector, N+1. SHOULD also invoke when: slow qu",
     "triggers": [
       "debugbar",
@@ -907,7 +926,7 @@
     "type": "skill",
     "name": "error-tracking-prod",
     "category": "general",
-    "path": ".claude\\skills\\error-tracking-prod.md",
+    "path": ".claude/skills/error-tracking-prod.md",
     "description": "Production error tracking, structured logging, health checks, and monitoring for Laravel. MUST be invoked when the user says: sentry, flare, production logging, structured logging, JSON logs, correlat",
     "triggers": [
       "sentry",
@@ -931,7 +950,7 @@
     "type": "skill",
     "name": "escrever-testes",
     "category": "general",
-    "path": ".claude\\skills\\escrever-testes.md",
+    "path": ".claude/skills/escrever-testes.md",
     "description": "Escreve testes a partir dos criterios de aceitacao de um issue, deliberadamente sem olhar para a implementacao. Corre em sessao separada da que implementou o codigo. MUST be invoked when the user says",
     "triggers": [
       "escrever testes",
@@ -951,8 +970,8 @@
     "type": "skill",
     "name": "executar-projeto",
     "category": "general",
-    "path": ".claude\\skills\\executar-projeto.md",
-    "description": "A execucao do /start: constroi o projecto do PRD ate producao — fundacao (scaffold, repo, CI, hooks), design por uma de duas vias (Claude Design externo com conversao para o stack, ou design directo",
+    "path": ".claude/skills/executar-projeto.md",
+    "description": "A execucao do /start: constroi o projecto do PRD ate producao — fundacao (scaffold, repo, CI, hooks), design por uma de duas vias (Claude Design externo com conversao para o stack, ou design directo n",
     "triggers": [
       "executar projeto",
       "executar-projeto",
@@ -971,8 +990,8 @@
     "type": "skill",
     "name": "fact-check",
     "category": "general",
-    "path": ".claude\\skills\\fact-check.md",
-    "description": "Verifica as afirmações factuais de um texto ANTES de publicar ou enviar: extrai cada número, data, nome, cargo, citação e superlativo, verifica cada um à parte, liga cada um a uma fonte concreta",
+    "path": ".claude/skills/fact-check.md",
+    "description": "Verifica as afirmações factuais de um texto ANTES de publicar ou enviar: extrai cada número, data, nome, cargo, citação e superlativo, verifica cada um à parte, liga cada um a uma fonte concreta, e ma",
     "triggers": [
       "fact-check",
       "fact check",
@@ -995,7 +1014,7 @@
     "type": "skill",
     "name": "filament",
     "category": "general",
-    "path": ".claude\\skills\\filament.md",
+    "path": ".claude/skills/filament.md",
     "description": "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament ",
     "triggers": [
       "Filament",
@@ -1019,8 +1038,8 @@
     "type": "skill",
     "name": "file-organization",
     "category": "general",
-    "path": ".claude\\skills\\file-organization.md",
-    "description": "Audita uma pasta de ficheiros (assets de design, documentos, exports) e produz um plano de renomeação/reorganização com conteúdo REALMENTE verificado, não adivinhado pelo nome. MUST be invoked w",
+    "path": ".claude/skills/file-organization.md",
+    "description": "Audita uma pasta de ficheiros (assets de design, documentos, exports) e produz um plano de renomeação/reorganização com conteúdo REALMENTE verificado, não adivinhado pelo nome. MUST be invoked when th",
     "triggers": [
       "organizar pasta",
       "arrumar ficheiros",
@@ -1043,7 +1062,7 @@
     "type": "skill",
     "name": "file-storage",
     "category": "general",
-    "path": ".claude\\skills\\file-storage.md",
+    "path": ".claude/skills/file-storage.md",
     "description": "Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation, virus scan, signed CDN URLs. Invoke on: file upload, S3, R2, presigned URL, ClamAV.",
     "triggers": [
       "file upload",
@@ -1057,8 +1076,8 @@
     "type": "skill",
     "name": "freeze",
     "category": "general",
-    "path": ".claude\\skills\\freeze.md",
-    "description": "Tranca as edições (Edit/Write) a UM directório durante a sessão — qualquer edição fora dele é BLOQUEADA pelo hook check-freeze. Usar quando o user disser: freeze, trancar edições, lock scop",
+    "path": ".claude/skills/freeze.md",
+    "description": "Tranca as edições (Edit/Write) a UM directório durante a sessão — qualquer edição fora dele é BLOQUEADA pelo hook check-freeze. Usar quando o user disser: freeze, trancar edições, lock scope, só edita",
     "triggers": [
       "freeze",
       "trancar edicoes",
@@ -1079,7 +1098,7 @@
     "type": "skill",
     "name": "frontend",
     "category": "general",
-    "path": ".claude\\skills\\frontend.md",
+    "path": ".claude/skills/frontend.md",
     "description": "Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend frameworks. MUST be invoked when the user says: website, landing page, site, webapp, web app, frontend, i",
     "triggers": [
       "frontend-design",
@@ -1103,8 +1122,8 @@
     "type": "skill",
     "name": "gauntlet-loop",
     "category": "general",
-    "path": ".claude\\skills\\gauntlet-loop.md",
-    "description": "Reformula QUALQUER pedido num workflow de desenvolvimento medido contra uma referência real e nomeada: preenche o aim prompt de três parágrafos do Matt Shumer, EXECUTA-O, faz fan-out de sub-agentes",
+    "path": ".claude/skills/gauntlet-loop.md",
+    "description": "Reformula QUALQUER pedido num workflow de desenvolvimento medido contra uma referência real e nomeada: preenche o aim prompt de três parágrafos do Matt Shumer, EXECUTA-O, faz fan-out de sub-agentes, p",
     "triggers": [
       "gauntlet",
       "gauntlet loop",
@@ -1127,8 +1146,8 @@
     "type": "skill",
     "name": "gdpr-compliance",
     "category": "general",
-    "path": ".claude\\skills\\gdpr-compliance.md",
-    "description": "Cookie consent banners, RGPD/GDPR checklists, gating de scripts de terceiros (Google Analytics, Microsoft Clarity) por consentimento, consentimento de formulário validado no servidor com prova em BD,",
+    "path": ".claude/skills/gdpr-compliance.md",
+    "description": "Cookie consent banners, RGPD/GDPR checklists, gating de scripts de terceiros (Google Analytics, Microsoft Clarity) por consentimento, consentimento de formulário validado no servidor com prova em BD, ",
     "triggers": [
       "RGPD",
       "GDPR",
@@ -1151,7 +1170,7 @@
     "type": "skill",
     "name": "github",
     "category": "general",
-    "path": ".claude\\skills\\github.md",
+    "path": ".claude/skills/github.md",
     "description": "Working with GitHub Actions, CI/CD pipelines, PR workflows, or GitHub API integrations. MUST be invoked when the user says: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr. SHOULD",
     "triggers": [
       "github",
@@ -1175,8 +1194,8 @@
     "type": "skill",
     "name": "google-analytics",
     "category": "general",
-    "path": ".claude\\skills\\google-analytics.md",
-    "description": "Google Analytics 4 — setup gtag em sites (snippet, eventos custom, consent mode), verificação (DebugView/Realtime) e query de dados via GA4 Data API REST. MUST be invoked when the user says: analy",
+    "path": ".claude/skills/google-analytics.md",
+    "description": "Google Analytics 4 — setup gtag em sites (snippet, eventos custom, consent mode), verificação (DebugView/Realtime) e query de dados via GA4 Data API REST. MUST be invoked when the user says: analytics",
     "triggers": [
       "analytics",
       "traffic",
@@ -1190,8 +1209,8 @@
     "type": "skill",
     "name": "graphic-design",
     "category": "general",
-    "path": ".claude\\skills\\graphic-design.md",
-    "description": "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, busine",
+    "path": ".claude/skills/graphic-design.md",
+    "description": "Print and graphic design in HTML/CSS → PDF. MUST be invoked when the user says: roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz. SHOULD also invoke when: cartão de visita, business ",
     "triggers": [
       "roll-up",
       "flyer",
@@ -1214,8 +1233,8 @@
     "type": "skill",
     "name": "guard",
     "category": "general",
-    "path": ".claude\\skills\\guard.md",
-    "description": "Modo de segurança máxima: liga /careful (avisos de comandos destrutivos) E /freeze (tranca edições a um directório) de uma vez. Usar quando o user disser: guard, modo seguro, segurança máxima, ",
+    "path": ".claude/skills/guard.md",
+    "description": "Modo de segurança máxima: liga /careful (avisos de comandos destrutivos) E /freeze (tranca edições a um directório) de uma vez. Usar quando o user disser: guard, modo seguro, segurança máxima, lock it",
     "triggers": [
       "guard",
       "modo seguro",
@@ -1233,7 +1252,7 @@
     "type": "skill",
     "name": "horizon",
     "category": "general",
-    "path": ".claude\\skills\\horizon.md",
+    "path": ".claude/skills/horizon.md",
     "description": "Laravel queues and Horizon monitoring for production SaaS. MUST be invoked when the user says: queues, jobs, Horizon, workers, dispatching, chaining.",
     "triggers": [
       "queues",
@@ -1248,7 +1267,7 @@
     "type": "skill",
     "name": "html-review",
     "category": "general",
-    "path": ".claude\\skills\\html-review.md",
+    "path": ".claude/skills/html-review.md",
     "description": "Converting markdown documentation to visual HTML format for review or presentation. MUST be invoked when the user says: gerar html, review html, html do prd, html review, visualizar documento, preview",
     "triggers": [
       "gerar html",
@@ -1268,7 +1287,7 @@
     "type": "skill",
     "name": "html-to-pdf",
     "category": "general",
-    "path": ".claude\\skills\\html-to-pdf.md",
+    "path": ".claude/skills/html-to-pdf.md",
     "description": "Export a single HTML page to a faithful 1-page PDF via headless Chrome, avoiding the default US-Letter page-split trap on tall content. MUST invoke when the user says: html to pdf, html-to-pdf, export",
     "triggers": [
       "html to pdf",
@@ -1289,7 +1308,7 @@
     "type": "skill",
     "name": "hyperframes",
     "category": "general",
-    "path": ".claude\\skills\\hyperframes.md",
+    "path": ".claude/skills/hyperframes.md",
     "description": "Create video compositions, animations, title cards, overlays, captions, voiceovers, audio-reactive visuals, and scene transitions using HyperFrames HTML. MUST be invoked when the user says: hyperframe",
     "triggers": [
       "hyperframes",
@@ -1313,8 +1332,8 @@
     "type": "skill",
     "name": "image-upscale",
     "category": "general",
-    "path": ".claude\\skills\\image-upscale.md",
-    "description": "Ampliar ou restaurar imagens para print/large-format/assets de cliente — escolha de modelo ESRGAN por tipo de conteúdo, tiling com blend por feather para imagens grandes, e verificação por recort",
+    "path": ".claude/skills/image-upscale.md",
+    "description": "Ampliar ou restaurar imagens para print/large-format/assets de cliente — escolha de modelo ESRGAN por tipo de conteúdo, tiling com blend por feather para imagens grandes, e verificação por recorte ant",
     "triggers": [
       "upscale",
       "ampliar imagem",
@@ -1336,7 +1355,7 @@
     "type": "skill",
     "name": "img-gen",
     "category": "general",
-    "path": ".claude\\skills\\img-gen.md",
+    "path": ".claude/skills/img-gen.md",
     "description": "Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). MUST be invoked when the user mentions: generate image, create image, illustration, product shot, mockup, hero",
     "triggers": [
       "generate image",
@@ -1352,8 +1371,8 @@
     "type": "skill",
     "name": "joca-os-windows",
     "category": "general",
-    "path": ".claude\\skills\\joca-os-windows.md",
-    "description": "Adapt, test, verify and fix the JOCA_OS for Windows. The JOCA_OS was developed and validated on macOS — this skill makes it run correctly on Windows in one pass. MUST be invoked when installing or u",
+    "path": ".claude/skills/joca-os-windows.md",
+    "description": "Adapt, test, verify and fix the JOCA_OS for Windows. The JOCA_OS was developed and validated on macOS — this skill makes it run correctly on Windows in one pass. MUST be invoked when installing or upg",
     "triggers": [
       "joca os windows",
       "joca windows",
@@ -1372,8 +1391,8 @@
     "type": "skill",
     "name": "joca-terminal",
     "category": "general",
-    "path": ".claude\\skills\\joca-terminal.md",
-    "description": "Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais e enviar notificações, tudo contra",
+    "path": ".claude/skills/joca-terminal.md",
+    "description": "Usar o JOCA a partir de dentro de um terminal aberto pelo JOCA_OS — consultar/comentar/mover tarefas do quadro, abrir novos terminais, falar com outros terminais e enviar notificações, tudo contra o J",
     "triggers": [
       "comenta na tarefa",
       "fecha a tarefa",
@@ -1390,7 +1409,7 @@
     "type": "skill",
     "name": "karpathy-guidelines",
     "category": "general",
-    "path": ".claude\\skills\\karpathy-guidelines.md",
+    "path": ".claude/skills/karpathy-guidelines.md",
     "description": "Karpathy-style behavioural rules to reduce LLM coding mistakes — think first, simplicity, surgical edits. Invoke on: coding discipline, avoid overengineering, LLM coding mistakes.",
     "triggers": [
       "coding discipline",
@@ -1402,8 +1421,8 @@
     "type": "skill",
     "name": "knowledge-ingest",
     "category": "general",
-    "path": ".claude\\skills\\knowledge-ingest.md",
-    "description": "Ingest URL/file into the personal Knowledge Base — convert to Markdown via markitdown, summarize, assign hierarchical tags, save raw+wiki+index. Backs the /know flow (FUTUROS Fase 5). MUST be invoke",
+    "path": ".claude/skills/knowledge-ingest.md",
+    "description": "Ingest URL/file into the personal Knowledge Base — convert to Markdown via markitdown, summarize, assign hierarchical tags, save raw+wiki+index. Backs the /know flow (FUTUROS Fase 5). MUST be invoked ",
     "triggers": [
       "/know",
       "guardar isto",
@@ -1422,8 +1441,8 @@
     "type": "skill",
     "name": "landing-page",
     "category": "general",
-    "path": ".claude\\skills\\landing-page.md",
-    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze pa",
+    "path": ".claude/skills/landing-page.md",
+    "description": "End-to-end landing page creation — structure, conversion copy, and HTML scaffold. MUST be invoked when the user says: landing page, create landing page, build landing page, lead gen page, squeeze page",
     "triggers": [
       "landing page",
       "create landing page",
@@ -1443,8 +1462,8 @@
     "type": "skill",
     "name": "laravel-react",
     "category": "general",
-    "path": ".claude\\skills\\laravel-react.md",
-    "description": "Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA cookie or token), CORS, API contracts, TypeScript type sharing. MUST be invoked when the user says: lara",
+    "path": ".claude/skills/laravel-react.md",
+    "description": "Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA cookie or token), CORS, API contracts, TypeScript type sharing. MUST be invoked when the user says: larave",
     "triggers": [
       "laravel react",
       "connect admin to frontend",
@@ -1467,7 +1486,7 @@
     "type": "skill",
     "name": "laravel-specialist",
     "category": "general",
-    "path": ".claude\\skills\\laravel-specialist.md",
+    "path": ".claude/skills/laravel-specialist.md",
     "description": "Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. MUST be invoked when the user says: Laravel, Eloquent, Artisan, composer.json, artisan, migration, model, c",
     "triggers": [
       "Laravel",
@@ -1491,7 +1510,7 @@
     "type": "skill",
     "name": "launch-strategy",
     "category": "general",
-    "path": ".claude\\skills\\launch-strategy.md",
+    "path": ".claude/skills/launch-strategy.md",
     "description": "Plan a product launch, feature announcement, or release strategy. MUST be invoked when the user says: launch, Product Hunt, feature release, announcement, go-to-market, beta launch,.",
     "triggers": [
       "launch",
@@ -1506,8 +1525,8 @@
     "type": "skill",
     "name": "lead-capture",
     "category": "general",
-    "path": ".claude\\skills\\lead-capture.md",
-    "description": "Email list building — lead magnets, opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user says: lead magnet, grow email list, opt-in form, email capt",
+    "path": ".claude/skills/lead-capture.md",
+    "description": "Email list building — lead magnet ideation (3-5 concepts with hook and bridge to the paid offer), opt-in forms, popup triggers, delivery workflows, and list segmentation. MUST be invoked when the user",
     "triggers": [
       "lead magnet",
       "grow email list",
@@ -1523,14 +1542,14 @@
       "free guide",
       "free template",
       "subscriber growth",
-      "capturar leads"
+      "freebie ideas"
     ]
   },
   {
     "type": "skill",
     "name": "lottie-animator",
     "category": "general",
-    "path": ".claude\\skills\\lottie-animator.md",
+    "path": ".claude/skills/lottie-animator.md",
     "description": "Generates professional Lottie animations from static SVGs. Replaces After Effects for motion graphics. MUST be invoked when the user says: animate logo, create lottie, svg animation, motion graphics, ",
     "triggers": [
       "animate logo",
@@ -1554,8 +1573,8 @@
     "type": "skill",
     "name": "lyric-align",
     "category": "general",
-    "path": ".claude\\skills\\lyric-align.md",
-    "description": "Forced alignment of lyrics to audio — produce word/line-level timestamps via WhisperX (large-v3) with optional Demucs vocal separation, then emit LRC, ASS, or SRT for lyric videos. MUST be invoked w",
+    "path": ".claude/skills/lyric-align.md",
+    "description": "Forced alignment of lyrics to audio — produce word/line-level timestamps via WhisperX (large-v3) with optional Demucs vocal separation, then emit LRC, ASS, or SRT for lyric videos. MUST be invoked whe",
     "triggers": [
       "lyric sync",
       "lyric timestamps",
@@ -1568,9 +1587,54 @@
   },
   {
     "type": "skill",
+    "name": "marketeer-review",
+    "category": "general",
+    "path": ".claude/skills/marketeer-review.md",
+    "description": "F5 do ciclo marketeer: verifica o que está mesmo implementado, puxa os resultados por plataforma, compara com os objetivos e a baseline, aplica regras de cortar/manter/escalar com limiares explícitos,",
+    "triggers": [
+      "/marketeer-review",
+      "marketeer review",
+      "review de marketing",
+      "rever campanhas",
+      "resultados das campanhas",
+      "cortar ou escalar",
+      "data de revisão",
+      "como correram as campanhas",
+      "campaign review",
+      "marketing results review",
+      "rever as campanhas da marca",
+      "resultados do ciclo",
+      "cortar ou escalar campanhas",
+      "as vendas/leads caíram numa marca em ciclo"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "marketeer",
+    "category": "general",
+    "path": ".claude/skills/marketeer.md",
+    "description": "Orquestrador do ciclo de marketing de uma marca: retoma o estado em disco e conduz F0 arranque → F1 análise → F2 proposta → F3 artes → F4 implementação, com fan-out de agentes do pack, revisão adversa",
+    "triggers": [
+      "/marketeer",
+      "marketeer",
+      "ciclo de marketing",
+      "marketing da marca",
+      "marketing do cliente",
+      "campanha completa",
+      "plano de marketing",
+      "retomar marketing",
+      "brand marketing cycle",
+      "full marketing workflow",
+      "campanha completa para a marca",
+      "plano de marketing para o cliente",
+      "retomar o marketing de uma marca"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "marketing",
     "category": "general",
-    "path": ".claude\\skills\\marketing.md",
+    "path": ".claude/skills/marketing.md",
     "description": "Detects marketing intent and routes to the correct marketing skill. MUST be invoked when the user says: marketing, grow my business, get more customers, marketing plan, marketing strategy, marketing h",
     "triggers": [
       "marketing",
@@ -1592,8 +1656,8 @@
     "type": "skill",
     "name": "meshy-3d-print",
     "category": "general",
-    "path": ".claude\\skills\\meshy-3d-print.md",
-    "description": "Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e entrega ao slicer, via MCP da Meshy. MUST be invoked when the user says: imprimir modelo 3d, imprimib",
+    "path": ".claude/skills/meshy-3d-print.md",
+    "description": "Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e entrega ao slicer, via MCP da Meshy. MUST be invoked when the user says: imprimir modelo 3d, imprimibili",
     "triggers": [
       "imprimibilidade",
       "imprimivel",
@@ -1616,8 +1680,8 @@
     "type": "skill",
     "name": "meshy",
     "category": "general",
-    "path": ".claude\\skills\\meshy.md",
-    "description": "Director de geração 3D por IA na Meshy (MCP oficial). MUST be invoked when the user says: meshy, gerar modelo 3d, criar modelo 3d por ia, text-to-3d, image-to-3d, texto para 3d, imagem para 3d, rete",
+    "path": ".claude/skills/meshy.md",
+    "description": "Director de geração 3D por IA na Meshy (MCP oficial). MUST be invoked when the user says: meshy, gerar modelo 3d, criar modelo 3d por ia, text-to-3d, image-to-3d, texto para 3d, imagem para 3d, retext",
     "triggers": [
       "meshy",
       "meshy.ai",
@@ -1640,7 +1704,7 @@
     "type": "skill",
     "name": "microsoft-clarity",
     "category": "general",
-    "path": ".claude\\skills\\microsoft-clarity.md",
+    "path": ".claude/skills/microsoft-clarity.md",
     "description": "Export Microsoft Clarity user behavior analytics. MUST be invoked when the user says: clarity, heatmap, session recording, rage clicks, dead clicks, scroll depth.",
     "triggers": [
       "clarity",
@@ -1653,9 +1717,393 @@
   },
   {
     "type": "skill",
+    "name": "mkt-auditoria",
+    "category": "general",
+    "path": ".claude/skills/mkt-auditoria.md",
+    "description": "Corre a auditoria técnica e de contas de uma marca com os scripts do pack (SEO técnico, tracking no chromium, presença e redes, Google Business Profile, GA4, diagnóstico Google Ads, prova de tracking)",
+    "triggers": [
+      "auditoria",
+      "auditar",
+      "baseline",
+      "métricas atuais",
+      "diagnóstico ads",
+      "prova de tracking",
+      "SEO técnico",
+      "GBP",
+      "audit",
+      "baseline metrics",
+      "auditar a marca",
+      "auditoria de marketing",
+      "estado atual das métricas",
+      "diagnóstico Google Ads",
+      "mkt-auditoria"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-conectores",
+    "category": "general",
+    "path": ".claude/skills/mkt-conectores.md",
+    "description": "Verifica, canal a canal, que acessos de leitura há às contas de marketing de uma marca (Google Ads, GA4, Search Console, Google Business Profile, Meta Ads, Facebook, Instagram, LinkedIn, LinkedIn Ads,",
+    "triggers": [
+      "verificar acessos",
+      "conectores",
+      "matriz de acessos",
+      "acesso às contas",
+      "que contas temos",
+      "ligar conta",
+      "check access",
+      "connectors",
+      "account access",
+      "que acessos temos",
+      "conectores da marca",
+      "mkt-conectores",
+      "F1 do /marketeer",
+      "falta acesso a uma conta",
+      "antes de puxar métricas"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-copy",
+    "category": "general",
+    "path": ".claude/skills/mkt-copy.md",
+    "description": "Copys de campanha na voz da marca (F2 do /marketeer): anúncios Google, Meta e LinkedIn, landing, emails, posts, GBP e material offline, com limites de caracteres só com fonte verificada, variantes par",
+    "triggers": [
+      "mkt-copy",
+      "copys da campanha",
+      "copy da campanha",
+      "textos dos anúncios",
+      "anúncios Meta",
+      "anúncios LinkedIn",
+      "títulos RSA",
+      "copy Google Ads",
+      "texto do flyer",
+      "texto do cartaz",
+      "assunto de email",
+      "copy da landing",
+      "voz da marca",
+      "variantes de copy",
+      "teste A/B de copy"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-criativos",
+    "category": "general",
+    "path": ".claude/skills/mkt-criativos.md",
+    "description": "F3 do marketeer: transforma cada material aprovado na proposta num brief com specs da plataforma, cria as peças (ou exporta os briefs) e monta a página de aprovação das artes. MUST be invoked when the",
+    "triggers": [
+      "artes da campanha",
+      "criativos",
+      "F3 marketeer",
+      "brief criativo",
+      "briefs criativos",
+      "aprovação das artes",
+      "aprovacao.html",
+      "peças da campanha",
+      "exportar briefs",
+      "ad creative",
+      "creative brief",
+      "creative review",
+      "specs de anúncios",
+      "zonas seguras",
+      "safe zone"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-email",
+    "category": "general",
+    "path": ".claude/skills/mkt-email.md",
+    "description": "F4 do marketeer para email marketing, em qualquer plataforma (Brevo, Mailchimp, outra): listas e segmentos com consentimento (RGPD + Lei 41/2004), sequências e campanhas montadas como rascunho ou auto",
+    "triggers": [
+      "email marketing",
+      "newsletter",
+      "campanha de email",
+      "sequência de emails",
+      "sequencia de emails",
+      "automação de email",
+      "lista de contactos",
+      "segmentos",
+      "double opt-in",
+      "dupla confirmação",
+      "consentimento marketing",
+      "lei 41/2004",
+      "rgpd email",
+      "spf",
+      "dkim"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-estrategia",
+    "category": "general",
+    "path": ".claude/skills/mkt-estrategia.md",
+    "description": "Proposta de marketing de uma marca (F2 do /marketeer): objetivo de negócio → métrica, objetivos realistas com a conta à vista, canais online e offline com porquê, funil e captação de leads, oferta, or",
+    "triggers": [
+      "mkt-estrategia",
+      "proposta de marketing",
+      "estratégia de marketing",
+      "plano de campanhas",
+      "plano de meios",
+      "repartição do orçamento",
+      "objetivos realistas",
+      "metas de leads",
+      "que canais usar",
+      "funil de captação",
+      "lead magnet da marca",
+      "marketing offline",
+      "flyers",
+      "cartazes",
+      "F2 marketeer"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-gbp",
+    "category": "general",
+    "path": ".claude/skills/mkt-gbp.md",
+    "description": "F4 do marketeer para Google Business Profile: completar o perfil (categorias, horários, serviços, fotos), preparar publicações, modelos de resposta a avaliações na voz da marca e o pedido de avaliaçõe",
+    "triggers": [
+      "google business profile",
+      "gbp",
+      "perfil empresarial google",
+      "ficha google maps",
+      "google meu negócio",
+      "avaliações google",
+      "responder avaliações",
+      "pedir avaliações",
+      "qr avaliações",
+      "publicações gbp",
+      "categorias gbp",
+      "horários google",
+      "F4 gbp",
+      "perfil do Google",
+      "ficha do Google Maps"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-google-ads",
+    "category": "general",
+    "path": ".claude/skills/mkt-google-ads.md",
+    "description": "F4 do marketeer para Google Ads: monta as campanhas aprovadas na proposta, sempre em pausa — Search por script (especificação, validação, ensaio, criação em PAUSED) e Performance Max/Display/YouTube p",
+    "triggers": [
+      "google ads",
+      "campanha search",
+      "campanha google",
+      "performance max",
+      "pmax",
+      "display",
+      "youtube ads",
+      "google ads editor",
+      "csv google ads",
+      "rsa",
+      "sitelinks",
+      "negativas",
+      "palavras-chave negativas",
+      "campanha em pausa",
+      "investimento google ads"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-linkedin-ads",
+    "category": "general",
+    "path": ".claude/skills/mkt-linkedin-ads.md",
+    "description": "F4 do marketeer para LinkedIn Ads: especifica e monta no Campaign Manager os grupos de campanhas, campanhas e anúncios aprovados — objetivo, segmentação B2B, formato, Lead Gen Forms, Insight Tag — sem",
+    "triggers": [
+      "linkedin ads",
+      "campaign manager",
+      "campanha linkedin",
+      "sponsored content",
+      "conteúdo patrocinado",
+      "lead gen form",
+      "lead gen forms",
+      "insight tag",
+      "segmentação b2b",
+      "cargo",
+      "setor",
+      "matched audiences",
+      "F4 linkedin",
+      "linkedin ads setup",
+      "montar campanha LinkedIn"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-marca",
+    "category": "general",
+    "path": ".claude/skills/mkt-marca.md",
+    "description": "Monta o retrato da marca — negócio, ofertas, público, zona, voz e identidade visual — a partir do site, das redes, dos emails enviados e dos materiais existentes, e escreve marca.md (cria o dossier se",
+    "triggers": [
+      "perfil da marca",
+      "voz da marca",
+      "tom de voz",
+      "estilo de escrita",
+      "guidelines",
+      "brand voice",
+      "brand profile",
+      "marca.md",
+      "dossier",
+      "retrato da marca",
+      "guidelines da marca",
+      "mkt-marca",
+      "F1 do /marketeer",
+      "marca nova no marketeer",
+      "copiar o estilo de escrita da marca"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-medicao",
+    "category": "general",
+    "path": ".claude/skills/mkt-medicao.md",
+    "description": "Infraestrutura de medição de uma marca (F2 do /marketeer): plano de eventos GA4 (generate_lead com formulario, clique_telefone), GTM, conversões Google Ads incluindo chamadas, Meta Pixel + CAPI, Conse",
+    "triggers": [
+      "mkt-medicao",
+      "plano de medição",
+      "medição",
+      "tracking",
+      "UTM",
+      "UTMs",
+      "convenção de UTM",
+      "GA4",
+      "GTM",
+      "generate_lead",
+      "clique_telefone",
+      "conversões Google Ads",
+      "chamadas Google Ads",
+      "Meta Pixel",
+      "CAPI"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-mercado",
+    "category": "general",
+    "path": ".claude/skills/mkt-mercado.md",
+    "description": "Analisa o mercado de uma marca: concorrentes nacionais e internacionais com perfis datados e anúncios ativos (Meta Ad Library, Google Ads Transparency Center), tendências e notícias do setor nos últim",
+    "triggers": [
+      "análise de mercado",
+      "concorrentes",
+      "concorrência",
+      "anúncios dos concorrentes",
+      "ad library",
+      "tendências",
+      "notícias do setor",
+      "personas",
+      "público-alvo",
+      "zona",
+      "market analysis",
+      "competitors",
+      "trends",
+      "concorrentes da marca",
+      "tendências do setor"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-meta-ads",
+    "category": "general",
+    "path": ".claude/skills/mkt-meta-ads.md",
+    "description": "F4 do marketeer para Meta Ads (Facebook + Instagram): especifica e monta campanha, conjuntos e anúncios aprovados — objetivo, públicos, posicionamentos, Pixel + CAPI, Lead Forms ou landing — sempre em",
+    "triggers": [
+      "meta ads",
+      "facebook ads",
+      "instagram ads",
+      "ads manager",
+      "gestor de anúncios",
+      "campanha meta",
+      "conjunto de anúncios",
+      "ad set",
+      "públicos personalizados",
+      "lookalike",
+      "posicionamentos",
+      "reels ads",
+      "stories ads",
+      "lead ads",
+      "formulário instantâneo"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-organico",
+    "category": "general",
+    "path": ".claude/skills/mkt-organico.md",
+    "description": "F4 do marketeer para publicações orgânicas (Facebook, Instagram, LinkedIn): calendário, formatos e legendas a partir das artes aprovadas, montados como rascunhos no TryPost (MCP) quando existe — nunca",
+    "triggers": [
+      "orgânico",
+      "publicações orgânicas",
+      "posts orgânicos",
+      "calendário de publicações",
+      "calendario editorial",
+      "rascunhos trypost",
+      "trypost",
+      "agendar posts",
+      "legendas",
+      "carrossel instagram",
+      "reels orgânicos",
+      "post linkedin empresa",
+      "facebook página",
+      "organic social",
+      "F4 orgânico"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-psicologia",
+    "category": "general",
+    "path": ".claude/skills/mkt-psicologia.md",
+    "description": "Psicologia aplicada ao marketing de uma marca (F2 do /marketeer), em dois modos: aplicar (escolher 2-4 princípios por peça ou decisão da estratégia, com o porquê) e rever (diagnosticar onde um rascunh",
+    "triggers": [
+      "mkt-psicologia",
+      "psicologia",
+      "psicologia do marketing",
+      "persuasão",
+      "gatilhos mentais",
+      "vieses cognitivos",
+      "prova social",
+      "escassez",
+      "ancoragem",
+      "rever copy",
+      "onde perde as pessoas",
+      "porque não prende",
+      "melhorar o gancho",
+      "director of psychology",
+      "marketing psychology"
+    ]
+  },
+  {
+    "type": "skill",
+    "name": "mkt-relatorio",
+    "category": "general",
+    "path": ".claude/skills/mkt-relatorio.md",
+    "description": "Monta os relatórios para pessoas do ciclo de marketing — 01-analise (F1), 02-proposta (F2) e 05-review (F5) — em .md com estrutura fixa e resumo executivo de 5 linhas, gera o .html a partir do modelo ",
+    "triggers": [
+      "relatório",
+      "relatório de marketing",
+      "gerar relatório",
+      "relatório html",
+      "proposta html",
+      "resumo executivo",
+      "report",
+      "marketing report",
+      "relatório de análise",
+      "relatório do marketeer",
+      "gerar o relatório",
+      "proposta em HTML",
+      "relatório de review",
+      "mkt-relatorio",
+      "fecho da F1"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "mobile",
     "category": "general",
-    "path": ".claude\\skills\\mobile.md",
+    "path": ".claude/skills/mobile.md",
     "description": "Mobile apps, responsive design, PWA, mobile-specific UI patterns. MUST be invoked when the user says: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom sheet, safe area. SHOULD also i",
     "triggers": [
       "responsivo",
@@ -1679,7 +2127,7 @@
     "type": "skill",
     "name": "mysql",
     "category": "general",
-    "path": ".claude\\skills\\mysql.md",
+    "path": ".claude/skills/mysql.md",
     "description": "MySQL query writing, performance optimization, schema design, SQL debugging. MUST be invoked when the user says: MySQL, mysql, query lenta, slow query, EXPLAIN, index, indice, migration. SHOULD also i",
     "triggers": [
       "MySQL",
@@ -1703,8 +2151,8 @@
     "type": "skill",
     "name": "notion",
     "category": "general",
-    "path": ".claude\\skills\\notion.md",
-    "description": "Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell no Windows. Query/criar/actualizar/arquivar páginas e tarefas em databases (data sources). Cobre os",
+    "path": ".claude/skills/notion.md",
+    "description": "Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell no Windows. Query/criar/actualizar/arquivar páginas e tarefas em databases (data sources). Cobre os ",
     "triggers": [
       "notion",
       "ntn",
@@ -1717,7 +2165,7 @@
     "type": "skill",
     "name": "novo-issue",
     "category": "general",
-    "path": ".claude\\skills\\novo-issue.md",
+    "path": ".claude/skills/novo-issue.md",
     "description": "Transforma uma ideia ou problema num issue do GitHub estruturado, com criterios de aceitacao verificaveis e a lista de ficheiros que o trabalho vai tocar. Usar antes de escrever codigo para algo novo.",
     "triggers": [
       "novo issue",
@@ -1738,7 +2186,7 @@
     "type": "skill",
     "name": "page-cro",
     "category": "general",
-    "path": ".claude\\skills\\page-cro.md",
+    "path": ".claude/skills/page-cro.md",
     "description": "Optimize conversion on any marketing page (homepage, landing, pricing). Invoke on: CRO, conversion rate, page not converting, my landing page isn't working.",
     "triggers": [
       "CRO",
@@ -1751,8 +2199,8 @@
     "type": "skill",
     "name": "paid-ads",
     "category": "general",
-    "path": ".claude\\skills\\paid-ads.md",
-    "description": "Paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy, headline iterations, creative testing. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Go",
+    "path": ".claude/skills/paid-ads.md",
+    "description": "Paid advertising — campaign strategy, audience targeting, budgets, bidding, ad copy, headline iterations, creative testing. MUST be invoked when the user says: run ads, ad campaign, Facebook ads, Goog",
     "triggers": [
       "run ads",
       "ad campaign",
@@ -1766,7 +2214,7 @@
     "type": "skill",
     "name": "personal-comms",
     "category": "general",
-    "path": ".claude\\skills\\personal-comms.md",
+    "path": ".claude/skills/personal-comms.md",
     "description": "Ler, resumir e enviar email + gerir calendario via MCP/CLI JA LIGADOS (sem API custom). MUST be invoked when the user says: ler email, resumir inbox, enviar email, responder email, marcar reuniao, cri",
     "triggers": [
       "ler email",
@@ -1787,7 +2235,7 @@
     "type": "skill",
     "name": "picsart",
     "category": "general",
-    "path": ".claude\\skills\\picsart.md",
+    "path": ".claude/skills/picsart.md",
     "description": "Route creative generation to the Picsart gen-ai CLI (169 models, 31 providers) for VIDEO, AUDIO, VECTORIZE and UPSCALE. MUST be invoked when the user mentions: generate video, video clip, animate imag",
     "triggers": [
       "generate video",
@@ -1809,7 +2257,7 @@
     "type": "skill",
     "name": "plan",
     "category": "general",
-    "path": ".claude\\skills\\plan.md",
+    "path": ".claude/skills/plan.md",
     "description": "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução. Invoke on: planeia, arquitectura de, migra, reestrutura, tarefa multi-ficheiro/irreversível.",
     "triggers": [
       "planeia",
@@ -1823,7 +2271,7 @@
     "type": "skill",
     "name": "planear-ondas",
     "category": "general",
-    "path": ".claude\\skills\\planear-ondas.md",
+    "path": ".claude/skills/planear-ondas.md",
     "description": "Organiza os issues abertos em ondas de trabalho, com portoes de validacao, analise de paralelismo e agrupamento por sessao. Usar depois de abrir o backlog, ou quando o plano deixou de reflectir a real",
     "triggers": [
       "planear ondas",
@@ -1844,7 +2292,7 @@
     "type": "skill",
     "name": "planning",
     "category": "general",
-    "path": ".claude\\skills\\planning.md",
+    "path": ".claude/skills/planning.md",
     "description": "Planning project architecture, creating tech specs, breaking down tasks, or documenting decisions. MUST be invoked when the user says: planear, planning, planeia o projecto, project planning, como com",
     "triggers": [
       "planear",
@@ -1867,8 +2315,8 @@
     "type": "skill",
     "name": "ploi-api",
     "category": "general",
-    "path": ".claude\\skills\\ploi-api.md",
-    "description": "Controlar o Ploi.io programaticamente — API REST, CLI `ploi`, SDK PHP. MUST be invoked when the user says: ploi api, ploi cli, gerir servidor ploi, criar site no ploi, chave ssh ploi, ssh key ploi, ",
+    "path": ".claude/skills/ploi-api.md",
+    "description": "Controlar o Ploi.io programaticamente — API REST, CLI `ploi`, SDK PHP. MUST be invoked when the user says: ploi api, ploi cli, gerir servidor ploi, criar site no ploi, chave ssh ploi, ssh key ploi, de",
     "triggers": [
       "ploi api",
       "ploi cli",
@@ -1891,8 +2339,8 @@
     "type": "skill",
     "name": "portugal-invoicing",
     "category": "general",
-    "path": ".claude\\skills\\portugal-invoicing.md",
-    "description": "Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or Vendus — invoices, invoice-receipts, credit notes, IVA, AT series communication, ATCUD/QR. MUST b",
+    "path": ".claude/skills/portugal-invoicing.md",
+    "description": "Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or Vendus — invoices, invoice-receipts, credit notes, IVA, AT series communication, ATCUD/QR. MUST be in",
     "triggers": [
       "Moloni",
       "faturação",
@@ -1915,8 +2363,8 @@
     "type": "skill",
     "name": "portugal-payments",
     "category": "general",
-    "path": ".claude\\skills\\portugal-payments.md",
-    "description": "Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. MUST be invoked when the user says: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, refer�",
+    "path": ".claude/skills/portugal-payments.md",
+    "description": "Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. MUST be invoked when the user says: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referên",
     "triggers": [
       "ifthenpay",
       "Multibanco",
@@ -1939,7 +2387,7 @@
     "type": "skill",
     "name": "postmark",
     "category": "general",
-    "path": ".claude\\skills\\postmark.md",
+    "path": ".claude/skills/postmark.md",
     "description": "Send transactional emails via Postmark, handle webhooks, manage templates, configure deliverability (SPF/DKIM/DMARC), and process bounces. MUST be invoked when the user says: postmark, transactional e",
     "triggers": [
       "postmark",
@@ -1957,8 +2405,8 @@
     "type": "skill",
     "name": "prd",
     "category": "general",
-    "path": ".claude\\skills\\prd.md",
-    "description": "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, requi",
+    "path": ".claude/skills/prd.md",
+    "description": "Generates and maintains PRD.md — living requirements doc optimised for Claude Code parsing. Activated by /start, updated by /save on scope changes. MUST be invoked when the user mentions: PRD, require",
     "triggers": [
       "PRD",
       "requirements doc",
@@ -1969,7 +2417,7 @@
     "type": "skill",
     "name": "preparar-design",
     "category": "general",
-    "path": ".claude\\skills\\preparar-design.md",
+    "path": ".claude/skills/preparar-design.md",
     "description": "Desenha um ecra dentro do sistema visual do projecto e entrega-o como Artifact navegavel no browser. Comeca por apurar que design JA existe (Figma, marca, site a rodar, mockups) para nao reinventar o ",
     "triggers": [
       "preparar design",
@@ -1991,7 +2439,7 @@
     "type": "skill",
     "name": "pt-pt-translator",
     "category": "general",
-    "path": ".claude\\skills\\pt-pt-translator.md",
+    "path": ".claude/skills/pt-pt-translator.md",
     "description": "Translate/localize content into European Portuguese with register control (tu/você/senhor). Invoke on: traduzir para PT-PT, localizar UI, rever português.",
     "triggers": [
       "traduzir para PT-PT",
@@ -2003,8 +2451,8 @@
     "type": "skill",
     "name": "public-release-audit",
     "category": "general",
-    "path": ".claude\\skills\\public-release-audit.md",
-    "description": "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Varre por git e não por disco,",
+    "path": ".claude/skills/public-release-audit.md",
+    "description": "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Varre por git e não por disco, apanha ",
     "triggers": [
       "publicar repo público",
       "open source release",
@@ -2027,7 +2475,7 @@
     "type": "skill",
     "name": "queues",
     "category": "general",
-    "path": ".claude\\skills\\queues.md",
+    "path": ".claude/skills/queues.md",
     "description": "Router skill for job queues and background processing. MUST be invoked when the user says: queue, bullmq, background jobs, worker, job processing, task queue, inngest, trigger.dev. SHOULD also invoke ",
     "triggers": [
       "queue",
@@ -2047,8 +2495,8 @@
     "type": "skill",
     "name": "react-composition",
     "category": "general",
-    "path": ".claude\\skills\\react-composition.md",
-    "description": "Designing React component APIs that scale — compound components, context, slots/children, React 19 ref-as-prop, killing boolean-prop proliferation. MUST be invoked when the user says: compound compo",
+    "path": ".claude/skills/react-composition.md",
+    "description": "Designing React component APIs that scale — compound components, context, slots/children, React 19 ref-as-prop, killing boolean-prop proliferation. MUST be invoked when the user says: compound compone",
     "triggers": [
       "compound component",
       "component api",
@@ -2071,7 +2519,7 @@
     "type": "skill",
     "name": "react-email",
     "category": "general",
-    "path": ".claude\\skills\\react-email.md",
+    "path": ".claude/skills/react-email.md",
     "description": "Authoring responsive, client-safe email templates with React Email components. MUST be invoked when the user says: react email, email template, build email, transactional email template, @react-email,",
     "triggers": [
       "react email",
@@ -2095,8 +2543,8 @@
     "type": "skill",
     "name": "react-patterns",
     "category": "general",
-    "path": ".claude\\skills\\react-patterns.md",
-    "description": "Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data fetching, bundle size, Server Components. MUST be invoked when the user says: react performance, r",
+    "path": ".claude/skills/react-patterns.md",
+    "description": "Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data fetching, bundle size, Server Components. MUST be invoked when the user says: react performance, re-",
     "triggers": [
       "react performance",
       "re-render",
@@ -2119,8 +2567,8 @@
     "type": "skill",
     "name": "remotion",
     "category": "general",
-    "path": ".claude\\skills\\remotion.md",
-    "description": "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spr",
+    "path": ".claude/skills/remotion.md",
+    "description": "Create programmatic videos with React and Remotion. MUST be invoked when the user says: remotion, react video, programmatic video, vídeo react, vídeo programático, useCurrentFrame, interpolate, spring",
     "triggers": [
       "remotion",
       "react video",
@@ -2143,7 +2591,7 @@
     "type": "skill",
     "name": "rest-api",
     "category": "general",
-    "path": ".claude\\skills\\rest-api.md",
+    "path": ".claude/skills/rest-api.md",
     "description": "REST API design specialist. MUST be invoked when the user says: API design, REST API, endpoint, OpenAPI, Swagger, API spec, API versioning, API pagination. SHOULD also invoke when: API error, rate lim",
     "triggers": [
       "API design",
@@ -2167,7 +2615,7 @@
     "type": "skill",
     "name": "reverb-realtime",
     "category": "general",
-    "path": ".claude\\skills\\reverb-realtime.md",
+    "path": ".claude/skills/reverb-realtime.md",
     "description": "Laravel Reverb (WebSocket server) + Laravel Echo (frontend) for real-time features in Laravel SaaS. MUST be invoked when the user says: real-time, WebSockets, broadcasting, Reverb, Echo, presence.",
     "triggers": [
       "real-time",
@@ -2182,7 +2630,7 @@
     "type": "skill",
     "name": "rfc",
     "category": "general",
-    "path": ".claude\\skills\\rfc.md",
+    "path": ".claude/skills/rfc.md",
     "description": "Writing Request for Comments documents, proposing system changes, or documenting technical proposals. MUST be invoked when the user says: RFC, request for comments, proposta de mudanca, change proposa",
     "triggers": [
       "RFC",
@@ -2206,7 +2654,7 @@
     "type": "skill",
     "name": "saas-patterns",
     "category": "general",
-    "path": ".claude\\skills\\saas-patterns.md",
+    "path": ".claude/skills/saas-patterns.md",
     "description": "SaaS architecture patterns for Laravel 11 multi-tenant platforms. MUST be invoked when the user says: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboa",
     "triggers": [
       "multi-tenancy Laravel",
@@ -2221,7 +2669,7 @@
     "type": "skill",
     "name": "search",
     "category": "general",
-    "path": ".claude\\skills\\search.md",
+    "path": ".claude/skills/search.md",
     "description": "Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering, typo tolerance, instant results, and index synchronization. MUST be invoked when the user says: search,",
     "triggers": [
       "search",
@@ -2240,8 +2688,8 @@
     "type": "skill",
     "name": "security",
     "category": "general",
-    "path": ".claude\\skills\\security.md",
-    "description": "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass ass",
+    "path": ".claude/skills/security.md",
+    "description": "Global security skill for Laravel + React SaaS. MUST be invoked when the user says: security, segurança, vulnerabilidade, vulnerability, OWASP, injection, XSS, CSRF. SHOULD also invoke when: mass assi",
     "triggers": [
       "security",
       "segurança",
@@ -2264,7 +2712,7 @@
     "type": "skill",
     "name": "selfhosted-arr",
     "category": "general",
-    "path": ".claude\\skills\\selfhosted-arr.md",
+    "path": ".claude/skills/selfhosted-arr.md",
     "description": "Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr + qBittorrent) on a Docker VPS, including inter-app wiring via REST APIs. MUST be invoked when the us",
     "triggers": [
       "media stack",
@@ -2288,7 +2736,7 @@
     "type": "skill",
     "name": "seo-local",
     "category": "general",
-    "path": ".claude\\skills\\seo-local.md",
+    "path": ".claude/skills/seo-local.md",
     "description": "Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health, review signals, local schema markup, location page quality, multi-location SEO. MUST be invoked when",
     "triggers": [
       "local SEO",
@@ -2303,8 +2751,8 @@
     "type": "skill",
     "name": "seo",
     "category": "general",
-    "path": ".claude\\skills\\seo.md",
-    "description": "Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. MUST be invoked when the user says: SEO audit, technical SEO, why a",
+    "path": ".claude/skills/seo.md",
+    "description": "Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO), international SEO, or ranking recovery. MUST be invoked when the user says: SEO audit, technical SEO, why am ",
     "triggers": [
       "SEO audit",
       "technical SEO",
@@ -2318,8 +2766,8 @@
     "type": "skill",
     "name": "shadcn",
     "category": "general",
-    "path": ".claude\\skills\\shadcn.md",
-    "description": "Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste Radix+Tailwind components via the official CLI. MUST be invoked when the user says: shadcn, shadcn/ui, ",
+    "path": ".claude/skills/shadcn.md",
+    "description": "Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste Radix+Tailwind components via the official CLI. MUST be invoked when the user says: shadcn, shadcn/ui, co",
     "triggers": [
       "shadcn",
       "shadcn/ui",
@@ -2342,7 +2790,7 @@
     "type": "skill",
     "name": "shopify-app",
     "category": "general",
-    "path": ".claude\\skills\\shopify-app.md",
+    "path": ".claude/skills/shopify-app.md",
     "description": "Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Invoke on: shopify app init, checkout extension, admin extension.",
     "triggers": [
       "shopify app init",
@@ -2354,7 +2802,7 @@
     "type": "skill",
     "name": "shopify-router",
     "category": "general",
-    "path": ".claude\\skills\\shopify-router.md",
+    "path": ".claude/skills/shopify-router.md",
     "description": "Classifies Shopify project type and routes to the correct skill (shopify-app, shopify-theme, shopify-store-audit, shopify-store-fixer). MUST be invoked when the user mentions: Shopify.",
     "triggers": [
       "Shopify"
@@ -2364,7 +2812,7 @@
     "type": "skill",
     "name": "shopify-store-audit",
     "category": "general",
-    "path": ".claude\\skills\\shopify-store-audit.md",
+    "path": ".claude/skills/shopify-store-audit.md",
     "description": "Auditing a public Shopify store across 8 dimensions: trust, conversion, page speed (Core Web Vitals), technical SEO, product-page SEO, structured data, AEO, GEO. MUST be invoked when the user mentions",
     "triggers": [
       "Shopify",
@@ -2379,7 +2827,7 @@
     "type": "skill",
     "name": "shopify-store-fixer",
     "category": "general",
-    "path": ".claude\\skills\\shopify-store-fixer.md",
+    "path": ".claude/skills/shopify-store-fixer.md",
     "description": "Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with per-write approval. Invoke on: fix shopify store, bulk update products, apply audit fixes.",
     "triggers": [
       "fix shopify store",
@@ -2391,7 +2839,7 @@
     "type": "skill",
     "name": "shopify-theme",
     "category": "general",
-    "path": ".claude\\skills\\shopify-theme.md",
+    "path": ".claude/skills/shopify-theme.md",
     "description": "Building or customising a Shopify theme: Liquid templating, theme architecture (layout/templates/sections/blocks/snippets), theme.json settings, Dawn-based development, Theme Check. MUST be invoked wh",
     "triggers": [
       "Shopify",
@@ -2405,8 +2853,8 @@
     "type": "skill",
     "name": "site-capture",
     "category": "general",
-    "path": ".claude\\skills\\site-capture.md",
-    "description": "Pipeline repetível para screenshots headless limpos + QA visual, e para extrair um asset de imagem de uma screenshot/mockup quando o ficheiro original não existe. MUST invoke quando o user diz: capt",
+    "path": ".claude/skills/site-capture.md",
+    "description": "Pipeline repetível para screenshots headless limpos + QA visual, e para extrair um asset de imagem de uma screenshot/mockup quando o ficheiro original não existe. MUST invoke quando o user diz: captur",
     "triggers": [
       "captura de site",
       "screenshot limpo",
@@ -2429,8 +2877,8 @@
     "type": "skill",
     "name": "slides",
     "category": "general",
-    "path": ".claude\\skills\\slides.md",
-    "description": "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. ",
+    "path": ".claude/skills/slides.md",
+    "description": "Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. MUST be invoked when the user says: slides, apresentação, presentation, pitch deck, deck, powerpoint, pptx, pitch. SH",
     "triggers": [
       "slides",
       "apresentação",
@@ -2453,23 +2901,22 @@
     "type": "skill",
     "name": "social-content",
     "category": "general",
-    "path": ".claude\\skills\\social-content.md",
+    "path": ".claude/skills/social-content.md",
     "description": "Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. MUST be invoked when the user says: LinkedIn post, Twitter thre",
     "triggers": [
       "LinkedIn post",
       "Twitter thread",
       "social media",
-      "content calendar",
-      "social scheduling",
-      "engagement"
+      "engagement",
+      "social post copy"
     ]
   },
   {
     "type": "skill",
     "name": "social-scheduler",
     "category": "general",
-    "path": ".claude\\skills\\social-scheduler.md",
-    "description": "Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Executor do flow create→upload→attach→privacy→publish, com os gotchas por plataforma (TikTok privacy_l",
+    "path": ".claude/skills/social-scheduler.md",
+    "description": "Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Executor do flow create→upload→attach→privacy→publish, com os gotchas por plataforma (TikTok privacy_level, jo",
     "triggers": [
       "agendar post",
       "publicar nas redes",
@@ -2484,8 +2931,8 @@
     "type": "skill",
     "name": "source-driven-development",
     "category": "general",
-    "path": ".claude\\skills\\source-driven-development.md",
-    "description": "Antes de escrever código contra uma framework ou biblioteca, lê a versão EXACTA instalada no lockfile, abre a documentação oficial dessa versão, segue-a e cita-a — nunca a memória do modelo. ",
+    "path": ".claude/skills/source-driven-development.md",
+    "description": "Antes de escrever código contra uma framework ou biblioteca, lê a versão EXACTA instalada no lockfile, abre a documentação oficial dessa versão, segue-a e cita-a — nunca a memória do modelo. Peso espe",
     "triggers": [
       "source-driven",
       "source driven",
@@ -2508,8 +2955,8 @@
     "type": "skill",
     "name": "start",
     "category": "general",
-    "path": ".claude\\skills\\start.md",
-    "description": "O inicio de qualquer projeto. Entrevista completa por formularios interactivos — tipo de produto (website, app movel, jogo, SaaS, software), fluxos, PRD inicial, stack por camadas, infraestrutura e ",
+    "path": ".claude/skills/start.md",
+    "description": "O inicio de qualquer projeto. Entrevista completa por formularios interactivos — tipo de produto (website, app movel, jogo, SaaS, software), fluxos, PRD inicial, stack por camadas, infraestrutura e di",
     "triggers": [
       "start",
       "novo projeto",
@@ -2531,8 +2978,8 @@
     "type": "skill",
     "name": "stop-slop",
     "category": "general",
-    "path": ".claude\\skills\\stop-slop.md",
-    "description": "Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing, advérbios, voz passiva, contrastes binários, falsa agência, fragmentação dramática, jargão. P",
+    "path": ".claude/skills/stop-slop.md",
+    "description": "Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing, advérbios, voz passiva, contrastes binários, falsa agência, fragmentação dramática, jargão. Pass de poli",
     "triggers": [
       "stop slop",
       "AI slop",
@@ -2555,8 +3002,8 @@
     "type": "skill",
     "name": "tailwind",
     "category": "general",
-    "path": ".claude\\skills\\tailwind.md",
-    "description": "Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn variants, dark mode, responsive, avoiding arbitrary-value sprawl. MUST be invoked when the user says: ",
+    "path": ".claude/skills/tailwind.md",
+    "description": "Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn variants, dark mode, responsive, avoiding arbitrary-value sprawl. MUST be invoked when the user says: ta",
     "triggers": [
       "tailwind",
       "tailwindcss",
@@ -2579,7 +3026,7 @@
     "type": "skill",
     "name": "task-breakdown",
     "category": "general",
-    "path": ".claude\\skills\\task-breakdown.md",
+    "path": ".claude/skills/task-breakdown.md",
     "description": "Decompose large features into implementable tasks with dependencies and estimates. MUST be invoked when the user says: tasks, task breakdown, breakdown, epics, stories, estimativa, estimation, quanto ",
     "triggers": [
       "tasks",
@@ -2603,8 +3050,8 @@
     "type": "skill",
     "name": "tdd",
     "category": "general",
-    "path": ".claude\\skills\\tdd.md",
-    "description": "Activa o modo test-first (TDD guard) na sessão — editar código de produção sem teste novo/alterado primeiro dispara confirmação (ask, nunca deny) via hook check-tdd. Usar quando o user disser:",
+    "path": ".claude/skills/tdd.md",
+    "description": "Activa o modo test-first (TDD guard) na sessão — editar código de produção sem teste novo/alterado primeiro dispara confirmação (ask, nunca deny) via hook check-tdd. Usar quando o user disser: tdd, te",
     "triggers": [
       "tdd",
       "test first",
@@ -2623,8 +3070,8 @@
     "type": "skill",
     "name": "tech-spec",
     "category": "general",
-    "path": ".claude\\skills\\tech-spec.md",
-    "description": "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, mo",
+    "path": ".claude/skills/tech-spec.md",
+    "description": "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, mode",
     "triggers": [
       "tech spec",
       "technical specification",
@@ -2647,7 +3094,7 @@
     "type": "skill",
     "name": "test-master",
     "category": "general",
-    "path": ".claude\\skills\\test-master.md",
+    "path": ".claude/skills/test-master.md",
     "description": "Generates test files, creates mocking strategies, analyzes code coverage, designs test architectures, and produces test plans and defect reports across functional, performance, and security testing di",
     "triggers": []
   },
@@ -2655,7 +3102,7 @@
     "type": "skill",
     "name": "transactional-email",
     "category": "general",
-    "path": ".claude\\skills\\transactional-email.md",
+    "path": ".claude/skills/transactional-email.md",
     "description": "Router skill for transactional email. MUST be invoked when the user says: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf. SHOULD also invoke when: dkim, d",
     "triggers": [
       "transactional email",
@@ -2675,8 +3122,8 @@
     "type": "skill",
     "name": "unfreeze",
     "category": "general",
-    "path": ".claude\\skills\\unfreeze.md",
-    "description": "Remove os guard-rails activos — apaga o lock de edição (/freeze), o flag de avisos (/careful) e o modo test-first (/tdd), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar,",
+    "path": ".claude/skills/unfreeze.md",
+    "description": "Remove os guard-rails activos — apaga o lock de edição (/freeze), o flag de avisos (/careful) e o modo test-first (/tdd), desligando o modo /guard. Usar quando o user disser: unfreeze, destrancar, rem",
     "triggers": [
       "unfreeze",
       "destrancar",
@@ -2693,7 +3140,7 @@
     "type": "skill",
     "name": "validar-design",
     "category": "general",
-    "path": ".claude\\skills\\validar-design.md",
+    "path": ".claude/skills/validar-design.md",
     "description": "Valida um mockup contra o sistema visual do projecto e prepara as notas de implementacao. Porteiro, nao autor: assinala o que esta fora e devolve, nao redesenha. MUST be invoked when the user says: va",
     "triggers": [
       "validar design",
@@ -2712,8 +3159,8 @@
     "type": "skill",
     "name": "video",
     "category": "general",
-    "path": ".claude\\skills\\video.md",
-    "description": "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generat",
+    "path": ".claude/skills/video.md",
+    "description": "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, e",
     "triggers": [
       "video",
       "vídeo",
@@ -2736,7 +3183,7 @@
     "type": "skill",
     "name": "webhooks",
     "category": "general",
-    "path": ".claude\\skills\\webhooks.md",
+    "path": ".claude/skills/webhooks.md",
     "description": "Implement webhook receivers with signature verification, idempotent processing, retry handling, and framework-specific patterns for Express, Next.js, Fastify, and Laravel. MUST be invoked when the use",
     "triggers": [
       "webhook",
@@ -2757,8 +3204,8 @@
     "type": "skill",
     "name": "wix-cli",
     "category": "general",
-    "path": ".claude\\skills\\wix-cli.md",
-    "description": "Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI commands, official Wix skills; (2) edit an EXISTING classic Wix Editor site's catalog/content via the W",
+    "path": ".claude/skills/wix-cli.md",
+    "description": "Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI commands, official Wix skills; (2) edit an EXISTING classic Wix Editor site's catalog/content via the Wix",
     "triggers": [
       "Wix",
       "Wix CLI",
@@ -2776,7 +3223,7 @@
     "type": "skill",
     "name": "woocommerce-elementor",
     "category": "general",
-    "path": ".claude\\skills\\woocommerce-elementor.md",
+    "path": ".claude/skills/woocommerce-elementor.md",
     "description": "Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello Elementor child theme, where pages are editable Elementor `_elementor_data` JSON and the child theme C",
     "triggers": [
       "elementor",
@@ -2800,7 +3247,7 @@
     "type": "skill",
     "name": "wordpress-router",
     "category": "general",
-    "path": ".claude\\skills\\wordpress-router.md",
+    "path": ".claude/skills/wordpress-router.md",
     "description": "Classify a WordPress repo (plugin/theme/block theme/core/site) and route to the right wp-* skill. Invoke at the start of any WordPress task.",
     "triggers": [
       "WordPress",
@@ -2820,7 +3267,7 @@
     "type": "skill",
     "name": "wp-abilities-api",
     "category": "general",
-    "path": ".claude\\skills\\wp-abilities-api.md",
+    "path": ".claude/skills/wp-abilities-api.md",
     "description": "Register/expose/consume WordPress Abilities (wp_register_ability, wp-abilities/v1 REST, @wordpress/abilities). Invoke on: abilities API, ability not visible.",
     "triggers": [
       "abilities API",
@@ -2831,7 +3278,7 @@
     "type": "skill",
     "name": "wp-block-development",
     "category": "general",
-    "path": ".claude\\skills\\wp-block-development.md",
+    "path": ".claude/skills/wp-block-development.md",
     "description": "Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations, @wordpress/scripts. Invoke on: block invalid, block.json, create-block.",
     "triggers": [
       "block invalid",
@@ -2843,7 +3290,7 @@
     "type": "skill",
     "name": "wp-block-themes",
     "category": "general",
-    "path": ".claude\\skills\\wp-block-themes.md",
+    "path": ".claude/skills/wp-block-themes.md",
     "description": "Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor debugging. Invoke on: theme.json, block theme, styles not applying.",
     "triggers": [
       "theme.json",
@@ -2855,8 +3302,8 @@
     "type": "skill",
     "name": "wp-index",
     "category": "general",
-    "path": ".claude\\skills\\wp-index.md",
-    "description": "Porta única de entrada para QUALQUER trabalho em WordPress — encaminha para a skill wp-* certa (triagem do repo, blocos Gutenberg/block.json, block themes/theme.json, Interactivity API, plugins e s",
+    "path": ".claude/skills/wp-index.md",
+    "description": "Porta única de entrada para QUALQUER trabalho em WordPress — encaminha para a skill wp-* certa (triagem do repo, blocos Gutenberg/block.json, block themes/theme.json, Interactivity API, plugins e subm",
     "triggers": [
       "wordpress",
       "wp",
@@ -2879,7 +3326,7 @@
     "type": "skill",
     "name": "wp-interactivity-api",
     "category": "general",
-    "path": ".claude\\skills\\wp-interactivity-api.md",
+    "path": ".claude/skills/wp-interactivity-api.md",
     "description": "Building or debugging WordPress Interactivity API features (data-wp-* directives, @wordpress/interactivity store/state/actions, block viewScriptModule integration. MUST be invoked when the user mentio",
     "triggers": [
       "WordPress Interactivity API"
@@ -2889,7 +3336,7 @@
     "type": "skill",
     "name": "wp-performance-review",
     "category": "general",
-    "path": ".claude\\skills\\wp-performance-review.md",
+    "path": ".claude/skills/wp-performance-review.md",
     "description": "WordPress performance code review and optimization analysis. MUST be invoked when the user says: performance review, optimization audit, slow WordPress, slow queries, high-traffic, scale WordPress.",
     "triggers": [
       "performance review",
@@ -2904,7 +3351,7 @@
     "type": "skill",
     "name": "wp-performance",
     "category": "general",
-    "path": ".claude\\skills\\wp-performance.md",
+    "path": ".claude/skills/wp-performance.md",
     "description": "Profile and fix WordPress backend performance via WP-CLI profile/doctor, Server-Timing, Query Monitor headless. Invoke on: WordPress slow, TTFB alto, admin lento.",
     "triggers": [
       "WordPress slow",
@@ -2916,7 +3363,7 @@
     "type": "skill",
     "name": "wp-phpstan",
     "category": "general",
-    "path": ".claude\\skills\\wp-phpstan.md",
+    "path": ".claude/skills/wp-phpstan.md",
     "description": "Configuring, running, or fixing PHPStan static analysis in WordPress projects (plugins/themes/sites): phpstan.neon setup, baselines, WordPress-specific typing, and handling. MUST be invoked when the u",
     "triggers": [
       "PHPStan",
@@ -2927,7 +3374,7 @@
     "type": "skill",
     "name": "wp-playground",
     "category": "general",
-    "path": ".claude\\skills\\wp-playground.md",
+    "path": ".claude/skills/wp-playground.md",
     "description": "WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting. MUST be invoked when the user ment",
     "triggers": [
       "WordPress Playground",
@@ -2940,7 +3387,7 @@
     "type": "skill",
     "name": "wp-plugin-development",
     "category": "general",
-    "path": ".claude\\skills\\wp-plugin-development.md",
+    "path": ".claude/skills/wp-plugin-development.md",
     "description": "WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Invoke on: criar plugin WP, settings page, nonces/capabilities.",
     "triggers": [
       "criar plugin WP",
@@ -2952,8 +3399,8 @@
     "type": "skill",
     "name": "wp-plugin-directory-guidelines",
     "category": "general",
-    "path": ".claude\\skills\\wp-plugin-directory-guidelines.md",
-    "description": "Review a WordPress plugin for WP.org Directory compliance — GPL licensing, trademark/naming, trialware/upsell rules. Invoke on: plugin directory guidelines, GPL compliance, license header, plugin su",
+    "path": ".claude/skills/wp-plugin-directory-guidelines.md",
+    "description": "Review a WordPress plugin for WP.org Directory compliance — GPL licensing, trademark/naming, trialware/upsell rules. Invoke on: plugin directory guidelines, GPL compliance, license header, plugin subm",
     "triggers": [
       "plugin directory guidelines",
       "GPL compliance",
@@ -2965,7 +3412,7 @@
     "type": "skill",
     "name": "wp-project-triage",
     "category": "general",
-    "path": ".claude\\skills\\wp-project-triage.md",
+    "path": ".claude/skills/wp-project-triage.md",
     "description": "Deterministic WP repo inspection (kind, tooling, versions) with JSON output — run before any WP change. Invoke on: que tipo de projecto WP é este.",
     "triggers": [
       "que tipo de projecto WP é este"
@@ -2975,7 +3422,7 @@
     "type": "skill",
     "name": "wp-rest-api",
     "category": "general",
-    "path": ".claude\\skills\\wp-rest-api.md",
+    "path": ".claude/skills/wp-rest-api.md",
     "description": "Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route, WP_REST_Controller/controller classes, schema/argument validation. MUST be invoked when the user mentions: W",
     "triggers": [
       "WordPress REST API",
@@ -2986,7 +3433,7 @@
     "type": "skill",
     "name": "wp-wpcli-and-ops",
     "category": "general",
-    "path": ".claude\\skills\\wp-wpcli-and-ops.md",
+    "path": ".claude/skills/wp-wpcli-and-ops.md",
     "description": "WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Invoke on: wp search-replace, migração de domínio, wp db.",
     "triggers": [
       "wp search-replace",
@@ -2998,7 +3445,7 @@
     "type": "skill",
     "name": "wpds",
     "category": "general",
-    "path": ".claude\\skills\\wpds.md",
+    "path": ".claude/skills/wpds.md",
     "description": "Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Invoke on: WPDS, @wordpress/components, Gutenberg UI.",
     "triggers": [
       "WPDS",
@@ -3010,7 +3457,7 @@
     "type": "skill",
     "name": "yagni",
     "category": "general",
-    "path": ".claude\\skills\\yagni.md",
+    "path": ".claude/skills/yagni.md",
     "description": "Decision ladder de 6 degraus para minimizar codigo e dependencias antes de escrever qualquer coisa. Formaliza os principios de simplicidade do soul.md/CLAUDE.md numa skill activavel. MUST be invoked w",
     "triggers": [
       "yagni",
@@ -3034,8 +3481,8 @@
     "type": "agent",
     "name": "a11y-fixer",
     "category": "agents",
-    "path": ".claude\\agents\\a11y-fixer.md",
-    "description": "Aplica os fixes do relatório WCAG do tester-ui-ux (não só audita — fecha o loop de acessibilidade). Lê o relatório de violações, aplica fixes cirúrgicos (aria, contraste, foco, labels, HTML ",
+    "path": ".claude/agents/a11y-fixer.md",
+    "description": "Aplica os fixes do relatório WCAG do tester-ui-ux (não só audita — fecha o loop de acessibilidade). Lê o relatório de violações, aplica fixes cirúrgicos (aria, contraste, foco, labels, HTML semântico)",
     "triggers": [
       "corrigir a11y",
       "WCAG fix",
@@ -3046,7 +3493,7 @@
     "type": "agent",
     "name": "anima-agent",
     "category": "agents",
-    "path": ".claude\\agents\\anima-agent.md",
+    "path": ".claude/agents/anima-agent.md",
     "description": "design · Adding motion to websites, animating UI elements, creating scroll-based animations, or building. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "animacao",
@@ -3061,7 +3508,7 @@
     "type": "agent",
     "name": "auth-agent",
     "category": "agents",
-    "path": ".claude\\agents\\auth-agent.md",
+    "path": ".claude/agents/auth-agent.md",
     "description": "código · Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "auth",
@@ -3076,7 +3523,7 @@
     "type": "agent",
     "name": "blender-agent",
     "category": "agents",
-    "path": ".claude\\agents\\blender-agent.md",
+    "path": ".claude/agents/blender-agent.md",
     "description": "3d · Director/router de trabalho 3D em Blender por Python headless (bpy). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "blender",
@@ -3091,7 +3538,7 @@
     "type": "agent",
     "name": "blender-render-agent",
     "category": "agents",
-    "path": ".claude\\agents\\blender-render-agent.md",
+    "path": ".claude/agents/blender-render-agent.md",
     "description": "3d · Renderizar em Blender por código: engine (Cycles/EEVEE), camara, luzes, materiais PBR, output. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "render 3d",
@@ -3106,7 +3553,7 @@
     "type": "agent",
     "name": "blender-scripting-agent",
     "category": "agents",
-    "path": ".claude\\agents\\blender-scripting-agent.md",
+    "path": ".claude/agents/blender-scripting-agent.md",
     "description": "3d · Escrever e correr scripts bpy headless: construir cenas, transformar objectos, modificadores. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "bpy",
@@ -3121,7 +3568,7 @@
     "type": "agent",
     "name": "browser-automate-agent",
     "category": "agents",
-    "path": ".claude\\agents\\browser-automate-agent.md",
+    "path": ".claude/agents/browser-automate-agent.md",
     "description": "código · Automate a local canvas/litegraph web app via Playwright headless — load a workflow template. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Playwright canvas",
@@ -3136,7 +3583,7 @@
     "type": "agent",
     "name": "caching-agent",
     "category": "agents",
-    "path": ".claude\\agents\\caching-agent.md",
+    "path": ".claude/agents/caching-agent.md",
     "description": "código · Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "cache",
@@ -3151,15 +3598,15 @@
     "type": "agent",
     "name": "clean-install-audit",
     "category": "agents",
-    "path": ".claude\\agents\\clean-install-audit.md",
-    "description": "Descobre TODAS as instalações JOCA numa máquina, inventaria MCPs/CLIs relacionados, e compara cada instalação encontrada contra o baseline actual do Joca-Open-Source — sinalizando bloat de toke",
+    "path": ".claude/agents/clean-install-audit.md",
+    "description": "Descobre TODAS as instalações JOCA numa máquina, inventaria MCPs/CLIs relacionados, e compara cada instalação encontrada contra o baseline actual do Joca-Open-Source — sinalizando bloat de tokens (CLA",
     "triggers": []
   },
   {
     "type": "agent",
     "name": "cloudflare-dns-agent",
     "category": "agents",
-    "path": ".claude\\agents\\cloudflare-dns-agent.md",
+    "path": ".claude/agents/cloudflare-dns-agent.md",
     "description": "deploy · Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "cloudflare dns",
@@ -3174,8 +3621,8 @@
     "type": "agent",
     "name": "codex-review",
     "category": "agents",
-    "path": ".claude\\agents\\codex-review.md",
-    "description": "Use for adversarial code review from a different AI model perspective (OpenAI GPT/o3 via Codex CLI).\nThis breaks the \"same model reviewing its own output\" problem — Claude cannot objectively critiqu",
+    "path": ".claude/agents/codex-review.md",
+    "description": "Use for adversarial code review from a different AI model perspective (OpenAI GPT/o3 via Codex CLI).\nThis breaks the \"same model reviewing its own output\" problem — Claude cannot objectively critique\n",
     "triggers": [
       "review adversarial",
       "segunda opiniao",
@@ -3187,7 +3634,7 @@
     "type": "agent",
     "name": "component-system-agent",
     "category": "agents",
-    "path": ".claude\\agents\\component-system-agent.md",
+    "path": ".claude/agents/component-system-agent.md",
     "description": "código · Component inventory and per-component specification documents. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "component system",
@@ -3202,22 +3649,22 @@
     "type": "agent",
     "name": "content-calendar-agent",
     "category": "agents",
-    "path": ".claude\\agents\\content-calendar-agent.md",
+    "path": ".claude/agents/content-calendar-agent.md",
     "description": "conteúdo · Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
+      "content calendar",
+      "social calendar",
       "plano de publicacao",
       "calendario social",
       "rollout de lancamento",
-      "captions por plataforma",
-      "content schedule",
-      "posting schedule"
+      "captions por plataforma"
     ]
   },
   {
     "type": "agent",
     "name": "copywriting-agent",
     "category": "agents",
-    "path": ".claude\\agents\\copywriting-agent.md",
+    "path": ".claude/agents/copywriting-agent.md",
     "description": "conteúdo · Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "write copy for",
@@ -3232,7 +3679,7 @@
     "type": "agent",
     "name": "cpanel-agent",
     "category": "agents",
-    "path": ".claude\\agents\\cpanel-agent.md",
+    "path": ".claude/agents/cpanel-agent.md",
     "description": "deploy · Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "cpanel",
@@ -3247,7 +3694,7 @@
     "type": "agent",
     "name": "deep-research",
     "category": "agents",
-    "path": ".claude\\agents\\deep-research.md",
+    "path": ".claude/agents/deep-research.md",
     "description": "Multi-source deep research agent with citation tracking, evidence persistence, and structured report generation. Use for comprehensive analysis, technology comparisons, market research, state-of-the-a",
     "triggers": [
       "investigacao profunda",
@@ -3261,8 +3708,8 @@
     "type": "agent",
     "name": "dependency-auditor",
     "category": "agents",
-    "path": ".claude\\agents\\dependency-auditor.md",
-    "description": "Audita dependências do projecto: CVEs, pacotes desactualizados, deps não usadas. Scans composer/npm/pip, produz plano de update priorizado. Triggers: audit dependencies, outdated packages, CVE in my",
+    "path": ".claude/agents/dependency-auditor.md",
+    "description": "Audita dependências do projecto: CVEs, pacotes desactualizados, deps não usadas. Scans composer/npm/pip, produz plano de update priorizado. Triggers: audit dependencies, outdated packages, CVE in my p",
     "triggers": [
       "audit dependencies",
       "outdated packages",
@@ -3276,7 +3723,7 @@
     "type": "agent",
     "name": "deploy-cpanel-agent",
     "category": "agents",
-    "path": ".claude\\agents\\deploy-cpanel-agent.md",
+    "path": ".claude/agents/deploy-cpanel-agent.md",
     "description": "deploy · Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "shared hosting",
@@ -3291,7 +3738,7 @@
     "type": "agent",
     "name": "deploy-docker-agent",
     "category": "agents",
-    "path": ".claude\\agents\\deploy-docker-agent.md",
+    "path": ".claude/agents/deploy-docker-agent.md",
     "description": "deploy · Containerizing applications, writing Dockerfiles, docker-compose, or setting up container. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "docker",
@@ -3306,8 +3753,8 @@
     "type": "agent",
     "name": "deploy-executor",
     "category": "agents",
-    "path": ".claude\\agents\\deploy-executor.md",
-    "description": "Corre E verifica um pipeline de deploy (cPanel/Docker/Ploi) — não só sabe os passos, executa-os e faz health-check. Detecta o alvo, lê a skill deploy-* certa, corre a pipeline, verifica (curl/sta",
+    "path": ".claude/agents/deploy-executor.md",
+    "description": "Corre E verifica um pipeline de deploy (cPanel/Docker/Ploi) — não só sabe os passos, executa-os e faz health-check. Detecta o alvo, lê a skill deploy-* certa, corre a pipeline, verifica (curl/status),",
     "triggers": [
       "deploy",
       "publicar site",
@@ -3318,7 +3765,7 @@
     "type": "agent",
     "name": "deploy-ploi-agent",
     "category": "agents",
-    "path": ".claude\\agents\\deploy-ploi-agent.md",
+    "path": ".claude/agents/deploy-ploi-agent.md",
     "description": "deploy · Deploying via Ploi.io, managing servers, or configuring Ploi deployments. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "ploi",
@@ -3333,7 +3780,7 @@
     "type": "agent",
     "name": "deploy-vps-agent",
     "category": "agents",
-    "path": ".claude\\agents\\deploy-vps-agent.md",
+    "path": ".claude/agents/deploy-vps-agent.md",
     "description": "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "deploy VPS",
@@ -3348,7 +3795,7 @@
     "type": "agent",
     "name": "design-html-agent",
     "category": "agents",
-    "path": ".claude\\agents\\design-html-agent.md",
+    "path": ".claude/agents/design-html-agent.md",
     "description": "design · Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "codificar design",
@@ -3363,7 +3810,7 @@
     "type": "agent",
     "name": "design-shotgun-agent",
     "category": "agents",
-    "path": ".claude\\agents\\design-shotgun-agent.md",
+    "path": ".claude/agents/design-shotgun-agent.md",
     "description": "design · Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "explorar variantes",
@@ -3378,7 +3825,7 @@
     "type": "agent",
     "name": "design-system-agent",
     "category": "agents",
-    "path": ".claude\\agents\\design-system-agent.md",
+    "path": ".claude/agents/design-system-agent.md",
     "description": "design · Building or auditing design systems, managing design tokens, component libraries, or style guides. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "design system",
@@ -3393,7 +3840,7 @@
     "type": "agent",
     "name": "design-system-audit",
     "category": "agents",
-    "path": ".claude\\agents\\design-system-audit.md",
+    "path": ".claude/agents/design-system-audit.md",
     "description": "Audita o Design System: tokens, specs de componentes, conformidade WCAG, drift. Corre depois de criar/actualizar o design system. Verifica: valores hardcoded fora dos tokens, estados em falta, contras",
     "triggers": [
       "auditar design system",
@@ -3406,7 +3853,7 @@
     "type": "agent",
     "name": "design-tokens-agent",
     "category": "agents",
-    "path": ".claude\\agents\\design-tokens-agent.md",
+    "path": ".claude/agents/design-tokens-agent.md",
     "description": "design · Defining or managing design tokens (colors, spacing, typography) in DTCG format. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "design tokens",
@@ -3421,7 +3868,7 @@
     "type": "agent",
     "name": "email-sequence-agent",
     "category": "agents",
-    "path": ".claude\\agents\\email-sequence-agent.md",
+    "path": ".claude/agents/email-sequence-agent.md",
     "description": "conteúdo · Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "email sequence",
@@ -3436,7 +3883,7 @@
     "type": "agent",
     "name": "filament-agent",
     "category": "agents",
-    "path": ".claude\\agents\\filament-agent.md",
+    "path": ".claude/agents/filament-agent.md",
     "description": "código · Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Filament",
@@ -3451,8 +3898,8 @@
     "type": "agent",
     "name": "filament-builder",
     "category": "agents",
-    "path": ".claude\\agents\\filament-builder.md",
-    "description": "Scaffolda um resource Filament (v4/v5) completo a partir de um Eloquent model — form, table, infolist, relation managers, policy. Lê model+migration, infere fields/relations/casts, gera código v5 ",
+    "path": ".claude/agents/filament-builder.md",
+    "description": "Scaffolda um resource Filament (v4/v5) completo a partir de um Eloquent model — form, table, infolist, relation managers, policy. Lê model+migration, infere fields/relations/casts, gera código v5 idio",
     "triggers": [
       "build filament resource",
       "scaffold filament",
@@ -3463,7 +3910,7 @@
     "type": "agent",
     "name": "file-storage-agent",
     "category": "agents",
-    "path": ".claude\\agents\\file-storage-agent.md",
+    "path": ".claude/agents/file-storage-agent.md",
     "description": "código · Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "file upload",
@@ -3477,7 +3924,7 @@
     "type": "agent",
     "name": "frontend-agent",
     "category": "agents",
-    "path": ".claude\\agents\\frontend-agent.md",
+    "path": ".claude/agents/frontend-agent.md",
     "description": "código · Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "frontend-design",
@@ -3492,8 +3939,8 @@
     "type": "agent",
     "name": "gemini-auditor",
     "category": "agents",
-    "path": ".claude\\agents\\gemini-auditor.md",
-    "description": "Verifica e audita componentes e código do JOCA (skills, agentes, diffs) com um segundo modelo via `agy` (Antigravity CLI / Google Gemini) — cross-check independente à saída do Claude, para apanha",
+    "path": ".claude/agents/gemini-auditor.md",
+    "description": "Verifica e audita componentes e código do JOCA (skills, agentes, diffs) com um segundo modelo via `agy` (Antigravity CLI / Google Gemini) — cross-check independente à saída do Claude, para apanhar err",
     "triggers": [
       "auditoria gemini",
       "segunda opiniao gemini",
@@ -3504,8 +3951,8 @@
     "type": "agent",
     "name": "gemini-brain",
     "category": "agents",
-    "path": ".claude\\agents\\gemini-brain.md",
-    "description": "Tarefas multimodais ou de contexto 1M-token via `agy` (Antigravity CLI / Google Gemini):\nanalisar vídeo (YouTube, links directos), ficheiros locais de vídeo/áudio, PDFs grandes,\nou qualquer conteú",
+    "path": ".claude/agents/gemini-brain.md",
+    "description": "Tarefas multimodais ou de contexto 1M-token via `agy` (Antigravity CLI / Google Gemini):\nanalisar vídeo (YouTube, links directos), ficheiros locais de vídeo/áudio, PDFs grandes,\nou qualquer conteúdo q",
     "triggers": [
       "perguntar ao gemini",
       "gemini",
@@ -3516,7 +3963,7 @@
     "type": "agent",
     "name": "graphic-design-agent",
     "category": "agents",
-    "path": ".claude\\agents\\graphic-design-agent.md",
+    "path": ".claude/agents/graphic-design-agent.md",
     "description": "design · Print and graphic design in HTML/CSS → PDF. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "roll-up",
@@ -3531,7 +3978,7 @@
     "type": "agent",
     "name": "img-gen-agent",
     "category": "agents",
-    "path": ".claude\\agents\\img-gen-agent.md",
+    "path": ".claude/agents/img-gen-agent.md",
     "description": "design · Route and generate images via Codex CLI (OpenAI gpt-image-2) or Antigravity CLI (Gemini). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "generate image",
@@ -3546,7 +3993,7 @@
     "type": "agent",
     "name": "img-gen-google",
     "category": "agents",
-    "path": ".claude\\agents\\img-gen-google.md",
+    "path": ".claude/agents/img-gen-google.md",
     "description": "Generate images using Antigravity CLI (agy) with Gemini image models. Receives a creative brief, constructs an optimised prompt, and executes via agy. Best for: general imagery, quick/cheap drafts, un",
     "triggers": [
       "gerar imagem",
@@ -3559,7 +4006,7 @@
     "type": "agent",
     "name": "img-gen-openai",
     "category": "agents",
-    "path": ".claude\\agents\\img-gen-openai.md",
+    "path": ".claude/agents/img-gen-openai.md",
     "description": "Generate images using Codex CLI (OpenAI gpt-image-2). Receives a creative brief, constructs an optimised prompt, and executes via codex exec. Best for: text in images, product shots with branding, inp",
     "triggers": [
       "gerar imagem",
@@ -3572,8 +4019,8 @@
     "type": "agent",
     "name": "knowledge-ingest",
     "category": "agents",
-    "path": ".claude\\agents\\knowledge-ingest.md",
-    "description": "Ingere URL/ficheiro (PDF, YouTube, Instagram, artigo, imagem) na base de conhecimento pessoal: markitdown → resumo → tags hierárquicas → nota wiki em memory/knowledge/ (Karpathy-style, raw imut",
+    "path": ".claude/agents/knowledge-ingest.md",
+    "description": "Ingere URL/ficheiro (PDF, YouTube, Instagram, artigo, imagem) na base de conhecimento pessoal: markitdown → resumo → tags hierárquicas → nota wiki em memory/knowledge/ (Karpathy-style, raw imutável + ",
     "triggers": [
       "/know",
       "guardar isto",
@@ -3585,7 +4032,7 @@
     "type": "agent",
     "name": "landing-page-agent",
     "category": "agents",
-    "path": ".claude\\agents\\landing-page-agent.md",
+    "path": ".claude/agents/landing-page-agent.md",
     "description": "design · End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "landing page",
@@ -3600,7 +4047,7 @@
     "type": "agent",
     "name": "laravel-react-agent",
     "category": "agents",
-    "path": ".claude\\agents\\laravel-react-agent.md",
+    "path": ".claude/agents/laravel-react-agent.md",
     "description": "código · Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "laravel react",
@@ -3615,8 +4062,8 @@
     "type": "agent",
     "name": "laravel-refactor",
     "category": "agents",
-    "path": ".claude\\agents\\laravel-refactor.md",
-    "description": "Refactoriza/optimiza Laravel para escala — remove código morto, reduz complexidade, corrige N+1, extrai para Actions, corre Larastan/PHPStan. Lê código, analisa estaticamente, aplica refactors ci",
+    "path": ".claude/agents/laravel-refactor.md",
+    "description": "Refactoriza/optimiza Laravel para escala — remove código morto, reduz complexidade, corrige N+1, extrai para Actions, corre Larastan/PHPStan. Lê código, analisa estaticamente, aplica refactors cirúrgi",
     "triggers": [
       "refactor laravel",
       "dead code",
@@ -3630,7 +4077,7 @@
     "type": "agent",
     "name": "laravel-specialist-agent",
     "category": "agents",
-    "path": ".claude\\agents\\laravel-specialist-agent.md",
+    "path": ".claude/agents/laravel-specialist-agent.md",
     "description": "código · Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Laravel",
@@ -3645,8 +4092,8 @@
     "type": "agent",
     "name": "log-debugger",
     "category": "agents",
-    "path": ".claude\\agents\\log-debugger.md",
-    "description": "Debugs errors, stack traces, and logs — reads real code/logs, never guesses. Auto-selects mode: stack trace → root-cause fix; log file → pattern analysis; error spike/cascade → correlation; La",
+    "path": ".claude/agents/log-debugger.md",
+    "description": "Debugs errors, stack traces, and logs — reads real code/logs, never guesses. Auto-selects mode: stack trace → root-cause fix; log file → pattern analysis; error spike/cascade → correlation; Laravel-sp",
     "triggers": [
       "debug this error",
       "stack trace",
@@ -3665,7 +4112,7 @@
     "type": "agent",
     "name": "lottie-animator-agent",
     "category": "agents",
-    "path": ".claude\\agents\\lottie-animator-agent.md",
+    "path": ".claude/agents/lottie-animator-agent.md",
     "description": "design · Generates professional Lottie animations from static SVGs. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "animate logo",
@@ -3680,7 +4127,7 @@
     "type": "agent",
     "name": "master-orchestrator",
     "category": "agents",
-    "path": ".claude\\agents\\master-orchestrator.md",
+    "path": ".claude/agents/master-orchestrator.md",
     "description": "Concurrent multi-agent orchestrator — decomposes complex tasks into parallel work streams, dispatches sub-agents, aggregates results. Core engine for /one-shot autonomous development.",
     "triggers": [
       "orquestrar",
@@ -3694,7 +4141,7 @@
     "type": "agent",
     "name": "meshy-3d-print-agent",
     "category": "agents",
-    "path": ".claude\\agents\\meshy-3d-print-agent.md",
+    "path": ".claude/agents/meshy-3d-print-agent.md",
     "description": "3d · Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "imprimibilidade",
@@ -3709,7 +4156,7 @@
     "type": "agent",
     "name": "meshy-agent",
     "category": "agents",
-    "path": ".claude\\agents\\meshy-agent.md",
+    "path": ".claude/agents/meshy-agent.md",
     "description": "3d · Director de geração 3D por IA na Meshy (MCP oficial). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "meshy",
@@ -3722,9 +4169,73 @@
   },
   {
     "type": "agent",
+    "name": "mkt-analista-agent",
+    "category": "agents",
+    "path": ".claude/agents/mkt-analista-agent.md",
+    "description": "conteúdo · Frente de análise da F1 do /marketeer (conectores, marca, mercado ou auditoria): lê a skill mkt-* que o brief indica e grava o que ela entrega. Despachar um por frente, em paralelo.",
+    "triggers": [
+      "análise de marketing",
+      "frente de análise",
+      "mkt-conectores",
+      "mkt-marca",
+      "mkt-mercado",
+      "mkt-auditoria",
+      "marketing analysis"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "mkt-criativos-agent",
+    "category": "agents",
+    "path": ".claude/agents/mkt-criativos-agent.md",
+    "description": "conteúdo · Uma peça da F3 do /marketeer: lê o brief da peça e a skill mkt-criativos, e cria a peça (com as skills de imagem/design do JOCA quando existem) ou exporta o brief. Despachar um por peça, em",
+    "triggers": [
+      "peça criativa",
+      "arte da campanha",
+      "criativo de anúncio",
+      "mkt-criativos",
+      "ad creative piece"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "mkt-plataforma-agent",
+    "category": "agents",
+    "path": ".claude/agents/mkt-plataforma-agent.md",
+    "description": "conteúdo · Uma plataforma na F4/F5 do /marketeer (Google Ads, Meta Ads, LinkedIn Ads, email, GBP, orgânico): em F4 prepara e ENSAIA a implementação (nada ativo, custo em €); em F5 lê o estado e os res",
+    "triggers": [
+      "implementar campanha",
+      "ensaio de campanha",
+      "ler resultados da plataforma",
+      "mkt-google-ads",
+      "mkt-meta-ads",
+      "mkt-linkedin-ads",
+      "mkt-email",
+      "mkt-gbp",
+      "mkt-organico",
+      "platform implementation"
+    ]
+  },
+  {
+    "type": "agent",
+    "name": "mkt-revisor-agent",
+    "category": "agents",
+    "path": ".claude/agents/mkt-revisor-agent.md",
+    "description": "conteúdo · Revisor adversarial do /marketeer (proposta F2, artes F3, especificações de plataforma F4, review F5): só lê e aponta — números sem fonte, promessas que a landing não cumpre, voz fora do pe",
+    "triggers": [
+      "rever proposta de marketing",
+      "revisão adversarial",
+      "revisor marketeer",
+      "rever artes",
+      "rever copy da campanha",
+      "adversarial marketing review"
+    ]
+  },
+  {
+    "type": "agent",
     "name": "mobile-agent",
     "category": "agents",
-    "path": ".claude\\agents\\mobile-agent.md",
+    "path": ".claude/agents/mobile-agent.md",
     "description": "código · Mobile apps, responsive design, PWA, mobile-specific UI patterns. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "responsivo",
@@ -3739,7 +4250,7 @@
     "type": "agent",
     "name": "mysql-agent",
     "category": "agents",
-    "path": ".claude\\agents\\mysql-agent.md",
+    "path": ".claude/agents/mysql-agent.md",
     "description": "código · MySQL query writing, performance optimization, schema design, SQL debugging. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "MySQL",
@@ -3754,7 +4265,7 @@
     "type": "agent",
     "name": "notion-agent",
     "category": "agents",
-    "path": ".claude\\agents\\notion-agent.md",
+    "path": ".claude/agents/notion-agent.md",
     "description": "plataformas · Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "notion",
@@ -3768,7 +4279,7 @@
     "type": "agent",
     "name": "payment-integration",
     "category": "agents",
-    "path": ".claude\\agents\\payment-integration.md",
+    "path": ".claude/agents/payment-integration.md",
     "description": "Integra pagamentos: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI co",
     "triggers": [
       "integrate Stripe",
@@ -3787,8 +4298,8 @@
     "type": "agent",
     "name": "personal-comms",
     "category": "agents",
-    "path": ".claude\\agents\\personal-comms.md",
-    "description": "Assistente de comunicações PESSOAIS — lê/resume/(autorizado) envia email da caixa pessoal, consulta/cria eventos de calendário via CLI/MCP. Distinto das skills de email TRANSACCIONAIS/MARKETING ",
+    "path": ".claude/agents/personal-comms.md",
+    "description": "Assistente de comunicações PESSOAIS — lê/resume/(autorizado) envia email da caixa pessoal, consulta/cria eventos de calendário via CLI/MCP. Distinto das skills de email TRANSACCIONAIS/MARKETING (react",
     "triggers": [
       "ler email",
       "resumo de emails",
@@ -3802,7 +4313,7 @@
     "type": "agent",
     "name": "portugal-invoicing-agent",
     "category": "agents",
-    "path": ".claude\\agents\\portugal-invoicing-agent.md",
+    "path": ".claude/agents/portugal-invoicing-agent.md",
     "description": "portugal · Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Moloni",
@@ -3817,7 +4328,7 @@
     "type": "agent",
     "name": "portugal-payments-agent",
     "category": "agents",
-    "path": ".claude\\agents\\portugal-payments-agent.md",
+    "path": ".claude/agents/portugal-payments-agent.md",
     "description": "portugal · Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "ifthenpay",
@@ -3832,8 +4343,8 @@
     "type": "agent",
     "name": "pr-repair",
     "category": "agents",
-    "path": ".claude\\agents\\pr-repair.md",
-    "description": "Agente autónomo de reparação de PR: resolve conflitos, aplica comentários de bots por resolver, corrige CI vermelho, commita em fases coerentes, PUSH uma vez no fim — pipeline de ordem fixa com ",
+    "path": ".claude/agents/pr-repair.md",
+    "description": "Agente autónomo de reparação de PR: resolve conflitos, aplica comentários de bots por resolver, corrige CI vermelho, commita em fases coerentes, PUSH uma vez no fim — pipeline de ordem fixa com travão",
     "triggers": [
       "reparar PR",
       "CI vermelho",
@@ -3845,8 +4356,8 @@
     "type": "agent",
     "name": "prd-reviewer",
     "category": "agents",
-    "path": ".claude\\agents\\prd-reviewer.md",
-    "description": "Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD.\nTriggers: \"revê o PRD\", \"valida o PRD\", \"o PRD está completo?\", \"review do PRD\", a",
+    "path": ".claude/agents/prd-reviewer.md",
+    "description": "Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD.\nTriggers: \"revê o PRD\", \"valida o PRD\", \"o PRD está completo?\", \"review do PRD\", aft",
     "triggers": [
       "rever PRD",
       "avaliar requisitos",
@@ -3862,7 +4373,7 @@
     "type": "agent",
     "name": "pt-pt-translator-agent",
     "category": "agents",
-    "path": ".claude\\agents\\pt-pt-translator-agent.md",
+    "path": ".claude/agents/pt-pt-translator-agent.md",
     "description": "conteúdo · Translate/localize content into European Portuguese with register control (tu/você/senhor). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "traduzir para PT-PT",
@@ -3874,8 +4385,8 @@
     "type": "agent",
     "name": "query-debugger",
     "category": "agents",
-    "path": ".claude\\agents\\query-debugger.md",
-    "description": "Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, ",
+    "path": ".claude/agents/query-debugger.md",
+    "description": "Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, mi",
     "triggers": [
       "slow query",
       "EXPLAIN",
@@ -3890,7 +4401,7 @@
     "type": "agent",
     "name": "queues-agent",
     "category": "agents",
-    "path": ".claude\\agents\\queues-agent.md",
+    "path": ".claude/agents/queues-agent.md",
     "description": "código · Router skill for job queues and background processing. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "queue",
@@ -3905,7 +4416,7 @@
     "type": "agent",
     "name": "react-composition-agent",
     "category": "agents",
-    "path": ".claude\\agents\\react-composition-agent.md",
+    "path": ".claude/agents/react-composition-agent.md",
     "description": "código · Designing React component APIs that scale — compound components, context, slots/children, React 19. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "compound component",
@@ -3920,7 +4431,7 @@
     "type": "agent",
     "name": "react-email-agent",
     "category": "agents",
-    "path": ".claude\\agents\\react-email-agent.md",
+    "path": ".claude/agents/react-email-agent.md",
     "description": "código · Authoring responsive, client-safe email templates with React Email components. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "react email",
@@ -3935,7 +4446,7 @@
     "type": "agent",
     "name": "react-patterns-agent",
     "category": "agents",
-    "path": ".claude\\agents\\react-patterns-agent.md",
+    "path": ".claude/agents/react-patterns-agent.md",
     "description": "código · Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "react performance",
@@ -3950,7 +4461,7 @@
     "type": "agent",
     "name": "remotion-agent",
     "category": "agents",
-    "path": ".claude\\agents\\remotion-agent.md",
+    "path": ".claude/agents/remotion-agent.md",
     "description": "design · Create programmatic videos with React and Remotion. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "remotion",
@@ -3965,7 +4476,7 @@
     "type": "agent",
     "name": "rest-api-agent",
     "category": "agents",
-    "path": ".claude\\agents\\rest-api-agent.md",
+    "path": ".claude/agents/rest-api-agent.md",
     "description": "código · REST API design specialist. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "API design",
@@ -3980,7 +4491,7 @@
     "type": "agent",
     "name": "saas-patterns-agent",
     "category": "agents",
-    "path": ".claude\\agents\\saas-patterns-agent.md",
+    "path": ".claude/agents/saas-patterns-agent.md",
     "description": "código · SaaS architecture patterns for Laravel 11 multi-tenant platforms. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "multi-tenancy Laravel",
@@ -3995,7 +4506,7 @@
     "type": "agent",
     "name": "search-agent",
     "category": "agents",
-    "path": ".claude\\agents\\search-agent.md",
+    "path": ".claude/agents/search-agent.md",
     "description": "código · Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "search",
@@ -4010,8 +4521,8 @@
     "type": "agent",
     "name": "security-review",
     "category": "agents",
-    "path": ".claude\\agents\\security-review.md",
-    "description": "Review de segurança profundo: lê código e aplica padrões OWASP ASVS 5.0 para Laravel+React. Verifica: IDOR, validação FormRequest, mass assignment, upload de ficheiros, config sessão/CORS, encr",
+    "path": ".claude/agents/security-review.md",
+    "description": "Review de segurança profundo: lê código e aplica padrões OWASP ASVS 5.0 para Laravel+React. Verifica: IDOR, validação FormRequest, mass assignment, upload de ficheiros, config sessão/CORS, encriptação",
     "triggers": [
       "review de seguranca",
       "OWASP",
@@ -4024,7 +4535,7 @@
     "type": "agent",
     "name": "self-improver",
     "category": "agents",
-    "path": ".claude\\agents\\self-improver.md",
+    "path": ".claude/agents/self-improver.md",
     "description": "Autonomous self-improvement agent for JOCA. Analyzes accumulated feedback, identifies improvement opportunities, proposes new skills/optimizations, and validates via external CLI (Gemini/Codex). Trigg",
     "triggers": [
       "/upgrade-joca or scheduled maintenance"
@@ -4034,7 +4545,7 @@
     "type": "agent",
     "name": "selfhosted-arr-agent",
     "category": "agents",
-    "path": ".claude\\agents\\selfhosted-arr-agent.md",
+    "path": ".claude/agents/selfhosted-arr-agent.md",
     "description": "deploy · Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "media stack",
@@ -4049,7 +4560,7 @@
     "type": "agent",
     "name": "seo-agent",
     "category": "agents",
-    "path": ".claude\\agents\\seo-agent.md",
+    "path": ".claude/agents/seo-agent.md",
     "description": "conteúdo · Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "SEO audit",
@@ -4064,8 +4575,8 @@
     "type": "agent",
     "name": "seo-analyst",
     "category": "agents",
-    "path": ".claude\\agents\\seo-analyst.md",
-    "description": "Auditoria SEO research-first: crawla o site com Firecrawl, analisa sinais técnicos, produz relatório priorizado. Diferente da skill `seo` (guidance) — este agente crawla e audita de facto. Trigger",
+    "path": ".claude/agents/seo-analyst.md",
+    "description": "Auditoria SEO research-first: crawla o site com Firecrawl, analisa sinais técnicos, produz relatório priorizado. Diferente da skill `seo` (guidance) — este agente crawla e audita de facto. Triggers: S",
     "triggers": [
       "SEO audit",
       "technical SEO",
@@ -4083,7 +4594,7 @@
     "type": "agent",
     "name": "seo-local-agent",
     "category": "agents",
-    "path": ".claude\\agents\\seo-local-agent.md",
+    "path": ".claude/agents/seo-local-agent.md",
     "description": "conteúdo · Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "local SEO",
@@ -4098,7 +4609,7 @@
     "type": "agent",
     "name": "shadcn-agent",
     "category": "agents",
-    "path": ".claude\\agents\\shadcn-agent.md",
+    "path": ".claude/agents/shadcn-agent.md",
     "description": "código · Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "shadcn",
@@ -4113,7 +4624,7 @@
     "type": "agent",
     "name": "shopify-app-agent",
     "category": "agents",
-    "path": ".claude\\agents\\shopify-app-agent.md",
+    "path": ".claude/agents/shopify-app-agent.md",
     "description": "plataformas · Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "shopify app init",
@@ -4125,7 +4636,7 @@
     "type": "agent",
     "name": "shopify-store-fixer-agent",
     "category": "agents",
-    "path": ".claude\\agents\\shopify-store-fixer-agent.md",
+    "path": ".claude/agents/shopify-store-fixer-agent.md",
     "description": "plataformas · Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "fix shopify store",
@@ -4137,7 +4648,7 @@
     "type": "agent",
     "name": "shopify-theme-agent",
     "category": "agents",
-    "path": ".claude\\agents\\shopify-theme-agent.md",
+    "path": ".claude/agents/shopify-theme-agent.md",
     "description": "plataformas · Building or customising a Shopify theme: Liquid templating, theme architecture. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Shopify",
@@ -4151,7 +4662,7 @@
     "type": "agent",
     "name": "skill-evaluator",
     "category": "agents",
-    "path": ".claude\\agents\\skill-evaluator.md",
+    "path": ".claude/agents/skill-evaluator.md",
     "description": "Specialist agent for evaluating Claude Code SKILL.md quality. Receives a skill and the original request, scores it on 5 dimensions, and returns a structured JSON verdict. Used internally by the create",
     "triggers": [
       "avaliar skill",
@@ -4164,7 +4675,7 @@
     "type": "agent",
     "name": "skill-improver",
     "category": "agents",
-    "path": ".claude\\agents\\skill-improver.md",
+    "path": ".claude/agents/skill-improver.md",
     "description": "Specialist agent for improving Claude Code SKILL.md files. Receives a skill draft and improvement context, applies targeted enhancements, and returns the improved skill content. Used internally by the",
     "triggers": [
       "melhorar skill",
@@ -4176,7 +4687,7 @@
     "type": "agent",
     "name": "slides-agent",
     "category": "agents",
-    "path": ".claude\\agents\\slides-agent.md",
+    "path": ".claude/agents/slides-agent.md",
     "description": "design · Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "slides",
@@ -4191,22 +4702,21 @@
     "type": "agent",
     "name": "social-content-agent",
     "category": "agents",
-    "path": ".claude\\agents\\social-content-agent.md",
+    "path": ".claude/agents/social-content-agent.md",
     "description": "conteúdo · Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "LinkedIn post",
       "Twitter thread",
       "social media",
-      "content calendar",
-      "social scheduling",
-      "engagement"
+      "engagement",
+      "social post copy"
     ]
   },
   {
     "type": "agent",
     "name": "social-scheduler-agent",
     "category": "agents",
-    "path": ".claude\\agents\\social-scheduler-agent.md",
+    "path": ".claude/agents/social-scheduler-agent.md",
     "description": "conteúdo · Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "agendar post",
@@ -4221,7 +4731,7 @@
     "type": "agent",
     "name": "stop-slop-agent",
     "category": "agents",
-    "path": ".claude\\agents\\stop-slop-agent.md",
+    "path": ".claude/agents/stop-slop-agent.md",
     "description": "conteúdo · Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "stop slop",
@@ -4236,7 +4746,7 @@
     "type": "agent",
     "name": "tailwind-agent",
     "category": "agents",
-    "path": ".claude\\agents\\tailwind-agent.md",
+    "path": ".claude/agents/tailwind-agent.md",
     "description": "código · Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "tailwind",
@@ -4251,8 +4761,8 @@
     "type": "agent",
     "name": "task-router",
     "category": "agents",
-    "path": ".claude\\agents\\task-router.md",
-    "description": "Classificador leve de tarefas: recebe qualquer tarefa em NL e devolve a via certa — A (directa), B (skill), C (agente), D (workflow) — por thresholds (nº ficheiros, domínios, reversibilidade, sk",
+    "path": ".claude/agents/task-router.md",
+    "description": "Classificador leve de tarefas: recebe qualquer tarefa em NL e devolve a via certa — A (directa), B (skill), C (agente), D (workflow) — por thresholds (nº ficheiros, domínios, reversibilidade, skill-ma",
     "triggers": [
       "classificar tarefa",
       "que via",
@@ -4263,8 +4773,8 @@
     "type": "agent",
     "name": "tech-debt-auditor",
     "category": "agents",
-    "path": ".claude\\agents\\tech-debt-auditor.md",
-    "description": "Audita dívida técnica: enumera com upstream upgrade-path e QUANTIFICA o ganho (LOC removido, complexidade, tempo poupado). Padrão script-mede + LLM-prioriza (complexidade ciclomática, código mort",
+    "path": ".claude/agents/tech-debt-auditor.md",
+    "description": "Audita dívida técnica: enumera com upstream upgrade-path e QUANTIFICA o ganho (LOC removido, complexidade, tempo poupado). Padrão script-mede + LLM-prioriza (complexidade ciclomática, código morto, du",
     "triggers": [
       "tech debt",
       "dívida técnica",
@@ -4277,8 +4787,8 @@
     "type": "agent",
     "name": "tester-api",
     "category": "agents",
-    "path": ".claude\\agents\\tester-api.md",
-    "description": "Testa endpoints REST: correcção, auth, schema, IDOR, performance, edge cases. Produz relatório pass/fail por endpoint. Triggers: test my API, test endpoints, API broken, HTTP 500, 401 unauthorized,",
+    "path": ".claude/agents/tester-api.md",
+    "description": "Testa endpoints REST: correcção, auth, schema, IDOR, performance, edge cases. Produz relatório pass/fail por endpoint. Triggers: test my API, test endpoints, API broken, HTTP 500, 401 unauthorized, te",
     "triggers": [
       "test my API",
       "test endpoints",
@@ -4293,8 +4803,8 @@
     "type": "agent",
     "name": "tester-code",
     "category": "agents",
-    "path": ".claude\\agents\\tester-code.md",
-    "description": "Review de código E fix agent — revê trabalho contra o plano/padrões, depois (se o brief pedir para fechar) aplica os fixes em loop test→fix→verify com commits atómicos. Tem ferramentas de es",
+    "path": ".claude/agents/tester-code.md",
+    "description": "Review de código E fix agent — revê trabalho contra o plano/padrões, depois (se o brief pedir para fechar) aplica os fixes em loop test→fix→verify com commits atómicos. Tem ferramentas de escrita. Dis",
     "triggers": [
       "rever codigo",
       "code review",
@@ -4306,8 +4816,8 @@
     "type": "agent",
     "name": "tester-performance",
     "category": "agents",
-    "path": ".claude\\agents\\tester-performance.md",
-    "description": "Audits web performance or runs load/stress tests. Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical/Warning/Good. Triggers: Lightho",
+    "path": ".claude/agents/tester-performance.md",
+    "description": "Audits web performance or runs load/stress tests. Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical/Warning/Good. Triggers: Lighthouse,",
     "triggers": [
       "Lighthouse",
       "Core Web Vitals",
@@ -4327,8 +4837,8 @@
     "type": "agent",
     "name": "tester-ratelimit",
     "category": "agents",
-    "path": ".claude\\agents\\tester-ratelimit.md",
-    "description": "Testa rate limiting activamente com pedidos HTTP reais e vectores de bypass: verificação de threshold, probes de header (X-Forwarded-For+variantes), manipulação path/method, auditoria de config La",
+    "path": ".claude/agents/tester-ratelimit.md",
+    "description": "Testa rate limiting activamente com pedidos HTTP reais e vectores de bypass: verificação de threshold, probes de header (X-Forwarded-For+variantes), manipulação path/method, auditoria de config Larave",
     "triggers": [
       "test rate limit",
       "bypass rate limit",
@@ -4340,8 +4850,8 @@
     "type": "agent",
     "name": "tester-security",
     "category": "agents",
-    "path": ".claude\\agents\\tester-security.md",
-    "description": "Auditoria de segurança para SaaS Laravel+React: scan em 7 fases — CVEs (composer+npm), secrets (gitleaks), headers HTTP, exposição .env/config, config Laravel (APP_DEBUG, sessão, CORS), padrões",
+    "path": ".claude/agents/tester-security.md",
+    "description": "Auditoria de segurança para SaaS Laravel+React: scan em 7 fases — CVEs (composer+npm), secrets (gitleaks), headers HTTP, exposição .env/config, config Laravel (APP_DEBUG, sessão, CORS), padrões de cód",
     "triggers": [
       "auditoria de seguranca",
       "scan de seguranca",
@@ -4353,7 +4863,7 @@
     "type": "agent",
     "name": "tester-ui-ux",
     "category": "agents",
-    "path": ".claude\\agents\\tester-ui-ux.md",
+    "path": ".claude/agents/tester-ui-ux.md",
     "description": "UI/UX + accessibility audit agent. Exhaustive testing: flows, visual, keyboard nav, WCAG 2.1 AA, ARIA, screen reader. Triggered by: UI testing, UX testing, user flow testing, defect report, spacing is",
     "triggers": [
       "UI testing",
@@ -4377,7 +4887,7 @@
     "type": "agent",
     "name": "transactional-email-agent",
     "category": "agents",
-    "path": ".claude\\agents\\transactional-email-agent.md",
+    "path": ".claude/agents/transactional-email-agent.md",
     "description": "código · Router skill for transactional email. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "transactional email",
@@ -4392,8 +4902,8 @@
     "type": "agent",
     "name": "video-gen",
     "category": "agents",
-    "path": ".claude\\agents\\video-gen.md",
-    "description": "Roteia um pedido de vídeo para um motor que EXISTE. O `agy` (Antigravity/Gemini) NÃO gera vídeo — este agente conhece os caminhos reais (HyperFrames sobre footage, ComfyUI local com WAN, ou o gen",
+    "path": ".claude/agents/video-gen.md",
+    "description": "Roteia um pedido de vídeo para um motor que EXISTE. O `agy` (Antigravity/Gemini) NÃO gera vídeo — este agente conhece os caminhos reais (HyperFrames sobre footage, ComfyUI local com WAN, ou o gen-ai C",
     "triggers": [
       "generate video",
       "create video",
@@ -4406,7 +4916,7 @@
     "type": "agent",
     "name": "watch",
     "category": "agents",
-    "path": ".claude\\agents\\watch.md",
+    "path": ".claude/agents/watch.md",
     "description": "Use when the user wants to watch, analyze, or ask questions about a video (URL or local file). Downloads with yt-dlp, extracts auto-scaled frames with ffmpeg, gets transcript from native captions or W",
     "triggers": [
       "vigiar",
@@ -4418,7 +4928,7 @@
     "type": "agent",
     "name": "webhooks-agent",
     "category": "agents",
-    "path": ".claude\\agents\\webhooks-agent.md",
+    "path": ".claude/agents/webhooks-agent.md",
     "description": "código · Implement webhook receivers with signature verification, idempotent processing, retry handling, and. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "webhook",
@@ -4433,7 +4943,7 @@
     "type": "agent",
     "name": "wix-cli-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wix-cli-agent.md",
+    "path": ".claude/agents/wix-cli-agent.md",
     "description": "plataformas · Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "Wix",
@@ -4448,7 +4958,7 @@
     "type": "agent",
     "name": "woocommerce-elementor-agent",
     "category": "agents",
-    "path": ".claude\\agents\\woocommerce-elementor-agent.md",
+    "path": ".claude/agents/woocommerce-elementor-agent.md",
     "description": "wordpress · Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "elementor",
@@ -4463,7 +4973,7 @@
     "type": "agent",
     "name": "wp-block-development-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-block-development-agent.md",
+    "path": ".claude/agents/wp-block-development-agent.md",
     "description": "wordpress · Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "block invalid",
@@ -4475,7 +4985,7 @@
     "type": "agent",
     "name": "wp-block-themes-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-block-themes-agent.md",
+    "path": ".claude/agents/wp-block-themes-agent.md",
     "description": "wordpress · Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "theme.json",
@@ -4487,7 +4997,7 @@
     "type": "agent",
     "name": "wp-interactivity-api-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-interactivity-api-agent.md",
+    "path": ".claude/agents/wp-interactivity-api-agent.md",
     "description": "wordpress · Building or debugging WordPress Interactivity API features (data-wp-* directives. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "WordPress Interactivity API"
@@ -4497,7 +5007,7 @@
     "type": "agent",
     "name": "wp-plugin-development-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-plugin-development-agent.md",
+    "path": ".claude/agents/wp-plugin-development-agent.md",
     "description": "wordpress · WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "criar plugin WP",
@@ -4509,7 +5019,7 @@
     "type": "agent",
     "name": "wp-rest-api-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-rest-api-agent.md",
+    "path": ".claude/agents/wp-rest-api-agent.md",
     "description": "wordpress · Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "WordPress REST API",
@@ -4520,7 +5030,7 @@
     "type": "agent",
     "name": "wp-wpcli-and-ops-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wp-wpcli-and-ops-agent.md",
+    "path": ".claude/agents/wp-wpcli-and-ops-agent.md",
     "description": "wordpress · WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "wp search-replace",
@@ -4532,7 +5042,7 @@
     "type": "agent",
     "name": "wpds-agent",
     "category": "agents",
-    "path": ".claude\\agents\\wpds-agent.md",
+    "path": ".claude/agents/wpds-agent.md",
     "description": "wordpress · Build UI with the WordPress Design System via the WPDS MCP — components, tokens, patterns. Despachar para trabalho isolável deste domínio, em paralelo.",
     "triggers": [
       "WPDS",

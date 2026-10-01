@@ -1,0 +1,118 @@
+<!doctype html>
+<!--
+  Modelo de relatório do marketeer (01-analise · 02-proposta · 05-review). Preenche-o a skill mkt-relatorio.
+  Autónomo: CSS inline, sem fontes, scripts nem imagens externas; imprime para PDF (A4) a partir do browser.
+  Marcadores (substituir TODOS; no fim não pode sobrar nenhum "{{"):
+    {{TITULO}}      ex.: Análise de marketing — Café Pão — outubro 2026
+    {{MARCA}}       nome da marca
+    {{TIPO}}        Análise · Proposta · Review
+    {{CICLO}}       campo `ciclo` do estado.json (AAAA-MM, ou AAAA-MM-N)
+    {{DATA}}        AAAA-MM-DD (data de geração)
+    {{COR_MARCA}}   cor da marca SÓ se vier de marca.md (medida ou do manual); senão #3f3f46 (neutro)
+    {{RESUMO}}      <li>…</li> × 5 (resumo executivo)
+    {{CORPO}}       secções em HTML: <section><h2>…</h2>…</section>
+    {{TITULO_LACUNAS}} «Lacunas e por confirmar» (01-analise, 02-proposta) · «Não verificado» (05-review)
+    {{LACUNAS}}     <li>…</li> (o que ficou por confirmar / sem acesso / não verificado); nenhuma → <li>Nenhuma.</li>
+    {{FONTES}}      <li><a href="…">…</a> — lido AAAA-MM-DD</li>
+  Etiquetas no texto: <span class="etq fonte">fonte</span> · <span class="etq inferencia">inferência</span>
+                      · <span class="etq confirmar">por confirmar</span> · <span class="etq nv">não verificado</span>
+  Destaques: <div class="nota">…</div> (caixa com fundo; nunca barras de acento laterais).
+-->
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITULO}}</title>
+<style>
+  :root {
+    --marca: {{COR_MARCA}};
+    --texto: #1f2328;
+    --suave: #59636e;
+    --linha: #d8dee4;
+    --fundo: #ffffff;
+    --fundo-2: #f6f8fa;
+    --ok: #1a7f37;
+    --aviso: #9a6700;
+    --erro: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--fundo); color: var(--texto);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 48px 28px 64px; }
+  header.capa { padding-bottom: 20px; margin-bottom: 28px; border-bottom: 3px solid var(--marca); }
+  .tipo { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--marca); font-weight: 600; margin: 0 0 6px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 10px; }
+  .meta { color: var(--suave); font-size: 14px; margin: 0; }
+  h2 { font-size: 21px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--linha); }
+  h3 { font-size: 17px; margin: 24px 0 8px; }
+  p, ul, ol { margin: 0 0 12px; }
+  li { margin: 2px 0; }
+  a { color: var(--marca); text-underline-offset: 2px; }
+  .resumo { background: var(--fundo-2); border: 1px solid var(--linha); border-radius: 8px; padding: 18px 22px 14px; }
+  .resumo h2 { margin-top: 0; border: 0; padding: 0; font-size: 18px; }
+  .resumo ul { padding-left: 20px; }
+  .nota { background: var(--fundo-2); border: 1px solid var(--linha); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 18px; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 9px; border-bottom: 1px solid var(--linha); }
+  th { background: var(--fundo-2); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  blockquote { margin: 8px 0 14px; padding: 10px 14px; background: var(--fundo-2); border-radius: 6px; color: var(--texto); }
+  code { font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--fundo-2); padding: 1px 5px; border-radius: 4px; }
+  .etq { display: inline-block; font-size: 11px; line-height: 1; padding: 3px 6px; border-radius: 10px; border: 1px solid currentColor; white-space: nowrap; vertical-align: 1px; }
+  .etq.fonte { color: var(--ok); }
+  .etq.inferencia { color: var(--aviso); }
+  .etq.confirmar { color: var(--erro); }
+  .etq.nv { color: var(--suave); }
+  .grelha { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+  .cartao { border: 1px solid var(--linha); border-radius: 8px; padding: 12px 14px; }
+  .cartao .valor { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cartao .rotulo { font-size: 13px; color: var(--suave); }
+  footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--linha); color: var(--suave); font-size: 13px; }
+  footer ul { padding-left: 18px; }
+  @media print {
+    @page { size: A4; margin: 16mm 14mm; }
+    body { font-size: 11pt; }
+    main { max-width: none; padding: 0; }
+    h2 { break-after: avoid; }
+    table, .cartao, .nota, blockquote { break-inside: avoid; }
+    a { color: var(--texto); }
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; color: var(--suave); word-break: break-all; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="capa">
+    <p class="tipo">{{TIPO}} · ciclo {{CICLO}}</p>
+    <h1>{{TITULO}}</h1>
+    <p class="meta">{{MARCA}} · gerado em {{DATA}} · números com fonte e data; sem acesso = «não verificado», nunca zero</p>
+  </header>
+
+  <section class="resumo">
+    <h2>Resumo executivo</h2>
+    <ul>
+      {{RESUMO}}
+    </ul>
+  </section>
+
+  {{CORPO}}
+
+  <section>
+    <h2>{{TITULO_LACUNAS}}</h2>
+    <ul>
+      {{LACUNAS}}
+    </ul>
+  </section>
+
+  <footer>
+    <h3>Fontes</h3>
+    <ul>
+      {{FONTES}}
+    </ul>
+  </footer>
+</main>
+</body>
+</html>

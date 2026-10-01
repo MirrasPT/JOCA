@@ -1,0 +1,3 @@
+# ambiente de staging esquecido
+User-agent: *
+Disallow: /

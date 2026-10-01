@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <title>Fixture — disparo antes do consentimento (fictício)</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TESTE12345"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TESTE12345');
+    fbq = function(){}; fbq('init', '100000000000001');
+    // Simula o que as bibliotecas fariam ao carregar: hits de recolha sem esperar pelo banner.
+    navigator.sendBeacon('https://region1.google-analytics.com/g/collect?v=2&tid=G-TESTE12345&gcs=G111&en=page_view');
+    new Image().src = 'https://www.facebook.com/tr?id=100000000000001&ev=PageView';
+  </script>
+</head>
+<body>
+  <h1>Página de teste</h1>
+  <div id="cookie-banner" class="cookie-consent">
+    Usamos cookies. <button>Aceitar</button> <button>Recusar</button>
+  </div>
+</body>
+</html>

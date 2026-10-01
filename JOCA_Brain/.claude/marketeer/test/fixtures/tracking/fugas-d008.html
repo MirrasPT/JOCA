@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <title>Fixture — hits que não podem sair para a rede (D-008, fictício)</title>
+  <!-- Hit carregado como script e como iframe (tipos que noutros casos são permitidos). -->
+  <script src="https://googleads.g.doubleclick.net/pagead/viewthroughconversion/999/?script=1"></script>
+  <script>
+    const beacon = (u) => navigator.sendBeacon(u, 'x');
+    const img = (u) => { new Image().src = u; };
+    const xhr = (u) => { const x = new XMLHttpRequest(); x.open('POST', u); x.send('x'); };
+    const buscar = (u, o = {}) => fetch(u, { mode: 'no-cors', ...o }).catch(() => {});
+    beacon('https://www.google-analytics.com/collect?v=1&tid=UA-1-1&t=pageview');
+    xhr('https://www.google-analytics.com/j/collect?v=1&tid=UA-1-1');
+    buscar('https://stats.g.doubleclick.net/g/collect?v=2&tid=G-FUGA0001');
+    buscar('https://sst.cliente-ficticio.pt/g/collect?v=2&tid=G-FUGA0001&en=page_view');
+    img('https://cliente-ficticio.pt/g/collect?v=2&tid=G-FUGA0001&en=page_view');
+    img('https://cliente-ficticio.pt/collect?v=1&tid=UA-1-1');
+    img('https://cliente-ficticio.pt/tr?id=100000000000009&ev=PageView');
+    img('https://www.google.com/ccm/collect?tid=G-FUGA0001');
+    img('https://googleads.g.doubleclick.net/pagead/viewthroughconversion/123/');
+    img('https://www.googleadservices.com/pagead/conversion/123/');
+    img('https://www.google.com/pagead/1p-user-list/123/');
+    img('https://www.facebook.com/privacy_sandbox/pixel/register/trigger/?id=1');
+    buscar('https://px.ads.linkedin.com/collect?pid=1');
+    beacon('https://analytics.tiktok.com/api/v2/pixel');
+    xhr('https://in.hotjar.com/api/v2/client/sites/1/visit-data');
+    buscar('https://x.clarity.ms/collect', { method: 'POST', body: 'x' });
+    buscar('https://terceiro-qualquer.example/qualquer-coisa.json');
+    try { new WebSocket('__WS__'); } catch {}
+    navigator.serviceWorker?.register('/sw.js').catch(() => {});
+  </script>
+</head>
+<body>
+  <h1>Página de teste</h1>
+  <iframe src="https://td.doubleclick.net/td/rul/123?random=1"></iframe>
+</body>
+</html>

@@ -8,11 +8,18 @@ metadata:
 
 # Ads Creation
 
-Paid advertising expert covering plan, create, launch, iterate.
+Paid advertising expert covering plan, create, prepare for launch, iterate.
+
+## Guardrail — approval before money moves (non-negotiable)
+
+- **Never activate a campaign, raise a budget, change bids or launch a new ad set without explicit approval from the account owner**, given in this session for that specific change (`AskUserQuestion` Yes/No). A previous approval does not cover a new change.
+- Everything you create in an ad account is born **paused/draft**. Activation is done by the account owner, by hand, outside the agent (marketeer pack rule — `.claude/marketeer/CONTRATO.md` §5.4).
+- Before asking, show the **cost in €: per day and per month** (and the maximum the change can spend), plus what will be created/changed. No cost on screen → no question.
+- Recommendations to scale are proposals for the owner, not actions.
 
 ## Before Starting
 
-If `.agents/product-marketing-context.md` exists, read it first.
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather missing context:
 
@@ -59,12 +66,12 @@ Account
 │   └── Ad Set: [Targeting variation]
 ```
 
-**Naming:** `[PLATFORM]_[Objective]_[Audience]_[Offer]_[Date]`
-Example: `META_Conv_Lookalike-Customers_FreeTrial_2024Q1`
+**Naming (house standard = marketeer pack, `.claude/marketeer/CONTRATO.md` §6):** `<PLAT>_<Tipo>_<Objetivo>_<Tema>_<AAAA-MM>` with `PLAT` ∈ `GADS` · `META` · `LINK`
+Examples: `GADS_Search_Leads_Software_2026-10`, `META_Leads_Formulario_Obras_2026-10`
 
-**Budget allocation:**
-- Testing: 70% proven / 30% new audiences or creative
-- Scaling: consolidate into winners, increase 20-30% at a time, wait 3-5 days between increases
+**Budget allocation (proposals — each change goes through the guardrail above):**
+- Testing: keep most of the budget on what is proven and a smaller share on new audiences or creative [unverified: no sourced split — set it with the owner]
+- Scaling: consolidate into winners and raise budgets gradually, waiting for the platform to re-stabilise between changes [unverified: step size and wait time not sourced — check the platform's current guidance]
 
 ---
 
@@ -88,6 +95,8 @@ Example: `META_Conv_Lookalike-Customers_FreeTrial_2024Q1`
 Vary: word choice, specificity (numbers vs general), tone (direct/question/command), structure (short punch vs full benefit).
 
 ### Step 3: Validate Against Platform Specs
+
+[unverified] The limits below were not checked against the platforms' current docs in this edit — confirm on the official spec page before shipping and write `(verified YYYY-MM-DD, <source>)`. For Google Ads Search, the marketeer pack's `campanha/validar.mjs` checks the lengths.
 
 **Google Ads (RSA)**
 
@@ -154,7 +163,7 @@ For 10+ variations, offer CSV format for direct upload.
 
 ## Creative Best Practices
 
-**Image ads:** product screenshots with UI, before/after, bold readable text (<20% of image), real faces over stock.
+**Image ads:** product screenshots with UI, before/after, bold readable text (keep it short; whether a text-share limit still applies is [unverified]), real faces over stock.
 
 **Video ads (15-30 sec):**
 1. Hook (0-3s) — pattern interrupt or bold statement
@@ -162,7 +171,7 @@ For 10+ variations, offer CSV format for direct upload.
 3. Solution (8-20s) — show product/benefit
 4. CTA (20-30s) — clear next step
 
-Add captions (85% watch without sound). Vertical for Stories/Reels, square for feed.
+Add captions (many people watch feeds without sound [unverified share]). Vertical for Stories/Reels, square for feed.
 
 **Creative testing hierarchy:** concept/angle, then hook/headline, then visual style, then body copy, then CTA.
 
@@ -185,7 +194,7 @@ Add captions (85% watch without sound). Vertical for Stories/Reels, square for f
 - Angles retired: [list]
 ```
 
-Wait for 1,000+ impressions before judging creative. Change one variable per test cycle.
+Wait for enough impressions and conversions to judge creative [unverified: no sourced threshold — use `ab-test-setup` for sample size]. Change one variable per test cycle.
 
 ---
 
@@ -201,7 +210,7 @@ Wait for 1,000+ impressions before judging creative. Change one variable per tes
 - Retargeting: segment by funnel stage
 - Exclusions: always exclude existing customers and recent converters
 
-**Retargeting windows:**
+**Retargeting windows** [unverified starting points — adjust to the client's sales cycle]:
 
 | Stage | Window | Frequency |
 |-------|--------|-----------|
@@ -225,7 +234,7 @@ Wait for 1,000+ impressions before judging creative. Change one variable per tes
 **CTR low:** new hooks/angles, refine targeting, refresh creative (fatigue).
 **CPM high:** expand audience, try different placements, improve creative fit.
 
-**Bid strategy progression:** manual/cost caps, gather 50+ conversions, switch to automated, monitor and adjust.
+**Bid strategy progression:** manual/cost caps, gather conversion volume, switch to automated, monitor and adjust [unverified: conversion threshold per platform — check current docs]. Every bid-strategy change needs the owner's approval (guardrail).
 
 ---
 
@@ -234,7 +243,8 @@ Wait for 1,000+ impressions before judging creative. Change one variable per tes
 - [ ] Conversion tracking tested with real conversion
 - [ ] Landing page loads <3s, mobile-friendly
 - [ ] UTM parameters working
-- [ ] Budget set correctly
+- [ ] Budget set correctly and shown in € per day and per month
+- [ ] Campaign created **paused**; owner approved in writing; owner activates
 - [ ] Targeting matches intended audience
 - [ ] 3+ creative variations per ad set
 - [ ] Exclusions configured (existing customers, recent converters)
@@ -249,18 +259,18 @@ Ads without conversion tracking waste budget. Set up before creating any campaig
 
 **Setup:**
 1. Create pixel in Events Manager, Business Settings, Data Sources
-2. Install via GTM (preferred) or direct code
+2. Install via GTM (preferred) or direct code, behind consent (`gdpr-compliance`, `analytics-tracking` Privacy)
 3. Verify with Meta Pixel Helper extension
 
 **Required standard events:**
 - `PageView` — all pages (automatic with base code)
 - `ViewContent` — product/service pages
-- `Lead` — form submission, trial signup, demo request
+- `Lead` — form submission, trial signup, demo request (same trigger as the GA4 `generate_lead` event with its `formulario` parameter (house standard shared with the marketeer pack; the brand's tracking plan wins if it already uses another name) — see `analytics-tracking`)
 - `Purchase` — completed purchase
 - `CompleteRegistration` — account creation
 
-**Conversion API (CAPI) — required 2025+:**
-- Browser-only tracking loses 20-40% of events (iOS privacy, ad blockers)
+**Conversion API (CAPI) — strongly recommended [unverified: Meta's current requirement]:**
+- Browser-only tracking loses part of the events (iOS privacy, ad blockers, refused consent) [unverified share]
 - CAPI sends server-side events to supplement browser events
 - Deduplication: include `event_id` in both browser and server events
 
@@ -283,26 +293,26 @@ Ads without conversion tracking waste budget. Set up before creating any campaig
 
 ---
 
-## AI Campaign Types (2025+)
+## AI Campaign Types
 
 ### Meta Advantage+
 
 - Single campaign handles prospecting + retargeting automatically
-- Provide 5-10 creative variations; algorithm handles targeting
-- Let run 7-14 days before judging
+- Provide several creative variations; algorithm handles targeting
+- Let the learning phase finish before judging [unverified: duration — check Meta's current docs]
 - Still set budget caps and geographic exclusions
 
 ### Google Performance Max (PMax)
 
 - Single campaign across Search, Display, Shopping, YouTube, Discover, Gmail
-- Requires: 15 headlines, 5 descriptions, 5 images, 1 video (or Google generates)
+- Asset requirements (headlines, descriptions, images, video) [unverified — check Google's current PMax asset spec]
 - Asset group = targeting unit (replaces ad sets)
 - Audience signals = suggestions, not restrictions
 - Use search term reports to feed negative keywords
 
 ### When NOT to use AI campaigns
 
-- Budget under $3,000/month (insufficient data for algorithm)
+- Budget too small to give the algorithm conversion data [unverified: no sourced € threshold — decide from the account's own conversion volume]
 - Highly regulated industries (may lose placement control)
 - Brand-specific targeting needed (use standard campaigns + brand exclusions)
 
@@ -317,6 +327,7 @@ Ads without conversion tracking waste budget. Set up before creating any campaig
 - All variations sound the same (vary angles, not just words)
 - Overlapping audiences competing against each other
 - Big budget changes (disrupts algorithm learning)
-- Retiring creative too early (<1,000 impressions)
-- No CAPI setup (losing 20-40% conversion data)
-- Judging Advantage+/PMax before 7-14 day learning period
+- Retiring creative before it had enough impressions
+- No CAPI setup (losing conversion data)
+- Judging Advantage+/PMax before the learning period ends
+- Activating, scaling or changing budgets without the account owner's explicit approval and the € cost on screen

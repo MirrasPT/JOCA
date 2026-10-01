@@ -1,0 +1,7 @@
+node_modules/
+.playwright-cli/
+.env
+*.env
+.DS_Store
+# O motor instala-se com `npm ci`: o lock tem de ir no git (a raiz do repo ignora package-lock.json).
+!package-lock.json

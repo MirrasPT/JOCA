@@ -1,6 +1,6 @@
 ---
 name: content-calendar
-description: "Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware optimal posting slots, caption/hook generation, asset-to-slot mapping, and release rollout sequencing. MUST be invoked when the user says: plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule, asset schedule, waterfall release, episodic rollout, quando publicar, sequencia de publicacao."
+description: "Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware optimal posting slots, caption/hook generation, asset-to-slot mapping, and release rollout sequencing. MUST be invoked when the user says: content calendar, social calendar, plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule, asset schedule, waterfall release, episodic rollout, quando publicar, sequencia de publicacao."
 origin: local
 metadata:
   version: 1.0.0
@@ -17,7 +17,7 @@ Does NOT duplicate platform strategy, copywriting, or launch sequencing theory �
 
 ## Before Starting
 
-Check `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md` first. If it exists, extract context from it and only ask for gaps.
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Clarify before generating any calendar:
 
@@ -99,7 +99,7 @@ Asset ID | Format (video/image/text) | Length | Platforms | Theme/Episode | Roll
 [final ~5s] CTA — single action only
 ```
 
-Hook patterns that work (73% preference for educational short-form):
+Hook patterns that work (educational short-form tends to win [unverified share]):
 - "Here's why [common assumption] is wrong..."
 - "You won't believe what happens when [action]..."
 - "The one thing [industry] never tells you about [topic]..."
@@ -115,7 +115,7 @@ Hook patterns that work (73% preference for educational short-form):
 | YouTube Long-form | Full description with timestamps | 1000+ chars | Include chapters, links, keywords |
 | LinkedIn | Insight-led opener, no link in body | ~210 chars visible | External links in comments, not post body |
 
-**Burned-in captions (video):** mandatory — 80-85% of short-form is watched muted. Max 2 lines on screen, 3-5 words/line, lower-center position, tightly synced. This is both an accessibility baseline and a performance driver (+40% completion rate).
+**Burned-in captions (video):** mandatory — much short-form is watched muted [unverified share]. Max 2 lines on screen, 3-5 words/line, lower-center position, tightly synced. This is both an accessibility baseline and a performance driver (+40% completion rate).
 
 ---
 

@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
-Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-20:**
-**145 skills · 103 agentes (67 gerados + 36 curados) · 29 comandos · 7 rules (+`README.md` = 8 ficheiros em `rules/`) · 1 workflow · 10 hooks · 21 scripts.**
+Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-01:**
+**173 skills · 109 agentes (69 gerados + 40 curados) · 31 comandos · 8 ficheiros em `rules/` · 1 workflow · 11 ficheiros em `hooks/` · 22 em `scripts/` · pack `marketeer/`.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -38,7 +38,7 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (29)
+## Commands (31)
 
 | Comando | Função |
 |---|---|
@@ -70,16 +70,17 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-08-
 | `/joca-doctor` | diagnóstico da instalação — runtimes, hooks, índices, bridges, memória (`--fix` corrige o seguro) |
 | `/help-joca` | referência rápida |
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
+| `/marketeer <marca>` · `/marketeer-review <marca>` | ciclo de marketing de uma marca: análise → proposta → artes → implementação (em pausa) → review. Pack em `.claude/marketeer/` (`CONTRATO.md`) |
 
-## Agents (105 = 69 gerados + 36 curados)
+## Agents (109 = 69 gerados + 40 curados)
 
-**67 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
+**69 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
 por `node .claude/scripts/skill-agents.mjs` a partir das próprias skills. Cada um lê a sua skill como
 Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte → ler a skill inline;
 ≥2 partes independentes → despachar um agente por parte, no mesmo turno.
 **Não se editam à mão** — edita-se a skill e regenera-se.
 
-**36 agentes curados:**
+**40 agentes curados:**
 
 | Grupo | Agentes |
 |---|---|
@@ -89,11 +90,12 @@ Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte �
 | Geração & media | `img-gen-google` · `img-gen-openai` · `gemini-brain` · `video-gen` · `watch` |
 | Backend / Laravel | `laravel-refactor` · `filament-builder` · `security-review` · `tech-debt-auditor` · `pr-repair` · `deploy-executor` |
 | Especialistas | `payment-integration` · `dependency-auditor` · `design-system-audit` · `skill-evaluator` · `skill-improver` · `a11y-fixer` |
+| Marketing (pack marketeer) | `mkt-analista-agent` · `mkt-revisor-agent` · `mkt-criativos-agent` · `mkt-plataforma-agent` |
 | Autonomia & pessoal | `knowledge-ingest` (`/know`) · `personal-comms` |
 
 ⚠ `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (155)
+## Skills (173)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
 O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o

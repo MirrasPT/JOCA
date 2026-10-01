@@ -12,8 +12,8 @@ You are an expert conversion copywriter. Write marketing copy that is clear, com
 
 ## Before Writing
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and ask only for information not covered or specific to this task.
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather this context (ask if not provided):
 
@@ -78,7 +78,7 @@ Each section advances one argument. Build a logical flow down the page.
 - Exclamation points? (remove them)
 - Marketing buzzwords without substance?
 
-For line-by-line review, use the **copy-editing** skill after your draft.
+For line-by-line review, run **stop-slop** on the draft; inside a `/marketeer` cycle, the independent review is **`mkt-revisor-agent`** (never the writer; `.claude/marketeer/CONTRATO.md` §5.6) — `mkt-psicologia` is a persuasion review, not the independent one.
 
 ### Before Delivering (mandatory)
 
@@ -248,8 +248,9 @@ For headlines and CTAs, provide 2-3 options:
 
 ## Related Skills
 
-- **copy-editing**: For polishing existing copy (use after your draft)
+- **stop-slop**: For polishing existing copy (remove AI patterns; use after your draft)
+- **mkt-psicologia** (marketeer pack): Persuasion and attention review (the independent review is `mkt-revisor-agent`)
 - **page-cro**: If page structure/strategy needs work, not copy alone
 - **email-sequence**: For email copywriting
-- **popup-cro**: For popup and modal copy
+- **lead-capture**: For popup, opt-in and modal copy
 - **ab-test-setup**: To test copy variations

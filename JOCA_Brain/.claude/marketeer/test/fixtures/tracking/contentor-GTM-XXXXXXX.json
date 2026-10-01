@@ -1,0 +1,421 @@
+{
+ "exportFormatVersion": 2,
+ "exportTime": "2026-09-28 12:00:00",
+ "containerVersion": {
+  "path": "accounts/1000000001/containers/1000002/versions/0",
+  "accountId": "1000000001",
+  "containerId": "1000002",
+  "containerVersionId": "0",
+  "container": {
+   "path": "accounts/1000000001/containers/1000002",
+   "accountId": "1000000001",
+   "containerId": "1000002",
+   "name": "exemplo.invalid",
+   "publicId": "GTM-XXXXXXX",
+   "usageContext": [
+    "WEB"
+   ]
+  },
+  "tag": [
+   {
+    "tagId": "1",
+    "name": "Google tag — GA4 G-XXXXXXXXXX",
+    "type": "googtag",
+    "parameter": [
+     {
+      "type": "TEMPLATE",
+      "key": "tagId",
+      "value": "G-XXXXXXXXXX"
+     }
+    ],
+    "firingTriggerId": [
+     "2147479573"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "analytics_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "tagId": "2",
+    "name": "Google tag — Google Ads AW-100000000",
+    "type": "googtag",
+    "parameter": [
+     {
+      "type": "TEMPLATE",
+      "key": "tagId",
+      "value": "AW-100000000"
+     }
+    ],
+    "firingTriggerId": [
+     "2147479573"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "ad_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "tagId": "3",
+    "name": "Conversion Linker",
+    "type": "gclidw",
+    "parameter": [
+     {
+      "type": "BOOLEAN",
+      "key": "enableCrossDomain",
+      "value": "false"
+     },
+     {
+      "type": "BOOLEAN",
+      "key": "enableUrlPassthrough",
+      "value": "false"
+     },
+     {
+      "type": "BOOLEAN",
+      "key": "enableCookieOverrides",
+      "value": "false"
+     }
+    ],
+    "firingTriggerId": [
+     "2147479553"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "ad_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "tagId": "4",
+    "name": "Google Ads — conversão Lead (formulário)",
+    "type": "awct",
+    "parameter": [
+     {
+      "type": "TEMPLATE",
+      "key": "conversionId",
+      "value": "100000000"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "conversionLabel",
+      "value": "RotuloFicticio001"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "conversionValue",
+      "value": "1"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "currencyCode",
+      "value": "EUR"
+     },
+     {
+      "type": "BOOLEAN",
+      "key": "enableConversionLinker",
+      "value": "true"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "conversionCookiePrefix",
+      "value": "_gcl"
+     }
+    ],
+    "firingTriggerId": [
+     "100"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "ad_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "tagId": "5",
+    "name": "GA4 evento — generate_lead",
+    "type": "gaawe",
+    "parameter": [
+     {
+      "type": "TEMPLATE",
+      "key": "eventName",
+      "value": "generate_lead"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "measurementIdOverride",
+      "value": "G-XXXXXXXXXX"
+     },
+     {
+      "type": "LIST",
+      "key": "eventSettingsTable",
+      "list": [
+       {
+        "type": "MAP",
+        "map": [
+         {
+          "type": "TEMPLATE",
+          "key": "parameter",
+          "value": "formulario"
+         },
+         {
+          "type": "TEMPLATE",
+          "key": "parameterValue",
+          "value": "{{DLV - formulario}}"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "firingTriggerId": [
+     "100"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "analytics_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "tagId": "6",
+    "name": "GA4 evento — clique_telefone",
+    "type": "gaawe",
+    "parameter": [
+     {
+      "type": "TEMPLATE",
+      "key": "eventName",
+      "value": "clique_telefone"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "measurementIdOverride",
+      "value": "G-XXXXXXXXXX"
+     },
+     {
+      "type": "LIST",
+      "key": "eventSettingsTable",
+      "list": [
+       {
+        "type": "MAP",
+        "map": [
+         {
+          "type": "TEMPLATE",
+          "key": "parameter",
+          "value": "numero"
+         },
+         {
+          "type": "TEMPLATE",
+          "key": "parameterValue",
+          "value": "{{DLV - numero}}"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "firingTriggerId": [
+     "101"
+    ],
+    "tagFiringOption": "ONCE_PER_EVENT",
+    "consentSettings": {
+     "consentStatus": "NEEDED",
+     "consentType": {
+      "type": "LIST",
+      "list": [
+       {
+        "type": "TEMPLATE",
+        "value": "analytics_storage"
+       }
+      ]
+     }
+    },
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   }
+  ],
+  "trigger": [
+   {
+    "triggerId": "100",
+    "name": "CE - generate_lead",
+    "type": "CUSTOM_EVENT",
+    "customEventFilter": [
+     {
+      "type": "EQUALS",
+      "parameter": [
+       {
+        "type": "TEMPLATE",
+        "key": "arg0",
+        "value": "{{_event}}"
+       },
+       {
+        "type": "TEMPLATE",
+        "key": "arg1",
+        "value": "generate_lead"
+       }
+      ]
+     }
+    ],
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "triggerId": "101",
+    "name": "CE - clique_telefone",
+    "type": "CUSTOM_EVENT",
+    "customEventFilter": [
+     {
+      "type": "EQUALS",
+      "parameter": [
+       {
+        "type": "TEMPLATE",
+        "key": "arg0",
+        "value": "{{_event}}"
+       },
+       {
+        "type": "TEMPLATE",
+        "key": "arg1",
+        "value": "clique_telefone"
+       }
+      ]
+     }
+    ],
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   }
+  ],
+  "variable": [
+   {
+    "variableId": "10",
+    "name": "DLV - formulario",
+    "type": "v",
+    "parameter": [
+     {
+      "type": "INTEGER",
+      "key": "dataLayerVersion",
+      "value": "2"
+     },
+     {
+      "type": "BOOLEAN",
+      "key": "setDefaultValue",
+      "value": "false"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "name",
+      "value": "formulario"
+     }
+    ],
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "variableId": "11",
+    "name": "DLV - numero",
+    "type": "v",
+    "parameter": [
+     {
+      "type": "INTEGER",
+      "key": "dataLayerVersion",
+      "value": "2"
+     },
+     {
+      "type": "BOOLEAN",
+      "key": "setDefaultValue",
+      "value": "false"
+     },
+     {
+      "type": "TEMPLATE",
+      "key": "name",
+      "value": "numero"
+     }
+    ],
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   }
+  ],
+  "builtInVariable": [
+   {
+    "type": "PAGE_URL",
+    "name": "Page URL",
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "type": "PAGE_HOSTNAME",
+    "name": "Page Hostname",
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "type": "PAGE_PATH",
+    "name": "Page Path",
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "type": "REFERRER",
+    "name": "Referrer",
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   },
+   {
+    "type": "EVENT",
+    "name": "Event",
+    "accountId": "1000000001",
+    "containerId": "1000002"
+   }
+  ]
+ }
+}

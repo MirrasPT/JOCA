@@ -4,10 +4,10 @@ description: "conteúdo · Helps creating, scheduling, or optimizing social medi
 skills: social-content
 model: inherit
 category: conteúdo
-triggers: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement
+triggers: LinkedIn post, Twitter thread, social media, engagement, social post copy
 generated-from: .claude/skills/social-content.md
 generated-by: skill-agents.mjs
-content-hash: 36934f358d88682d
+content-hash: 128ce662914fa298
 ---
 
 # social-content — agente de execução

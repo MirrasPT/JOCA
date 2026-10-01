@@ -36,6 +36,10 @@ WORKFLOW
 /create-skill [desc] Cria nova skill via pipeline self-improving
 /create-skill --upgrade [nome]  Melhora skill existente
 
+MARKETING
+/marketeer <marca>   Ciclo de marketing: análise → proposta → artes → implementação (em pausa)
+/marketeer-review <marca>  Rever resultados e abrir o ciclo seguinte
+
 CONHECIMENTO
 /know                Ingere conteúdo na Knowledge Base (markitdown → nota wiki)
 /learn               Memória institucional do Brain (decisões + aprendizagens)

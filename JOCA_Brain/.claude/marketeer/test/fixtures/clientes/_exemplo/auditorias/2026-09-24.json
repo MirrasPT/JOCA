@@ -1,0 +1,30 @@
+{
+  "ficticio": true,
+  "nota": "EXEMPLO FICTÍCIO — não é um cliente real. Serve de referência do formato e de fixture dos testes.",
+  "cliente": "_exemplo",
+  "data": "2026-09-24",
+  "metodo": "0.1.0",
+  "areas": [
+    { "area": "seo", "estado": "verificado" },
+    { "area": "presenca.gbp", "estado": "nao-verificado", "nota": "perfil não lido publicamente" },
+    { "area": "contas.ga4", "estado": "erro", "nota": "a API do GA4 não respondeu" }
+  ],
+  "achados": [
+    {
+      "area": "seo",
+      "regra": "seo.title-ausente",
+      "severidade": "alta",
+      "evidencia": "https://exemplo.invalid/ — página inicial sem <title>",
+      "recomendacao": "Definir um <title> único e descritivo na página inicial.",
+      "skill": "seo"
+    },
+    {
+      "area": "seo",
+      "regra": "seo.imagens-sem-alt",
+      "severidade": "baixa",
+      "evidencia": "3 de 12 imagens da página inicial sem atributo alt",
+      "recomendacao": "Acrescentar texto alternativo às imagens.",
+      "skill": "seo"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ Creates high-converting landing pages — structure, copy, optional HTML scaffol
 
 ## Before Building
 
-Check for product marketing context: `.agents/product-marketing-context.md`.
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather what's missing:
 
@@ -61,7 +61,7 @@ Gather what's missing:
 
 ## Headline Formulas
 
-Highest-leverage element (27-104% conversion lift from optimization).
+Highest-leverage element on the page. (Lift figures circulating for headline tests are unsourced here [unverified] — measure on the client's own traffic.)
 
 **Outcome-focused:**
 `[Achieve X] without [Pain Y]`
@@ -103,7 +103,7 @@ Formulas:
 - `Create My [First Thing]`
 
 Rules:
-- First-person CTAs ("My" vs "Your") outperform by up to 90%
+- First-person CTAs ("My" vs "Your") often outperform [unverified size — test it]
 - Sticky-bottom CTAs lift +11% vs control
 - Above-fold CTA + sticky = +12%
 - One primary CTA per page — never split attention
@@ -111,6 +111,8 @@ Rules:
 ---
 
 ## Social Proof Hierarchy (by lift)
+
+[unverified] The lift figures in this section and in the hero/CTA notes above come without source or date — treat them as relative ordering, never quote them to a client.
 
 | Type | Conversion Lift | Placement |
 |------|:---:|---|

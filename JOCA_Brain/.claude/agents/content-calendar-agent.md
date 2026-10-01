@@ -4,10 +4,10 @@ description: "conteúdo · Produces a multi-platform content/publishing calendar
 skills: content-calendar
 model: inherit
 category: conteúdo
-triggers: plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule
+triggers: content calendar, social calendar, plano de publicacao, calendario social, rollout de lancamento, captions por plataforma
 generated-from: .claude/skills/content-calendar.md
 generated-by: skill-agents.mjs
-content-hash: 0cc1d546e7483ea0
+content-hash: 16baae143f50a919
 ---
 
 # content-calendar — agente de execução

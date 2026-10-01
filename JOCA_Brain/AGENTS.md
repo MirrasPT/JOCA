@@ -19,9 +19,9 @@ A orientação canónica do JOCA vive em `CLAUDE.md`. Manter o JOCA Claude-first
 
 | Componente | Nº | Fonte canónica |
 |---|---|---|
-| Skills | 155 | `.claude/skills/<nome>.md` |
-| Agentes | 105 | `.claude/agents/<nome>.md` |
-| Comandos | 29 | `.claude/commands/<nome>.md` |
+| Skills | 173 | `.claude/skills/<nome>.md` |
+| Agentes | 109 | `.claude/agents/<nome>.md` |
+| Comandos | 31 | `.claude/commands/<nome>.md` |
 | Rules (globais) | 8 | `.claude/rules/<nome>.md` |
 
 ⚠ **Não existe aqui lista de skills nem de agentes, de propósito.** O inventário completo
@@ -180,6 +180,11 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
 | **Retro** | `/retro` → lê aprendizagens da janela → propõe acções |
 
+### Marketing
+| Pipeline | Sequência |
+|---|---|
+| **Marketing de marca** (`/marketeer <marca>`) | F1 análise (`mkt-conectores`∥`mkt-marca`∥`mkt-mercado`∥`mkt-auditoria` → `mkt-relatorio`) → F2 `mkt-estrategia` → (`mkt-copy`∥`mkt-medicao`) → `mkt-psicologia` → `mkt-revisor-agent` ⛔ proposta → F3 `mkt-criativos` ⛔ artes → ⛔ gate de medição → F4 `mkt-*` por plataforma (tudo em pausa) ⛔ → `/marketeer-review` → ciclo novo. Detalhe: `.claude/marketeer/CONTRATO.md` |
+
 ### Arranque de produto
 | Pipeline | Sequência |
 |---|---|
@@ -275,6 +280,8 @@ Se um design exige "agente que coordena agentes", o coordenador tem de ser o mai
 | plano de publicação · calendário social · rollout · lançamento · captions · agendamento | `content-calendar` |
 | agendar/publicar post · publicar nas redes · TryPost · carrossel IG · publicar TikTok · executar campanha social | `social-scheduler` |
 | marketing · plano de marketing · como crescer · mais clientes · por onde começo no marketing · funil de marketing | `marketing` (router — posicionamento/landing/leads/email/ads/SEO/social/CRO) |
+| marketing de uma marca · gerir o marketing do cliente X · campanhas de uma marca · ciclo de marketing · /marketeer | **`marketeer`** (orchestrator of the marketeer pack — F0-F4; it dispatches the `mkt-*` work skills itself, they never fire on their own: `mkt-conectores` · `mkt-marca` · `mkt-mercado` · `mkt-auditoria` · `mkt-relatorio` · `mkt-estrategia` · `mkt-copy` · `mkt-medicao` · `mkt-psicologia` · `mkt-criativos` · `mkt-google-ads` · `mkt-meta-ads` · `mkt-linkedin-ads` · `mkt-email` · `mkt-gbp` · `mkt-organico`) |
+| rever resultados das campanhas · como correram as campanhas · review do ciclo de marketing · /marketeer-review | `marketeer-review` (F5 of the marketeer pack) |
 | posicionamento · proposta de valor · ICP · para quem é isto · mensagem-chave · diferenciação | `brand-positioning` |
 | construir landing page · squeeze page · opt-in page · página de captura · página de webinar | `landing-page` |
 | lead magnet · crescer lista de email · formulário de opt-in · popup de captura · content upgrade | `lead-capture` |

@@ -12,7 +12,7 @@ Expert in search engine optimization -- traditional (technical + on-page) and AI
 
 ## Before Starting
 
-Check for product marketing context: `.agents/product-marketing-context.md` or `.claude/product-marketing-context.md`.
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
 
 Gather context:
 - Site type? (SaaS, e-commerce, blog, docs)

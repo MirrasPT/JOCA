@@ -5,6 +5,8 @@ description: "Local SEO analysis covering Google Business Profile optimization, 
 
 # Local SEO Analysis (March 2026)
 
+**Check the brand profile first:** If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs. Its `## Zona` section defines the service area; `## Negócio` gives the NAP to check.
+
 ## Key Statistics
 
 | Metric | Value | Source |
