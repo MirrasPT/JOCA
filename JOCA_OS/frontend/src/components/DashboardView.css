@@ -1112,3 +1112,23 @@
   color: var(--text-dim);
   text-align: right;
 }
+
+/* Ecrã final do «Sair» — tapa a app, que sem backend ficaria a tentar religar-se. */
+.joca-exit-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-base);
+  color: var(--text-bright);
+  font-family: var(--font-ui);
+  text-align: center;
+}
+
+.joca-exit-screen h1 { font-size: 20px; margin: 0; }
+.joca-exit-screen p { color: var(--text-dim); margin: 0; }
