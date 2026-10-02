@@ -1175,7 +1175,7 @@ export default function SessionSidebar({
             {brand.logo
               ? <img className="sb-logo-img" src={brand.logo} alt="" aria-hidden />
               : <div className="sb-logo-rings" aria-hidden />}
-            <span className="sb-logo-text">{brand.wordmark} <span style={{opacity:0.45,fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>{envLabel || VERSAO}</span></span>
+            <span className="sb-logo-text">{brand.wordmark} <span style={{color:'var(--text-dim)',fontWeight:500,fontSize:'0.75em',letterSpacing:'0.05em'}}>{envLabel || VERSAO}</span></span>
           </div>
           <button
             className="sidebar-collapse-btn"

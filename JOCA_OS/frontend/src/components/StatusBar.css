@@ -37,7 +37,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  height: 20px;
+  height: 24px;   /* alvo mínimo WCAG 2.5.8; cabe nos 28px do rodapé */
   padding: 0 6px;
   margin: 0;
   background: none;

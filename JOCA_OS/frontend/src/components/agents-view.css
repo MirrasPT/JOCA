@@ -244,6 +244,11 @@
   .agents-view .vp-header { flex-wrap: wrap; }
   .agents-view .ag-new { flex: 1 1 100%; }
 }
+/* Telemóvel baixo: a descrição (2 linhas) sai, como as estatísticas do dashboard a ≤620px de
+   altura — o título e os contadores dizem o mesmo, e a lista é que precisa da altura. */
+@media (max-width: 600px) and (max-height: 700px) {
+  .agents-view .vp-desc { display: none; }
+}
 
 /* Renome inline do agente: mesma altura e tipo da linha, para a lista não saltar ao entrar em
    edição. Herda a largura do slot do nome — um input de largura fixa desalinhava as colunas. */

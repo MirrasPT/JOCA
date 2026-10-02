@@ -680,6 +680,13 @@
   box-shadow: none;
 }
 
+/* Desligado sem `opacity`: a 0.5 o texto ficava a 3.6:1 (abaixo de AA). O estado lê-se pelo tom
+   mais apagado do texto e pelo cursor, com um token que passa AA nos temas todos. */
+.f-btn--secondary:disabled {
+  opacity: 1;
+  color: var(--text-dim);
+}
+
 .f-btn--sm {
   padding: 4px 10px;
   font-size: 11px;
@@ -1101,6 +1108,15 @@
   flex-direction: column;
   align-items: flex-end;
   gap: var(--sp-2);
+}
+
+/* Estreito: os três botões não cabem ao lado do título — a 390px o «Novo projecto» saía 110px pela
+   direita (cortado pelo overflow da vista, sem scroll para lá chegar). Descem para baixo do título
+   e quebram linha entre si se for preciso. */
+@media (max-width: 860px) {
+  .dashboard-view:not(.project-workspace) .vp-header { flex-wrap: wrap; }
+  .dashboard-header-side { align-items: flex-start; max-width: 100%; }
+  .dashboard-header-actions { flex-wrap: wrap; }
 }
 
 .db-saveall-result {
