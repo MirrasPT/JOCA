@@ -91,8 +91,8 @@ export function sessionsRouter(): Router {
   });
 
   // Listing doubles as DISCOVERY for agents: besides the terminal itself, each entry carries the
-  // talking to without opening every buffer.
-  // talking to without opening every buffer.
+  // job it is on (`currentJob`), so an agent can tell who is worth talking to without opening
+  // every buffer.
   r.get('/sessions', (req, res) => {
     const caller = callerScope(req);
     const projects = loadProjects();
