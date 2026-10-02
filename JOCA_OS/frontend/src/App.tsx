@@ -387,8 +387,9 @@ export default function App() {
     const { name, projectId } = session;
     // Reiniciar repete o arranque canónico: nasce no JOCA_Brain, ligado ao mesmo projecto. O
     // contexto do projecto NÃO é recarregado sozinho — o resume é manual, pelo botão da barra.
-    send({ type: 'close_session', sessionId: id });
-    send({ type: 'create_session', sessionName: name, projectId });
+    // `restartOf`: o backend fecha a antiga e mantém a origem do nome — uma «Session N» reiniciada
+    // continua a receber o nome do 1.º pedido (#29).
+    send({ type: 'create_session', restartOf: id, sessionName: name, projectId });
   }, [sessions, send]);
 
   const handleInput = useCallback((sessionId: string, data: string) => {

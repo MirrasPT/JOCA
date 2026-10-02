@@ -24,6 +24,8 @@ interface ClientMessage {
   clientId?: string;
   /** Abrir com `--remote-control` (só claude). */
   remoteControl?: boolean;
+  /** create_session que REINICIA esta sessão: fecha-a e a nova herda o nome e a origem dele (#29). */
+  restartOf?: string;
 }
 
 // Wire up the WebSocket lifecycle: new connection → register client + send sessions snapshot, then
@@ -47,7 +49,10 @@ export function attachConnectionHandler(wss: WebSocketServer) {
 
         switch (msg.type) {
           case 'create_session': {
-            if (sessionManager.size >= MAX_SESSIONS) {
+            // Reiniciar: a origem do nome (por omissão / automático / teu) só o backend a sabe, e
+            // a sessão antiga ainda tem de existir para a ler — por isso o fecho é feito aqui.
+            const anterior = typeof msg.restartOf === 'string' ? sessionManager.get(msg.restartOf) : undefined;
+            if (sessionManager.size - (anterior ? 1 : 0) >= MAX_SESSIONS) {
               send(ws, { type: 'error', error: `Max ${MAX_SESSIONS} concurrent sessions reached` });
               break;
             }
@@ -74,9 +79,11 @@ export function attachConnectionHandler(wss: WebSocketServer) {
                 break;
               }
             }
+            if (anterior) sessionManager.kill(anterior.id);
             sessionManager.spawn({
               cwd: safeCwd,
-              sessionName: msg.sessionName,
+              sessionName: anterior ? anterior.name : msg.sessionName,
+              nameSource: anterior?.nameSource,
               projectId: msg.projectId,
               initialInput: msg.initialInput,
               cli: typeof msg.cli === 'string' ? msg.cli : undefined,

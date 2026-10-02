@@ -128,15 +128,43 @@ export function higienizarNome(resposta: string): string | null {
   return 'nome' in r ? r.nome : null;
 }
 
-// Ambiente do filho: o do backend, sem o que faz dele um terminal do JOCA (o PTY recebe estas de
-// `jocaAgentEnv`) nem o que o Claude Code põe nos filhos (CLAUDECODE/CLAUDE_CODE_*) — senão o
-// filho achava-se aninhado. CLAUDE_CODE_OAUTH_TOKEN fica: é autenticação, não aninhamento.
+// O filho do Haiku (#106) recebe o MESMO ambiente que um terminal: sem a sessão do Claude que
+// arrancou o backend (senão achava-se aninhado), mas com a config do dono — CLAUDE_CODE_USE_BEDROCK,
+// CLAUDE_CODE_OAUTH_TOKEN e afins são autenticação/config, não aninhamento. Fica aqui (e não no
+// session-manager) porque o session-manager já importa deste módulo.
+// O PTY recebe as JOCA_* de `jocaAgentEnv`; as herdadas de um JOCA pai saem aqui.
 const JOCA_VARS = new Set(['JOCA_API_URL', 'JOCA_CLI', 'JOCA_SESSION_ID', 'JOCA_API_TOKEN']);
-export function ambienteDoFilho(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+
+// Ambiente de um terminal (#24, #18): o do backend, menos o que não é do dono.
+//
+// Lista NEGRA, de propósito: o PTY é a shell interactiva do dono, e no Windows o PowerShell não
+// relê o ambiente do registo — uma lista branca deixava de fora PATH de ferramentas, JAVA_HOME,
+// proxies, chaves de API e a config do próprio claude (CLAUDE_CODE_USE_BEDROCK,
+// CLAUDE_CODE_GIT_BASH_PATH…). O que se tira é o que vem de quem ARRANCOU o backend:
+//  • a sessão do Claude Code (backend arrancado dentro de um Claude): os filhos achavam-se
+//    aninhados e, por exemplo, deixavam de gravar transcripts. Nomes medidos no 2.1.288 a partir de
+//    um processo lançado por ele — só os da sessão, não a config do dono com o mesmo prefixo;
+//  • o que essa sessão sobrepõe à config do dono (GIT_EDITOR=true e afins) — só quando há sinal
+//    dela (CLAUDECODE), para não apagar a escolha de quem as define à mão;
+//  • as variáveis JOCA_* de um JOCA pai (um token herdado abria rotas de outra instância);
+//  • as que injectam código em todo o processo filho, incluindo o próprio claude (que é Node).
+// minimo: nomes da sessão medidos numa versão; uma variável nova do Claude Code passa até se
+// acrescentar aqui.
+const VARS_DA_SESSAO_CLAUDE = new Set([
+  'CLAUDECODE', 'AI_AGENT', 'CLAUDE_PID', 'CLAUDE_EFFORT',
+  'CLAUDE_CODE_ENTRYPOINT', 'CLAUDE_CODE_SESSION_ID', 'CLAUDE_CODE_CHILD_SESSION',
+  'CLAUDE_CODE_BRIDGE_SESSION_ID', 'CLAUDE_CODE_EXECPATH', 'CLAUDE_CODE_SESSION_ATTENDED',
+  'CLAUDE_CODE_MESSAGING_SOCKET', 'CLAUDE_CODE_MESSAGING_TOKEN',
+]);
+const SOBREPOSTAS_PELA_SESSAO_CLAUDE = new Set(['GIT_EDITOR', 'COREPACK_ENABLE_AUTO_PIN', 'NODEFAULTCURRENTDIRECTORYINEXEPATH']);
+const VARS_DE_INJECCAO = new Set(['NODE_OPTIONS', 'LD_PRELOAD', 'LD_AUDIT', 'BASH_ENV', 'ENV']);
+export function ambienteDoTerminal(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const daSessaoClaude = Object.keys(base).some((k) => k.toUpperCase() === 'CLAUDECODE');
   const env: NodeJS.ProcessEnv = {};
   for (const [k, v] of Object.entries(base)) {
-    if (JOCA_VARS.has(k) || k === 'CLAUDECODE') continue;
-    if (k.startsWith('CLAUDE_CODE_') && k !== 'CLAUDE_CODE_OAUTH_TOKEN') continue;
+    const K = k.toUpperCase();   // no Windows os nomes não distinguem maiúsculas
+    if (VARS_DA_SESSAO_CLAUDE.has(K) || JOCA_VARS.has(K) || VARS_DE_INJECCAO.has(K) || K.startsWith('DYLD_')) continue;
+    if (daSessaoClaude && SOBREPOSTAS_PELA_SESSAO_CLAUDE.has(K)) continue;
     env[k] = v;
   }
   return env;
@@ -165,7 +193,7 @@ export function criarNomeadorHaiku(claudeBin: string | null, opts: { timeoutMs?:
     let filho;
     try {
       filho = execFile(claudeBin, ARGS_HAIKU, {
-        cwd: os.tmpdir(), env: ambienteDoFilho(), timeout: opts.timeoutMs ?? TIMEOUT_MS,
+        cwd: os.tmpdir(), env: ambienteDoTerminal(), timeout: opts.timeoutMs ?? TIMEOUT_MS,
         killSignal: 'SIGKILL', maxBuffer: 4096, windowsHide: true, encoding: 'utf8',
       }, (err, stdout) => {
         if (err) {
