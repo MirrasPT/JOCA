@@ -244,12 +244,20 @@
 
 /* Reserva: a pilha recolhida fica fixa por cima do fundo do ecrã. As áreas de scroll das vistas
    principais ganham por baixo a altura que ela ocupa (--toast-reserve, medida pelo componente e só
-   presente enquanto há avisos) — assim a última linha consegue sempre subir acima dela. */
-@media (max-width: 600px) {
+   presente enquanto há avisos) — assim a última linha consegue sempre subir acima dela. Vale em
+   todo o layout estreito (até 860px, o mesmo corte do App.css): entre 601 e 860px a pilha fica no
+   canto, mas com 3 avisos tapava na mesma o fim das listas. */
+@media (max-width: 860px) {
   .ag-body,
   .dashboard-view:not(.project-workspace) .db-projects-grid {
     padding-bottom: calc(var(--toast-reserve, 0px) + var(--sp-3));
   }
+  /* Vistas de sessão e de projecto: o fundo é a caixa de escrita (ou o «Abrir terminal» do palco
+     vazio), que não scrolla — tem de subir, por isso a reserva vai para o contentor de fora. No
+     workspace o terminal está dentro de `.project-workspace`, que já a recebe: aplicar às duas
+     contava-a duas vezes. 22px = o padding do `.terminal-area` no layout estreito (App.css). */
+  .main-area > .terminal-area { padding-bottom: max(22px, var(--toast-reserve, 0px)); }
+  .project-workspace { padding-bottom: var(--toast-reserve, 0px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

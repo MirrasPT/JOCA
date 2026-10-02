@@ -16,7 +16,7 @@ import { useSessionSocket } from './hooks/useSessionSocket';
 import { useRecoveredSessions } from './hooks/useRecoveredSessions';
 import { useWaitingQueue } from './hooks/useWaitingQueue';
 import { useAutoTheme } from './hooks/useAutoTheme';
-import { ensureNotificationPermission, notify, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
+import { ensureNotificationPermission, setNotificationTargetHandler, type NotificationTarget } from './lib/notify';
 import StatusBar from './components/StatusBar';
 import type { AppNotification, JocaItems, JocaLogicInfo, MainView, Project, ProjectGroup, ProjectIcon, ProjectMemory, RuntimeInfo, SessionInfo, TerminalRef } from './types';
 import './components/sidebar-icons.css';
@@ -300,9 +300,8 @@ export default function App() {
       { id: crypto.randomUUID(), title: 'Session finished', detail: session.name, timestamp: Date.now() },
       ...prev,
     ].slice(0, 80));
-    // Sound + OS notification (Windows/macOS), so the user is alerted even off-window.
-    // Com o destino: clicar na notificação do SO traz a janela para a frente E abre este terminal.
-    notify('JOCA — Terminado', session.name, { sessionId: session.id });
+    // Sem notificação do SO aqui: essa já sai do `session_status` (só para workers 'auto'), e
+    // repeti-la a cada fim de turno tocava duas vezes pelo mesmo evento.
   }, []);
 
   // Toast a partir de uma notificação persistente marcada `priority:'action'` — alguém está
@@ -311,8 +310,9 @@ export default function App() {
   const addNotificationToast = useCallback((n: AppNotification) => {
     setInboxTick((t) => t + 1); // a fila «à espera de ti» volta a pedir-se ao backend
     setToasts((prev) => {
-      // Resolvida no servidor (ex.: a sessão saiu de «à espera de ti»): o toast deixa de fazer sentido.
-      if (n.read) return prev.filter((t) => t.id !== n.id);
+      // Resolvida no servidor (ex.: a sessão saiu de «à espera de ti») ou adiada noutro separador:
+      // o toast deixa de fazer sentido.
+      if (n.read || (n.snoozedUntil ?? 0) > Date.now()) return prev.filter((t) => t.id !== n.id);
       if (prev.some((t) => t.id === n.id)) return prev; // o mesmo evento não vale dois toasts
       return [...prev, {
         id: n.id,

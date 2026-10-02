@@ -173,11 +173,15 @@ export default function ToastNotification({ toasts, onDismiss, onSelect, onOpenT
   }, [temAvisos, aberto]);
   useEffect(() => () => { document.documentElement.style.removeProperty('--toast-reserve'); }, []);
 
-  // Aberta, fecha com um toque fora dela ou com Escape.
+  // Aberta, fecha com um toque fora dela ou com Escape — mas só o Escape que não tem outro dono:
+  // com o foco na pilha ou em lado nenhum (<body>). Num terminal, o Escape é do agente.
   useEffect(() => {
     if (!aberto) return;
     const fora = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setAberto(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAberto(false); };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (e.target === document.body || ref.current?.contains(e.target as Node)) setAberto(false);
+    };
     document.addEventListener('pointerdown', fora);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('pointerdown', fora); document.removeEventListener('keydown', esc); };

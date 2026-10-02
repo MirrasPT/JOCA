@@ -202,6 +202,7 @@ export interface AppNotification {
 export interface WaitingQueueResponse {
   queue: AppNotification[];
   snoozed: number;
+  snoozedItems: AppNotification[]; // as adiadas, para a UI contar só as que ainda têm sessão à espera
   nextWakeAt?: number;
 }
 
