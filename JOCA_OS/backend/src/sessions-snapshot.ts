@@ -237,8 +237,8 @@ function currentSnapshot(): SessionsSnapshot {
       status: s.status,
       // A geometria VIVA do PTY, não a de arranque: o browser redimensiona a sessão ao abrir o
       // painel, e é a última medida que corresponde ao desenho que ficou no buffer.
-      cols: geometriaValida(s.pty.cols, COLS_FALLBACK, 10, 500),
-      rows: geometriaValida(s.pty.rows, ROWS_FALLBACK, 5, 200),
+      cols: geometriaValida(s.cols, COLS_FALLBACK, 10, 500),
+      rows: geometriaValida(s.rows, ROWS_FALLBACK, 5, 200),
       tail: snapshotTail(s.buffer),
     })),
   };

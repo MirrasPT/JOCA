@@ -6,7 +6,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "lint": "eslint . && eslint -c ../cli/eslint.config.mjs ../cli/joca.mjs"
+    "lint": "eslint . && cd ../cli && eslint joca.mjs"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.185",
