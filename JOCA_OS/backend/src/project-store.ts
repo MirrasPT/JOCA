@@ -1,6 +1,6 @@
 // Persistence layer for projects, per-project memory, and UI settings — all JSON files under
 // ../../data. Self-contained: paths derive from __dirname. Exports the generic readJsonFile/
-// writeJsonFile helpers (reused by the knowledge-graph route) plus typed load/save functions.
+// writeJsonFile helpers plus typed load/save functions.
 import path from 'path';
 import fs from 'fs';
 

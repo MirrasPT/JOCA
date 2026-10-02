@@ -44,12 +44,6 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
 - `nodejs` — backend Node.js
 - `frontend-design` — UI React
 
-## Navegação de Código
-
-1. Consultar `graphify-out/GRAPH_REPORT.md` se existir
-2. Ler ficheiros raw quando necessário para editar
-3. Actualizar: `python3 -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"`
-
 ## Decisões chave
 
 - `node-pty` para PTY real (suporte ANSI, resize)

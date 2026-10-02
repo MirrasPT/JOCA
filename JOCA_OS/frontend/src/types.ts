@@ -172,7 +172,6 @@ export interface JocaLogicInfo {
   agentCount: number;
   commandCount: number;
   hasMemoryIndex: boolean;
-  hasGraph: boolean;
   hasSoul: boolean;
 }
 

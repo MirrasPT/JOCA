@@ -294,7 +294,6 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               <dt>Agentes</dt><dd>{jocaLogicInfo.agentCount}</dd>
               <dt>Comandos</dt><dd>{jocaLogicInfo.commandCount}</dd>
               <dt>Índice de memória</dt><dd>{jocaLogicInfo.hasMemoryIndex ? 'presente' : 'em falta'}</dd>
-              <dt>Grafo de conhecimento</dt><dd>{jocaLogicInfo.hasGraph ? 'presente' : 'em falta'}</dd>
               <dt>Soul</dt><dd>{jocaLogicInfo.hasSoul ? 'carregado' : 'em falta'}</dd>
             </dl>
           </div>

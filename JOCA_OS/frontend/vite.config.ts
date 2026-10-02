@@ -30,7 +30,6 @@ export default defineConfig({
       '/ui-settings': { target: http },
       '/rate-limits': { target: http },
       '/joca-logic': { target: http },
-      '/knowledge-graph': { target: http },
       '/auth': { target: http },
       '/notifications': { target: http },
       '/cli-profiles': { target: http },

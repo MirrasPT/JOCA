@@ -10,7 +10,7 @@ import {
   parseFrontmatter, collectToolkitItems, refreshMemoryIndexSnapshot,
 } from '../toolkit-registry';
 import {
-  readJsonFile, loadProjects, loadProjectMemory, saveProjectMemory,
+  loadProjects, loadProjectMemory, saveProjectMemory,
   loadUiSettings, saveUiSettings,
 } from '../project-store';
 import { sessionManager } from '../session-manager';
@@ -132,7 +132,6 @@ export function toolkitRouter(): Router {
     const connected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
     const items = connected ? collectToolkitItems() : { commands: [], agents: [], skills: [] };
     const hasMemoryIndex = fs.existsSync(MEMORY_INDEX_FILE);
-    const hasGraph = fs.existsSync(path.join(JOCA_LOGIC_ROOT, 'graphify-out', 'graph.json'));
     const hasSoul = fs.existsSync(path.join(JOCA_LOGIC_ROOT, 'memory', 'soul.md'));
     res.json({
       connected,
@@ -141,22 +140,7 @@ export function toolkitRouter(): Router {
       agentCount: items.agents.length,
       commandCount: items.commands.length,
       hasMemoryIndex,
-      hasGraph,
       hasSoul,
-    });
-  });
-
-  r.get('/knowledge-graph', (_req, res) => {
-    const reportPath = path.join(JOCA_LOGIC_ROOT, 'graphify-out', 'GRAPH_REPORT.md');
-    const graphPath = path.join(JOCA_LOGIC_ROOT, 'graphify-out', 'graph.json');
-    const report = fs.existsSync(reportPath) ? fs.readFileSync(reportPath, 'utf8') : '';
-    const graph = fs.existsSync(graphPath) ? readJsonFile<Record<string, unknown>>(graphPath, {}) : null;
-    res.json({
-      available: Boolean(report || graph),
-      reportPath: fs.existsSync(reportPath) ? reportPath : null,
-      graphPath: fs.existsSync(graphPath) ? graphPath : null,
-      report: report.slice(0, 12_000),
-      graph,
     });
   });
 
