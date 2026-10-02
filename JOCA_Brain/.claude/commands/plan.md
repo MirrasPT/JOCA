@@ -18,4 +18,4 @@ Produzir plano com:
 Não sair do Plan Mode sem aprovação explícita do utilizador.
 
 ## Próximo passo (chain)
-- Plano aprovado → skill/agente do domínio para implementar (via Trigger Map do `CLAUDE.md`). Notificar `[chain → <x>]`. Ver `rules/chaining.md`.
+- Plano aprovado → skill/agente do domínio para implementar (via hook `prompt-triage.js` / `.claude/reference/trigger-map.md`). Notificar `[chain → <x>]`. Ver `rules/chaining.md`.

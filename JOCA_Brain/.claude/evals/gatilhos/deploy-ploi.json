@@ -1,0 +1,37 @@
+{
+ "skill": "deploy-ploi",
+ "deve": [
+  "faz deploy no ploi",
+  "o deploy do ploi falhou, vê o log",
+  "configura o deploy script no ploi",
+  "zero downtime deploy no ploi",
+  "deploy to ploi after merge",
+  "provisiona o site no servidor ploi e faz deploy",
+  "atomic deploy no ploi para o laravel",
+  "publicar a app no ploi",
+  "o ploi não corre as migrations no deploy",
+  "deployment da api no ploi",
+  "cria um site no ploi pela api",
+  "usa a api do ploi para listar servidores",
+  "ploi cli para gerir os sites",
+  "adiciona chave ssh ao servidor ploi por api",
+  "token ploi para automatizar",
+  "altera o nginx config do site no ploi programaticamente",
+  "ploi sdk em php",
+  "automate ploi with the api",
+  "gerir servidor ploi sem entrar no painel",
+  "script que cria sites no ploi automaticamente"
+ ],
+ "quase": [
+  "faz deploy no cpanel",
+  "docker compose na vps",
+  "configura o nginx à mão",
+  "faz deploy na vercel",
+  "o servidor de email não envia",
+  "cria a release no github",
+  "configura o dns",
+  "automatiza a infra com scripts",
+  "gera chave ssh no windows",
+  "cria um endpoint na nossa api"
+ ]
+}

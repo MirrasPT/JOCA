@@ -1,10 +1,12 @@
 ---
 name: filament
 description: "Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. MUST be invoked when the user says: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page. SHOULD also invoke when: filament widget, filament form, filament table, filament action, Filament v4, Filament v5."
-triggers: Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page, filament widget, filament form, filament table, filament action, Filament v4, Filament v5, make:filament-resource, NavigationGroup, admin painel, painel admin, gestao, dashboard admin
+triggers: scaffold filament, build resource from model, admin for model, Filament, admin panel, admin, backoffice, Resource, Panel, filament resource, filament page, filament widget, filament form, filament table, filament action, Filament v4, Filament v5, make:filament-resource, NavigationGroup, admin painel, painel admin, gestao, dashboard admin
 chain: tester-code
 ---
 # Filament
+
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 Filament v4/v5 admin panels for Laravel. Slim resources, delegated schemas, enums with HasLabel+HasColor+HasIcon.
 
@@ -119,6 +121,23 @@ $schema->components([
 
 ---
 
+## ⚠ Testes que apagam a base de dados — provar a ligação ANTES de correr
+
+`RefreshDatabase`/`migrate:fresh` sem `.env.testing` apontam o comando à base de dados de desenvolvimento e apagam-na:
+sem o ficheiro de teste (ou sem a ligação de teste configurada) o Artisan cai no `.env`, e `migrate:fresh` larga
+**todas** as tabelas. Incidente 2026-09-18: um agente correu `migrate:fresh --env=testing` sem `.env.testing` e apagou
+a base de dados de desenvolvimento.
+
+Antes da suite, ou de qualquer `migrate:*`, provar a ligação na raiz da app Laravel:
+```bash
+test -f .env.testing || echo 'SEM .env.testing — PARAR e reportar'
+php artisan db:show --env=testing    # ler o nome da BD antes de escrever nela
+```
+- Ficheiro em falta, **ou** nome de BD igual ao de desenvolvimento → **parar e reportar**; nunca correr «para ver».
+- `migrate:fresh` é **irreversível** → gate de confirmação (`rules/task-intake.md` §Segurança), mesmo em teste.
+
+---
+
 ## Validation tooling
 
 - **FilaCheck** (`aldesrahim/filacheck`) — static analyzer for Filament code; catches deprecated methods + v5 namespace errors (our #1 silent-500 source). Run before delivery: `vendor/bin/filacheck`.
@@ -126,12 +145,39 @@ $schema->components([
 
 ---
 
-## Generation
+## Scaffold de resource (model → resource completo)
 
-For a full resource from an existing model (form + table + infolist + relation managers + policy + validation), use the **`filament-builder`** agent:
+Resource completo a partir de um model existente (form + table + infolist + relation managers + policy + validação). Inline, ou em paralelo com `Agent(subagent_type="filament-agent", prompt="Scaffold do resource Filament para App\\Models\\Product — CRUD completo + View")`.
+
+1. **Versão:** `composer show filament/filament | grep versions` (v4 vs v5 muda namespaces).
+2. **Ler o model:** `app/Models/<Model>.php` (fillable, casts, relações) + a migration (tipos, nullability, índices, unique).
+3. **Mapear** (e escolher o nível em «Complexity tiers»):
+
+| Sinal no model | Filament |
+|---|---|
+| `string`/`text` | `TextInput` / `Textarea` / `RichEditor` |
+| cast enum | `Select` com as opções do enum (3 contratos) |
+| `belongsTo` | `Select->relationship()->searchable()->preload()` |
+| `hasMany`/`belongsToMany` | Relation Manager |
+| `date`/`datetime` | `DatePicker` / `DateTimePicker` |
+| `boolean` | `Toggle` |
+| `decimal` (dinheiro) | `TextInput->numeric()->prefix('€')` |
+| ficheiro/imagem | `FileUpload` / `SpatieMediaLibraryFileUpload` |
+| coluna unique | `->unique(ignoreRecord: true)` / `->scopedUnique()` em multi-tenant |
+
+4. **Âmbito:** model não trivial → 1 pergunta só («CRUD completo + View + relation managers, ou CRUD em modal? Colunas a esconder?»); senão inferir e declarar os pressupostos.
+5. **Gerar e reescrever:** `php artisan make:filament-resource <Model> --generate --view` (v5) → reescrever no padrão slim acima (imports v5, `recordActions`/`groupedBulkActions`/`toolbarActions`, `infolist()`, relation managers, enums em falta). Policy: `php artisan make:policy <Model>Policy --model=<Model>` com `viewAny/view/create/update/delete`.
+6. **Validar (os 500 do v5):**
+```bash
+vendor/bin/filacheck 2>/dev/null || echo "FilaCheck não instalado"
+grep -rn "Filament\\\\Forms\\\\Components\\\\\(Section\|Grid\|Tabs\|Fieldset\)" app/Filament/ && echo "ERRADO: Filament\\Schemas\\Components"
+grep -rn "Filament\\\\Tables\\\\Actions" app/Filament/ && echo "ERRADO: no v5 as actions são Filament\\Actions"
+php artisan filament:optimize-clear 2>/dev/null
 ```
-Agent(subagent_type="filament-builder", prompt="Build a Filament resource for App\\Models\\Product — full CRUD + View")
-```
+7. **Testar:** smoke test Pest+Livewire (list + create + validação; `reference/filament/testing-deploy.md`) → `php artisan test --filter=<Model>Resource`, depois de provar a ligação de teste (secção acima).
+8. **Relatório:** nível · páginas · relation managers · campos/colunas gerados · validação (FilaCheck, namespaces, testes) · pressupostos · próximo passo (Policy, NavigationGroup).
+
+Seguir o estilo dos resources que o projecto já tem; nunca inventar campos fora do model/migration; resource sem Policy é achado.
 
 ---
 

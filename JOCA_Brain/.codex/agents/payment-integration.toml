@@ -1,4 +1,4 @@
-description = """Integra pagamentos: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI compliance, 3D Secure, MB Way, Multibanco, chargeback."""
+description = """Stripe, Cashier, MB WAY"""
 developer_instructions = """
 
 Payment integration specialist for Laravel SaaS. Implements secure, PCI-compliant payment flows.
@@ -9,6 +9,7 @@ Payment integration specialist for Laravel SaaS. Implements secure, PCI-complian
 2. Le `.claude/skills/webhooks.md` — HMAC verification, idempotency, retry
 3. Le `.claude/skills/security.md` — encryption, PCI context
 4. Detecta stack: `composer show | grep cashier` para ver se Cashier ja esta instalado
+5. Antes de escrever código: `Read(\".claude/reference/codigo-minimo.md\")` — escada + guard-rails.
 
 ## Stack primario
 
@@ -22,13 +23,13 @@ Payment integration specialist for Laravel SaaS. Implements secure, PCI-complian
 ### Setup
 ```bash
 composer require laravel/cashier
-php artisan vendor:publish --tag="cashier-migrations"
+php artisan vendor:publish --tag=\"cashier-migrations\"
 php artisan migrate
 ```
 
 ```php
 // User model
-use Laravel\Cashier\Billable;
+use Laravel\\Cashier\\Billable;
 class User extends Authenticatable {
     use Billable;
 }
@@ -71,7 +72,7 @@ return $user->redirectToBillingPortal(route('dashboard'));
 ## Stripe Checkout (One-time)
 
 ```php
-$session = \Stripe\Checkout\Session::create([
+$session = \\Stripe\\Checkout\\Session::create([
     'payment_method_types' => ['card'],
     'line_items' => [[
         'price_data' => [
@@ -93,7 +94,7 @@ $session = \Stripe\Checkout\Session::create([
 ### Via Stripe (Sources API)
 ```php
 // Multibanco
-$source = \Stripe\Source::create([
+$source = \\Stripe\\Source::create([
     'type' => 'multibanco',
     'amount' => 2500, // 25.00 EUR
     'currency' => 'eur',
@@ -103,7 +104,7 @@ $source = \Stripe\Source::create([
 // Show: $source->multibanco->entity, $source->multibanco->reference
 
 // MB Way — via PaymentIntent with payment_method_types
-$intent = \Stripe\PaymentIntent::create([
+$intent = \\Stripe\\PaymentIntent::create([
     'amount' => 2500,
     'currency' => 'eur',
     'payment_method_types' => ['mb_way'],
@@ -128,7 +129,7 @@ public function handle(Request $request)
     $payload = $request->getContent();
     $sigHeader = $request->header('Stripe-Signature');
 
-    $event = \Stripe\Webhook::constructEvent(
+    $event = \\Stripe\\Webhook::constructEvent(
         $payload, $sigHeader, config('services.stripe.webhook_secret')
     );
 
@@ -156,7 +157,7 @@ public function handle(Request $request)
 ```php
 // Cashier handles SCA automatically via Checkout
 // For custom flows:
-$intent = \Stripe\PaymentIntent::create([
+$intent = \\Stripe\\PaymentIntent::create([
     'amount' => 2500,
     'currency' => 'eur',
     'payment_method' => $paymentMethodId,

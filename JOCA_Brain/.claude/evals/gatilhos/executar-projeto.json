@@ -1,0 +1,27 @@
+{
+ "skill": "executar-projeto",
+ "deve": [
+  "avança para a execução do projecto",
+  "constrói o projecto a partir do PRD",
+  "começa a construir a app",
+  "executa o plano do start",
+  "scaffold do projecto, repo e CI",
+  "fase de execução: fundação e design",
+  "desenvolve a plataforma toda até produção",
+  "build the project from the PRD",
+  "passa do planeamento para a construção",
+  "arranca a execução da plataforma"
+ ],
+ "quase": [
+  "começa um projecto novo",
+  "escreve o PRD",
+  "faz deploy",
+  "planeia as ondas",
+  "executa este script",
+  "corre os testes",
+  "continua o issue 12",
+  "abre issues",
+  "cria o design system",
+  "faz o scaffold de um componente"
+ ]
+}

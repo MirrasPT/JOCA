@@ -12,6 +12,24 @@ Invocada autonomamente pela skill `laravel-specialist` quando preciso desenhar e
 
 ---
 
+## Conteúdo
+
+- URL design -- recursos, nao verbos
+- Status codes -- constantes Symfony
+- Errors -- RFC 9457 Problem Details
+- Versioning -- URL path + Sunset header
+- Pagination -- simplePaginate sempre
+- Filtering e sorting
+- Rate limiting
+- Auth -- Bearer token
+- CORS
+- Consumir APIs de terceiros -- verificar parser contra resposta real
+- Flag de visibilidade (publicado/rascunho, activo/arquivado)
+- Anti-patterns
+- OpenAPI 3.1 -- spec obrigatoria
+- Checklist pre-deploy
+- Quality gate
+
 ## URL design -- recursos, nao verbos
 
 ```

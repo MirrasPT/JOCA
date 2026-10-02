@@ -7,24 +7,28 @@ chain: security-review, tester-security
 
 # Security
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Global security skill. OWASP Top 10:2025 + ASVS 5.0 + Laravel + React patterns. Callable by any skill.
 
 ---
 
 ## OWASP Top 10:2025 -- Laravel mapping
 
+Fonte: https://owasp.org/Top10/2025/ (verificado 2026-10-02). Nomes oficiais da fonte; risco e mitigação são o mapeamento para Laravel.
+
 | # | Vulnerabilidade | Risco Laravel | Mitigacao |
 |---|-----------------|---------------|-----------|
 | A01 | Broken Access Control | IDOR, missing policies, SSRF | Policies+Gates, route model binding ownership, deny-by-default |
 | A02 | Security Misconfiguration | `APP_DEBUG=true`, Telescope exposto, headers em falta | Config check, security headers, `.env` fora do public |
-| A03 | Supply Chain Failures | Packages Composer comprometidos | `composer audit` em CI, pin versions, review packages |
-| A04 | Insecure Design | Sem threat model no design | STRIDE threat model, abuse cases no PRD |
+| A03 | Software Supply Chain Failures | Packages Composer/npm comprometidos ou com CVEs | `composer audit` + `npm audit` em CI, pin versions, review packages |
+| A04 | Cryptographic Failures | PII em claro na BD, hashing fraco, `APP_KEY` exposta, sem HTTPS | Casts `encrypted`, `Hash::make()` (bcrypt/argon2), HTTPS+HSTS, `APP_KEY` fora do repo |
 | A05 | Injection | `DB::raw()` com input, `{!! !!}` com user data | Eloquent parametrizado, Blade `{{ }}` |
-| A06 | Vulnerable Components | CVEs em Composer/npm | `composer audit` + `npm audit` automatizado |
-| A07 | Auth Failures | Password reset fraco, sem MFA | Sanctum, rate limiting, HaveIBeenPwned |
-| A08 | Integrity Failures | Updates nao assinados, deserializacao | Verificar assinaturas, evitar `unserialize()` |
-| A09 | Logging Failures | Sem logs de auth, logging PII | Structured logging, nunca `$request->all()` em logs |
-| A10 | Error Handling Failures | Stack traces expostos | `APP_DEBUG=false`, error pages custom |
+| A06 | Insecure Design | Sem threat model no design | STRIDE threat model, abuse cases no PRD |
+| A07 | Authentication Failures | Password reset fraco, sem MFA | Sanctum, rate limiting, HaveIBeenPwned |
+| A08 | Software or Data Integrity Failures | Updates nao assinados, deserializacao | Verificar assinaturas, evitar `unserialize()` |
+| A09 | Security Logging and Alerting Failures | Sem logs de auth, sem alertas, logging PII | Structured logging + alertas, nunca `$request->all()` em logs |
+| A10 | Mishandling of Exceptional Conditions | Stack traces expostos, excepções que falham em aberto | `APP_DEBUG=false`, error pages custom, fail closed |
 
 ---
 
@@ -127,11 +131,28 @@ Classes fora do OWASP Laravel, sem cobertura noutras skills. Ideias do plugin `s
 | Allowlist de URL contornável | `url.startsWith(permitido)` ou `netloc` aceita `https://trusted.com@evil.com`; `new URL(caminho, base)` aceita `//evil.com`; redirect 3xx salta a verificação | comparar só `new URL(u).hostname` depois de resolver, com o parser que envia; `redirect: 'manual'` e revalidar cada salto |
 | Allowlist por substring / sem âncora | `includes`, `endsWith("trusted.com")` sem ponto, regex sem `^…$` → `trusted.com.evil.com`, `eviltrusted.com` | extrair o campo estruturado e comparar com `===`; regex ancorada nos dois lados; normalizar maiúsculas e ponto final |
 | Assimetria entre campos irmãos | o diff valida/sanitiza um campo e deixa o irmão que chega ao mesmo sink | ao ver uma validação nova, verificar todos os irmãos do mesmo papel |
-| Permissões de ficheiro de credenciais | token escrito sem modo (umask → 0644), com modo largo, ou `chmod` só depois | 0600 ficheiro / 0700 pasta na criação. Windows: `0o600` não mexe na ACL — restringir com `icacls` |
+| Permissões de ficheiro de credenciais | token escrito sem modo (umask → 0644), com modo largo, ou `chmod` só depois | 0600 ficheiro / 0700 pasta na criação. Windows: `0o600` não mexe na ACL — ver §Caminhos Windows |
 | Agente lançado sem travões | spawn de Claude Code / LLM com ferramentas com `--dangerously-skip-permissions`, `bypassPermissions` ou shell livre | só dentro de sandbox ou com classificador de comandos |
 | Sink antigo, caminho novo | código novo leva input a um `eval`/`exec`/shell/SQL que já existia | é vulnerabilidade nova — em review de diff conta mesmo fora das linhas `+` |
 
 ---
+
+### Caminhos Windows (ACL, `icacls`, permissões por caminho) -- checklist
+Código que decide acesso **por caminho** no Windows reprovou 3 revisões seguidas (projecto interno,
+2026-09-14): cada fix tapou a classe medida e abriu a vizinha. Entra **inteira** no brief de qualquer
+código ou revisão que mexa em ACL/ficheiros por caminho — um caso de cada vez não converge.
+
+| Classe | Porque engana uma comparação de strings |
+|---|---|
+| Canonicalizar primeiro | comparar só depois de resolver o caminho real (`realpath`/`GetFinalPathNameByHandle`); `..`, barras mistas e maiúsculas/minúsculas (NTFS não distingue) |
+| Prefixo `\\?\` e `\\.\` | desliga a normalização do Win32 — o mesmo ficheiro com outra grafia |
+| UNC (`\\servidor\partilha`) e letras mapeadas | a mesma pasta por dois caminhos diferentes |
+| Nomes 8.3 (`PROGRA~1`) | alias curto que não casa com o nome longo |
+| Ponto ou espaço final (`pasta.`, `pasta `) | o Win32 remove-os — `pasta.` abre `pasta` |
+| Nomes reservados (`CON`, `NUL`, `COM1`, `LPT1`, também com extensão) | não são ficheiros; abrem dispositivos |
+| Junction · symlink · hardlink | o caminho aprovado aponta para fora da árvore; hardlink partilha o conteúdo com outro nome |
+| Codificação da saída (`icacls` na consola em CP850) | acentos no caminho chegam corrompidos a quem faz o parse — ler em Unicode, não pela code page da consola |
+| SID órfão | a ACL mostra um SID sem nome resolvido; um parse por nome de conta salta a entrada |
 
 ## HTTP Security Headers
 
@@ -273,7 +294,7 @@ Agent(subagent_type="security-review", prompt="Security code review. Files: [pat
 
 ### Rate limiting test
 ```
-Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Auth: Bearer [token]. Test: threshold verification (send N+10 requests, expect 429), IP header bypass (X-Forwarded-For + 10 variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle middleware). Endpoints to test: login, register, password reset, API. Report with OWASP API4:2019 mapping.")
+Agent(subagent_type="tester-ratelimit", prompt="Test rate limiting on [URL]. Auth: Bearer [token]. Test: threshold verification (send N+10 requests, expect 429), IP header bypass (X-Forwarded-For + 10 variants), path/method manipulation, Laravel config audit (TRUSTED_PROXIES, throttle middleware). Endpoints to test: login, register, password reset, API. Report with OWASP API4:2023 (Unrestricted Resource Consumption) mapping.")
 ```
 
 ---

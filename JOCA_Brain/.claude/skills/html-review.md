@@ -299,6 +299,7 @@ open "docs/review/<nome>.html"
 3. The `.html` is for human review and stakeholder sharing
 4. Self-contained: zero external dependencies beyond Mermaid CDN
 5. Do not commit `.html` by default — add to `.gitignore` unless requested
+6. **HTML local que o utilizador vai abrir verifica-se SEM `--allow-file-access-from-files`** — ou entrega-se auto-contido (imagens em base64). Verificado com a flag, um plano visual com caminhos relativos saiu sem imagens no browser do utilizador, que o pediu duas vezes antes de se perceber (2026-08-27). Auto-contido é o default: anda entre browsers e pode ir ao cliente.
 
 ---
 
@@ -307,7 +308,7 @@ open "docs/review/<nome>.html"
 Final step of planning. After any planning skill generates/updates a `.md`:
 
 ```
-prd -> prd-reviewer -> tech-spec -> c4-diagram -> task-breakdown -> plan -> html-review
+prd -> prd-reviewer -> tech-spec -> c4-diagram -> novo-issue -> planear-ondas -> plan -> html-review
 ```
 
 Notify: "Documento gerado. Queres HTML para review?"

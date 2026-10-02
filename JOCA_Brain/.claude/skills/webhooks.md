@@ -7,6 +7,8 @@ chain: tester-api
 
 # Webhooks
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Production-ready webhook receiving: signature verification, idempotency, and retry handling.
 
 ## The Three Rules

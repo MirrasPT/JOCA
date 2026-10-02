@@ -1,0 +1,27 @@
+{
+ "skill": "validar-design",
+ "deve": [
+  "valida este mockup antes de implementar",
+  "o mockup está bom? posso implementar este ecrã?",
+  "confere se o design bate certo com o sistema visual",
+  "aprova o mockup do checkout ou diz o que falta",
+  "valida o design do ecrã de relatórios",
+  "rever o ecrã desenhado contra os tokens do projecto",
+  "este mockup respeita o design system?",
+  "antes de codar, valida o mockup do perfil",
+  "check if this mockup matches our design system",
+  "confere o mockup e prepara notas de implementação"
+ ],
+ "quase": [
+  "desenha o ecrã de perfil",
+  "transforma o mockup em html",
+  "valida o formulário de registo no backend",
+  "revê o código do componente de tabela",
+  "audita a acessibilidade do site em produção",
+  "cria os design tokens",
+  "gera variantes de design para a homepage",
+  "testa a api de encomendas",
+  "valida o xml da fatura",
+  "faz review do PR 34"
+ ]
+}

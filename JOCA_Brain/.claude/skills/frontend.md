@@ -6,6 +6,8 @@ chain: design-review, tester-ui-ux
 ---
 # Frontend — Design Director + Router
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Designer + developer. HTML and React. Awwwards as standard, not aspiration.
 
 Each project is different. Never converge on the same choices. If someone looks and says "AI made this" -- failed.
@@ -30,12 +32,12 @@ The director decides direction, then delegates craft. Notify in 1 line: `[+ <ski
 
 | Layer / task | Specialist | Read |
 |--------------|-----------|------|
-| **Design contract** (tokens, component specs, brand) | `design-system` (router) → `brand-guidelines` · `design-tokens` · `component-system` | `Read(".claude/skills/design-system.md")` |
+| **Design contract** (tokens, component specs, brand) | `design-system` (tokens + component specs) · brand → `brand-guidelines` | `Read(".claude/skills/design-system.md")` |
 | **React perf/correctness** (re-renders, effects, data-fetching, RSC, bundle) | `react-patterns` | `Read(".claude/skills/react-patterns.md")` |
 | **Component API shape** (compound, context, slots, React 19 ref, kill boolean soup) | `react-composition` | `Read(".claude/skills/react-composition.md")` |
 | **Styling** (Tailwind 4, cva, cn, dark mode, responsive) | `tailwind` | `Read(".claude/skills/tailwind.md")` |
 | **shadcn/ui project** (has `components.json`, Radix+Tailwind copy-paste components) | `shadcn` | `Read(".claude/skills/shadcn.md")` |
-| **Email templates** (React Email, client-safe HTML) | `react-email` | `Read(".claude/skills/react-email.md")` |
+| **Email templates** (React Email, client-safe HTML) | `transactional-email` | `Read(".claude/skills/transactional-email.md")` |
 | **Motion** (GSAP scroll/hero/hover, Lottie icons) | `anima` | `Read(".claude/skills/anima.md")` |
 | **CSS nativo moderno** (scroll-driven, container queries, `:has()`, `color-mix`, `content-visibility`) | modern-css reference | `Read(".claude/reference/frontend/modern-css.md")` |
 | **Responsive/touch depth** | `mobile` | `Read(".claude/skills/mobile.md")` |
@@ -61,6 +63,12 @@ If the task involves a specific product, brand, or technology: **WebSearch first
 Triggers: product name, launch dates, versions, recent specs, "I think...", "probably...".
 
 Rule: `WebSearch "<product> 2026 latest"`. Read 1-3 results. If uncertain -- ask.
+
+---
+
+## #0b Consigo ver este ecrã? (pré-condição bloqueante)
+
+Redesenho ou correcção de um ecrã que **já existe** → antes da 1.ª linha de UI, abrir o ecrã **a correr** (screenshot + medição). Atrás de login, a 1.ª tarefa é resolver o acesso: o utilizador entra e passa a sessão ao gate (`--estado`/`--login`), ou trabalha-se num sítio sem auth (showcase, mockup servido localmente). O Chrome MCP **não herda** a sessão do browser do utilizador (redirige para `/login`). Sem via nenhuma → pedir uma captura antes de escrever. Um dia de UI feito às cegas atrás de login foi rejeitado três vezes e apagado (22 commits). Detalhe: `.claude/reference/gates-runtime.md` §Pré-condição de UI.
 
 ---
 
@@ -91,6 +99,20 @@ If absent and brand exists -- suggest `brand-guidelines` skill first (via `desig
 
 Brand Asset Protocol (prioridade de assets reais + protocolo de recolha) → `Read(".claude/reference/frontend/design-craft.md")`.
 
+**Logótipo/ícone fornecido: medir a luminância contra o fundo onde vai, antes de o colocar.** Um PNG
+transparente branco puro (255/255) ficou invisível sobre o fundo claro da própria marca — 3 agentes
+tropeçaram nele sem nenhum brief o pedir (2026-09-03). Pillow: média de luminância dos píxeis com
+alfa > 0 vs luminância do token de fundo; contraste < 3:1 → variante escura do logo ou outro fundo.
+
+**Logótipo não se recompõe — nunca.** Sem o ficheiro oficial (SVG/PNG do dono da marca), não se aproxima
+um logótipo com tipografia + CSS a partir de uma imagem de referência, nem se recorta uma versão existente
+(horizontal com `overflow-hidden`) para fabricar outra (símbolo, vertical) — aconteceu a 2026-09-17, passou
+`tsc` e as sondas, e o ficheiro oficial estava na pasta de marca do cliente. A forma, o espaçamento e o
+desenho das letras não sobrevivem à aproximação, e o resultado passa em revisão porque «parece».
+Asset de marca em falta → procurar a fonte oficial (pasta de marca do cliente, `DESIGN.md` §Assets); não
+aparecendo, escrever `TODO: asset oficial em falta` e **pedir o ficheiro** — parar e reportar, nunca aproximar.
+Mesma regra dos design tokens: sem token medido ou documentado não se inventa um valor plausível.
+
 ---
 
 ## #2 Junior Designer Mode
@@ -103,6 +125,8 @@ Show reasoning before executing. Always.
 4. Polish only after confirmation
 
 Wrong direction in placeholder = 5 min fix. In full implementation = 2h refactor.
+
+**Queixa de design → uma variável de cada vez.** «Os textos estão grandes» nomeia **um** sintoma: mexe-se em **uma** variável (densidade · tamanho · contraste · raio · saturação), mostra-se o resultado, e só depois a seguinte. Antes de mexer, confirmar que o que ele vê não é estado dele (barra colapsada por escolha) nem dados de demonstração. Regra completa: `design-review` §Queixa de design.
 
 ---
 
@@ -140,7 +164,7 @@ Regras detalhadas de Cor / Tema (dark vs light) / Tipografia / Layout → `Read(
 
 **Rule:** if removing an element loses no info, don't add it.
 
-**Ban nomeado — `border-left` de acento.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global do utilizador, já reincidente em dois projectos — aplicar na escrita, não esperar pelo review.
+**Ban nomeado — barra de acento à esquerda, em qualquer forma.** Barra colorida de 2-4px à esquerda de um card / callout / bolha de mensagem = tell de AI slop. Usar **fundo tingido** (a mesma cor a baixa opacidade) em vez da barra. Regra global, já reincidente em vários projectos (cards, bolhas de chat) — aplicar na escrita, não esperar pelo review. **As formas disfarçadas contam como a mesma barra:** `box-shadow: inset Npx 0 0 <cor>` (voltou assim num painel de administração, 2026-09-05), `::before`/`::after` fino colado à esquerda, `border-l-*` do Tailwind. Verificar por estilo computado (`gate-runtime.mjs --medir barra`), ou pelo menos `grep -nE 'border-l-(\[|[0-9])|border-left|inset [0-9.]+px 0 0'` — o padrão `border-l` sozinho dá falso positivo em tokens como `border-line`.
 
 Tabela de bans absolutos + naming adblock-safe (tokens proibidos em nomes de ficheiros/componentes/ids/classes/`data-*`) → `Read(".claude/reference/frontend/anti-slop-bans.md")`.
 
@@ -188,11 +212,46 @@ Modo advisor completo (max 3 perguntas → brief → 3 direcções de 3 escolas 
 
 ---
 
+
+## #5b Formulário com honeypot anti-spam
+
+Campo anti-spam escondido com nome que o **preenchimento automático do browser** reconhece (`website`, `url`,
+`email2`, `phone2`, `company`) é preenchido por ele — e a submissão de uma pessoa real é descartada em
+silêncio, com resposta de sucesso (2026-09-18: um contacto real perdido assim).
+
+- **Nome neutro**, sem palavra que o autofill reconheça: `contact_ref`, `xf9`. O nome é a defesa principal.
+- **`autocomplete="off"` no campo** — além do nome neutro, não em vez dele.
+- **Esconder só por `display:none` não impede o preenchimento automático** (nem do browser, nem dos gestores
+  de palavras-passe): juntar `data-1p-ignore data-lpignore="true" data-bwignore`.
+- `tabindex="-1"` (fora da ordem de teclado) e `aria-hidden="true"` (não anunciado a leitores de ecrã).
+
+```html
+<div style="display:none" aria-hidden="true">
+  <input type="text" name="contact_ref" tabindex="-1" autocomplete="off"
+         data-1p-ignore data-lpignore="true" data-bwignore>
+</div>
+```
+
+Verificar: carregar o formulário com o preenchimento automático do browser activo e ler o valor do campo —
+tem de ficar vazio. A metade do servidor (validar, descartar e **registar cada descarte**) →
+`Read(".claude/skills/laravel-specialist.md")`.
+
+---
+
 ## #11 Verificação (antes de dizer "feito")
 
 **Provar antes de editar (fixes de CSS/layout).** Não editar o ficheiro-fonte à primeira: reproduzir a página no viewport do problema (ex.: 390×844), medir com `getBoundingClientRect()` / `getComputedStyle()`, **injectar o fix candidato** (`page.addStyleTag`), re-medir, e só depois escrever no ficheiro. Poupa um ciclo editar→deploy→ver e produz números concretos (`left`/`right` vs largura do viewport, rácio de contraste medido em vez de estimado).
 
 **Gate de paridade de conteúdo** quando a tarefa é "reconstruir / reestilizar preservando o conteúdo": comparar contra o ficheiro-fonte, a cada build, (a) a contagem de palavras visíveis e (b) o conjunto de `src` de imagens. O QA de layout (sangramento, contraste, alvos de toque) dá tudo verde e não vê conteúdo em falta — num caso real desapareceram 9 descrições e 7 imagens sem nenhum alarme.
+
+**Nome acessível de controlos headless mede-se, não se infere.** Radix/shadcn/Headless UI Checkbox, Switch e Radio rendem `<button>`; `<button>` é elemento rotulável (WHATWG «labelable elements», verificado 2026-09-15), logo um `<label for>` cujo `for` casa o `id` **dá-lhe nome**. Falha quando o `id` não chega ao `<button>` (fica num wrapper ou num `<input>` escondido) ou o label está vazio. Verificar pelo **nome acessível computado na árvore de acessibilidade**; "existe um `<label for>` no DOM" não é evidência e `tsc`+`eslint`+`build` passam à mesma. Regra completa + teste: `Read(".claude/skills/shadcn.md")` → "Accessible names on `<button>`-rendering controls".
+
+**Proibido corrigir um componente partilhado a partir da página com seletores arbitrários sobre os filhos dele** (`[&_.classe]`, `[&_button]` e afins no Tailwind). Forçam classes internas de outro componente: passam `tsc` e a medição, mas é acoplamento frágil que parte no próximo refactor do componente — um agente fez isto e só o caller o apanhou ao ler o relatório (projecto de cliente, 2026-09-16). O fix vai **no próprio componente** (prop/variante nova). O verificador corre `grep -n "\[&_" <ficheiros tocados>` e cada hit tem de ser justificado.
+
+**Ligar uma funcionalidade → reler a copy à volta dela.** O texto foi escrito quando a funcionalidade não
+existia e pode passar a prometer o que o sistema não faz: um rodapé com «uma mensagem por semana com o
+que mudou de preço» virou contrapartida de recolher email ao ligar a subscrição — e nada envia essa
+mensagem (2026-09-08). Pergunta de verificação: *«isto que o site promete, alguém cumpre?»*
 
 **Depois de correcções de frontend em lote**, o passo seguinte por omissão é verificação em **browser real** (Playwright headless: screenshot de cada página + consola limpa). `node --check`, HTML bem aninhado e chavetas CSS equilibradas passam a 100% num site que pode estar inerte ao toque. O relatório declara sempre o que **não** foi verificado.
 

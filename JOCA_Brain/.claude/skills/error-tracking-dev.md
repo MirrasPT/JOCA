@@ -6,6 +6,8 @@ triggers: debugbar, telescope, ignition, ray, debug, debug panel, query inspecto
 
 # Error Tracking — Development
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Debug tools for dev. Activate at project start for continuous tracking of queries, exceptions, performance, and jobs.
 
 **Auto-activate** when `laravel-specialist` detects local/dev environment.

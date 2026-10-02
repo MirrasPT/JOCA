@@ -1,0 +1,27 @@
+{
+ "skill": "pdf-form-fill",
+ "deve": [
+  "preenche este formulário pdf com os meus dados",
+  "o pdf tem campos, preenche e marca as checkboxes",
+  "preencher pdf sem campos, escrever por cima",
+  "esta ficha pdf digitalizada tem de ser preenchida",
+  "fill this pdf form with the data from the json",
+  "a checkbox do pdf não fica marcada depois de preencher",
+  "preenche o requerimento em pdf",
+  "o pdf preenchido ficou pesado demais para anexar",
+  "formulário pdf sem campos para preencher, como faço",
+  "preenche o pdf da candidatura com a morada e nif"
+ ],
+ "quase": [
+  "converte esta página html em pdf",
+  "junta estes pdfs num só",
+  "extrai o texto deste pdf",
+  "faz um formulário de contacto no site",
+  "cria um pdf com a fatura",
+  "tapa os dados pessoais deste pdf",
+  "traduz este pdf",
+  "resume o pdf do contrato",
+  "converte o pdf em word",
+  "comprime as imagens"
+ ]
+}

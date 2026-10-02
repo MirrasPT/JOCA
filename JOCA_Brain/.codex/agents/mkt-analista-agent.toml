@@ -16,8 +16,8 @@ as quatro ao mesmo tempo. A frente vem no brief: `mkt-conectores`, `mkt-marca`, 
 ## Como trabalhar
 
 1. Lê `<RAIZ>/clientes/<slug>/marca.md` primeiro, depois os ficheiros de entrada que a skill pede.
-2. Segue os `## Passos` da skill. Scripts sempre com `MARKETEER_RAIZ="<RAIZ>"` à frente e
-   `"<MKT>/scripts/..."`.
+2. Segue os `## Passos` da skill. Scripts sempre com `MARKETEER_RAIZ=\"<RAIZ>\"` à frente e
+   `\"<MKT>/scripts/...\"`.
 3. Escreve **só** os ficheiros que o brief te atribui (a `## Entrega` da skill). Outro ficheiro → reporta.
    Em `01-analise.md` escreves só a secção marcada da tua frente (CONTRATO §6); as outras frentes
    escrevem as delas ao mesmo tempo.

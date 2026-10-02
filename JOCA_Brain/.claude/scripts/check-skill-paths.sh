@@ -9,6 +9,17 @@
 # Excepções válidas (NÃO são bug):
 #   - skills/created-skills/<nome>/SKILL.md  — convenção de skills geradas por /create-skill
 #   - linhas com placeholders em <...>        — documentação, não paths reais
+#   - .claude/scripts/                        — a FERRAMENTA que fala do padrao (este guard, o
+#     joca-doctor a imprimi-lo no aviso). Nao e reintroducao; ja estava em
+#     memory/learnings/ como causa de exit 1 falso.
+# ATENCAO: o ramo `rg` PRECISA de --hidden. Sem ele o ripgrep salta `.claude/` (comeca por ponto)
+#   e o guard fica cego JUSTAMENTE onde tem de ver: dava exit 0 com um `skills/SKILL.md`
+#   plantado numa skill. Medido no Windows a 2026-08-20; o ramo `grep` nao tinha o problema,
+#   por isso so falhava nas maquinas com ripgrep instalado.
+#   - memory/ inteiro                          — prosa e estado, nao codigo do toolkit. O guard
+#     existe para impedir que o path partido volte a uma SKILL/COMANDO/AGENTE; a memoria que
+#     *descreve* o bug (joca.md e learnings citam `skills/SKILL.md` a explicar este mesmo falso
+#     positivo) nao e uma reintroducao. Sem esta exclusao, escrever sobre o defeito criava-o.
 #
 # Uso:
 #   bash .claude/scripts/check-skill-paths.sh <ficheiro>  # 1 ficheiro (hook PostToolUse)
@@ -16,6 +27,9 @@
 #
 # Sai com 0 se limpo, 2 se encontrar paths partidos.
 # Sem argumento (ex.: $TOOL_INPUT_FILE_PATH vazio) → no-op, exit 0.
+# ⚠ Controlo positivo/negativo deste guard corre-se SEMPRE com --all (ou com o ficheiro plantado
+#   como argumento): o exit 0 sem argumento é o no-op do hook e não prova nada — um path legacy
+#   plantado passa porque o guard nem foi invocado.
 
 set -uo pipefail
 
@@ -33,15 +47,15 @@ scan_one() {  # $1 = ficheiro
 
 scan_repo() {
   if command -v rg >/dev/null 2>&1; then
-    rg -n --no-heading \
+    rg -n --no-heading --hidden \
       --glob '!.git/**' --glob '!node_modules/**' --glob '!vendor/**' \
-      --glob '!graphify-out/**' --glob '!memory/feedback/**' \
-      --glob '!**/check-skill-paths.sh' \
+      --glob '!memory/**' --glob '!**/.joca/**' \
+      --glob '!**/check-skill-paths.sh' --glob '!.claude/scripts/**' \
       -e "$PAT_PLACEHOLDER" -e "$PAT_NESTED" . 2>/dev/null | filter_fp || true
   else
     grep -rnE \
       --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor \
-      --exclude-dir=graphify-out --exclude-dir=feedback \
+      --exclude-dir=memory --exclude-dir=scripts --exclude-dir=.joca \
       --exclude='check-skill-paths.sh' \
       -e "$PAT_PLACEHOLDER" -e "$PAT_NESTED" . 2>/dev/null | filter_fp || true
   fi

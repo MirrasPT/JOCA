@@ -1,5 +1,16 @@
 Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/zero-downtime-deploy.md")` para deploy sem downtime (Envoy/symlink) e maintenance mode. (Tabela de safe migrations vive no corpo da skill.)
 
+## Contents
+
+- 3. Zero-Downtime Deploys
+  - Envoy (Laravel-native)
+  - Instant rollback
+- 4. Maintenance Mode
+  - Basic
+  - Pre-rendered maintenance page
+  - Bypass by IP (custom middleware)
+  - Maintenance-safe deploy pattern
+
 ## 3. Zero-Downtime Deploys
 
 ### Envoy (Laravel-native)

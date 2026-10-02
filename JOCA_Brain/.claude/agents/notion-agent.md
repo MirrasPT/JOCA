@@ -1,13 +1,16 @@
 ---
 name: notion-agent
-description: "plataformas · Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Notion, ntn, workspace de clientes"
 skills: notion
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "operações CRUD no Notion por CLI"
 category: plataformas
-triggers: notion, ntn, tarefa notion, base de dados notion, data source notion
+triggers: Notion, ntn, tarefa Notion, base de dados Notion, data source Notion, workspace de clientes
 generated-from: .claude/skills/notion.md
 generated-by: skill-agents.mjs
-content-hash: e89db0e29df61595
+content-hash: 95475595553c93c1
 ---
 
 # notion — agente de execução
@@ -15,7 +18,7 @@ content-hash: e89db0e29df61595
 Especialista em notion. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** notion, ntn, tarefa notion, base de dados notion, data source notion
+**Gatilhos:** Notion, ntn, tarefa Notion, base de dados Notion, data source Notion, workspace de clientes, arquivar tarefa Notion, notion, ntn, tarefa notion, base de dados notion, data source notion
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

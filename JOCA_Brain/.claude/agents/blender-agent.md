@@ -1,13 +1,16 @@
 ---
 name: blender-agent
-description: "3d · Director/router de trabalho 3D em Blender por Python headless (bpy). Despachar para trabalho isolável deste domínio, em paralelo."
+description: "blender, bpy, 3d, renderizar"
 skills: blender
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "modelação e scripting 3D"
 category: 3d
-triggers: blender, bpy, 3d, modelo 3d, modelacao 3d, cena 3d
+triggers: bpy, script blender, blender python, batch blend, headless blender, converter 3d
 generated-from: .claude/skills/blender.md
 generated-by: skill-agents.mjs
-content-hash: 6baa11927c7d7eab
+content-hash: a7cbb72d00ff2745
 ---
 
 # blender — agente de execução
@@ -15,7 +18,7 @@ content-hash: 6baa11927c7d7eab
 Especialista em blender. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** blender, bpy, 3d, modelo 3d, modelacao 3d, cena 3d, render 3d, .blend, glb, gltf, fbx, obj, stl, usd, malha, mesh, modelar, asset 3d, game-ready, low poly, lowpoly, turntable, product shot, geometry nodes, cycles, eevee, uv, unwrap, material pbr, rig, rigging, armature, converter modelo 3d, exportar para unity, exportar para unreal, exportar para godot, exportar para threejs, batch blend
+**Gatilhos:** bpy, script blender, blender python, batch blend, headless blender, converter 3d, render 3d, renderizar, cycles, eevee, turntable, product shot, material pbr, hdri, depth of field, blender, 3d, modelo 3d, cena 3d, .blend, glb, gltf, fbx, modelar, geometry nodes
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

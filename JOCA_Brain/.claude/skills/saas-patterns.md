@@ -9,6 +9,8 @@ chain: tester-code, security-review
 
 # SaaS Patterns -- Laravel 11 Multi-Tenant
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Target: stancl/tenancy v3 (v4 differences noted). Laravel 11-first; patterns are framework-adaptable.
 
 ---

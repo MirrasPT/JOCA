@@ -7,9 +7,7 @@ optimizações, e só depois de aprovada consolida a memória, arquiva as instal
 pasta `Old` e promove uma instalação nova, limpa e optimizada a produção.
 
 **Objectivo em cada fase: reduzir tokens sem perder memória.** Nunca apagar — arquivar. Nunca
-aplicar sem mostrar a tabela e esperar aprovação explícita. Termina sempre com o **graphify**
-instalado e correndo sobre TODOS os projectos ligados ao JOCA + o próprio JOCA_Brain — é a peça
-final que torna a memória (de código E de conhecimento) barata de consultar dali em diante.
+aplicar sem mostrar a tabela e esperar aprovação explícita.
 
 Scope: a máquina do utilizador (instalações JOCA + config/MCPs/CLIs relacionados + todos os
 projectos que o JOCA já conhece via `memory/projects/`). Não toca em ficheiros fora disto.
@@ -56,6 +54,10 @@ Ler o relatório do agente. Apresentar ao utilizador uma tabela numerada:
 | # | Categoria | Item | Estado actual | Recomendação | Impacto (tokens) | Risco |
 |---|---|---|---|---|---|---|
 
+**A coluna «Impacto (tokens)» mede-se, não se estima de cabeça:** `wc -c` dos ficheiros reais que o item corta
+(≈4 caracteres por token em PT), nunca um palpite sobre o `/context` — uma análise prometeu ~12-14k tokens de
+poupança e o medido foi ~3,5k.
+
 Categorias: **OPTIMIZAR** (cortar bloat sem mudar comportamento — descriptions de agentes,
 CLAUDE.md/soul.md inchados) · **ACTUALIZAR** (skill/agente/regra atrás do baseline) · **APAGAR**
 (skill morta, MCP banido instalado, instalação duplicada) · **MCP→CLI** (trocar um MCP caro por um
@@ -65,7 +67,7 @@ CLI equivalente) · **SUBSTITUIR** (ferramenta/plataforma diferente reduz custo)
 Perguntar também, explicitamente, separado da tabela: **o `soul.md`/`CLAUDE.md` actuais ainda
 reflectem quem a pessoa é?** Mostrar os valores actuais (autonomy_level, communication_mode,
 alignment do utilizador) e perguntar via `AskUserQuestion` — manter tal como está, ou recalibrar
-(mesmas 4 perguntas do `/migrate` Fase 4: autonomia, comunicação, tratamento de erros, auto-test).
+(4 perguntas: autonomia, comunicação, tratamento de erros, auto-test).
 
 **Gate obrigatório** — aceitar resposta em qualquer destas formas:
 - `all` — aplica tudo o que está na tabela.
@@ -84,7 +86,7 @@ aqui, isso já aconteceu no bootstrap (Fase -1). Só falta aplicar por cima:
    primeiro, depois optimizações (cortes de bloat), depois actualizações, depois MCP→CLI/substituições.
 2. **Consolidar memória de TODAS as instalações antigas encontradas** (esta instalação, por ser
    fresca, ainda não tem `memory/projects/`, `memory/tools/`, `memory/feedback/` populados):
-   - `memory/projects/*.md` — por nome de ficheiro; em conflito (mesmo nome, conteúdo diferente em
+   - `memory/projects/<slug>/` (e fichas planas `*.md`) — por nome de pasta/ficheiro; em conflito (mesmo nome, conteúdo diferente em
      2+ instalações antigas), o `mtime` mais recente vence — anexar uma nota "conteúdo mais antigo
      substituído, ver arquivo em `Old/`" para não perder rasto.
    - `memory/tools/*.md` — idem.
@@ -94,9 +96,6 @@ aqui, isso já aconteceu no bootstrap (Fase -1). Só falta aplicar por cima:
      antiga mais recente.
 3. Regenerar `SKILL_INDEX.json` (`python3 .claude/scripts/build-skill-index.py`) e os agentes-espelho
    (`node .claude/scripts/skill-agents.mjs`) sobre esta instalação.
-4. **Graphify é OBRIGATÓRIO nesta instalação** (ver `memory/tools/clis.md`) — se não estiver
-   instalado na máquina, instalar agora: `uv tool install graphifyy` (entrypoint `graphify`) +
-   `bash .claude/scripts/graphify-patch.sh`. Sem isto a Fase 6 abaixo não tem o que correr.
 
 ## Fase 4 — Arquivar as instalações antigas + apontar produção para aqui (confirmação curta)
 
@@ -115,58 +114,36 @@ confirmação explícita, mesmo sendo "mover" e não "apagar").
 ## Fase 5 — Verificação final
 
 1. `node .claude/scripts/joca-doctor.mjs` na instalação nova — tem de sair limpo (exit 0).
-2. Se houver `JOCA_OS`: `npm run setup` + arrancar + `curl` ao health-check (mesmo padrão do
-   `/migrate` Fase 6).
+2. Se houver `JOCA_OS`: `npm run setup` + arrancar + `curl` ao health-check.
 
-## Fase 6 — Graphify em todos os projectos (obrigatória, corre sempre no fim)
+## Fase 6 — (removida 2026-09-15: grafos de código retirados do JOCA)
 
-Só depois de tudo o resto estar feito (memória consolidada, instalação promovida, `joca-doctor.mjs`
-limpo): percorrer TODOS os projectos ligados ao JOCA (um `.md` por projecto em
-`memory/projects/*.md`, cada um com um campo `directorio:`/`path:` no frontmatter) e correr o
-graphify em cada um — este é o motivo de todo o resto: dar ao JOCA/Claude Code uma memória de
-código barata de consultar em vez de reabrir ficheiros gigantes.
+## Fase 6b — Histórico git depois de qualquer remoção (obrigatória se houve APAGAR/scrub)
 
-Para cada projecto (path do frontmatter, ler um a um):
+Arquivar uma instalação e limpar memória **remove do working tree, não do histórico**. Se alguma
+recomendação aprovada removeu conteúdo por privacidade/limpeza (PII, credencial, cliente, dado
+pessoal), verificar antes de declarar limpo — em CADA repo tocado:
 
 ```bash
-for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" -c "import graphify" 2>/dev/null && break; done
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('<path-do-projecto>'))"
-"$PY" .claude/scripts/graphify-deps.py "<path-do-projecto>"
+git log --all -S"<termo>" --oneline    # commits que ainda contêm o termo (inclui os já com push)
 ```
 
-**Política de inclusão/exclusão (obrigatória, não alterar por projecto):**
-- **Incluir tudo o que é conteúdo**: código (html/css/js/ts/php/py/etc.), texto (com o conteúdo,
-  não só o nome do ficheiro), imagens (jpg/png/webp/svg/etc.), ficheiros de media (vídeo/áudio).
-  O graphify v0.8.5+ já mapeia código + docs/PDF/imagens/vídeo nativamente — não restringir tipos.
-- **Excluir só infra/dependências**: `node_modules/`, `vendor/`, `.venv/`, build output
-  (`dist/`, `build/`, `.next/`), lockfiles (`package-lock.json`, `*.lock`), cache, `.git/` — é
-  exactamente o que os `.graphifyignore` do repo já fazem (raiz + `JOCA_Brain/`); **não inventar
-  um `.graphifyignore` novo por projecto** a menos que o projecto tenha ruído próprio óbvio.
-- Nunca excluir por SER imagem/media/texto — só por SER infra/dependência/build.
-
-Depois de cada projecto: confirmar que `<projecto>/graphify-out/graph.json` foi criado/actualizado
-(`mtime` recente). Se um projecto não tiver código (só design/conteúdo/marketing), sinalizar e
-saltar — mesma regra do `/start`.
-
-**No fim, correr também sobre o próprio JOCA_Brain** (conhecimento + código, não só um dos dois):
-
-```bash
-node .claude/scripts/joca-graph.mjs                # grafo de conhecimento (skills/agents/commands/projects)
-"$PY" -c "from pathlib import Path; from graphify.watch import _rebuild_code; _rebuild_code(Path('.'))"   # código do próprio Brain
-```
-
-Relatório final desta fase: quantos projectos tinham grafo desactualizado/inexistente e foram
-(re)gerados, quantos foram saltados (sem código), e confirmação de que o grafo do próprio
-`JOCA_Brain` está fresco.
+Reportar as duas coisas em separado na Fase 7: `working tree limpo ✓` · `histórico: N commits ainda
+com o termo`. Se N>0, **não decidir sozinho** — apresentar as opções: (1) deixar como está (repo
+privado, risco aceite e datado); (2) `git filter-repo` + `push --force` + **re-clone na outra
+máquina** (o force-push parte o sync multi-PC — é o custo real); (3) credencial → **rotacionar**,
+sai mais barato do que reescrever história.
+> Caso real: um scrub de memória reportou "reversível por git, nada commitado" — verdade sobre o
+> dia, falsa sobre o repo: o conteúdo removido continuava em 3-5 commits cada, já com push feito.
 
 ## Fase 7 — Relatório final do comando
 
 - o que foi arquivado (paths dentro de `Old/`);
+- **histórico git** após remoções: working tree limpo ✓ / N commits ainda com o termo + a opção
+  escolhida pelo utilizador (ou "por decidir");
 - o que foi fundido (memória consolidada, com nota de qualquer conflito resolvido por mtime);
 - o que foi optimizado (com estimativa antes/depois de tokens — CLAUDE.md+soul.md, descriptions
   de agentes, MCPs trocados);
-- estado do graphify: instalado/actualizado, quantos projectos ganharam grafo novo, JOCA_Brain
-  incluído;
 - o que ficou pendente para a pessoa decidir à mão (ex.: skills sinalizadas como "possivelmente
   mortas" mas não apagadas automaticamente).
 
@@ -180,10 +157,10 @@ Relatório final desta fase: quantos projectos tinham grafo desactualizado/inexi
 - **Esta instalação (cwd) nunca se move** — só as antigas vão para `Old/`. Não há "promover
   movendo", há "arquivar as outras e apontar `~/CLAUDE.md` para aqui".
 - Nunca apagar uma instalação antiga — só mover para `Old/`.
+- **Nunca declarar "limpo" sem olhar para o histórico.** Qualquer remoção por privacidade/limpeza
+  passa pela Fase 6b; reescrever história (`filter-repo`/force-push) é decisão do utilizador, nunca
+  automática.
 - Nunca aplicar uma recomendação sem ela ter passado pela tabela da Fase 2 e pelo gate.
 - Nunca copiar `memory/` às cegas — sempre passar pela consolidação por `mtime` da Fase 3.
 - `browser-use` e o MCP do Playwright (`@playwright/mcp`) são achados de categoria **APAGAR**
   sempre que encontrados — política vigente desde 2026-08-05 (ver `memory/tools/clis.md`).
-- `graphify` é **obrigatório** — instalar se faltar (Fase 3), nunca saltar a Fase 6.
-- A Fase 6 nunca corre antes da Fase 4/5 — só faz sentido gerar grafos sobre a instalação já
-  verificada, não sobre a antiga que vai para `Old/`.

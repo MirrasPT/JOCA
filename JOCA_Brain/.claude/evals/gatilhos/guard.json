@@ -1,0 +1,27 @@
+{
+ "skill": "guard",
+ "deve": [
+  "liga o modo seguro",
+  "segurança máxima nesta sessão",
+  "guard mode: avisos e tranca na pasta",
+  "lock it down, vamos mexer em produção",
+  "proteger tudo antes de mexer no servidor",
+  "trancar tudo e avisar comandos destrutivos",
+  "full safety mode please",
+  "modo seguro: careful e freeze de uma vez",
+  "activa o guard para esta pasta",
+  "maximum safety, só a pasta do deploy"
+ ],
+ "quase": [
+  "desliga o guard",
+  "tranca só esta pasta",
+  "audita a segurança da app",
+  "firewall na vps",
+  "guarda a sessão",
+  "route guard no angular",
+  "auth guard no laravel",
+  "modo tdd",
+  "protege as rotas do admin com login",
+  "faz backup antes de mexer"
+ ]
+}

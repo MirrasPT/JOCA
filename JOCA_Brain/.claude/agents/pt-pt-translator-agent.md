@@ -1,13 +1,16 @@
 ---
 name: pt-pt-translator-agent
-description: "conteúdo · Translate/localize content into European Portuguese with register control (tu/você/senhor). Despachar para trabalho isolável deste domínio, em paralelo."
+description: "traduzir para PT-PT, localizar UI"
 skills: pt-pt-translator
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
 triggers: traduzir para PT-PT, localizar UI, rever português
 generated-from: .claude/skills/pt-pt-translator.md
 generated-by: skill-agents.mjs
-content-hash: 2f8be8650d7e6c5e
+content-hash: 6607e902ab97df30
 ---
 
 # pt-pt-translator — agente de execução

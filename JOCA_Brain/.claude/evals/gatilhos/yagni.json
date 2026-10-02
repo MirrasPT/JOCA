@@ -1,0 +1,27 @@
+{
+ "skill": "yagni",
+ "deve": [
+  "evita over-engineering neste código",
+  "disciplina de código: pensa antes, simples, cirúrgico",
+  "erros típicos de LLM a programar, como evitar",
+  "coding discipline rules for this refactor",
+  "avoid overengineering in this PR",
+  "mantém a alteração mínima e cirúrgica",
+  "o código está demasiado abstrato, simplifica segundo as guidelines",
+  "regras para não inventar abstrações desnecessárias",
+  "LLM coding mistakes checklist",
+  "simplicidade primeiro: revê este diff"
+ ],
+ "quase": [
+  "revê o código do PR",
+  "refactoriza o controller",
+  "escreve testes",
+  "documenta a função",
+  "o que é o karpathy?",
+  "faz um curso de machine learning",
+  "limpa o código morto",
+  "aplica o prettier",
+  "revê o texto, está palavroso",
+  "cria uma regra no eslint"
+ ]
+}

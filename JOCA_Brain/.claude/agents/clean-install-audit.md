@@ -1,14 +1,11 @@
 ---
 name: clean-install-audit
-description: >
-  Descobre TODAS as instalações JOCA numa máquina, inventaria MCPs/CLIs relacionados, e compara
-  cada instalação encontrada contra o baseline actual do Joca-Open-Source — sinalizando bloat de
-  tokens (CLAUDE.md/soul.md inchados, descriptions de agentes longas, skill-shaped files infiltrados
-  em rules/, MCPs com equivalente CLI mais barato, skills mortas, instalações duplicadas, conflitos
-  de memória entre cópias antigas). Read-only: nunca aplica, nunca apaga, nunca move nada — só
-  escreve um relatório estruturado em disco e devolve um resumo curto. Usado só por /clean-install.
+description: "audita instalações JOCA, bloat"
 tools: Read, Write, Bash, Glob, Grep
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "inventário e diff contra baseline, não aplica nada"
 skills:
   - create-skill
 ---
@@ -33,7 +30,7 @@ Procurar em locais óbvios primeiro (home, Desktop, Documents, `~/JOCA*`, `~/*JO
 nada for encontrado aí. Marcadores de uma instalação JOCA:
 - pasta `.claude/skills/` com pelo menos alguns `.md`;
 - `memory/soul.md` (v2.0+) OU ausência dele mas presença de `AGENTS.md`/`CREDITOS.md` na raiz
-  (sinal de v1-legacy — mesmos sinais que o `/migrate` Fase 0 já usa);
+  (sinal de v1-legacy);
 - `CLAUDE.md` com secção que mencione JOCA/skills/agents.
 
 Para cada instalação candidata, registar:
@@ -52,19 +49,12 @@ haver 2-4 cópias esquecidas ao longo do tempo.
 
 - `~/.claude.json` → chave `mcpServers` (todos os registados, comando de arranque de cada um).
 - Qualquer `.mcp.json` de projecto que pareça ligado a uma das instalações encontradas.
-- CLIs relevantes no PATH: `claude`, `codex`, `agy`, `playwright`/`@playwright/cli`, `browser-use`,
-  `graphify` (verificar com `command -v`/`which`; para browser-use e graphify também
-  `uv tool list` se `uv` existir — o pacote real do graphify chama-se `graphifyy`).
+- CLIs relevantes no PATH: `claude`, `codex`, `agy`, `playwright`/`@playwright/cli`, `browser-use`
+  (verificar com `command -v`/`which`; para browser-use também `uv tool list` se `uv` existir).
 - Sinalizar de imediato (categoria **APAGAR**, sem ambiguidade): `browser-use` instalado, ou um MCP
   chamado `playwright`/`@playwright/mcp` registado — política vigente desde 2026-08-05
   (`memory/tools/clis.md`, `memory/tools/mcps.md`): banidos, substituir por Playwright CLI +
   extensão Claude no Chrome.
-- Sinalizar de imediato (categoria **ACTUALIZAR/INSTALAR**, obrigatório): `graphify` em falta —
-  é dependência obrigatória do JOCA (`uv tool install graphifyy`), sem ele `/save`/`/resume` degradam
-  para reler `.md` inteiros em vez de consultar o grafo. Se estiver instalado, verificar também se
-  cada instalação encontrada tem `graphify-out/graph.json` (código) e o grafo de conhecimento
-  (`joca-graph.mjs`) gerados e frescos (`mtime` recente) — se não tiver, é achado de categoria
-  **OPTIMIZAR** (vai ser corrigido na Fase 6 do `/clean-install`, não aqui).
 
 ## Passo 3 — Baseline de comparação
 
@@ -100,7 +90,7 @@ apresentar):
 
 ## Passo 5 — Conflitos de memória entre instalações antigas
 
-Se houver 2+ instalações com o mesmo ficheiro em `memory/projects/<nome>.md` (mesmo nome, conteúdo
+Se houver 2+ instalações com o mesmo ficheiro em `memory/projects/<nome>/` (ou ficha plana `<nome>.md`) (mesmo nome, conteúdo
 diferente): registar os dois paths + `mtime` de cada, e propor "o mais recente por mtime vence" —
 não decidir sozinho, só apresentar os dois lados para o main loop (e depois o utilizador) decidir
 na Fase 2 do comando.
@@ -127,7 +117,7 @@ Estrutura do relatório:
 - ...
 
 ## Conflitos de memória entre instalações
-- memory/projects/foo.md diverge entre <path1> (mtime X) e <path2> (mtime Y)
+- memory/projects/foo/index.md diverge entre <path1> (mtime X) e <path2> (mtime Y)
 
 ## Estimativa de poupança de tokens
 - Descriptions de agentes: ~N chars → ~M chars

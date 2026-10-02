@@ -90,6 +90,11 @@ RASCUNHOS A ESPERA
 2 precisam de ti, 1 rascunho, 12 tratados (newsletters, recibos, notificacoes)
 ```
 
+### Pesquisa de email: "nada encontrado" nao se le do conector
+O conector Gmail do claude.ai (`search_threads`) devolve resultados de **recurso** quando o termo nao casa nada — tres pesquisas diferentes (dois termos sem relacao entre si e um `OR` com os dois) deram todas `resultCountEstimate: "201"` com os mesmos emails irrelevantes (verificado 2026-09-09). Nao ha sinal que distinga "vazio" de "lixo".
+- `resultCountEstimate` igual entre pesquisas diferentes = recurso, nao resultado.
+- **Ausencia so se prova com operadores restritivos** (`from:`, `to:`, `subject:`) E cruzada com o `gws`: `gws gmail users messages list --params '{"userId":"me","q":"from:<remetente> subject:<termo>"}'`. Instalacao e auth do `gws` em `memory/tools/clis.md`.
+
 ### Guardrails de leitura
 - Read-only por defeito. Marcar como lido / arquivar / apagar = accao com efeito -> confirmar 1 linha antes (GUARD).
 - Nao expor conteudo sensivel (codigos 2FA, passwords em emails) em resumos partilhaveis.
@@ -107,6 +112,20 @@ Accao com efeito externo, frequentemente irreversivel -> GUARD.
 5. Tom default: alinhado ao user (pt-pt, terso, profissional) salvo instrucao.
 6. **Nunca por num rascunho um preco, data ou compromisso que o dono nao deu.** Direccao sim; numeros sao dele. Falta o dado -> perguntar.
 7. Email que caia na regra "dinheiro, credencial ou identidade" -> **sem rascunho**; so o aviso ao dono.
+8. **Mensagem a cliente sobre tema legal** (direitos de autor, marca, contrato, RGPD): curta, so sinalizar o problema e remeter para o cliente ou o jurista dele — **sem conselho juridico nem recomendacoes**. O dono corrigiu: «nos nao fazemos conselho destes» (projecto de cliente, 2026-10-01).
+
+### Gotchas do conector Gmail (claude.ai) — medidos 2026-09-14
+
+| Sintoma | Via que funciona |
+|---|---|
+| Nao descarrega anexos recebidos (PDF de resposta ficou por ler) | abrir a mensagem no Chrome, ou `gws` (`memory/tools/clis.md`); nunca pedir ao user que transcreva sem tentar a 2.a via |
+| `get_message` num draft → «caller does not have permission» | ler o draft com `get_draft`/`list_drafts` |
+| `update_draft` com `body` numa resposta **parte a ligacao a thread** (a reply passa a conversa nova) | nao editar drafts de resposta: recriar com `create_draft` + `replyToMessageId` |
+| `update_draft` sem `attachments` **remove os anexos** do draft (descricao da tool, verificado 2026-09-15) | reenviar sempre os anexos no mesmo pedido |
+| Anexar exige base64 inline no pedido — inviavel acima de ~100 KB | Chrome MCP `file_upload` no `input[type=file]` do compose (limite 10 MB por chamada, descricao da tool 2026-09-15); **verificar apos recarregar** o draft |
+| PDF grande demais para anexar | reduzir com `pymupdf` `doc.subset_fonts()` antes (1 MB → 128 KB no caso medido) |
+| Procurar resposta de terceiros (plataforma, loja, TikTok) sem `in:anywhere` falha — o email de rejeicao estava no Lixo ha 6 dias (2026-10-01) | `search_threads` **sempre com `in:anywhere`** ao verificar respostas de terceiros |
+| `get_thread` numa thread no Lixo → «The caller does not have permission»; o `search_threads` com `in:anywhere` encontra-a mas nao a le (2026-10-01) | ler o motivo na fonte (portal da plataforma), ou no Chrome; nao concluir que o email nao existe |
 
 ---
 
@@ -133,6 +152,7 @@ Extrair compromissos de email/texto para sugerir entradas de calendario.
 Quando ha tool de calendario ligada.
 
 - **Ler agenda**: "proximos eventos" -> listar janela pedida (default: hoje + 7 dias). 1 linha por evento: `data hora - titulo (local/link)`.
+- **Listagens por tipo de compromisso** ("as minhas consultas"): nunca pesquisar so por uma palavra. Listar por **intervalo de datas** e filtrar, ou pesquisar os sinonimos (consulta, enfermagem, exame, vacina, analises). Pesquisar so "consulta" deixou de fora 3 marcacoes de Enfermagem cujo titulo nao tinha a palavra (2026-10-01).
 - **Criar evento**: draft -> confirmar -> criar via tool. Campos minimos: titulo, inicio, fim/duracao, fuso. Convidados/local so se pedidos.
 - **Conflitos**: ao criar, verificar sobreposicao na janela; se houver, avisar antes de criar.
 - **Editar/cancelar**: accao com efeito -> confirmar; usar o ID real do evento devolvido pela tool (nunca inventar ID).
@@ -173,32 +193,6 @@ Sub-agente que **le** a caixa ou paginas de fora devolve so o resumo (e rascunho
 
 ---
 
-## Descarregar ANEXOS de email (o MCP do Gmail nao os descarrega)
-
-O `mcp__claude_ai_Gmail__*` **le** metadados de anexos (`filename`, `mimeType`, `attachmentIds`)
-mas **nao tem tool para os gravar em disco**. Nao improvisar nem pedir ao utilizador que os
-descarregue a mao — a via e o CLI `gws`, e o payload vem em **base64url**, nao em bytes:
-
-```bash
-# 1. obter messageId + attachment id  -> mcp__claude_ai_Gmail__get_thread (messageFormat: PLAIN_TEXT)
-# 2. puxar o anexo (o id do anexo tem ~700 chars; usar variavel, nunca inline)
-gws gmail users messages attachments get \
-  --params "{\"userId\":\"me\",\"messageId\":\"$MSG\",\"id\":\"$ATT\"}" > att.json
-# 3. descodificar base64url (o `base64 -d` do macOS NAO aceita -_ nem falta de padding)
-python3 -c "import json,base64,pathlib;d=json.load(open('att.json'))['data'];\
-pathlib.Path('saida.pdf').write_bytes(base64.urlsafe_b64decode(d+'='*(-len(d)%4)))"
-```
-
-Verificar sempre pelo **efeito**: `head -c4` do ficheiro tem de dar `%PDF` (ou o magic do tipo),
-nao basta o JSON ter vindo com bytes. O `gws` escreve `Using keyring backend: keyring` no **stderr**
-— nao e erro; redirecionar stderr ou o ficheiro fica corrompido se se capturar `2>&1`.
-
-⚠ PDF de banco/financeira costuma vir **cifrado** (`pdftotext` devolve `Incorrect password`).
-A senha e uma convencao do emissor (ex.: um emissor de credito usa ano de nascimento + 4 ultimos digitos do NIF) e
-vive na memoria do projecto, nunca aqui.
-
----
-
 ## Checklist pre-accao
 - [ ] Tool de email/calendario CONFIRMADA ligada (ToolSearch / `claude mcp list` / config)
 - [ ] Schema da tool MCP carregado antes de invocar
@@ -209,4 +203,3 @@ vive na memoria do projecto, nunca aqui.
 - [ ] Rascunhos sem precos/datas/compromissos que o dono nao deu
 - [ ] Fuso explicito (Europe/Lisbon default) e datas relativas resolvidas
 - [ ] Sem tool -> `TODO` + reportado, NAO improvisado
-- [ ] Anexos: descarregados via `gws` + base64url, e verificados pelo magic do ficheiro

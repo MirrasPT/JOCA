@@ -1,6 +1,6 @@
 # /autoplan — Plano completo, auto-revisto (NL → plano aprovado)
 
-Adaptado do `autoplan` do gstack. Pega num objectivo em linguagem natural e produz um **plano completo já revisto** correndo a pipeline `autoplan` (`rules/pipelines.md`) **a fundo e sozinho** — auto-decidindo as escolhas reversíveis e levantando só "taste"/ambiguidade no **gate final**.
+Adaptado do `autoplan` do gstack. Pega num objectivo em linguagem natural e produz um **plano completo já revisto** correndo a pipeline `autoplan` (`reference/pipelines-catalogo.md`) **a fundo e sozinho** — auto-decidindo as escolhas reversíveis e levantando só "taste"/ambiguidade no **gate final**.
 
 Diferença para `/plan`: o `/plan` produz UM plano; o `/autoplan` corre a cadeia de revisões (produto → design → engenharia) automaticamente, como uma equipa, sem parar a cada passo.
 
@@ -16,6 +16,12 @@ Diferença para `/plan`: o `/plan` produz UM plano; o `/autoplan` corre a cadeia
 2. **Revisão de produto** (CEO-style) — desafia o problema: estamos a resolver o certo? scope a expandir/reduzir? Decide o scope.
 3. **Revisão de design** — `Read(".claude/skills/design-review.md")` em **plan-mode**: pontua as dimensões de UX/UI 0-10 e diz o que faltaria para 10. (Só se a tarefa tem superfície de UI.)
 4. **Revisão de engenharia** — arquitectura, fluxo de dados, edge cases, cobertura de testes, performance. Tranca o plano de execução.
+**Os passos 2-4 são agentes despachados que NÃO escreveram o plano** — um por revisão, com o plano-base
+por ficheiro, a instrução de o atacar e o Step 0 (a skill do passo); em paralelo quando a revisão não
+depende do scope decidido no passo 2. Revisão inline,
+com o mesmo contexto que escreveu o plano, não encontra nada: num projecto interno (2026-09-01) as três
+revisões por agentes acharam três erros reais (furo estrutural, afirmação falsa sobre esquema em
+disco, estado de UI que se pinta como avaria). O autor do plano consolida os achados; não os assina.
 5. **Gate final** — levantar de uma vez as decisões de **taste** / ambíguas / irreversíveis acumuladas (não a meio). O user aprova/ajusta.
 
 ## Auto-decisão (passos 2-4, reversíveis)
@@ -40,6 +46,6 @@ Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve n
 Travões que **não** caem com esta autorização:
 - **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
 - **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
+- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop/<session_id>.json`).
 - **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
 - **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.

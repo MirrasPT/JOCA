@@ -1,0 +1,27 @@
+{
+ "skill": "rest-api",
+ "deve": [
+  "desenha a API REST para encomendas",
+  "cria a especificação OpenAPI dos endpoints",
+  "como faço a paginação na api",
+  "versiona a api, vamos ter v2",
+  "define os erros da api num formato consistente",
+  "design the REST API for the booking module",
+  "adiciona rate limit aos endpoints públicos",
+  "documenta a api no swagger",
+  "o endpoint de clientes devolve campos a mais, redesenha a resposta",
+  "que estrutura de endpoints para produtos e variantes"
+ ],
+ "quase": [
+  "a api do stripe dá erro no webhook",
+  "chama a api do ploi para criar site",
+  "testa os endpoints com curl para ver IDOR",
+  "cria a página de produtos em react",
+  "o graphql está lento",
+  "configura cors no nginx",
+  "usa a api do google analytics para tirar visitas",
+  "cria um model laravel",
+  "escreve a documentação do utilizador",
+  "faz um cron que corre todas as noites"
+ ]
+}

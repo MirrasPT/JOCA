@@ -1,0 +1,27 @@
+{
+ "skill": "start",
+ "deve": [
+  "novo projeto: tenho uma ideia de app",
+  "quero construir uma app para marcações",
+  "começar projeto do zero",
+  "quero fazer um site para a minha empresa, por onde começo",
+  "arrancar projeto novo de loja online",
+  "tenho uma ideia de produto, vamos começar",
+  "start a new project for a booking platform",
+  "liga este projecto ao JOCA",
+  "iniciar projeto de jogo mobile",
+  "criar produto novo, faz-me as perguntas"
+ ],
+ "quase": [
+  "avança para a execução",
+  "escreve o PRD",
+  "arranca o servidor",
+  "start the dev server",
+  "começa o issue 12",
+  "inicia o docker",
+  "arranca o JOCA OS",
+  "começa a ler o código",
+  "faz o scaffold do laravel",
+  "novo issue para o bug"
+ ]
+}

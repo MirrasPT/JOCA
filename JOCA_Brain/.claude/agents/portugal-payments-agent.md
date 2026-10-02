@@ -1,13 +1,16 @@
 ---
 name: portugal-payments-agent
-description: "portugal · Integrate the Portuguese ifthenpay gateway (Multibanco reference, MB WAY push, Cartão) in Laravel. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "ifthenpay, Multibanco, MB WAY, SPG"
 skills: portugal-payments
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "dinheiro e faturação com regras legais"
 category: portugal
 triggers: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referencia multibanco
 generated-from: .claude/skills/portugal-payments.md
 generated-by: skill-agents.mjs
-content-hash: 940ea08a94ebcb0d
+content-hash: d69975fae42aac3c
 ---
 
 # portugal-payments — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

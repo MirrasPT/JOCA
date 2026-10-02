@@ -14,8 +14,8 @@
  *
  * Uso (o texto pode ir posicional ou em --text; `<cmd> --help` imprime a assinatura):
  *   joca-brain decide  "..." | --text "..." [--rationale "..."] [--scope repo|branch] [--branch X] [--source user|skill|agent] [--confidence 1-10]
- *   joca-brain supersede <id>
- *   joca-brain redact <id>
+ *   joca-brain supersede <id>                       # id de decisão OU de aprendizagem
+ *   joca-brain redact <id>                          # idem (sai do active/recall/search)
  *   joca-brain learn   "..." | --text "..." [--tags a,b,c] [--file path]
  *   joca-brain active  [--slug X] [--json]
  *   joca-brain recall  [--slug X] [--limit 5]      # active decisions + learnings recentes (p/ hook)
@@ -34,6 +34,8 @@ import {
   existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync, renameSync,
 } from 'fs';
 import { randomUUID } from 'crypto';
+import jocaSlug from './joca-slug.cjs';
+const { normalizeSlug } = jocaSlug;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BRAIN = join(__dirname, '..', '..'); // .claude/scripts -> JOCA_Brain
@@ -55,15 +57,32 @@ function parseArgs(argv) {
 }
 
 // ---------- slug ----------
+// Sem `--slug`, o slug sai do cwd — e um `decide`/`learn` corrido fora do repo do projecto grava
+// no projecto errado em silêncio. Medido a 2026-09-15: decisões de um projecto de cliente gravadas com cwd
+// na pasta do toolkit foram parar ao slug `joca`, que o `session-intake.js` passou a injectar em TODAS
+// as sessões. Mesmo padrão do irmão `joca-checkpoint.mjs`: infere-se na mesma (não se trava o
+// comando), mas diz-se em que slug se escreveu e como corrigir. Só nas ESCRITAS — o `recall` do
+// arranque de sessão infere a cada sessão e um aviso aí seria ruído em todas elas.
+let slugInferido = false;
 function currentSlug(explicit) {
   if (explicit && explicit !== true) return sanitizeSlug(explicit);
+  slugInferido = true;
   try {
     const top = execSync('git rev-parse --show-toplevel', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     if (top) return sanitizeSlug(basename(top));
   } catch (_) { /* não-git */ }
   return sanitizeSlug(basename(process.cwd()));
 }
-function sanitizeSlug(s) { return String(s).replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown'; }
+// «Projecto conhecido» = tem memória em `memory/projects/<slug>/index.md`. Sem ela, o slug é quase de certeza a pasta onde por
+// acaso se estava — daí o aviso ser mais forte.
+function avisaSlugInferido(slug) {
+  if (!slugInferido) return;
+  const conhecido = existsSync(join(MEM, 'projects', slug, 'index.md'));
+  console.error(`[brain] ⚠ slug inferido do cwd: "${slug}"${conhecido ? '' : ' — e NÃO há memory/projects/' + slug + '/index.md, portanto provavelmente não é um projecto'}`);
+  console.error(`[brain]   se o trabalho foi noutro projecto, re-corre com --slug <projecto> e remove a linha errada de memory/{decisions,learnings}/${slug}.jsonl`);
+}
+// Minúsculas + alias de pasta → slug da memória: fonte única em joca-slug.cjs (partia JOCA em 3).
+function sanitizeSlug(s) { return normalizeSlug(s); }
 function currentBranch() {
   try { return execSync('git branch --show-current', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() || undefined; }
   catch (_) { return undefined; }
@@ -142,6 +161,17 @@ function refreshSnapshot(slug) {
   writeAtomic(decisionsSnap(slug), JSON.stringify(active));
   return active;
 }
+// Ids retirados por `supersede`/`redact` — servem decisões E aprendizagens: os eventos vivem no log de
+// decisões, mas o id pode ser de `learnings/` (antes, uma aprendizagem errada só saía do recall à mão).
+function retiredIds(slug) {
+  const retired = new Set();
+  for (const e of readJsonl(decisionsLog(slug))) if ((e.kind === 'supersede' || e.kind === 'redact') && e.supersedes) retired.add(e.supersedes);
+  return retired;
+}
+function activeLearnings(slug) {
+  const retired = retiredIds(slug);
+  return readJsonl(learningsLog(slug)).filter((l) => !retired.has(l.id));
+}
 function filterByScope(active, branch) {
   return active.filter((d) => d.scope === 'repo' || (d.scope === 'branch' && branch && d.branch === branch));
 }
@@ -172,6 +202,7 @@ function cmdDecide(a) {
   appendJsonl(decisionsLog(slug), ev);
   refreshSnapshot(slug);
   console.log(`[brain] decisão registada (${slug}) id=${ev.id}`);
+  avisaSlugInferido(slug);
 }
 function cmdRef(kind, a) {
   const slug = currentSlug(a.slug);
@@ -180,6 +211,7 @@ function cmdRef(kind, a) {
   appendJsonl(decisionsLog(slug), { id: randomUUID(), kind, supersedes: target, date: new Date().toISOString(), source: 'agent' });
   refreshSnapshot(slug);
   console.log(`[brain] ${kind} de ${target} (${slug})`);
+  avisaSlugInferido(slug);
 }
 function cmdLearn(a) {
   const slug = currentSlug(a.slug);
@@ -195,6 +227,7 @@ function cmdLearn(a) {
   };
   appendJsonl(learningsLog(slug), ev);
   console.log(`[brain] aprendizagem registada (${slug}) id=${ev.id}`);
+  avisaSlugInferido(slug);
 }
 function cmdActive(a) {
   const slug = currentSlug(a.slug);
@@ -208,7 +241,7 @@ function cmdRecall(a) {
   const slug = currentSlug(a.slug);
   const limit = parseInt(a.limit, 10) || 5;
   const active = filterByScope(computeActive(readJsonl(decisionsLog(slug))), currentBranch()).slice(-limit);
-  const learns = readJsonl(learningsLog(slug)).slice(-limit);
+  const learns = activeLearnings(slug).slice(-limit);
   const lines = [];
   if (active.length) {
     lines.push(`## Brain — decisões activas (${slug})`);
@@ -231,7 +264,10 @@ async function cmdSearch(a) {
     const idx = await import('./joca-memory-index.mjs');
     if (idx.ftsAvailable()) {
       if (idx.isStale(MEM)) idx.rebuildIndex(MEM);
-      const rows = idx.searchIndex(MEM, qRaw, { limit, slug });
+      // O índice guarda todas as aprendizagens — as retiradas saem aqui (pede-se folga para o limite).
+      const retired = retiredIds(slug);
+      const rows = idx.searchIndex(MEM, qRaw, { limit: limit + retired.size, slug })
+        .filter((r) => !(r.kind === 'learning' && retired.has(r.id))).slice(0, limit);
       const lines = rows.map((r) => {
         if (r.kind === 'decision') return `[decisão] ${datamark(r.title)}`;
         if (r.kind === 'learning') return `[aprendizagem] ${datamark(r.title)}`;
@@ -249,7 +285,7 @@ async function cmdSearch(a) {
     const hay = `${d.decision} ${d.rationale || ''}`.toLowerCase();
     if (hay.includes(q)) hits.push(`[decisão] ${datamark(d.decision)}`);
   }
-  for (const l of readJsonl(learningsLog(slug))) {
+  for (const l of activeLearnings(slug)) {
     const hay = `${l.text} ${(l.tags || []).join(' ')}`.toLowerCase();
     if (hay.includes(q)) hits.push(`[aprendizagem] ${datamark(l.text)}`);
   }
@@ -292,6 +328,18 @@ if (cmd === '--help' || cmd === '-h' || cmd === 'help') {
 // dos comandos de escrita LÊ o `_[0]`. Sem este check, `learn -h` registava uma aprendizagem "-h".
 const pedeAjuda = a.help || a.h || a._.includes('-h') || a._.includes('help');
 if (pedeAjuda && USAGE[cmd]) { console.log(USAGE[cmd]); process.exit(0); }
+// Flags fora da assinatura são recusadas ANTES de escrever: o parseArgs aceitava qualquer `--k` e um
+// `decide --decision "x"` gravava `text: null` sem erro. `--slug=X` também cai aqui (o parser não lê `=`).
+const FLAGS = {
+  decide: ['text', 'rationale', 'scope', 'branch', 'source', 'confidence', 'slug'],
+  supersede: ['slug'], redact: ['slug'],
+  learn: ['text', 'tags', 'file', 'slug'],
+  active: ['slug', 'json'], recall: ['slug', 'limit'], search: ['limit', 'slug'], reindex: [],
+};
+if (FLAGS[cmd]) {
+  const desconhecidas = Object.keys(a).filter((k) => k !== '_' && !FLAGS[cmd].includes(k));
+  if (desconhecidas.length) fail(`${cmd}: flag desconhecida ${desconhecidas.map((k) => `--${k}`).join(', ')} — nada foi escrito\n  ${USAGE[cmd]}`);
+}
 switch (cmd) {
   case 'decide': cmdDecide(a); break;
   case 'supersede': cmdRef('supersede', a); break;

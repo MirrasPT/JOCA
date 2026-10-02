@@ -1,13 +1,16 @@
 ---
 name: transactional-email-agent
-description: "código · Router skill for transactional email. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "transactional email, email sending"
 skills: transactional-email
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
-triggers: transactional email, email sending, postmark, resend, email api, bounce
+triggers: postmark, react email, react-email, @react-email, email template, template de email
 generated-from: .claude/skills/transactional-email.md
 generated-by: skill-agents.mjs
-content-hash: 693cbeb6ad4b29bd
+content-hash: 3e322a95618d129e
 ---
 
 # transactional-email — agente de execução
@@ -15,7 +18,7 @@ content-hash: 693cbeb6ad4b29bd
 Especialista em transactional-email. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf, dkim, dmarc, email template
+**Gatilhos:** postmark, react email, react-email, @react-email, email template, template de email, emails transacionais, email spam, email component, message streams, bounce handling, email webhook, transactional email template, email html, email dark mode, password reset email, transactional email, email sending, resend, email api, bounce, deliverability, spf, dkim, dmarc
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

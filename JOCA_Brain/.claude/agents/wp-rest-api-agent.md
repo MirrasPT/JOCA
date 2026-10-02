@@ -1,13 +1,16 @@
 ---
 name: wp-rest-api-agent
-description: "wordpress · Building, extending, or debugging WordPress REST API endpoints/routes: register_rest_route. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "WordPress REST API, CPTs"
 skills: wp-rest-api
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: WordPress REST API, CPTs
 generated-from: .claude/skills/wp-rest-api.md
 generated-by: skill-agents.mjs
-content-hash: 314c8bf7f093bd8e
+content-hash: dd8d61a58a3d2a42
 ---
 
 # wp-rest-api — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

@@ -78,13 +78,24 @@ async function fetchOAuthUsage() {
   }
 }
 
+const RESET = '\x1b[0m';
+const CYAN = '\x1b[0;36m';
+const GREY = '\x1b[0;90m';
+const MAGENTA = '\x1b[0;35m';
+const BLUE = '\x1b[0;34m';
+const GREEN = '\x1b[0;32m';
+
+// Contexto: amarelo -> laranja -> vermelho. Vermelho a partir dos 60%.
+const YELLOW = '\x1b[0;33m';
+const ORANGE = '\x1b[38;5;208m';
+const RED = '\x1b[1;31m';
+const ctxColour = (pct) => (pct >= 60 ? RED : pct >= 40 ? ORANGE : YELLOW);
+
 const bar = (pct) => {
   if (pct == null) return '';
-  const filled = Math.min(10, Math.round(pct / 10));
+  const filled = Math.min(10, Math.max(0, Math.round(pct / 10)));
   return '█'.repeat(filled) + '░'.repeat(10 - filled);
 };
-
-const fmtK = (n) => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
 
 const timeLeft = (val) => {
   if (!val) return '?';
@@ -98,6 +109,20 @@ const timeLeft = (val) => {
   return h > 0 ? `${h}h${String(m).padStart(2, '0')}m` : `${m}m`;
 };
 
+// O limite semanal por modelo (hoje o Fable) vem no array `limits`, como
+// kind "weekly_scoped" com o nome do modelo em scope.model.display_name.
+// Os campos seven_day_sonnet / seven_day_opus vêm sempre null — não servem.
+function scopedWeekly(oauth) {
+  const list = Array.isArray(oauth?.limits) ? oauth.limits : [];
+  const hit = list.find((l) => l?.kind === 'weekly_scoped' && l?.scope?.model?.display_name);
+  if (!hit) return null;
+  return {
+    name: hit.scope.model.display_name,
+    pct: hit.percent,
+    resets_at: hit.resets_at,
+  };
+}
+
 let raw = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk) => {
@@ -109,6 +134,7 @@ process.stdin.on('end', async () => {
     const d = JSON.parse(raw);
     const limits = {
       model: d.model?.display_name || 'Unknown',
+      effort: d.effort?.level ?? null,
       context: {
         used_pct: d.context_window?.used_percentage ?? null,
         remaining_pct: d.context_window?.remaining_percentage ?? null,
@@ -131,35 +157,36 @@ process.stdin.on('end', async () => {
 
     const oauth = await fetchOAuthUsage();
 
-    let out = `\x1b[0;36m${limits.model}\x1b[0m`;
-    out += `  \x1b[0;37min:${fmtK(limits.context.input_tokens)} out:${fmtK(limits.context.output_tokens)}\x1b[0m`;
+    // 1. Modelo
+    let out = `${CYAN}${limits.model}${RESET}`;
 
+    // 2. Taxa de esforço
+    if (limits.effort) out += `  ${GREY}⚡${limits.effort}${RESET}`;
+
+    // 3. Contexto (cor conforme a percentagem)
     if (limits.context.used_pct != null) {
-      out += `  \x1b[0;33mctx ${bar(limits.context.used_pct)} ${Math.round(limits.context.used_pct)}%\x1b[0m`;
+      const pct = limits.context.used_pct;
+      out += `  ${ctxColour(pct)}ctx ${bar(pct)} ${Math.round(pct)}%${RESET}`;
     }
 
-    if (oauth) {
-      const fh = oauth.five_hour;
-      if (fh?.utilization != null) {
-        out += `  \x1b[0;35m5h ${bar(fh.utilization)} ${Math.round(fh.utilization)}%  ↺ ${timeLeft(fh.resets_at)}\x1b[0m`;
-      }
+    // 4. Cinco horas — o oauth é mais fiável; o payload do stdin é o recuo.
+    const fhPct = oauth?.five_hour?.utilization ?? limits.five_hour.used_pct;
+    const fhReset = oauth?.five_hour?.resets_at ?? limits.five_hour.resets_at;
+    if (fhPct != null) {
+      out += `  ${MAGENTA}5h ${bar(fhPct)} ${Math.round(fhPct)}% ↺ ${timeLeft(fhReset)}${RESET}`;
+    }
 
-      const sd = oauth.seven_day;
-      if (sd?.utilization != null) {
-        out += `  \x1b[0;34m7d ${bar(sd.utilization)} ${Math.round(sd.utilization)}%  ⏱ ${timeLeft(sd.resets_at)}\x1b[0m`;
-      }
+    // 5. Sete dias
+    const sdPct = oauth?.seven_day?.utilization ?? limits.seven_day.used_pct;
+    const sdReset = oauth?.seven_day?.resets_at ?? limits.seven_day.resets_at;
+    if (sdPct != null) {
+      out += `  ${BLUE}7d ${bar(sdPct)} ${Math.round(sdPct)}% ⏱ ${timeLeft(sdReset)}${RESET}`;
+    }
 
-      const sonnet = oauth.seven_day_sonnet;
-      if (sonnet?.utilization != null) {
-        out += `  \x1b[0;31mSonnet ${bar(sonnet.utilization)} ${Math.round(sonnet.utilization)}%  ⏱ ${timeLeft(sonnet.resets_at)}\x1b[0m`;
-      }
-    } else {
-      if (limits.five_hour.used_pct != null) {
-        out += `  \x1b[0;35m5h ${bar(limits.five_hour.used_pct)} ${Math.round(limits.five_hour.used_pct)}%  ↺ ${timeLeft(limits.five_hour.resets_at)}\x1b[0m`;
-      }
-      if (limits.seven_day.used_pct != null) {
-        out += `  \x1b[0;34m7d ${bar(limits.seven_day.used_pct)} ${Math.round(limits.seven_day.used_pct)}%  ⏱ ${timeLeft(limits.seven_day.resets_at)}\x1b[0m`;
-      }
+    // 6. Limite semanal do modelo com âmbito próprio (Fable)
+    const scoped = scopedWeekly(oauth);
+    if (scoped?.pct != null) {
+      out += `  ${GREEN}${scoped.name} ${bar(scoped.pct)} ${Math.round(scoped.pct)}% ⏱ ${timeLeft(scoped.resets_at)}${RESET}`;
     }
 
     process.stdout.write(out);

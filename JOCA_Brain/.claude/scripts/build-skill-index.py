@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Build SKILL_INDEX.json from .claude/skills/ — lightweight index for lazy loading."""
 
+import fnmatch
 import json
 import os
 import re
+import sys
+import unicodedata
 from pathlib import Path
 
 JOCA_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -11,10 +14,63 @@ SKILLS_DIR = JOCA_ROOT / ".claude" / "skills"
 AGENTS_DIR = JOCA_ROOT / ".claude" / "agents"
 OUTPUT = JOCA_ROOT / "memory" / "SKILL_INDEX.json"
 
+# Cap de triggers por entrada. O corte é SILENCIOSO por natureza — quem acrescenta um trigger no
+# fim da lista do frontmatter (o que qualquer editor faz por omissão) fica com uma alteração que
+# existe no ficheiro e não faz nada, porque as skills carregam lazy por este índice.
+# Regra: triggers novos vão para o INÍCIO da lista. O `cap_triggers()` avisa sempre que corta.
+MAX_TRIGGERS = 25
+
+# F4.1 — domínio de cada entrada: o 1.º nível do encaminhamento no prompt-triage.js (domínio → ramo).
+# A 1.ª regra que casa ganha (padrões fnmatch); `dominio:` no frontmatter manda sobre a tabela; o gémeo
+# `<skill>-agent` herda o da skill; sem regra → "geral". Skill nova fora da tabela → acrescentar aqui.
+DOMINIOS = [
+    ("wordpress", ["wp-*", "woocommerce-elementor"]),
+    ("ecommerce", ["shopify-*", "wix-cli"]),
+    ("jogos", ["unity-*", "card-*", "game-balance", "tcg-*"]),
+    ("3d", ["blender*", "meshy*", "impressao-3d"]),
+    ("marketeer", ["mkt-*", "marketeer*"]),  # o pack separado da marketing genérica: medido +0,3 pp no top-1
+    ("marketing", ["marketing", "seo*", "page-cro", "ab-test-setup", "analytics-tracking",
+                   "paid-ads", "lead-capture", "launch-strategy", "competitor-profiling", "content-*",
+                   "social-*", "email-sequence", "brand-positioning", "cloudflare-analytics"]),
+    ("conteudo", ["copywriting", "stop-slop", "pt-pt-translator", "fact-check"]),
+    ("media", ["img-gen*", "image-upscale", "raster-para-vector", "video*", "hyperframes", "remotion", "picsart",
+               "suno", "lyric-align", "screen-record", "watch", "comfy-*", "foto-produto", "h3-prompt-writing",
+               "gemini-brain"]),
+    ("design", ["design-*", "preparar-design", "validar-design", "brand-guidelines", "icon-design", "graphic-design",
+                "slides", "anima", "lottie-animator", "component-system", "c4-diagram", "html-review"]),
+    ("frontend", ["frontend", "react-*", "tailwind", "shadcn", "mobile", "landing-page", "laravel-react",
+                  "a11y-fixer", "android-compose", "electron-teste-ao-vivo", "click-path-audit", "site-capture"]),
+    ("backend", ["laravel-*", "filament", "auth", "rest-api", "caching", "queues", "bullmq", "horizon",
+                 "reverb-realtime", "mysql", "query-debugger", "webhooks", "search", "saas-patterns", "file-storage",
+                 "transactional-email", "postmark", "react-email", "portugal-*", "payment-integration",
+                 "algoritmo-de-terceiros", "error-tracking-dev"]),
+    ("deploy", ["deploy-*", "cpanel", "cloudflare-dns", "selfhosted-arr", "availability", "error-tracking-prod",
+                "github", "pr-repair"]),
+    ("qualidade", ["escrever-testes", "tdd", "mutation-testing", "tester-*", "security*", "cso", "gdpr-compliance",
+                   "credential-handling", "dependency-auditor", "tech-debt-auditor", "codex-review", "gemini-auditor",
+                   "log-debugger", "public-release-audit", "source-driven-development", "yagni", "careful",
+                   "auditoria-site-live", "browser-automate"]),
+    ("documentos", ["pdf-*", "html-to-pdf", "pacote-entrega", "questionario-local", "notion", "file-organization",
+                    "knowledge-ingest", "deep-research", "personal-comms", "email-dashboard", "android-adb"]),
+    ("projecto", ["start", "novo-issue", "planear-ondas", "prd*", "executar-projeto", "plan",
+                  "tech-spec", "freeze", "unfreeze", "guard", "caveman", "create-skill", "gauntlet-loop",
+                  "context-pack", "joca-*", "clean-install-audit", "self-improver", "skill-*", "task-router"]),
+]
+
+
+def dominio_de(name: str, fm: dict) -> str:
+    """Domínio da entrada (ver DOMINIOS)."""
+    if fm.get("dominio"):
+        return fm["dominio"]
+    for dom, padroes in DOMINIOS:
+        if any(fnmatch.fnmatchcase(name, p) for p in padroes):
+            return dom
+    return "geral"
+
 
 def parse_frontmatter(path: Path) -> dict:
     """Extract YAML frontmatter fields from a markdown file."""
-    text = path.read_text(errors="ignore")
+    text = path.read_text(encoding="utf-8", errors="ignore")
     match = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.DOTALL)
     if not match:
         return {}
@@ -45,7 +101,7 @@ def parse_frontmatter(path: Path) -> dict:
 
 def extract_first_sentence(path: Path) -> str:
     """Get first meaningful line after frontmatter as description fallback."""
-    text = path.read_text(errors="ignore")
+    text = path.read_text(encoding="utf-8", errors="ignore")
     # Skip frontmatter
     text = re.sub(r"^---.*?---\s*\n", "", text, count=1, flags=re.DOTALL)
     for line in text.splitlines():
@@ -63,7 +119,7 @@ def extract_triggers(path: Path, description: str = "") -> list:
     the description: value and swallow the keys that follow it (chain:, compatibility:), yielding
     triggers like 'tarefa irreversivel."\\nchain: design-review'.
     """
-    text = path.read_text(errors="ignore")
+    text = path.read_text(encoding="utf-8", errors="ignore")
     triggers = []
 
     # From frontmatter triggers: field — inline comma-separated form
@@ -120,14 +176,35 @@ def extract_triggers(path: Path, description: str = "") -> list:
                     triggers.append(item)
 
     # De-duplicate case-insensitively, keeping first-seen order (frontmatter beats prose).
+    # A chave ignora pontuação e espaços, portanto variantes de escrita da mesma coisa colapsam
+    # ("re-render"/"rerender", "node.js"/"nodejs", "seo local"/"seo-local") em vez de gastarem
+    # duas posições do cap. Só se removem separadores — nada de stemming, que geraria falsos
+    # positivos. F4.1: os acentos também saem da chave ("autenticação"/"autenticacao") — o hook
+    # normaliza-os, portanto eram o mesmo gatilho a gastar dois lugares do cap (lugares → ramos distintos).
     seen, unique = set(), []
     for t in triggers:
-        key = t.lower()
-        if key not in seen:
+        sem_acentos = "".join(c for c in unicodedata.normalize("NFD", t.lower()) if not unicodedata.combining(c))
+        key = re.sub(r"[\s\-_./]+", "", sem_acentos)
+        if key and key not in seen:
             seen.add(key)
             unique.append(t)
 
-    return unique[:15]
+    return unique
+
+
+def cap_triggers(kind: str, name: str, triggers: list) -> list:
+    """Corta aos MAX_TRIGGERS — mas nunca em silêncio (ver comentário do MAX_TRIGGERS)."""
+    if len(triggers) <= MAX_TRIGGERS:
+        return triggers
+    dropped = len(triggers) - MAX_TRIGGERS
+    msg = (f"[index] AVISO {kind} {name}: {len(triggers)} triggers, {dropped} descartados "
+           f"(cap {MAX_TRIGGERS}) -- triggers novos vao para o INICIO da lista: "
+           f"{', '.join(triggers[MAX_TRIGGERS:])}")
+    # A consola do Windows é cp1252: um trigger acentuado abortaria o build inteiro por
+    # UnicodeEncodeError. O ficheiro sai sempre em UTF-8; só o eco para a consola degrada.
+    enc = sys.stdout.encoding or "utf-8"
+    print(msg.encode(enc, "replace").decode(enc, "replace"))
+    return triggers[:MAX_TRIGGERS]
 
 
 def build_index():
@@ -140,14 +217,15 @@ def build_index():
 
         fm = parse_frontmatter(skill_file)
         desc = fm.get("description", "") or extract_first_sentence(skill_file)
-        triggers = extract_triggers(skill_file, desc)
+        triggers = cap_triggers("skill", name, extract_triggers(skill_file, desc))
         category = fm.get("category", "general")
 
         entries.append({
             "type": "skill",
             "name": name,
             "category": category,
-            "path": str(rel),
+            "dominio": dominio_de(name, fm),
+            "path": rel.as_posix(),   # POSIX sempre: `str()` daria `\` no Windows e o indice invertia 269 linhas a cada sync
             "description": desc[:200],
             "triggers": triggers,
         })
@@ -157,19 +235,20 @@ def build_index():
         name = agent_file.stem
         fm = parse_frontmatter(agent_file)
         desc = fm.get("description", "") or extract_first_sentence(agent_file)
-        triggers = extract_triggers(agent_file, desc)
+        triggers = cap_triggers("agent", name, extract_triggers(agent_file, desc))
 
         entries.append({
             "type": "agent",
             "name": name,
             "category": "agents",
-            "path": str(agent_file.relative_to(JOCA_ROOT)),
+            "dominio": dominio_de(name[:-6] if name.endswith("-agent") and (SKILLS_DIR / f"{name[:-6]}.md").exists() else name, fm),
+            "path": agent_file.relative_to(JOCA_ROOT).as_posix(),
             "description": desc[:200],
             "triggers": triggers,
         })
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(entries, indent=2, ensure_ascii=False))
+    OUTPUT.write_text(json.dumps(entries, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[index] Generated {OUTPUT}: {len(entries)} entries ({sum(1 for e in entries if e['type']=='skill')} skills, {sum(1 for e in entries if e['type']=='agent')} agents)")
 
 

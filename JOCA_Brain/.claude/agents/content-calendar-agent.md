@@ -1,13 +1,16 @@
 ---
 name: content-calendar-agent
-description: "conteúdo · Produces a multi-platform content/publishing calendar with per-platform cadence, timezone-aware. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "plano de publicacao, calendario social"
 skills: content-calendar
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
-triggers: content calendar, social calendar, plano de publicacao, calendario social, rollout de lancamento, captions por plataforma
+triggers: plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule
 generated-from: .claude/skills/content-calendar.md
 generated-by: skill-agents.mjs
-content-hash: 16baae143f50a919
+content-hash: 4cf2de418a12b05a
 ---
 
 # content-calendar — agente de execução

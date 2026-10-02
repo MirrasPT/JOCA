@@ -1,0 +1,275 @@
+{
+  "_doc": "Anotações manuais do Trigger Map do JOCA_Brain/CLAUDE.md, fundidas pelo .claude/scripts/trigger-map-gen.mjs. A coluna 'Detected' é GERADA do frontmatter das skills; o que NÃO vive no frontmatter vive aqui: (a) `ordem` — ordem curada das linhas; (b) `anotacoes` — a célula 'Activates' verbatim quando tem router/director/nota/negrito; (c) `extras` — linhas que não são skills (agentes, rules, commands, plugins externos), preservadas verbatim. Perder isto é regressão: é o que impede o modelo de escolher a skill errada. Skill nova sem entrada em `ordem` é acrescentada no fim, por ordem alfabética. FALLBACK: `detected_manual` só é usado quando o frontmatter da skill não dá triggers nenhuns (skills de terceiros com prosa 'Use when …'); assim que a skill ganhar `triggers:`, o gerado passa à frente.",
+  "ordem": [
+    "frontend",
+    "react-patterns",
+    "react-composition",
+    "tailwind",
+    "shadcn",
+    "design-review",
+    "design-system",
+    "brand-guidelines",
+    "mobile",
+    "laravel-specialist",
+    "filament",
+    "extra:01",
+    "laravel-react",
+    "extra:02",
+    "extra:03",
+    "anima",
+    "video",
+    "blender",
+    "slides",
+    "graphic-design",
+    "img-gen",
+    "picsart",
+    "extra:08",
+    "image-upscale",
+    "raster-para-vector",
+    "public-release-audit",
+    "extra:27",
+    "wp-index",
+    "wp-project-triage",
+    "wp-block-development",
+    "wp-block-themes",
+    "wp-interactivity-api",
+    "wp-plugin-development",
+    "wp-plugin-directory-guidelines",
+    "wp-rest-api",
+    "wp-abilities-api",
+    "wp-wpcli-and-ops",
+    "wp-performance",
+    "wp-phpstan",
+    "wp-playground",
+    "woocommerce-elementor",
+    "shopify-router",
+    "shopify-app",
+    "shopify-theme",
+    "shopify-store-audit",
+    "shopify-store-fixer",
+    "wix-cli",
+    "auth",
+    "extra:09",
+    "portugal-payments",
+    "portugal-invoicing",
+    "gdpr-compliance",
+    "seo",
+    "copywriting",
+    "stop-slop",
+    "pt-pt-translator",
+    "email-sequence",
+    "content-calendar",
+    "social-scheduler",
+    "marketing",
+    "brand-positioning",
+    "landing-page",
+    "lead-capture",
+    "launch-strategy",
+    "competitor-profiling",
+    "content-strategy",
+    "social-content",
+    "seo-local",
+    "notion",
+    "lyric-align",
+    "browser-automate",
+    "site-capture",
+    "html-to-pdf",
+    "screen-record",
+    "paid-ads",
+    "page-cro",
+    "analytics-tracking",
+    "ab-test-setup",
+    "extra:10",
+    "extra:11",
+    "extra:12",
+    "webhooks",
+    "file-storage",
+    "saas-patterns",
+    "rest-api",
+    "mysql",
+    "caching",
+    "search",
+    "queues",
+    "horizon",
+    "availability",
+    "reverb-realtime",
+    "error-tracking-dev",
+    "error-tracking-prod",
+    "security",
+    "transactional-email",
+    "prd",
+    "plan",
+    "c4-diagram",
+    "tech-spec",
+    "html-review",
+    "start",
+    "executar-projeto",
+    "novo-issue",
+    "planear-ondas",
+    "preparar-design",
+    "validar-design",
+    "escrever-testes",
+    "comfy-mcp-workarounds",
+    "joca-os-windows",
+    "joca-terminal",
+    "caveman",
+    "extra:13",
+    "extra:14",
+    "freeze",
+    "careful",
+    "guard",
+    "tdd",
+    "unfreeze",
+    "context-pack",
+    "file-organization",
+    "extra:15",
+    "extra:16",
+    "extra:17",
+    "extra:28",
+    "extra:18",
+    "design-shotgun",
+    "design-html",
+    "gauntlet-loop",
+    "extra:19",
+    "cso",
+    "extra:21",
+    "knowledge-ingest",
+    "personal-comms",
+    "extra:22",
+    "deploy-vps",
+    "cloudflare-dns",
+    "cpanel",
+    "selfhosted-arr",
+    "deploy-cpanel",
+    "deploy-docker",
+    "deploy-ploi",
+    "github",
+    "extra:23",
+    "extra:24",
+    "extra:25",
+    "yagni",
+    "extra:26"
+  ],
+  "anotacoes": {
+    "frontend": "`frontend` (director — routes to code specialists)",
+    "design-system": "`design-system` (núcleo — tokens e componentes em reference/ · marca → brand-guidelines · auditoria → design-system-audit)",
+    "anima": "`anima` (dona da animação — GSAP e Lottie, incl. gerar JSON a partir de SVG, em reference/)",
+    "video": "`video` (router — HyperFrames por defeito · Remotion só em projecto existente · AI gen · avatares)",
+    "blender": "`blender` (núcleo — CLI headless · scripting e render em reference/)",
+    "picsart": "`picsart` (gen-ai CLI)",
+    "wp-index": "**`wp-index`** (porta única — lista e encaminha para as 12 skills `wp-*`; WPDS em `wpds.md`)",
+    "marketing": "`marketing` (router — posicionamento/landing/leads/email/ads/SEO/social/CRO)",
+    "queues": "`queues` (dona — BullMQ em reference/bullmq.md · Laravel → horizon)",
+    "security": "`security` (skill — review profundo de código → `security-review` agente; auditoria completa → `cso`)",
+    "transactional-email": "`transactional-email` (núcleo do email — Postmark e React Email em reference/)",
+    "plan": "`plan` (auto)",
+    "start": "`start` (entrevista por formulários + PRD + stack da casa `rules/stack-padrao.md` + direcção de design; absorve o `/init-project`)",
+    "executar-projeto": "`executar-projeto` (fundação → design 2 vias → gate → desenvolvimento em ondas)",
+    "preparar-design": "`preparar-design` (entrega o mockup em HTML local, aberto no browser)",
+    "escrever-testes": "`escrever-testes` (⚠ sessão separada da implementação)",
+    "caveman": "`caveman` (modo)",
+    "freeze": "`freeze` (guard-rail)",
+    "careful": "`careful` (guard-rail)",
+    "guard": "`guard` (guard-rail)",
+    "tdd": "`tdd` (guard-rail)",
+    "unfreeze": "`unfreeze` (guard-rail)",
+    "gauntlet-loop": "`gauntlet-loop` (`/gauntlet-loop`)",
+    "knowledge-ingest": "`knowledge-ingest` (agent + skill)",
+    "personal-comms": "`personal-comms` (agent + skill)"
+  },
+  "detected_manual": {},
+  "extras": {
+    "extra:01": {
+      "detected": "scaffold filament · build resource from model · admin for model",
+      "activates": "`filament-agent` (agent — scaffold de resource; ex-`filament-builder`)"
+    },
+    "extra:02": {
+      "detected": "refactor laravel · dead code · optimize · Larastan · scale",
+      "activates": "`laravel-refactor` (agent)"
+    },
+    "extra:03": {
+      "detected": "security code review · IDOR · mass assignment · OWASP",
+      "activates": "`security-review` (agent)"
+    },
+    "extra:08": {
+      "detected": "generate video · video clip · motion",
+      "activates": "`video-gen` (agent — ⚠ o `agy` NÃO gera vídeo; rota para gen-ai/ComfyUI/HyperFrames)"
+    },
+    "extra:09": {
+      "detected": "Stripe · payments · subscriptions",
+      "activates": "`payment-integration` (agent)"
+    },
+    "extra:10": {
+      "detected": "logs · stack trace · error",
+      "activates": "`log-debugger` (agent)"
+    },
+    "extra:11": {
+      "detected": "N+1 · slow query · EXPLAIN",
+      "activates": "`query-debugger` (agent)"
+    },
+    "extra:12": {
+      "detected": "load test · k6 · stress",
+      "activates": "`tester-performance` (agent)"
+    },
+    "extra:13": {
+      "detected": "consumo de tokens alto · outra máquina · instalação antiga · consolidar JOCA · limpar instalação · várias versões do JOCA nesta máquina",
+      "activates": "`/clean-install`"
+    },
+    "extra:14": {
+      "detected": "classificar tarefa · que via · skill ou agente ou workflow · preciso de workflow?",
+      "activates": "`task-router` (agent)"
+    },
+    "extra:15": {
+      "detected": "encadear skills · próximo passo · auto-delegação · auto-runner · pipeline corre sozinha",
+      "activates": "`.claude/rules/chaining.md` + `.claude/rules/pipelines.md`"
+    },
+    "extra:16": {
+      "detected": "registar decisão · guardar aprendizagem · o que decidimos · didn't we fix this",
+      "activates": "`/learn` (Brain log)"
+    },
+    "extra:17": {
+      "detected": "plano completo revisto · autoplan · planear a sério",
+      "activates": "`/autoplan`"
+    },
+    "extra:28": {
+      "detected": "criar skill · nova skill · melhorar skill · upgrade skill · create skill",
+      "activates": "`/create-skill` (command — a skill tem `disable-model-invocation`, só o utilizador a invoca; `--upgrade <nome>` melhora uma existente)"
+    },
+    "extra:18": {
+      "detected": "retro · retrospectiva · o que correu bem/mal · revisão semanal",
+      "activates": "`/retro`"
+    },
+    "extra:19": {
+      "detected": "ship · push para main · abrir PR · está pronto envia",
+      "activates": "`/ship`"
+    },
+    "extra:21": {
+      "detected": "o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube",
+      "activates": "`/last30days` (plugin externo)"
+    },
+    "extra:22": {
+      "detected": "reparar PR · resolver conflitos · CI vermelho · reviews de bot",
+      "activates": "`pr-repair` (agent)"
+    },
+    "extra:23": {
+      "detected": "deploy · publicar site · correr pipeline de deploy",
+      "activates": "`deploy-executor` (agent)"
+    },
+    "extra:24": {
+      "detected": "corrigir a11y · WCAG fix · acessibilidade",
+      "activates": "`a11y-fixer` (agent)"
+    },
+    "extra:25": {
+      "detected": "dívida técnica · tech debt · medir ganho · LOC poupado",
+      "activates": "`tech-debt-auditor` (agent)"
+    },
+    "extra:26": {
+      "detected": "auto-orquestração · quando disparar workflow · subagentes",
+      "activates": "`orchestration-patterns` (rule)"
+    },
+    "extra:27": {
+      "detected": "unit/integration/E2E · coverage · flaky test · test strategy",
+      "activates": "`escrever-testes` (ex-`test-master`; ⚠ sessão separada da implementação)"
+    }
+  }
+}

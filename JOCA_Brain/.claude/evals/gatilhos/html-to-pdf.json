@@ -1,0 +1,27 @@
+{
+ "skill": "html-to-pdf",
+ "deve": [
+  "exporta esta página html para pdf",
+  "o pdf ficou partido em 2 páginas",
+  "gerar pdf de 1 página a partir do html",
+  "chrome headless print-to-pdf",
+  "convert this html to a single page pdf",
+  "pdf em A4 do relatório html",
+  "converter html para pdf sem cortar",
+  "o print css não respeita o A4",
+  "exportar PDF do orçamento em html",
+  "pdf de uma página só do currículo html"
+ ],
+ "quase": [
+  "preenche este formulário pdf",
+  "junta pdfs",
+  "extrai texto do pdf",
+  "converte pdf em word",
+  "tapa dados no pdf",
+  "imprime o documento",
+  "cria um flyer para impressão",
+  "faz o orçamento",
+  "converte md em html",
+  "comprime o pdf"
+ ]
+}

@@ -1,13 +1,16 @@
 ---
 name: graphic-design-agent
-description: "design · Print and graphic design in HTML/CSS → PDF. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "roll-up, flyer, trifold, bifold"
 skills: graphic-design
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
 triggers: roll-up, flyer, trifold, bifold, poster, brochure
 generated-from: .claude/skills/graphic-design.md
 generated-by: skill-agents.mjs
-content-hash: a0ab73f5e6382d23
+content-hash: ed3f7865fe7acf5d
 ---
 
 # graphic-design — agente de execução

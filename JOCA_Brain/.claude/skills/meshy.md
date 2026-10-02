@@ -36,6 +36,11 @@ que o plano dá acesso. A API da Meshy exige **plano Pro ou superior** ⏳(verif
 | `creative_lab` | **36** (6 protótipo + 30 build, corre as duas fases sozinho) |
 | **`analyze_printability`** · `check_balance` · `list_tasks` · `download_model` | **0** |
 
+⛔ **Figura a partir de fotos: a vista de FRENTE é um gate.** Gerar a frente → `AskUserQuestion` ao
+dono → só depois as outras vistas e **qualquer** chamada paga (`image_to_3d`/`multi_image_to_3d`).
+A Meshy **não cancela uma tarefa `IN_PROGRESS`**: mandar as 3 vistas antes de aprovar a frente perdeu
+30 créditos quando a frente foi rejeitada (2026-09-25).
+
 ## O formato decide-se ANTES de gerar
 
 `target_formats` fixa-se no momento da criação — não se acrescenta depois sem pagar outra vez
@@ -133,13 +138,17 @@ Um `SUCCEEDED` diz que o pipeline correu. Não diz que o modelo é o que foi ped
 ```
 1. GERAR       → preview, formato já decidido
 2. DESCARREGAR → save_to absoluto
-3. OLHAR       → Read() da thumbnail, ou render de preview (blender-render)
+3. OLHAR       → Read() da thumbnail, ou render de preview (blender)
 4. COMPARAR    → contra o pedido; listar diferenças
 5. DECIDIR     → aceitar · refinar o prompt e regerar (custa outra vez) · corrigir no Blender
 ```
 
 Gerar outra vez **paga outra vez**. Antes da segunda tentativa, dizer o custo e perguntar — três
 regerações distraídas são 60 créditos.
+
+**2 corridas iguais sem melhoria visível → mudar de via.** Depois de 2 corridas com as mesmas
+entradas sem melhoria, a 1.ª opção do formulário seguinte é **corrigir/suavizar no Blender**, não uma
+3.ª corrida igual (3 corridas seguidas custaram 90 créditos antes de se tentar o Blender, 2026-09-25).
 
 ## Anti-patterns
 
@@ -159,4 +168,4 @@ regerações distraídas são 60 créditos.
 
 - Modelo destinado a impressão → **`meshy-3d-print`** (é lá que vive a análise, o multicolor e o slicer).
 - Malha que precisa de correcção manual, boolean, corte ou junção → `blender`.
-- Modelo para apresentar ao utilizador ou ao cliente → `blender-render` para o turntable, depois `design-review`.
+- Modelo para apresentar ao utilizador ou ao cliente → `blender` para o turntable, depois `design-review`.

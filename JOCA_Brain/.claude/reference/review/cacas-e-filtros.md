@@ -1,7 +1,7 @@
 # Caças da review e filtro de achados (on-demand)
 
 Lido pelo `tester-code` (passos de caça e passe final). Listas adaptadas de affaan-m/ECC
-`agents/silent-failure-hunter.md` (MIT) e addyosmani/agent-skills `constraint-driven-development` §Floor (MIT);
+`affaan-m/ECC:agents/silent-failure-hunter.md` (MIT, repo de terceiros) e addyosmani/agent-skills `constraint-driven-development` §Floor (MIT);
 filtro assimétrico com a ideia de alibaba/open-code-review `review_filter_task_system.md` (Apache-2.0, reescrito).
 
 ## Falhas silenciosas

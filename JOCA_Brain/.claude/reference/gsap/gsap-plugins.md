@@ -6,6 +6,23 @@ license: MIT
 
 # GSAP Plugins
 
+<!-- índice acrescentado pelo JOCA (F3.5); o resto do ficheiro é a cópia original -->
+## Contents
+
+- When to Use This Skill
+- Licensing & Install (important)
+- Registering Plugins
+- Scroll
+- DOM / UI
+- Text
+- SVG
+- Easing
+- Physics
+- Development
+- Other
+- Best practices
+- Do Not
+
 ## When to Use This Skill
 
 Apply when using or reviewing code that uses GSAP plugins: registering plugins, scroll-to, flip/FLIP animations, draggable elements, SVG (DrawSVG, MorphSVG, MotionPath), text (SplitText, ScrambleText), physics, easing plugins (CustomEase, EasePack, CustomWiggle, CustomBounce), or GSDevTools. ScrollTrigger has its own skill (gsap-scrolltrigger).

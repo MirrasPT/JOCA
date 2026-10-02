@@ -1,13 +1,16 @@
 ---
 name: wp-wpcli-and-ops-agent
-description: "wordpress · WP-CLI operations — safe search-replace, db export/import, plugin/theme/user mgmt, cron, multisite. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "wp search-replace, wp db"
 skills: wp-wpcli-and-ops
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: wp search-replace, migração de domínio, wp db
 generated-from: .claude/skills/wp-wpcli-and-ops.md
 generated-by: skill-agents.mjs
-content-hash: 91ebb1fb166e1db0
+content-hash: e96749b4aeb21212
 ---
 
 # wp-wpcli-and-ops — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

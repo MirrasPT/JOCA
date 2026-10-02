@@ -1,6 +1,7 @@
 ---
 name: plan
-description: "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução. Invoke on: planeia, arquitectura de, migra, reestrutura, tarefa multi-ficheiro/irreversível."
+description: "Planeamento estruturado em 7 fases (OODA, assumption surfacing, pre-mortem) antes de execução, e registo de decisões técnicas (formato ADR em docs/DECISIONS.md). Invoke on: planeia, planear, planning, arquitectura de, migra, reestrutura, ADR, regista esta decisão, porque escolhemos, tarefa multi-ficheiro/irreversível."
+triggers: planear, planning, planeia o projecto, project planning, como comecar, how to start, antes de comecar, before coding, ADR, architecture decision, decisao arquitectural, regista esta decisao, porque escolhemos, why did we choose, record this decision, alternatives considered, planeia, arquitectura de, como fariamos, migra, reestrutura, refactora tudo, integra com
 chain: design-review, frontend, laravel-specialist
 metadata:
   type: skill
@@ -39,6 +40,14 @@ Interpretar o pedido antes de planear:
 - Que contexto do codebase é relevante mas não mencionado?
 - Que informação implícita é relevante para sucesso?
 - Se 2 formas radicalmente diferentes satisfazem o pedido → ambíguo → Fase 1.
+- **Localizar a fonte** — pedido de «estender/evoluir/migrar X» começa por provar que X é **acessível e versionado**, antes de qualquer fase seguinte:
+  ```bash
+  find <pastas de projectos> -maxdepth 3 -iname "*<nome>*" 2>/dev/null
+  git -C <dir> rev-parse --show-toplevel          # erro = sem git
+  grep -n "<nome>" <script de backup/sync>        # se houver — tem cópia fora desta máquina?
+  ```
+  Código que só vive no servidor é **risco declarado no plano** (Fase 5), não nota de rodapé. Caso real: duas rondas de plano a «estender» um painel web que não tinha repositório local nem cópia de backup — só a VPS (2026-09-05).
+- **Quem é o dono da definição?** — trabalho que toca um formulário, questionário ou fluxo cuja definição pode pertencer a outra pessoa ou a outro sistema (CRM, ERP, headless, backoffice de terceiro) → **a pergunta faz-se à cabeça, não a meio**, num só `AskUserQuestion`: onde se cria a estrutura (os campos), onde se edita o texto, onde vive a lógica (pontos, regras, validações), para onde vão os dados. Caso real: «formulário ligado ao CRM» mudou de modelo 4 vezes na mesma sessão e dois fan-outs de 4 agentes foram parados a meio — a pergunta do dono só apareceu à 3.ª volta (projecto de cliente, 2026-09-18).
 
 ---
 
@@ -94,6 +103,8 @@ Abordagem B: [descrição]
 
 → Recomendo A porque [razão em 1 linha]
 ```
+
+Decisão tomada com tradeoff real → propor a entrada em `docs/DECISIONS.md`: formato, numeração e revogação em `.claude/reference/adr-formato.md`.
 
 ---
 
@@ -191,6 +202,23 @@ Incerteza: [áreas com baixa confiança]
 - Notificar: `✓ Passo 1 — [feito] — [critério verificado]`
 - Assumption invalidada → **parar, reportar, pedir confirmação antes de adaptar**
 - Tarefas > 5 passos: **checkpoint de re-planeamento** a ~50% dos passos
+
+---
+
+## Outros documentos de planeamento
+
+Este plano é por sessão. Para outro artefacto, a skill certa:
+
+| Pedido | Skill / referência |
+|---|---|
+| O QUE construir (requisitos) | `prd` → `prd-reviewer` |
+| COMO construir (data model, API, fluxos) · proposta de mudança grande | `tech-spec` |
+| Diagrama de arquitectura | `c4-diagram` |
+| Partir em trabalho + ordem + estimativas | `novo-issue` (1 issue por passo) → `planear-ondas` |
+| Registar uma decisão | `.claude/reference/adr-formato.md` |
+| Rever os documentos em HTML | `html-review` |
+
+Pedido genérico («planeia este projecto») sem artefacto claro → perguntar qual destes; projecto novo → `/start`.
 
 ---
 

@@ -1,13 +1,15 @@
 ---
 name: brand-guidelines
-description: "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide. SHOULD also invoke when: brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md."
-triggers: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide, brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md, criar BRAND.md, sistema de marca, documentação de marca, brand colors, brand typography, brand guide, diretrizes de marca, visual identity
-chain: design-tokens
+description: "Generate a comprehensive brand system document (DESIGN.md + BRAND.md) for any brand or project. MUST be invoked when the user says: brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide. SHOULD also invoke when: brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md. Ainda sem nome (nome para a app/produto/marca, como chamar isto, naming) → gera e verifica candidatos com `reference/naming.md`."
+triggers: nome para a app, como chamar isto, preciso de um nome, sugere nomes, dá-me nomes, naming, nome para o produto, nome de marca, nome de domínio, mudar de nome, rebranding, brand guidelines, brand system, design system, DESIGN.md, marca, brand audit, brand identity, design guide, brand document, tom de voz, paleta de cores, guia de marca, identidade visual, criar DESIGN.md
+chain: design-system
 ---
 
 # Brand Guidelines
 
 Gera documento de sistema de marca completo. Output: `DESIGN.md` + `BRAND.md` — alimenta as skills `frontend` e `slides`.
+
+**Ainda sem nome fechado** (nome para a app, produto, marca ou projecto; mudar de nome; domínio ou bundle id) → `Read(".claude/reference/naming.md")` — famílias semânticas + gate de 5 verificações; o resto desta skill só depois de o nome estar escolhido.
 
 **Não és designer visual.** És consultor de identidade de marca que produz documentação estruturada para designers.
 
@@ -50,6 +52,35 @@ Se o utilizador já forneceu contexto suficiente, saltar para Passo 2.
 
 > Sem assets reais não existe sistema de marca. CSS shapes ou cores inventadas não são marca.
 
+#### 2.0 Histórico do cliente — ler o CÓDIGO dos finais aprovados (primeiro de tudo)
+
+Cliente com entregas anteriores → **`ls` às entregas e ler o ficheiro-fonte dos finais aprovados
+antes de escrever uma linha do `DESIGN.md`**. Fonte = o HTML/CSS, o `.psd`, o `.svg`, o `.ai` que
+produziu a peça que o cliente aprovou. **Não** a captura, **não** o PDF exportado, **não** a
+descrição na memória do projecto: uma descrição não tem valores, e um sistema derivado dela sai
+plausível e diferente do que já foi aprovado — diferença que só aparece quando o cliente a vê.
+
+```bash
+ls -lt "<pasta-do-cliente>"/*/                                    # entregas por data
+find "<pasta-do-cliente>" -iname '*.psd' -o -iname '*.svg' -o -iname '*.html' | head -20
+```
+
+O que se extrai do ficheiro-fonte e entra no `DESIGN.md` como **medido**, não como proposto: matizes
+exactas, escala tipográfica e pesos realmente usados, espaçamentos, tratamento do logótipo. O que não
+sair de um artefacto lido fica `TODO: token em falta` — nunca um valor plausível (`soul.md`, Hard
+Limits: tokens de design contam como factos).
+
+**Identificar a fonte de marca — ler os ficheiros antes de a declarar desconhecida.** Uma ficha dizia
+«fonte por identificar» quando a fonte estava declarada no XMP do `.ai` e nos PSD (2026-09-22):
+
+```bash
+strings "<x>.ai" | grep -i fontFamily            # XMP do Illustrator (strings, se instalado)
+grep -ao 'fontFamily[^<]*' "<x>.ai" | sort -u     # alternativa sem strings
+python3 -c "import re,sys;d=open(sys.argv[1],'rb').read();print(sorted({m.decode('utf-16-be','ignore') for m in re.findall(rb'(?:\x00[\x20-\x7e]){4,}',d)})[:200])" "<x>.psd"   # nomes UTF-16 nos PSD
+```
+
+Só depois de ler os `.ai`/`.psd` disponíveis é que «fonte desconhecida» é um facto.
+
 #### 2.1 Logo
 
 **Hierarquia de obtenção (por ordem):**
@@ -66,6 +97,14 @@ grep -o '<svg[^>]*>.*</svg>' /tmp/homepage.html | head -5
 ```
 
 **Verificar:** SVG abre sem erros · tem versão escura e clara · background transparente
+
+**Nunca recompor.** Faltando o ficheiro oficial, o logótipo **não** se reconstrói com tipografia + CSS a
+partir de uma captura ou imagem de referência, nem se recorta uma versão existente (horizontal com
+`overflow-hidden`) para fabricar outra (símbolo, vertical). A forma, o espaçamento e o desenho das letras
+não sobrevivem à aproximação — e o resultado passa em revisão porque «parece». Esgotada a hierarquia
+acima: `TODO: asset oficial em falta` no `DESIGN.md` e **pedir o ficheiro ao dono da marca** — parar e
+reportar, nunca aproximar. Mesma regra do §2.0: sem token medido ou documentado, não se inventa um valor
+plausível.
 
 #### 2.1b Asset readiness (fazer no ARRANQUE, não no fim)
 
@@ -288,6 +327,7 @@ Gerar `BRAND.md` com asset paths, checksums e data de actualização para rastre
 - **Contraste verificado**: calcular rácio text/background antes de documentar
 - **Contraste citado noutra fonte recalcula-se**: um rácio que vem de uma análise, briefing ou manual antigo é uma alegação, não um facto. Numa sessão a `ANALISE.md` do cliente dizia que o problema do lockup era "o turquesa sobre o verde"; medido, o turquesa passa AA (5,19) e quem falhava era o preto da outra metade do wordmark (2,12) — a premissa errada teria ido inteira para o manual.
 - **Wordmark multicolor**: calcular **cada** cor do wordmark contra o fundo, não só a cor de acento
+- **Direcção escolhida pelo utilizador = contrato visual**: iguala-se, não se sistematiza. Documentar o look que ele escolheu (paleta, grão, registo, enquadramento), não uma versão "limpa" dele. Versão sistematizada, se precisa, entrega-se **ao lado** como alternativa. Teste antes de apresentar: lado a lado com a referência escolhida, "isto parece o mesmo estilo?". Regra completa: `.claude/skills/design-shotgun.md` §4
 - **Anti-references obrigatórias**: sem anti-refs o sistema não tem guardrails
 - **Aviso de marca registada na entrega**: ao propor um logótipo/nome para uso comercial, avisar o utilizador de que falta a verificação INPI/EUIPO. Não temos acesso a essas bases de dados — é aviso, não tarefa executável.
 

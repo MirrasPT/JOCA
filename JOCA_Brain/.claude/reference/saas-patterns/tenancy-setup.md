@@ -1,5 +1,18 @@
 Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/tenancy-setup.md")`. Cobre §1-3: setup stancl/tenancy, identificação de tenant e isolamento.
 
+## Contents
+
+- 1. stancl/tenancy Setup
+  - Tenant Model
+  - Two Modes
+  - Bootstrappers (config/tenancy.php)
+  - Tenant Routes
+- 2. Tenant Identification Strategies
+- 3. Tenant Isolation
+  - Single-DB: BelongsToTenant Trait
+  - Data Leak Prevention Checklist
+  - Multi-DB: stancl/tenancy handles isolation
+
 ## 1. stancl/tenancy Setup
 
 ```bash

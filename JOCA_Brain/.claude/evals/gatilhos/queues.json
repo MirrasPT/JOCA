@@ -1,0 +1,41 @@
+{
+ "skill": "queues",
+ "deve": [
+  "preciso de uma fila para processar uploads em background",
+  "background jobs: que solução uso",
+  "queue para enviar emails sem bloquear o pedido",
+  "escolhe entre inngest e trigger.dev para os jobs",
+  "worker para processar a fila de encomendas",
+  "set up a task queue for image processing",
+  "jobs em background com retries",
+  "a fila de jobs está encravada",
+  "processamento de jobs assíncrono para o import",
+  "redis queue para notificações",
+  "implementa bullmq no node para os emails",
+  "job queue com bullmq e redis",
+  "delayed jobs no bullmq",
+  "retry com backoff no bullmq",
+  "dead letter queue no bullmq",
+  "set up bullmq workers in the node api",
+  "monitorizar as filas bullmq com um dashboard",
+  "jobs agendados com bull mq",
+  "o worker do bullmq não apanha os jobs",
+  "bullmq: concorrência do worker"
+ ],
+ "quase": [
+  "cria um cron que corre à meia noite",
+  "cache com redis",
+  "a fila do supermercado",
+  "websocket para notificações em tempo real",
+  "configura o horizon do laravel",
+  "faz um webhook para o stripe",
+  "o servidor está lento",
+  "importa o csv para a base de dados",
+  "escalonamento de pessoal",
+  "cria um endpoint",
+  "filas em laravel com horizon",
+  "o node está com memory leak",
+  "websocket com socket.io",
+  "cria uma api em express"
+ ]
+}

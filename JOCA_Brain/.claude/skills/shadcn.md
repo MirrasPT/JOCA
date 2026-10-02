@@ -5,6 +5,8 @@ triggers: shadcn, shadcn/ui, shadcn ui, components.json, npx shadcn, shadcn add,
 ---
 # shadcn — Component Toolkit Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 The **concrete implementation** of `tailwind` (cva, cn, semantic tokens, CSS-var theming) + `react-composition` (Radix primitives, asChild, compound). Invoked by `frontend` when a project uses shadcn/ui (has `components.json`).
 
 shadcn/ui is **not a dependency** — components are copied into your codebase (`@/components/ui/*`). You own them. Full customization, no version lock, zero runtime lib.
@@ -19,9 +21,9 @@ shadcn/ui is **not a dependency** — components are copied into your codebase (
 |-----------|------|
 | Project has `components.json` / uses shadcn | **this skill** |
 | Bespoke design system from scratch (own primitives, no Radix) | `design-system` pipeline |
-| shadcn base + heavy brand customization | this skill + `design-tokens` (feed CSS vars) + `tailwind` |
+| shadcn base + heavy brand customization | this skill + `design-system` (tokens feed CSS vars) + `tailwind` |
 
-shadcn components already encode `component-system`'s contract (variants/sizes/states) — don't re-author specs for them.
+shadcn components already encode the component contract of `design-system` (variants/sizes/states) — don't re-author specs for them.
 
 ---
 
@@ -97,7 +99,7 @@ Compose existing components before writing custom UI.
 | `truncate` for single-line overflow | shorthand |
 | `cn()` for conditional/override classes | merges + resolves conflicts |
 
-Theming = CSS variables in globals (`--background`, `--foreground`, `--primary`, `--muted`, `--accent`, `--destructive`, `--border`, `--ring`, …). To rebrand: change the vars (feed from `design-tokens`), not per-component classes. Tailwind v4 → vars live under `@theme` / `:root` + `.dark`.
+Theming = CSS variables in globals (`--background`, `--foreground`, `--primary`, `--muted`, `--accent`, `--destructive`, `--border`, `--ring`, …). To rebrand: change the vars (feed from `design-system` tokens), not per-component classes. Tailwind v4 → vars live under `@theme` / `:root` + `.dark`.
 
 ---
 
@@ -111,6 +113,36 @@ Theming = CSS variables in globals (`--background`, `--foreground`, `--primary`,
 - **Accessible overlays:** Dialog/Sheet/Drawer **must** have a title (`DialogTitle`; use `VisuallyHidden` if visually omitted).
 - **Full Card structure:** `Card > CardHeader (CardTitle, CardDescription) > CardContent > CardFooter`.
 - **Avatar always has `AvatarFallback`.**
+
+### Accessible names on `<button>`-rendering controls (non-obvious, bites every time)
+
+Radix `Checkbox`, `Switch` and `RadioGroupItem` render a **`<button>`**, not an `<input>`. `button`
+**is** a labelable element (WHATWG HTML «labelable elements»: button, input except hidden, meter,
+output, progress, select, textarea, form-associated custom elements — verified 2026-09-15), so a
+`<label for=…>` whose `for` matches the **`<button>`'s own `id`** names it. It breaks when the `id`
+lands elsewhere (a wrapper, a hidden `<input>`), the ids don't match, or the label is empty. Same for
+any headless pattern that renders a button: shadcn, Base UI, Headless UI.
+
+```tsx
+// ✅ id reaches the <button> → named "Notifications" by label[for]
+<Label htmlFor="notify">Notifications</Label>
+<Switch id="notify" />
+
+// ✅ belt-and-braces when the id may not reach the button (custom wrappers)
+<Label id="notify-label" htmlFor="notify">Notifications</Label>
+<Switch id="notify" aria-labelledby="notify-label" />
+```
+
+In a real session 9 controls came out unnamed with `tsc` + `eslint` + `build` all green; only measuring
+the **accessibility tree** revealed it. Don't assume either way — measure.
+
+**Verify by the computed accessible name in the a11y tree**, never by inspection:
+```js
+// Playwright: every interactive control must come back with a non-empty name
+const tree = await page.accessibility.snapshot();
+// or per-control: locator.evaluate() + getComputedAccessibleName / axe-core
+```
+`elementFromPoint` does not reach this, and "there is a `<label for>` in the DOM" is not evidence.
 
 ### Forms (the shadcn way)
 - Structure with `FieldGroup` + `Field` (label/control/description/error), not raw divs.
@@ -143,6 +175,8 @@ shadcn ships a registry MCP server — gives the agent live registry/component m
 - [ ] `className` layout-only; semantic tokens for color
 - [ ] `asChild`/`render` for custom triggers; items inside their Group
 - [ ] Overlays have accessible titles
+- [ ] Checkbox/Switch/Radio (they render `<button>`) named via `aria-labelledby`/`aria-label` — proven
+      by the computed accessible name in the a11y tree, not by a `<label for>` in the DOM
 - [ ] Forms use Field/FieldGroup + data-invalid/aria-invalid
 - [ ] Icons consistent, no sizing classes, `data-icon` in buttons
 - [ ] `"use client"` added where `rsc` requires it
@@ -154,6 +188,6 @@ shadcn ships a registry MCP server — gives the agent live registry/component m
 - `frontend` — director; routes here when project uses shadcn
 - `tailwind` — the styling layer shadcn is built on (cva, cn, `@theme`)
 - `react-composition` — Radix/compound patterns shadcn embodies
-- `design-tokens` — feed CSS variables to rebrand shadcn
-- `component-system` — alternative (bespoke specs) when NOT using shadcn
+- `design-system` — tokens feed CSS variables to rebrand shadcn
+- `design-system` (component specs) — alternative (bespoke specs) when NOT using shadcn
 - `react-patterns` — RSC/`"use client"` boundary rules

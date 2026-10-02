@@ -137,6 +137,6 @@ Regras do baseline:
 - Na F5 (`marketeer-review`): corre os passos 1-3 e escreve o «depois» com as mesmas janelas; o `mkt-relatorio` compara com este baseline.
 
 ## Créditos
-- Regras e scripts: a skill antiga do marketeer-agent (§auditar, §ads, §tracking), agora em `<MKT>/scripts/`.
+- Regras e scripts: a skill antiga de marketing (§auditar, §ads, §tracking), agora em `<MKT>/scripts/`.
 - «Ausente não é zero» e «um total como contexto, nunca como denominador»: anthropics/knowledge-work-plugins (Apache-2.0) — `small-business/shared/absent-is-not-zero.md`, `small-business/shared/chain-seams.md`.
 - Baseline que a corrida seguinte compara: `small-business/skills/marketing-monday/SKILL.md` (mesmo repo).

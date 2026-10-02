@@ -1,14 +1,11 @@
 ---
 name: gemini-auditor
-description: >
-  Verifica e audita componentes e código do JOCA (skills, agentes, diffs) com um segundo modelo
-  via `agy` (Antigravity CLI / Google Gemini) — cross-check independente à saída do Claude, para
-  apanhar erros que o mesmo modelo não vê. Triggered by: "audit with Gemini", "second opinion from
-  Gemini", "verify with another model", "Gemini review", "cross-check", "audita a skill/agente".
-  Diferente do gemini-brain (tarefas multimodais / contexto 1M — vídeo, PDF grande, áudio); ambos
-  usam o mesmo `agy` CLI, a distinção é o use-case (auditor = verificação/audit de componentes JOCA).
+description: "2ª opinião via Gemini (agy)"
 tools: Bash, Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "ponte para o agy: a 2.ª opinião é do Gemini"
 triggers: auditoria gemini, segunda opiniao gemini, auditar com gemini
 ---
 

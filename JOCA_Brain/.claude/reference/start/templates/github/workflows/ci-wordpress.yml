@@ -1,0 +1,64 @@
+# CI — WordPress (child theme + mu-plugins). Stack de cliente herdada, fora da
+# stack da casa: exige entrada em docs/DECISIONS.md (ver stacks/wordpress.md).
+#
+# Origem: CI de um projecto de cliente (2026-09-03). Passos reproduzidos localmente a
+# 2026-09-15 (phpcs 3.13.6 · wpcs 3.4.1 · phpstan 2.2.14); não corrido ainda
+# num runner do GitHub Actions.
+#
+# Pressupõe: composer.json com os scripts `lint`, `phpcs`, `phpstan`,
+# phpcs.xml.dist e phpstan.neon.dist na raiz (stacks/wordpress.md §2.2-2.4).
+#
+# O repositório versiona só wp-content/themes/<tema> e wp-content/mu-plugins.
+# Core, plugins de terceiros e uploads NÃO estão aqui — não assumir que existem.
+#
+# ⚠️ Nenhum passo usa `continue-on-error` nem `|| true`: se o lint falhar, o
+#    job falha. Avisos do PHPCS também falham (código de saída != 0).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # php-version = a do alojamento, não a da máquina local.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Localizar a cache do Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: php -l (sintaxe de todo o PHP versionado)
+        run: composer run lint
+
+      - name: PHPCS (WordPress Coding Standards)
+        run: composer run phpcs
+
+      - name: PHPStan
+        run: composer run phpstan

@@ -1,9 +1,12 @@
 ---
 name: pr-repair
-description: "Agente autónomo de reparação de PR: resolve conflitos, aplica comentários de bots por resolver, corrige CI vermelho, commita em fases coerentes, PUSH uma vez no fim — pipeline de ordem fixa com travão anti-loop. Diferente de review-code (audita) — este CORRIGE e faz push. Usa gh CLI. Triggers: reparar PR, CI vermelho, resolver conflitos, fix failing CI."
+description: "conflitos, CI vermelho, push 1x"
 skills: github, security
 tools: Bash, Read, Edit, Grep
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "resolve conflitos e CI e faz push"
 ---
 
 # PR Repair Agent
@@ -27,6 +30,7 @@ This is the agents-use-skills model — load the skills BEFORE touching the repo
 
 1. **Step 0 (mandatory):** `Read(".claude/skills/github.md")` — gh CLI workflows, PR/checks/review commands, conflict and CI conventions. Apply it as the reference for every `gh`/`git` command in this run.
 2. **Step 0 (mandatory):** `Read(".claude/skills/security.md")` — never introduce a vulnerability while "fixing" CI; vet any dependency bump, secret exposure, or auth change a fix touches.
+3. Before writing code: `Read(".claude/reference/codigo-minimo.md")` — ladder + guard-rails.
 
 Do not start the pipeline until both skills are read. Notify: `[skill: github]` `[skill: security]`.
 
@@ -48,6 +52,13 @@ Confirm the PR and base branch with the real source:
 gh pr view <num> --json number,headRefName,baseRefName,mergeable,mergeStateStatus,state
 ```
 If the PR is closed/merged, or `gh` is not authenticated, STOP and report — do not fabricate state.
+
+**Before reporting `BLOCKED` (or "needs approval") — read the rulesets, never guess the cause:**
+```bash
+gh api repos/{owner}/{repo}/rules/branches/<base>   # effective rules on the base branch
+gh api repos/{owner}/{repo}/rulesets                # list → detail: rulesets/<id>
+```
+Compare `required_status_checks[].context` with the `name:` of the CI jobs, and read `required_approving_review_count`. A required context that no job reports blocks forever and is fixable (rename the job or the ruleset) — it is not "waiting for approval". Real case: a PR reported as "needs a colleague's approval" required 0 approvals and was blocked by check names no job emitted (2026-09-25). See `skills/github.md` §Rulesets.
 
 ### Step 2 — Resolve merge conflicts
 - Fetch and merge/rebase the base branch per the repo's stated convention (prefer what `CONTRIBUTING.md`/`AGENTS.md` says; default to merging base into the PR branch to preserve history unless told otherwise).
@@ -71,6 +82,7 @@ gh api repos/{owner}/{repo}/pulls/<num>/comments
 gh pr checks <num>
 gh run view <run-id> --log-failed
 ```
+- **Every job failed in 2-5 s?** Check billing before code: `gh run view <run-id>` and look for «spending limit» in the annotations — Actions minutes exhausted fails fast and looks like a code failure (measured 2026-09-14). Not fixable by commits → "Blocked / needs human".
 - Fix the actual reported failures: lint, formatting, type errors, failing tests, build errors. Address root causes, not symptoms — do not delete/skip tests to make them pass unless the test itself is proven wrong.
 - Re-run the relevant check locally where possible before relying on remote CI.
 - Gate: the failures you targeted are resolved locally (or proven to be flaky/infra, then noted).

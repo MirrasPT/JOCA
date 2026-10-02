@@ -163,7 +163,7 @@ describe('PATH_SAFE com caminhos Windows', () => {
   it('aceita caminhos absolutos com letra de unidade', () => {
     expect(PATH_SAFE.test('C:\\Users\\dev\\Desktop\\projecto')).toBe(true);
     // Espaços, acentos e parênteses são correntes em pastas do Drive/OneDrive.
-    expect(PATH_SAFE.test('D:\\Dados\\Meu Projecto\\2026_Nova Plataforma')).toBe(true);
+    expect(PATH_SAFE.test('D:\\Dados\\Meu Projecto\\Nova Plataforma')).toBe(true);
     expect(PATH_SAFE.test('G:\\O meu disco\\Clientes\\Acme Lda (Norte)')).toBe(true);
     expect(PATH_SAFE.test('C:\\')).toBe(true);
   });

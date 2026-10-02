@@ -1,7 +1,8 @@
 ---
 name: wp-playground
-description: "WordPress Playground workflows: fast disposable WP instances in the browser or locally via @wp-playground/cli (server, run-blueprint, build-snapshot), auto-mounting. MUST be invoked when the user mentions: WordPress Playground, WP, PHP, Xdebug."
+description: "WordPress Playground: disposable WP instances (WebAssembly + SQLite) via @wp-playground/cli (server, run-blueprint, build-snapshot, auto-mount, Xdebug, WP/PHP version switching) and authoring/reviewing the blueprint JSON that configures them. Use when the user wants a throwaway WordPress to test a plugin/theme or reproduce a bug, or writes/edits a Playground blueprint (blueprint.json, steps, bundles)."
 compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Playground CLI requires Node.js 20.18+; runs WP in WebAssembly with SQLite."
+triggers: Playground blueprint, blueprint.json, run-blueprint, Playground steps, blueprint steps, blueprint do playground, WordPress Playground, versão PHP no playground, wp-playground, @wp-playground/cli, build-snapshot, montar no playground, wordpress descartável, instância wp temporária, Xdebug Playground
 ---
 
 # WordPress Playground
@@ -47,6 +48,8 @@ npx @wp-playground/cli@latest server --auto-mount
 - Use `--mount-before-install` for bootstrapping installer flows.
 
 ### 3) Run a Blueprint (no server needed)
+
+> Writing, editing or reviewing the blueprint JSON itself (top-level properties, resources, steps, bundles, common mistakes) → `Read(".claude/reference/wp-playground-blueprint.md")`.
 
 ```bash
 npx @wp-playground/cli@latest run-blueprint --blueprint=<file-or-url>

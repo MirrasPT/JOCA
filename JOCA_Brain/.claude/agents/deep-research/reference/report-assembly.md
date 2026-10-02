@@ -1,5 +1,13 @@
 # Report Assembly: Progressive File Generation
 
+## Contents
+
+- Length Requirements by Mode
+- Output Token Safeguard
+- Progressive Section Generation
+- File Organization
+- Word Count Per Section
+
 ## Length Requirements by Mode
 
 | Mode | Target Words | Description |

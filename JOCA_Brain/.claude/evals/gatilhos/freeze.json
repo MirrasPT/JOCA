@@ -1,0 +1,27 @@
+{
+ "skill": "freeze",
+ "deve": [
+  "tranca as edições a esta pasta",
+  "só editar esta pasta durante a sessão",
+  "freeze no diretório src/components",
+  "lock scope to the backend folder",
+  "restringir alterações à pasta de testes",
+  "não mexer fora desta pasta, tranca",
+  "scope lock na pasta docs",
+  "trancar edições ao módulo de pagamentos",
+  "freeze edits to this directory only",
+  "limita as edições à pasta app/Models"
+ ],
+ "quase": [
+  "liga o modo seguro todo",
+  "destranca as edições",
+  "congela as dependências no package.json",
+  "o pc está a congelar",
+  "tranca o branch main no github",
+  "modo test-first",
+  "avisa antes de comandos destrutivos",
+  "congela a versão do laravel",
+  "o browser freeze ao abrir a página",
+  "bloqueia o acesso ao admin"
+ ]
+}

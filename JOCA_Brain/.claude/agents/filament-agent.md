@@ -1,13 +1,16 @@
 ---
 name: filament-agent
-description: "código · Building Laravel admin panels with Filament PHP, creating resources, forms, tables, or widgets. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Filament, admin panel, backoffice"
 skills: filament
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: Filament, admin panel, admin, backoffice, Resource, Panel
 generated-from: .claude/skills/filament.md
 generated-by: skill-agents.mjs
-content-hash: e5a4c668c5deea32
+content-hash: 63fe597d12be9eb8
 ---
 
 # filament — agente de execução
@@ -28,6 +31,21 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
+### ⚠ Antes de correr testes ou migrations
+
+`RefreshDatabase`/`migrate:fresh` sem `.env.testing` apontam o comando à base de dados de
+desenvolvimento e apagam-na: sem o ficheiro de teste o Artisan cai no `.env`. Provar a ligação de
+teste na raiz da app Laravel **antes** de correr:
+
+```bash
+test -f .env.testing || echo 'SEM .env.testing — PARAR e reportar'
+php artisan db:show --env=testing    # ler o nome da BD antes de escrever nela
+```
+
+Ficheiro em falta, **ou** nome de BD igual ao de desenvolvimento → **parar e reportar**, não correr.
+`migrate:fresh` é irreversível: devolve-se ao caller como proposta, nunca se executa.
 
 ## Como trabalhar
 

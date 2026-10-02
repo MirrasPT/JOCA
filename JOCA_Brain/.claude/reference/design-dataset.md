@@ -8,6 +8,17 @@ Objectivo: operacionalizar o anti-convergence — em vez de "diverge dos project
 
 ---
 
+## Conteúdo
+
+- Paletas (OKLCH, verificadas p/ contraste AA em texto body)
+  - Neutras + 1 acento (SaaS, dashboards, portfolios)
+  - Quentes (marcas artesanais, vinho, food, editorial)
+  - Frias (tech, fintech, saúde, legal)
+  - Alto contraste / statement (landing agressiva, streetwear, gaming)
+- Pares de fontes (Google Fonts, todos com PT-PT completo)
+- Estilos nomeados (eixos p/ design-shotgun)
+- Anti-convergence (obrigatório)
+
 ## Paletas (OKLCH, verificadas p/ contraste AA em texto body)
 
 Formato: nome — fundo / superfície / texto / primária / acento. Light e dark onde aplicável.
@@ -53,7 +64,7 @@ Formato: nome — fundo / superfície / texto / primária / acento. Light e dark
 | Par | Display | Body | Personalidade | Evitar em |
 |---|---|---|---|---|
 | Editorial clássico | Fraunces | Inter | revista, vinho, artesanal | dashboards densos |
-| Suíço neutro | Inter (weights 700/400) | Inter | SaaS, fintech | marcas com alma |
+| Suíço neutro | ⛔ **não usar Inter como display** — `frontend/anti-slop-bans.md` bane-a (hard-reject). Este par é só body/UI; para display, escolhe outra linha desta tabela | Inter | SaaS, fintech | marcas com alma |
 | Geo-humanista | Bricolage Grotesque | Work Sans | tech com carácter | legal, saúde |
 | Serif de luxo | Playfair Display | Source Sans 3 | premium, hotel, vinho | apps utilitárias |
 | Brutal contraste | Archivo Black | Archivo | poster, streetwear | conteúdo longo |
@@ -96,7 +107,7 @@ Cada estilo = layout + densidade + forma + movimento. Escolher 1 por variante.
 
 ## Anti-convergence (obrigatório)
 
-Antes de escolher eixos, verificar `memory/projects/*.md` dos últimos projectos do mesmo tipo:
+Antes de escolher eixos, verificar `memory/projects/*/index.md` dos últimos projectos do mesmo tipo:
 1. Que estilo/paleta/par foi usado nos 2-3 anteriores? → **excluir esses eixos** das variantes.
 2. Registar no output de cada variante a combinação usada (auditável na próxima sessão).
 3. Se o brief do cliente FORÇA um eixo repetido (brand colors), diverge nos outros dois.

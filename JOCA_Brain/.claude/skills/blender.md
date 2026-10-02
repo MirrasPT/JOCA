@@ -1,14 +1,27 @@
 ---
 name: blender
-description: "Director/router de trabalho 3D em Blender por Python headless (bpy). MUST be invoked when the user says: blender, 3d, modelo 3d, cena 3d, render 3d, .blend, bpy, glb, gltf, fbx, obj, stl, malha, mesh, modelar. SHOULD also invoke when: asset 3d para jogo, turntable, product shot 3d, converter modelo, exportar para Unity/Unreal/Godot/three.js, batch de .blend, low poly, geometry nodes."
-triggers: blender, bpy, 3d, modelo 3d, modelacao 3d, cena 3d, render 3d, .blend, glb, gltf, fbx, obj, stl, usd, malha, mesh, modelar, asset 3d, game-ready, low poly, lowpoly, turntable, product shot, geometry nodes, cycles, eevee, uv, unwrap, material pbr, rig, rigging, armature, converter modelo 3d, exportar para unity, exportar para unreal, exportar para godot, exportar para threejs, batch blend
-chain: blender-scripting, blender-render
+description: "Trabalho 3D em Blender por Python headless (bpy): modelar e transformar geometria, modificadores, importar/exportar/converter modelos (glTF, FBX, STL, USD) para Unity/Unreal/Godot/three.js, batch de .blend, e renderizar (Cycles/EEVEE, câmara, luz, materiais PBR, turntable, sequências). MUST be invoked when the user says: blender, bpy, script blender, 3d, modelo 3d, cena 3d, render 3d, renderizar, .blend, glb, gltf, fbx, modelar. SHOULD also invoke when: turntable, product shot, material pbr, hdri, batch blend, geometry nodes, converter 3d."
+triggers: bpy, script blender, blender python, batch blend, headless blender, converter 3d, render 3d, renderizar, cycles, eevee, turntable, product shot, material pbr, hdri, depth of field, blender, 3d, modelo 3d, cena 3d, .blend, glb, gltf, fbx, modelar, geometry nodes
+chain: design-review
 ---
 
-# Blender — Director
+# Blender — núcleo (modelar · scripting bpy · render)
 
-Ponto de entrada para qualquer trabalho 3D. Decide a rota, define o brief, e **fecha o loop olhando
-para o render** — não para o relatório do script.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
+Ponto de entrada único para trabalho 3D. Decide a rota, define o brief, lê **só a referência do
+pedido** e **fecha o loop olhando para o render** — não para o relatório do script.
+
+## Router — que referência ler
+
+| Pedido | Ler |
+|---|---|
+| criar/alterar geometria, modificadores, booleanas, encaixes, import/export/conversão, eixos por engine, SVG → 3D, batch de `.blend`, medir malha para fabrico | `Read(".claude/reference/blender-scripting.md")` |
+| engine (Cycles/EEVEE), GPU, output, câmara, luz/HDRI, materiais PBR, animação, turntable, passes, orçamento de tempo | `Read(".claude/reference/blender-render.md")` |
+| versão ≠ 5.x, deltas de API, valores por omissão, tabela de operadores I/O | `Read(".claude/reference/blender-api-5x.md")` |
+
+Trabalho que atravessa os dois (modelar → renderizar): scripting → render → **loop de verificação**.
+Ajuste pontual de um lado só → ler só essa referência.
 
 ## Contrato de execução (esta máquina)
 
@@ -43,16 +56,66 @@ Versão ≠ 5.x → `Read(".claude/reference/blender-api-5x.md")` para a tabela 
 **Default é CLI.** O MCP só entra se o utilizador quiser ver acontecer na viewport ao vivo *e* já
 tiver o addon activo. Não instalado nesta máquina — não o assumir disponível.
 
-## Router
+## Base de qualquer script bpy
 
-| Pedido | Skill |
-|---|---|
-| criar/alterar geometria, modificadores, importar/exportar, batch de `.blend`, hierarquia, custom props | `blender-scripting` |
-| câmara, luzes, materiais PBR, engine, output, animação, render de imagem/sequência | `blender-render` |
-| deltas de API entre versões, gotchas medidos, tabela de operadores I/O | `.claude/reference/blender-api-5x.md` (`Read()`) |
+### Os três namespaces
 
-Trabalho que atravessa os dois (modelar → renderizar) corre a sequência: `blender-scripting` →
-`blender-render` → **loop de verificação**.
+```python
+import bpy
+
+bpy.data      # os dados do ficheiro — acesso directo, rápido, sem contexto. PREFERIR.
+bpy.context   # estado actual — objecto activo, selecção, cena
+bpy.ops       # operadores (o que um clique faz) — precisam de contexto correcto, mais frágeis
+```
+
+**Regra:** `bpy.data` para ler e escrever propriedades; `bpy.ops` só quando não há equivalente
+(adicionar primitivas, aplicar modificadores, import/export). Um `bpy.ops` com o objecto errado
+activo falha em silêncio ou age no objecto errado — o erro mais comum em scripts headless.
+
+```python
+# Antes de qualquer bpy.ops que dependa de selecção:
+bpy.ops.object.select_all(action='DESELECT')
+obj.select_set(True)
+bpy.context.view_layer.objects.active = obj
+```
+
+### Limpar a cena — sempre, antes de construir
+
+O ficheiro de arranque **já tem** Cube + Camera + Light. Não os apagar é a causa nº1 de renders
+"vazios" ou tapados: o cubo por omissão fica na origem, exactamente onde tu pões o teu objecto.
+
+```python
+import bpy
+
+def clear_scene():
+    """Cena vazia + dados órfãos removidos."""
+    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.object.delete(use_global=False)
+    for coll in (bpy.data.meshes, bpy.data.materials, bpy.data.curves,
+                 bpy.data.armatures, bpy.data.images, bpy.data.cameras, bpy.data.lights):
+        for block in list(coll):
+            if block.users == 0:
+                coll.remove(block)
+
+def setup_units(system='METRIC', scale=1.0):
+    s = bpy.context.scene
+    s.unit_settings.system = system
+    s.unit_settings.scale_length = scale   # 1 unidade Blender = 1 metro
+```
+
+### Args de linha de comandos
+
+```python
+import sys
+argv = sys.argv
+argv = argv[argv.index("--") + 1:] if "--" in argv else []
+
+import argparse
+p = argparse.ArgumentParser()
+p.add_argument("--out", required=True)
+p.add_argument("--samples", type=int, default=64)
+args = p.parse_args(argv)
+```
 
 ## Loop de verificação (obrigatório — o que separa isto de um script à sorte)
 
@@ -74,8 +137,9 @@ Regras do loop:
   nova sobre enquadramento e composição.
 - **O script é a fonte de verdade**, não o `.blend`. Corrige-se o script e re-corre-se do zero; assim
   o resultado é reprodutível e o diff é legível.
-- Cena a construir de raiz → começar sempre por limpar a cena de arranque (Cube + Camera + Light já
-  lá estão). Ver `blender-scripting`.
+- Cena a construir de raiz → começar sempre por `clear_scene()` (acima).
+- Peça para fabrico/encaixe → o render não chega: gates de malha em `reference/blender-scripting.md`
+  §«Medir malha» e §«Modificadores» (encaixe em malha sobreposta → camada 2D + gate por raios).
 
 ## Brief antes de executar
 
@@ -119,10 +183,11 @@ Raciocínio espacial é aproximado: a primeira colocação fica quase sempre a p
 | `blender` no PATH | Caminho completo do binário; confirmar que existe |
 | Copiar snippets de bpy de tutoriais 3.x | Confirmar a versão + `reference/blender-api-5x.md` |
 | Construir cena sem limpar a de arranque | `clear_scene()` primeiro — o cubo tapa tudo |
+| Ler as duas referências para um pedido de um lado só | Router acima — só a referência do pedido |
 | Sobrescrever um `.blend`/render que o utilizador já aprovou | `test -f` antes; se existe, nome irmão versionado |
 
 ## Próximo passo (chain)
 
-- Geometria/IO pedidos → `blender-scripting`.
-- Depois de haver geometria → `blender-render` (preview e entrega).
 - Render entregue e o utilizador quer julgar o resultado visual → `design-review`.
+- O render não bate com o pedido → loop de verificação acima (máx. 3 voltas).
+- Peça para imprimir → `impressao-3d` (export e gate de malha).

@@ -1,11 +1,11 @@
 ---
 name: skill-evaluator
-description: >
-  Specialist agent for evaluating Claude Code SKILL.md quality. Receives a skill and the
-  original request, scores it on 5 dimensions, and returns a structured JSON verdict.
-  Used internally by the create-skill pipeline. Not for direct user invocation.
+description: "pontua SKILL.md (create-skill)"
 tools: Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "pontua contra rubrica fixa, só lê"
 triggers: avaliar skill, skill esta boa, medir skill, eval de skill
 ---
 

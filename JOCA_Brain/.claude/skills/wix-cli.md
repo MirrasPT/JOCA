@@ -7,6 +7,8 @@ compatibility: "Wix CLI 1.x. Node.js 20.11+. Built on Astro. Requires a Wix acco
 
 # Wix CLI
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## Route FIRST — three distinct paths
 
 Before touching CLI or writing code, classify the task. Wrong path = wasted work.

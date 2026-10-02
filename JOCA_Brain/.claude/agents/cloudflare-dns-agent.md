@@ -1,13 +1,16 @@
 ---
 name: cloudflare-dns-agent
-description: "deploy · Gerir registos DNS e Email Routing no Cloudflare por API, idempotente, por domínio. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "configurar noreply@, email routing"
 skills: cloudflare-dns
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
 triggers: cloudflare dns, cloudflare-dns, email routing, registo dns, spf merge, mx cloudflare
 generated-from: .claude/skills/cloudflare-dns.md
 generated-by: skill-agents.mjs
-content-hash: 5042437e0cc5cc88
+content-hash: 5ab4c9e31d2ff333
 ---
 
 # cloudflare-dns — agente de execução

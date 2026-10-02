@@ -6,6 +6,8 @@ chain: tester-code, tester-api
 ---
 # Laravel Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Laravel 11+ backend. Single-action controllers, Action classes, strict types, ULIDs. One class, one job.
 
 ---
@@ -185,6 +187,12 @@ public function failed(\Throwable $e): void
 
 ---
 
+## Migrations que mexem em índices, FK ou tipos
+
+- **Ciclo `up → down → up` contra o motor de PRODUÇÃO** (MySQL), não só a suite em SQLite. Em MySQL um índice único cuja coluna mais à esquerda é uma FK **é** o índice que serve essa FK: largá-lo dá `ERROR 1553`. O SQLite aceitou o `up()` e o `down()` partido (projecto de cliente, 2026-08-26). Doutrina do gate: `reference/gates-runtime.md` (linha «Ambiente de teste ≠ produção»).
+- **`$table->dropForeign(['user_id'])` (array) em vez de `dropForeign('nome')`** — com array o Laravel deriva o nome convencional (`<tabela>_<coluna>_foreign`); a string tem de ser o nome exacto da constraint e parte em silêncio quando o nome real difere.
+- **Ordem no `down()`:** largar a FK antes do índice que a serve; recriar o índice antes da FK.
+
 ## Mudar schema com dados reais — expand/contract
 
 Renomear ou mudar uma coluna no mesmo deploy que o código que a usa parte a janela em que código velho e novo correm juntos. Nunca mudar a coluna no sítio. Por fases, cada uma deployável e reversível sozinha:
@@ -195,10 +203,53 @@ Renomear ou mudar uma coluna no mesmo deploy que o código que a usa parte a jan
 5. **Contract** — parar de escrever na velha e, num deploy **posterior e isolado**, largar a coluna.
 
 - Aditivo primeiro; destrutivo por último e sozinho.
-- `down()` escrito e corrido contra o motor de produção (MySQL, não só SQLite) antes do merge.
+- `down()` escrito e corrido antes do merge (ciclo `up → down → up` acima).
 - Índice grande em tabela com escrita: DDL online do MySQL — confirmar na doc do MySQL da versão alvo, não de memória.
 
 Adaptado de addyosmani/agent-skills `deprecation-and-migration` (MIT).
+
+## Renomear um valor de enum vs só o rótulo
+
+Rótulo e valor guardado **não têm de coincidir**. Antes de renomear o **valor** (o que está na BD):
+1. Contar os ficheiros que o citam (`grep -rn "'backlog'" app resources database tests | wc -l`) e as linhas que exigem migração de dados (`SELECT count(*) … WHERE status = 'backlog'`).
+2. Ganho só cosmético → muda-se o **rótulo** (`label()`/`getLabel()` do enum, tradução), não o valor.
+
+Caso real (painel de gestão interno, 2026-09-09): renomear o valor = 35 ficheiros + migração de dados reais; mudar o rótulo = 1 ficheiro, zero risco. Precedente: um ecrã de conteúdos mostra «Planeada» sobre um `backlog`.
+
+---
+
+## Honeypot anti-spam — o campo que comeu um lead real
+
+Um honeypot com nome que o **preenchimento automático do browser** reconhece (`website`, `url`, `email2`, `phone2`)
+é preenchido por ele e descarta leads verdadeiros — o servidor devolve 2xx e a submissão desaparece sem rasto.
+Incidente 2026-09-18: `name="website"`, lead real perdida em silêncio.
+
+- **Nome neutro**, sem palavra que o preenchimento automático conheça (ex.: `contact_ref`), e o campo leva
+  `autocomplete="off"`. A metade do HTML/formulário está em `.claude/skills/frontend.md`.
+- **Cada descarte regista-se em log**, com o payload: descarte silencioso sem log = lead perdida sem recuperação.
+- O honeypot é um campo **declarado** nas regras, não um extra que passa ao lado da validação.
+
+```php
+// Form Request
+public function rules(): array
+{
+    return [
+        'contact_ref' => ['nullable', 'string'],        // honeypot: vazio quando é humano
+        'name'        => ['required', 'string', 'max:255'],
+        'email'       => ['required', 'email'],
+    ];
+}
+
+// Action — descarta, mas COM rasto; devolve o mesmo 2xx que um humano recebe
+if ($request->filled('contact_ref')) {
+    logger()->warning('Submissão descartada por honeypot', [
+        'ip'      => $request->ip(),
+        'payload' => $request->only(['name', 'email']),
+    ]);
+
+    return new JsonResponse(status: Response::HTTP_ACCEPTED);
+}
+```
 
 ---
 
@@ -223,6 +274,24 @@ Adaptado de addyosmani/agent-skills `deprecation-and-migration` (MIT).
 | `rm` storage files without checking FK | Always query `media` table before deleting physical files |
 | Nested route binding without scope | `->scopeBindings()` on nested groups — child must belong to parent (prevents cross-tenant/cross-parent record leak via ID swap) |
 | Service/repository for one-off logic | Action class (no single-use abstraction) |
+| Honeypot com nome que o preenchimento automático do browser reconhece (`website`, `url`) | Nome neutro + `autocomplete="off"`; cada descarte em log |
+
+---
+
+## ⚠ Testes que apagam a base de dados — provar a ligação ANTES de correr
+
+`RefreshDatabase`/`migrate:fresh` sem `.env.testing` apontam o comando à base de dados de desenvolvimento e apagam-na:
+sem o ficheiro de teste (ou sem a ligação de teste configurada) o Artisan cai no `.env`, e `migrate:fresh` larga
+**todas** as tabelas. Incidente 2026-09-18: um agente correu `migrate:fresh --env=testing` sem `.env.testing` e apagou
+a base de dados de desenvolvimento.
+
+Antes da suite, ou de qualquer `migrate:*`, provar a ligação na raiz da app Laravel:
+```bash
+test -f .env.testing || echo 'SEM .env.testing — PARAR e reportar'
+php artisan db:show --env=testing    # ler o nome da BD antes de escrever nela
+```
+- Ficheiro em falta, **ou** nome de BD igual ao de desenvolvimento → **parar e reportar**; nunca correr «para ver».
+- `migrate:fresh` é **irreversível** → gate de confirmação (`rules/task-intake.md` §Segurança), mesmo em teste.
 
 ---
 
@@ -315,7 +384,7 @@ Notify: `[+ laravel-react]`
 After implementation: "Run `tester-code`?"
 After endpoints: "Run `tester-api`?"
 Refactor / dead code / scale / Larastan: spawn `laravel-refactor` agent
-Full Filament resource from a model: spawn `filament-builder` agent
+Full Filament resource from a model: spawn `filament-agent` agent
 Security code review: spawn `security-review` agent
 On error: spawn `log-debugger`
 

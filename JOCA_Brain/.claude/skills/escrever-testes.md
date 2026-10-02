@@ -1,13 +1,21 @@
 ---
 name: escrever-testes
-description: "Escreve testes a partir dos criterios de aceitacao de um issue, deliberadamente sem olhar para a implementacao. Corre em sessao separada da que implementou o codigo. MUST be invoked when the user says: escrever testes, testes do issue, testes a partir dos criterios, /escrever-testes, testes em sessao separada. SHOULD also invoke when: cobrir o issue com testes, testes de aceitacao, Pest a partir do issue, Vitest a partir do issue, flutter test do issue."
-triggers: escrever testes, testes do issue, testes a partir dos criterios, escrever-testes, testes em sessao separada, cobrir o issue com testes, testes de aceitacao, Pest a partir do issue, Vitest a partir do issue, flutter test do issue
+description: "Escreve testes a partir dos criterios de aceitacao de um issue, deliberadamente sem olhar para a implementacao, com mocking de dependências externas, cobertura por critério e tratamento de testes instáveis. Corre em sessao separada da que implementou o codigo. MUST be invoked when the user says: escrever testes, mocking, cobertura de testes, testes unitários, testes do issue, testes a partir dos criterios, /escrever-testes, testes em sessao separada. SHOULD also invoke when: cobrir o issue com testes, testes de aceitacao, Pest a partir do issue, Vitest a partir do issue, flutter test do issue."
+triggers: mocking, mocks, estrategia de mocking, cobertura de testes, testes unitarios, testes de integracao, unit tests, integration tests, testes flaky, plano de testes, escrever testes, testes do issue, testes a partir dos criterios, escrever-testes, testes em sessao separada, cobrir o issue com testes, testes de aceitacao, Pest a partir do issue, Vitest a partir do issue, flutter test do issue
 argument-hint: "[numero-do-issue]"
 chain: tester-code, tester-api
 ---
 # Escrever testes — a partir do requisito, nunca do codigo
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Escreve testes que verificam o **requisito**, nao a implementacao.
+
+**Se um teste escrito a partir do criterio nao passar, o suspeito e o CODIGO, nao o criterio — nao
+adaptes o teste ao comportamento observado.** Corolario: um teste que nunca foi visto a falhar nao
+esta escrito. A quebra faz-se **revertendo a correcao de producao** (e restaurando-a conferida por
+`md5`/`git diff`), nao editando o teste. Com esta regra, o agente de testes corrigiu o agente que
+implementou e apanhou um teste vacuo seu (projecto de cliente, 2026-09-02).
 
 ## Regra central
 
@@ -46,6 +54,12 @@ componentes, nomes de modelos. O suficiente para escrever chamadas validas, **na
 Preferir sempre o teste que exerce o **comportamento por fora** (HTTP, ecra, ecra renderizado) ao
 teste unitario de classes internas — verificam o que o criterio descreve, e sobrevivem a refactors.
 
+**Assercoes que dao vermelho falso** (dois testes falsos num projecto de cliente, 2026-09-21):
+- **null afirma-se com `assertArrayHasKey` + `assertNull`** — nunca `$row['col'] ?? 'fallback'`: o
+  `??` trata null como ausente e a assercao deixa de distinguir "null" de "chave em falta".
+- **Objectos JSON comparam-se com `assertEquals`, nao `assertSame`** — o `assertSame` sobre arrays
+  exige a mesma ordem de chaves, que o JSON nao garante.
+
 ### Por stack
 
 | Stack | Runner | Nivel preferido | Comando |
@@ -53,6 +67,10 @@ teste unitario de classes internas — verificam o que o criterio descreve, e so
 | Laravel · Livewire | Pest 5 | Feature (HTTP, rotas reais) · `Livewire::test()` | `./vendor/bin/pest --filter=<nome>` |
 | Next.js | Vitest + Testing Library | Route handler + render de componente | `npm test -- --run -t <nome>` |
 | Flutter | `flutter_test` | Widget test (`testWidgets`) | `flutter test --plain-name <nome>` |
+
+**Sem runner no projecto:** montar um e ambito novo e **decisao do dono** — pergunta, nao montes por
+iniciativa. Ate la, a verificacao e o gate de runtime, e o relatorio diz com essas palavras que **nao
+ha rede de regressao**. (Caso real: `web/` sem runner, 2026-08-21.)
 
 **Laravel:**
 
@@ -89,8 +107,8 @@ testWidgets('mostra o estado vazio quando nao ha projetos', (tester) async {
 
 - Falha porque a funcionalidade nao existe → esperado, se estas a escrever antes
 - Falha porque a implementacao nao cumpre o criterio → **encontraste um bug real**
-- **Passa tudo a primeira → suspeita.** Muda uma asserção de proposito e confirma que fica vermelha.
-  Um teste que nunca falha nao esta a testar nada.
+- **Passa tudo a primeira → suspeita.** Prefere reverter a correcao de producao (restauro conferido)
+  a mudar a assercao, e confirma que fica vermelha. Um teste que nunca falha nao esta a testar nada.
 
 6. **Reportar** que criterios ficaram cobertos, quais nao foi possivel cobrir e porque.
 
@@ -102,6 +120,33 @@ testWidgets('mostra o estado vazio quando nao ha projetos', (tester) async {
 - Nao perseguir percentagem de cobertura. Perseguir cobertura dos **criterios**.
 - **Nao contar cobertura pelo total.** Para verificar que N criterios ficaram cobertos, verificar
   **os N** um a um; uma media ou uma contagem esconde o que falhou.
+
+## Mocking, isolamento e testes instáveis
+
+- **Dependências externas mocam-se** (APIs de terceiros, gateways, e-mail): nunca chamadas reais
+  num teste unitário. A BD do próprio projecto usa-se pelo runner (`RefreshDatabase`, base de testes),
+  não se moca.
+- **Nunca dados de produção** — fixtures ou factories.
+- **Cada teste corre sozinho**: nada de ordem entre testes nem estado partilhado.
+- **Teste instável (flaky) não se repete até ficar verde** — isolar dependências de ordem, rever o
+  assíncrono (esperas, timers), corrigir a causa; em último caso, quarentena declarada no relatório.
+- **Afirmar o resultado exacto** (`toBe(90)`), não só que é verdadeiro.
+- **Suite vermelha depois de uma correcção de segurança ou dinheiro:** ler o NOME de cada teste que
+  falha antes de mexer no código. Um nome que descreve o comportamento antigo
+  (`test_no_gateway_annual_activates_directly`) é um teste a guardar o defeito — corrige-se o teste,
+  não a correcção.
+- **Cobertura em falta assinala-se explicitamente** no relatório, critério a critério.
+
+## Fan-out de testes (vários agentes a escrever testes)
+
+Padrão medido (projecto de cliente, 2026-08-11: 13 defeitos reais saíram priorizáveis, sem 6 agentes a
+emendar o mesmo código):
+- **Um ficheiro de teste exclusivo por agente** — nunca partilhado.
+- **Quem escreve testes não corrige código.** Escrita ≠ correcção.
+- **Contrato de saída = `markTestIncomplete('defeito: …')`** (PHPUnit/Pest) no teste que expõe um
+  defeito: fica documentado e priorizável, e o caller decide quem corrige.
+- Anti-padrão inverso: um e2e que afirma `toHaveCount(0)` sobre um botão, documentado como «gap
+  verificado», é um teste verde a **garantir que a feature não existe**.
 
 ## Proximo passo (chain)
 

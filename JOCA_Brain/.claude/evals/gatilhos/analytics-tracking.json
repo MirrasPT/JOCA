@@ -1,0 +1,43 @@
+{
+ "skill": "analytics-tracking",
+ "deve": [
+  "configura o GA4 no site",
+  "tracking de conversões no formulário",
+  "plano de tracking para a loja",
+  "parâmetros UTM para a campanha",
+  "set up event tracking with GTM",
+  "consent mode v2 no site",
+  "quantas visitas teve o site no mês passado",
+  "tira as page views do google analytics pela api",
+  "verifica se os eventos estão a disparar",
+  "audita a medição do site",
+  "põe o gtag do GA4 no site",
+  "eventos custom no google analytics",
+  "debugview não mostra os eventos",
+  "quantas sessões teve o site esta semana no GA4",
+  "GA4 data api para tirar visitantes",
+  "consent mode no gtag",
+  "realtime do google analytics não regista",
+  "add GA4 snippet to the next.js site",
+  "tráfego do site no último mês",
+  "page views por página no GA4",
+  "heatmap do microsoft clarity das últimas 48h",
+  "rage clicks no clarity por dispositivo"
+ ],
+ "quase": [
+  "o site está lento",
+  "cria um dashboard em react",
+  "analisa os logs do servidor",
+  "faz a análise de concorrência",
+  "quantos utilizadores tem a app na base de dados",
+  "configura o cloudflare",
+  "cria relatório em excel",
+  "faz o A/B test",
+  "SEO técnico",
+  "mede o tempo de resposta da api",
+  "google search console",
+  "google ads conversões",
+  "cria um dashboard",
+  "google tag manager para facebook pixel"
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "skill": "caching",
+ "deve": [
+  "põe cache nas queries do dashboard",
+  "configura redis como cache no laravel",
+  "Cache::remember na listagem de produtos",
+  "invalida a cache quando o produto é atualizado",
+  "headers Cache-Control para os assets",
+  "add caching to the API responses",
+  "o cloudflare está a servir a versão antiga, cache",
+  "stale-while-revalidate nas páginas",
+  "ETag nos endpoints da api",
+  "cache de página inteira para o site"
+ ],
+ "quase": [
+  "limpa a cache do browser",
+  "o redis das filas está cheio",
+  "apaga o node_modules",
+  "limpa o disco do pc",
+  "o site está lento, porquê",
+  "configura o dns no cloudflare",
+  "cria uma fila de jobs",
+  "php artisan optimize dá erro",
+  "otimiza as imagens",
+  "o service worker da pwa"
+ ]
+}

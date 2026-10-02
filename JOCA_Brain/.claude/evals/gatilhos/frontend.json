@@ -1,0 +1,27 @@
+{
+ "skill": "frontend",
+ "deve": [
+  "faz-me um site para uma padaria com página de contactos e menu",
+  "quero uma webapp em next.js para gerir reservas",
+  "cria o frontend do painel de clientes em react",
+  "monta um protótipo clicável da interface de onboarding",
+  "preciso de uma landing page simples para um evento, rápido",
+  "refaz a interface do dashboard que tá muito feia",
+  "build me a small website for a photography studio",
+  "implementa a página de preços no site em next",
+  "o site precisa de uma secção de testemunhos com carrossel",
+  "cria a ui do formulário de inscrição com validação"
+ ],
+ "quase": [
+  "o endpoint de reservas devolve 500, vê o controller",
+  "escreve um texto para o post do instagram sobre a abertura",
+  "gera uma imagem de fundo para o hero",
+  "o servidor está em baixo, reinicia o nginx",
+  "faz deploy da app para a vps",
+  "cria a migration da tabela de encomendas",
+  "traduz o ficheiro de idiomas para inglês",
+  "explica-me a diferença entre REST e GraphQL",
+  "organiza os ficheiros da pasta de downloads",
+  "escreve testes para o issue 12 a partir dos critérios"
+ ]
+}

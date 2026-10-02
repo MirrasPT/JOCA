@@ -1,6 +1,6 @@
 ---
 name: public-release-audit
-description: "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Varre por git e não por disco, apanha espelhos compilados, symlinks, metadados de autor e dependências da montagem pessoal do dono. MUST be invoked when the user says: publicar no repo público, open source release, preparar release público, scrub antes de publicar, auditar o que vai sair, sanitizar repo, push para repo de cliente, entregar código a terceiros, repo da org do cliente. SHOULD also invoke when: um push vai para um remote que não é o repo de trabalho (público, de cliente, de outra organização), ou quando se faz `git remote add` seguido de push para esse remote novo."
+description: "Preparar e auditar um repo antes de o empurrar para um remote que NÃO é o de trabalho — público, de um cliente, ou de outra organização (mesmo privado/internal). Verifica a TOPOLOGIA dos remotes antes do conteúdo (o `origin` de uma árvore com memória de trabalho nunca pode ser o remote alvo). Varre por git e não por disco, apanha espelhos compilados, symlinks, metadados de autor e dependências da montagem pessoal do dono. MUST be invoked when the user says: publicar no repo público, open source release, preparar release público, scrub antes de publicar, auditar o que vai sair, sanitizar repo, push para repo de cliente, entregar código a terceiros, repo da org do cliente. SHOULD also invoke when: um push vai para um remote que não é o repo de trabalho (público, de cliente, de outra organização), ou quando se faz `git remote add` seguido de push para esse remote novo."
 triggers: publicar repo público, open source release, release público, scrub PII, sanitizar repo, preparar publicação, o que vai sair no push, auditar release, público vs privado, PII scan, push para repo de cliente, entregar código a terceiros, repo da org do cliente, primeiro push para remote novo, adicionar segundo remote, repo internal, entrega ao cliente
 chain: ship
 metadata:
@@ -39,6 +39,29 @@ passou intacto.
 2. **Depende da montagem pessoal do dono?** — duas máquinas nomeadas, um repo privado específico, uma
    pasta de cloud própria, um cliente real. Passa em qualquer varredura de PII **e continua a não
    servir a quem clona**. É este que falha em silêncio.
+
+## Passo 0 (obrigatório, antes de tudo) — topologia dos remotes
+
+Os dois critérios acima varrem **conteúdo**. O vazamento real não foi de conteúdo: uma árvore de
+trabalho tinha o `origin` a apontar ao repo **público** e um `git push` sem argumentos publicou
+`memory/profile.md`, `MEMORY.md`, `projects/joca.md` e `settings.json`. Nenhum scan de PII o teria
+impedido — o diff nem chegou a ser inspeccionado. Auditar o conteúdo antes de auditar a topologia é
+auditar a fechadura de uma porta que está noutra parede.
+
+```bash
+git remote -v                          # o mapa inteiro, não só o origin
+git remote get-url origin              # para onde vai um `git push` sem argumentos
+git ls-files memory/projects memory/feedback memory/knowledge | head   # há memória versionada?
+```
+
+**Asserção dura — falhar alto.** Se `memory/projects/` (ou `feedback/`, `knowledge/`) tem ficheiros
+versionados, o `origin` desta árvore **NÃO pode ser o repo público**. Se for: **parar a auditoria**,
+não publicar nada, reportar isto em primeiro lugar e corrigir a topologia antes de qualquer outro
+passo — público como `upstream`, privado como `origin`. Nenhum dos passos abaixo compensa este.
+
+**Corolário operacional:** publicar faz-se sempre com remote e branch **explícitos**
+(`git push <remote> <branch>`), nunca com `git push` a seco. Com o `origin` errado, o comando de
+rotina é que se torna o release não intencional.
 
 ## Checklist dura
 
@@ -83,6 +106,16 @@ de teste carregam paths pessoais e nomes de clientes reais, e ninguém os lê an
 git diff --cached | grep -nE '/Users/[a-z]|C:\\\\Users\\\\|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}|sk-[A-Za-z0-9]|ghp_[A-Za-z0-9]|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY'
 ```
 
+**7b. Prefixo de fornecedor BLOQUEIA mesmo em conteudo de demonstracao.** Uma string que *imita* um
+segredo real sem ser um continua a fazer disparar o push protection do GitHub (ja recusou um push por
+isto) e o scanner de quem clona, e ensina o padrao errado a quem le. Nao ha "chave de exemplo
+aceitavel" com prefixo real — trocar por um placeholder que nenhum scanner reconhece
+(`<STRIPE_SECRET_KEY>`, `sk_EXAMPLE_nao_e_uma_chave`).
+
+```bash
+git diff --cached | grep -nE 'sk_live_|sk_test_|pk_live_|pk_test_|rk_live_|ghp_|gho_|github_pat_|AKIA[0-9A-Z]{16}|xox[baprs]-|glpat-'
+```
+
 **8. História nova, não `--orphan`.** O `--orphan` **preserva o index** — o que se pensava ter ficado
 para trás vai no primeiro commit. Fazer `rm -rf .git && git init`.
 
@@ -119,6 +152,7 @@ git push --force-with-lease <remote> <branch>
 
 ```
 RELEASE AUDIT — <repo> → <remote alvo> (público | cliente | outra org)
+Topologia: origin=<url> | alvo=<remote> | memória versionada: sim/não  → OK ✓ | BLOQUEIO ✗
 Ship-list: N ficheiros (+X novos, −Y removidos vs release anterior)
 PII: N achados  [ficheiro:linha — tipo]
 Dependências da montagem pessoal: N  [ficheiro — o que assume]
@@ -129,5 +163,6 @@ VEREDICTO: pronto a publicar | NÃO publicar — <razão>
 ```
 
 ## Próximo passo (chain)
+- Passo 0 a falhar → **não há próximo passo**: corrigir os remotes primeiro, re-auditar do início.
 - Auditoria limpa → `/ship` (gate de push).
 - Achados de dependência pessoal → corrigir o componente para ser genérico, ou tirá-lo da ship-list.

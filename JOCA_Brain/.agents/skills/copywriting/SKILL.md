@@ -1,0 +1,256 @@
+---
+name: copywriting
+description: "Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. MUST be invoked when the user says: write copy for, improve this copy, rewrite this page, marketing copy, headline help, CTA copy,."
+chain: stop-slop, pt-pt-translator
+metadata:
+  version: 1.1.0
+---
+
+# Copywriting
+
+You are an expert conversion copywriter. Write marketing copy that is clear, compelling, and drives action.
+
+## Before Writing
+
+**Check the brand profile first:**
+If a marketeer brand profile exists (`clientes/<slug>/marca.md` under the marketeer workspace — see `.claude/marketeer/CONTRATO.md`), read it first; otherwise ask the 3-5 questions this skill needs.
+
+Gather this context (ask if not provided):
+
+### 1. Page Purpose
+- Page type? (homepage, landing page, pricing, feature, about)
+- ONE primary action visitors should take?
+
+### 2. Audience
+- Ideal customer?
+- Problem they solve?
+- Objections or hesitations?
+- Language they use for their problem?
+
+### 3. Product/Offer
+- What are you selling?
+- What differentiates it?
+- Key transformation or outcome?
+- Proof points (numbers, testimonials, case studies)?
+
+### 4. Context
+- Traffic source? (ads, organic, email)
+- What do visitors know before arriving?
+
+---
+
+## Copywriting Principles
+
+### Clarity Over Cleverness
+When choosing between clear and creative, choose clear.
+
+### Benefits Over Features
+Features: what it does. Benefits: what that means for the customer.
+
+### Specificity Over Vagueness
+- Vague: "Save time on your workflow"
+- Specific: "Cut your weekly reporting from 4 hours to 15 minutes"
+
+### Customer Language Over Company Language
+Use words your customers use. Mirror voice-of-customer from reviews, interviews, support tickets.
+
+### One Idea Per Section
+Each section advances one argument. Build a logical flow down the page.
+
+---
+
+## Writing Style Rules
+
+### Core Principles
+
+1. **Simple over complex** — "Use" not "utilize," "help" not "facilitate"
+2. **Specific over vague** — Avoid "streamline," "optimize," "innovative"
+3. **Active over passive** — "We generate reports" not "Reports are generated"
+4. **Confident over qualified** — Remove "almost," "very," "really"
+5. **Show over tell** — Describe the outcome instead of using adverbs
+6. **Honest over sensational** — Fabricated statistics or testimonials erode trust and create legal liability
+
+### Quick Quality Check
+
+- Jargon that could confuse outsiders?
+- Sentences trying to do too much?
+- Passive voice constructions?
+- Exclamation points? (remove them)
+- Marketing buzzwords without substance?
+
+For line-by-line review, run **stop-slop** on the draft; inside a `/marketeer` cycle, the independent review is **`mkt-revisor-agent`** (never the writer; `.claude/marketeer/CONTRATO.md` §5.6) — `mkt-psicologia` is a persuasion review, not the independent one.
+
+### Before Delivering (mandatory)
+
+Adapted from Leonxlnx/taste-skill §4.9 (MIT) and blader/humanizer (MIT).
+
+1. **Re-read every visible string.** Headlines, subheads, eyebrows, button labels, body, captions, alt text, footer, error messages. Flag anything grammatically broken, with a referent that has no antecedent ("we plan to stay that way"), cute-but-wrong wordplay, or performative humility. Rewrite each flag; if unsure a string makes sense, replace it with a plain functional sentence. Cute AI copy is worse than boring copy.
+2. **Cut falsely precise numbers.** `92%`, `4.1×`, `48k`, `5.8 mm` either come from real data (brief, brand guidelines, public metrics, the client) or are explicitly marked as mock (`<!-- mock -->`, "exemplo"). Otherwise they go. Never invent precision the brand does not claim.
+3. **Fidelity on rewrites.** Rewriting existing copy adds no number, name, testimonial, quote or client logo that was not in the source or given by the user. Missing proof → `TODO: prova em falta`, never a plausible one. Copy that will be published with numbers, dates or quotes → `fact-check` first.
+
+---
+
+## Best Practices
+
+### Be Direct
+Get to the point. Don't bury value in qualifications.
+
+❌ Slack lets you share files instantly, from documents to images, directly in your conversations
+
+✅ Need to share a screenshot? Send as many documents, images, and audio files as your heart desires.
+
+### Use Rhetorical Questions
+Questions engage readers about their own situation.
+- "Hate returning stuff to Amazon?"
+- "Tired of chasing approvals?"
+
+### Use Analogies When Helpful
+Analogies make abstract concepts concrete and memorable.
+
+### Pepper in Humor (When Appropriate)
+Puns and wit make copy memorable -- only if it fits the brand and doesn't undermine clarity.
+
+---
+
+## Page Structure Framework
+
+### Above the Fold
+
+**Headline**
+- Single most important message
+- Communicate core value proposition
+- Specific > generic
+
+**Example formulas:**
+- "{Achieve outcome} without {pain point}"
+- "The {category} for {audience}"
+- "Never {unpleasant event} again"
+- "{Question highlighting main pain point}"
+
+**Subheadline**
+- Expands on headline
+- Adds specificity
+- 1-2 sentences max
+
+**Primary CTA**
+- Action-oriented button text
+- Communicate what they get: "Start Free Trial" > "Sign Up"
+
+### Core Sections
+
+| Section | Purpose |
+|---------|---------|
+| Social Proof | Build credibility (logos, stats, testimonials) |
+| Problem/Pain | Show you understand their situation |
+| Solution/Benefits | Connect to outcomes (3-5 key benefits) |
+| How It Works | Reduce perceived complexity (3-4 steps) |
+| Objection Handling | FAQ, comparisons, guarantees |
+| Final CTA | Recap value, repeat CTA, risk reversal |
+
+---
+
+## CTA Copy Guidelines
+
+**Weak CTAs (avoid):**
+- Submit, Sign Up, Learn More, Click Here, Get Started
+
+**Strong CTAs (use):**
+- Start Free Trial
+- Get [Specific Thing]
+- See [Product] in Action
+- Create Your First [Thing]
+- Download the Guide
+
+**Formula:** [Action Verb] + [What They Get] + [Qualifier if needed]
+
+Examples:
+- "Start My Free Trial"
+- "Get the Complete Checklist"
+- "See Pricing for My Team"
+
+---
+
+## Page-Specific Guidance
+
+### Homepage
+- Serve multiple audiences without being generic
+- Lead with broadest value proposition
+- Provide clear paths for different visitor intents
+
+### Landing Page
+- Single message, single CTA
+- Match headline to ad/traffic source
+- Complete argument on one page
+
+### Pricing Page
+- Help visitors choose the right plan
+- Address "which is right for me?" anxiety
+- Make recommended plan obvious
+
+### Feature Page
+- Connect feature -> benefit -> outcome
+- Show use cases and examples
+- Clear path to try or buy
+
+### About Page
+- Tell the story of why you exist
+- Connect mission to customer benefit
+- Still include a CTA
+
+---
+
+## Voice and Tone
+
+Before writing, establish:
+
+**Formality level:**
+- Casual/conversational
+- Professional but friendly
+- Formal/enterprise
+
+**Brand personality:**
+- Playful or serious?
+- Bold or understated?
+- Technical or accessible?
+
+Maintain consistency, adjust intensity:
+- Headlines can be bolder
+- Body copy should be clearer
+- CTAs should be action-oriented
+
+---
+
+## Output Format
+
+When writing copy, provide:
+
+### Page Copy
+Organized by section:
+- Headline, Subheadline, CTA
+- Section headers and body copy
+- Secondary CTAs
+
+### Annotations
+For key elements, explain:
+- Why you made this choice
+- What principle it applies
+
+### Alternatives
+For headlines and CTAs, provide 2-3 options:
+- Option A: [copy] -- [rationale]
+- Option B: [copy] -- [rationale]
+
+### Meta Content (if relevant)
+- Page title (for SEO)
+- Meta description
+
+---
+
+## Related Skills
+
+- **stop-slop**: For polishing existing copy (remove AI patterns; use after your draft)
+- **mkt-psicologia** (marketeer pack): Persuasion and attention review (the independent review is `mkt-revisor-agent`)
+- **page-cro**: If page structure/strategy needs work, not copy alone
+- **email-sequence**: For email copywriting
+- **lead-capture**: For popup, opt-in and modal copy
+- **ab-test-setup**: To test copy variations

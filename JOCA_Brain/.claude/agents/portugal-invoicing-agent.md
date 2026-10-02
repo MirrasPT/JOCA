@@ -1,13 +1,16 @@
 ---
 name: portugal-invoicing-agent
-description: "portugal · Portuguese certified e-invoicing (faturação certificada) from Laravel via Moloni, InvoiceXpress or. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Moloni, faturação, fatura-recibo"
 skills: portugal-invoicing
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "dinheiro e faturação com regras legais"
 category: portugal
 triggers: Moloni, faturação, fatura, fatura-recibo, invoice Portugal, nota de crédito
 generated-from: .claude/skills/portugal-invoicing.md
 generated-by: skill-agents.mjs
-content-hash: 7a91812a833d991c
+content-hash: f9f3d704b32eafe8
 ---
 
 # portugal-invoicing — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

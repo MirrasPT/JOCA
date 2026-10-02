@@ -5,6 +5,8 @@ triggers: react performance, re-render, useEffect, server component, RSC, waterf
 ---
 # React Patterns — Performance + Correctness Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Invoked by `frontend` (or directly) when writing/reviewing React or Next.js code. The *how it runs*, not the *how it looks*.
 
 Bias: **derive, don't store. Render-time over effects. Parallel over waterfall. Server over client.**
@@ -199,6 +201,16 @@ const el = document.querySelector('.project-modal');
 const modalRef = useRef<HTMLDivElement>(null);
 ```
 Regra: focus-trap sempre por `ref` da própria instância, nunca por `querySelector` de classe partilhada. E o modal de baixo tem de ficar em silêncio (ignorar Tab/Escape) enquanto houver um modal aninhado aberto por cima.
+
+---
+
+## 8. Medir custo de CPU («puxar menos pelo PC»)
+
+Pedido de optimizar o consumo de um site (não o tempo de carga) **não tem receita no toolkit** — mede-se antes de mexer (caso real, 2026-09-15):
+- **Medir antes e depois de CADA mudança**, por fase (parado · rato a mexer · scroll · depois do scroll). O 1.º refactor desse caso (uma variável CSS herdada) **piorou** o recálculo de estilo e só a medição o mostrou.
+- **Medidor:** CDP `Performance.enable` + `Performance.getMetrics` no início e no fim de cada fase; comparar os deltas de `ScriptDuration`, `RecalcStyleDuration`, `LayoutDuration` e `TaskDuration`.
+- **Perfil:** CDP `Profiler.start`/`Profiler.stop` e ordenar funções por **self-time**, com linha:coluna para as mapear no chunk minificado.
+- **Headless não mede GPU** (com SwiftShader o composite é software) — custo de pintura/GPU mede-se num browser com GPU real, ou declara-se como não medido no relatório.
 
 ---
 

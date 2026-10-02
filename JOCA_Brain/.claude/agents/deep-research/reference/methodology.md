@@ -1,5 +1,19 @@
 # Deep Research Methodology: 8-Phase Pipeline
 
+## Contents
+
+- Overview
+- Phase 1: SCOPE - Research Framing
+- Phase 2: PLAN - Strategy Formulation
+- Phase 3: RETRIEVE - Parallel Information Gathering
+- Phase 4: TRIANGULATE - Cross-Reference Verification
+- Phase 4.5: OUTLINE REFINEMENT - Dynamic Evolution (WebWeaver 2025)
+- Phase 5: SYNTHESIZE - Deep Analysis
+- Phase 6: CRITIQUE - Quality Assurance
+- Phase 7: REFINE - Iterative Improvement
+- Phase 8: PACKAGE - Report Generation
+- Advanced Features
+
 ## Overview
 
 This document contains the detailed methodology for conducting deep research. The 8 phases represent a comprehensive approach to gathering, verifying, and synthesizing information from multiple sources.

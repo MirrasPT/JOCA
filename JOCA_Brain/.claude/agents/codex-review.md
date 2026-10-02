@@ -1,16 +1,11 @@
 ---
 name: codex-review
-description: |
-  Use for adversarial code review from a different AI model perspective (OpenAI GPT/o3 via Codex CLI).
-  This breaks the "same model reviewing its own output" problem — Claude cannot objectively critique
-  its own code. Use after Claude generates or modifies significant code, or when the user wants
-  a second opinion on security, logic, or architecture from a different model.
-  Different from `tester-code` — that agent uses Claude (same model, same blind spots);
-  codex-review uses OpenAI's model for genuinely independent critique.
-  Triggered by: "review with Codex", "second opinion on this code", "adversarial review",
-  "check with a different model", "OpenAI review".
+description: "review adversarial via Codex/GPT"
 tools: Bash, Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "ponte para o CLI codex: o juízo da review é do GPT"
 triggers: review adversarial, segunda opiniao, codex review, revisao cruzada
 ---
 

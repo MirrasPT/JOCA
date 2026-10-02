@@ -6,6 +6,8 @@ triggers: sentry, flare, production logging, structured logging, JSON logs, corr
 
 # Error Tracking — Production
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Monitoring and logging for production. Sentry/Flare + structured logging + health checks.
 
 **Activate** when `laravel-specialist` or `deploy-*` configures production environment.

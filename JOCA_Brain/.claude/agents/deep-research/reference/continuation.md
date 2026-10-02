@@ -1,5 +1,14 @@
 # Auto-Continuation Protocol
 
+## Contents
+
+- When to Use
+- Strategy Overview
+- Continuation State File
+- Spawning Continuation Agent
+- Continuation Agent Quality Protocol
+- User Communication
+
 ## When to Use
 
 Trigger auto-continuation when report exceeds 18,000 words in single run.

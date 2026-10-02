@@ -22,13 +22,13 @@ JOCA/
 │   │   ├── soul.md          <- personalidade e decision filters
 │   │   ├── SKILL_INDEX.json <- indice lazy-loading
 │   │   ├── projects/        <- estado por projecto (/save)
-│   │   └── tools/           <- graphify, routing
+│   │   └── tools/           <- CLIs e MCPs (install + auth)
 │   └── .claude/
-│       ├── commands/        <- 31 comandos (/install, /resume, /save, /plan, /goal, ...)
-│       ├── agents/          <- 109 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 173 skills flat (.md) — on-demand loading
+│       ├── commands/        <- 30 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── agents/          <- 97 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 178 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
-│       ├── rules/           <- api-design, testing, task-intake, orchestration-patterns
+│       ├── rules/           <- task-intake, pipelines, chaining, orchestration-patterns, stack-padrao
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
 │
 └── JOCA_OS/                 <- Interface: terminais multi-sessao
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**313 componentes:** 173 skills + 109 agents + 31 commands.
+**305 componentes:** 178 skills + 97 agents + 30 commands.
 
 ---
 
@@ -112,18 +112,18 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ---
 
-## Skills (173)
+## Skills (178)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
 ### Base & JOCA
-`caveman` · `karpathy-guidelines` · `agent-context` · `create-skill` · `context-pack` · `pt-pt-translator` · `joca-os-windows` · `browser-automate` · `yagni` · `agent-sdk` · `comfy-mcp-workarounds`
+`caveman` · `create-skill` · `context-pack` · `pt-pt-translator` · `joca-os-windows` · `browser-automate` · `yagni` · `comfy-mcp-workarounds`
 
 ### Guard-rails
 `freeze` · `careful` · `guard` · `tdd` · `unfreeze`
 
 ### Planeamento & Specs
-`plan` · `planning` · `prd` · `tech-spec` · `task-breakdown` · `adr` · `rfc` · `c4-diagram` · `blueprint` · `html-review`
+`plan` · `prd` · `tech-spec` · `c4-diagram` · `html-review`
 
 ### Design & Frontend
 `frontend` · `mobile` · `design-system` · `design-tokens` · `component-system` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-review` · `tailwind` · `shadcn` · `react-composition` · `react-patterns` · `landing-page`
@@ -144,13 +144,13 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 `marketing` · `paid-ads` · `seo` · `seo-local` · `copywriting` · `content-strategy` · `content-calendar` · `social-content` · `email-sequence` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `competitor-profiling` · `lead-capture`
 
 ### Analytics
-`google-analytics` · `microsoft-clarity`
+`analytics-tracking` · `cloudflare-analytics`
 
 ### Video
 `video` · `hyperframes` · `remotion` · `lyric-align`
 
 ### WordPress
-`wordpress-router` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-abilities-api` · `wp-interactivity-api` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `wp-wpcli-and-ops` · `wpds`
+`wp-index` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-abilities-api` · `wp-interactivity-api` · `wp-performance` · `wp-phpstan` · `wp-playground` · `wp-wpcli-and-ops`
 
 ### Shopify
 `shopify-router` · `shopify-app` · `shopify-theme` · `shopify-store-audit` · `shopify-store-fixer`
@@ -163,7 +163,7 @@ Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: u
 
 ---
 
-## Agents (109)
+## Agents (97)
 
 Agentes correm em sub-processos isolados, em paralelo.
 
@@ -177,20 +177,20 @@ Agentes correm em sub-processos isolados, em paralelo.
 `deep-research` · `seo-analyst` · `dependency-auditor`
 
 ### Orchestration & Self-improvement
-`master-orchestrator` · `task-router` · `self-improver` · `gemini-auditor` · `skill-evaluator` · `skill-improver`
+`task-router` · `self-improver` · `gemini-auditor` · `skill-evaluator` · `skill-improver`
 
 ### Generation & Media
 `img-gen-openai` · `img-gen-google` · `video-gen` · `watch` · `gemini-brain`
 
 ### Specialists
-`payment-integration` · `security-review` · `laravel-refactor` · `filament-builder` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
+`payment-integration` · `security-review` · `laravel-refactor` · `pr-repair` · `deploy-executor` · `a11y-fixer` · `tech-debt-auditor`
 
 ### Autonomia & Pessoal
 `knowledge-ingest` · `personal-comms` (Fase 2/3)
 
 ---
 
-## Commands (31)
+## Commands (30)
 
 | Command | Funcao |
 |---------|--------|
@@ -211,7 +211,6 @@ Agentes correm em sub-processos isolados, em paralelo.
 | `/create-skill` | Pipeline self-improving para criar skills |
 | `/upgrade-joca` | Le feedback e implementa melhorias |
 | `/update-joca` | Sync com repositorio GitHub |
-| `/migrate` | Guia de migracao v1-legacy -> v2.0 |
 | `/status` | Mostra rate limits, modelo e contexto |
 | `/wp-perf-review` | Code review WP completo |
 | `/wp-perf` | Quick triage WP |
@@ -227,7 +226,7 @@ Sequencias pre-definidas activadas automaticamente:
 |----------|-----------|
 | Nova feature Laravel | `plan` -> `laravel-specialist` -> `tester-code` -> `tester-api` |
 | SaaS / multi-tenant | `plan` -> `saas-patterns` -> `laravel-specialist` -> `tester-security` |
-| E-commerce full-stack | `plan` -> `saas-patterns` -> `laravel-specialist` -> `filament-builder` -> `laravel-react` -> `frontend`+`shadcn` -> `payment-integration` |
+| E-commerce full-stack | `plan` -> `saas-patterns` -> `laravel-specialist` -> `filament` -> `laravel-react` -> `frontend`+`shadcn` -> `payment-integration` |
 | Frontend producao | `design-system` -> `frontend` -> `react-composition`+`tailwind`+`react-patterns` -> `anima` -> `design-review`+`tester-ui-ux` |
 | One-shot | `master-orchestrator` -> parallel agents -> `tester-*` (auto) |
 | Debug | `log-debugger` -> `query-debugger` (se SQL) |
@@ -259,7 +258,7 @@ bash .claude/scripts/compile-bridges.sh
 - **Node.js 18+** (para JOCA_OS)
 - **macOS** ou **Windows** (Linux experimental)
 - No Windows: Visual Studio Build Tools + Python 3.x (build do node-pty)
-- Opcional: Python 3.10+ (graphify), Docker (Firecrawl)
+- Opcional: Python 3.10+ (build-skill-index), Docker (Firecrawl)
 
 ---
 

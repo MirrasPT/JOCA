@@ -1,13 +1,16 @@
 ---
 name: wp-block-development-agent
-description: "wordpress · Develop Gutenberg blocks — block.json, attributes/serialization, dynamic render, deprecations. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "block invalid, block.json"
 skills: wp-block-development
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: block invalid, block.json, create-block
 generated-from: .claude/skills/wp-block-development.md
 generated-by: skill-agents.mjs
-content-hash: 452ffad3d20520a0
+content-hash: 560448676f9e93d6
 ---
 
 # wp-block-development — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

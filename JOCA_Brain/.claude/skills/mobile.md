@@ -5,6 +5,8 @@ triggers: responsivo, responsive, mobile, mobile-first, touch, swipe, bottom she
 ---
 # Mobile — Responsive & Mobile Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Takes a design (from `frontend` skill or standalone) and optimises it for mobile. Touch-first, performance-first, native-feel.
 
 Auto-invoked by `frontend` after first draft, or directly by user.
@@ -130,6 +132,8 @@ Always set `width` + `height` or `aspect-ratio` to prevent CLS.
 }
 ```
 
+**Texto nunca abaixo do tamanho base do token — «melhorar o responsivo» não é encolher.** Proibido `FittedBox` (Flutter) ou qualquer mecanismo que escale o texto para caber: numa app Flutter real encolheu texto até 7,9 dp e anulou a escala de texto do sistema, e os testes de overflow passaram verdes (2026-09-27). Responsivo = **quebrar linha, rolar ou empilhar**. O gate de layout mede o **tamanho efectivo do texto** (dp/px) a **320 dp de largura e com escala de texto 1.3×**, não só a ausência de overflow.
+
 ### Forms on Mobile
 - Labels above input (never beside)
 - Correct `inputmode`: `numeric`, `email`, `tel`, `url`, `search`
@@ -241,6 +245,15 @@ depois de rondas de auditoria ao HTML. Obrigatório em qualquer alteração a na
 `ok: false` = link morto, e o `blocker` diz quem está por cima. **Carga limpa** (`goto` fresco), não
 uma página já mexida — o estado acumulado esconde o defeito.
 
+### O controlo tem nome? (árvore de acessibilidade, não o DOM)
+
+Um controlo touch que rende `<button>` — Radix/shadcn/Headless UI Checkbox, Switch, Radio — **não**
+recebe nome acessível de um `<label for>`: o nome de um `<button>` vem de `aria-labelledby` /
+`aria-label` / conteúdo. Medir pelo **nome acessível computado** (`page.accessibility.snapshot()` ou
+axe-core), nunca por inspecção do DOM: `elementFromPoint` não chega lá e `tsc`+`eslint`+`build` passam
+com 9 controlos sem nome. Regra completa + exemplo:
+`Read(".claude/skills/shadcn.md")` → "Accessible names on `<button>`-rendering controls".
+
 ### Provar antes de editar
 
 Para validar um fix de CSS: injectar o candidato na página ao vivo (`addStyleTag`) e **re-medir** com
@@ -255,9 +268,11 @@ concretos (item a item, `left`/`right` vs largura do viewport) para mostrar ao c
 - [ ] 375px without horizontal scroll — **medido pela rotina de rects acima**, não por `scrollWidth`
 - [ ] Links de nav/header/overlay passam o teste `elementFromPoint`
 - [ ] Touch targets >= 44px
+- [ ] Checkbox/Switch/Radio headless têm nome acessível **computado** (rendem `<button>`; `<label for>` não os nomeia)
 - [ ] Safe areas respected (notch, home indicator)
 - [ ] Inputs with correct `inputmode`
 - [ ] Font size >= 16px body (prevents iOS auto-zoom)
+- [ ] Nenhum texto abaixo do token base (sem `FittedBox`/encolher) — medido a 320 dp com escala de texto 1.3×
 - [ ] Images with `width`/`height` or `aspect-ratio`
 - [ ] `prefers-reduced-motion` respected
 - [ ] Bottom sheet instead of modal (when applicable)

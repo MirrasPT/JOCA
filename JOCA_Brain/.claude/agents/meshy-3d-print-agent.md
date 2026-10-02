@@ -1,13 +1,16 @@
 ---
 name: meshy-3d-print-agent
-description: "3d · Levar um modelo 3D a imprimir: análise de imprimibilidade, reparação de malha, multicolor 3MF e. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "imprimir modelo 3d, watertight"
 skills: meshy-3d-print
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "preparação de impressão por checklist"
 category: 3d
 triggers: imprimibilidade, imprimivel, malha imprimivel, watertight, estanque, non-manifold
 generated-from: .claude/skills/meshy-3d-print.md
 generated-by: skill-agents.mjs
-content-hash: 097d3ac119015fb8
+content-hash: 8595213299412516
 ---
 
 # meshy-3d-print — agente de execução

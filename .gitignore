@@ -4,7 +4,6 @@ dist/
 *.log
 .env
 .env.*
-graphify-out/
 package-lock.json
 # Runtime + personal state (projects, settings, tasks, automations).
 # Local-only per machine — never commit. Mirrors JOCA_OS/.gitignore.
@@ -15,6 +14,8 @@ rename-to-brain.bat
 # Local per-machine Claude Code settings (permissions, local overrides) — never commit.
 # Do NOT rely on a global gitignore for this: it must be enforced by the repo itself.
 **/.claude/settings.local.json
+# Escolha local de modelo/effort por agente (modelos-agentes.mjs --aplicar) — por máquina, nunca no repo.
+**/.claude/modelos-agentes.local.json
 .claude/scheduled_tasks.lock
 **/.playwright-mcp/
 

@@ -1,13 +1,16 @@
 ---
 name: cpanel-agent
-description: "deploy · Gerir contas cPanel (ficheiros, domínios, DNS, email, bases de dados, cron, SSL) via UAPI com API. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "cpanel, uapi, addon domain"
 skills: cpanel
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
 triggers: cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel
 generated-from: .claude/skills/cpanel.md
 generated-by: skill-agents.mjs
-content-hash: 7b72d803f5f5ff26
+content-hash: 20db0dc7937dd1c0
 ---
 
 # cpanel — agente de execução

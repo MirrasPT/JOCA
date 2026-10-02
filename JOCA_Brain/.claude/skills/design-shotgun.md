@@ -17,17 +17,25 @@ Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **diverg
 ## Workflow
 
 ### 1. Fundação (sequencial, antes do fan-out)
+- **Consigo ver o ecrã actual? (pré-condição bloqueante).** Variantes de um ecrã que já existe partem do ecrã **a correr**, não da leitura do código. Atrás de login, resolver o acesso primeiro — o Chrome MCP não herda a sessão do utilizador (redirige para `/login`); alternativas: sessão passada ao gate, showcase sem auth, ou captura pedida ao utilizador **antes** da 1.ª ronda. Detalhe: `.claude/reference/gates-runtime.md` §Pré-condição de UI.
+- **Inventariar as entregas anteriores do cliente ANTES de pedir referências externas.** `ls` às pastas de final/print/export do cliente no disco (Google Drive incluído) e abrir a entrega **mais recente** — havendo várias edições/versões, a última manda (entre a 2.ª e a 3.ª edição de uma peça a diferença era total). O que o cliente já aprovou é a referência mais forte que existe; as externas vêm depois, a complementar.
 - Ler o sistema de design se existir: `DESIGN.md`, tokens, `brand-guidelines`. Variantes respeitam o sistema (não inventam paletas do nada, salvo se o brief for "explorar identidade").
 - Definir o **brief comum**: o que é a página/componente, o objectivo, a audiência, 1 constraint dura (ex.: "tem de caber above-the-fold").
-- **Pedir 2-3 referências concretas ANTES do fan-out** (URLs ou imagens que o utilizador goste) e declarar em 1 linha o que se retém de cada uma. Sem referências, os eixos abstractos não transmitem o que o utilizador tem na cabeça: duas rondas completas (6+6 agentes) foram deitadas fora porque a frase que resolveu tudo — "elegantes, requinte mas moderno, um mais minimalista, um mais bold" + 3 URLs — só chegou depois de ele ver o resultado errado.
+- **Pedir 2-3 referências reais ANTES do fan-out — item obrigatório, não opcional.** URLs de sites vivos ou imagens que o utilizador goste (e, se der, 1 anti-referência: "assim não"), e declarar em 1 linha o que se retém de cada uma. Sem referências os eixos abstractos não transmitem o que ele tem na cabeça, e o fan-out está a adivinhar o gosto: duas rondas completas (6+6 agentes) foram deitadas fora porque a frase que resolveu tudo — "elegantes, requinte mas moderno, um mais minimalista, um mais bold" + 3 URLs — só chegou depois de ele ver o resultado errado. É a pergunta mais barata da skill: 1 linha, antes de gastar 3-5 agentes ×15x tokens. Se não tiver nenhuma à mão, propor 3 candidatas nomeadas e pedir que escolha/rejeite; nunca arrancar com "vou explorar e depois vemos".
+- **Medir as referências antes de escrever o brief comum.** Capturar (`site-capture`) e extrair tokens
+  por `getComputedStyle` — ritmo vertical, escala tipográfica, raios, cores. Os agentes receberam «ritmo
+  de 120px, escala 72→54→42, raio único 36» em vez de adjectivos, e as três variantes subiram de nível
+  (2026-09-10). Sem números, o brief é descrição.
 - **Benchmark visual sem imagens não é benchmark, é descrição.** Se a referência é um produto que só se conhece por pesquisa textual, pedir capturas — ou dizer explicitamente que o resultado é uma interpretação, não uma adaptação. Pesquisa textual descreve funcionalidades, não anatomia visual.
 - **Ler o banco de eixos**: `Read(".claude/reference/design-dataset.md")` — paletas OKLCH verificadas, pares de fontes e estilos nomeados. Cada variante = 1 estilo + 1 paleta + 1 par de fontes, combinações DISTINTAS; registar a combinação no output (`[V2: brutalist-editorial + Ember + Fraunces/Inter]`). Anti-convergence: excluir os eixos usados nos 2-3 projectos anteriores do mesmo tipo (`memory/projects/`).
 - Definir **3-6 eixos de divergência** (cada variante explora um). Os eixos têm de ser **estruturais**, não só estéticos: ordem e número de secções, tipo de navegação, densidade, grelha (simétrica vs quebrada), o que ocupa o primeiro viewport, foto-driven vs tipográfico. Trocar só o `<style>` sobre o mesmo markup produz peles da mesma variante, não variantes.
 - **Registo/intenção** é o 4º eixo, obrigatório: silencioso · acolhedor · imponente · documental · cinematográfico. Três agentes já convergiram no mesmo registo (arquivo frio, acento azul, numerais tabulares) com três estilos nomeados diferentes — os eixos de estilo/paleta/fonte separam gramática visual, não intenção. Variantes concorrentes têm de diferir aqui.
 
+- **Gate antes do fan-out** (verificar, não assumir): (a) as 2-3 referências estão em mão; (b) cada variante tem eixo estrutural + registo próprios. **Se as variantes partilham o mesmo DOM, não são variantes de design** — são temas. Ao receber os outputs, comparar a estrutura (ordem/número de secções, tipo de nav, o que ocupa o 1º viewport): se duas variantes só diferem em CSS, contam como uma e uma tem de ser refeita.
+
 ### 2. Fan-out das variantes (paralelo)
 - Despachar **3-5 agentes** em paralelo (`img-gen-openai`/`img-gen-google` para imagem; ou geração de HTML/JSX estático para mockup navegável). Cap 3-5 (custo de contexto).
-- **Brief de cada agente** carrega: o brief comum + o SEU eixo + o sistema de design + anti-fabricação (sem inventar copy/dados — usar placeholders marcados) + Step 0 (Read `brand-guidelines`/`design-tokens` se relevante).
+- **Brief de cada agente** carrega: o brief comum + o SEU eixo + o sistema de design + anti-fabricação (sem inventar copy/dados — usar placeholders marcados) + Step 0 (Read `brand-guidelines`/`design-system` se relevante).
 - Cada agente escreve o output para disco (`scratchpad/shotgun/<n>/`) e devolve só um resumo + path (padrão "agentes escrevem para disco" — `rules/orchestration-patterns.md`).
 
 ### 3. Board de comparação
@@ -46,6 +54,25 @@ Diferença para `img-gen` (1 imagem) e `frontend` (implementa): isto é **diverg
 - Escolher 1 (ou fundir o melhor de 2). Registar a decisão: `node .claude/scripts/joca-brain.mjs decide --text "design escolhido: <…>" --source user`.
 - Iterar a escolhida 1-2x se preciso.
 
+#### ⛔ A direcção escolhida é um CONTRATO visual, não um ponto de partida
+
+**Regra (crítica, vale para qualquer direcção estética que o utilizador escolha — mockup, quadro de
+uma exploração AI, referência que ele apontou): o trabalho seguinte é IGUALÁ-LA, não sistematizá-la.**
+
+O que aconteceu: o utilizador escolheu o quadro 6 de uma exploração e recebeu de volta uma
+**reinterpretação paramétrica** — coerente, medida, defensável, e visivelmente diferente do que ele
+tinha escolhido. Reacção literal: *"o que eu gostei foi isto, não o que criaste"*. Custou uma ronda
+inteira de geração e **~1 M tokens**. O erro não foi de execução: foi **substituir uma decisão de
+gosto que era dele por uma minha, e chamar-lhe melhoria**.
+
+- Uma direcção escolhida **não se limpa, não se normaliza, não se "eleva"**. Herda-se: mesma paleta,
+  mesmo grão, mesmo enquadramento, mesmo registo, mesmos defeitos que fazem parte do look.
+- "Sistematizar" é uma decisão de gosto disfarçada de rigor. Não se faz por iniciativa própria.
+- Se a versão sistematizada for mesmo necessária (tokens, escala, consistência de família), produz-se
+  **AO LADO** e apresenta-se como **alternativa** — nunca em vez dela, nunca como entrega única.
+- **Teste antes de apresentar (objectivo e barato):** pôr o entregável **lado a lado com a referência
+  escolhida** e perguntar *"isto parece o mesmo estilo?"*. Se a resposta honesta for "é melhor, mas é
+  outra coisa", não está pronto. Este teste custa um screenshot; saltá-lo custou 1 M tokens.
 ### 5. Autópsia obrigatória à 3ª rejeição
 **Três rondas rejeitadas seguidas → parar de produzir.** Não se gera a 4ª ronda: despacha-se **1 agente de autópsia** sobre as rejeitadas, com uma pergunta só — *o que é que estas propostas têm em COMUM?* O que varia entre elas já foi variado; a causa está no que não variou.
 

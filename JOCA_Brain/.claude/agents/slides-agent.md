@@ -1,13 +1,16 @@
 ---
 name: slides-agent
-description: "design · Creating HTML/CSS presentations, pitch decks, or slide-based content at 1920x1080. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "slides, apresentação, presentation"
 skills: slides
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
 triggers: slides, apresentação, presentation, pitch deck, deck, powerpoint
 generated-from: .claude/skills/slides.md
 generated-by: skill-agents.mjs
-content-hash: 6eee190b2683a55a
+content-hash: 7e46565c4e803edc
 ---
 
 # slides — agente de execução

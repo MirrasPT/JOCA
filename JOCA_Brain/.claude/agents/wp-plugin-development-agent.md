@@ -1,13 +1,16 @@
 ---
 name: wp-plugin-development-agent
-description: "wordpress · WordPress plugin architecture — hooks, activation/uninstall, Settings API, cron, security, packaging. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "criar plugin WP, settings page"
 skills: wp-plugin-development
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: criar plugin WP, settings page, nonces/capabilities
 generated-from: .claude/skills/wp-plugin-development.md
 generated-by: skill-agents.mjs
-content-hash: 1d7696d80c7982a4
+content-hash: 3c7abde305fd546a
 ---
 
 # wp-plugin-development — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

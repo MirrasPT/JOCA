@@ -1,5 +1,15 @@
 Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/backups.md")` ao configurar ou rever backups.
 
+## Contents
+
+- Setup
+- Config
+- S3/R2 disk
+- Schedule
+- DB-only backup (fast, more frequent)
+- Monitoring
+- .env
+
 ## 1. Backups (spatie/laravel-backup)
 
 ### Setup

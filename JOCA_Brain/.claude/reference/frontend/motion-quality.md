@@ -7,6 +7,14 @@ Cada item e binario: passa ou nao passa. "Podia estar melhor" nao e um veredito.
 
 ---
 
+## Conteúdo
+
+- Rubrica
+- Severidade
+- Diagnostico: sintoma → causa
+  - As tres camadas (ferramenta de diagnostico, nao regra)
+- Adaptacao ao contexto
+
 ## Rubrica
 
 **Visual**

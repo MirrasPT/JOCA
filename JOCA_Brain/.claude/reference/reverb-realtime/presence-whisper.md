@@ -1,5 +1,12 @@
 > Parte da skill `reverb-realtime` — carregado on-demand via Read().
 
+## Contents
+
+- Presence Channels
+- Client Events (Whisper)
+- Notification Broadcasting
+- Model Broadcasting (Eloquent)
+
 ## Presence Channels
 
 ```javascript

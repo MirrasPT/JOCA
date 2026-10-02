@@ -6,6 +6,8 @@ chain: query-debugger
 ---
 # MySQL
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Schema design and optimization. EXPLAIN analysis, composite indexes, SARGability, efficient pagination.
 
 Auto-invoked by `laravel-specialist` for slow queries or schema design.

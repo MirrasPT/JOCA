@@ -1,0 +1,27 @@
+{
+ "skill": "file-organization",
+ "deve": [
+  "organiza esta pasta de assets",
+  "arruma os ficheiros soltos do projecto",
+  "renomear ficheiros com nomes decentes",
+  "limpa a pasta de exports e encontra duplicados",
+  "plano de organização para a pasta do cliente",
+  "clean up this folder and rename files",
+  "há ficheiros duplicados na pasta de design, vê",
+  "nomear assets de forma consistente",
+  "organização de ficheiros da pasta documentos",
+  "arrumar a pasta de fotos por evento"
+ ],
+ "quase": [
+  "limpa o disco do pc",
+  "apaga o node_modules",
+  "organiza os issues",
+  "organiza o código em pastas",
+  "renomeia a variável",
+  "faz backup da pasta",
+  "sincroniza a pasta com o drive",
+  "organiza o calendário",
+  "arruma o backlog",
+  "limpa a cache"
+ ]
+}

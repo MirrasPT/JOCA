@@ -1,0 +1,27 @@
+{
+ "skill": "design-review",
+ "deve": [
+  "revê o design desta página e dá nota",
+  "isto está bom? parece feito por AI",
+  "critica a ui do dashboard",
+  "design review do site em produção",
+  "is this good? critique this UI",
+  "o site tem cara de AI slop, revê",
+  "dá feedback de design à homepage",
+  "score this UI from 1 to 10",
+  "review my page design",
+  "revê o plano de design antes de codar"
+ ],
+ "quase": [
+  "valida o mockup contra o design system",
+  "revê o código do componente",
+  "desenha o ecrã de perfil",
+  "audita acessibilidade WCAG",
+  "review do PR",
+  "escreve o texto da página",
+  "gera variantes da homepage",
+  "mede a performance do site",
+  "transforma o mockup em html",
+  "cria o design system"
+ ]
+}

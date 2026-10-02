@@ -1,11 +1,11 @@
 ---
 name: skill-improver
-description: >
-  Specialist agent for improving Claude Code SKILL.md files. Receives a skill draft and
-  improvement context, applies targeted enhancements, and returns the improved skill content.
-  Used internally by the create-skill pipeline. Not for direct user invocation.
+description: "melhora SKILL.md (create-skill)"
 tools: Read, Write, Edit, WebSearch, WebFetch
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "reescreve doutrina de skills"
 triggers: melhorar skill, optimizar skill, reescrever skill
 ---
 

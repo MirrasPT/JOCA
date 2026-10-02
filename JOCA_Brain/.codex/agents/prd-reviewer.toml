@@ -1,4 +1,4 @@
-description = """Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD. Triggers: "revê o PRD", "valida o PRD", "o PRD está completo?", "review do PRD", after generating PRD.md"""
+description = """revê o PRD.md"""
 developer_instructions = """
 
 # Agent: prd-reviewer
@@ -65,13 +65,13 @@ Para cada AC identificado:
 - Métricas sem método de medição?
 - Personas sem JTBD?
 - Fases sem critério de conclusão?
-- Referências a "ver mockup" sem link funcional?
+- Referências a \"ver mockup\" sem link funcional?
 
 ### 3. Classificar gaps por severidade
 
 **CRITICAL** — bloqueia uso eficaz do PRD por Claude Code:
 - Acceptance Criteria em falta para features P0
-- North Star Metric em branco ou vaga ("melhorar a conversão")
+- North Star Metric em branco ou vaga (\"melhorar a conversão\")
 - User Stories sem formato reconhecível
 - NFRs completamente ausentes
 

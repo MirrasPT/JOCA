@@ -7,6 +7,8 @@ chain: tester-api, tester-ratelimit
 
 # REST API
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 REST API design. Resource-oriented URLs, RFC 9457 errors, Sunset versioning, efficient pagination.
 
 Auto-invoked by `laravel-specialist` for endpoint design or contract definition.
@@ -208,6 +210,18 @@ Every API needs an OpenAPI spec:
 - `operationId` on each operation
 - Request/response examples
 - Validate: `npx @redocly/cli lint openapi.yaml`
+
+---
+
+## Consumir API de terceiros — smoke contra a API real
+
+**Passo inicial: procurar a spec pública do fornecedor** (`/openapi.json`, `/swagger.json`,
+`/rest/doc.json`) e cruzar o conector contra ela; cada divergência traz o caminho JSON da spec que a
+prova. Caso real (projecto de cliente, 2026-09-18): a spec OpenAPI estava pública e sem autenticação desde o início, o
+conector foi escrito durante semanas contra suposições, e cruzá-lo deu 12 defeitos reais. A spec serve
+para cruzar o conector; as fixtures continuam a vir das respostas reais (abaixo).
+
+Uma integração só fica pronta depois de **1 chamada real por endpoint**, com a resposta guardada como fixture. Os fakes (`Http::fake`) copiam essas respostas reais, nunca a spec. Importação com 0 registos é erro visível no comando, não sucesso silencioso. (Mesmo projecto, 2026-10-01: fakes escritos da spec esconderam 2 defeitos de forma — paginação e resposta em lista — e a 1.ª importação deu 0/10 sem erro.)
 
 ---
 

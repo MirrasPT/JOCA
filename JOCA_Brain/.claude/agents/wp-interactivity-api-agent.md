@@ -1,13 +1,16 @@
 ---
 name: wp-interactivity-api-agent
-description: "wordpress · Building or debugging WordPress Interactivity API features (data-wp-* directives. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "WordPress Interactivity API"
 skills: wp-interactivity-api
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: WordPress Interactivity API
 generated-from: .claude/skills/wp-interactivity-api.md
 generated-by: skill-agents.mjs
-content-hash: 7a45b41a8db6f242
+content-hash: f028051aa5c7a50c
 ---
 
 # wp-interactivity-api — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

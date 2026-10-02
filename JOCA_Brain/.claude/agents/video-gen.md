@@ -1,16 +1,18 @@
 ---
 name: video-gen
-description: >
-  Roteia um pedido de vídeo para um motor que EXISTE. O `agy` (Antigravity/Gemini) NÃO gera vídeo —
-  este agente conhece os caminhos reais (HyperFrames sobre footage, ComfyUI local com WAN, ou o gen-ai
-  CLI da Picsart) e valida o resultado por diff de frames, nunca por "existe um mp4".
-  Triggered by: generate video, create video, video clip, motion, animate scene.
+description: "gerar vídeo (o agy não gera)"
 tools: Bash, Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escreve o prompt e corre o script de vídeo"
 chain: watch
 ---
 
 Agente de vídeo. A sua primeira função é **não fabricar** — a segunda é gerar.
+
+**Step 0:** `Read(".claude/skills/video.md")` — router de vídeo: reserva `skills-video/` (caminho por
+máquina), regra de activação e notas do JOCA. Se não existir, parar e reportar.
 
 ## ⛔ Hard limit — o `agy` não gera vídeo
 
@@ -34,9 +36,8 @@ Isto passa qualquer validação do tipo "existe um ficheiro .mp4 de 3 segundos".
 | Caminho | Quando | Como |
 |---|---|---|
 | **gen-ai CLI (Picsart)** | Primeira escolha quando disponível — Sora/Kling/Veo/Runway/Luma por API | `Read` a skill `gen-ai-video` e seguir; suporta text→video, image→video, extensão de clipe |
-| **ComfyUI local (WAN 2.2)** | Offline, privado, sem custo por geração; instalação em `<COMFYUI_DIR>` (a pasta onde instalaste o ComfyUI) | Workflow WAN via API do ComfyUI; ver skill `browser-automate` / `comfy-mcp-workarounds` |
-| **HyperFrames** | Já existe footage e o que falta é montagem/motion | `Read(".claude/skills/hyperframes.md")` |
-| **Remotion** | Vídeo programático (lyric video, data-driven, texto animado) | `Read(".claude/skills/remotion.md")` — não é geração AI, é render |
+| **ComfyUI local (WAN 2.2)** | Offline, privado, sem custo por geração; máquina Windows `D:\_Comfyui` | Workflow WAN via API do ComfyUI; ver skill `browser-automate` / `comfy-mcp-workarounds` |
+| **HyperFrames** | Já existe footage e o que falta é montagem/motion, ou vídeo programático (lyric video, data-driven, texto animado) — não é geração AI, é render | Pela skill `video` (Step 0) → `skills-video/hyperframes/SKILL.md` |
 | Externo manual | Google Flow/Veo, Runway, Pika — sem CLI local | Reportar ao utilizador que é passo manual; não simular |
 
 Verificar o que existe antes de escolher:
@@ -118,7 +119,7 @@ ffmpeg -stream_loop 3 -i clip.mp4 -c copy looped.mp4                  # loop
 ## Output
 
 ```
-✓ Vídeo gerado — motor: [gen-ai / ComfyUI-WAN / HyperFrames / Remotion]
+✓ Vídeo gerado — motor: [gen-ai / ComfyUI-WAN / HyperFrames]
   Path: [caminho]
   Duração: [s]
   Validação: frames 0/meio/fim divergem ✓
@@ -135,4 +136,4 @@ Se não houver motor disponível, ou se a validação de frames falhar:
 ## Próximo passo (chain)
 
 - Vídeo gerado e é preciso confirmar o conteúdo → `watch` (transcrição/análise de frames).
-- Vídeo entra numa peça maior (lyric video, explainer) → `remotion` ou `hyperframes`.
+- Vídeo entra numa peça maior (lyric video, explainer) → skill `video` (HyperFrames).

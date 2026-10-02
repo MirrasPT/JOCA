@@ -1,10 +1,13 @@
 ---
 name: payment-integration
-description: "Integra pagamentos: Stripe, Laravel Cashier, MB Way, Multibanco, webhooks, subscription billing, SCA/3DS. Triggers: integrate Stripe, add payments, Stripe Checkout, webhook Stripe, refund flow, PCI compliance, 3D Secure, MB Way, Multibanco, chargeback."
+description: "Stripe, Cashier, MB WAY"
 skills: laravel-specialist, webhooks, security
 chain: tester-security
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "pagamentos: dinheiro e segurança"
 ---
 
 Payment integration specialist for Laravel SaaS. Implements secure, PCI-compliant payment flows.
@@ -15,6 +18,7 @@ Payment integration specialist for Laravel SaaS. Implements secure, PCI-complian
 2. Le `.claude/skills/webhooks.md` — HMAC verification, idempotency, retry
 3. Le `.claude/skills/security.md` — encryption, PCI context
 4. Detecta stack: `composer show | grep cashier` para ver se Cashier ja esta instalado
+5. Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Stack primario
 

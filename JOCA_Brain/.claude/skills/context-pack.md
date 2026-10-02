@@ -24,7 +24,6 @@ node "<JOCA_ROOT>/JOCA_Brain/.claude/scripts/pack-context.mjs" <dir-alvo> [--out
 
 ## Quando NÃO usar
 - Projecto pequeno (≤5 ficheiros) → paths directos no brief.
-- Precisas de estrutura/dependências, não conteúdo → `/map-joca` (graphify).
 
 ## Próximo passo (chain)
 - Pack para análise de segundo modelo → `gemini-brain` (contexto 1M).

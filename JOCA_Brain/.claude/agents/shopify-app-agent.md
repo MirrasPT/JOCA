@@ -1,13 +1,16 @@
 ---
 name: shopify-app-agent
-description: "plataformas · Build/extend a Shopify app — CLI scaffold, Admin GraphQL API, extensions, webhooks, OAuth, Functions. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "shopify app init, admin extension"
 skills: shopify-app
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "código e configuração de plataforma"
 category: plataformas
 triggers: shopify app init, checkout extension, admin extension
 generated-from: .claude/skills/shopify-app.md
 generated-by: skill-agents.mjs
-content-hash: bf5fbc99f9fa5e04
+content-hash: 862c961ba461ba03
 ---
 
 # shopify-app — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

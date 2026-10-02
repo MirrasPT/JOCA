@@ -1,13 +1,16 @@
 ---
 name: shadcn-agent
-description: "código · Working in a project that uses shadcn/ui — adding, composing, theming, and updating copy-paste. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "shadcn, components.json, dialog"
 skills: shadcn
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: shadcn, shadcn/ui, shadcn ui, components.json, npx shadcn, shadcn add
 generated-from: .claude/skills/shadcn.md
 generated-by: skill-agents.mjs
-content-hash: db1706d496805bdf
+content-hash: 39b5d27d688fec50
 ---
 
 # shadcn — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

@@ -19,10 +19,13 @@ no repositório nem devem ser inventados.**
 
 ## Browser / automação
 
+**Política (2026-08-05): `browser-use` banido — nunca instalar nem sugerir. MCP do Playwright
+(`@playwright/mcp`) também não.** Verificação ad-hoc → extensão Claude no Chrome; automação com script →
+Playwright CLI. Sem o Playwright CLI instalado, pedir ao utilizador para o instalar — nunca usar o MCP como atalho.
+
 | CLI | Função | Instalação | Auth |
 |---|---|---|---|
-| `browser-use` | automação de browser (skill `browser-automate`, default) | `uv tool install browser-use` | key do modelo escolhido |
-| `playwright-cli` | controlo de browser (fallback; MCP `@playwright/mcp` é o caminho principal — ver `tools/mcps.md`) | `npm i -g playwright-cli` | — |
+| `playwright-cli` (`@playwright/cli`) | ferramenta CANÓNICA de automação de browser — scripts/verificação repetível (skill `browser-automate`) | `npm i -g @playwright/cli` | — |
 
 ## Google / cloud
 
@@ -36,7 +39,7 @@ no repositório nem devem ser inventados.**
 
 | CLI | Função | Instalação (macOS) | Instalação (Windows) | Auth |
 |---|---|---|---|---|
-| `wp` (wp-cli) | WordPress/WooCommerce (skills `wordpress-router`, `wp-*`, `woocommerce-elementor`) | `brew install wp-cli` | phar oficial + wrapper `.bat` | — (por site) |
+| `wp` (wp-cli) | WordPress/WooCommerce (skills `wp-index`, `wp-*`, `woocommerce-elementor`) | `brew install wp-cli` | phar oficial + wrapper `.bat` | — (por site) |
 | `shopify` | Shopify (skills `shopify-app`, `shopify-theme`, `shopify-router`) | `npm i -g @shopify/cli` | idem | `shopify auth` |
 | `wix` | Wix/Velo (skill wix-cli) | `npm i -g @wix/cli` | idem | login browser |
 | `stripe` | webhooks/testes de pagamento (agente payment-integration) | `brew install stripe/stripe-cli/stripe` | `scoop install stripe` | `stripe login` |
@@ -49,7 +52,6 @@ no repositório nem devem ser inventados.**
 | `hf` (huggingface_hub) | modelos/datasets HF | `uv tool install huggingface_hub` | `hf auth login` |
 | `sentry-cli` | error tracking (skills `error-tracking-dev`/`error-tracking-prod`) | `npm i -g @sentry/cli` | `SENTRY_AUTH_TOKEN` |
 | `cli-printing-press` | gerar CLIs/MCP a partir de APIs | `go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest` (Go 1.26+; PATH += `~/go/bin`) | — |
-| `graphify` | **OBRIGATÓRIO.** Mapa de código/conhecimento (`/map-joca`, `/resume`, `/save`, `/clean-install`) — memória de projecto mais barata de consultar do que abrir ficheiros `.md` gigantes à procura. | `uv tool install graphifyy` (pacote real chama-se `graphifyy`, entrypoint instala como `graphify`; sem `uv`: `pipx install graphifyy`). Depois de instalar/actualizar, correr sempre `bash .claude/scripts/graphify-patch.sh` (reaplica patches: DOC_EXTENSIONS expandido, inclui dotdirs como `.claude/`). | — |
 | `zmail` | Zoho Mail (jar Java + wrapper `zmail`; requer Java 11+) | jar oficial Zoho + wrapper em `~/.local/bin/zmail` | `zmail` → `login [--dc <tld>]` (interactivo) |
 | `supabase` | Supabase | `brew install supabase/tap/supabase` / `scoop install supabase` | `supabase login` |
 | `railway` | deploy Railway | `npm i -g @railway/cli` | `railway login` |
@@ -59,7 +61,7 @@ no repositório nem devem ser inventados.**
 | `pdftk` | alternativa ao `pdfinfo` para contar páginas (`dump_data`) — opcional | `brew install pdftk-java` | — |
 
 ## MCP servers
-Ver `tools/mcps.md` — `markitdown` (`uvx markitdown-mcp` no Mac / `python -m markitdown_mcp` no Windows) e `playwright` (`npx -y @playwright/mcp@latest`).
+Ver `tools/mcps.md` — `markitdown` (`uvx markitdown-mcp` no Mac / `python -m markitdown_mcp` no Windows). O MCP do Playwright está banido (ver acima).
 
 ## Plugins Claude Code (`claude plugin install`)
 - `last30days@last30days-skill` — `claude plugin marketplace add mvanhorn/last30days-skill` + install. Sinal social dos últimos 30 dias (Reddit/X/YouTube/TikTok/HN/Polymarket/GitHub). Config em `~/.config/last30days/` (keys ScrapeCreators/X opcionais).

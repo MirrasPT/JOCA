@@ -1,0 +1,27 @@
+{
+ "skill": "img-gen",
+ "deve": [
+  "gera uma imagem de um copo de vinho numa mesa de madeira",
+  "cria uma ilustração para o hero do site",
+  "preciso de um product shot da garrafa com fundo branco",
+  "generate an image of a cozy coffee shop interior",
+  "faz uma imagem de fundo abstrata em tons azuis",
+  "gera um mockup da caixa do produto",
+  "cria 3 imagens para os posts da semana com o produto",
+  "gera uma imagem com o texto Promoção de verão bem legível",
+  "quero uma ilustração estilo flat de uma família a cozinhar",
+  "cria uma imagem hero para a página de serviços"
+ ],
+ "quase": [
+  "vectoriza este logo em png para svg",
+  "faz um favicon a partir do logo",
+  "escreve o alt text das imagens do site",
+  "comprime as imagens da pasta para webp",
+  "anima o logo da empresa",
+  "organiza as fotos por data",
+  "faz um vídeo com estas fotos",
+  "o upload de imagens no laravel falha com ficheiros grandes",
+  "cria a paleta de cores da marca",
+  "revê o design do flyer"
+ ]
+}

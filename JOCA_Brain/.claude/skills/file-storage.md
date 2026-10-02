@@ -16,6 +16,8 @@ chain: tester-security
 
 # File Storage
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Secure file storage and delivery for Laravel SaaS. Core rules -- never deviate:
 
 1. **Files never transit Laravel.** Client uploads direct to S3/R2 via presigned URL.

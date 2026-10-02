@@ -1,13 +1,16 @@
 ---
 name: deploy-docker-agent
-description: "deploy · Containerizing applications, writing Dockerfiles, docker-compose, or setting up container. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "docker, container, VPS, Traefik"
 skills: deploy-docker
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
 triggers: docker, container, docker compose, docker-compose, Dockerfile, VPS
 generated-from: .claude/skills/deploy-docker.md
 generated-by: skill-agents.mjs
-content-hash: eb432c0b87a8e214
+content-hash: ebe3128c55b5b0ca
 ---
 
 # deploy-docker — agente de execução

@@ -6,6 +6,8 @@ compatibility: "Shopify CLI 3.x+. Node.js 20.10+. Requires Shopify Partner accou
 
 # Shopify App
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## When to use
 
 - Scaffolding a new app (`shopify app init`)

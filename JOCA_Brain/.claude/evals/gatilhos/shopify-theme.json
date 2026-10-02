@@ -1,0 +1,27 @@
+{
+ "skill": "shopify-theme",
+ "deve": [
+  "personaliza o tema shopify",
+  "cria uma secção nova no tema dawn",
+  "liquid: mostra o preço com desconto",
+  "theme check está a dar erros",
+  "shopify theme: add a custom section",
+  "altera o snippet do cartão de produto no liquid",
+  "blocks e sections no tema shopify",
+  "o tema da loja shopify precisa de um banner",
+  "shopify cli para desenvolver o tema",
+  "muda o template do produto na shopify"
+ ],
+ "quase": [
+  "cria um block theme em wordpress",
+  "atualiza os preços de todos os produtos na shopify",
+  "cria uma app shopify",
+  "theme.json no wordpress",
+  "loja woocommerce",
+  "muda o tema do vs code",
+  "faz uma loja em next",
+  "tema escuro no site",
+  "elementor na loja",
+  "importa produtos"
+ ]
+}

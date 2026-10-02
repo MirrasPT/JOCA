@@ -1,13 +1,16 @@
 ---
 name: email-sequence-agent
-description: "conteúdo · Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "email sequence, drip campaign"
 skills: email-sequence
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
 triggers: email sequence, drip campaign, nurture sequence, onboarding emails, welcome sequence, re-engagement emails
 generated-from: .claude/skills/email-sequence.md
 generated-by: skill-agents.mjs
-content-hash: 66b2cb2c613a4457
+content-hash: 3646cbb282459c92
 ---
 
 # email-sequence — agente de execução

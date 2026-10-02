@@ -1,0 +1,27 @@
+{
+ "skill": "mkt-conectores",
+ "deve": [
+  "verifica que acessos temos às contas da marca",
+  "matriz de acessos: google ads, GA4, meta, gbp",
+  "que contas temos ligadas para o marketing",
+  "confirma acesso de leitura ao search console e ao meta",
+  "check access to the brand marketing accounts",
+  "conectores do marketeer: o que falta ligar",
+  "ligar conta do google ads da marca",
+  "que acessos temos ao instagram e facebook do cliente",
+  "acesso às contas de marketing, canal a canal",
+  "which connectors do we have for this brand"
+ ],
+ "quase": [
+  "configura um mcp novo",
+  "faz a auditoria técnica da marca",
+  "cria utilizadores no backoffice",
+  "liga a base de dados ao laravel",
+  "monta a campanha meta",
+  "roda a password da conta google",
+  "integra o stripe",
+  "configura o GA4",
+  "o login no google falha",
+  "dá acesso a um colega ao repo"
+ ]
+}

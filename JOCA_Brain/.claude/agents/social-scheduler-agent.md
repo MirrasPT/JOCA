@@ -1,13 +1,16 @@
 ---
 name: social-scheduler-agent
-description: "conteúdo · Agendar e publicar posts em redes sociais via TryPost (MCP self-hosted, mcp__trypost__*). Despachar para trabalho isolável deste domínio, em paralelo."
+description: "agendar post, publicar nas redes"
 skills: social-scheduler
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "agenda posts já escritos"
 category: conteúdo
 triggers: agendar post, publicar nas redes, schedule social post, trypost, carrossel instagram, publicar tiktok
 generated-from: .claude/skills/social-scheduler.md
 generated-by: skill-agents.mjs
-content-hash: e75b0a7feb77376b
+content-hash: df26a9a5fe8ea480
 ---
 
 # social-scheduler — agente de execução

@@ -1,0 +1,27 @@
+{
+ "skill": "react-patterns",
+ "deve": [
+  "o componente faz re-render a cada tecla, otimiza",
+  "useEffect em loop infinito",
+  "passa isto para server component",
+  "waterfall de fetch na página, resolve",
+  "optimize react performance in the dashboard",
+  "o modal não tem focus trap",
+  "app router: onde faço o data fetching",
+  "bundle do next está enorme",
+  "RSC vs client component nesta página",
+  "focus management no modal ao fechar"
+ ],
+ "quase": [
+  "cria um site em react",
+  "compound component para o select",
+  "o laravel está lento",
+  "instala o shadcn",
+  "a app react native crasha",
+  "escreve testes para o componente",
+  "muda o css do botão",
+  "cria um endpoint",
+  "traduz a app",
+  "deploy na vercel"
+ ]
+}

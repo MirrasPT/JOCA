@@ -1,10 +1,13 @@
 ---
 name: design-system-audit
-description: "Audita o Design System: tokens, specs de componentes, conformidade WCAG, drift. Corre depois de criar/actualizar o design system. Verifica: valores hardcoded fora dos tokens, estados em falta, contraste, touch targets, focus-visible, z-index, spacing fora da grelha. Produz relatório de violações (.joca/intermediate/) por tier Critical/Warning/Info."
-skills: design-tokens, component-system, brand-guidelines
+description: "audita tokens/componentes, WCAG"
+skills: design-system, brand-guidelines
 chain: a11y-fixer, frontend
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design sobre tokens e componentes"
 triggers: auditar design system, drift de tokens, tokens inconsistentes, WCAG do design system
 ---
 
@@ -12,8 +15,8 @@ Design system auditor. Validates completeness, consistency, and accessibility co
 
 ## Antes de iniciar o audit
 
-1. Lê `.claude/skills/design-tokens.md` — regras de tokens (3-tier, DTCG, OKLCH)
-2. Lê `.claude/skills/component-system.md` — regras de componentes (6 states, ARIA, touch targets)
+1. Lê `.claude/skills/design-system.md` (núcleo) e `.claude/reference/design-system-tokens.md` — regras de tokens (3-tier, DTCG, OKLCH)
+2. Lê `.claude/reference/design-system-componentes.md` — regras de componentes (6 states, ARIA, touch targets)
 3. Se existir `DESIGN.md` ou `BRAND.md` na raiz: lê para paleta e tipografia do projecto
 4. Usa estes standards como referência para todas as validações
 
@@ -64,6 +67,8 @@ Check:
 
 ### 4. Codebase drift (if code exists)
 
+**Projecto TSX + Tailwind v4 → correr primeiro `node .claude/scripts/verificar-conformidade.mjs --raiz <projecto>`** (valores crus, `dark:`, curva sem duração, `transition-all`, `export default`, classes Tailwind sem CSS; tokens/exclusões em `<raiz>/conformidade.json`, ver `--help`; `--auto-teste` prova que as regras acusam). Regra `NÃO verificada` = aviso, não aprovação.
+
 If the project has existing frontend code (React/Vue/HTML), scan for:
 - Hardcoded hex/rgb/hsl values not in token set
 - Font sizes not on the type scale
@@ -87,7 +92,7 @@ O grep a hex não apanha a deriva do Tailwind. Contar por porta, **antes** de pr
 
 Excepções que carregam valor mas não dão token → **allowlist com razão** (`.token-gates-allow`, uma linha `<caminho> <razão>`), nunca exclusão calada. 20+ ficheiros com a mesma troca → codemod idempotente, não edição à mão.
 
-**Modo CI** — o mesmo teste como porta de CI (sai 1 se alguma porta falhar, imprime `N/3 CLEAN`). Copiar para `scripts/token-gates.sh` do projecto e correr `bash scripts/token-gates.sh src` num passo do workflow. Testado contra 1 caso mau (acusa as 3) e 1 bom (`3/3 CLEAN`):
+**Modo CI** — o mesmo teste como porta de CI (sai 1 se alguma porta falhar, imprime `N/3 CLEAN`). Copiar o bloco abaixo para `<projecto>/scripts/token-gates.sh` (ficheiro do projecto-alvo, criado por esta cópia — não vem no JOCA) e correr `bash scripts/token-gates.sh src` num passo do workflow. Testado contra 1 caso mau (acusa as 3) e 1 bom (`3/3 CLEAN`):
 ```bash
 SRC=${1:-src}; ALLOW=${2:-.token-gates-allow}; INC='--include=*.tsx --include=*.ts --include=*.jsx --include=*.vue --include=*.html'
 [ -d "$SRC" ] || { echo "SRC nao existe: $SRC"; exit 2; }  # sem isto, pasta errada = 3/3 CLEAN falso
@@ -98,7 +103,7 @@ C=$(grep -rnoE $INC '\b(bg|text|border|ring|fill|stroke|from|via|to|outline|divi
 n=0; for g in A B C; do v=${!g}; if [ -z "$v" ]; then n=$((n+1)); echo "Gate $g: CLEAN"; else echo "Gate $g: $(echo "$v" | wc -l) violação(ões)"; echo "$v" | sed 's/^/  /'; fi; done
 echo "$n/3 CLEAN"; [ $n -eq 3 ]
 ```
-(Ideia e portas adaptadas de `paperclipai/paperclip` `scripts/check-token-gates.mjs`, MIT; a porta C vem da `doc/design/TOKEN-AUDIT.md` do mesmo repo.)
+(Ideia e portas adaptadas de `paperclipai/paperclip:scripts/check-token-gates.mjs`, MIT; a porta C vem da `doc/design/TOKEN-AUDIT.md` do mesmo repo.)
 
 ## Output format
 

@@ -1,0 +1,27 @@
+{
+ "skill": "tdd",
+ "deve": [
+  "liga o modo tdd",
+  "testes primeiro nesta sessão",
+  "test first: não deixes editar código sem teste",
+  "tdd guard ligado para o módulo novo",
+  "red green refactor a partir de agora",
+  "força testes antes do código",
+  "enable test-first mode",
+  "modo tdd para esta feature",
+  "escreve testes primeiro sempre nesta sessão",
+  "quero trabalhar em tdd hoje"
+ ],
+ "quase": [
+  "escreve os testes do issue",
+  "corre os testes",
+  "desliga o tdd",
+  "o teste está vermelho",
+  "gera testes para o módulo",
+  "configura o phpunit",
+  "testa o site no telemóvel",
+  "tranca as edições a esta pasta",
+  "cobertura de testes",
+  "o que é tdd?"
+ ]
+}

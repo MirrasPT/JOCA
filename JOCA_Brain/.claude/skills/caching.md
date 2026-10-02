@@ -6,6 +6,8 @@ chain: tester-performance
 ---
 # Caching
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 4 cache layers for Laravel + Redis + Cloudflare. Auto-invoked by `laravel-specialist`.
 
 ---

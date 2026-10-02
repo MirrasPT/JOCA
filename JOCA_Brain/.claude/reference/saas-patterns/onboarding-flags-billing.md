@@ -1,5 +1,18 @@
 Parte da skill `saas-patterns` — carregado on-demand via `Read(".claude/reference/saas-patterns/onboarding-flags-billing.md")`. Cobre §4-6: onboarding assíncrono, Laravel Pennant e tiers/billing.
 
+## Contents
+
+- 4. Tenant Onboarding Workflow
+  - Async provisioning (always async -- never block registration)
+- 5. Feature Flags -- Laravel Pennant
+  - Define flags tied to plan
+  - Check flags
+  - External providers (LaunchDarkly / Flagsmith)
+- 6. Subscription Tiers + Permission Gates
+  - Plan-to-Feature map (single source of truth)
+  - Policy gate
+  - Cashier (Stripe billing)
+
 ## 4. Tenant Onboarding Workflow
 
 ### Async provisioning (always async -- never block registration)

@@ -1,4 +1,19 @@
-> Parte da skill `wp-performance-review` — carregado on-demand via Read().
+> Parte da skill `wp-performance` (secção «Code review (static)»; era a `wp-performance-review`, fundida na F2.4) — carregado on-demand via Read().
+
+## Contents
+
+- Database Queries
+- Hooks & Actions
+- PHP Code
+- Caching Issues
+- AJAX & External Requests
+- WP Cron
+- Cache Bypass Issues
+- Transients Misuse
+- Asset Loading
+- External API Requests
+- Sitemaps & Redirects
+- Post Meta Queries
 
 ## Anti-Pattern Reference
 

@@ -1,13 +1,16 @@
 ---
 name: frontend-agent
-description: "código · Building production frontend applications with React, Next.js, Vue, Svelte, or modern frontend. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "website, landing page, webapp, ui"
 skills: frontend
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: frontend-design, frontend design, website, landing page, site, webapp
 generated-from: .claude/skills/frontend.md
 generated-by: skill-agents.mjs
-content-hash: b6d8baee4886f876
+content-hash: 31d889fd68acd764
 ---
 
 # frontend — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

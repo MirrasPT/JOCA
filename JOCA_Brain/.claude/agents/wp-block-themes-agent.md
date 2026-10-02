@@ -1,13 +1,16 @@
 ---
 name: wp-block-themes-agent
-description: "wordpress · Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "theme.json, block theme"
 skills: wp-block-themes
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: theme.json, block theme, styles not applying
 generated-from: .claude/skills/wp-block-themes.md
 generated-by: skill-agents.mjs
-content-hash: 6ffe9e756e98e632
+content-hash: 95fda25745282b6f
 ---
 
 # wp-block-themes — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

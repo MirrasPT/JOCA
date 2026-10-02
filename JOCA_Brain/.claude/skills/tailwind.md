@@ -1,11 +1,13 @@
 ---
 name: tailwind
 description: "Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn variants, dark mode, responsive, avoiding arbitrary-value sprawl. MUST be invoked when the user says: tailwind, tailwindcss, utility classes, @theme, cva, class-variance-authority, tailwind config, tailwind dark mode. SHOULD also invoke when: cn(), clsx, tailwind-merge, arbitrary values, responsive classes, shadcn styling, design tokens to tailwind."
-triggers: tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme, cva, class-variance-authority, tailwind config, tailwind.config, dark mode tailwind, cn(), clsx, tailwind-merge, twMerge, arbitrary values, responsive classes, breakpoints tailwind, shadcn, design tokens tailwind, container queries, @apply, variant
+triggers: oklab, tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme, cva, class-variance-authority, tailwind config, tailwind.config, dark mode tailwind, cn(), clsx, tailwind-merge, twMerge, arbitrary values, responsive classes, breakpoints tailwind, shadcn, design tokens tailwind, container queries, @apply, variant
 ---
 # Tailwind — Styling Specialist (v4)
 
-Invoked by `frontend` (or directly) for the *how it looks via utilities* layer. Pairs with `react-composition` (component shape) and `design-tokens` (the token source of truth).
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
+Invoked by `frontend` (or directly) for the *how it looks via utilities* layer. Pairs with `react-composition` (component shape) and `design-system` (the token source of truth).
 
 Default: **Tailwind CSS 4.** CSS-first config via `@theme`, no `tailwind.config.js` unless legacy.
 
@@ -34,9 +36,9 @@ Bias: **tokens as theme variables. Semantic over raw. cva for variants. arbitrar
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 ```
-No JS config needed. `@theme` keys map to namespaces: `--color-*` → `bg-*`/`text-*`/`border-*`, `--font-*` → `font-*`, `--radius-*` → `rounded-*`, `--spacing-*` → `p-*`/`m-*`/`gap-*`.
+No JS config needed. `@theme` keys map to namespaces: `--color-*` → `bg-*`/`text-*`/`border-*`, `--font-*` → `font-*`, `--radius-*` → `rounded-*`, `--spacing-*` → `p-*`/`m-*`/`gap-*`, `--text-*` → `text-*` (tamanho), `--z-index-*` → `z-*`, `--ease-*` · `--leading-*` · `--tracking-*` · `--shadow-*`. ⚠ **Token fora do namespace não gera classe, em silêncio** (`--z-nav` em vez de `--z-index-nav` → `z-nav` não existe; medido 2026-08-23) — ver §6 «classes que não existem».
 
-Bridge to a design system: if the project has `tokens/tokens.css` from `design-tokens`, **import it and reference its vars inside `@theme`** — single source of truth, never duplicate values.
+Bridge to a design system: if the project has `tokens/tokens.css` from `design-system`, **import it and reference its vars inside `@theme`** — single source of truth, never duplicate values.
 
 ---
 
@@ -84,7 +86,7 @@ function Button({ variant, size, className, ...props }: ButtonProps) {
   return <button className={cn(button({ variant, size }), className)} {...props} />;
 }
 ```
-`cva` replaces boolean-prop styling (`isPrimary isLarge`). The `className` escape hatch + `cn()` lets callers override safely. Maps directly to `component-system` specs (variants/sizes/states).
+`cva` replaces boolean-prop styling (`isPrimary isLarge`). The `className` escape hatch + `cn()` lets callers override safely. Maps directly to `design-system` component specs (variants/sizes/states).
 
 ---
 
@@ -156,6 +158,50 @@ Dois tells de Tailwind v4 que **passam `tsc` E `next build`** e só rebentam no 
    ```
 2. **v4 faz content-scan de `.md` e de COMENTÁRIOS** à procura de candidatos a classes. Uma classe partida citada num comentário, num `.md` de docs, ou num resumo `.joca/intermediate/*.md` **regenera** a classe inválida e mantém o site branco MESMO depois de corrigir o `.tsx`. Sintoma traiçoeiro: corriges o componente e continua branco. **Fix:** sanitizar a string em qualquer ficheiro escaneado; excluir resumos/docs do content-scan (`@source not "..."`) ou escrevê-los fora da árvore do projecto. (Irmão do tell "adblock token branqueia site" do `frontend.md`. Fonte: caso real 2026-06-23.)
 
+### ⚠ v4: medir cor com regex sobre `getComputedStyle` da numeros FALSOS (`oklab`)
+
+Num projecto Tailwind v4 o `getComputedStyle` devolve a cor em **`oklab()`**, nao em `rgb()`:
+`oklab(0.999994 0.0000455 0.0000165 / 0.75)`. Uma regex que apanha os tres primeiros numeros le-os
+como RGB e conclui **quase preto** — num caso real deu 1,63:1 num texto que esta a 7,2:1. A auditoria
+de contraste acusa falhas que nao existem, e a correccao "obvia" estraga o design que estava certo.
+
+⚠ **`canvas.fillStyle` NAO normaliza `oklab`/`oklch`** — o getter devolve a string inalterada, por
+isso ler `ctx.fillStyle` depois de a atribuir nao converte nada. A unica leitura fiavel e **pintar
+num canvas 1x1 e ler o pixel**:
+
+```js
+// cor real em sRGB, seja qual for o espaco de cor que o CSS declara
+function corSRGB(cssColor, fundo = null) {
+  const c = document.createElement('canvas'); c.width = c.height = 1;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.clearRect(0, 0, 1, 1);
+  if (fundo) { ctx.fillStyle = fundo; ctx.fillRect(0, 0, 1, 1); }  // cor com alpha: pintar o fundo primeiro
+  ctx.fillStyle = cssColor;            // aceita oklab()/oklch(); e o PIXEL que converte, nao o getter
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+  return { r, g, b, a: a / 255 };
+}
+```
+
+Vale para qualquer espaco moderno (`oklch`, `lab`, `color(display-p3 ...)`), nao so para o `oklab`.
+Um medidor que so aceita strings comecadas por `rgb` devolve `null` e o par **nao chega a ser
+medido** — silencio que se le como aprovacao. Doutrina do gate: `.claude/reference/gates-runtime.md`.
+
+### ⚠ v4: cascata de camadas e classes que não existem (as duas falham em silêncio)
+
+`tsc`, `eslint` e `npm run build` passam nos quatro casos — o defeito só se vê no CSS servido.
+
+| Armadilha | Sintoma | Regra |
+|---|---|---|
+| Utilitário próprio escrito em `@layer utilities { .snap-row {…} }` | vem depois das utilities geradas e ganha-lhes: `md:flex-wrap` não o sobrepõe (lido como «não aceita variantes»; 2026-08-21) | utilitário que tem de aceitar variantes → **`@utility snap-row { … }`**, nunca regra em `@layer utilities` |
+| Regra de elemento no ficheiro de entrada **fora de `@layer`** (`:focus-visible { outline … }`) | vence **todos** os utilitários; nenhum componente consegue mudar o anel de foco e acaba em `style` inline (2026-09-01) | qualquer regra de elemento vai **dentro de `@layer base`** |
+| Token no namespace errado ou removido do `@theme` (`--z-nav`, `p-page` depois de apagar `--spacing-page`) | a classe não é gerada; o elemento fica com o valor por omissão | nomes dentro dos namespaces do §1; verificar a classe no CSS servido |
+| Token do projecto com o **mesmo nome** de um namespace do Tailwind, mapeado em `@theme inline` (`--color-primary: var(--color-primary)`) | auto-referência → resolve para nada | prefixar os tokens do projecto (`--ds-*`) e mapear: `--color-primary: var(--ds-primary)` (ver `reference/design-system-tokens.md`) |
+
+**Verificar:** `grep` à **classe** (não à variável) no CSS que o browser recebe — `curl -s <url-do-css> | grep -c '\.z-nav'`; e a
+cascata pelo CSSOM (`[...document.styleSheets]` → regra e camada), **não** injectando elementos por `innerHTML`: as classes
+geram-se no build, e uma classe nova injectada nunca existe.
+
 ---
 
 ## 7. Recipes
@@ -197,7 +243,6 @@ z-index as scale (align to design tokens), never ad-hoc magic numbers: `z-0 z-10
 ## Related skills
 
 - `frontend` — director; invokes this for the styling layer
-- `design-tokens` — token source of truth → feeds `@theme`
-- `component-system` — variant/state contract that `cva` implements
+- `design-system` — token source of truth → feeds `@theme`; variant/state contract that `cva` implements
 - `react-composition` — component shape being styled
 - `mobile` — deeper responsive/touch patterns

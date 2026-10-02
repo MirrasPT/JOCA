@@ -5,7 +5,7 @@
 // que mudou nem a trabalho em curso. Medido em feedback real: 6 a 9 recusas por sessão, sempre a
 // mesma, e um caso de loop (o modelo respondeu a recusa fundamentada 3x e o hook repetiu 3x).
 // Quatro travões, por esta ordem:
-//   1. TRABALHO EM CURSO — contrato `.joca/loop.json` com passos por fechar → cala-se e NÃO limpa a
+//   1. TRABALHO EM CURSO — contrato `.joca/loop/<session_id>.json` com passos por fechar → cala-se e NÃO limpa a
 //      fila (auditar ficheiros a meio de escrita por outro agente dá achados falsos);
 //   2. O QUE MUDOU — a fila é cruzada com `git status --porcelain`: ficheiro apagado entretanto,
 //      ou já limpo (commitado/revertido), sai da contagem. Fail-open: sem git, conta tudo;
@@ -18,7 +18,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const MEMO_TTL_MIN = 15;
+// Janela da supressão de repetição (Travão 3): 15 minutos.
+const COOLDOWN_MS = 15 * 60 * 1000;
 
 try {
   const repoRoot = path.resolve(__dirname, '../..');
@@ -28,7 +29,8 @@ try {
 
   let payload = {};
   try { payload = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch (_) { /* sem stdin */ }
-  const sessionId = payload.session_id || 'sem-sessao';
+  const sessionId = typeof payload.session_id === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(payload.session_id)
+    ? payload.session_id : 'sem-sessao';
   const cwd = payload.cwd || process.cwd();
 
   if (!fs.existsSync(queueFile)) process.exit(0);
@@ -36,15 +38,22 @@ try {
   if (!content) process.exit(0);
 
   // --- Travão 1: trabalho por fechar (agentes/passos vivos) --------------------
-  // O contrato `.joca/loop.json` é o marcador em disco de trabalho multi-passo em curso
+  // O contrato `.joca/loop/<session_id>.json` é o marcador em disco de trabalho multi-passo em curso
   // (escrito pelo main loop, lido pelo stop-continuar.js). Enquanto houver passos por
   // verificar, os ficheiros estão a meio de escrita — recomendar testers agora é ruído.
   // A fila NÃO se limpa: a recomendação sobrevive para quando o contrato fechar.
+  // Um contrato por sessão: o de OUTRA sessão não cala esta. O legado `.joca/loop.json` só conta
+  // se tiver `"sessao"` igual a esta sessão (mesma regra do stop-continuar.js).
+  const contratos = [];
   for (const dir of [path.join(cwd, '.joca'), jocaDir]) {
-    const loopFile = path.join(dir, 'loop.json');
+    contratos.push({ f: path.join(dir, 'loop', `${sessionId}.json`), legado: false });
+    contratos.push({ f: path.join(dir, 'loop.json'), legado: true });
+  }
+  for (const { f: loopFile, legado } of contratos) {
     if (!fs.existsSync(loopFile)) continue;
     try {
       const loop = JSON.parse(fs.readFileSync(loopFile, 'utf8'));
+      if (legado && loop.sessao !== sessionId) continue;
       const passos = Array.isArray(loop.passos) ? loop.passos : [];
       if (passos.some((p) => p.estado !== 'verificado')) process.exit(0);
     } catch (_) { /* contrato ilegível — não suprime */ }
@@ -132,10 +141,13 @@ try {
   if (db > 0) tests.push('query-debugger');
   if (backend + frontend > 3) tests.push('tester-security');
 
-  // --- Travão 3: memória de recusa (não pedir duas vezes o mesmo) ---------------
+  // --- Travão 3: memória de recusa / supressão de repetição ---------------------
   // O hook não vê a resposta do modelo; o que vê é ter JÁ recomendado este conjunto nesta
   // sessão. Recomendação repetida = recusa repetida. Uma vez por sessão (e nunca antes de
-  // MEMO_TTL_MIN) chega — a fila limpa-se à mesma, portanto o sinal não se acumula.
+  // COOLDOWN_MS) chega — a fila limpa-se à mesma, portanto o sinal não se acumula.
+  // O Stop dispara no fim de CADA turno, mas um workflow multi-agente continua a escrever
+  // ficheiros depois disso (workers em background) — a fila enche outra vez e a MESMA
+  // recomendação sai turno após turno (vivido: 6 recusas manuais seguidas).
   const assinatura = tests.join(' ');
   let repetido = false;
   if (assinatura) {
@@ -143,7 +155,8 @@ try {
     try { memo = JSON.parse(fs.readFileSync(memoFile, 'utf8')); } catch (_) { memo = {}; }
     const idade = Date.now() - (Date.parse(memo.ts || '') || 0);
     repetido = memo.assinatura === assinatura
-      && (memo.session === sessionId || idade < MEMO_TTL_MIN * 60 * 1000);
+      && (memo.session === sessionId || idade < COOLDOWN_MS);
+    // Só se marca quando a recomendação SAIU — a supressão não estende a janela.
     if (!repetido) {
       try {
         fs.mkdirSync(jocaDir, { recursive: true });

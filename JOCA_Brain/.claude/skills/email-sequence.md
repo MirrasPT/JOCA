@@ -3,7 +3,7 @@ name: email-sequence
 description: "Create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. MUST be invoked when the user says: email sequence, drip campaign, nurture sequence, onboarding emails, welcome sequence, re-engagement emails. SHOULD also invoke when: launch sequence, sales sequence, conversion emails, email funnel, convert my list, post-purchase emails, sequência de emails, emails de boas-vindas."
 metadata:
   version: 1.1.0
-chain: react-email, stop-slop
+chain: transactional-email, stop-slop
 ---
 
 # Email Sequence Design
@@ -392,7 +392,7 @@ Key email tools (check the vendor's current docs and MCP availability before rel
 | **SendGrid** | Transactional email at scale |
 | **Kit** | Creator/newsletter focused |
 
-Templates in code: `react-email`. Transactional sending: `transactional-email`. In a `/marketeer` cycle, setting the sequence up in the client's ESP is `mkt-email` (F4: created as draft/paused, activation by the account owner).
+Templates in code and transactional sending: `transactional-email` (React Email in `reference/react-email.md`). In a `/marketeer` cycle, setting the sequence up in the client's ESP is `mkt-email` (F4: created as draft/paused, activation by the account owner).
 
 ---
 
@@ -402,7 +402,7 @@ Templates in code: `react-email`. Transactional sending: `transactional-email`. 
 - **copywriting**: For landing pages emails link to
 - **ab-test-setup**: For testing email elements
 - **stop-slop**: Remove AI-sounding patterns before sending
-- **react-email**: Code the templates
+- **transactional-email**: Code the templates (React Email) and send them
 - **mkt-email** (marketeer pack): Set the sequence up in the client's ESP
 
 ## Credits

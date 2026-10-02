@@ -1,6 +1,6 @@
 ---
 name: deploy-executor
-description: "Corre E verifica um pipeline de deploy (cPanel/Docker/Ploi) — não só sabe os passos, executa-os e faz health-check. Detecta o alvo, lê a skill deploy-* certa, corre a pipeline, verifica (curl/status), reporta. Diferente das skills deploy-* (só conhecimento) — este age. PÁRA para 1 confirmação antes de qualquer passo irreversível de produção. Triggers: deploy, publicar site, correr pipeline de deploy."
+description: "corre o deploy + health-check"
 skills:
   - deploy-cpanel
   - deploy-docker
@@ -8,7 +8,10 @@ skills:
 tools:
   - Bash
   - Read
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "deploy irreversível em produção e leitura do health-check"
 ---
 
 # Deploy Executor Agent
@@ -44,7 +47,9 @@ Notify which skill you loaded: `[skill: deploy-<target>]`.
 ### Step 0 — Detect target + read skill
 1. Inspect the repo for deploy signals (`.cpanel.yml`, `Dockerfile`/`docker-compose.yml`, Ploi config/webhook, project CLAUDE.md deploy notes).
 2. `Read()` the matching `deploy-*` skill. Treat it as canonical for the pipeline.
-3. Confirm the resolved target in one line before proceeding.
+3. **App type vs host type — before proposing the target.** A static-only host (Ploi static site, cPanel `public_html`, bucket) cannot serve a dynamic app. Next.js: read the route table printed by `next build` — `○` = static, `ƒ` = dynamic (server-rendered on demand) (verificado 2026-09-13). Any `ƒ` route (or API route, middleware, server action) + static-only target → stop and report the mismatch; do not propose the target from memory. Real case: the memory's target (a static subdomain) was proposed for an app with dynamic routes; the user had to switch target after the code was read.
+4. **Scope when the request does not name it** ("coloca live"): publish the **minimum most recently confirmed** — what the user validated last — never "everything in the folder". Session with rejected material (discarded variants, drafts, comparison galleries) + ambiguity between "only the chosen one" and "everything" → ask before publishing. Real case: "coloca live" published `design/mockups/` whole — 3 rejected variants + the comparison gallery next to the chosen V1.
+5. Confirm the resolved target **and scope** in one line before proceeding.
 
 ### Step 1 — Pre-flight (reversible checks)
 - Verify required tooling is present (`ssh`, `docker`, `git`, `curl`, Ploi CLI/webhook, etc.) — report what is missing instead of improvising.
@@ -135,6 +140,20 @@ done
 Same status, same content-type and still the wrong file: a truncated transfer, a stale cache or an
 older version of the artifact answers 200 all the same.
 
+**Behind Cloudflare, purge BEFORE comparing — otherwise you measure the CDN, not the deploy.** Real
+case: "6 of 8 files differ" after a correct VPS deploy — it was `cf-cache-status: HIT` with
+`max-age=14400`, and it repeated every round.
+
+```bash
+curl -sSI "$BASE/" | grep -i '^server: cloudflare' && echo "CLOUDFLARE: purge the URLs before comparing"
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/purge_cache" \
+  -H "Authorization: Bearer <CF_API_TOKEN>" -H "Content-Type: application/json" \
+  --data '{"files":["<exact URL, WITH the query string the published HTML requests>"]}'
+```
+No token → `TODO: credencial em falta`, and report the comparison as **not verified**, never as a
+failed deploy. Then compare, and read `cf-cache-status` on the comparison request (`MISS`/`DYNAMIC`
+= origin; `HIT` = still the edge).
+
 ```bash
 # local (bytes)                          # remoto (bytes)
 wc -c < dist/assets/app.js
@@ -143,7 +162,41 @@ curl -sS -o /dev/null -w '%{size_download}\n' "$BASE/assets/app.js"
 
 Compare the **key entry points** (main HTML, main JS/CSS bundle, largest image). Difference ≠ 0 →
 investigate before declaring LIVE; the usual causes are edge cache (purge) and a partial upload.
-Behind Cloudflare, read `cf-cache-status` in the header (`curl -sSI`) before blaming the origin.
+Behind Cloudflare, the purge above runs first; a difference that survives it with `cf-cache-status: HIT` is still the edge, not the origin.
+
+**⚠ A 200 does not mean the file has content.** `design-system.css` (41 KB) once landed on the server
+with **0 bytes** — the FTP/TLS session cut mid-transfer, `curl` returned exit 0, the deploy reported
+all-green, and the client's staging served a 200 for an empty stylesheet. The loop above would have
+passed it. Three non-negotiable rules:
+
+1. **Compare remote size vs local after every upload — abort on divergence.** Never assume; measure.
+   ```bash
+   # scp/rsync target
+   ssh <host> "cd <remote-dir> && find . -type f -printf '%P %s\n'" | sort > /tmp/remote.txt
+   (cd <local-dir> && find . -type f -printf '%P %s\n' | sort) > /tmp/local.txt
+   diff /tmp/local.txt /tmp/remote.txt || { echo "ABORT: size divergence local vs remote"; exit 1; }
+   # any target, cheap guard
+   ssh <host> "find <remote-dir> -type f -empty -print" | grep . && { echo "ABORT: 0-byte files"; exit 1; }
+   ```
+2. **Never trust the transfer tool's exit code.** `curl`, `ftp`, `lftp`, `rsync`, `scp` and even
+   `npm run build` on the server return **0** with a truncated or empty file at the destination
+   (cut TLS session, full disk/quota, OOM-killed child). Exit 0 proves nothing — the size at the
+   destination does.
+3. **Health-check `content-length > 0` AND the right `content-type` on at least one served asset.**
+   ```bash
+   check() {  # check <url> <expected content-type fragment>
+     H=$(curl -sSI -H 'Accept-Encoding: identity' "$1")
+     LEN=$(printf '%s' "$H" | awk '/^[Cc]ontent-[Ll]ength:/{print $2+0}')
+     CT=$(printf '%s' "$H" | awk '/^[Cc]ontent-[Tt]ype:/{print tolower($2)}')
+     [ "${LEN:-0}" -gt 0 ] || { echo "FAIL empty: $1 (content-length=$LEN)"; return 1; }
+     case "$CT" in *"$2"*) ;; *) echo "FAIL type: $1 -> $CT (expected $2)"; return 1;; esac
+     echo "OK $1  $LEN bytes  $CT"
+   }
+   check "$BASE/assets/app.css" text/css
+   check "$BASE/assets/app.js"  javascript
+   ```
+   Run `check` on every CSS/JS dependency derived from the HTML above, not only on one. A 200 with
+   `content-length: 0`, or a CSS served as `text/html` (rewrite rule swallowed it), is a FAILED deploy.
 
 **⚠ Cloudflare caches 404s (negative caching, ~4 h).** A *new* file requested once before it existed
 keeps serving 404 from the edge after it lands. The rule of thumb "new filenames ⇒ no purge needed"
@@ -198,7 +251,9 @@ LIVE ✓ | FAILED ✗   (nenhum LIVE sem as quatro linhas acima preenchidas)
 5. **Import shared components, don't recreate** — reuse existing deploy scripts/config/env from the repo; do not re-author them inline.
 6. **Health-check is mandatory, and it has four parts** — positive by BODY (4a), negative test (4b),
    size comparison (4c), target-specific (4d). No "deployed" without all four. A status code is not
-   evidence: a fallback answers 200 for a route that does not exist.
+   evidence: a fallback answers 200 for a route that does not exist. And a 200 is not enough on its
+   own — verify remote size vs local, and `content-length > 0` + correct `content-type` per served
+   asset. Transfer exit codes are never proof.
 7. **Reporting impossibility requires reproducing the blockage** — before writing `BLOQUEADO` /
    "cannot be done", inventory the real effect on the target (`ls` on the server, `curl` the URL,
    `git log`/`git rev-parse` in the deployed folder) and cite **command + full path + literal error**.

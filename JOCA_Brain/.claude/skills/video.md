@@ -1,10 +1,117 @@
 ---
 name: video
-description: "Router for video production — picks the right tool and activates the correct skill. MUST be invoked when the user says: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo. SHOULD also invoke when: ai avatar, talking head, heyGen, veo, runway, kling."
-triggers: video, vídeo, produção de vídeo, video production, AI video, video generation, explainer video, product demo, ai avatar, talking head, heyGen, veo, runway, kling, pika, synthesia, descript, opus clip, video pipeline, export mp4, export gif, add music to video, fazer vídeo, criar vídeo
+description: "Porta única de vídeo (inclui a antiga skill hyperframes): escolhe a ferramenta e, se estiverem instaladas, activa as skills oficiais de vídeo em reserva (HyperFrames + Picsart) por Read(). MUST be invoked when the user says: vídeo, video, fazer um vídeo, montagem de vídeo, vídeo com fotos, slideshow, legendas, legendar, motion graphics, lyric video, voiceover, narração, hyperframes, remotion. SHOULD also invoke when: explainer video, title card, transição de cena, talking head, ai avatar."
+triggers: vídeo, video, fazer um vídeo, montagem de vídeo, vídeo com fotos, slideshow, legendas, legendar, motion graphics, lyric video, voiceover, narração, hyperframes, remotion, subtitles, title card, captions, composição de vídeo, caption sync, kinetic type, vídeo de lançamento, explainer video, veo, ai avatar, talking head
 ---
 
-# Video
+# Video — porta de entrada
+
+> «Montagem»/colagem **estática** de fotos (grelha 3×4, mosaico, um JPG) → não é vídeo: imagem com PIL, não esta skill. Em PT «montagem» é ambíguo — só é vídeo com vídeo explícito («montagem de vídeo», «vídeo com fotos»).
+
+## Reserva de skills (opcional — router)
+
+As skills oficiais de vídeo de terceiros (HyperFrames + Picsart, ~29) **não vêm com o JOCA**. Quem as
+tiver instaladas pode guardá-las numa **reserva** fora do registo do Claude Code, para não pesarem nas
+descrições de todas as sessões: `<JOCA_Brain>/skills-video/<nome>/SKILL.md` (`<JOCA_Brain>` = a pasta
+`JOCA_Brain` da tua instalação). Só entram quando esta skill as chama.
+
+**Sonda antes de tudo:** `ls <JOCA_Brain>/skills-video/hyperframes/SKILL.md ~/.claude/skills/hyperframes/SKILL.md`.
+- **Existe** (numa das duas) → seguir a regra de activação abaixo, com o caminho que existir.
+- **Não existe** → saltar esta secção e a tabela: usar os guias do JOCA `Read(".claude/skills/hyperframes.md")`
+  (código novo) ou `Read(".claude/skills/remotion.md")` (projecto React existente), a §Referência geral (abaixo), a CLI
+  (`npx hyperframes doctor`, `npx hyperframes --help`) e as skills do JOCA de §Fora da reserva.
+  `npx hyperframes init` instala o core set de skills em `~/.claude/skills/` — instalar só com o sim
+  do utilizador.
+
+### Regra de activação (só com a reserva instalada)
+
+1. **Começar sempre por** `Read("<JOCA_Brain>/skills-video/hyperframes/SKILL.md")` e segui-lo — a
+   própria skill diz que é o ponto de entrada obrigatório (entrevista de intenção, rota, workflow).
+   Excepções: **Remotion** só para projecto React que já exista (§Remotion abaixo; código novo é
+   HyperFrames, e portar faz-se com a skill da reserva `remotion-to-hyperframes`); **geração Picsart**
+   (`gen-ai-*`) → só quando o utilizador a pede pelo nome.
+2. **Tradução de invocações.** Quando uma skill da reserva mandar invocar/carregar outra — `/x`,
+   «load `x`», «read `/x`», Skill tool, «installed `/x` skill directory» — fazer
+   `Read("<JOCA_Brain>/skills-video/x/SKILL.md")`. Nunca `Skill(x)`: não está registada e falha.
+3. **Caminhos relativos** (`references/…`, `scripts/…`, `../hyperframes-core/…`) resolvem-se a partir
+   da pasta da skill que os cita (`<JOCA_Brain>/skills-video/<skill>/`). Mover as skills sempre juntas,
+   para os `../<irmã>/` continuarem válidos.
+4. **Não deixar o CLI reinstalar em `~/.claude/skills/`** (com a reserva fora de lá):
+   - `npx hyperframes init` refresca o core set sozinho → correr sempre
+     `HYPERFRAMES_SKIP_SKILLS=1 npx hyperframes init …`.
+   - «instalar o workflow com `npx hyperframes skills update <workflow>`» → **saltar** se o
+     workflow já estiver na reserva (`ls <JOCA_Brain>/skills-video`). Só se faltar mesmo um,
+     corre-se o update e move-se a pasta nova para a reserva.
+   - Stale-skill reminder no `render`/`lint`/`check` não é bloqueio — o refresh faz-se à parte.
+5. **Não editar** as skills da reserva (terceiros, substituídas nos updates). Correcções locais vivem
+   fora delas (ex.: §Notas do JOCA abaixo).
+
+### Mapa intenção → skill da reserva (só com a reserva instalada)
+
+Prefixo de todos os caminhos: `<JOCA_Brain>/skills-video/`. A rota final é da `hyperframes/SKILL.md`;
+esta tabela serve para saber **o que existe** e para os saltos directos.
+
+| Intenção | Skill | Caminho |
+|---|---|---|
+| Qualquer vídeo novo, «vamos fazer vídeo», pedido ainda vago | `hyperframes` (entrada) | `hyperframes/SKILL.md` |
+| Vídeo multi-cena livre, montagem de fotos, aniversário, sizzle, loop | `general-video` | `general-video/SKILL.md` |
+| Peça curta sem narração: kinetic type, logo sting, stat, lower-third, mapa | `motion-graphics` | `motion-graphics/SKILL.md` |
+| Música → vídeo ao beat: lyric video, slideshow musical | `music-to-video` | `music-to-video/SKILL.md` |
+| Legendas num talking-head (verbatim, cinemáticas, «炸») | `embedded-captions` (+ `captions-overlay`) | `embedded-captions/SKILL.md` |
+| Cartões gráficos sobre entrevista/podcast (títulos, callouts, PiP) | `talking-head-recut` | `talking-head-recut/SKILL.md` |
+| Explainer sem cara a partir de texto/artigo/tema | `faceless-explainer` | `faceless-explainer/SKILL.md` |
+| Promo/lançamento a partir de URL ou brief; tour de site | `product-launch-video` | `product-launch-video/SKILL.md` |
+| PR do GitHub → vídeo | `pr-to-video` | `pr-to-video/SKILL.md` |
+| Changelog `.md` semanal → vídeo | `changelog-video` | `changelog-video/SKILL.md` |
+| Apresentação / pitch deck navegável (não MP4) | `slideshow` | `slideshow/SKILL.md` |
+| Portar código Remotion existente para HyperFrames | `remotion-to-hyperframes` | `remotion-to-hyperframes/SKILL.md` |
+| Trazer design/frames do Figma | `figma` | `figma/SKILL.md` |
+| Contrato da composição (`data-*`, tracks, BRIEF) | `hyperframes-core` | `hyperframes-core/SKILL.md` |
+| Animação, blueprints, transições, runtimes (GSAP/Lottie/Three) | `hyperframes-animation` | `hyperframes-animation/SKILL.md` |
+| Zoom, punch-in, Ken Burns, câmara, keyframes | `hyperframes-keyframes` | `hyperframes-keyframes/SKILL.md` |
+| Paleta, tipografia, frame.md, narração, beats | `hyperframes-creative` | `hyperframes-creative/SKILL.md` |
+| Mistura de áudio já colocado (fades, ducking, efeitos) | `hyperframes-audio` | `hyperframes-audio/SKILL.md` |
+| CLI: init, check, preview, render, publish, doctor | `hyperframes-cli` | `hyperframes-cli/SKILL.md` |
+| Blocos/componentes do registry (`hyperframes add`) | `hyperframes-registry` | `hyperframes-registry/SKILL.md` |
+| BGM, SFX, voiceover/TTS, transcrição, remover fundo, grading | `media-use` | `media-use/SKILL.md` |
+| Lei do movimento (portão antes de animar) | `motion-doctrine` | `motion-doctrine/SKILL.md` |
+| Catálogo de cortes/seams, waterfall, nudge | `cut-the-curve` | `cut-the-curve/SKILL.md` |
+| Flash branco no corte, montagem do master timeline | `seam-craft` | `seam-craft/SKILL.md` |
+| Cursor gigante em cenas de UI | `oversized-cursor` | `oversized-cursor/SKILL.md` |
+| **Picsart (só a pedido):** gerar clip AI (Kling/Veo/Sora…) | `gen-ai-video` | `gen-ai-video/SKILL.md` |
+| **Picsart (só a pedido):** voz/música/SFX gerados | `gen-ai-audio` | `gen-ai-audio/SKILL.md` |
+| **Picsart (só a pedido):** CLI geral, preços, batch, Drive | `gen-ai-use` | `gen-ai-use/SKILL.md` |
+
+### Fora da reserva
+
+Skills do JOCA, `Read(".claude/skills/<x>.md")`: `lyric-align` (sincronizar letra) · `h3-prompt-writing` +
+`comfy-mcp-workarounds` (MiniMax-H3 num ComfyUI local) · `picsart` · `screen-record` · `anima` /
+`lottie-animator` (animação). Agente `video-gen` para geração (o `agy` não gera vídeo).
+
+### Notas do JOCA (vindas da antiga skill local `hyperframes`)
+
+Só o que a reserva não cobre (gotchas medidos a usar HyperFrames).
+- **Windows x64 é suportado:** `npx hyperframes doctor` dá `win32 x64` com FFmpeg e Chrome headless
+  OK; só faltam os extras opcionais (whisper, TTS, Docker), que uma composição sem narração não usa.
+  Correr o `doctor` antes de dar a plataforma por não suportada.
+- **Fonte própria — provar que carregou.** `@font-face` servido de `file://` é cross-origin no Chrome
+  e cai para fonte genérica sem erro (2026-08-27). Oráculo = largura de um glifo; **nunca**
+  `document.fonts.check`, que devolve `true` cedo demais:
+  ```js
+  const w = f => { const c = document.createElement('canvas').getContext('2d'); c.font = `72px ${f}`; return c.measureText('Hamburgefonstiv').width; };
+  await document.fonts.ready; console.log(w('"BrandFont", Arial') !== w('Arial'));  // false = caiu no fallback
+  ```
+- **Narração em PT-PT:** as vozes portuguesas do Kokoro (`npx hyperframes tts`, `pf_dora`/`pm_alex`)
+  são **PT-BR**. Para PT-PT sem API: Edge TTS (`pip install edge-tts`), vozes `pt-PT-DuarteNeural` e
+  `pt-PT-RaquelNeural`. MiniMax TTS: o domínio é `api.minimax.io` (internacional) —
+  `api.minimax.chat` responde «invalid api key».
+- **Render:** gradiente linear de ecrã inteiro em fundo escuro faz *banding* no H.264 → radial ou
+  sólido com brilho local. Destino WhatsApp/redes → medir o MP4 e comprimir com `ffmpeg -crf 27`
+  antes de entregar.
+
+---
+
+# Referência geral (fora do HyperFrames)
 
 Expert video producer for marketing videos using AI generation, AI avatars, and programmatic frameworks. Goal: professional video content efficiently — demos, explainers, social clips, ads.
 
@@ -37,8 +144,10 @@ Gather this context (ask if not provided):
 
 | Approach | Best For | Tools | Skill |
 |----------|----------|-------|-------|
-| **HTML to Video** | CSS/JS animations, motion design, product launches, lyric videos | HyperFrames | `hyperframes` |
-| **React to Video** | Data-driven, batch, music visualizers, lyric videos, 3D | Remotion | `remotion` |
+| **HTML to Video** | CSS/JS animations, motion design, product launches, lyric videos | HyperFrames | reserva → `hyperframes/SKILL.md` (acima) |
+| **React to Video** | Só projecto React que já exista (batch em Lambda) | Remotion | §Remotion abaixo |
+| **Vídeo com fotos / montagem / slideshow** | «faz um vídeo com estas fotos», aniversário, montagem com música | HyperFrames (não ffmpeg à mão) | reserva → `hyperframes/SKILL.md` |
+| **AI Generation local (grátis)** | Planos gerados com áudio nativo, antes de ir a serviço pago | MiniMax-H3 num ComfyUI local (`<COMFYUI_DIR>`, onde estiver instalado) | `h3-prompt-writing` (prompt) + `comfy-mcp-workarounds` |
 | **AI Generation** | Original footage from text/image prompts | Veo, Runway, Kling, Pika | this skill |
 | **AI Avatars** | Talking-head presenter without filming | HeyGen, Synthesia | this skill |
 | **Editing/Repurposing** | Cutting long-form into short clips | Descript, Opus Clip, CapCut | this skill |
@@ -132,78 +241,25 @@ bash scripts/add-music.sh output-25fps.mp4 --bgm tech --sfx-config sfx-cues.md
 
 ## Programmatic Video
 
-Build videos with code. Best for repeatable, templated, or data-driven video at scale.
+### HyperFrames (HTML/CSS — o caminho por defeito)
 
-### Hyperframes (HTML/CSS — recommended for agents)
+Open source (Apache 2.0, HeyGen), HTML + GSAP, render determinístico. O contrato da composição, a
+CLI e as regras vivem na reserva (`hyperframes/SKILL.md` → `hyperframes-core`, `hyperframes-cli`);
+os gotchas medidos do JOCA em §Notas do JOCA (acima). Sem a reserva: `npx hyperframes --help` e a
+documentação oficial do HyperFrames.
 
-Open-source, Apache 2.0, from HeyGen. Plain HTML/CSS/JS — no framework DSL. LLM-native: AI models generate better HTML than React components.
+### Remotion (React) — só para projecto que já exista
 
-```bash
-npm install hyperframes
-```
-
-**Key concept:** Each frame is an HTML document. Compose frames into a timeline, render to MP4.
-
-```typescript
-import { render } from "hyperframes";
-
-await render({
-  frames: [
-    { html: "<h1>Welcome to Acme</h1>", duration: 3 },
-    { html: "<h2>Here's what we built</h2>", duration: 3 },
-    { html: "<p>Try it free →</p>", duration: 2 },
-  ],
-  output: "intro.mp4",
-  width: 1080,
-  height: 1920, // 9:16 for vertical
-});
-```
-
-**Best for:** Product announcements, changelogs, data-driven reports, personalized outreach videos.
-
-**Why agents prefer it:** Plain HTML/CSS means any coding agent can generate frames. Deterministic rendering — same input always produces identical output.
-
-### Remotion (React)
-
-Mature open-source framework. More powerful than Hyperframes but requires React knowledge.
-
-```bash
-npx create-video@latest
-```
-
-**Key concept:** React components are frames. Props drive content. Render locally or via Remotion Lambda (AWS) for scale.
-
-```tsx
-export const ProductDemo: React.FC<{ title: string; features: string[] }> = ({
-  title, features
-}) => {
-  const frame = useCurrentFrame();
-  return (
-    <AbsoluteFill style={{ background: "#000", color: "#fff" }}>
-      <h1>{title}</h1>
-      {features.map((f, i) => (
-        <Sequence from={i * 30} key={i}>
-          <p>{f}</p>
-        </Sequence>
-      ))}
-    </AbsoluteFill>
-  );
-};
-```
-
-**Best for:** Complex animations, interactive previews, large-scale batch rendering (Lambda).
-
-### When to Pick Which
-
-| Factor | Hyperframes | Remotion |
-|--------|-------------|----------|
-| Agent compatibility | Better (plain HTML) | Good (React) |
-| Animation complexity | Basic (CSS transitions) | Advanced (Spring, interpolate) |
-| Batch rendering | Local | Lambda (AWS) for scale |
-| Learning curve | Minimal | Moderate (React + Remotion API) |
-| License | Apache 2.0 | Company license for commercial use |
-
----
+Source-available (licença paga para empresas acima de um limiar), build obrigatório, render
+distribuído em Lambda. Código novo → HyperFrames; portar → reserva `remotion-to-hyperframes`.
+Mexer num projecto Remotion existente (docs: remotion.dev):
+- Tudo deriva de `useCurrentFrame()` + `interpolate(frame, [a,b], [x,y], { extrapolateRight: "clamp" })`
+  ou `spring({ frame, fps })` — **CSS transitions/animations e classes `animate-*` não renderizam**;
+  nada de `setTimeout`/`setInterval`.
+- `fps`/`durationInFrames` vêm de `useVideoConfig()`, nunca fixos; assets em `public/` via `staticFile()`.
+- `<Sequence from durationInFrames>` compõe no tempo (`layout="none"` para conteúdo inline).
+- Render: `npx remotion render src/index.ts <Comp> out.mp4 [--props '{…}']`; batch = uma
+  `<Composition>` por item com `defaultProps`.
 
 ## AI Video Generation
 
@@ -399,7 +455,7 @@ Output: Ready-to-publish video
 | Tool | Type | MCP | Guide |
 |------|------|:---:|-------|
 | **HeyGen** | AI avatars | Yes | [heygen.com](https://www.heygen.com) — check current API docs |
-| **Hyperframes** | Programmatic video | - | skill `hyperframes` |
+| **Hyperframes** | Programmatic video | - | reserva → `hyperframes/SKILL.md` |
 | **Remotion** | Programmatic video | - | [remotion.dev](https://www.remotion.dev/docs) |
 | **Runway** | AI generation | - | [runwayml.com/docs](https://docs.dev.runwayml.com) |
 

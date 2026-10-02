@@ -1,13 +1,16 @@
 ---
 name: selfhosted-arr-agent
-description: "deploy · Deploy and wire a self-hosted *arr media stack (Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "media stack, *arr, arr stack"
 skills: selfhosted-arr
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "stack Docker com receitas fixas"
 category: deploy
 triggers: media stack, arr stack, *arr, selfhosted, self-hosted media, jellyfin
 generated-from: .claude/skills/selfhosted-arr.md
 generated-by: skill-agents.mjs
-content-hash: fafac54f35355e3e
+content-hash: 3516be8a0d3dcdc3
 ---
 
 # selfhosted-arr — agente de execução

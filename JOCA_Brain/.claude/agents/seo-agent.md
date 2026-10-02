@@ -1,13 +1,16 @@
 ---
 name: seo-agent
-description: "conteúdo · Anything SEO — technical audit, on-page optimization, AI search visibility (AEO/GEO/LLMO). Despachar para trabalho isolável deste domínio, em paralelo."
+description: "SEO audit, technical SEO"
 skills: seo
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
 triggers: SEO audit, technical SEO, why am I not ranking, traffic dropped, lost rankings, crawl errors
 generated-from: .claude/skills/seo.md
 generated-by: skill-agents.mjs
-content-hash: 1e9896faa210ee67
+content-hash: 7bbeedf486e045b2
 ---
 
 # seo — agente de execução

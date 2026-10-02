@@ -1,0 +1,27 @@
+{
+ "skill": "icon-design",
+ "deve": [
+  "faz um favicon a partir do logo",
+  "cria o ícone da app a partir da marca",
+  "desenha um conjunto de ícones para o menu",
+  "o favicon fica ilegível a 16px, refaz",
+  "simplifica o logomark para ícone",
+  "create an app icon from our logo",
+  "preciso de um icon set em vector para o dashboard",
+  "gera o favicon em svg e png",
+  "desenhar ícone para a categoria vinhos",
+  "ícone em vector para a funcionalidade de reservas"
+ ],
+ "quase": [
+  "vectoriza este logo em png",
+  "gera uma imagem de produto",
+  "anima o ícone de loading",
+  "instala o lucide no projecto",
+  "cria o logótipo da marca do zero",
+  "o ícone do whatsapp não aparece no mobile",
+  "muda a cor dos ícones no css",
+  "cria o design system",
+  "faz um flyer",
+  "cria design tokens para os ícones"
+ ]
+}

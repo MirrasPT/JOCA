@@ -3,10 +3,23 @@
 Referência on-demand. `Read()` quando um snippet de bpy falhar, quando a versão alvo não for a
 medida aqui, ou antes de copiar exemplos de tutoriais e repos públicos.
 
-**Medido em Blender 5.1.1 (build 2026-04-14), macOS / Apple M4 Pro, headless (`-b`).** Tudo o que
+**Medido em Blender 5.1.1 (build 2026-04-14), macOS / Apple Silicon, headless (`-b`).** Tudo o que
 está aqui foi obtido a correr, não da documentação nem de memória.
 
 ---
+
+## Conteúdo
+
+- Porquê este ficheiro existe
+- Deltas que partem código
+- Valores por omissão que custam caro
+- Operadores de import/export (5.1, verificado por `dir()`)
+- Enums que não se lêem por introspecção
+- Apple Silicon — Metal
+- Nomes do Principled BSDF em 5.1 (lista completa, verificada)
+- Formatos de output (5.1)
+- Passes de view layer (5.1)
+- Protocolo ao portar um snippet de terceiros
 
 ## Porquê este ficheiro existe
 
@@ -36,6 +49,8 @@ Auditados: `arjun988/blender-skills` (94 skills), `Andrew1326/dominations` (5), 
 
 Enum de engines completo em 5.1: `('BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'CYCLES')`.
 
+**Booleanas em 5.x: usar o solver `MANIFOLD`** (não `FAST`) — `mod.solver = 'MANIFOLD'`. ⚠ `MANIFOLD`/`EXACT` devolvem a peça **INTACTA e sem erro** quando o cortador é não-manifold: o gate é a **perda de volume**, não a ausência de aviso (detalhe em `blender-scripting.md`).
+
 ## Valores por omissão que custam caro
 
 | Propriedade | Default 5.1 | Porquê importa |
@@ -44,6 +59,9 @@ Enum de engines completo em 5.1: `('BLENDER_EEVEE', 'BLENDER_WORKBENCH', 'CYCLES
 | cena de arranque | Cube + Camera + Light | o cubo tapa o que criares na origem |
 | `sc.cycles.device` | `'CPU'` | pôr GPU não chega — é preciso `compute_device_type` + `get_devices()` |
 | `r.film_transparent` | `False` | `RGBA` sem isto dá alfa opaco |
+| `use_smooth` em malha convertida de curva/texto **com extrude/bevel** | **ligado** nas faces laterais/bevel | cada letra renderiza como um **tubo**. Medido 2026-09-15 (5.1.1, `--factory-startup`): `bezier_circle` com `bevel_depth=0.05` → 576/576 faces smooth; texto `extrude=0.1` → 117/355; `extrude=0.1`+`bevel_depth=0.02` → 1287/1525. Na peça de 2026-08-27: 5482/5482. Corrigir: `for p in me.polygons: p.use_smooth = False` (ou `shade_flat`) e contar depois |
+| Material na malha de texto convertida | pode trazer um **slot VAZIO no índice 0** | `me.materials.append(mat)` põe a cor no índice 1 e as faces continuam no 0 → a peça inteira renderiza **cinzenta sem erro** (medido na peça de 2026-08-27; um `text_add` de fábrica em 5.1.1 converte com 0 slots — depende da origem). Antes do `append`: `print([s.material for s in obj.material_slots])`; com slot vazio, `me.materials.clear()` primeiro ou atribuir ao índice 0 |
+| `Material.use_nodes` | `True` já num `materials.new()`, com `node_tree` de 2 nós | ler/escrever dá `DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0` (medido 2026-09-15, 5.1.1). Não escrever `m.use_nodes = True` — usar `m.node_tree` directamente |
 
 ## Operadores de import/export (5.1, verificado por `dir()`)
 
@@ -76,7 +94,7 @@ Valores confirmados por atribuição em 5.1:
 ## Apple Silicon — Metal
 
 ```
-prefs.devices → [('Apple M4 Pro', 'CPU'), ('Apple M4 Pro (GPU - 20 cores)', 'METAL')]
+prefs.devices → [('Apple <chip>', 'CPU'), ('Apple <chip> (GPU - <N> cores)', 'METAL')]
 ```
 
 **Compilação de kernels no primeiro render:** ~90 s medidos para 320×240 @16 samples num processo

@@ -1,16 +1,19 @@
 ---
 name: tester-ratelimit
-description: "Testa rate limiting activamente com pedidos HTTP reais e vectores de bypass: verificação de threshold, probes de header (X-Forwarded-For+variantes), manipulação path/method, auditoria de config Laravel (TRUSTED_PROXIES, throttle). Usa curl/Vegeta/hey. Relatório por severidade (OWASP API4:2019). Triggers: test rate limit, bypass rate limit, brute force test, throttle test."
+description: "testa rate limit e bypasses"
 skills: rest-api, auth
 tools: Bash, Read, Write
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "procura bypasses de rate limit (segurança)"
 ---
 
 Rate limit testing agent. Sends REAL HTTP requests to verify rate limiting works correctly and cannot be bypassed. Tests authorized applications only.
 
 ## Antes de iniciar
 
-1. Lê `.claude/skills/rest-api.md` — OWASP API4:2019 context
+1. Lê `.claude/skills/rest-api.md` — OWASP API4:2023 — Unrestricted Resource Consumption (https://owasp.org/API-Security/editions/2023/en/0x11-t10/, verificado 2026-10-02)
 2. Lê `.claude/skills/auth.md` — auth route patterns a testar primeiro
 
 ## Preflight
@@ -219,7 +222,7 @@ grep "CACHE_DRIVER\|CACHE_STORE" .env 2>/dev/null
 # Rate Limit Audit — <project>
 **Date:** YYYY-MM-DD
 **Target:** <URL>
-**OWASP:** API4:2019 — Lack of Resources & Rate Limiting
+**OWASP:** API4:2023 — Unrestricted Resource Consumption
 
 ## Summary
 | Phase | Result |

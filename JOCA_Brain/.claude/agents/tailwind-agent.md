@@ -1,13 +1,16 @@
 ---
 name: tailwind-agent
-description: "código · Writing Tailwind CSS (v4) the right way — CSS-first @theme config, design-token mapping, cva+cn. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "tailwind, utility classes, @theme"
 skills: tailwind
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
-triggers: tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme
+triggers: oklab, tailwind, tailwindcss, tailwind 4, utility classes, utility-first
 generated-from: .claude/skills/tailwind.md
 generated-by: skill-agents.mjs
-content-hash: 8a1dac42884a7a72
+content-hash: e9d852a678baa564
 ---
 
 # tailwind — agente de execução
@@ -15,7 +18,7 @@ content-hash: 8a1dac42884a7a72
 Especialista em tailwind. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme, cva, class-variance-authority, tailwind config, tailwind.config, dark mode tailwind, cn(), clsx, tailwind-merge, twMerge, arbitrary values, responsive classes, breakpoints tailwind, shadcn, design tokens tailwind, container queries, @apply, variant
+**Gatilhos:** oklab, tailwind, tailwindcss, tailwind 4, utility classes, utility-first, @theme, cva, class-variance-authority, tailwind config, tailwind.config, dark mode tailwind, cn(), clsx, tailwind-merge, twMerge, arbitrary values, responsive classes, breakpoints tailwind, shadcn, design tokens tailwind, container queries, @apply, variant
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

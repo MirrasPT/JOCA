@@ -66,7 +66,7 @@ test -f "$MARKETEER_RAIZ/clientes/<slug>/dossier.md" && echo existe
   existe: lê `cliente.nome`, pergunta «É a mesma marca?» (Retomar / Outra marca / Cancelar); nunca sobrescreve.
 - Perguntas, por ordem: sector · site · público · objetivos (`multiSelect`) · concorrentes
   (`multiSelect`; «Nenhum» → lista vazia) · canais existentes (`multiSelect`, só os tipos de
-  `TIPOS_DE_CANAL` em `scripts/validar-dossier.mjs`) · por canal: id/URL e se há acesso. No `ga4` o id
+  `TIPOS_DE_CANAL` em `<MKT>/scripts/validar-dossier.mjs`) · por canal: id/URL e se há acesso. No `ga4` o id
   é o **property ID numérico**, não o `G-…`.
 - Credenciais: nunca no chat. O operador corre no terminal dele
   `node "<MKT>/scripts/guardar-credencial.mjs" <slug> <CHAVE>`; confirma por formulário «Já guardei / Não tenho».

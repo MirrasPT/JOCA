@@ -107,6 +107,12 @@ possa pôr ao lado do da referência. Se não existe nenhum, o gauntlet não se 
   (`rules/orchestration-patterns.md`). Agrupar por **ficheiro/área disjunta**, nunca por tema — dois agentes
   no mesmo ficheiro pisam-se. Componentes partilhados definem-se numa **fase de fundação sequencial** antes
   do fan-out; os workers importam, não recriam.
+- **Projecto de ficheiro único → medir antes de prometer o fan-out.** Agrupar por ficheiro obriga a uma
+  refactorização prévia (partir o ficheiro), que pode custar mais do que a ronda toda: num gerador de 800 linhas
+  partido em núcleo/design/montador/4 áreas, a fundação levou mais do que a 1.ª ronda de agentes, e só no fim se
+  viu que a peça nem compilava nessa forma (caso real, 2026-08-27). Antes de prometer: estimar o custo
+  de partir **e cronometrar UMA iteração do build** — acima de ~1 min por iteração, N agentes a iterar em paralelo
+  ficam presos (aquela peça levava >9 min); resolver a performance ANTES de despachar, ou correr sem fan-out.
 - **Brief de cada worker** (obrigatório): objectivo em 2 frases · ficheiros/paths · constraints do projecto ·
   o que NÃO fazer · Step 0 `Read()` das skills do domínio · anti-fabricação (sem credencial → `TODO`, nunca inventar).
 - **Crítico** = agente **separado**, brief próprio, só avalia. Nunca quem escreveu o código. O brief do
@@ -116,6 +122,52 @@ possa pôr ao lado do da referência. Se não existe nenhum, o gauntlet não se 
   ⚠ fora da árvore do projecto se houver content-scan (Tailwind v4 e afins).
 - **Irreversível continua a ser gate**: deploy/push/migration/delete/payment/auth → 1 linha de confirmação.
   O loop não é licença para publicar sozinho.
+
+## Rubrica do crítico (fixa — não se reescreve a cada ronda)
+
+O padrão foi montado à mão em 5 workflows quase idênticos, com o prompt do crítico reescrito de cada
+vez. **Sem rubrica fixa, o crítico aprova por leitura**: lê o relatório do construtor, acha-o
+convincente, e dá 9/10 a trabalho que nunca correu. Estes quatro elementos entram no brief do crítico
+em **todos** os domínios.
+
+**(a) O relatório do construtor chega marcado como ALEGAÇÃO.** No brief do crítico, o output do worker
+entra como `ALEGAÇÃO (não verificada)`, nunca como facto. O crítico **corre o gate ele próprio** — o
+`CHECK` do domínio, o build, o teste, a captura — antes de pontuar. "O construtor diz que passa" não é
+evidência; a evidência é o crítico ter visto. Se não conseguir correr o gate, a nota fica **≤6** e
+diz-se porquê, em vez de se acreditar.
+
+**(b) Tectos de nota rígidos.** Aplicam-se ANTES da apreciação qualitativa: o crítico calcula a nota
+que daria e depois corta-a pelo tecto mais baixo que tenha disparado. Nenhuma prosa elogiosa levanta
+um tecto.
+
+| Condição encontrada | Tecto |
+|---|---|
+| Valor inventado (cor, token, credencial, endpoint, número que ninguém mediu) | **≤3** |
+| Permissão/validação só no cliente (o servidor aceita à mesma) | **≤5** |
+| Tocou em ficheiros de outra stream (fora da área que lhe foi dada) | **≤5** |
+| Partiu algo que já passava (regressão: teste, rota, ecrã, build que estava verde) | **≤5** |
+| Gate vermelho (build/tsc/eslint/php -l/teste a falhar) | **≤6** |
+| Um achado *importante* por resolver | **≤8** |
+
+O tecto da regressão é explícito de propósito: um agente que acrescenta uma feature e parte outra
+entregou trabalho negativo, e sem tecto próprio isso desaparece dentro de "no geral está bom".
+
+**(c) Trabalho de segurança exige `exploracoesTentadas`.** Quando a stream é de segurança/permissões,
+o relatório do crítico só é válido com este campo — uma lista do que foi **tentado contornar**, cada
+item com o booleano `bloqueado`:
+
+```json
+"exploracoesTentadas": [
+  { "tentativa": "PUT /api/users/2 com sessão do user 1", "bloqueado": true },
+  { "tentativa": "pedir /admin com o botão escondido por CSS", "bloqueado": false }
+]
+```
+Lista vazia ou ausente = auditoria não feita, nota **≤5**. "Revi o código e parece seguro" não conta:
+o que conta é ter batido à porta e ela não ter aberto.
+
+**(d) O crítico devolve sempre o que falta para 10.** Nota + o tecto que disparou (se disparou) + a
+lista concreta do que a faria subir. Uma nota sem "o que falta" não alimenta a ronda seguinte e o loop
+pára de subir.
 
 ## Buracos de asset
 
@@ -129,6 +181,7 @@ geração nem a viewport do Blender.
 É assim que os agentes saem do prompt puro e partem o loop:
 
 - Scripts auxiliares, capture harnesses, ferramentas de blind-compare, templates de relatório, scoreboards
+  (a rubrica do crítico acima **não** é isto: já está escrita, copia-se para o brief — o que não se faz é inventar outra)
 - `GAUNTLET_STATE.md` / ledgers de rondas / contratos de arquitectura **como sendo o trabalho**
 - Regras de paragem inventadas ("N rondas planas", "já chega", "pronto para review")
 - Amaciar o crítico ou baixar a referência a meio

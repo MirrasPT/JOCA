@@ -9,6 +9,16 @@ producao;** estas features sao recentes e o baseline mexe.
 
 ---
 
+## Conteúdo
+
+- Scroll-driven animations (sem JS, sem ScrollTrigger)
+- Container queries — responsividade do componente, nao da pagina
+- `:has()` — estilar o pai a partir do filho
+- Container + full-bleed (a mecanica)
+- Performance
+- `color-mix()` — derivar estados em vez de os declarar
+- Propriedades logicas
+
 ## Scroll-driven animations (sem JS, sem ScrollTrigger)
 
 ```css

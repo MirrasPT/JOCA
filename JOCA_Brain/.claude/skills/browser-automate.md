@@ -8,6 +8,8 @@ metadata:
 
 # Browser Automate
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Playwright-based automation for canvas/litegraph web apps (ComfyUI, InvokeAI, or any litegraph host). Drives the JS app object — never clicks canvas coordinates. Submits via HTTP API; uses the browser only for serialization the app exposes.
 
 ## Core Principle
@@ -21,6 +23,8 @@ Never click canvas coordinates. Never submit the saved UI JSON to the API — al
 ---
 
 ## Setup — System Browser, No Download
+
+> ⚠ **O `require('playwright')` nu dos exemplos abaixo pode NÃO resolver.** Em várias instalações não existe pacote `playwright` instalável por import — só `@playwright/cli`, com o módulo **aninhado** lá dentro. Ler **"Realidade instalada do Playwright"** mais abaixo (e correr a sonda de 1 linha) ANTES de escrever qualquer script; os exemplos seguintes assumem que já resolveste o `chromium` por esse caminho.
 
 ```js
 const { chromium } = require('playwright');
@@ -309,13 +313,49 @@ await page.mouse.click(x, y);   // trusted — works
 // canvas.dispatchEvent(new PointerEvent('pointerdown', …))  // silently ignored
 ```
 
-**Before any `page.mouse.click` on a canvas, measure and scale the coordinates.** With `devicePixelRatio ≠ 1` (0.333 seen repeatedly on this setup) a click computed from 390×844 design coordinates lands outside the canvas:
+**Before any `page.mouse.click` on a canvas, measure and scale the coordinates.** With `devicePixelRatio ≠ 1` (0.333 seen repeatedly in practice) a click computed from 390×844 design coordinates lands outside the canvas:
 
 ```js
 const box = await page.locator('canvas').boundingBox();
 const sx = box.width / DESIGN_W, sy = box.height / DESIGN_H;
 await page.mouse.click(box.x + designX * sx, box.y + designY * sy);
 ```
+
+### Realidade instalada do Playwright (medido — perecível)
+
+⚠ **Factos medidos, não doutrina.** A instalação global muda sem aviso — se algum destes falhar, **re-medir**, não assumir.
+
+**Sonda barata, 1 comando, antes de escrever qualquer script** (evita as 4 tentativas falhadas que já custaram uma sessão):
+
+```bash
+ls "$(npm root -g)/@playwright/cli/node_modules/playwright/index.mjs"
+```
+
+| Facto (medido em instalações reais, 2026-08) | Consequência |
+|---|---|
+| Pode **não existir** pacote `playwright` instalável por `import` — só `@playwright/cli` (ex.: `0.1.13`). `require('playwright')` / `import { chromium } from 'playwright'` dá `ERR_MODULE_NOT_FOUND`, e o caminho óbvio `.../node_modules/playwright/` também **não** resolve. | Todo o snippet copiado da doc pública do Playwright falha à primeira linha. |
+| O módulo está **aninhado**: `$(npm root -g)/@playwright/cli/node_modules/playwright/index.mjs` | É deste caminho que se importa (ver snippet abaixo e o bloco `createRequire` a seguir). |
+| `chromium.launch()` sem canal pode falhar: `Executable doesn't exist … chromium_headless_shell-<N>` — a versão alpha do CLI pede um build que não está no cache `ms-playwright` (havia lá outros números, não o pedido). | Lançar **sempre** com `{ channel: 'chrome' }` (Chrome real instalado), nunca com o Chromium bundled. |
+| Sem `@playwright/cli` global, a sonda acima devolve `No such file or directory` — mas o cache `ms-playwright` (macOS `~/Library/Caches/ms-playwright` · Windows `~/AppData/Local/ms-playwright`) pode existir na mesma, também sem o build pedido. | O caminho é via `npx`, ou instalar (`npm i -g @playwright/cli`, ver `memory/tools/clis.md`). Não reportar "o Playwright não funciona" — ver a linha seguinte. |
+
+**Snippet mínimo que funciona** (caminho aninhado + Chrome do sistema):
+
+```js
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+const require = createRequire(import.meta.url);
+const PW = `${execSync('npm root -g').toString().trim()}/@playwright/cli/node_modules/playwright`;
+const { chromium } = require(PW);
+const browser = await chromium.launch({ channel: 'chrome' });   // NUNCA sem channel — pede o build 1224 que não existe
+```
+
+**Consequência a dizer em voz alta: `npx playwright screenshot` FUNCIONA.** O que não funciona sem o caminho aninhado é qualquer script que precise da **API** — medir `getComputedStyle`, `document.fonts.check`, clicar, avaliar JS. Uma sessão chegou a dizer ao utilizador "o Playwright não está a funcionar", o que era **falso**: funciona pela via CLI, e a via API só precisava do path certo. Antes de declarar indisponibilidade, distinguir as duas vias.
+
+**Alternativa validada para medições no browser:** o MCP `claude-in-chrome` com `javascript_tool` (Chrome real do utilizador, com sessão). Limites conhecidos:
+- **Não lê nem captura `http://127.0.0.1:8188`** — devolve `Frame with ID 0 is showing error page`, aparentemente por falta de permissão de site para IPs locais. **Não insistir mais de 1 vez**; `open <url>` / `Start-Process <url>` por shell resolve num comando.
+- **Servidores locais com bind IPv4-only exigem `127.0.0.1`, nunca `localhost`** — o Chrome resolve `::1` primeiro e bate em nada. O ComfyUI é um deles.
+
+Para uma página atrás de SSO/Cloudflare Access (o `curl` bate no 302, o browser pede OTP por email — que não se pede ao utilizador), ver o padrão **"preview local com resposta real"** em `site-capture` §8.
 
 ### Run the script from the scratchpad, not the project tree
 
@@ -360,7 +400,7 @@ const exe = process.env.CHROME_BIN
 const browser = await chromium.launch({ executablePath: exe });
 ```
 
-Alternativas de `executablePath`, por ordem de preferência (todas confirmadas neste Mac):
+Alternativas de `executablePath`, por ordem de preferência (confirmadas num Mac Apple Silicon):
 
 | Alvo | Caminho |
 |---|---|
@@ -368,7 +408,7 @@ Alternativas de `executablePath`, por ordem de preferência (todas confirmadas n
 | Chrome for Testing (headed, render fiel) | `~/Library/Caches/ms-playwright/chromium-<N>/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing` |
 | Chrome do sistema (perfil real) | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
 
-⚠ `playwright-core` **não** está instalado globalmente nesta máquina — só o `@playwright/cli` (que
+⚠ `playwright-core` pode **não** estar instalado globalmente — só o `@playwright/cli` (que
 o traz dentro). `require('playwright-core')` falha; usar a resolução acima.
 (Outra fonte possível: `ls -d ~/.npm/_npx/*/node_modules/playwright | head -1` — o hash do cache npx
 não é estável, nunca cravar.)
@@ -417,16 +457,9 @@ window.scrollTo({ top: y, behavior: 'instant' });
 
 E **confirmar a posição** (`window.scrollY`) antes de ler rects — não assumir que o scroll aterrou.
 
-### Playwright MCP: output lands in the cwd
+### Browser MCP = Claude in Chrome
 
-The MCP writes `.playwright-mcp/` and screenshots into the **server's cwd**, which under JOCA_OS is `JOCA_Brain` — production, read-only by hard rule. Worse: a **relative** `filename` reports success and writes nothing readable. Always pass an **absolute** path inside the allowed root (`<repo>/.playwright-mcp/`), read the file, then move/delete it. Paths outside the root give `File access denied`.
-
-`Browser is already in use for ...ms-playwright-mcp..., use --isolated` = Chrome órfão de outra
-sessão a segurar o lock do profile; `browser_close` **não** recupera. Duas saídas:
-`pkill -f ms-playwright-mcp` (mata a árvore + `crashpad-handler`) e apagar o `SingletonLock` do
-profile; ou arrancar o servidor MCP isolado — `PLAYWRIGHT_MCP_ISOLATED=1` (confirmado no README do
-`@playwright/cli`), que é o que a flag `--isolated` do erro faz: perfil em memória, nada em disco.
-Mais fiável que ambos: o script directo da receita acima.
+Com o Claude in Chrome como MCP de browser (`mcp__claude-in-chrome__*`), o MCP do Playwright é dispensável. Para a API do Playwright como biblioteca, usar o script directo da receita acima.
 
 ### Don't verify live while a tester agent runs
 
@@ -436,7 +469,7 @@ Live Playwright verification from the main loop against the **same dev server** 
 
 ## Related Skills
 
-- **site-capture** — canonical screenshot/visual-QA pipeline for real sites (DOM), incl. the launch fallback chain
+- **site-capture** — canonical screenshot/visual-QA pipeline for real sites (DOM), incl. the launch fallback chain and site recipes (e.g. Reddit via Playwright + `shreddit-*`, §3 Gotchas)
 - **comfyui** — ComfyUI-specific skill (node types, ControlNet, workflows, model management)
-- **remotion** — programmatic video via React (different paradigm: code, not canvas)
+- **video** — programmatic video via HyperFrames (different paradigm: code, not canvas)
 - **webhooks** — if the app exposes webhook callbacks instead of polling

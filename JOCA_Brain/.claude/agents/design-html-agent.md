@@ -1,13 +1,16 @@
 ---
 name: design-html-agent
-description: "design · Transformar um mockup/design aprovado em HTML/CSS de produção limpo e sem dependências — texto. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "codificar o design, transformar em HTML"
 skills: design-html
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
 triggers: codificar design, transformar em HTML, construir página, implementar design, fazer mockup real, finalizar design
 generated-from: .claude/skills/design-html.md
 generated-by: skill-agents.mjs
-content-hash: c4ca8ee540ab0f0e
+content-hash: 50bfe16f750a4cc4
 ---
 
 # design-html — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 
