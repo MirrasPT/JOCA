@@ -151,7 +151,6 @@ export default function ProjectsOverview({
               <span>{jocaLogicInfo.skillCount} skills</span>
               <span>{jocaLogicInfo.agentCount} agentes</span>
               <span>{jocaLogicInfo.commandCount} comandos</span>
-              {jocaLogicInfo.hasGraph && <span>graph</span>}
               {jocaLogicInfo.hasSoul && <span>soul</span>}
             </div>
           )}

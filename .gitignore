@@ -5,6 +5,9 @@ dist/
 .env
 .env.*
 package-lock.json
+# JOCA OS installs with `npm ci`: its locks must be committed.
+!JOCA_OS/backend/package-lock.json
+!JOCA_OS/frontend/package-lock.json
 # Runtime + personal state (projects, settings, tasks, automations).
 # Local-only per machine — never commit. Mirrors JOCA_OS/.gitignore.
 JOCA_OS/data/

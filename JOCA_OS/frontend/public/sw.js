@@ -13,7 +13,6 @@ const API_PREFIXES = [
   '/projects', '/project-memory', '/runtime', '/joca-items',
   '/joca-logic', '/toolkit-item', '/files', '/file-content', '/file-op', '/file-diff',
   '/upload', '/open', '/roots', '/ui-settings', '/rate-limits',
-  '/knowledge-graph',
 ];
 
 const STATIC_DESTINATIONS = new Set(['script', 'style', 'font', 'image']);
