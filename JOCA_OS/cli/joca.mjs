@@ -86,13 +86,6 @@ function parseArgs(argv) {
   return { flags, positional };
 }
 
-const rel = (ts) => {
-  const s = Math.round((Date.now() - ts) / 1000);
-  if (s < 60) return `há ${s}s`;
-  if (s < 3600) return `há ${Math.round(s / 60)}min`;
-  if (s < 86400) return `há ${Math.round(s / 3600)}h`;
-  return `há ${Math.round(s / 86400)}d`;
-};
 const short = (id) => (id || '').slice(0, 8);
 const oneLine = (s, n = 90) => (s || '').replace(/\s+/g, ' ').trim().slice(0, n);
 
@@ -105,26 +98,6 @@ function resolveId(items, ref, label, notFoundHint = '') {
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) die(`prefixo "${ref}" é ambíguo (${matches.length} ${label}s)`);
   die(`${label} "${ref}" não encontrada${notFoundHint ? `\n  ${notFoundHint}` : ''}`);
-}
-
-// Um projecto é referido por id, prefixo de id ou nome — um agente que leu "Site da Ana" numa
-// mensagem não tem o uuid à mão. Ambiguidade nunca adivinha: lista as hipóteses e sai.
-async function resolveProject(ref) {
-  const all = (await api('GET', '/projects')).filter((p) => !p.archived);
-  if (!all.length) die('não há projectos no JOCA_OS. Cria um na UI (barra lateral → Projectos).');
-  if (!ref) die('falta o projecto. Vê a lista com: joca projects');
-  const lower = String(ref).toLowerCase();
-  const exact = all.find((p) => p.id === ref) || all.find((p) => p.name.toLowerCase() === lower);
-  if (exact) return exact;
-  let matches = all.filter((p) => p.id.startsWith(ref));
-  if (!matches.length) matches = all.filter((p) => p.name.toLowerCase().includes(lower));
-  if (matches.length === 1) return matches[0];
-  if (matches.length > 1) {
-    console.error(`joca: "${ref}" corresponde a ${matches.length} projectos — escolhe um:`);
-    for (const p of matches) console.error(`  ${short(p.id)}  ${p.name}`);
-    process.exit(1);
-  }
-  die(`projecto "${ref}" não encontrado. Vê a lista com: joca projects`);
 }
 
 // Caminhos são resolvidos DO LADO DO AGENTE (~ e relativos contam a partir do cwd deste terminal);

@@ -122,6 +122,10 @@ export interface Session {
   // preenche isto hoje; fica no tipo por ser opcional e escrito no ficheiro de sessões antigo.
   area?: string;
   pty: pty.IPty;
+  // Geometria pedida pelo último resize. No Windows (ConPTY) o node-pty adia o resize até o PTY
+  // emitir o primeiro byte, e `pty.cols/rows` só mudam então — por isso a fonte é esta, não o PTY.
+  cols: number;
+  rows: number;
   buffer: string;
   status: 'working' | 'idle';
   lastOutputTime: number;
@@ -416,6 +420,8 @@ export class SessionManager extends EventEmitter {
       cli: profile.id,
       area: opts.area,
       pty: ptyProcess,
+      cols: 120,
+      rows: 30,
       buffer: '',
       status: 'idle',
       lastOutputTime: Date.now(),
@@ -936,6 +942,8 @@ export class SessionManager extends EventEmitter {
     const c = Math.max(10, Math.min(Math.floor(cols), 500));
     const r = Math.max(5, Math.min(Math.floor(rows), 200));
     try { session.pty.resize(c, r); } catch {}
+    session.cols = c;
+    session.rows = r;
     return true;
   }
 
