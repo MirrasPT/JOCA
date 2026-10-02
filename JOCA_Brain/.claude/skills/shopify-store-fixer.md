@@ -6,6 +6,8 @@ compatibility: "Requires Shopify Admin API access (OAuth token or custom app tok
 
 # Shopify Store Fixer
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## When to use
 
 - Implementing fixes from `shopify-store-audit`

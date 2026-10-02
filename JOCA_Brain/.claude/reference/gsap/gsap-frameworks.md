@@ -6,6 +6,20 @@ license: MIT
 
 # GSAP with Vue, Svelte, and Other Frameworks
 
+<!-- índice acrescentado pelo JOCA (F3.5); o resto do ficheiro é a cópia original -->
+## Contents
+
+- When to Use This Skill
+- Principles (All Frameworks)
+- Vue 3 (Composition API)
+- Vue 3 (script setup)
+- Nuxt 4
+- Svelte
+- Scoping Selectors
+- ScrollTrigger Cleanup
+- When to Create vs Kill
+- Do Not
+
 ## When to Use This Skill
 
 Apply when writing or reviewing GSAP code in Vue (or Nuxt), Svelte (or SvelteKit), or other component frameworks that use a lifecycle (mounted/unmounted). For **React** specifically, use **gsap-react** (useGSAP hook, gsap.context()).

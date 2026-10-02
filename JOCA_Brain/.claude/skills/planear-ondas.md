@@ -1,7 +1,7 @@
 ---
 name: planear-ondas
-description: "Organiza os issues abertos em ondas de trabalho, com portoes de validacao, analise de paralelismo e agrupamento por sessao. Usar depois de abrir o backlog, ou quando o plano deixou de reflectir a realidade. MUST be invoked when the user says: planear ondas, ondas de trabalho, /planear-ondas, organizar o backlog, por ordem nos issues. SHOULD also invoke when: milestones, por onde comeco, que issues primeiro, plano de trabalho, ONDAS.md, replanear."
-triggers: planear ondas, ondas de trabalho, planear-ondas, organizar o backlog, por ordem nos issues, milestones, por onde comeco, que issues primeiro, plano de trabalho, ONDAS.md, replanear
+description: "Organiza os issues abertos em ondas de trabalho, com portoes de validacao, analise de paralelismo e agrupamento por sessao; parte features grandes em issues com estimativas e dependencias (blocked-by). Usar depois de abrir o backlog, ou quando o plano deixou de reflectir a realidade. MUST be invoked when the user says: quebrar em tarefas, task breakdown, estimativa, quanto tempo, planear ondas, ondas de trabalho, /planear-ondas, organizar o backlog, por ordem nos issues. SHOULD also invoke when: milestones, por onde comeco, que issues primeiro, plano de trabalho, ONDAS.md, replanear."
+triggers: quebrar em tarefas, break into tasks, task breakdown, breakdown, estimativa, quanto tempo, sizing, epics, backlog, planear ondas, ondas de trabalho, planear-ondas, organizar o backlog, por ordem nos issues, milestones, por onde comeco, que issues primeiro, plano de trabalho, ONDAS.md, replanear
 chain: novo-issue
 ---
 # Planear ondas
@@ -72,6 +72,31 @@ cinco interrupcoes e cinco recontextualizacoes.
 
 Este e o criterio que mais tempo poupa a quem aprova, e o que mais gente ignora.
 
+## Partir e estimar
+
+Feature ou issue grande demais (épico disfarçado) → parte-se em issues **antes** de ordenar. Era a skill `task-breakdown`;
+o ledger `TASKS.md` deixou de existir — a unidade é o issue (`novo-issue`) e o plano vive nas milestones.
+
+| Regra | O que exige |
+|---|---|
+| Atómico | cada issue cabe numa sessão (≤ ~4 h); maior → dividir |
+| Uma responsabilidade | «criar modelo, controller e testes» = 3 issues, não 1 |
+| Verificável | «Done quando» observável no corpo do issue |
+| Ficheiros explícitos | «Ficheiros prováveis» preenchido — é o que decide o paralelismo |
+| Dependências declaradas | nunca assumir ordem: cada uma vira `blocked_by` pela API (ver «2. Dependencia tecnica»), nunca texto «depende de» no corpo |
+
+**Estimativa (T-shirt)** — vai no plano da onda, ao lado de cada issue:
+
+| Tamanho | Tempo | Típico |
+|---|---|---|
+| S | ≤ 4 h | migração, modelo simples, config, seed |
+| M | 1-2 dias | controller + form request + testes, integração simples |
+| L | 3-5 dias | feature com UI + API + testes, integração complexa |
+| XL | > 1 semana | **não se estima — divide-se** |
+
+Sem dados de uso, a estimativa é palpite informado — diz-se. Empate de prioridade entre issues sem dependência →
+RICE opcional: `(alcance × impacto × confiança) / esforço` (S=1, M=2, L=4).
+
 ## Paralelismo
 
 **Dois issues so correm em paralelo se os conjuntos de ficheiros forem disjuntos.**
@@ -134,6 +159,7 @@ Para cada onda:
 **Issues:** #a, #b, #c
 
 **Ordem:** #a primeiro (bloqueia os outros) · depois #b e #c em paralelo
+**Tamanho:** #a M · #b S · #c S
 **Titulo da milestone:** `Onda N: <nome curto>` — dois pontos, para a correspondencia exacta nao falhar
 **Porque paralelo:** #b toca em `app/Http/Controllers/`, #c em `resources/views/` — disjuntos
 

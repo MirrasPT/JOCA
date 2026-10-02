@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// PostToolUse hook — corre validate-skill.py SÓ quando o ficheiro editado é uma skill
-// (.claude/skills/*.md). Não-bloqueante: imprime aviso se houver FAIL, mas exit 0 sempre.
+// PostToolUse hook — corre validate-skill.py SÓ quando o ficheiro editado é uma skill, um agente
+// ou uma referência (.claude/{skills,agents,reference}/**.md). Não-bloqueante: imprime FAIL e
+// avisos (regras F1.2: >500 linhas, índice, ponteiros, Step 0, pares), mas exit 0 sempre.
 // Lê o input do hook em stdin (JSON oficial do Claude Code: tool_input.file_path).
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +20,7 @@ try {
 if (!filePath && process.argv[2]) filePath = process.argv[2];
 
 const norm = String(filePath).replace(/\\/g, '/');
-if (!norm || !/\.claude\/skills\/.+\.md$/.test(norm)) process.exit(0);
+if (!norm || !/\.claude\/(skills|agents|reference)\/.+\.md$/.test(norm)) process.exit(0);
 
 const repoRoot = path.resolve(__dirname, '../..');
 // Probe python (Windows: `python`, não `python3` stub da Store).
@@ -30,7 +31,9 @@ if (probe.status !== 0) py = 'python3';
 const res = spawnSync(py, ['.claude/scripts/validate-skill.py', filePath], {
   cwd: repoRoot, encoding: 'utf8',
 });
-if (res.status && res.stdout && /\[FAIL\]/.test(res.stdout)) {
+if (res.stdout && /\[FAIL\]/.test(res.stdout)) {
   process.stdout.write('[skill-lint] frontmatter inválido:\n' + res.stdout.trim() + '\n');
+} else if (res.stdout && /\[WARN\]/.test(res.stdout)) {
+  process.stdout.write('[skill-lint] avisos (não bloqueia):\n' + res.stdout.trim() + '\n');
 }
 process.exit(0);

@@ -1,15 +1,18 @@
 ---
 name: analytics-tracking
-description: "Set up, improve, audit, verify and query analytics tracking and measurement (GA4, GTM, Consent Mode v2, UTM, GA4 Data API). MUST be invoked when the user says: set up tracking, GA4, Google Analytics, conversion tracking, event tracking, UTM parameters, tracking plan. SHOULD also invoke when: analytics, traffic, visitors, page views, sessions, GA4 report, GA4 Data API, DebugView, consent mode."
+description: "Set up, improve, audit, verify and query analytics tracking and measurement (GA4, GTM, Consent Mode v2, UTM, GA4 Data API, Microsoft Clarity export). MUST be invoked when the user says: analytics, traffic, visitors, page views, sessions, GA4, Google Analytics, set up tracking, conversion tracking, event tracking, UTM parameters, tracking plan, clarity, heatmap, session recording, rage clicks, dead clicks, scroll depth. SHOULD also invoke when: GA4 report, GA4 Data API, DebugView, consent mode, gtag, Microsoft Clarity."
+triggers: ga4, google analytics, gtag, consent mode, utm, eventos a disparar, medição do site, tracking de conversões, event tracking, set up tracking, tracking plan, visitors, sessions, page views, sessões, visitas do site, tráfego do site, traffic, clarity, heatmap, dead clicks, rage clicks, scroll depth, analytics, gtm
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Analytics Tracking
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Expert in analytics implementation and measurement. Sets up tracking that provides actionable insights for marketing and product decisions.
 
-**Nota JOCA:** Single skill for tracking: implementation (events, GTM, UTM, consent), verification and GA4 reporting through the Data API. `google-analytics` was merged into this skill on 2026-10-01 and is now only a pointer. Inside a `/marketeer` cycle the measurement plan belongs to `mkt-medicao` and is proven with the pack's `tracking/prova.mjs` — this skill supplies the doctrine.
+**Nota JOCA:** Single skill for tracking: implementation (events, GTM, UTM, consent), verification and GA4 reporting through the Data API. `google-analytics` and `microsoft-clarity` were merged into this skill on 2026-10-01 (Clarity: § Microsoft Clarity — behaviour data export). Inside a `/marketeer` cycle the measurement plan belongs to `mkt-medicao` and is proven with the pack's `tracking/prova.mjs` — this skill supplies the doctrine.
 
 ## Initial Assessment
 
@@ -348,6 +351,28 @@ Adapted from anthropics/knowledge-work-plugins `small-business/shared/absent-is-
 
 ---
 
+## Microsoft Clarity — behaviour data export
+
+Clarity export via the Composio MCP (one-time setup; Clarity has no first-party MCP here). Add to `.mcp.json` → `mcpServers`:
+```json
+"composio": { "type": "http", "url": "https://mcp.composio.dev/microsoft_clarity/<TOKEN>" }
+```
+Token at rube.app/mcp, then connect the Clarity account when prompted. Missing token → `TODO: credencial em falta`, never a guessed URL.
+
+**Tool `MICROSOFT_CLARITY_DATA_EXPORT`** — one call, up to 3 dimensions: `numOfDays` (required, **only** `1`, `2` or `3` = last 24/48/72 h) · `dimension1..3` (optional).
+Dimensions (exact, case-sensitive): `Browser` `Device` `Country/Region` `OS` `Source` `Medium` `Campaign` `Channel` `URL`.
+
+| Question | Call |
+|---|---|
+| Responsive audit | `numOfDays: 3, dimension1: "Device", dimension2: "Browser"` |
+| Source engagement | `numOfDays: 2, dimension1: "Source", dimension2: "Medium"` |
+| Page performance | `numOfDays: 1, dimension1: "URL", dimension2: "Device"` |
+| Campaign attribution | `numOfDays: 3, dimension1: "Campaign", dimension2: "Channel", dimension3: "Device"` |
+
+Pitfalls: `Country/Region`, not `country` · max 3 dimensions — run several exports for wider breakdowns · `URL` + other dimensions = large payloads, narrow the window · the last minutes may lag · **heatmaps and session recordings are dashboard-only** (not in the API) — say so instead of promising them.
+
+---
+
 ## Task-Specific Questions
 
 1. What tools are you using (GA4, Mixpanel, etc.)?
@@ -366,5 +391,4 @@ Adapted from anthropics/knowledge-work-plugins `small-business/shared/absent-is-
 - **page-cro**: For conversion optimization (uses this data)
 - **gdpr-compliance**: Consent banner, strict script gating, form consent
 - **paid-ads**: Meta Pixel/CAPI and Google Ads conversion tags
-- **microsoft-clarity**: Session/heatmap data export
 - **mkt-medicao** (marketeer pack): Measurement plan and gate before any campaign goes live

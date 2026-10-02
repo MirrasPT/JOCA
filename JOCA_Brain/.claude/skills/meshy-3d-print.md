@@ -111,6 +111,13 @@ Ver `blender`.
    `max_colors` 1–16 (default 4) · `max_depth` 3–6 (default 4; 3 grosseiro, 6 fino).
 4. Descarregar o 3MF e abrir.
 
+⚠ **Mais cores na figura do que filamentos → o `process_multicolor` funde por proximidade.** Meteu a
+ganga azul e os olhos pretos no castanho e o dono rejeitou (2026-09-25). Antes de processar,
+**perguntar ao dono o mapa cor→zona**. Via que funcionou: **repintar do nosso lado** — k-means na
+textura para N cores, uma cor por triângulo, e `paint_color` por triângulo no 3MF. Guardar o script no
+projecto (ver `impressao-3d.md`, regra do script por entregável) e provar no slicer/G-code as trocas
+por zona.
+
 Multicolor a sério exige impressora **multi-filamento** (AMS e afins). Bico único só troca de cor
 **por camada**, não por região na mesma camada. Resina não faz este fluxo.
 
@@ -155,7 +162,14 @@ A IA não tem noção de tamanho físico. Um modelo "de um cavaleiro" não sabe 
 | A escala está certa | ler a bounding box do ficheiro final, em mm |
 | A orientação está certa | a base assente, a peça de pé — não confiar no `print_ready` sem olhar |
 | Métricas de imprimibilidade | os cinco números, não só o estado |
-| O que o slicer diz | abrir e **ler o perfil dentro do ficheiro** — um 3MF de projecto traz o perfil da impressora lá dentro |
+| O que o slicer diz | abrir e **ler o perfil dentro do ficheiro** — um 3MF de projecto traz o perfil da impressora lá dentro (no GUI de forks do Bambu, ver aviso abaixo) |
+
+⚠ **GUI ≠ CLI nos forks do Bambu (AnycubicSlicerNext).** O GUI **não usa** o perfil de processo do
+3MF: abre com o preset seleccionado, e a camada e os suportes configurados no ficheiro não aparecem. O
+CLI `--slice` respeita-os — por isso o gate por CLI dá verde e o dono vê outra coisa. Quando o dono vai
+abrir no GUI: configurar por **preset de utilizador** (`user/<id>/process/*.json` na pasta de dados do
+slicer + reiniciar o slicer) e verificar **no GUI** (computer-use), não só pelo CLI
+(2026-09-25).
 
 ⚠ **Silêncio não é aprovação.** Um slicer que não avisa pode ter a verificação **desligada** — já
 aceitou uma ponte de 48 mm com o perfil a declarar 10 mm de máximo, e reportou "0 suportes", porque
@@ -199,4 +213,4 @@ Confirmar o custo antes. E se houver imagem **e** texto, a imagem ganha — o te
 
 - Malha reprovada que o `repair` não resolve → `blender` (3D Print Toolbox, Solidify, boolean).
 - Precisa de outro modelo, outra textura ou outro formato → `meshy`.
-- Peça entregue e o utilizador quer julgar o aspecto → `blender-render` + `design-review`.
+- Peça entregue e o utilizador quer julgar o aspecto → `blender` (render) + `design-review`.

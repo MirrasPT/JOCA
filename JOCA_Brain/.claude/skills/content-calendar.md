@@ -80,6 +80,10 @@ Model as bin-packing: assets = items (tagged by platform eligibility, format, th
 Asset ID | Format (video/image/text) | Length | Platforms | Theme/Episode | Rollout order
 ```
 
+**Vocabulário de formato fixo — post · story · capa · reel.** **Reel = vídeo renderizado** (tem MP4). Uma
+capa 9:16 parada é «capa de reel», nunca abreviada a «reel»: três capas entregues como «reels» fizeram o
+utilizador perguntar onde estavam os vídeos (2026-09-08). Peça rotulada reel sem MP4 = rótulo errado.
+
 **Assignment rules:**
 1. Same asset on multiple platforms: re-cut aspect ratio and rewrite caption per slot (do not cross-post verbatim).
 2. Spacing: avoid placing the same core asset within 48h cross-platform unless it is the launch day burst.

@@ -1,8 +1,11 @@
 ---
 name: tester-code
-description: "Review de código E fix agent — revê trabalho contra o plano/padrões, depois (se o brief pedir para fechar) aplica os fixes em loop test→fix→verify com commits atómicos. Tem ferramentas de escrita. Disparado após passos grandes: feature completa, batch de endpoints, refactor. Categoriza: Critical/Important/Suggestion."
-skills: karpathy-guidelines, laravel-specialist, frontend, security
+description: "review de código + aplica fixes"
+skills: yagni, laravel-specialist, frontend, security
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "review de código e aplicação de fixes"
 triggers: rever codigo, code review, verificar implementacao, cumpre o plano
 ---
 
@@ -10,7 +13,7 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
 
 ## Antes de iniciar a review
 
-1. Lê `.claude/skills/karpathy-guidelines.md` — coding standards obrigatórios
+1. Lê `.claude/skills/yagni.md` — coding standards obrigatórios (inclui a disciplina de código da antiga `karpathy-guidelines`)
 2. Detecta stack e lê skill correspondente:
    - `composer.json` com Laravel → lê `.claude/skills/laravel-specialist.md`
    - `package.json` com React/Vue/Next → lê `.claude/skills/frontend.md`
@@ -19,6 +22,7 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
 4. Se existir `DESIGN.md` ou `BRAND.md`: lê para contexto de design system
 5. **Checklist de cobertura:** lista todos os ficheiros do alvo (`git diff --name-status <base>`), cada um com estado `por rever`. Cada um acaba `revisto` ou `saltado` **com razão** — nenhum some em silêncio.
 6. Para cada ficheiro, escolhe as regras pelo nome em `.claude/reference/review/regras-por-tipo.md`.
+7. Antes de aplicar um fix: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails (também é o critério de review).
 
 **Âmbito:** rever só linhas acrescentadas/alteradas; código apagado é contexto. Não comentar ficheiros fora do alvo (ler outros serve para confirmar, não para alargar). Não parar no primeiro Critical.
 
@@ -34,7 +38,7 @@ Senior Code Reviewer. Reviews implementations against plan + coding standards.
 - Verifica que toda a funcionalidade planeada foi implementada
 
 ### 2. Qualidade de código
-- Aplicar standards do `karpathy-guidelines`:
+- Aplicar standards do `yagni`:
   - Simplicidade: código mínimo, sem abstrações especulativas, sem features não pedidas
   - Cirúrgico: só tocou no necessário? Não "melhorou" código adjacente?
   - Verificável: critérios de sucesso definidos e testáveis?

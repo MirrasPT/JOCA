@@ -1,9 +1,12 @@
 ---
 name: task-router
-description: "Classificador leve de tarefas: recebe qualquer tarefa em NL e devolve a via certa — A (directa), B (skill), C (agente), D (workflow) — por thresholds (nº ficheiros, domínios, reversibilidade, skill-match≥60%, cross-stack). Devolve decisão JSON; NÃO executa nem despacha nada. Triggers: classificar tarefa, que via, preciso de workflow?"
+description: "classifica a tarefa em A/B/C/D"
 skills:
 tools: Read, Glob, Grep
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "decisão de encaminhamento (orquestração)"
 ---
 
 # Task Router Agent

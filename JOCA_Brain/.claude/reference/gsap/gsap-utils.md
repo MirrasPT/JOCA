@@ -6,6 +6,18 @@ license: MIT
 
 # gsap.utils
 
+<!-- índice acrescentado pelo JOCA (F3.5); o resto do ficheiro é a cópia original -->
+## Contents
+
+- When to Use This Skill
+- Overview
+- Clamping and Ranges
+- Random and Snap
+- Units and Parsing
+- Arrays and Collections
+- Best practices
+- Do Not
+
 ## When to Use This Skill
 
 Apply when writing or reviewing code that uses **gsap.utils** for math, array/collection handling, unit parsing, or value mapping in animations (e.g. mapping scroll to a value, randomizing, snapping to a grid, or normalizing inputs).

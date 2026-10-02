@@ -1,5 +1,16 @@
 # Quality Gates and Standards
 
+## Contents
+
+- Validation Scripts
+- Anti-Fatigue Protocol
+- Bibliography Requirements (ZERO TOLERANCE)
+- Writing Standards
+- Source Attribution Standards
+- Anti-Hallucination Protocol
+- Report Quality Standards
+- Error Handling
+
 ## Validation Scripts
 
 ### Citation Verification

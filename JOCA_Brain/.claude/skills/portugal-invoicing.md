@@ -6,6 +6,8 @@ triggers: Moloni, faturação, fatura, fatura-recibo, invoice Portugal, nota de 
 ---
 # Portugal Invoicing — faturação certificada
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Certified e-invoicing from Laravel. Moloni primary; InvoiceXpress + Vendus alternatives. Backend lives in an Action/Service (`laravel-specialist`); Filament triggers issuance via a queued job (`filament`, `queues`).
 
 Invoked by `laravel-specialist`/`filament` on PT billing, or by user.

@@ -1,0 +1,27 @@
+{
+ "skill": "github",
+ "deve": [
+  "configura github actions para correr os testes",
+  "o CI está vermelho no PR, vê porquê",
+  "cria um workflow de deploy no github",
+  "faz uma release no github com changelog",
+  "set up CI/CD with github actions",
+  "adiciona lint ao pipeline do github",
+  "o gh pr create está a falhar",
+  "cria um pipeline que corre phpunit e build",
+  "o actions demora 15 minutos, optimiza",
+  "configura os secrets do github actions para o deploy"
+ ],
+ "quase": [
+  "sincroniza o brain entre máquinas",
+  "faz deploy para a vps",
+  "escreve os testes do issue",
+  "organiza o backlog em ondas",
+  "o git commit dá erro de identidade",
+  "cria a pipeline de marketing",
+  "faz uma pipeline de dados em python",
+  "o docker build falha",
+  "revê o código do componente",
+  "cria o repositório local e faz o primeiro commit"
+ ]
+}

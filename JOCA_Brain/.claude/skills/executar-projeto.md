@@ -2,7 +2,7 @@
 name: executar-projeto
 description: "A execucao do /start: constroi o projecto do PRD ate producao — fundacao (scaffold, repo, CI, hooks), design por uma de duas vias (Claude Design externo com conversao para o stack, ou design directo no stack com design-shotgun), ponto de situacao, e desenvolvimento final em ondas com loops implementar/testar usando as skills e agentes do JOCA. MUST be invoked when the user says: executar projeto, /executar-projeto, avanca para a execucao, constroi o projecto, executa o plano do start. SHOULD also invoke when: comeca a construir, scaffold do projecto, fase de execucao, desenvolve a plataforma toda."
 triggers: executar projeto, executar-projeto, avanca para a execucao, constroi o projecto, executa o plano do start, comeca a construir, scaffold do projecto, fase de execucao, desenvolve a plataforma
-chain: planear-ondas, preparar-design, deploy-executor
+chain: planear-ondas, preparar-design, deploy-executor, marketeer
 ---
 # Executar projeto — do PRD a producao
 
@@ -16,6 +16,11 @@ E1 Fundacao ──► E2 Design (bifurca) ──► E3 Ponto de situacao ⏸ ─
 **Referencias:** `$REF` = `<JOCA_ROOT>/JOCA_Brain/.claude/reference/start/`.
 **Pre-requisito:** `docs/PRD.md` existe e a stack esta decidida. Sem isso → corre `/start` primeiro.
 **Nao inventes scope**: o PRD e o contrato; ideia nova a meio vira issue, nao codigo.
+**Ambito de distribuicao** (privado · partilhado · publicado · vendido) tem de estar no PRD antes de
+qualquer levantamento de assets de terceiros ou regra de licenca — se o `/start` nao o registou,
+pergunta-o (`AskUserQuestion`) **antes** de fixar a restricao. Caso real: pesquisa de assets com «so
+redistribuivel» como regra dura, e so depois se soube que o jogo nao ia ser vendido nem distribuido
+(projecto de cliente, 2026-09-11).
 
 ## A regra desta skill: usar o JOCA, nao reinventa-lo
 
@@ -33,11 +38,13 @@ ve onde isto esta).
 
 | # | Passo | Skills / agentes JOCA |
 |---|---|---|
-| 1 | Scaffold da stack (`$REF/stacks/<stack>.md`) + `.env` com o motor/URL do **Ambiente local** do PRD; `.gitattributes` (`* text=auto eol=lf`) se houver >1 maquina | `laravel-specialist` · `frontend` (Next) · delta Flutter/Unity |
+| 0 | **Colisao de nomes so por maiusculas** (antes do scaffold): `ls \| sort -f \| uniq -di` na raiz e em cada pasta que os docs prescrevem (ex.: `assets/` num doc e `Assets/` noutro). No macOS/Windows sao a mesma pasta; qualquer par = gate antes de criar ficheiros | — |
+| 1 | Scaffold da stack (`$REF/stacks/<stack>.md`) + `.env` com o motor/URL do **Ambiente local** do PRD; `.gitattributes` (`* text=auto eol=lf`) se houver >1 maquina; **porta fixa no script `dev`** (ex.: `next dev -p 3000`) — os terminais do JOCA OS herdam `PORT=7491` e um dev server que le `PORT` arranca na porta do JOCA | `laravel-specialist` · `frontend` (Next) · delta Flutter/Unity |
 | 2 | Laravel Boost ⏸ (interactivo — o utilizador corre `boost:install`) | — |
-| 3 | Testes: Pest 5 / Vitest / flutter_test + smoke test | `test-master` |
+| 3 | Testes: Pest 5 / Vitest / flutter_test + smoke test. **Pasta que um ficheiro de config referencia leva `.gitkeep`** (ex.: `tests/Unit` no `phpunit.xml`): vazia, o git nao a guarda e o Pest sai com codigo 2 no CI, sem falhar localmente | `escrever-testes` |
 | 4 | Contexto: `$REF/templates/` → `.ai/guidelines/`, `.claude/rules/`, hooks, `revisor` + copiar a tabela **Ambiente local** do PRD para `.ai/guidelines/00-projeto.md` (a partir daqui e a copia canonica) | — |
 | 5 | Exportar skills de trabalho: `$REF/exportar-skills.sh . <JOCA_ROOT>/JOCA_Brain` | — |
+| 5b | **Levar o gate de runtime ao projecto:** `cp <JOCA_ROOT>/JOCA_Brain/.claude/scripts/gate-runtime.mjs scripts/` + `npm pkg set scripts.gate="node scripts/gate-runtime.mjs --base http://localhost:<porta>"` (ou uma linha no `Makefile`/`composer.json` se nao houver `package.json`). Sem isto o gate vive so no Brain e cada projecto reescreve ~250 linhas, perdendo uma armadilha de cada vez. **Projecto com login:** acrescentar `--login <ficheiro.json>` ao script (o ficheiro leva credenciais, fica FORA do git) — sem ele o gate mede o ecra de entrada e da-o por limpo | ver `.claude/reference/gates-runtime.md` |
 | 6 | Docs de design (esqueleto): `docs/DESIGN.md` a partir da direccao do /start | `design-system` (le, nao executa ainda) |
 | 7 | CI da stack (`$REF/templates/github/workflows/ci-<stack>.yml`) + issue forms | `github` |
 | 8 | Repo: `git init` → commit → `gh repo create` ⛔ (1 confirmacao) → labels | `github` |
@@ -66,8 +73,20 @@ Depois cria os `.md` que qualquer das vias consome:
 | Documento | Skill que o produz |
 |---|---|
 | `docs/BRAND.md` — identidade, tom, logotipo se houver | `brand-guidelines` |
-| `docs/DESIGN.md` — tokens, regras de composicao, 4 estados | `design-system` → `design-tokens` |
+| `docs/DESIGN.md` — tokens, regras de composicao, 4 estados | `design-system` (tokens em `reference/design-system-tokens.md`) |
 | `docs/ECRAS.md` — lista de ecras do PRD com proposito e estados | do PRD |
+
+**Documento de fundacao substituido** (direccao de design rejeitada `DESIGN.md` → `DESIGN-2.md`, e o
+mesmo para PRD, stack, schema, brandguide): no mesmo passo, `grep -rln "<nome-do-ficheiro-antigo>"
+--include='*.md' .` e tratar **cada** resultado — actualizar, ou marcar explicitamente «registo, nao
+seguir». O `CLAUDE.md` e as `.ai/guidelines/` sao os primeiros que uma sessao nova le: caso real, dois
+dias depois o `CLAUDE.md` ainda mandava ler a direccao morta e as guidelines impunham «cantos rectos
+em tudo», regra que tinha caido com ela (projecto de cliente, 2026-09-02).
+
+**Branding feito antes** (`PROGRESSO.md ## Workflows` com a linha `branding` ✅, ou `docs/BRAND.md` +
+`docs/DESIGN.md` + tokens entregues pela pipeline **Identidade/branding**): o E2 **consome-os, nao os
+recria** — `brand-guidelines` nao corre, `ECRAS.md` e os ecras usam os tokens do `DESIGN.md` tal como
+estao, e o logotipo vem de `assets/brand/`. Falta algum → lista-o e pergunta, nunca o substitui.
 
 **Design existente (o /start registou a fonte):** os tokens **medem-se** do artefacto real —
 `site-capture` + `getComputedStyle` num site vivo, export do Figma, `markitdown` num manual. Nunca
@@ -100,14 +119,14 @@ plausiveis. So depois se bifurca.
 
 ### Via 2 — Design directo (no stack)
 
-1. **Design system real**: pipeline `design-system` → `brand-guidelines` → `design-tokens` →
-   `component-system`, materializada **na stack** (componentes Blade/Livewire ou React, tokens no
+1. **Design system real**: pipeline `brand-guidelines` → `design-system` (tokens →
+   componentes), materializada **na stack** (componentes Blade/Livewire ou React, tokens no
    `@theme`; Flutter → `ThemeData`). Pagina `/design` com todos os componentes juntos.
-   Agentes: `design-system-agent`, `design-tokens-agent`; auditoria `design-system-audit`.
+   Agente: `design-system-agent`; auditoria `design-system-audit`.
 2. **Frontend publico (website/landing)** → **`design-shotgun`**: N variantes dentro da direccao
    escolhida no /start (nao do zero — a direccao e a restricao) → `design-review` para escolher →
    `design-html` → `frontend`. E o workflow de design do JOCA, corrido por inteiro.
-3. **Ecras de aplicacao**: para cada ecra de `ECRAS.md`, `preparar-design` (mockup como Artifact,
+3. **Ecras de aplicacao**: para cada ecra de `ECRAS.md`, `preparar-design` (mockup em HTML local,
    4 estados) → `validar-design` (porteiro) → implementar com os componentes do design system.
    Fan-out possivel: ecras com ficheiros disjuntos → `design-html-agent`/`frontend-agent` em
    paralelo (cap 3-5, briefs com Step 0).
@@ -153,19 +172,20 @@ para cada onda:
   para cada issue (paralelo SO com "Ficheiros provaveis" disjuntos, cap 3-5):
     branch <tipo>/<n>-<desc>
     implementar  → agente de dominio (laravel-specialist-agent · frontend-agent ·
-                   filament-builder · payment-integration ⛔ · auth · rest-api · mysql …)
+                   filament-agent · payment-integration ⛔ · auth · rest-api · mysql …)
     testar       → escrever-testes (AGENTE/SESSAO SEPARADA — nunca quem implementou)
     rever        → tester-code; endpoints → tester-api; UI → tester-ui-ux
     PR "Closes #n" → CI verde → merge (o issue fecha sozinho)
   fim da onda:
     varredura transversal (1 agente audita a juncao, nao os ambitos)
-    gate de RUNTIME da onda (rules/pipelines.md — screenshot/login real/fluxo vivo,
-                             nao so build verde)
+    gate de RUNTIME da onda (`npm run gate` — o gate-runtime.mjs copiado no passo E1-5b —
+                             + a evidencia por categoria de reference/gates-runtime.md:
+                             screenshot/login real/fluxo vivo, nao so build verde)
     portao de validacao humana da onda (o que o planear-ondas definiu)
   PROGRESSO.md actualizado (log da onda: o que fechou, o que ficou)
 ```
 
-3. **Regras do loop** (as do JOCA, nao opcionais): contrato `.joca/loop.json` com um passo por issue
+3. **Regras do loop** (as do JOCA, nao opcionais): contrato `.joca/loop/<session_id>.json` (id anunciado no arranque pela linha `[sessao]`) com um passo por issue
    (`produtor`/`verificador`) para a onda correr sem paragens · gate estatico minimo em cada PR (`tsc`/build/
    lint/`php -l` **+ eslint em JS**) · gate de runtime por categoria antes de fechar fase ·
    travao anti-loop (`loop_max_iterations`, 3x-sem-progresso → parar e reportar) · `git add` por
@@ -183,7 +203,15 @@ para cada onda:
 gates de runtime passados · security review sem Critical · deploy feito (ou entregue pronto-a-
 -deployar, se o utilizador adiar) · `PROGRESSO.md` a dizer "producao" com a data.
 
+**Passagem ao workflow seguinte:** com `## Workflows` no `PROGRESSO.md`, marca a linha da app ✅ com a
+data e procura a seguinte por fazer cujo «Comeca quando» ficou cumprido. Ha → 1 gate
+`AskUserQuestion` **«Avanco para o proximo workflow: <nome>?»** (*Sim, avancar* recomendado · *Nao,
+fica para depois*); marketing → `/marketeer <marca>` (o slug esta na linha; a RAIZ no frontmatter do
+`index.md` da memoria). Nao ha → fim.
+
 ## Proximo passo (chain)
+
+- Workflow seguinte em `## Workflows` → gate acima → pipeline/skill dele (ex.: `marketeer`).
 
 - Backlog vivo → `planear-ondas` re-corre quando o plano deixar de reflectir a realidade.
 - Ecras novos → `preparar-design` → `validar-design`.

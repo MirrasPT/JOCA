@@ -1,0 +1,27 @@
+{
+ "skill": "pt-pt-translator",
+ "deve": [
+  "traduz a interface para português de portugal",
+  "localiza a app para PT-PT, sem brasileirismos",
+  "revê o português deste texto, está muito brasileiro",
+  "translate this page into european portuguese",
+  "traduzir para PT-PT o ficheiro de idiomas",
+  "adapta o texto para tratamento por você",
+  "localizar UI em português europeu",
+  "o texto tem \"você\" e \"tela\", passa para pt-pt",
+  "traduz os emails do sistema para pt-pt",
+  "rever português dos botões e mensagens de erro"
+ ],
+ "quase": [
+  "traduz para inglês",
+  "corrige o código do i18n no next",
+  "escreve o texto da página",
+  "remove os tiques de AI do texto",
+  "traduz este pdf para espanhol",
+  "configura o laravel-lang",
+  "faz o copy do anúncio",
+  "transcreve este áudio",
+  "revê o texto e encurta",
+  "muda o idioma do windows"
+ ]
+}

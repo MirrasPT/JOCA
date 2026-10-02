@@ -1,0 +1,27 @@
+{
+ "skill": "comfy-mcp-workarounds",
+ "deve": [
+  "o enqueue_workflow não corre no comfy",
+  "workflow funciona à mão mas falha pelo mcp",
+  "start_comfyui falha no windows",
+  "bug do get_workflow no plugin comfy",
+  "comfy-mcp workaround para submeter workflow",
+  "comfyui mcp bug: workflow crashes via MCP",
+  "o plugin do comfy não arranca a frio",
+  "submit workflow programmatically to comfyui",
+  "o analyze_workflow dá erro",
+  "flatten bug no comfyui mcp"
+ ],
+ "quase": [
+  "gera uma imagem no comfyui",
+  "instala um custom node",
+  "treina um lora",
+  "o comfyui dá out of memory",
+  "que modelo uso para retratos",
+  "cria um workflow de upscale",
+  "faz um vídeo com wan",
+  "atualiza o comfyui",
+  "o mcp do chrome não liga",
+  "configura um mcp novo"
+ ]
+}

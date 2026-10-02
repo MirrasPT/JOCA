@@ -1,13 +1,16 @@
 ---
 name: wix-cli-agent
-description: "plataformas · Two paths: (1) develop/build/deploy Wix CLI projects (apps + headless sites) — extensions, CLI. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Wix, dashboard extension, Velo"
 skills: wix-cli
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "código e configuração de plataforma"
 category: plataformas
 triggers: Wix, Wix CLI, Wix app, dashboard extension, wix.config.json, Velo
 generated-from: .claude/skills/wix-cli.md
 generated-by: skill-agents.mjs
-content-hash: 2ae58067b48b30eb
+content-hash: fc142019a47b1ec8
 ---
 
 # wix-cli — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

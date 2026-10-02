@@ -11,6 +11,24 @@ metadata:
 Trabalho recorrente (print, lonas, cartazes, assets de cliente) que já foi descoberto do zero uma
 sessão inteira: escolher modelo, encontrar um runtime com torch, tiling, verificação.
 
+## 0. Há fonte vector? Então não se amplia raster
+
+Procurar primeiro a fonte sem perda (`.svg`, `.ai`, PDF vector) na pasta do asset.
+
+```bash
+grep -a -c "/Subtype */Image" fonte.pdf   # >0 = tem raster embebido; 0 = provável vector
+```
+⚠ Um `0` é indício, não prova (PDF com object streams comprimidos esconde o `/Subtype`) — confirmar
+renderizando. Render vector em qualquer resolução com PyMuPDF (se faltar →
+`pip install pymupdf` num `.venv`):
+```python
+import pymupdf
+doc = pymupdf.open("fonte.pdf"); page = doc[0]
+z = 3840 / page.rect.width
+page.get_pixmap(matrix=pymupdf.Matrix(z, z), alpha=True).save("render-3840.png")
+```
+Se o pedido foi **IA/ampliação**, o vector diz-se numa linha e faz-se o pedido (ver `img-gen.md` topo).
+
 ## 1. Escolher o modelo pelo CONTEÚDO
 
 Não há "o melhor upscaler" — há o certo para o que está na imagem. Errar aqui produz artefactos que
@@ -27,16 +45,39 @@ só aparecem à escala final, quando já é tarde.
 exigente (texto pequeno, olho, aresta de logo), passar pelos 2-3 candidatos, comparar lado a lado.
 Correr uma imagem grande com o modelo errado custa minutos ou horas e repete-se.
 
-## 2. Onde correr
+## 2. Onde correr — quem despacha escolhe UM motor
 
-Por ordem de preferência prática:
+⛔ **Nunca passar ao agente uma lista de motores como fallback.** Um brief com «Real-ESRGAN / ComfyUI /
+o que a skill indicar» fez o agente arrancar o ComfyUI, que o utilizador não tinha pedido: paragem, correcção
+e re-despacho (2026-08-30). Quem despacha **mede o que existe na máquina, escolhe um e nomeia-o** no brief.
+Ampliar também **não é passo implícito** da geração — `img-gen` entrega na resolução nativa.
 
-1. **gen-ai CLI (Picsart)** — `Read` a skill `gen-ai-use`; tem operação de enhance/upscale por API.
-   Sem setup, sem GPU, bom para volume e para quem não quer manter modelos.
-2. **ComfyUI local** — se houver instalação em `<COMFYUI_DIR>` (a pasta onde instalaste o ComfyUI) com
-   torch; nós de upscale aceitam `.pth` ESRGAN directamente. É o caminho offline e sem custo.
-3. **Python + torch avulso** — só se os anteriores não servirem. Precisa de runtime com torch (e CUDA
-   no Windows, para não demorar uma eternidade em CPU).
+Medir antes de escolher (não confiar em estado escrito à mão):
+```bash
+command -v gen-ai ffmpeg; python3 -c "import torch" 2>&1 | tail -1; ls -d ~/comfy* 2>/dev/null
+```
+
+| Motor | Sonda (nesta máquina) | Quando |
+|---|---|---|
+| **gen-ai CLI (Picsart)** | `command -v gen-ai` (instalação: `memory/tools/clis.md`) | só quando o utilizador o pede (custa créditos); comando abaixo |
+| **ComfyUI local** | pasta do ComfyUI (`<COMFYUI_DIR>`) + `python -c "import torch"` no venv dele | só quando o utilizador o **nomeia** — servidor pesado com estado próprio, nunca fallback |
+| **Python + torch avulso** | `python3 -c "import torch"` | runtime com torch (CUDA se houver GPU NVIDIA) |
+| **ffmpeg sem GPU** | `command -v ffmpeg` | fallback sem ESRGAN — perde aresta face ao ESRGAN; dizê-lo no relatório |
+
+**gen-ai upscale — invocação canónica** (flags lidas do `gen-ai upscale --help` a 2026-09-15):
+```bash
+gen-ai upscale -m <modelo> -i fonte.png --download ./out --no-open --no-input --max-cost 3
+```
+Custos por modelo **do feedback de 2026-08-31** (não re-medidos; confirmar com `--max-cost`):
+recraft-crisp 1 · picsart-enhance 2 · topaz 3 (`-m topaz-upscale-image`, exemplo do `--help`) ·
+recraft-creative 8. As variantes do Topaz são a decisão toda: `--model-version CGI|Text Refine|High
+Fidelity V2|Standard V2|…`. Ao 1.º erro de flag/comando inexistente → `gen-ai update` antes de
+adivinhar sintaxe (o build 2.59.3 anunciava `-i` e não o tinha; 6 tentativas perdidas).
+
+**ffmpeg lanczos 2 passos + unsharp** (testado 2026-09-15, 300×200 → 1200×800):
+```bash
+ffmpeg -y -i fonte.png -vf "scale=iw*2:ih*2:flags=lanczos,unsharp=5:5:0.8,scale=iw*2:ih*2:flags=lanczos" saida-4x.png
+```
 
 **Modelos `.pth`:** resolver o URL de download em **openmodeldb.info** (ou no Hugging Face do autor)
 no momento — os mirrors mudam. **Registar o URL resolvido e a data na memória do projecto** em vez de

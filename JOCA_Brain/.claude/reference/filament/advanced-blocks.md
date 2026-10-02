@@ -1,5 +1,17 @@
 > Parte da skill `filament` — carregado on-demand via Read().
 
+## Contents
+
+- Enums -- 3 contracts required
+- Advanced building blocks
+  - Infolists (View page — read-only)
+  - Relation Managers (hasMany / belongsToMany on the Edit/View page)
+  - Widgets (dashboard)
+  - Custom Actions (row / bulk / header)
+  - Global search
+  - Import / Export (bulk data — CMS/e-commerce)
+  - Notifications
+
 ## Enums -- 3 contracts required
 
 ```php

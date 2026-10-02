@@ -1,10 +1,13 @@
 ---
 name: wp-block-themes
-description: "Block theme development — theme.json, templates/parts, patterns, style variations, Site Editor debugging. Invoke on: theme.json, block theme, styles not applying."
+description: "Block theme development (FSE) — Site Editor, template parts, block patterns, style variations, theme.json, templates. Use when: building or debugging a WordPress block theme, the Site Editor does not show a template/part, theme.json styles are not applying."
+triggers: site editor, template parts, template part, style variations, padrões de blocos, padroes de blocos, block patterns, tema de blocos, fse, full site editing, template da página, templates do tema, theme.json, block theme, styles not applying, estilos do theme.json, paleta no theme.json
 compatibility: "WordPress 6.9+ (PHP 7.2.24+). Filesystem agent with bash + node. Some workflows need WP-CLI."
 ---
 
 # WP Block Themes
+
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## When to use
 

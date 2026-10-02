@@ -1,13 +1,16 @@
 ---
 name: meshy-agent
-description: "3d · Director de geração 3D por IA na Meshy (MCP oficial). Despachar para trabalho isolável deste domínio, em paralelo."
+description: "meshy, gerar modelo 3d, text-to-3d"
 skills: meshy
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "chamada à API do Meshy"
 category: 3d
 triggers: meshy, meshy.ai, gerar modelo 3d, criar modelo 3d, modelo 3d por ia, text-to-3d
 generated-from: .claude/skills/meshy.md
 generated-by: skill-agents.mjs
-content-hash: b3c203a111aefd50
+content-hash: 0fc95afd48a2ba9d
 ---
 
 # meshy — agente de execução

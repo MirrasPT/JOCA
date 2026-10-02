@@ -1,5 +1,18 @@
 # HTML Generation: McKinsey Style Report
 
+## Contents
+
+- Design Principles
+- Generation Steps
+  - Step 1: Read the report template
+  - Step 2: Extract Key Metrics
+  - Step 3: Convert MD to HTML
+  - Step 4: Add Citation Tooltips (Optional)
+  - Step 5: Replace Template Placeholders
+  - Step 6: Verify HTML
+  - Step 7: Open in Browser
+- PDF Generation
+
 ## Design Principles
 
 - Sharp corners (NO border-radius)
@@ -14,8 +27,10 @@
 
 ## Generation Steps
 
-### Step 1: Read McKinsey Template
-Load template from: `./templates/mckinsey_report_template.html`
+### Step 1: Read the report template
+Load template from: `../templates/report_template.md` — the only template shipped with this agent.
+⚠ There is **no** `mckinsey_report_template.html` in this install (the path this line used to give);
+build the HTML from `report_template.md` plus the CSS in this file rather than looking for it.
 
 ### Step 2: Extract Key Metrics
 Extract 3-4 key quantitative findings for dashboard display at top.
@@ -88,7 +103,7 @@ open [html_path]
 
 **Option A: WeasyPrint Direct (Preferred)**
 
-1. Create print-optimized HTML following `./reference/weasyprint_guidelines.md`
+1. Create print-optimized HTML following `weasyprint_guidelines.md`
 2. Critical CSS:
    - `page-break-inside: avoid` on tables, boxes
    - `page-break-after: avoid` on headings

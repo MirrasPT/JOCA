@@ -71,8 +71,7 @@ Executar `/clean-install` — o comando vai:
 4. Consolidar a memória de TODAS as instalações antigas para aqui (a mais recente por data vence
    em conflito, nada se descarta).
 5. Arquivar cada instalação antiga encontrada numa pasta `Old/` (nunca apagar).
-6. Correr o graphify (obrigatório) sobre todos os projectos ligados + esta instalação.
-7. Actualizar `~/CLAUDE.md` para apontar para AQUI como a instalação de produção.
+6. Actualizar `~/CLAUDE.md` para apontar para AQUI como a instalação de produção.
 
 ---
 

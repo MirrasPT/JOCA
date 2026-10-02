@@ -6,6 +6,8 @@ chain: frontend, design-review
 ---
 # /design-html — Mockup aprovado → HTML/CSS de produção
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Pega num design/mockup aprovado e produz **HTML/CSS de produção, limpo e sem dependências**: texto reflui de verdade, alturas computadas, layout responsivo. Adaptado do `design-html` do gstack (que é Pretext-native; aqui é HTML/CSS standard).
 
 Diferença para `frontend`: o `frontend` constrói a app React/Next; o `design-html` materializa um **mockup estático fiel** (landing, página de marketing, e-mail-safe, protótipo navegável) — depois encadeia para `frontend` se for preciso tornar interactivo/React.
@@ -26,7 +28,7 @@ Diferença para `frontend`: o `frontend` constrói a app React/Next; o `design-h
 1. **Ingerir o mockup** — ler o design aprovado + o sistema (`DESIGN.md`/tokens/`brand-guidelines`). Skill-first: `Read(".claude/skills/tailwind.md")` se o projecto usa Tailwind; senão CSS nativo.
 2. **Estrutura** — semântica primeiro (landmarks, headings), depois layout (grid/flex), depois detalhe visual.
 3. **Implementar secção a secção** — fiel ao mockup; conteúdo real onde existe, placeholder marcado onde não (`<!-- TODO: copy real -->`).
-4. **Verificar** — render real (Playwright MCP, ou `Start-Process <ficheiro.html>` + pedir confirmação visual ao user — `rules/workflows-and-tooling.md`). Confirmar reflow, responsivo, sem overflow.
+4. **Verificar** — render real (Claude in Chrome — `mcp__claude-in-chrome__*` —, ou `Start-Process <ficheiro.html>` + pedir confirmação visual ao user — `reference/workflows-and-tooling.md`). Confirmar reflow, responsivo, sem overflow. Ficheiro que o utilizador abre localmente: verificar **sem** `--allow-file-access-from-files` (com a flag as imagens relativas aparecem só na tua máquina) ou entregar auto-contido, com assets em base64.
 
 ## Replicar chrome de um site existente (header/footer/nav)
 

@@ -1,13 +1,16 @@
 ---
 name: stop-slop-agent
-description: "conteúdo · Remove padrões de escrita-AI (AI slop) de PROSA — tells previsíveis: aberturas throat-clearing. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "stop slop, soa a AI, email, post"
 skills: stop-slop
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "limpeza por regras fixas"
 category: conteúdo
 triggers: stop slop, AI slop, soa a AI, parece AI, escrito por AI, tells de AI
 generated-from: .claude/skills/stop-slop.md
 generated-by: skill-agents.mjs
-content-hash: f41a45043b7e0431
+content-hash: b49cd971c0c1bd12
 ---
 
 # stop-slop — agente de execução

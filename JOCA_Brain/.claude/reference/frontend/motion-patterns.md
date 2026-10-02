@@ -2,14 +2,21 @@
 
 Referencia on-demand, ligada de `skills/anima.md`. Ler quando a tarefa pede feedback de estado:
 clique, hover, erro, loading, sucesso, disabled. Adaptado de `LottieFiles/motion-design-skill` (MIT,
-© 2025 LottieFiles): `patterns/state-feedback.md`, `reference/property-selection.md`,
-`reference/timing-easing-tables.md`.
+© 2025 LottieFiles): `patterns/state-feedback.md`, `LottieFiles/motion-design-skill:reference/property-selection.md`,
+`LottieFiles/motion-design-skill:reference/timing-easing-tables.md` (repo de terceiros, não nesta árvore).
 
 Os numeros sao ponto de partida dentro do arquetipo do projecto (`anima.md`), nao substituem o arquetipo.
 Movimento "ambiente" (respirar, flutuar, pulsar em repouso) **nao entra aqui**: se nao orienta, confirma
 ou narra, nao se anima. Reduced-motion: substituir, nunca apagar (`anima.md` §prefers-reduced-motion).
 
 ---
+
+## Conteúdo
+
+- Receitas
+- Propriedade certa por objectivo
+- Ressalto final (overshoot) por contexto
+- Curva por direccao
 
 ## Receitas
 

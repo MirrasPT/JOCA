@@ -7,9 +7,9 @@ Recolher contexto:
 
 Formular hipóteses ordenadas por probabilidade (máx 3).
 
-Routing (pipeline Debug canónico — `rules/pipelines.md`):
+Routing (pipeline Debug canónico — `reference/pipelines-catalogo.md`):
 1. **Triagem** — classificar o erro (stack, tipo, superfície).
-2. **Skill do stack** — `Read()` a skill via Trigger Map do `CLAUDE.md` (ex.: Laravel/PHP → `laravel-specialist` · frontend/React → `frontend` · WordPress → `wordpress-router` · SQL → `mysql` · deploy/infra → `deploy-*`).
+2. **Skill do stack** — `Read()` a skill casada pelo hook `prompt-triage.js` (ou via `.claude/reference/trigger-map.md`; sem match → `grep` ao `SKILL_INDEX.json`) (ex.: Laravel/PHP → `laravel-specialist` · frontend/React → `frontend` · WordPress → `wp-index` · SQL → `mysql` · deploy/infra → `deploy-*`).
 3. **Logs / stack trace presentes** → despachar agente `log-debugger` (Iron Law: causa-raiz primeiro).
 4. **Causa é SQL** (query lenta, N+1, EXPLAIN) → chain para `query-debugger`. Notificar `[chain → query-debugger]`.
 

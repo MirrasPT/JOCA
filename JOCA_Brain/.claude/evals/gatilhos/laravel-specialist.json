@@ -1,0 +1,27 @@
+{
+ "skill": "laravel-specialist",
+ "deve": [
+  "cria um model Encomenda com relação a Cliente em laravel",
+  "faz a migration para adicionar o campo nif à tabela clientes",
+  "escreve um comando artisan que limpa registos antigos",
+  "o eloquent está a fazer N queries na listagem, corrige",
+  "cria um controller resource para produtos em laravel",
+  "adiciona um middleware que verifica se o user é admin",
+  "faz um job em laravel para enviar a fatura por email",
+  "create a Laravel service class for the payment logic",
+  "o composer.json tem conflito ao atualizar para laravel 13",
+  "cria uma form request com validação para o registo"
+ ],
+ "quase": [
+  "cria o resource filament para gerir encomendas",
+  "faz a landing page em next.js",
+  "o wordpress está lento, vê os plugins",
+  "escreve testes vitest para o componente de carrinho",
+  "faz deploy da app no ploi",
+  "cria um tema shopify",
+  "faz um script python para renomear ficheiros",
+  "desenha o ecrã de perfil do utilizador",
+  "escreve o texto do email de boas vindas",
+  "configura github actions para correr o lint"
+ ]
+}

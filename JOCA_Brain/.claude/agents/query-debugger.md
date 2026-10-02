@@ -1,10 +1,13 @@
 ---
 name: query-debugger
-description: "Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, missing index, database bottleneck, full table scan, query performance."
+description: "EXPLAIN, N+1, índice em falta"
 skills: mysql
 chain: tester-code
 tools: Bash, Read, Write
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "análise de EXPLAIN e índices"
 ---
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.

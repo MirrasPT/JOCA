@@ -1,13 +1,16 @@
 ---
 name: copywriting-agent
-description: "conteúdo · Write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "write copy for, improve this copy"
 skills: copywriting
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "copy de conversão pede juízo"
 category: conteúdo
 triggers: write copy for, improve this copy, rewrite this page, marketing copy, headline help, CTA copy
 generated-from: .claude/skills/copywriting.md
 generated-by: skill-agents.mjs
-content-hash: 8d5dd43aa0970def
+content-hash: 2458962c33b8f32a
 ---
 
 # copywriting — agente de execução

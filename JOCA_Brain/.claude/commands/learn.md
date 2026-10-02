@@ -12,7 +12,7 @@ assinatura (`node .claude/scripts/joca-brain.mjs learn --help`). Formas válidas
 
 ⚠ **Passar sempre `--slug <projecto>`** quando o cwd não é o projecto do trabalho. O slug default é o
 repo git do cwd — a trabalhar noutro projecto a partir do `JOCA_Brain`, as decisões ficam carimbadas
-`(JOCA)` (aconteceu com decisões que eram de um projecto cliente). `decide`, `learn`, `active`, `search`
+`(JOCA)` (aconteceu com decisões que eram de um projecto de cliente). `decide`, `learn`, `active`, `search`
 e `recall` aceitam todos `--slug`.
 
 ---
@@ -39,7 +39,7 @@ e `recall` aceitam todos `--slug`.
 - O recall (decisões activas + aprendizagens recentes) é injectado **automaticamente** no arranque de cada sessão pelo hook `session-intake.js`.
 
 ## Relação com a memória markdown
-Complementa `memory/projects/<proj>.md` (prosa, narrativa de sessão), não a substitui. O log JSONL é para **factos atómicos pesquisáveis** (decisões/lições); a prosa é para contexto de sessão. `/save` continua a escrever a prosa.
+Complementa `memory/projects/<proj>/` (prosa, narrativa de sessão), não a substitui. O log JSONL é para **factos atómicos pesquisáveis** (decisões/lições); a prosa é para contexto de sessão. `/save` continua a escrever a prosa.
 
 ## Próximo passo (chain)
 - Numa retrospectiva → `/retro` (lê as aprendizagens da janela e propõe acções).

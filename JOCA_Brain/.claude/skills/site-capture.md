@@ -48,6 +48,7 @@ const browser = await chromium.launch({
 });
 ```
 
+⚠ **Confirmar o pacote antes de escrever o script.** `require('playwright')` nu **não resolve** (só existe `@playwright/cli`, com o módulo aninhado lá dentro) e `chromium.launch()` sem `channel`/`executablePath` pede um build de Chromium que não está no cache. Sonda de 1 comando + snippet que funciona + o que fazer quando falta: `browser-automate` § "Realidade instalada do Playwright". **`npx playwright screenshot` funciona mesmo quando a via API falha** — não confundir as duas com "o Playwright não está a funcionar".
 Para captura preferir o build **headed** (`chromium-*`, Chrome for Testing): o
 `chromium_headless_shell-*` é mais rápido mas não é o mesmo render.
 
@@ -109,6 +110,7 @@ await browser.close();
 | `Cannot find package 'playwright'` · `Executable doesn't exist at .../chromium_headless_shell-<N>` | pacote só dentro do `@playwright/cli` (CommonJS) e o build pedido não está no cache | receita completa do §1 — resolver por `npm root -g` + `createRequire` + `executablePath` do cache |
 | Medições plausíveis mas sobre os pixels errados (contraste, rects, `y` fora da viewport) | `scroll-behavior:smooth` torna o scroll **animado** — os rects lidos no mesmo tick vêm do sítio antigo | `behavior:'instant'` em todo o scroll de medição + confirmar `window.scrollY` antes de ler rects |
 | Link/botão com `href` certo mas que não responde ao clique | outro elemento pinta por cima (irmão do Elementor, overlay, `::after`) — o HTML não o mostra | `document.elementFromPoint(cx,cy)` no centro da caixa, em carga limpa e depois do último reload (receita em `browser-automate`) |
+| **Reddit** não lê: `claude-in-chrome` com `tabs_context_mcp` em timeout (2×), `WebFetch` e `curl` bloqueados no reddit.com | causa não medida — só o sintoma (2026-08-29) | MCP `playwright`: abrir o share-link → post + comentários pelos web components `shreddit-*` — título em `shreddit-post[post-title]`, comentários em `shreddit-comment` (atributos `score`, `author`) |
 | `claude-in-chrome`: "extension not connected" | Extensão desligada | Fallback: Chrome headless CLI (sem login) ou MCP `playwright` (com login) |
 | MCP diz "screenshot guardado" e não há ficheiro | `filename` relativo no `browser_take_screenshot` — sucesso falso | Caminho **absoluto** dentro da raiz permitida (`<repo>/.playwright-mcp/`); ler, mover para o scratchpad, apagar a pasta (o cwd do MCP é o `JOCA_Brain`, produção read-only) |
 | `browser_resize` não pega (pediste 390, `innerWidth` fica 1170) · `devicePixelRatio` 0.333, `innerWidth` 3× o pedido | Estado do browser MCP, não da página — persiste entre tabs | Não confiar no screenshot: medir por `browser_evaluate` (`getBoundingClientRect`, `gridTemplateColumns`, `scrollWidth`). Workarounds validados: pedir resize a 1/3 do valor; medir mobile dentro de um `<iframe>` com a largura alvo. Fiável: script `playwright-core` com `viewport` explícito |
@@ -116,6 +118,7 @@ await browser.close();
 | `page.screenshot({fullPage:true})` põe elementos `position:fixed` a meio da página | Comportamento conhecido do fullPage | Confirmar qualquer suspeita de sobreposição com uma captura de viewport normal ANTES de a tratar como defeito |
 | Script pendura para sempre no `img.decode()` | `decode()` numa imagem `loading="lazy"` ainda não pedida nunca resolve | Pôr `loading='eager'` antes de percorrer a página + correr `decode()` contra um timeout |
 | `file://` bloqueado (MCP playwright e Chrome headless `--print-to-pdf`) | Protocolo recusado | Servir sempre por HTTP local: `python3 -m http.server` com `run_in_background: true` (numa chamada Bash normal o servidor morre no fim da chamada) + versionar assets (`site.css?v=N`), senão o `http.server` manda `Last-Modified` e o browser serve CSS/JS em cache após cada edição |
+| **[win]** Screenshot escrito com sucesso mas contém a página de erro do Chrome | Caminho POSIX estilo Git Bash (`file:///c/Users/...`) — o Chrome headless no Windows exige `file:///C:/...` com drive-letter | Converter o path antes de o passar ao Chrome, e **abrir o PNG** antes de o tratar como evidência. Família inteira destas armadilhas → `.claude/reference/workflows-and-tooling.md` § "A bancada mente antes do código" |
 
 ### Chrome headless CLI: full-page pelo ficheiro-sombra
 
@@ -199,6 +202,18 @@ Antes de tocar no ficheiro-fonte, provar o fix na página viva — poupa o ciclo
 2. Medir: `getBoundingClientRect()` (`left`/`right` vs largura do viewport) e `getComputedStyle` (contraste medido, não estimado).
 3. `page.addStyleTag({ content: <css candidato> })`.
 4. Re-medir. Só se os números mudarem no sentido certo é que se escreve no ficheiro.
+
+⚠ **Antes de acreditar numa medição, auditar a bancada** — `scrollIntoView` animado por `scroll-behavior:smooth`, rect de elemento em vez de `Range` sobre o nó de texto, `elementFromPoint` obsoleto após reload, selector que apanha o irmão errado. Cinco diagnósticos errados numa sessão vieram todos daí, nenhum do código: `.claude/reference/workflows-and-tooling.md` § "A bancada mente antes do código".
+
+## 8. Preview local com resposta real (página atrás de SSO / Cloudflare Access)
+
+Verificar o runtime de uma página protegida não se faz nem por `curl` (bate no 302) nem por browser (pede OTP por email — que **não** se pede ao utilizador). Padrão validado:
+
+1. Puxar o **JSON da API por SSH** (a partir de dentro do perímetro, onde não há SSO).
+2. Servir esse JSON **ao lado do HTML** num `http.server` local (`run_in_background: true`).
+3. Correr a verificação contra o preview local — a página recebe uma resposta **real**, não um mock.
+
+Continua a valer a regra do gate de runtime: o que se mede é o que é **pintado**, não o token.
 
 ## Próximo passo (chain)
 

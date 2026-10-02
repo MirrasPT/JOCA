@@ -1,13 +1,16 @@
 ---
 name: design-shotgun-agent
-description: "design · Explorar várias variantes de design em paralelo antes de codificar — gera N mockups distintos. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "explorar variantes, design shotgun"
 skills: design-shotgun
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
 triggers: explorar variantes, variantes de design, opções de design, design shotgun, mostra hipóteses, mostra opções
 generated-from: .claude/skills/design-shotgun.md
 generated-by: skill-agents.mjs
-content-hash: 9f534ee62f4f0737
+content-hash: 4e779fdf98bf3288
 ---
 
 # design-shotgun — agente de execução

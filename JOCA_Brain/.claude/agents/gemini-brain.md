@@ -1,15 +1,11 @@
 ---
 name: gemini-brain
-description: |
-  Tarefas multimodais ou de contexto 1M-token via `agy` (Antigravity CLI / Google Gemini):
-  analisar vídeo (YouTube, links directos), ficheiros locais de vídeo/áudio, PDFs grandes,
-  ou qualquer conteúdo que exceda o contexto do Claude. Triggered by: "analyze with Gemini",
-  "too long for context", "second opinion from Gemini", video/PDF/áudio analysis when cloud is
-  acceptable. Diferente do gemini-auditor (verificação/audit de componentes e código JOCA por um
-  segundo modelo — mesmo `agy` CLI, use-case diferente) e do agente `watch` (WhisperX local,
-  offline, privado, sem API).
+description: "vídeo/PDF grande via Gemini 1M"
 tools: Bash, Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "ponte para o agy: monta a chamada e devolve a resposta"
 triggers: perguntar ao gemini, gemini, contexto grande gemini
 ---
 

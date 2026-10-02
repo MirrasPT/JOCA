@@ -1,13 +1,16 @@
 ---
 name: woocommerce-elementor-agent
-description: "wordpress · Build a WordPress storefront programmatically with WooCommerce + Elementor (Free, no Pro) + Hello. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Elementor, WooCommerce storefront"
 skills: woocommerce-elementor
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
 triggers: elementor, _elementor_data, hello elementor, elementor free, woocommerce, woocommerce storefront
 generated-from: .claude/skills/woocommerce-elementor.md
 generated-by: skill-agents.mjs
-content-hash: f9c1094860f302df
+content-hash: 9f0b26bd0487e5ac
 ---
 
 # woocommerce-elementor — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

@@ -127,7 +127,7 @@ e o `marketeer` regista-a (F4.6) e oferece o lembrete (F4.7) — CONTRATO §3.
 - **Limiar de fadiga (valor único do pack — a `marketeer-review` lê-o daqui):** em prospeção fria, **frequência > 4,0 =
   fadiga** (trocar o criativo); 2,5-4,0 = aviso (preparar substituto). Remarketing: fadiga > 6,0. Sinais que confirmam:
   CTR a cair ≥ 20% face à base em 7 dias, CPM a subir ≥ 30% em 2 semanas. `[inferência — heurística de terceiros, não
-  regra da Meta: marketingskills `skills/ads/references/meta-decision-system.md` §Fatigue detection, lido 2026-10-01]`;
+  regra da Meta: marketingskills `meta-decision-system` §Fatigue detection (ver §Créditos), lido 2026-10-01]`;
   recalibrar à conta quando houver histórico.
 - Heurísticas de decisão (prática, não regra da Meta; recalibrar à conta): custo-alvo por lead qualificado como âncora; não julgar um anúncio antes de gastar ~3× esse custo; nunca editar o criativo de um anúncio que funciona (lança-se um novo ao lado); subir orçamento em passos de ~20% [inferência, marketingskills `meta-decision-system`].
 - **Nunca somar conversões com Google/LinkedIn**; lado a lado, com a janela de cada uma. Propostas de alteração vão ao gate da F2.

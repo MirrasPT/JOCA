@@ -1,7 +1,7 @@
 # /start — arranque de projecto (novo ou existente)
 
-Entrada única de qualquer projecto: entrevista por formulários → PRD inicial → stack da casa →
-infra → direcção de design → engata na execução.
+Entrada única de qualquer projecto: tipo de trabalho → entrevista por formulários → PRD inicial →
+stack da casa → infra → direcção de design → engata no primeiro workflow.
 
 `Read(".claude/skills/start.md")` — **a doutrina completa vive lá**. Este comando não a duplica:
 lê a skill e segue-a à letra (regras de formulário, Fase 0 de leitura do disco, fases, artefactos).
@@ -26,8 +26,17 @@ lê a skill e segue-a à letra (regras de formulário, Fase 0 de leitura do disc
 
 ## Próximo passo (chain)
 
-- Documentos e decisões fechados → skill `executar-projeto` (fundação → design → gate → ondas).
-  Notificar `[chain → executar-projeto]`. Ver `rules/chaining.md`.
+Destino pelo **tipo de trabalho** (pergunta 1.0 da skill, multiSelect, valor deduzido do disco primeiro):
+
+| Tipo | Destino | Notificar |
+|---|---|---|
+| Aplicação (inclui site com login, área reservada ou loja) | skill `executar-projeto` (fundação → design → gate → ondas) | `[chain → executar-projeto]` |
+| Website | pipeline **Website** do catálogo (`.claude/reference/pipelines-catalogo.md`), pelo auto-runner | `[chain → pipeline Website]` |
+| Identidade / branding | pipeline **Identidade/branding** do catálogo | `[chain → pipeline Identidade]` |
+| Marketing (inclui redes sociais) | `/marketeer <marca>` — dossier e `marca.md` já pré-preenchidos pela Fase 6 da skill | `[chain → marketeer]` |
+
+Mais de um tipo → **Projeto multi-tipo** (branding → website/app → marketing), 1 gate Sim/Não entre
+workflows. Ver `rules/chaining.md`.
 
 
 ---
@@ -41,6 +50,6 @@ Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve n
 Travões que **não** caem com esta autorização:
 - **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
 - **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
+- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop/<session_id>.json`).
 - **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
 - **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.

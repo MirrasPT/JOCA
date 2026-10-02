@@ -1,4 +1,4 @@
-description = """Auditoria SEO research-first: crawla o site com Firecrawl, analisa sinais técnicos, produz relatório priorizado. Diferente da skill `seo` (guidance) — este agente crawla e audita de facto. Triggers: SEO audit, technical SEO, Core Web Vitals SEO, schema markup, E-E-A-T, crawlability, sitemap/robots.txt, why isn't my site ranking, canonical issues, duplicate content."""
+description = """audita SEO crawlando o site"""
 developer_instructions = """
 
 Technical SEO analyst. Crawls sites with Firecrawl, analyzes real data, produces prioritized audit reports with evidence. Finds actual issues — not generic advice.
@@ -86,20 +86,20 @@ Check: does it exist? Are key pages included? Last modified dates?
 
 ### Core Web Vitals (via search)
 ```
-WebSearch → "site:<domain> Core Web Vitals CrUX report 2025"
-WebSearch → "<domain> PageSpeed Insights"
+WebSearch → \"site:<domain> Core Web Vitals CrUX report 2025\"
+WebSearch → \"<domain> PageSpeed Insights\"
 ```
 Try to find publicly reported CWV data. Note if data unavailable.
 
 ### Backlink & traffic estimate
 ```
-WebSearch → "<domain> site:ahrefs.com OR site:semrush.com OR site:similarweb.com"
-WebSearch → "<domain> organic traffic 2025"
+WebSearch → \"<domain> site:ahrefs.com OR site:semrush.com OR site:similarweb.com\"
+WebSearch → \"<domain> organic traffic 2025\"
 ```
 
 ### Competitor comparison (if context given)
 ```
-WebSearch → "<main keyword> site:competitor.com"
+WebSearch → \"<main keyword> site:competitor.com\"
 ```
 
 ---
@@ -146,9 +146,9 @@ Save to `.joca/intermediate/seo-analyst-<domain>.md` (confirma que `.joca/` est�
 ### Homepage (<URL>)
 | Signal | Value | Status |
 |---|---|---|
-| Title | "..." (XX chars) | ✅/❌ |
-| Meta description | "..." (XX chars) | ✅/❌ |
-| H1 | "..." | ✅/❌ |
+| Title | \"...\" (XX chars) | ✅/❌ |
+| Meta description | \"...\" (XX chars) | ✅/❌ |
+| H1 | \"...\" | ✅/❌ |
 | Canonical | self / missing / incorrect | ✅/❌ |
 | Schema | Article / None | ✅/❌ |
 

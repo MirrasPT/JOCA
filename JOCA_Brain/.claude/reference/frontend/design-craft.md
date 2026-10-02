@@ -27,7 +27,7 @@ Brand recognition comes from real assets, not palettes.
   - **Restrained** -- neutrals + 1 accent <= 10% (default product)
   - **Committed** -- 1 saturated color 30-60% (strong identity)
   - **Drenched** -- the surface IS the color (heroes, campaigns)
-- Semantic CSS variables. Never raw hex in components. (Tokens → `design-tokens`; Tailwind mapping → `tailwind`.)
+- Semantic CSS variables. Never raw hex in components. (Tokens → `design-system`; Tailwind mapping → `tailwind`.)
 - Light and dark designed together, not one after the other.
 - WCAG 4.5:1 body text, 3:1 large text.
 

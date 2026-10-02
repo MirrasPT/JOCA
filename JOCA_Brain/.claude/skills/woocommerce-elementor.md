@@ -7,6 +7,8 @@ origin: local
 
 # WooCommerce + Elementor (Free) Storefront — Programmatic Build
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Build a WordPress shop where **every page is editable in Elementor** (no "code blocks") and the **child-theme CSS owns the look** while Elementor holds editable content. Stack: Hello Elementor + child theme + Elementor **Free** + HFE (Header Footer Elementor) + WPForms Lite + WooCommerce.
 
 Verified end-to-end on a real store build. All JSON patterns come from real exported `_elementor_data`, not docs alone.
@@ -51,13 +53,13 @@ Swap them and the class is **silently dropped** (element renders without it). Ev
 
 ## 3. Header/Footer via HFE CPT (same import)
 
-HFE creates a `hfe_template` CPT — push `_elementor_data` to it exactly like a page:
+HFE creates an `elementor-hf` CPT (⚠ verificado 2026-09-29 com HFE 2.9.5: o CPT real é `elementor-hf` e a meta `ehf_template_type=type_header|type_footer`; os nomes `hfe_template`/`hfe_template_type` que esta skill usava não têm efeito nesta versão — noutra versão, confirmar no código do plugin) — push `_elementor_data` to it exactly like a page:
 
 ```bash
-HFE_ID=$(wp post create --post_type=hfe_template --post_title="Header" --post_status=publish --porcelain)
+HFE_ID=$(wp post create --post_type=elementor-hf --post_title="Header" --post_status=publish --porcelain)
 wp post meta update $HFE_ID _elementor_data    "$(cat elementor-templates/header.json)"
 wp post meta update $HFE_ID _elementor_edit_mode "builder"
-wp post meta update $HFE_ID hfe_template_type    "header"   # or "footer"
+wp post meta update $HFE_ID ehf_template_type    "type_header"   # or "type_footer"
 wp elementor flush_css
 ```
 
@@ -147,12 +149,32 @@ Prize lists, news grids, contact info, gallery filters → register a PHP shortc
 
 ---
 
+## 9. CI green from day one (PHPCS + PHPStan on a Woo project)
+
+Without this recipe the CI was born red: 186 PHPCS errors and 169 PHPStan errors on the first run (client project, 2026-09-29). Set it up before the first push:
+
+- **PHPStan needs WooCommerce symbols:** `composer require --dev php-stubs/woocommerce-stubs` and load them in `phpstan.neon.dist` under `parameters.bootstrapFiles` → `vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php` (the stubs README, checked 2026-10-01). Run with `vendor/bin/phpstan analyse --memory-limit=3G` — the value used to get the measured project green with the stubs loaded.
+- **WPCS rejects short prefixes** (`WordPress.NamingConventions.PrefixAllGlobals`, error `ShortPrefixPassed`): minimum 3 characters up to WPCS 3.1, **4 from WPCS 3.2** (`MIN_PREFIX_LENGTH` in the sniff source, checked 2026-10-01 on 3.4.1). Pick a prefix of 4+ characters (e.g. `myshop_`) and declare it in `phpcs.xml.dist`.
+- **Exclude the WooCommerce template overrides** (`<child>/woocommerce/**`) from both PHPCS and PHPStan — they copy core markup/variables and are not your code style to fix.
+- Keep both configs as `phpcs.xml.dist` / `phpstan.neon.dist` **in the project repo** and copy them from the last Woo project rather than rebuilding from zero.
+
+```xml
+<!-- phpcs.xml.dist (excerpt) -->
+<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+  <properties><property name="prefixes" type="array"><element value="myshop"/></property></properties>
+</rule>
+<exclude-pattern>*/woocommerce/*</exclude-pattern>
+```
+
+---
+
 ## Checklist
 - [ ] Import sets `_elementor_data` + `_elementor_edit_mode=builder` + flush_css (deleted `_elementor_css`)
 - [ ] `css_classes` on containers, `_css_classes` on widgets — verified in rendered HTML
-- [ ] Header/Footer as `hfe_template` CPT, imported the same way
+- [ ] Header/Footer as `elementor-hf` CPT (`ehf_template_type=type_header|type_footer`, HFE 2.9.5), imported the same way
 - [ ] `woocommerce_coming_soon=no` + pretty permalinks flushed
 - [ ] Product card = `content-product.php` override (path strips `/templates/`), loop add-to-cart removed via hook
 - [ ] Thumbnails uncropped + regenerated before QA; single gallery `opacity:1` static
 - [ ] Data-driven lists as shortcodes, not many widgets; content validated against source
 - [ ] Heading kit colour/font overridden; asset version bumped for cache-bust
+- [ ] CI green from day one: `php-stubs/woocommerce-stubs` + `--memory-limit=3G`, WPCS prefix ≥4 chars (WPCS 3.2+), template overrides excluded (§9)

@@ -1,0 +1,42 @@
+{
+ "skill": "anima",
+ "deve": [
+  "adiciona animações de scroll à homepage",
+  "anima a entrada dos cards com gsap",
+  "quero transições de página suaves",
+  "animação no hover dos botões",
+  "add a scroll triggered animation to the hero",
+  "anima o texto do título letra a letra",
+  "o site está muito estático, mete motion",
+  "animação de ilustração no hero com lottie",
+  "scrolltrigger para fixar a secção e animar",
+  "animacao de icone ao passar o rato",
+  "anima o logo e exporta em lottie",
+  "cria uma animação lottie de loading a partir do svg",
+  "animate this logo svg into lottie",
+  "quero o ícone com bounce em lottie",
+  "transforma este svg numa animação em loop",
+  "efeito de pulse no ícone, em lottie json",
+  "motion graphics do logo sem after effects",
+  "animação de entrada do logótipo para a app",
+  "create lottie from the static icon",
+  "morphing entre dois ícones em lottie",
+  "converte este svg em lottie para o logo"
+ ],
+ "quase": [
+  "faz um vídeo animado para o instagram",
+  "gera uma imagem animada com IA",
+  "o carrossel não desliza no mobile",
+  "cria um ícone novo",
+  "a página está lenta a carregar",
+  "cria um gif do logótipo",
+  "desenha o ecrã de onboarding",
+  "faz um vídeo com remotion",
+  "anima um modelo 3d no blender",
+  "faz um vídeo com o logo",
+  "vectoriza o logo",
+  "cria o favicon",
+  "desenha um ícone novo",
+  "anima personagens em 3d"
+ ]
+}

@@ -34,7 +34,7 @@ Se faltar algo crítico → reportar e parar. Não inventar requisitos.
 
 ### 3. Orquestrar (o main loop adopta o playbook)
 
-O **main loop lê `.claude/agents/master-orchestrator.md` e age como orquestrador ELE PRÓPRIO** — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não despacha workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop decompõe o PRD/TASKS em work-streams e dispara os *workers* via `Agent()`, cada um com o brief canónico obrigatório (8 cláusulas), sob:
+O **main loop lê `.claude/reference/master-orchestrator.md` e age como orquestrador ELE PRÓPRIO** — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não despacha workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop decompõe o PRD/TASKS em work-streams e dispara os *workers* via `Agent()`, cada um com o brief canónico obrigatório (8 cláusulas), sob:
 
 - **Objectivo:** implementar as features do PRD/TASKS de forma autónoma.
 - **Documentação:** PRD (resumo 3 linhas), stack detectada, constraints do `CLAUDE.md`, ficheiros `PRD.md`/`TECH_SPEC.md`/`TASKS.md`.
@@ -91,6 +91,6 @@ Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve n
 Travões que **não** caem com esta autorização:
 - **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
 - **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
+- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop/<session_id>.json`).
 - **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
 - **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.

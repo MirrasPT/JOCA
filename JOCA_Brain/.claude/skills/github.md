@@ -5,6 +5,8 @@ triggers: github, GitHub, github actions, CI, CI/CD, workflow, pipeline, gh pr, 
 ---
 # GitHub
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 GitHub specialist. Actions CI/CD for Laravel, gh CLI, Dependabot, branch protection, Environments, GHCR.
 
 ---
@@ -144,6 +146,9 @@ gh pr merge 123 --squash --delete-branch
 gh pr merge 123 --auto --squash        # auto-merge when checks pass
 gh pr list --author @me
 ```
+⚠ **Branch órfão para substituir a `main` não dá PR** — sem história comum, o GitHub recusa o
+`gh pr create` (só se descobriu aí, 2026-10-01). Ao escolher um «branch limpo», avisar **antes** que
+não haverá PR e que a troca é manual (force-push na `main` — irreversível, gate).
 
 ### Issues
 ```bash
@@ -162,6 +167,10 @@ gh run watch --exit-status              # waits and exits with error on failure
 gh run view 12345678 --log
 gh run rerun 12345678 --failed-only
 ```
+⚠ **Esperar pelo CI de um PR logo após o push:** `gh pr checks` sai com «no checks reported» enquanto
+os checks ainda não existem, e um `until gh pr checks …` termina logo (2026-09-29). A condição tem de
+exigir as linhas dos jobs (ex.: `grep -E '^(backend|frontend)'`, com os nomes reais do workflow) **e**
+a ausência de `pending`.
 
 ### Releases
 ```bash
@@ -270,6 +279,16 @@ Enable "Require review from Code Owners" in branch protection.
 | Require status checks | CI jobs |
 | Require branches up to date | Sim |
 | Require conversation resolution | Sim |
+
+### Rulesets — ler antes de prometer ou dar por bloqueado um merge
+Os repos podem usar **rulesets** em vez de (ou além de) branch protection; o `mergeStateStatus: BLOCKED` não diz porquê. Medir:
+```bash
+gh api repos/<o>/<r>/rules/branches/<base>      # regras efetivas no ramo (todas as rulesets)
+gh api repos/<o>/<r>/rulesets                   # lista → detalhe: rulesets/<id>
+gh api repos/<o>/<r> --jq .permissions.admin    # admin pode fazer bypass?
+gh pr view <N> --json mergeStateStatus,reviewDecision,statusCheckRollup
+```
+Comparar `required_status_checks[].context` com os `name:` dos jobs do CI (e com os nomes que o `statusCheckRollup` reporta) e ler `required_approving_review_count`. Contexto exigido que **nenhum job reporta** bloqueia para sempre — não é falta de aprovação. Caso: PR dado como «bloqueado por exigir aprovação de um colega»; o ruleset exigia 0 aprovações e bloqueava por checks com nomes que nenhum job emitia (2026-09-25).
 
 ---
 
@@ -411,6 +430,7 @@ jobs:
 | PHPStan out of memory | `--memory-limit=1G` |
 | Environment secrets in reusable workflows | Don't propagate via `workflow_call` -- use repo secrets |
 | Vendor/ cached with wrong key | Key must include `hashFiles('**/composer.lock')` |
+| CI vermelho em **2-5 s** em todos os jobs, parece falha de código | Minutos/orçamento de Actions esgotados: anotação de faturação no run. Antes de diagnosticar código, `gh run view <id>` e procurar «spending limit» nas anotações (medido 2026-09-14) |
 
 ---
 

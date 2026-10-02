@@ -27,7 +27,7 @@ const SELF = ['/.claude/hooks/', '/.claude/scripts/', '/.joca/', '/.claude/agent
 if (SELF.some((s) => norm.includes(s))) process.exit(0);
 
 // --- Filtro 2: artefactos de build (não são fonte) ----------------------------
-const BUILD = ['/dist/', '/build/', '/node_modules/', '/.next/', '/graphify-out/', '/vendor/', '/.git/'];
+const BUILD = ['/dist/', '/build/', '/node_modules/', '/.next/', '/vendor/', '/.git/'];
 if (BUILD.some((s) => norm.includes(s))) process.exit(0);
 
 const repoRoot = path.resolve(__dirname, '../..');

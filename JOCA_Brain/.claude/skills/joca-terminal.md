@@ -76,6 +76,14 @@ node "$JOCA_CLI" notify "Deploy terminado — 3 testes falharam, vê o terminal 
 Vai para a inbox persistente do JOCA (sobrevive a fechar o browser). Usa para trabalho longo que
 acaba quando o utilizador não está a olhar. Não uses para progresso trivial.
 
+```bash
+node "$JOCA_CLI" status "a rever o PR #7"   # frase no cartão DESTE terminal (máx. 120 caracteres)
+node "$JOCA_CLI" status --clear             # limpa a linha (um prompt novo do dono também a limpa)
+```
+
+Linha de estado no cartão do terminal: diz **o que estás a fazer agora**, sem ir para a inbox. Usa-a
+no arranque de cada fase longa; para avisos que têm de sobreviver, usa `notify`.
+
 ## Consultar
 
 ```bash

@@ -1,13 +1,16 @@
 ---
 name: auth-agent
-description: "código · Implementing authentication, login flows, JWT, OAuth, sessions, 2FA, password reset, or security. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "auth, login, logout, register"
 skills: auth
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: auth, authentication, login, logout, register, sanctum
 generated-from: .claude/skills/auth.md
 generated-by: skill-agents.mjs
-content-hash: bafd6ff6ff08e8a7
+content-hash: f21488eb4139e6bb
 ---
 
 # auth — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

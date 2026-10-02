@@ -3,8 +3,8 @@ description: WordPress performance code review - detects database anti-patterns,
 argument-hint: [file-or-directory]
 ---
 
-Use and follow the **wp-performance-review** skill to perform a comprehensive WordPress performance code review.
+Use and follow the **wp-performance** skill (`Read(".claude/skills/wp-performance.md")`), section **Code review (static)**, to perform a comprehensive WordPress performance code review.
 
 **Target**: $ARGUMENTS (if empty, use current working directory)
 
-Execute the full Code Review Workflow from the skill, load reference files as needed for deeper analysis, and format output using the skill's Output Format section with severity levels (Critical/Warning/Info).
+Execute the full Code Review Workflow from that section, load reference files as needed for deeper analysis, and format output using its Output Format with severity levels (Critical/Warning/Info).

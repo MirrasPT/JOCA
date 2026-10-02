@@ -79,6 +79,12 @@ Invoke-WebRequest http://127.0.0.1:8188/system_stats
 
 ---
 
+## Long generations — poll on demand, no background monitor loop
+
+A background bash monitor loop was killed by memory pressure while a long video generation (H3) ran on a 32 GB RAM machine (2026-09-27). For long runs, check progress with a one-off poll (`GET /queue` or `GET /history/<prompt_id>`) when needed, not a `while … sleep` loop in a background shell.
+
+---
+
 ## Decision table
 
 | Situation | Action |

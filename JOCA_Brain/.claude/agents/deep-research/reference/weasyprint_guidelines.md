@@ -1,5 +1,20 @@
 # WeasyPrint PDF Generation Guidelines
 
+## Contents
+
+- Overview
+- Critical CSS Properties for Page Breaks
+- @page Rules
+- Table Design for PDF
+- Typography for Print
+- Layout Patterns That Work
+- Content Boxes
+- Bibliography
+- Common Problems and Solutions
+- Compact Report Strategy
+- Validation Checklist
+- Generation Command
+
 ## Overview
 
 WeasyPrint converts HTML/CSS to PDF. These guidelines ensure professional output without awkward page breaks, orphaned content, or layout issues.

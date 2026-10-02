@@ -1,13 +1,16 @@
 ---
 name: landing-page-agent
-description: "design · End-to-end landing page creation — structure, conversion copy, and HTML scaffold. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "landing page, lead gen page"
 skills: landing-page
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
 triggers: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page
 generated-from: .claude/skills/landing-page.md
 generated-by: skill-agents.mjs
-content-hash: a9adc3380942e741
+content-hash: 3e4402c9d450b067
 ---
 
 # landing-page — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

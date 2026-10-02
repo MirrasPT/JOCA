@@ -1,13 +1,16 @@
 ---
 name: search-agent
-description: "código · Implement full-text search with Meilisearch, Typesense, or Algolia, including faceted filtering. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "search, typesense, algolia"
 skills: search
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: search, meilisearch, typesense, algolia, full-text search, faceted search
 generated-from: .claude/skills/search.md
 generated-by: skill-agents.mjs
-content-hash: d1198172454a2675
+content-hash: 96e0c62718eda22b
 ---
 
 # search — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

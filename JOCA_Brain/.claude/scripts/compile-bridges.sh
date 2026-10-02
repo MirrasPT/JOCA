@@ -66,6 +66,20 @@ sync_skills() {
       dry "cp $rel_path" && cp "$skill_file" "$dest"
       count=$((count + 1))
     fi
+
+    # Also sync for agy / Gemini CLI native discovery: <name>/SKILL.md
+    local skill_name="${rel_path%.md}"
+    local agy_dest_dir="$BRIDGE_SKILLS_DIR/$skill_name"
+    local agy_dest="$agy_dest_dir/SKILL.md"
+
+    if [[ ! -d "$agy_dest_dir" ]]; then
+      dry "mkdir -p $agy_dest_dir" && mkdir -p "$agy_dest_dir"
+    fi
+
+    if [[ ! -f "$agy_dest" ]] || ! cmp -s "$skill_file" "$agy_dest"; then
+      dry "cp $rel_path -> $skill_name/SKILL.md" && cp "$skill_file" "$agy_dest"
+      count=$((count + 1))
+    fi
   done < <(find "$SKILLS_DIR" -maxdepth 2 -name "*.md" ! -name "SKILL.md" -print0 2>/dev/null)
 
   log "  Skills synced: $count files updated"
@@ -147,8 +161,14 @@ prune_mirror() {
   log "  Prune $label: $removed removido(s)"
 }
 
-# Origem de um .md espelhado em .agents/skills/ → .claude/skills/<mesmo path>
-_src_has_skill() { [[ -f "$SKILLS_DIR/$1" ]]; }
+_src_has_skill() {
+  if [[ "$1" == */SKILL.md ]]; then
+    local dir_name="$(dirname "$1")"
+    [[ -f "$SKILLS_DIR/$dir_name.md" || -f "$SKILLS_DIR/$1" ]]
+  else
+    [[ -f "$SKILLS_DIR/$1" ]]
+  fi
+}
 # Origem de um .toml em .codex/agents/ → .claude/agents/<nome>.md
 _src_has_agent() { [[ -f "$AGENTS_DIR/${1%.toml}.md" ]]; }
 
@@ -167,6 +187,13 @@ prune_codex_agents() {
 }
 
 # ─── 2. Generate .codex/agents/*.toml from .claude/agents/*.md ─────────────────
+# Escapa conteúdo arbitrário para uma string TOML basic multilinha. Os corpos dos
+# agentes incluem frequentemente regexes, comandos shell, caminhos Windows e aspas;
+# sem esta conversão o TOML gerado deixa de ser carregável pelo Codex.
+toml_escape_multiline() {
+  sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
 compile_codex_agents() {
   log "Compiling .codex/agents/ from .claude/agents/..."
 
@@ -231,12 +258,15 @@ compile_codex_agents() {
 
     # Write TOML
     if dry "write $name.toml"; then
-      cat > "$toml_file" << TOML
-description = """${description}"""
-developer_instructions = """
-${body}"""
-name = "${name}"
-TOML
+      {
+        printf 'description = """'
+        printf '%s' "$description" | toml_escape_multiline
+        printf '"""\n'
+        printf 'developer_instructions = """\n'
+        printf '%s' "$body" | toml_escape_multiline
+        printf '"""\n'
+        printf 'name = "%s"\n' "$name"
+      } > "$toml_file"
       count=$((count + 1))
     fi
   done
@@ -355,7 +385,7 @@ BODY_HEAD
   echo
   extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Doutrina de projecto — vale SEMPRE, com ou sem \`/start\`"
   echo
-  extract_section "$CLAUDE_DIR/rules/pipelines.md" "## Catálogo de pipelines"
+  extract_section "$CLAUDE_DIR/reference/pipelines-catalogo.md" "## Catálogo de pipelines"
   echo
   extract_section "$JOCA_ROOT/CLAUDE.md" "## Context & Agents"
   echo
@@ -365,9 +395,12 @@ BODY_ORCH
   extract_section "$CLAUDE_DIR/rules/orchestration-patterns.md" \
     "## REGRA CRÍTICA — sub-agentes não fazem spawn de sub-agentes" | tail -n +2
   echo
-  extract_section "$JOCA_ROOT/CLAUDE.md" "### Trigger Map"
+  # Trigger Map e Commands saíram do CLAUDE.md (2026-09-15) para não pesarem em cada mensagem do
+  # Claude Code, que encaminha pelo hook prompt-triage.js. O Codex/Gemini não têm o hook: continuam a
+  # receber as tabelas inteiras, lidas das fontes novas.
+  extract_section "$CLAUDE_DIR/reference/trigger-map.md" "## Trigger Map"
   echo
-  extract_section "$JOCA_ROOT/CLAUDE.md" "## Commands"
+  extract_section "$CLAUDE_DIR/commands/help-joca.md" "## Commands"
   echo
   cat <<'BODY_TAIL'
 ## Doutrina completa (ler on-demand, não transcrita aqui)
@@ -375,11 +408,14 @@ BODY_ORCH
 | Ficheiro | O que traz |
 |---|---|
 | `CLAUDE.md` | fonte canónica de tudo o que está acima |
+| `.claude/reference/trigger-map.md` | tabela detecção → skill (gerada por `trigger-map-gen.mjs`) |
+| `.claude/commands/help-joca.md` | tabela canónica dos comandos |
 | `memory/soul.md` | personalidade, princípios, limites, calibração |
 | `memory/SKILL_INDEX.json` | inventário gerado de skills + agentes (nome/path/triggers) |
 | `memory/INDEX.md` | índice legível dos componentes |
 | `.claude/rules/task-intake.md` | classificação em 4 vias + thresholds + gate de plano |
-| `.claude/rules/pipelines.md` | auto-runner, gates estático≠runtime, catálogo completo |
+| `.claude/rules/pipelines.md` | auto-runner, gates estático≠runtime, doutrina de projecto |
+| `.claude/reference/pipelines-catalogo.md` | catálogo completo das pipelines nomeadas |
 | `.claude/rules/chaining.md` | convenção `chain:` e encadeamento automático |
 | `.claude/rules/orchestration-patterns.md` | fan-out, cap 3-5, anti-patterns |
 | `.claude/rules/stack-padrao.md` | stack da casa para projectos novos |

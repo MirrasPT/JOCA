@@ -251,5 +251,5 @@ Ficheiro existir ≠ ficheiro pronto. Amostrar o conteúdo, não confiar no nome
 ## Related
 
 - **browser-automate** — quando uma fonte precisa de driving de browser para extrair (post dinâmico).
-- **agent-context** — convenções de memória/INDEX onde a Knowledge Base se encaixa.
+- **`.claude/reference/orquestracao-casos.md`** §Contexto, compressão e consenso (ex-skill `agent-context`) — contexto e memória onde a Knowledge Base se encaixa.
 - FUTUROS.md Fase 5 — visão e decisões pendentes (storage final, embeddings p/ pesquisa vectorial).

@@ -1,10 +1,13 @@
 ---
 name: tester-security
-description: "Auditoria de segurança para SaaS Laravel+React: scan em 7 fases — CVEs (composer+npm), secrets (gitleaks), headers HTTP, exposição .env/config, config Laravel (APP_DEBUG, sessão, CORS), padrões de código (mass assignment, SQL raw, XSS, IDOR, rate limiting, PII em logs), integridade supply chain. Relatório por severidade: Critical/High/Medium/Low."
+description: "scan CVEs, gitleaks, headers"
 skills: security, auth
 chain: dependency-auditor, tester-ratelimit
 tools: Bash, Read, Write
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "scan e triagem de segurança"
 triggers: auditoria de seguranca, scan de seguranca, CVEs, secrets no repo
 ---
 
@@ -65,14 +68,22 @@ for name, v in vulns.items():
 ### gitleaks (preferred)
 ```bash
 if command -v gitleaks &>/dev/null; then
-    gitleaks detect --source . --report-format json --report-path /tmp/gitleaks-report.json --no-git 2>/dev/null
-    cat /tmp/gitleaks-report.json 2>/dev/null | python -c "
+    # Sintaxe v8.19+ (detect/protect obsoletos): https://github.com/gitleaks/gitleaks (verificado 2026-10-02)
+    # git = histórico inteiro (git log -p, --all = todos os ramos) · dir = working tree (apanha o que não está commitado)
+    # --redact: o segredo nunca aparece no stdout nem no relatório
+    gitleaks git --redact --no-banner --log-opts="--all" --report-format json --report-path /tmp/gitleaks-git.json . 2>/dev/null
+    gitleaks dir --redact --no-banner --report-format json --report-path /tmp/gitleaks-dir.json . 2>/dev/null
+    for r in /tmp/gitleaks-git.json /tmp/gitleaks-dir.json; do
+      echo "== $r"
+      cat "$r" 2>/dev/null | python -c "
 import json, sys
 findings = json.load(sys.stdin) or []
 if not findings: print('No secrets detected.')
 for f in findings:
-    print(f'[SECRET] {f[\"RuleID\"]}: {f[\"Description\"]} in {f[\"File\"]}:{f[\"StartLine\"]}')
+    c = (' commit ' + f['Commit'][:8]) if f.get('Commit') else ''
+    print(f'[SECRET] {f[\"RuleID\"]}: {f[\"Description\"]} in {f[\"File\"]}:{f[\"StartLine\"]}{c}')
 "
+    done
 fi
 ```
 

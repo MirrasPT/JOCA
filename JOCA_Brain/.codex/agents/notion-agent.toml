@@ -1,4 +1,4 @@
-description = """plataformas · Gerir um workspace Notion via CLI oficial `ntn` (winget Notion.ntn) a partir de Git Bash/PowerShell. Despachar para trabalho isolável deste domínio, em paralelo."""
+description = """Notion, ntn, workspace de clientes"""
 developer_instructions = """
 
 # notion — agente de execução
@@ -6,12 +6,12 @@ developer_instructions = """
 Especialista em notion. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** notion, ntn, tarefa notion, base de dados notion, data source notion
+**Gatilhos:** Notion, ntn, tarefa Notion, base de dados Notion, data source Notion, workspace de clientes, arquivar tarefa Notion, notion, ntn, tarefa notion, base de dados notion, data source notion
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
 ```
-Read(".claude/skills/notion.md")
+Read(\".claude/skills/notion.md\")
 ```
 
 Essa skill é a fonte de verdade deste agente. **Não** foi copiada para aqui de propósito: quando a
@@ -24,7 +24,7 @@ Se o brief mencionar outras skills, lê-as também antes de começar.
 
 1. Lê a skill (Step 0) e o brief que recebeste.
 2. Confirma o estado real antes de mudar: lê os ficheiros que vais tocar. Não assumas estrutura.
-3. Executa **só** o que o brief pede. Não "melhores" código adjacente, não acrescentes features
+3. Executa **só** o que o brief pede. Não \"melhores\" código adjacente, não acrescentes features
    que ninguém pediu.
 4. Segue as convenções do projecto onde estás (CLAUDE.md do projecto, padrões do código à volta)
    acima dos defaults da skill.

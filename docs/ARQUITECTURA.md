@@ -142,7 +142,7 @@ Regras de escrita: `readJsonFile` devolve o fallback em qualquer erro (**engole 
 | **agents** | `.claude/agents/*.md` | `Agent(subagent_type=…)` | contexto isolado, custo ~15x; **1 nível apenas** |
 | **commands** | `.claude/commands/*.md` | `/<nome>` | entrada humana; é aqui (ou no main loop) que vive a orquestração |
 
-Além destas: `hooks/` (Node, cross-platform, ligados em `.claude/settings.json`) e `scripts/` (utilitários: `joca-doctor`, `build-skill-index.py`, `compile-bridges.sh`, `joca-brain.mjs`, `joca-graph.mjs`).
+Além destas: `hooks/` (Node, cross-platform, ligados em `.claude/settings.json`) e `scripts/` (utilitários: `joca-doctor`, `build-skill-index.py`, `compile-bridges.sh`, `joca-brain.mjs`).
 
 ### 4.2 Como uma skill é activada
 
@@ -289,4 +289,4 @@ Detalhe completo (com `ficheiro:linha` e plano em 5 fases) em [`AUDITORIA-2026-0
 - ❌ Correr chamadas ao SDK com ferramentas activas a partir de conteúdo não confiável (web, ficheiros externos) — `noTools: true` é o default correcto para tudo o que não seja um worker visível.
 - ❌ Escrever JSON directamente com `fs.writeFileSync` num store — usar `writeJsonFile`/`writeFileAtomic`.
 - ❌ Abrir sessões PTY sem política de reutilização ou fecho — o cap de 30 é global.
-- ❌ Fazer alguma coisa nascer sozinha num terminal. Só entram (a) o que o dono escreve e (b) o que um agente pede explicitamente pela ponte. Proactividade automática já foi tentada e saiu.
+- ❌ Fazer alguma coisa nascer sozinha num terminal. Só entram (a) o que o utilizador escreve e (b) o que um agente pede explicitamente pela ponte. Proactividade automática já foi tentada e saiu.

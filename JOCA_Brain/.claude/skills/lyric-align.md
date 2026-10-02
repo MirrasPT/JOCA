@@ -4,12 +4,14 @@ description: "Forced alignment of lyrics to audio — produce word/line-level ti
 metadata:
   version: 1.0.0
   origin: local
-chain: remotion
+chain: video
 ---
 
 # Lyric Align
 
-Specialist for word/line-level lyric-to-audio forced alignment using WhisperX + wav2vec2. Output: LRC (line-timed), ASS (animated karaoke), SRT (word highlight). Target: Remotion lyric video projects.
+> Faixa gerada no Suno → gerar e confirmar os takes com `suno` antes de alinhar.
+
+Specialist for word/line-level lyric-to-audio forced alignment using WhisperX + wav2vec2. Output: LRC (line-timed), ASS (animated karaoke), SRT (word highlight). Target: lyric video projects (HyperFrames via the `video` skill).
 
 ---
 
@@ -154,12 +156,12 @@ whisperx separated/htdemucs/song/vocals.wav \
 
 | Format | Use case | Flag |
 |--------|----------|------|
-| LRC | Line-timed lyrics (foobar2000, VLC, AIMP, Remotion) | `--output_format lrc` |
-| ASS | Animated karaoke with per-word fill (lyric video NLEs, Remotion) | `--output_format ass` |
+| LRC | Line-timed lyrics (foobar2000, VLC, AIMP, HyperFrames) | `--output_format lrc` |
+| ASS | Animated karaoke with per-word fill (lyric video NLEs) | `--output_format ass` |
 | SRT | Word-by-word highlight (standard subtitles) | `--output_format srt` + `--highlight_words True` |
 | VTT | Web player subtitles | `--output_format vtt` |
 
-**For Remotion lyric videos:** export JSON for programmatic control:
+**For programmatic lyric videos (HyperFrames):** export JSON for programmatic control:
 
 ```python
 import json
@@ -213,7 +215,7 @@ for w in flagged:
 - Sustained final notes — alignment snaps to note end, not phoneme onset
 - Chorus with backing vocal layers
 
-Editors: Audacity (label track), Aegisub (ASS), or custom Remotion scrubber.
+Editors: Audacity (label track), Aegisub (ASS), or a custom HyperFrames scrubber.
 
 ---
 
@@ -242,6 +244,5 @@ WhisperX is sufficient for lyric video production with manual cleanup on flagged
 
 ## Related skills
 
-- **remotion** — consume `timestamps.json` to drive animated lyric components
-- **video** — export pipeline from Remotion render to final video
+- **video** — router to HyperFrames (`skills-video/music-to-video`): consume `timestamps.json` to drive the animated lyric composition and render the final video
 - **img-gen** — generate per-line visual assets timed to lyric segments

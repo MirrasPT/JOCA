@@ -6,6 +6,8 @@ triggers: ifthenpay, Multibanco, MB WAY, MBWay, MBWAY, pagamento Portugal, refer
 ---
 # Portugal Payments — ifthenpay
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ifthenpay gateway for Laravel. Three flows: **Multibanco** (entity+reference, async), **MB WAY** (push to phone, async), **Cartão** (hosted redirect). Confirmation is always via **callback webhook** — never trust the init response as proof of payment.
 
 Invoked by `laravel-specialist` or `payment-integration` agent on PT payment work, or by user.

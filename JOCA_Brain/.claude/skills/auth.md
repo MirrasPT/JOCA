@@ -6,6 +6,8 @@ chain: security-review, tester-security
 ---
 # Auth
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Full auth for Laravel 11+ SaaS. Sanctum + Spatie RBAC + 2FA + Socialite + Policies.
 
 Auto-invoked by `laravel-specialist` when auth work detected.

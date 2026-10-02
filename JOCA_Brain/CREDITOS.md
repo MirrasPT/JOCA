@@ -180,7 +180,6 @@ Repositório Automattic arquivado — usar o oficial: [WordPress/mcp-adapter](ht
 
 | Tool | Repo | Autor |
 |------|------|-------|
-| Graphify | [safishamsi/graphify](https://github.com/safishamsi/graphify) | Safi Shamsi |
 | Motion | [motiondivision/motion](https://github.com/motiondivision/motion) | Motion Division |
 | Memory setup | [lucasrosati/claude-code-memory-setup](https://github.com/lucasrosati/claude-code-memory-setup) | Lucas Rosati |
 | WhisperX | [m-bain/whisperX](https://github.com/m-bain/whisperX) | Max Bain |

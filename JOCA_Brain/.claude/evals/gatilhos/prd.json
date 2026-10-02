@@ -1,0 +1,27 @@
+{
+ "skill": "prd",
+ "deve": [
+  "escreve o PRD do produto",
+  "atualiza o PRD com o novo âmbito",
+  "preciso de um documento de requisitos para a app",
+  "faz a product spec da funcionalidade de reservas",
+  "write a PRD for the mobile app",
+  "o prd está desatualizado, revê as funcionalidades",
+  "cria o PRD.md a partir da conversa",
+  "requisitos do produto: utilizadores, fluxos e critérios",
+  "acrescenta ao PRD a parte dos pagamentos",
+  "documento de requisitos do backoffice"
+ ],
+ "quase": [
+  "planeia as ondas de trabalho",
+  "abre issues para cada funcionalidade",
+  "faz o plano técnico da migração",
+  "escreve o README do repo",
+  "desenha o ecrã de reservas",
+  "escreve o pitch para investidores",
+  "faz um resumo da reunião",
+  "cria o design system",
+  "começa a construir a app",
+  "escreve a proposta comercial para o cliente"
+ ]
+}

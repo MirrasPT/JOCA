@@ -9,6 +9,8 @@ chain: tester-code
 
 # Laravel Reverb + Broadcasting
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## Installation
 
 ```bash

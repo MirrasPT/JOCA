@@ -1,13 +1,16 @@
 ---
 name: file-storage-agent
-description: "código · Secure file storage/delivery for Laravel SaaS on S3/R2 — presigned uploads, magic-bytes validation. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "file upload, S3, R2, presigned URL"
 skills: file-storage
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: file upload, S3, R2, presigned URL, ClamAV
 generated-from: .claude/skills/file-storage.md
 generated-by: skill-agents.mjs
-content-hash: dfc6eb86d300a95f
+content-hash: f6fc14524c9acab8
 ---
 
 # file-storage — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

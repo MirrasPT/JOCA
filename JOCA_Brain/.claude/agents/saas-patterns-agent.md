@@ -1,13 +1,16 @@
 ---
 name: saas-patterns-agent
-description: "código · SaaS architecture patterns for Laravel 11 multi-tenant platforms. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "multi-tenancy Laravel, tenant isolation"
 skills: saas-patterns
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context
 generated-from: .claude/skills/saas-patterns.md
 generated-by: skill-agents.mjs
-content-hash: 4579833d6cb2ea60
+content-hash: b783b5bd8419e636
 ---
 
 # saas-patterns — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

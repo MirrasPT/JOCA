@@ -96,6 +96,9 @@ codigo para descobrir, ou a sequenciar por precaucao. O `planear-ondas` depende 
 - **Maximo 5 criterios de aceitacao.** Mais do que isso significa que o issue devia estar dividido.
 - Cada criterio verificavel por quem nao participou na conversa. "A experiencia deve ser fluida" nao
   serve; "a listagem carrega em menos de 2s com 1000 registos" serve.
+- **Numeros medidos entram com a data e o comando que os produziu** (ex.: "cabecalho ocupa 54px —
+  medido 2026-09-02 com `getBoundingClientRect().height`"). Um issue com numeros e perecivel: quem o
+  implementa **remede antes de implementar**. O issue diz onde olhar, nao o que e verdade hoje.
 - Escrever "Fora de ambito" mesmo quando parece obvio — e o que impede o ambito de crescer durante a
   implementacao. Em produto proprio, onde nao ha cliente a fechar o ambito, isto importa mais, nao
   menos.

@@ -1,5 +1,15 @@
 Parte da skill `frontend` — carregado on-demand. Stack de produção (#6), UX rules (#7), /components (#9), Expert Critique (#10), validação e quality gate.
 
+## Contents
+
+- #6 Production stack (then delegate)
+- #7 UX Rules (apply always, without asking)
+- #9 /components
+- #10 Expert Critique
+- Validation before delivery
+- Quality Gate
+- Related skills
+
 ## #6 Production stack (then delegate)
 
 Default stack the specialists assume:
@@ -70,7 +80,7 @@ When asked `/components` or "generate component library":
 1. `components.md` -- design tokens + typography + each component with props and states
 2. `components.html` -- interactive visual library with preview of all components
 
-(Formal specs → `component-system`; styling implementation → `tailwind` + `react-composition`.)
+(Formal specs → `design-system`; styling implementation → `tailwind` + `react-composition`.)
 
 ## #10 Expert Critique
 
@@ -131,10 +141,10 @@ After delivery, suggest the right reviewer by need:
 - `react-composition` -- compound components, context, slots, React 19
 - `tailwind` -- Tailwind 4, cva, cn, dark mode, responsive
 - `shadcn` -- shadcn/ui component toolkit (Radix + Tailwind, CLI-driven)
-- `react-email` -- email templates (React Email)
+- `transactional-email` -- email templates (React Email) and sending
 
 **Design contract:**
-- `design-system` -- router for `brand-guidelines` → `design-tokens` → `component-system`
+- `design-system` -- tokens and component specs (references read on demand); brand → `brand-guidelines`
 
 **Support:**
 - `anima` -- GSAP + Lottie (invoked autonomously)

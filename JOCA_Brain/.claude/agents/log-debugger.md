@@ -1,9 +1,12 @@
 ---
 name: log-debugger
-description: "Debugs errors, stack traces, and logs — reads real code/logs, never guesses. Auto-selects mode: stack trace → root-cause fix; log file → pattern analysis; error spike/cascade → correlation; Laravel-specific → Artisan/Tinker diagnosis. Triggers: debug this error, stack trace, 500/419/CSRF, TypeError, SQLSTATE, N+1, queue job failing, route not found, error spike, cascade failure, Laravel/Eloquent/Horizon errors."
+description: "stack trace, erro 500, log"
 skills: error-tracking-dev
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: high
+porque-modelo: "diagnóstico de causa raiz em código"
 ---
 
 Debugging specialist. Given an error, log file, or symptom, finds root cause in actual code and logs. Reads — never guesses.
@@ -13,6 +16,7 @@ Debugging specialist. Given an error, log file, or symptom, finds root cause in 
 1. Lê `.claude/skills/error-tracking-dev.md` — ferramentas de debug disponíveis (Debugbar, Telescope, Ray, Clockwork, Pail)
 2. Se encontrar slow queries → sugerir `query-debugger` como follow-up
 3. Se encontrar padrões recorrentes cross-service → sugerir `error-detective` (agente built-in)
+4. Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 Auto-select mode based on input:
 

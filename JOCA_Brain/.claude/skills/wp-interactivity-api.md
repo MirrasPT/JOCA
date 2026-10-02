@@ -6,6 +6,8 @@ compatibility: "WordPress 6.9+ (PHP 7.2.24+). Filesystem agent with bash + node.
 
 # WP Interactivity API
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## When to use
 
 - Interactivity API, `@wordpress/interactivity`

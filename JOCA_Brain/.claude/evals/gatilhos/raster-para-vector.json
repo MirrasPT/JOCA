@@ -1,0 +1,27 @@
+{
+ "skill": "raster-para-vector",
+ "deve": [
+  "vectoriza este logo em png",
+  "converte o logo em vetor, svg fiel",
+  "png para svg com fidelidade medida",
+  "traçar o logo que só existe em jpg",
+  "raster to vector for this glyph",
+  "usa o vtracer neste ícone",
+  "potrace no logo antigo da empresa",
+  "o svg vectorizado ficou diferente do original, mede",
+  "logo em vetor a partir da foto do letreiro",
+  "converter logo em vetor para impressão"
+ ],
+ "quase": [
+  "faz um favicon a partir do logo",
+  "gera um logótipo novo",
+  "comprime o svg",
+  "converte o svg em png",
+  "desenha um ícone",
+  "remove o fundo da imagem",
+  "faz upscale da imagem",
+  "anima o svg",
+  "muda a cor do logo",
+  "exporta o logo em pdf"
+ ]
+}

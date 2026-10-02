@@ -1,7 +1,7 @@
 # JOCA Memory Index
 
-Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-01:**
-**173 skills · 109 agentes (69 gerados + 40 curados) · 31 comandos · 8 ficheiros em `rules/` · 1 workflow · 11 ficheiros em `hooks/` · 22 em `scripts/` · pack `marketeer/`.**
+Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-02:**
+**178 skills · 97 agentes (59 gerados + 38 curados) · 30 comandos · 5 ficheiros em `rules/` · 1 workflow · 14 hooks · 29 scripts · pack `marketeer/`.**
 
 > Este ficheiro é mantido à mão e é fácil de deixar apodrecer. Quem adicionar/renomear/remover um
 > componente actualiza-o **na mesma sessão** — ver `/save` PASSO 6 e `/upgrade-joca` §5.6.
@@ -12,40 +12,37 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-
 
 ## Core
 - [soul.md](soul.md) — motor de personalidade: drives, filtros de decisão, estados, alinhamento com o utilizador. Base de todas as sessões (`@import` do `CLAUDE.md`).
-- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das skills (nome/path/description/triggers). É isto que o matching por relevância lê; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
+- [SKILL_INDEX.json](SKILL_INDEX.json) — índice **leve** das skills e agentes (nome/path/description/triggers/domínio). É isto que o hook `prompt-triage.js` lê a cada pedido; as skills nunca são pré-carregadas. Gerado por `.claude/scripts/build-skill-index.py`.
 - [tools/mcps.md](tools/mcps.md) — servidores MCP ligados + setup do markitdown para `/know`.
 - [tools/clis.md](tools/clis.md) — inventário de CLIs externos (função + instalação macOS/Windows + auth interactiva).
 
 ## Rules (`.claude/rules/`) — auto-carregadas em TODAS as sessões
-⚠ Custo recorrente: cada linha aqui é re-enviada em cada mensagem. Ler `rules/README.md` antes de acrescentar.
+⚠ Custo recorrente: cada linha aqui é re-enviada em cada mensagem. Ler `.claude/reference/rules-README.md` antes de acrescentar.
 
 | Rule | Função |
 |---|---|
 | `task-intake.md` | classifica qualquer pedido nas 4 vias (directa / skill / agente / fan-out). **Regra de paralelismo: ≥2 partes independentes → despachar em paralelo.** |
-| `stack-padrao.md` | a stack da casa (Next.js · Laravel+Livewire+Filament · MySQL/PostgreSQL · Flutter · Unity 6) — o /start escolhe as pecas, sair exige razao em DECISIONS.md |
-| `pipelines.md` | catálogo de sequências nomeadas + o auto-runner que as corre a fundo |
-| `chaining.md` | convenção `chain:` — como um passo entrega ao seguinte sem o utilizador pedir |
+| `stack-padrao.md` | a stack da casa para projectos novos — o /start escolhe as peças, sair exige razão em DECISIONS.md |
+| `pipelines.md` | auto-runner das sequências nomeadas + doutrina de projecto + gates estático ≠ runtime (catálogo em `reference/pipelines-catalogo.md`) |
+| `chaining.md` | convenção `chain:` — como um passo entrega ao seguinte sem o utilizador pedir; contrato de continuidade |
 | `orchestration-patterns.md` | fan-out, cap 3-5 workers, agentes-escrevem-para-disco, steward-não-initiator, **sessões paralelas**. **Regra crítica: sub-agentes não fazem spawn de sub-agentes.** |
-| `api-design.md` · `workflows-and-tooling.md` | **ponteiros** — o conteúdo extenso vive em `.claude/reference/` e carrega-se com `Read()` |
-
-> `testing.md` foi **removido** de `rules/` — era a skill `test-master` duplicada em contexto
-> permanente. A doutrina de testes vive em `.claude/skills/test-master.md` (on-demand); o
-> **gate estático vs gate de runtime** vive em `pipelines.md`.
 
 ## Reference (`.claude/reference/`) — NÃO auto-carregado, `Read()` on-demand
-`api-design.md` · `workflows-and-tooling.md` · `blender-api-5x.md` · `design-dataset.md` · `availability/` · `filament/` · `frontend/` · `reverb-realtime/` · `saas-patterns/` · `wp-performance-review/`
+Doutrina e casos: `task-intake-casos.md` · `orquestracao-casos.md` · `chaining-casos.md` · `doutrina-projecto.md` · `gates-runtime.md` · `pipelines-catalogo.md` · `sessoes-paralelas.md` · `claude-md-porques.md` · `rules-README.md` · `master-orchestrator.md` (playbook) · `trigger-map.md` (gerado por `trigger-map-gen.mjs`).
+Técnica: `api-design.md` · `workflows-and-tooling.md` · `codigo-minimo.md` · `naming.md` · `adr-formato.md` · `design-dataset.md` · `design-system-tokens.md` · `design-system-componentes.md` · `tokens-multibrand.md` · `graphic-design-print.md` · `blender-*.md` · `anima-*.md` · `deploy-*.md` · `ploi-api.md` · `postmark.md` · `react-email.md` · `bullmq.md` · `wpds.md` · `wp-playground-blueprint.md` · `estados-motivacionais.md` · pastas `start/` · `frontend/` · `filament/` · `availability/` · `reverb-realtime/` · `saas-patterns/` · `wp-performance-review/` · `gsap/` · `review/` · `escrita/` · `minimax-h3-*` · `skill-logs/`.
 
 ## Workflows (`.claude/workflows/`, via Workflow tool `{name: '<x>', args: {…}}`)
 - `analisar-plataforma` — análise total de uma plataforma: recon → 8 lentes de auditoria em paralelo (backend/frontend/segurança/performance/código-morto/admin/produção/UX) → verificação adversarial de Critical/High → relatório em `docs/`. Args: `{ path, nome?, reportDir?, lentes?, dataISO? }`.
 
-## Commands (31)
+## Commands (30)
 
 | Comando | Função |
 |---|---|
 | `/install` | setup do JOCA numa máquina nova — **conversa guiada**, não formulário |
 | `/start` | arranque de projecto — entrevista → PRD → stack → design; projecto existente liga-se pelo levantamento da pasta |
+| `/init-project` | fundido no `/start` (ficheiro mantido como ponteiro) |
 | `/executar-projeto` | a execução do `/start`: fundação → design → gate ⏸ → ondas até produção |
-| `/resume` | carregar contexto do projecto + grafo de conhecimento |
+| `/resume` | carregar contexto do projecto (memória por pastas + checkpoint + decisões activas + drift git) |
 | `/save` | guardar estado, memória, feedback auto-extraído e reindexar o toolkit |
 | `/plan` | Plan Mode — decisões de arquitectura |
 | `/autoplan` | plano completo auto-revisto (produto → design → eng), gate final |
@@ -59,12 +56,10 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-
 | `/learn` | memória institucional (decisões/aprendizagens event-sourced + recall) |
 | `/retro` | retrospectiva: aprendizagens da janela → acções |
 | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
-| `/map-joca` | mapa de conhecimento (skills/agentes/comandos/projectos + chains) → `graph.html` via graphify |
 | `/create-skill [desc]` | criar skill nova por pipeline de research |
 | `/gauntlet-loop` | reformula um pedido num workflow medido contra uma referencia real: fan-out + critico severo + comparacao cega |
 | `/upgrade-joca` | feedback → auto-melhoria → aplicar |
 | `/update-joca` | sincronizar com o GitHub (**Fase 0** distingue clone público de instalação com história própria) |
-| `/migrate` | guia de migração v1-legacy → v2.0 |
 | `/clean-install` | audita instalações JOCA existentes (várias, se houver), compara com o baseline, propõe tabela de optimização de tokens, consolida memória por mtime, arquiva antigo em `Old/`, promove instalação nova |
 | `/status` | rate limits, modelo e uso de contexto |
 | `/joca-doctor` | diagnóstico da instalação — runtimes, hooks, índices, bridges, memória (`--fix` corrige o seguro) |
@@ -72,37 +67,37 @@ Catálogo dos componentes do Brain. **Inventário verificado em disco a 2026-10-
 | `/wp-perf` · `/wp-perf-review` | triagem e review de performance WordPress |
 | `/marketeer <marca>` · `/marketeer-review <marca>` | ciclo de marketing de uma marca: análise → proposta → artes → implementação (em pausa) → review. Pack em `.claude/marketeer/` (`CONTRATO.md`) |
 
-## Agents (109 = 69 gerados + 40 curados)
+## Agents (97 = 59 gerados + 38 curados)
 
-**69 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
+**59 agentes de execução gerados** (`<skill>-agent`) — um por cada skill de execução directa, criados
 por `node .claude/scripts/skill-agents.mjs` a partir das próprias skills. Cada um lê a sua skill como
 Step 0, portanto tem a mesma doutrina; a diferença é **onde corre**. 1 parte → ler a skill inline;
 ≥2 partes independentes → despachar um agente por parte, no mesmo turno.
 **Não se editam à mão** — edita-se a skill e regenera-se.
 
-**40 agentes curados:**
+**38 agentes curados:**
 
 | Grupo | Agentes |
 |---|---|
 | Review & testes | `tester-code` · `tester-ui-ux` · `tester-performance` · `tester-security` · `tester-api` · `tester-ratelimit` · `codex-review` · `prd-reviewer` |
-| Orquestração | `master-orchestrator` (playbook adoptado pelo main loop, **não** um `subagent_type`) · `task-router` (classifica e pára) · `self-improver` · `gemini-auditor` |
+| Orquestração | `task-router` (classifica e pára) · `self-improver` · `gemini-auditor` · `clean-install-audit` — o `master-orchestrator` é playbook em `reference/`, adoptado pelo main loop (**não** é `subagent_type`) |
 | Pesquisa & análise | `deep-research` · `seo-analyst` · `log-debugger` · `query-debugger` |
 | Geração & media | `img-gen-google` · `img-gen-openai` · `gemini-brain` · `video-gen` · `watch` |
-| Backend / Laravel | `laravel-refactor` · `filament-builder` · `security-review` · `tech-debt-auditor` · `pr-repair` · `deploy-executor` |
+| Backend / Laravel | `laravel-refactor` · `security-review` · `tech-debt-auditor` · `pr-repair` · `deploy-executor` |
 | Especialistas | `payment-integration` · `dependency-auditor` · `design-system-audit` · `skill-evaluator` · `skill-improver` · `a11y-fixer` |
 | Marketing (pack marketeer) | `mkt-analista-agent` · `mkt-revisor-agent` · `mkt-criativos-agent` · `mkt-plataforma-agent` |
 | Autonomia & pessoal | `knowledge-ingest` (`/know`) · `personal-comms` |
 
 ⚠ `personal-comms` e `tech-debt-auditor` estão marcados FUTUROS — aparecem no Trigger Map como se estivessem prontos, mas não estão operacionais (ver `docs/ARQUITECTURA.md` §7).
 
-## Skills (173)
+## Skills (178)
 Flat em `.claude/skills/`, profundidade 1 (subpastas **não** são indexadas). Activação por relevância
 ≥ 60% → `Read(".claude/skills/<nome>.md")` **antes** de escrever código; notificar `[skill: <nome>]`.
-O catálogo navegável é o **Trigger Map** do `JOCA_Brain/CLAUDE.md` (detecção → skill) e o
+O catálogo navegável é o **Trigger Map** em `.claude/reference/trigger-map.md` (gerado; detecção → skill) e o
 `SKILL_INDEX.json`. Não se duplica a lista aqui: duplicá-la é garantir que fica desactualizada.
 
 ## Projects
-<!-- Preenchido pelo /start — uma linha por projecto, detalhe em projects/<x>.md -->
+<!-- Preenchido pelo /start — uma linha por projecto, detalhe em projects/<slug>/index.md -->
 _(vazio — o repositório público não traz memória de ninguém. Corre `/start` para registar o primeiro.)_
 
 ## Feedback

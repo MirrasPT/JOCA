@@ -62,7 +62,7 @@ search_threads(query="in:inbox newer_than:2d -in:draft", pageSize=50, view="THRE
 
 Por thread guardar: `remetente`, `assunto`, `data`, `threadId`, `snippet` (máx. 160 caracteres), balde, e **acção sugerida em 1 linha** (só para Acção).
 
-Marcar o projecto no cartão quando o remetente/assunto casa um projecto do inventário — a lista canónica é `memory/PROJECTOS.md` (ou a tabela de projectos do `~/CLAUDE.md`); **nunca** manter uma cópia de clientes dentro desta skill, que apodrece em silêncio. Sem match → sem etiqueta, **nunca adivinhar o projecto**.
+Marcar o projecto no cartão quando o remetente/assunto casa um projecto do inventário — a lista canónica é `memory/INDEX.md` §Projects (o `~/CLAUDE.md` só tem nomes); **nunca** manter uma cópia de clientes dentro desta skill, que apodrece em silêncio. Sem match → sem etiqueta, **nunca adivinhar o projecto**.
 
 ## Passo 5 — Regras de conteúdo (não negociáveis)
 

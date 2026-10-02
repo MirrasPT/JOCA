@@ -1,13 +1,16 @@
 ---
 name: shopify-store-fixer-agent
-description: "plataformas · Apply fixes to a live Shopify store via Admin GraphQL API (products, metafields, redirects) with. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "fix shopify store, bulk update products"
 skills: shopify-store-fixer
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "código e configuração de plataforma"
 category: plataformas
 triggers: fix shopify store, bulk update products, apply audit fixes
 generated-from: .claude/skills/shopify-store-fixer.md
 generated-by: skill-agents.mjs
-content-hash: c4e12fcacda3bf3d
+content-hash: 7db33e5c8e9233b1
 ---
 
 # shopify-store-fixer — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

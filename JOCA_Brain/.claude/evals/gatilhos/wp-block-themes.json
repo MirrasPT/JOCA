@@ -1,0 +1,27 @@
+{
+ "skill": "wp-block-themes",
+ "deve": [
+  "theme.json não aplica os estilos",
+  "cria um block theme para o wordpress",
+  "template parts no site editor",
+  "style variations no tema de blocos",
+  "block theme: patterns e templates",
+  "the styles in theme.json are not applying",
+  "o site editor não mostra o header",
+  "tema de blocos com paleta no theme.json",
+  "fse wordpress: cria o template da página",
+  "padrões de blocos para a homepage"
+ ],
+ "quase": [
+  "tema shopify",
+  "cria um plugin wordpress",
+  "block.json inválido",
+  "elementor",
+  "woocommerce",
+  "muda a cor do tema escuro",
+  "wordpress lento",
+  "design tokens",
+  "tema do vs code",
+  "liquid"
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "skill": "cpanel",
+ "deve": [
+  "cria uma conta de email no cpanel",
+  "adiciona um addon domain no cpanel",
+  "o email do domínio não recebe",
+  "zona dns no cpanel: aponta o subdomínio",
+  "renova o autossl no cpanel",
+  "cria uma base de dados no cpanel",
+  "cron job no cpanel",
+  "use the cpanel uapi to list domains",
+  "criar subdomínio no cpanel",
+  "gerir hosting: espaço e contas de email"
+ ],
+ "quase": [
+  "faz deploy do laravel no hosting partilhado",
+  "o site laravel dá 503 passenger",
+  "faz deploy no ploi",
+  "configura o dns no cloudflare",
+  "docker na vps",
+  "o email pessoal",
+  "phpmyadmin: exporta a base",
+  "cria um site wordpress",
+  "compra um domínio",
+  "ssl na vps"
+ ]
+}

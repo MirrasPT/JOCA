@@ -1,13 +1,16 @@
 ---
 name: deploy-vps-agent
-description: "deploy · Deploy static sites, SPAs, PHP/LEMP apps or Docker apps to a Linux VPS behind Caddy, with. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "deploy VPS, VPS setup, Caddyfile"
 skills: deploy-vps
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
-triggers: deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload
+triggers: Laravel SPA mesmo origin, Livewire Caddy, matcher Caddy, 403 depois do rsync, deploy VPS, VPS setup
 generated-from: .claude/skills/deploy-vps.md
 generated-by: skill-agents.mjs
-content-hash: 9ff00521eb95584b
+content-hash: ee0b39594273894c
 ---
 
 # deploy-vps — agente de execução
@@ -15,7 +18,7 @@ content-hash: 9ff00521eb95584b
 Especialista em deploy-vps. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA no VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publicar VPS, retirar site do ar, apagar site VPS, configurar servidor, caddy vhost, static hosting, 403 Caddy, basePath, subcaminho
+**Gatilhos:** Laravel SPA mesmo origin, Livewire Caddy, matcher Caddy, 403 depois do rsync, deploy VPS, VPS setup, Caddy, Caddyfile, caddy validate, caddy reload, SSH key VPS, Cloudflare DNS API, scp site, static site VPS, SPA no VPS, try_files, php_fastcgi, LEMP, fresh Ubuntu server, bootstrap SSH, ED25519 key, /var/www, publicar VPS, retirar site do ar, apagar site VPS, configurar servidor, caddy vhost, static hosting, 403 Caddy, basePath, subcaminho
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

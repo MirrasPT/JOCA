@@ -1,5 +1,16 @@
 Parte da skill `availability` — carregado on-demand via `Read(".claude/reference/availability/recovery-runbook.md")` em incidentes, restores e resiliência de queues. (Tabela RTO/RPO vive no corpo da skill.)
 
+## Contents
+
+- 5. Queue Resilience
+  - Retry and backoff
+  - Dead letter / failed jobs
+  - Horizon failover (multiple supervisors)
+- 6. Recovery Runbook
+  - Restore database
+  - Full restore
+  - Incident timeline template
+
 ## 5. Queue Resilience
 
 ### Retry and backoff

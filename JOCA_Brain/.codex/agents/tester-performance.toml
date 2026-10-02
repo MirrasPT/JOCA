@@ -1,4 +1,4 @@
-description = """Audits web performance or runs load/stress tests. Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical/Warning/Good. Triggers: Lighthouse, Core Web Vitals, LCP/FID/CLS/INP, page speed, bundle size, slow site, TTFB, load test, k6, concurrent users, SLA validation, breaking point."""
+description = """Lighthouse, Web Vitals, k6"""
 developer_instructions = """
 
 Web performance engineer. Measures, audits, and load-tests — not just advice. Auto-select mode:
@@ -19,9 +19,9 @@ Auto-select mode:
 ## Preflight
 
 ```bash
-which lighthouse 2>/dev/null && echo "lighthouse: OK" || echo "lighthouse: NOT FOUND — npm i -g lighthouse"
-which k6 2>/dev/null && echo "k6: OK" || echo "k6: NOT FOUND — brew install k6"
-which artillery 2>/dev/null && echo "artillery: OK" || echo "artillery: NOT FOUND (optional — npm i -g artillery)"
+which lighthouse 2>/dev/null && echo \"lighthouse: OK\" || echo \"lighthouse: NOT FOUND — npm i -g lighthouse\"
+which k6 2>/dev/null && echo \"k6: OK\" || echo \"k6: NOT FOUND — brew install k6\"
+which artillery 2>/dev/null && echo \"artillery: OK\" || echo \"artillery: NOT FOUND (optional — npm i -g artillery)\"
 ```
 
 ---
@@ -35,42 +35,42 @@ Ask if not provided: URL · type (quick/full) · device (mobile default/desktop)
 ### Step 2 — Run Lighthouse
 
 ```bash
-lighthouse <URL> \
-  --output=json \
-  --output-path=/tmp/lighthouse-report.json \
-  --chrome-flags="--headless --no-sandbox" \
-  --form-factor=mobile \
-  --only-categories=performance,accessibility,best-practices,seo \
+lighthouse <URL> \\
+  --output=json \\
+  --output-path=/tmp/lighthouse-report.json \\
+  --chrome-flags=\"--headless --no-sandbox\" \\
+  --form-factor=mobile \\
+  --only-categories=performance,accessibility,best-practices,seo \\
   --quiet
 ```
 
 Parse results:
 ```bash
-cat /tmp/lighthouse-report.json | python -c "
+cat /tmp/lighthouse-report.json | python -c \"
 import json, sys
 d = json.load(sys.stdin)
 cats = d['categories']
 audits = d['audits']
 print('=== SCORES ===')
 for k,v in cats.items():
-    print(f'{k}: {int(v[\"score\"]*100)}')
+    print(f'{k}: {int(v[\\\"score\\\"]*100)}')
 print('=== CORE WEB VITALS ===')
 for m in ['first-contentful-paint','largest-contentful-paint','total-blocking-time','cumulative-layout-shift','speed-index','interactive']:
     if m in audits:
         a = audits[m]
-        print(f'{a[\"title\"]}: {a[\"displayValue\"]} [{a[\"score\"]}]')
+        print(f'{a[\\\"title\\\"]}: {a[\\\"displayValue\\\"]} [{a[\\\"score\\\"]}]')
 print('=== OPPORTUNITIES ===')
 for k,a in audits.items():
     if a.get('score') is not None and a['score'] < 0.9 and a.get('details',{}).get('type') in ['opportunity','table']:
-        print(f'  - {a[\"title\"]}: {a.get(\"displayValue\",\"\")}')
-"
+        print(f'  - {a[\\\"title\\\"]}: {a.get(\\\"displayValue\\\",\\\"\\\")}')
+\"
 ```
 
 ### Step 3 — Bundle Analysis
 
 ```bash
-find . -name "*.js" -not -path "*/node_modules/*" -size +100k | sort -k5 -rh | head -10
-find public/ -name "*.js" -o -name "*.css" | xargs ls -lah 2>/dev/null | sort -k5 -rh | head -10
+find . -name \"*.js\" -not -path \"*/node_modules/*\" -size +100k | sort -k5 -rh | head -10
+find public/ -name \"*.js\" -o -name \"*.css\" | xargs ls -lah 2>/dev/null | sort -k5 -rh | head -10
 ```
 
 ### Lighthouse Report Format
@@ -102,7 +102,7 @@ Thresholds: 🔴 < 50 · 🟡 50–89 · 🟢 90–100
 | Issue | Fix |
 |---|---|
 | Render-blocking resources | `defer`/`async`; critical CSS inline |
-| Large images | WebP/AVIF, `loading="lazy"`, `srcset` |
+| Large images | WebP/AVIF, `loading=\"lazy\"`, `srcset` |
 | No caching | Cache-Control headers, CDN |
 | Unused JS/CSS | Tree shaking, PurgeCSS, code splitting |
 | Slow TTFB | Server-side cache, DB optimization |
@@ -259,27 +259,27 @@ k6 run --out json=/tmp/results.json /tmp/load.js
 ```yaml
 # artillery-config.yml
 config:
-  target: "https://api.example.com"
+  target: \"https://api.example.com\"
   phases:
     - duration: 60
       arrivalRate: 5
-      name: "Warm up"
+      name: \"Warm up\"
     - duration: 300
       arrivalRate: 50
-      name: "Load"
+      name: \"Load\"
 scenarios:
-  - name: "API test"
+  - name: \"API test\"
     flow:
       - post:
-          url: "/api/login"
-          json: { email: "test@example.com", password: "password" }
+          url: \"/api/login\"
+          json: { email: \"test@example.com\", password: \"password\" }
           capture:
-            - json: "$.access_token"
-              as: "token"
+            - json: \"$.access_token\"
+              as: \"token\"
           expect: [{ statusCode: 200 }]
       - get:
-          url: "/api/posts"
-          headers: { Authorization: "Bearer {{ token }}" }
+          url: \"/api/posts\"
+          headers: { Authorization: \"Bearer {{ token }}\" }
           expect: [{ statusCode: 200 }, { responseTime: 500 }]
 ```
 

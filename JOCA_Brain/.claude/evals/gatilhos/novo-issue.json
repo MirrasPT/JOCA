@@ -1,0 +1,27 @@
+{
+ "skill": "novo-issue",
+ "deve": [
+  "abre um issue para o bug do login",
+  "cria issue com critérios de aceitação",
+  "regista esta ideia no backlog",
+  "transforma isto numa tarefa no github",
+  "quero implementar exportação em csv, abre o issue",
+  "novo issue: ecrã de relatórios",
+  "adicionar ao backlog a integração com o moloni",
+  "open a github issue for this bug",
+  "issue no github com os ficheiros prováveis",
+  "regista o problema que encontrámos num issue"
+ ],
+ "quase": [
+  "escreve os testes do issue 12",
+  "fecha o issue 12",
+  "organiza os issues em ondas",
+  "faz o PR que fecha o issue",
+  "lista os issues abertos",
+  "o issue 30 está bloqueado por quê",
+  "escreve o PRD",
+  "responde ao comentário do issue",
+  "issue com o carro, marca revisão",
+  "corrige o bug do issue 8"
+ ]
+}

@@ -1,12 +1,12 @@
 ---
 name: prd-reviewer
-description: |
-  Reviews PRD.md for completeness, clarity, and AI-parsability. Use after generating or significantly updating a PRD.
-  
-  Triggers: "revê o PRD", "valida o PRD", "o PRD está completo?", "review do PRD", after generating PRD.md
+description: "revê o PRD.md"
 skills: planning-prd
 chain: plan
-model: sonnet
+model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de produto sobre o PRD"
 tools:
   - Read
   - Bash

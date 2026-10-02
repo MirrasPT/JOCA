@@ -1,6 +1,6 @@
 ---
 name: knowledge-ingest
-description: "Ingere URL/ficheiro (PDF, YouTube, Instagram, artigo, imagem) na base de conhecimento pessoal: markitdown → resumo → tags hierárquicas → nota wiki em memory/knowledge/ (Karpathy-style, raw imutável + notas .md ligadas). Implementa /know. Diferente de deep-research (síntese multi-fonte) — este ingere UMA fonte. Triggers: /know, guardar isto, segundo cérebro, ingerir conhecimento."
+description: "/know: ingerir 1 fonte na KB"
 skills:
   - knowledge-ingest
   - deep-research
@@ -9,7 +9,10 @@ tools:
   - Read
   - Write
   - WebFetch
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "pipeline fixa: converter, resumir e indexar 1 fonte"
 ---
 
 # Knowledge Ingest Agent
@@ -31,7 +34,7 @@ If the request is multi-source synthesis or fact-checking → that is `deep-rese
 Read these BEFORE acting — they carry the actual conversion commands, the wiki structure spec, and the tagging convention. Do not improvise the workflow from memory.
 
 1. **Step 0 (mandatory):** `Read(".claude/skills/knowledge-ingest.md")` — the canonical spec: input-type detection, markitdown invocation (CLI + MCP), summary format, hierarchical tag scheme, the Karpathy-wiki layout (raw/ immutable + wiki .md with wikilinks + index.md), and the NL search protocol over the index. Notify: `[skill: knowledge-ingest]`.
-2. **When the user asks to enrich a note or search across many ingested sources:** `Read(".claude/skills/deep-research.md")` — use its source-fetching and synthesis patterns. Notify: `[skill: deep-research]`.
+2. **When the user asks to enrich a note or search across many ingested sources:** `Agent(subagent_type="deep-research")` (é **agente**, não skill — a metodologia vive em `.claude/agents/deep-research/reference/methodology.md`) — use its source-fetching and synthesis patterns. Notify: `[skill: deep-research]`.
 
 Hierarchy: read the skill first, then act. The skill is the source of truth for every command and path below — if this file and the skill disagree, the skill wins.
 

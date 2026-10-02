@@ -1,13 +1,16 @@
 ---
 name: seo-local-agent
-description: "conteúdo · Local SEO analysis covering Google Business Profile optimization, NAP consistency, citation health. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "local SEO, GBP, map pack"
 skills: seo-local
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
 triggers: local SEO, Google Business Profile, GBP, map pack, local pack, citations
 generated-from: .claude/skills/seo-local.md
 generated-by: skill-agents.mjs
-content-hash: 99e8e94089bdb8d3
+content-hash: 459b3a249357dd0c
 ---
 
 # seo-local — agente de execução

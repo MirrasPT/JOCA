@@ -1,0 +1,27 @@
+{
+ "skill": "security",
+ "deve": [
+  "audita a segurança da app laravel",
+  "há risco de SQL injection neste controller?",
+  "verifica XSS nos formulários",
+  "security review antes de lançar",
+  "proteger contra mass assignment",
+  "check for IDOR in the orders endpoint",
+  "vulnerabilidades OWASP na api",
+  "csrf está bem configurado?",
+  "segurança do upload de ficheiros",
+  "faz uma revisão de segurança ao código novo"
+ ],
+ "quase": [
+  "roda a password",
+  "implementa login",
+  "configura o firewall da vps",
+  "instala um antivírus",
+  "o certificado ssl expirou",
+  "cria backups automáticos",
+  "escreve a política de privacidade",
+  "configura 2FA na conta google",
+  "audita o SEO",
+  "testa a performance"
+ ]
+}

@@ -6,6 +6,20 @@ license: MIT
 
 # GSAP Timeline
 
+<!-- índice acrescentado pelo JOCA (F3.5); o resto do ficheiro é a cópia original -->
+## Contents
+
+- When to Use This Skill
+- Creating a Timeline
+- Position Parameter
+- Timeline Defaults
+- Timeline Options (constructor)
+- Labels
+- Nesting Timelines
+- Controlling Playback
+- Official GSAP Best practices
+- Do Not
+
 ## When to Use This Skill
 
 Apply when building multi-step animations, coordinating several tweens in sequence or parallel, or when the user asks about timelines, sequencing, or keyframe-style animation in GSAP.

@@ -192,9 +192,10 @@ After Phase 1 (context gathered), before execution:
    - "3 mandatory MVP features?"
    - "North Star Metric — number proving it works?"
    - "Main users and what they're trying to do?"
-3. Generate `PRD.md` at project root with structure above
-4. Add to project CLAUDE.md: `**PRD:** [PRD.md](PRD.md)`
-5. Register in project memory: `**PRD:** PRD.md exists — update via prd skill on /save`
+3. **Levantar do código, não da memória.** Cada afirmação factual sobre o que já existe (nº de passos de um fluxo, recursos, rotas, contagens) confirma-se no repo antes de entrar no PRD: `php artisan route:list`, `ls app/Filament/Resources/`, `SELECT count(*)` na BD, `grep` ao componente. Memórias de **projectos irmãos com stack partilhada** são a fonte mais provável de contaminação — caso real: «checkout em 4 passos» no PRD de um projecto por arrastamento de um projecto irmão (esse tem 4; o do PRD tem 3), apanhado só por confirmar no código antes do commit.
+4. Generate `PRD.md` at project root with structure above
+5. Add to project CLAUDE.md: `**PRD:** [PRD.md](PRD.md)`
+6. Register in project memory: `**PRD:** PRD.md exists — update via prd skill on /save`
 
 ---
 

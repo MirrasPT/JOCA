@@ -1,0 +1,33 @@
+{
+  "_doc": "Skills que podem NÃO aparecer no trigger map do JOCA_Brain/CLAUDE.md sem isso ser defeito — sub-skills que nunca se disparam sozinhas. Lido por .claude/scripts/joca-doctor.mjs (secção 10). Uma skill roteada por outra skill (citada no corpo dela) já conta como alcançável e não precisa de entrar aqui. Acrescentar só depois de confirmar que a skill é mesmo sub-skill, não uma skill que ficou órfã por um scrub do trigger map (foi assim que 14 skills ficaram inalcançáveis em silêncio).",
+  "skills": [
+    "karpathy-guidelines",
+    "create-skill",
+    "test-master",
+    "hyperframes",
+    "remotion",
+    "lottie-animator",
+    "bullmq",
+    "postmark",
+    "react-email",
+    "design-tokens",
+    "component-system",
+    "blender-scripting",
+    "blender-render"
+  ],
+  "motivos": {
+    "karpathy-guidelines": "Stub de redireção (fundida em yagni a 2026-10-01); a linha da yagni cobre os gatilhos. Linha própria seria ruído.",
+    "create-skill": "Tem disable-model-invocation: true — o modelo não a pode invocar. A via real é o command /create-skill, já listado na tabela de Commands.",
+    "test-master": "Stub de redireção (fundida em escrever-testes a 2026-10-01); os gatilhos estreitos passaram a uma linha extra do escrever-testes no trigger-map-notas.json.",
+    "hyperframes": "Stub de redireção (fundida em video a 2026-10-01, D5: o pack marketeer ainda cita o nome). Os gatilhos estão na video.",
+    "remotion": "Stub de redireção (fundida em video a 2026-10-01, D5: o pack marketeer ainda cita o nome). Os gatilhos estão na video.",
+    "lottie-animator": "Stub de redireção (fundida em anima a 2026-10-02, onda 4); corpo em reference/anima-lottie.md, gatilhos na anima.",
+    "bullmq": "Stub de redireção (fundida em queues a 2026-10-02, onda 4); código em reference/bullmq.md, gatilhos na queues.",
+    "postmark": "Stub de redireção (fundida em transactional-email a 2026-10-02, onda 4); corpo em reference/postmark.md, gatilhos na transactional-email.",
+    "react-email": "Stub de redireção (fundida em transactional-email a 2026-10-02, onda 4: o pack marketeer ainda cita o nome); corpo em reference/react-email.md, gatilhos na transactional-email.",
+    "design-tokens": "Stub de redireção (fundida em design-system a 2026-10-02, onda 4); corpo em reference/design-system-tokens.md, gatilhos na design-system.",
+    "component-system": "Stub de redireção (fundida em design-system a 2026-10-02, onda 4); corpo em reference/design-system-componentes.md, gatilhos na design-system.",
+    "blender-scripting": "Stub de redireção (fundida em blender a 2026-10-02, onda 4); corpo em reference/blender-scripting.md, gatilhos na blender.",
+    "blender-render": "Stub de redireção (fundida em blender a 2026-10-02, onda 4); corpo em reference/blender-render.md, gatilhos na blender."
+  }
+}

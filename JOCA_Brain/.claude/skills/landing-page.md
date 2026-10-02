@@ -7,6 +7,8 @@ chain: copywriting, page-cro, stop-slop
 
 # Landing Page Builder
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Creates high-converting landing pages — structure, copy, optional HTML scaffold. One page, one action, max conversion.
 
 ## Before Building

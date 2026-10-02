@@ -8,6 +8,17 @@ componentes e a forma mais rapida de um produto se ler como template montado a p
 
 ---
 
+## Conteúdo
+
+- Os 4 arquetipos
+  - Playful
+  - Premium / Luxo
+  - Corporate / Profissional — default de UI
+  - Energetic / Dinamico
+- Escolher pelo brief
+- Identidade de movimento da marca (3 constantes)
+- Misturar arquetipos
+
 ## Os 4 arquetipos
 
 ### Playful

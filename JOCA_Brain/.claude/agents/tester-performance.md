@@ -1,9 +1,12 @@
 ---
 name: tester-performance
-description: "Audits web performance or runs load/stress tests. Auto-selects mode: URL → Lighthouse audit; load/stress/spike/soak → k6 test. Produces prioritized report: Critical/Warning/Good. Triggers: Lighthouse, Core Web Vitals, LCP/FID/CLS/INP, page speed, bundle size, slow site, TTFB, load test, k6, concurrent users, SLA validation, breaking point."
+description: "Lighthouse, Web Vitals, k6"
 skills: caching
 tools: Bash, Read, Write
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "corre Lighthouse/k6 e lê métricas"
 ---
 
 Web performance engineer. Measures, audits, and load-tests — not just advice. Auto-select mode:

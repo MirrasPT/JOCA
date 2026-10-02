@@ -1,0 +1,27 @@
+{
+ "skill": "unfreeze",
+ "deve": [
+  "destranca as edições",
+  "remove o lock da pasta",
+  "desliga o guard",
+  "unfreeze, já podes mexer em tudo",
+  "desligar careful e tdd",
+  "voltar ao normal, sem guard-rails",
+  "unlock edits",
+  "tira o freeze",
+  "remove guard and tdd mode",
+  "desliga o modo test-first"
+ ],
+ "quase": [
+  "tranca as edições",
+  "liga o modo seguro",
+  "o pc congelou, desbloqueia",
+  "desbloqueia o telemóvel",
+  "remove o lock do package-lock",
+  "a base de dados tem uma tabela bloqueada",
+  "git unlock do ficheiro",
+  "modo tdd",
+  "desbloqueia a conta do utilizador",
+  "liga o tdd"
+ ]
+}

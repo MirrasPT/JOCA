@@ -1,13 +1,16 @@
 ---
 name: react-patterns-agent
-description: "código · Writing or reviewing React/Next.js code for performance and correctness — re-renders, effects, data. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "react performance, re-render, RSC"
 skills: react-patterns
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: react performance, re-render, useEffect, server component, RSC, waterfall
 generated-from: .claude/skills/react-patterns.md
 generated-by: skill-agents.mjs
-content-hash: 077f278ff0acc423
+content-hash: 7e3c8fd4b33870fe
 ---
 
 # react-patterns — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

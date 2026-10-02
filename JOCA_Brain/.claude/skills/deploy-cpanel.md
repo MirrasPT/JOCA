@@ -1,7 +1,7 @@
 ---
 name: deploy-cpanel
 description: "Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. MUST be invoked when the user says: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, Passenger, Node.js cPanel, Setup Node.js App. SHOULD also invoke when: hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, restart.txt, nodevenv."
-triggers: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
+triggers: 503 Passenger, stderr.log, SetEnv htaccess, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
 chain: deploy-executor
 ---
 # Deploy — cPanel
@@ -10,8 +10,8 @@ Deploy Laravel/PHP e Node.js (Passenger) em cPanel. Workarounds para shared host
 
 > **WordPress?** Esta skill cobre codigo. Levar **conteudo** WP (BD+uploads) de local/Docker para
 > shared hosting sem SSH/WP-CLI tem pipeline propria (All-in-One WP Migration + FTP do `.wpress` +
-> restore pela wp-admin + caches) → `Read(".claude/skills/wordpress-router.md")`, seccao "Migracao de
-> conteudo". Nao improvisar: ja custou horas uma vez.
+> restore pela wp-admin + caches) → `Read(".claude/skills/wp-index.md")`, seccao "Migração de
+> conteúdo". Nao improvisar: ja custou horas uma vez.
 
 ---
 
@@ -69,10 +69,22 @@ $app = require_once __DIR__.'/../laravel/bootstrap/app.php';
 
 ### .htaccess security
 
+⚠ **O redirect HTTPS é o ULTIMO passo, nunca o primeiro.** Dominio novo (addon) que ainda nao
+apontou para o cPanel serve um certificado **auto-assinado**: forcar HTTPS antes de haver cert valido
+troca «funciona em http» por um **aviso de seguranca do browser** assim que o DNS for reapontado.
+Ordem obrigatoria (1 publicar ficheiros → 2 reapontar DNS → 3 `SSL/start_autossl_check --post` →
+4 confirmar `issuer != subject` → 5 so entao ligar o redirect) e comando de verificacao:
+skill `cpanel`, seccao «Ordem DNS → AutoSSL».
+
 Em `public_html/.htaccess`:
 
 ```apache
 RewriteEngine On
+# Deixar passar o desafio do AutoSSL — TEM de vir ANTES de qualquer redirect,
+# senao o redirect engole a validacao e a renovacao falha em silencio.
+RewriteRule ^\.well-known/ - [L]
+
+# Passo 5 da ordem acima: so activar depois de o certificado ser valido.
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
@@ -194,120 +206,99 @@ Usar `QUEUE_CONNECTION=database` se Redis indisponivel.
 
 ## Node.js apps em cPanel (Passenger)
 
-cPanel usa Phusion Passenger + CloudLinux Node.js Selector. Passenger substitui PM2/forever — nao correr process manager proprio.
+Node.js/Passenger (criar app no UI, startup file, env vars, nodevenv, restart, `.cpanel.yml`, SQLite/uploads, deploy sem shell = 503, gotchas) → `Read(".claude/reference/deploy-cpanel-node.md")`.
 
-### 1. Criar app no UI
-
-cPanel → **Setup Node.js App** → Create Application:
-
-| Campo | Valor |
-|-------|-------|
-| Node.js version | versao desejada (ex: 20) |
-| Application mode | Production |
-| Application root | `myapp` (relativo a `/home/username/`) — FORA de public_html |
-| Application URL | dominio ou subdominio |
-| Application startup file | `app.js` (ou `server.js`) — entry point da app |
-
-Passenger cria automaticamente `~/myapp/public/` e `~/myapp/tmp/` e configura o reverse proxy.
-
-### 2. Startup file
-
-O ficheiro definido em "Application startup file" e o entry point. Regras criticas:
-
-```js
-// CORRECTO — Passenger injeta PORT via env
-app.listen(process.env.PORT);
-
-// ERRADO — porta hardcoded impede Passenger de funcionar
-app.listen(3000);
-```
-
-Mudar o nome do ficheiro requer actualizar o campo no UI.
-
-### 3. Variaveis de ambiente
-
-Adicionar em cPanel → Setup Node.js App → **Environment variables** (nao commitar `.env`):
-
-```
-NODE_ENV=production
-DB_PATH=/home/username/myapp/data/app.db
-UPLOAD_DIR=/home/username/myapp/uploads
-```
-
-Passenger injeta-as no processo. Mais seguro que `.env` ficheiro e sobrevive a restarts. dotenv funciona como fallback mas e secundario.
-
-### 4. Instalar dependencias (virtualenv)
-
-Cada app tem um virtualenv isolado em `~/nodevenv/<app-root>/<version>/`. O comando exacto de activacao aparece na caixa azul da pagina de setup.
-
-**Via SSH** (recomendado para reproducibilidade):
-```bash
-source /home/username/nodevenv/myapp/20/bin/activate && cd /home/username/myapp
-npm ci
-```
-
-`npm ci` e preferido sobre `npm install` — instala exactamente o que esta no `package-lock.json`. Requer `package-lock.json` commitado.
-
-Nunca correr `npm` bare fora do virtualenv — usa o binario errado.
-
-O botao "Run NPM Install" no UI e equivalente mas menos determinista.
-
-### 5. Restart
-
-```bash
-# Graceful restart (deploy-friendly, sem downtime)
-touch ~/myapp/tmp/restart.txt
-```
-
-Passenger faz rolling restart na proxima request. Nao requer acesso ao UI. O botao Restart no UI e o equivalente manual.
-
-### 6. Deploy via .cpanel.yml (Node.js)
-
-```yaml
 ---
-deployment:
-  tasks:
-    - export DEPLOYPATH=/home/username/myapp
-    - /bin/cp -R app.js package.json package-lock.json src $DEPLOYPATH
-    - source /home/username/nodevenv/myapp/20/bin/activate && cd $DEPLOYPATH && npm ci --omit=dev
-    - /bin/mkdir -p $DEPLOYPATH/tmp
-    - /bin/touch $DEPLOYPATH/tmp/restart.txt
+
+## Gate obrigatorio — inventario antes de restauro ou sync destrutivo
+
+Antes de **qualquer** restauro (AIO, backup completo, dump de BD), `rsync --delete`, ou sobreposicao
+de uma arvore por outra: **produz e mostra o inventario do que existe SO NO DESTINO** — a lista do
+que vai desaparecer. Corre **antes** de escrever, nao depois.
+
+- O **comando de prova entra literalmente** no relatorio, com caminhos completos:
+  `rsync -avn --delete --itemize-changes <origem>/ <destino>/ | grep -i deleting` — **ensaia com um
+  ficheiro plantado so no destino**: se a corrida a seco nao o nomear, o inventario esta cego e nao
+  avancas (no alojamento partilhado o `rsync` muitas vezes nem existe; entao e o `diff` abaixo) ·
+  `diff <(ssh <destino> 'ls -1 <dir>') <(ls -1 <dir>)` ·
+  plugins/extensoes activas nos dois lados (`wp plugin list --status=active --field=name`) ·
+  encomendas, utilizadores e posts modificados contados nos dois lados.
+- **Um `--dry-run`/`--itemize-changes` conta. «A pasta parece igual», o total de ficheiros bater e o
+  «concluido» da ferramenta nao contam.**
+- Inventario **vazio** e resultado e diz-se. Inventario **nao vazio** → para e leva a lista ao
+  utilizador (e irreversivel); nunca a resumas nem a filtres.
+
+Porque: um deploy por AIO completo quase apagou o plugin Redsys e checkouts que so existiam no
+staging, instalados por terceiro. O que os salvou foi o inventario ter sido feito primeiro.
+Doutrina completa: `.claude/reference/gates-runtime.md`, categoria «Restauro · `rsync --delete`».
+
+## Integridade da transferencia (CRITICO — FTP/cPanel)
+
+Caso real: `design-system.css` (41 KB) chegou ao servidor com **0 bytes** por causa do TLS no FTP.
+O `curl` devolveu exit 0, o deploy reportou verde, e o staging do cliente ficou sem folha de estilos.
+
+**1. Comparar tamanho remoto vs local a cada upload — abortar se divergir.**
+
+```bash
+# Upload + verificacao (curl FTPS)
+FTP="ftps://ftp.example.com/public_html/assets"
+CRED="user:pass"
+for f in dist/assets/*; do
+  curl --ssl-reqd -T "$f" "$FTP/$(basename "$f")" -u "$CRED"
+  LOCAL=$(wc -c < "$f")
+  REMOTE=$(curl -sI --ssl-reqd "$FTP/$(basename "$f")" -u "$CRED" | awk '/^Content-Length:/{print $2+0}')
+  [ -z "$REMOTE" ] && REMOTE=$(curl -s --ssl-reqd -Q "SIZE /public_html/assets/$(basename "$f")" "$FTP/" -u "$CRED" 2>&1 | awk '/^213 /{print $2}')
+  [ "$LOCAL" = "$REMOTE" ] || { echo "ABORTAR: $f local=$LOCAL remoto=$REMOTE"; exit 1; }
+done
 ```
+Com SSH disponivel, mais barato: `ssh user@host "wc -c < ~/public_html/assets/app.css"` e comparar.
 
-**Regras criticas:**
-- Tasks correm como `sh`, uma shell por linha — encadear venv-activate + cd + npm com `&&` na mesma linha
-- `npm ci --omit=dev` para producao (exclui devDependencies)
-- NAO copiar `node_modules/` do repo
-- NAO incluir `data/` ou `uploads/` na lista de copia (ver Persistencia abaixo)
-- O numero da versao no path do venv (`/20/`) deve corresponder ao seleccionado no UI
-
-### 7. Persistencia — SQLite e uploads
-
-Guardar base de dados e uploads no app root, FORA de `public/`:
-
+**1b. Lote a partir de uma lista de ficheiros: newline final + verificar TODOS, não uma amostra.**
+Caso real (2026-09-25): lista gerada com `'\n'.join(...)` (sem newline final) + `while read f` → o
+**último ficheiro não foi enviado**; a verificação por amostra não o apanhou, só o 404 no live.
+```bash
+printf '%s\n' "${FICHEIROS[@]}" > lista.txt          # cada linha termina em \n, a última também
+while IFS= read -r f || [ -n "$f" ]; do               # o || apanha a última linha sem \n
+  ...enviar "$f"...; echo "$f" >> enviados.txt
+done < lista.txt
+[ "$(wc -l < enviados.txt)" -eq "$(wc -l < lista.txt)" ] || { echo "ABORTAR: contagem enviados != lista"; exit 1; }
 ```
-~/myapp/data/app.db      <- SQLite
-~/myapp/uploads/         <- ficheiros de utilizador
+Depois, **cada** ficheiro da lista confere com o local — hash (`sha256sum`) quando há SSH, tamanho
+(passo 1) quando só há FTP/SFTP. Uma amostra só prova a amostra.
+Em `.cpanel.yml` (git deploy), o `cp` e local ao servidor — verificar na mesma no fim:
+`- cd $DEPLOYPATH/public_html && find . -type f -empty -print | grep . && exit 1 || true`
+
+**2. Nunca confiar no exit code do cliente de transferencia.** `curl`, `ftp`, `lftp`, `rsync` e `scp`
+devolvem **0** com o ficheiro truncado ou vazio no destino (sessao TLS cortada, quota cheia, disco
+cheio, `mode ascii` a comer bytes). Exit 0 nao e prova de nada — a prova e o tamanho no destino.
+
+**3. Health-check pos-deploy: `content-length > 0` E `content-type` correcto.** Um 200 sozinho nao
+distingue um CSS bom de um CSS de 0 bytes — o Apache serve o ficheiro vazio com 200 alegremente.
+
+```bash
+check() {  # check <url> <content-type esperado>
+  H=$(curl -sSI "$1")
+  LEN=$(printf '%s' "$H" | awk '/^[Cc]ontent-[Ll]ength:/{print $2+0}')
+  CT=$(printf '%s' "$H" | awk '/^[Cc]ontent-[Tt]ype:/{print tolower($2)}')
+  [ "${LEN:-0}" -gt 0 ] || { echo "FALHA vazio: $1 (content-length=$LEN)"; return 1; }
+  case "$CT" in *"$2"*) ;; *) echo "FALHA tipo: $1 -> $CT (esperado $2)"; return 1;; esac
+  echo "OK $1  $LEN bytes  $CT"
+}
+check https://example.com/assets/app.css text/css
+check https://example.com/assets/app.js  javascript
 ```
+Falha em qualquer asset = deploy FALHADO, nao "deployado com aviso".
 
-Nunca dentro de `~/myapp/public/` — seriam servidos directamente pela web.
+**4. Caminho novo na app → procurar no script de deploy o passo que o ENVIA; se nao existir, e um
+deploy que passa e nao entrega.** Real: o health-check passou a `/api/v1/health` sem ninguem
+acrescentar o envio da pasta `api/v1/` — o pedido caiu no fallback da SPA, que devolve **200 com
+HTML**, e o deploy deu verde sem entregar nada. O health-check verifica o **corpo**, nunca so o status.
 
-**CRITICO para git deploy:** `.cpanel.yml` nao deve sobrescrever nem apagar estes directórios em cada deploy. Excluir da lista de `cp`. Adicionar ao `.gitignore`:
-```
-data/
-uploads/
-```
-
-### Gotchas Node.js/Passenger
-
-| Problema | Causa | Fix |
-|----------|-------|-----|
-| App nao inicia | Porta hardcoded | `app.listen(process.env.PORT)` |
-| `npm` usa versao errada | Fora do virtualenv | `source .../nodevenv/.../bin/activate` antes de npm |
-| Deploy apaga dados | `.cpanel.yml` copia data/ | Excluir data/ e uploads/ do cp |
-| Restart nao funciona | tmp/ nao existe | `/bin/mkdir -p $DEPLOYPATH/tmp` no .cpanel.yml |
-| Env vars em branco | Definidas em .env em vez do UI | Mover para Setup Node.js App → Environment variables |
-| Versao Node errada no venv | Path `/18/` vs `/20/` | Verificar versao no UI e ajustar path no .cpanel.yml |
+**5. Dominio atras da Cloudflare → purgar ANTES de comparar.** Se `curl -sSI https://host/ | grep -i
+'^server: cloudflare'` responder, o `check` e a comparacao de tamanho medem o edge, nao o cPanel: um
+deploy certo deu «6 de 8 diferentes» com `cf-cache-status: HIT`. Purgar por URL (com a query string que
+o HTML publicado pede) e so depois comparar — bloco no agente `deploy-executor`, Step 4c. Sem token
+Cloudflare → verificacao «por verificar», nunca «deploy falhado».
 
 ---
 
@@ -322,6 +313,7 @@ uploads/
 | PHP version errada | MultiPHP nao configurado | cPanel MultiPHP Manager |
 | `.env` exposto | Laravel root dentro de `public_html` | Mover para fora |
 | DB username errado | cPanel prefixa com account name | Usar nome completo prefixado |
+| CSS/JS de 0 bytes com 200 | Sessao FTP/TLS cortada, exit 0 mentiroso | Comparar tamanho remoto vs local + health-check `content-length`>0 |
 
 ---
 
@@ -331,6 +323,8 @@ uploads/
 - [ ] Laravel root FORA de `public_html/`
 - [ ] `index.php` paths corrigidos
 - [ ] `.htaccess` com HTTPS redirect + file blocking
+- [ ] `RewriteRule ^\.well-known/ - [L]` antes de qualquer redirect
+- [ ] Redirect HTTPS ligado **so depois** de `issuer != subject` (cert nao auto-assinado)
 - [ ] Permissoes: storage/ e bootstrap/cache/ = 775
 - [ ] `.env` fora do web root
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`
@@ -342,6 +336,8 @@ uploads/
       entregavel dao **403/404** no URL publico (200 = credencial exposta, deploy falhado)
 - [ ] **Health-check pelo CORPO**, nao so pelo status — rota de API devolve JSON, nao o fallback HTML
 - [ ] Tamanho remoto de cada entry point (HTML, bundle JS/CSS) bate com o local
+- [ ] Tamanho remoto == local em todos os ficheiros enviados (exit code ignorado)
+- [ ] Health-check: cada asset com `content-length` > 0 e `content-type` correcto
 > Bloco completo dos 4 passos de verificacao: agente `deploy-executor`, Step 4.
 
 ### Node.js (Passenger)
@@ -354,4 +350,8 @@ uploads/
 - [ ] `data/` e `uploads/` em `.gitignore` e excluidos do cp
 - [ ] `.cpanel.yml` com venv-activate + npm ci + touch tmp/restart.txt numa linha
 - [ ] Path do venv no .cpanel.yml corresponde a versao Node seleccionada no UI
+- [ ] Sem shell: `package.json` confrontado com o instalado no `~/nodevenv/<app>/<versao>/lib/node_modules/` ANTES do upload
+- [ ] `touch <approot>/tmp/restart.txt` feito depois do upload
+- [ ] Nenhum `.env` local enviado (vars vivem em `SetEnv` no `.htaccess` / UI)
+- [ ] `~/<approot>/stderr.log` lido se houver 503
 - [ ] SSL activo (AutoSSL)

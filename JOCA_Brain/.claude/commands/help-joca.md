@@ -6,7 +6,44 @@ Apresenta todos os comandos, agentes e skills do JOCA com descrição curta.
 
 1. Ler `memory/INDEX.md` para obter a lista actualizada de commands e agentes.
 2. Ler `memory/SKILL_INDEX.json` para obter a lista actualizada de skills (name + description).
-3. Apresentar o output abaixo — substituindo as secções de Agentes e Skills com o conteúdo real (INDEX.md para agentes, SKILL_INDEX.json para skills), resumido a ~10 palavras por item.
+3. Apresentar o output abaixo — a secção de comandos sai da tabela `## Commands` deste ficheiro (agrupada pela coluna Grupo); Agentes e Skills com o conteúdo real (INDEX.md para agentes, SKILL_INDEX.json para skills), resumido a ~10 palavras por item.
+
+## Commands
+
+Tabela canónica dos comandos (saiu do `JOCA_Brain/CLAUDE.md` a 2026-09-15 para não pesar em cada mensagem; lá fica só «Comandos: `/help-joca`»). Comando novo → linha aqui.
+
+| Grupo | Command | Function |
+|---|---|---|
+| SESSÃO | `/resume` | load context + knowledge graph |
+| SESSÃO | `/save` | save state + update graph + auto-feedback |
+| SESSÃO | `/start` | arranque de projecto e router por tipo: aplicação → `executar-projeto` · website → pipeline Website · branding → pipeline Identidade/branding · marketing → `/marketeer` |
+| SESSÃO | `/init-project` | fundido no `/start` — redirect |
+| SESSÃO | `/install` | JOCA setup on new machine |
+| WORKFLOW | `/executar-projeto` | do PRD a produção: fundação → design → ondas |
+| WORKFLOW | `/plan` | Plan Mode — architecture |
+| WORKFLOW | `/autoplan` | plano completo auto-revisto (produto → design → eng) — corre a pipeline a fundo, gate final |
+| WORKFLOW | `/goal` | auto-orquestração a partir de tarefa NL (sem PRD) → main loop segue o playbook `reference/master-orchestrator.md` em loop |
+| WORKFLOW | `/one-shot` | autonomous dev: PRD → orchestrator → agents → tests |
+| WORKFLOW | `/build-plan` | supervised phased build: plano em docs → tasks por fase → loop com gate de testes |
+| WORKFLOW | `/gauntlet-loop` | reformula qualquer pedido num workflow contra uma referência real: fan-out + crítico severo + comparação cega, sem paragem automática |
+| WORKFLOW | `/debug` | error triage + stack skill |
+| WORKFLOW | `/review-code` | tester-code + codex adversarial |
+| WORKFLOW | `/review-design` | UI/UX + accessibility |
+| WORKFLOW | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
+| WORKFLOW | `/create-skill [desc]` | new skill via research pipeline (`--upgrade [nome]` melhora uma existente) |
+| MARKETING | `/marketeer <marca>` | ciclo de marketing: análise → proposta → artes → implementação (em pausa) |
+| MARKETING | `/marketeer-review <marca>` | rever resultados e abrir o ciclo seguinte |
+| CONHECIMENTO | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
+| CONHECIMENTO | `/learn` | memória institucional do Brain (decisões/aprendizagens event-sourced + recall) |
+| CONHECIMENTO | `/retro` | retrospectiva: aprendizagens da janela → acções (manual ou automação cron) |
+| MANUTENÇÃO | `/upgrade-joca` | feedback → self-improvement → apply |
+| MANUTENÇÃO | `/update-joca` | sync with GitHub (protects `origin: local`) |
+| MANUTENÇÃO | `/clean-install` | audita instalações JOCA existentes (possivelmente várias na mesma máquina), compara com o baseline, propõe optimizações de tokens, consolida memória, arquiva o antigo em `Old/`, promove instalação nova |
+| MANUTENÇÃO | `/joca-doctor` | diagnóstico da instalação |
+| MANUTENÇÃO | `/status` | show rate limits, model and context inline |
+| WORDPRESS | `/wp-perf` | quick WordPress performance triage |
+| WORDPRESS | `/wp-perf-review` | WordPress code review |
+| — | `/help-joca` | quick reference (esta página) |
 
 ---
 
@@ -16,45 +53,9 @@ Apresenta todos os comandos, agentes e skills do JOCA com descrição curta.
 JOCA — Referência rápida
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SESSÃO
-/resume              Carrega contexto e knowledge graph do projecto
-/save                Guarda estado da sessão e actualiza memory
-/start               Arranca um projecto novo ou liga um existente ao JOCA
-/install             Setup ou reconfiguração do JOCA
-/migrate             Migração v1-legacy → v2.0
-
-WORKFLOW
-/plan                Activa Plan Mode para arquitectura e decisões
-/autoplan            Plano completo auto-revisto (produto → design → eng)
-/goal                Auto-orquestração de tarefa NL → master-orchestrator loop
-/one-shot            Desenvolvimento autónomo end-to-end a partir de PRD
-/build-plan          Construção supervisionada por fases com gate de testes
-/debug               Triage de erros com skill do stack detectado
-/review-code         Code review via tester-code + Codex adversarial opcional
-/review-design       Review UI/UX e acessibilidade em paralelo
-/ship                Levar código a PR: sync → testes → gate → push → PR
-/create-skill [desc] Cria nova skill via pipeline self-improving
-/create-skill --upgrade [nome]  Melhora skill existente
-
-MARKETING
-/marketeer <marca>   Ciclo de marketing: análise → proposta → artes → implementação (em pausa)
-/marketeer-review <marca>  Rever resultados e abrir o ciclo seguinte
-
-CONHECIMENTO
-/know                Ingere conteúdo na Knowledge Base (markitdown → nota wiki)
-/learn               Memória institucional do Brain (decisões + aprendizagens)
-/retro               Retrospectiva: aprendizagens da janela → acções
-/map-joca            Mapa de conhecimento interactivo (graph.html via graphify)
-
-FEEDBACK & MANUTENÇÃO
-(feedback do projecto + JOCA é auto-capturado pelo /save)
-/upgrade-joca        Lê feedback acumulado → implementa melhorias ao JOCA
-/update-joca         Verifica e aplica updates do repositório oficial GitHub
-/status              Mostra rate limits, modelo e contexto actual
-
-WORDPRESS
-/wp-perf             Quick triage WordPress — issues críticos (rápido)
-/wp-perf-review      Code review WP completo: Critical / Warning / Info
+[comandos: tabela ## Commands acima, agrupada por Grupo (SESSÃO · WORKFLOW · MARKETING · CONHECIMENTO ·
+ MANUTENÇÃO · WORDPRESS), uma linha por comando: nome alinhado + função em ~10 palavras.
+ Feedback do projecto + JOCA é auto-capturado pelo /save.]
 
 /help-joca           Esta página
 
@@ -77,5 +78,5 @@ Nota: Skills Shopify e WordPress só activas nos projectos respectivos.
 - Descrições: máximo ~10 palavras, sem artigos quando possível
 - Agentes agrupados por categoria tal como no INDEX.md; skills agrupadas por domínio
 - Sem markdown pesado — texto plano com `━` como separador
-- Famílias grandes de skills (GSAP, ComfyUI, WordPress, hyperframes): agrupar como bloco "GSAP (8)" etc. com nota "(ver SKILL_INDEX.json para lista completa)"
+- Famílias grandes de skills (GSAP, ComfyUI, WordPress): agrupar como bloco "GSAP (8)" etc. com nota "(ver SKILL_INDEX.json para lista completa)"
 - Se o utilizador passar argumento (ex: `/help-joca design`): filtrar e mostrar só essa categoria

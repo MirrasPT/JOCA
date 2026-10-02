@@ -1,13 +1,16 @@
 ---
 name: caching-agent
-description: "código · Implementing caching strategies, Redis, Memcached, HTTP cache headers, CDN caching, or cache. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "cache, caching, Redis, CDN"
 skills: caching
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: cache, caching, Redis, Cache::remember, cache invalidation, CDN
 generated-from: .claude/skills/caching.md
 generated-by: skill-agents.mjs
-content-hash: 7a2d7f3c90519f52
+content-hash: 81cebc8dfe175282
 ---
 
 # caching — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

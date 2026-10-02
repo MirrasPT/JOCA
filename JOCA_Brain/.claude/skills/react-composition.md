@@ -5,6 +5,8 @@ triggers: compound component, component api, boolean props, prop proliferation, 
 ---
 # React Composition — Component API Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Invoked by `frontend` (or directly) when designing the *shape* of a component — how it's used, not how it performs (`react-patterns`) or looks (`tailwind`).
 
 Core problem: **component APIs rot.** Every new requirement adds a boolean prop. After 10 booleans the component is unmaintainable and impossible to use correctly.
@@ -163,6 +165,16 @@ Controlled (`checked` + `onChange`) for form integration; uncontrolled (`default
 
 ---
 
+## 8. Asset/variant registries are open, not closed
+
+A component that looks up an asset or variant by id (`Record<AppId, MarkDef>`) bakes the catalogue
+into the type: the next id added kills the build. Type it `Partial<Record<string, T>>` and render a
+fallback that is **visibly "not yet designed"** — absence of asset is the normal state, and degrading
+is not the same as hiding. Full rule + case: `Read(".claude/reference/design-system-componentes.md")` →
+"Registo de assets -- nunca um `Record` fechado".
+
+---
+
 ## Decision flow
 
 ```
@@ -186,6 +198,7 @@ New / growing component
 - [ ] Compound sub-components guard their context (throw if used outside)
 - [ ] Form components support controlled + uncontrolled
 - [ ] State lifted to lowest common ancestor, not root
+- [ ] Asset/variant registries typed open (`Partial<Record<string, T>>`) with a visible fallback
 
 ---
 
@@ -193,5 +206,5 @@ New / growing component
 
 - `frontend` — director; invokes this for component API design
 - `react-patterns` — performance/correctness of the same components
-- `component-system` — the spec/contract (variants, states) these components implement
+- `design-system` — the spec/contract (variants, states) these components implement
 - `tailwind` — styling the parts (use `cva` for variants, not booleans)

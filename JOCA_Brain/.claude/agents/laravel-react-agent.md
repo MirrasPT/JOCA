@@ -1,13 +1,16 @@
 ---
 name: laravel-react-agent
-description: "código · Connecting a Laravel backend to a React frontend — Inertia vs headless API, Sanctum auth (SPA. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "laravel react, inertia, csrf react"
 skills: laravel-react
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: laravel react, connect admin to frontend, ligar admin ao frontend, inertia, inertiajs, sanctum spa
 generated-from: .claude/skills/laravel-react.md
 generated-by: skill-agents.mjs
-content-hash: d6b31e9456a4029d
+content-hash: efefc688f94714c5
 ---
 
 # laravel-react — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

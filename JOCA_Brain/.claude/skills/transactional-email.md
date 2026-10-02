@@ -1,40 +1,112 @@
 ---
 name: transactional-email
-description: "Router skill for transactional email. MUST be invoked when the user says: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf. SHOULD also invoke when: dkim, dmarc, email template."
-triggers: transactional email, email sending, postmark, resend, email api, bounce, deliverability, spf, dkim, dmarc, email template
+description: "Transactional email for apps: sending (Postmark, Resend, SES), deliverability (SPF/DKIM/DMARC), bounces and webhooks, and client-safe templates in React Email. MUST be invoked when the user says: transactional email, email sending, postmark, react email, email template, resend, deliverability, bounce. SHOULD also invoke when: spf, dkim, dmarc, email api, message streams, email webhook, @react-email, email dark mode."
+triggers: postmark, react email, react-email, @react-email, email template, template de email, emails transacionais, email spam, email component, message streams, bounce handling, email webhook, transactional email template, email html, email dark mode, password reset email, transactional email, email sending, resend, email api, bounce, deliverability, spf, dkim, dmarc
 ---
 
-# Transactional Email Router
+# Transactional Email
 
-## Decision Table
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
-| Situation | Action |
-|-----------|--------|
-| Using/considering Postmark | Activate `transactional-email/postmark` |
-| Using Resend + React Email (modern TS stack) | General knowledge (Resend skill not yet created) |
-| Deliverability questions (SPF/DKIM/DMARC) | Activate `transactional-email/postmark` — deliverability section applies universally |
+Owner of the email group (F4.2): sending, providers, deliverability, bounces/webhooks and templates. Postmark API and React Email templates live in references read on demand.
+Not here: drip/nurture sequences → `email-sequence`; marketing email in a `/marketeer` cycle → `mkt-email`; personal inbox → `personal-comms`; mailbox/MX on cPanel → `cpanel`.
 
-## Activate Sub-skills
+## Decision table
 
-```
-Read(".claude/skills/postmark.md")
-```
+| Situation | Read |
+|-----------|------|
+| Sending via Postmark (API, streams, webhooks, templates, suppressions, errors, test token) | `Read(".claude/reference/postmark.md")` |
+| Building the email template (React Email `.tsx`, client-safe HTML, Outlook/Gmail, dark mode, static HTML without build) | `Read(".claude/reference/react-email.md")` |
+| Resend / SES / SendGrid | This file (§Provider comparison, §Send integration) + provider docs |
+| SPF/DKIM/DMARC, emails landing in spam, bounces | This file (§Deliverability, §Bounces and webhooks) |
 
-## Universal Email Rules
+## Universal rules
 
-1. **Queue sends** — never block API responses for email delivery
-2. **Always include `TextBody`** alongside `HtmlBody`
-3. **SPF + DKIM + DMARC** required on sending domain
-4. **Process bounces immediately** — hard bounces must suppress, or provider suspends account
-5. **Unsubscribe link** required in all marketing/bulk emails (CAN-SPAM, GDPR)
-6. **Log provider MessageID** to correlate delivery/bounce webhooks
-7. **Separate transactional from marketing** — different reputation, different streams
+1. **Queue sends** — never block API responses for email delivery.
+2. **Always send a text part** (`TextBody` / `text`) alongside the HTML.
+3. **SPF + DKIM + DMARC** on the sending domain; custom domain, never the provider's shared one.
+4. **Process bounces immediately** — hard bounces and spam complaints must suppress, or the provider suspends the account.
+5. **Unsubscribe link** in all marketing/bulk emails (CAN-SPAM, GDPR).
+6. **Log the provider MessageID** to correlate delivery/bounce webhooks.
+7. **Separate transactional from marketing** — different streams/IPs, different reputation.
+8. **Consistent From address** on the verified sending domain.
+9. **Verify webhook signatures** (HMAC over the raw body, timing-safe compare) before trusting any event.
 
-## Provider Comparison
+## Provider comparison
 
 | Provider | Best for | Pricing model |
 |----------|----------|---------------|
-| Postmark | Reliable transactional, strict focus | Per email |
+| Postmark | Reliable transactional, strict focus, message streams | Per email |
 | Resend | Modern DX, React Email templates | Per email |
 | SendGrid | High volume, marketing + transactional | Tiered |
 | AWS SES | Cheapest at scale, more ops overhead | Per email |
+
+Default: Postmark for transactional-only apps; Resend when the stack is TS + React Email and the team wants the simplest API.
+
+## Send integration
+
+Template → HTML + text → provider. React Email renders both parts:
+
+```ts
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+await resend.emails.send({
+  from: "Marca <hello@example.com>",
+  to: user.email,
+  subject: "Bem-vindo",
+  html: await render(<WelcomeEmail name={user.name} ctaUrl={url} />),
+  text: await render(<WelcomeEmail name={user.name} ctaUrl={url} />, { plainText: true }),
+});
+```
+
+With Postmark: pass the rendered `html`/`text` as `HtmlBody`/`TextBody` to `client.sendEmail` (`reference/postmark.md` §Sending). Missing API key → `TODO: credencial em falta`, never a placeholder that looks real.
+
+## Deliverability
+
+```
+# SPF — one TXT record per domain; merge includes, never two v=spf1 records
+v=spf1 include:<provider-spf> ~all
+
+# DKIM — key generated by the provider; selector varies (Postmark: pm._domainkey)
+<selector>._domainkey.yourdomain.com  TXT  k=rsa; p=<provider-key>
+
+# DMARC — start with p=none to collect reports, then quarantine
+_dmarc.yourdomain.com  TXT  v=DMARC1; p=quarantine; rua=mailto:dmarc@yourdomain.com
+```
+
+Postmark values: `reference/postmark.md` §Postmark DNS values. DNS on Cloudflare → `cloudflare-dns`.
+
+Checklist:
+- [ ] Custom sending domain (not the provider's)
+- [ ] SPF includes the provider; DKIM verified in the provider dashboard
+- [ ] DMARC policy configured
+- [ ] Return-Path on the sending domain
+- [ ] Unsubscribe link in every bulk email
+- [ ] Bounce and spam-complaint webhooks suppressing
+- [ ] Bounce rate < 2%; spam complaints < 1 per 1000
+
+## Bounces and webhooks
+
+| Event | Action |
+|-------|--------|
+| Delivered | Mark the logged MessageID as delivered |
+| Hard bounce | Suppress the address permanently |
+| Soft bounce | Retry is the provider's; suppress after repeated failures |
+| Spam complaint | Suppress + unsubscribe from everything non-essential |
+| Unsubscribe / subscription change | Respect immediately |
+
+Postmark event names, payload and handler code: `reference/postmark.md` §Webhooks.
+
+## Templates
+
+Code-first templates → React Email (`reference/react-email.md`): components, skeleton, client-safe rules (inline styles, tables, px, hex, ≤600px, absolute https URLs), dark mode, test in Gmail + Apple Mail + Outlook. Pasteable HTML without build (ESP, `gws`) → same file, §Static HTML email.
+Provider-hosted templates (Postmark `{{var}}`) → `reference/postmark.md` §Templates.
+
+## Related skills
+
+- `email-sequence` — drip / nurture orchestration
+- `copywriting` / `stop-slop` — subject line and body copy
+- `queues` — background jobs for sends
+- `webhooks` — generic signature verification and idempotency

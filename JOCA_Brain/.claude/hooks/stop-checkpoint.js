@@ -38,10 +38,20 @@ try {
   try {
     slug = path.basename(execFileSync('git', ['rev-parse', '--show-toplevel'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim());
   } catch (_) { slug = path.basename(cwd); }
-  slug = slug.replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 80) || 'unknown';
+  // .toLowerCase() obrigatório: o joca-checkpoint normaliza o slug para minúsculas — sem isto o
+  // throttle e a poda deste hook procuram numa pasta que ele nunca escreve (falha aberta, silenciosa).
+  // Fonte única (minúsculas + alias de pasta → slug da memória): scripts/joca-slug.cjs.
+  slug = require(path.join(__dirname, '..', 'scripts', 'joca-slug.cjs')).normalizeSlug(slug);
 
   // throttle + poda dos auto- antigos
-  const dir = path.join(MEM_CKPT, slug);
+  // Espelha o dirFor() do joca-checkpoint.mjs: se já existir uma pasta que difira SÓ em maiúsculas,
+  // é essa que ele escreve — procurar noutra deixa o throttle inerte no macOS (FS case-sensitive).
+  let pasta = slug;
+  try {
+    const irmas = fs.readdirSync(MEM_CKPT, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
+    if (!irmas.includes(slug)) pasta = irmas.find((n) => n.toLowerCase() === slug) || slug;
+  } catch (_) { /* checkpoints/ ainda não existe */ }
+  const dir = path.join(MEM_CKPT, pasta);
   if (fs.existsSync(dir)) {
     const autos = fs.readdirSync(dir).filter((f) => f.endsWith('-auto.md')).sort().reverse();
     if (autos.length) {

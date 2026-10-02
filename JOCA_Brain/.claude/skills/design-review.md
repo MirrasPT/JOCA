@@ -119,6 +119,14 @@ Any NO → name it + fix.
 
 Scan code for, emit `path:line — issue`:
 - **Compositor-only motion:** animate only `transform`/`opacity`; never `transition: all`; honor `prefers-reduced-motion`; interruptible; SVG transforms on a `<g>` with `transform-box: fill-box`.
+- **`prefers-reduced-motion` that DELETES motion is a defect, not compliance.** Reduced motion means *substitute* the motion, not remove it: drop the spatial displacement, **keep the opacity change**, and cut (never zero) the duration. Killing it outright leaves that user with states snapping in with no transition — the orientation the motion carried is gone, which is the opposite of the accessibility goal. Flag as ⬛ when found (both patterns shipped in our own skills before this rule existed):
+  ```
+  ⬛ @media (prefers-reduced-motion: reduce) { :root { --duration-fast: 0ms; --duration-slow: 0ms } }
+  ⬛ if (!prefersReducedMotion) { gsap.from(...) }        // whole animation wrapped in an if
+  ⬛ * { animation: none !important; transition: none !important }
+  ✅ y: reduce ? 0 : 40, autoAlpha: 0, duration: reduce ? 0.2 : 0.6
+  ```
+  Grep signals: `--duration` set to `0ms`/`0s` inside a `prefers-reduced-motion` block · `animation: none`/`transition: none` with `!important` · a `prefersReducedMotion`/`matchMedia('(prefers-reduced-motion` boolean used as an `if` guard around the animation instead of as a parameter inside it. Emit `path:line — reduced-motion zeroes instead of substituting`. Motion detail → `anima`.
 - **Hydration:** controlled inputs need `value`+`onChange`; guard server/client date mismatches; `suppressHydrationWarning` only where intentional.
 - **i18n:** `Intl.DateTimeFormat`/`NumberFormat` over hardcoded; detect via `Accept-Language`/`navigator.languages` not IP; `translate="no"` on brand/code tokens.
 - **URL-as-state:** filters/tabs/pagination/expanded panels in query params (deep-linkable); `useState` for shareable state → consider URL sync.
@@ -141,12 +149,21 @@ Per dimension, **0–10 → state why not a 10 → "a 10 would have X" → fix �
 
 Quando o brief pede para **corrigir** (não só pontuar) numa UI viva/renderizável:
 1. **Issue** — identificar 1 problema visual concreto (file:line).
-2. **Screenshot ANTES** — capturar o estado actual (Playwright MCP, ou `Start-Process <url>` + pedir captura ao user se MCP ausente — ver `rules/workflows-and-tooling.md`).
+2. **Screenshot ANTES** — capturar o estado actual (Claude in Chrome — `mcp__claude-in-chrome__*` —, ou `Start-Process <url>` + pedir captura ao user se a extensão estiver ausente — ver `reference/workflows-and-tooling.md`).
 3. **Fix** — editar o CSS/markup (cirúrgico, via tokens do design system — nunca hardcode inventado).
 4. **Screenshot DEPOIS** — re-capturar.
 5. **Comparar** — confirmar que o issue desapareceu e não partiu o layout à volta. Se piorou → reverter.
 6. **Repetir** por severidade. 1 issue = 1 fix coeso (commit atómico se em repo).
-Sem capacidade de render (sem Playwright/sem URL) → NÃO inventar que "está corrigido": aplicar o fix, dizer que a prova visual ficou por confirmar, e pedir confirmação ao user.
+Sem capacidade de render (sem Claude in Chrome/sem URL) → NÃO inventar que "está corrigido": aplicar o fix, dizer que a prova visual ficou por confirmar, e pedir confirmação ao user.
+
+### Queixa de design — uma variável de cada vez
+
+Quando o utilizador se queixa de um ecrã («os textos estão grandes», «está apertado»):
+1. **Ver primeiro.** O ecrã a correr, não o código (pré-condição em `.claude/reference/gates-runtime.md` §Pré-condição de UI). E confirmar que o que ele vê é defeito — não estado dele (barra lateral colapsada por escolha, cookie) nem dados de demonstração (colunas vazias de uma BD de teste).
+2. **Uma queixa = um sintoma = UMA variável.** Escolher o eixo contínuo que o sintoma nomeia (tamanho de texto · densidade/gutter · contraste · raio · saturação) e mexer **só nesse**.
+3. **Mostrar antes da seguinte.** Screenshot antes/depois ao utilizador; a próxima variável só depois da resposta dele.
+
+Porquê: a «os textos estão grandes» respondeu-se com nove degraus de tipografia + gutter + padding dos KPI + altura de linha na mesma vaga, sem ver nada — e a queixa seguinte foi a oposta, «continua tudo muito apertado». Com várias variáveis a mudar ao mesmo tempo o utilizador não consegue calibrar, e o trabalho acabou apagado.
 
 ### Verification rules (what a green build never catches)
 
@@ -154,6 +171,10 @@ Sem capacidade de render (sem Playwright/sem URL) → NÃO inventar que "está c
 - **Recompute any contrast you cite.** Ratios copied from a brief/analysis/old manual are frequently wrong (a source claimed the turquoise failed at 2.1; measured it passes AA at 5.19 — the black half of the wordmark was the real failure). On multicolour wordmarks, compute **every** colour against the background, not just the accent.
 - **No browser? Say so, and use the static check.** Without a browser MCP: Chrome headless + the overflow diagnostic in `site-capture` §3 (`scrollWidth === clientWidth`, plus elements whose `getBoundingClientRect().right > clientWidth`). `--window-size=390` renders at ~485px, so right-side clipping in the shot is an artefact, not overflow. A review done by reading code only declares that in the **first** paragraph, not the last.
 - **Prove the fix live before editing the file** — `addStyleTag` the candidate CSS, re-measure, then write. See `site-capture` §7.
+- **Caixa do texto para contraste = `Range.selectNodeContents(nóDeTexto)`**, não o `getBoundingClientRect` do elemento: um `h3` em `writing-mode: vertical-rl` devolve a largura do contentor, e um `<span class="sr-only">` dentro alargou a caixa de 29 para 81 px — chumbos falsos de 2,9:1 onde o real era 6,3:1.
+- **Ícone/asset julga-se ao tamanho final**, ao lado dos que já existem no conjunto — não no tamanho de autoria. Ícones bons a 90 px saíram finos e ilegíveis a 34 px (5 iterações).
+- **Faixa de anúncio / barra promocional:** dentro de ~44 px o CTA é link sublinhado, não pílula; rótulo e prazo são os primeiros a cair no telemóvel; com nav flutuante a folga de topo pertence a **um** dos dois (`:not(:first-child)`), nunca aos dois.
+- **Feature ligada → reler a copy que a rodeia:** o texto antigo pode passar a prometer o que o sistema não faz (ver `frontend.md` #11).
 
 ### Verdict
 
@@ -234,6 +255,18 @@ Before approving fonts/accent/aesthetic: check `memory/projects/` for the last p
 ## Voice (review output)
 
 Builder to builder, not consultant. Lead with the point. Cite `file:line`/numbers. Ban filler ("delve", "robust", "comprehensive", "leverage", "seamless"). Concrete > vague.
+
+### Template — auditor impiedoso (brief para um agente de auditoria externa)
+
+Produziu o relatório mais útil da semana (2026-08-31); três peças, copiar ao brief:
+```
+Assume que isto é o pior que já viste. Sem elogios: no máximo 5 linhas no total para o que está sólido.
+Lentes numeradas: 1. <lente> · 2. <lente> · 3. <lente>. Cada achado traz números
+(«4 sessões, 11 defeitos»), nunca «muitos problemas», e ficheiro:linha ou URL+selector.
+Termina com a conclusão estrutural numa frase.
+```
+O caller corrige depois os achados que só ele pode explicar (contexto que o auditor não tinha) **sem
+deitar fora a conclusão estrutural**.
 
 ---
 

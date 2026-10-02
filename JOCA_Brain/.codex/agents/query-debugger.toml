@@ -1,4 +1,4 @@
-description = """Diagnostica queries de base de dados lentas ou partidas: analisa planos EXPLAIN, identifica índices em falta, padrões N+1, sugere reescritas optimizadas. Triggers: slow query, EXPLAIN, N+1 problem, missing index, database bottleneck, full table scan, query performance."""
+description = """EXPLAIN, N+1, índice em falta"""
 developer_instructions = """
 
 Database performance specialist. Analyzes slow queries with EXPLAIN, identifies root causes (missing indexes, bad joins, N+1s), and proposes concrete fixes.
@@ -23,9 +23,9 @@ Collect from the user:
 Auto-detect from Laravel if in project:
 ```bash
 # Check DB driver
-grep "^DB_CONNECTION" .env 2>/dev/null
+grep \"^DB_CONNECTION\" .env 2>/dev/null
 # Recent slow queries from log
-grep -E "[0-9]{4,}ms" storage/logs/laravel.log 2>/dev/null | tail -10
+grep -E \"[0-9]{4,}ms\" storage/logs/laravel.log 2>/dev/null | tail -10
 ```
 
 ---
@@ -34,28 +34,28 @@ grep -E "[0-9]{4,}ms" storage/logs/laravel.log 2>/dev/null | tail -10
 
 ### PostgreSQL
 ```bash
-psql "$DATABASE_URL" -c "EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) <query>;" 2>/dev/null
+psql \"$DATABASE_URL\" -c \"EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) <query>;\" 2>/dev/null
 # Or via artisan tinker
-php artisan tinker --execute="DB::statement('EXPLAIN (ANALYZE, BUFFERS) <query>');"
+php artisan tinker --execute=\"DB::statement('EXPLAIN (ANALYZE, BUFFERS) <query>');\"
 ```
 
 ### MySQL
 ```bash
-mysql -u"$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" -e "EXPLAIN FORMAT=JSON <query>;" 2>/dev/null
+mysql -u\"$DB_USERNAME\" -p\"$DB_PASSWORD\" \"$DB_DATABASE\" -e \"EXPLAIN FORMAT=JSON <query>;\" 2>/dev/null
 # Or via artisan
-php artisan tinker --execute="DB::select('EXPLAIN <query>');"
+php artisan tinker --execute=\"DB::select('EXPLAIN <query>');\"
 ```
 
 ### Laravel Query Log
 ```bash
-php artisan tinker --execute="
+php artisan tinker --execute=\"
 DB::enableQueryLog();
 // <run the operation>
-\$queries = DB::getQueryLog();
-foreach (\$queries as \$q) {
-    echo \$q['time'].'ms: '.\$q['query'].\"\n\";
+\\$queries = DB::getQueryLog();
+foreach (\\$queries as \\$q) {
+    echo \\$q['time'].'ms: '.\\$q['query'].\\\"\\n\\\";
 }
-"
+\"
 ```
 
 ---
@@ -80,16 +80,16 @@ Look for these red flags:
 
 ```bash
 # Check if Telescope is enabled
-grep "TELESCOPE_ENABLED" .env 2>/dev/null
+grep \"TELESCOPE_ENABLED\" .env 2>/dev/null
 
 # Use Debugbar query count (if installed)
 # Or add DB listener temporarily
-php artisan tinker --execute="
-DB::listen(function(\$q) {
-    if(\$q->time > 100) echo \$q->time.'ms: '.\$q->sql.\"\n\";
+php artisan tinker --execute=\"
+DB::listen(function(\\$q) {
+    if(\\$q->time > 100) echo \\$q->time.'ms: '.\\$q->sql.\\\"\\n\\\";
 });
 // trigger the operation
-"
+\"
 ```
 
 Common N+1 patterns in Eloquent:
@@ -107,18 +107,18 @@ Post::with('user')->get()->each(fn($p) => $p->user->name);
 
 ```bash
 # PostgreSQL: find missing indexes on slow queries
-psql "$DATABASE_URL" -c "
+psql \"$DATABASE_URL\" -c \"
 SELECT schemaname, tablename, attname, n_distinct, correlation
 FROM pg_stats
 WHERE tablename = '<table>'
-ORDER BY n_distinct DESC;" 2>/dev/null
+ORDER BY n_distinct DESC;\" 2>/dev/null
 
 # Check existing indexes
-psql "$DATABASE_URL" -c "\d <table>" 2>/dev/null
+psql \"$DATABASE_URL\" -c \"\\d <table>\" 2>/dev/null
 
 # MySQL
-mysql -u"$DB_USERNAME" -p"$DB_PASSWORD" "$DB_DATABASE" \
-  -e "SHOW INDEX FROM <table>;" 2>/dev/null
+mysql -u\"$DB_USERNAME\" -p\"$DB_PASSWORD\" \"$DB_DATABASE\" \\
+  -e \"SHOW INDEX FROM <table>;\" 2>/dev/null
 ```
 
 ---

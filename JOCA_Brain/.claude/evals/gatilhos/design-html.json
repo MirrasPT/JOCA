@@ -1,0 +1,27 @@
+{
+ "skill": "design-html",
+ "deve": [
+  "o mockup está aprovado, transforma em html",
+  "codifica o design que fizemos ontem",
+  "passa este mockup para html e css de produção",
+  "implementa o design aprovado da página de serviços em html",
+  "code the mockup into clean html",
+  "finaliza o design e faz a página real",
+  "converte o ecrã desenhado em código html sem frameworks",
+  "design para código: a homepage que aprovaste",
+  "constrói a página a partir do mockup final",
+  "transforma o figma exportado em html responsivo"
+ ],
+ "quase": [
+  "desenha o ecrã de checkout",
+  "valida este mockup contra o design system",
+  "exporta esta página html para pdf",
+  "gera uma imagem para o hero",
+  "cria o design system do projecto",
+  "revê o design da página e dá nota",
+  "cria uma landing page de captura de leads com copy",
+  "faz uma webapp em react com login",
+  "o css do site quebra no safari",
+  "escreve o texto da página sobre nós"
+ ]
+}

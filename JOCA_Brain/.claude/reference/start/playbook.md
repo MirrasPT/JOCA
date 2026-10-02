@@ -5,6 +5,20 @@
 
 ---
 
+## Conteúdo
+
+- O que este documento é
+- FASE A — Enquadramento
+- FASE B — Fluxos
+- FASE C — Esqueleto técnico
+- FASE D — Sistema visual
+- FASE E — Ecrãs
+- FASE F — Arquitetura
+- O ciclo, depois do arranque
+- As cinco regras
+- O que isto custa
+- Checklist
+
 ## O que este documento é
 
 O método para arrancar **qualquer projeto novo**, desde a ideia até ao primeiro ciclo de desenvolvimento a rolar. Seis fases, ~1 a 2 semanas para um produto pequeno.

@@ -1,13 +1,16 @@
 ---
 name: laravel-specialist-agent
-description: "código · Laravel apps, Eloquent models, Artisan commands, Sanctum auth, Horizon queues, RESTful APIs. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Laravel, Eloquent, Artisan, model"
 skills: laravel-specialist
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: Laravel, Eloquent, Artisan, composer.json, migration, model
 generated-from: .claude/skills/laravel-specialist.md
 generated-by: skill-agents.mjs
-content-hash: 256d77200eb3224d
+content-hash: 00ce796ce05cf56e
 ---
 
 # laravel-specialist — agente de execução
@@ -28,6 +31,21 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
+### ⚠ Antes de correr testes ou migrations
+
+`RefreshDatabase`/`migrate:fresh` sem `.env.testing` apontam o comando à base de dados de
+desenvolvimento e apagam-na: sem o ficheiro de teste o Artisan cai no `.env`. Provar a ligação de
+teste na raiz da app Laravel **antes** de correr:
+
+```bash
+test -f .env.testing || echo 'SEM .env.testing — PARAR e reportar'
+php artisan db:show --env=testing    # ler o nome da BD antes de escrever nela
+```
+
+Ficheiro em falta, **ou** nome de BD igual ao de desenvolvimento → **parar e reportar**, não correr.
+`migrate:fresh` é irreversível: devolve-se ao caller como proposta, nunca se executa.
 
 ## Como trabalhar
 

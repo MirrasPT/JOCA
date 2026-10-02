@@ -1,0 +1,27 @@
+{
+ "skill": "deploy-cpanel",
+ "deve": [
+  "faz deploy do laravel no hosting partilhado",
+  "publica a app no cpanel por ftp",
+  "o site dá 503 passenger",
+  "deploy node no cpanel",
+  "deploy laravel to shared hosting",
+  "public_html: onde ponho a pasta public do laravel",
+  "o .htaccess não reescreve as rotas",
+  "stderr.log do passenger tem erros",
+  "alojamento barato: como meto lá a app",
+  "SetEnv no htaccess para as variáveis"
+ ],
+ "quase": [
+  "cria conta de email no cpanel",
+  "addon domain",
+  "deploy no ploi",
+  "docker compose",
+  "cria uma base de dados",
+  "renova o ssl",
+  "deploy na vercel",
+  "cron no cpanel",
+  "dns do subdomínio",
+  "ftp para enviar fotos"
+ ]
+}

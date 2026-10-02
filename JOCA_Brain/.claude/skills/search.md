@@ -6,6 +6,8 @@ triggers: search, meilisearch, typesense, algolia, full-text search, faceted sea
 
 # Search Engine
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## Platform Selection
 
 | Platform | Best for | Hosting |

@@ -1,13 +1,16 @@
 ---
 name: mysql-agent
-description: "código · MySQL query writing, performance optimization, schema design, SQL debugging. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "MySQL, query lenta, slow query"
 skills: mysql
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: MySQL, query lenta, slow query, EXPLAIN, index, indice
 generated-from: .claude/skills/mysql.md
 generated-by: skill-agents.mjs
-content-hash: 50a569543f27f670
+content-hash: 9b21a611a8b45b12
 ---
 
 # mysql — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

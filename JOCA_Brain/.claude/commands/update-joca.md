@@ -20,7 +20,7 @@ git remote -v                       # que remotes existem? qual deles e o public
 git fetch --all --quiet
 # nome do remote publico — DERIVA-SE, nunca se crava: nesta maquina pode ser
 # `origin`, `upstream`, `publico`, …
-PUB=$(git remote -v | grep -m1 'MirrasPT/JOCA\.git' | awk '{print $1}')
+PUB=$(git remote -v | grep -m1 'MirrasPT/JOCA\.git' | cut -f1)   # `git remote -v` separa por TAB; sem awk `$N` (o expansor de argumentos troca-os)
 # ramo por omissao DESSE remote — tambem se deriva (`main` num, `master` noutro)
 PUBBASE=$(git symbolic-ref --quiet --short "refs/remotes/$PUB/HEAD" 2>/dev/null | sed "s|^$PUB/||")
 [ -z "$PUBBASE" ] && PUBBASE=$(git remote show "$PUB" | sed -n 's/.*HEAD branch: //p')
@@ -50,7 +50,7 @@ installation, so importing it wholesale also imports things that must not land o
 ### Passo de direccao (obrigatorio ANTES do checkout)
 
 Um selective-checkout de uma foto **mais velha** do proprio codigo e uma regressao silenciosa: num
-repo real teria reposto o `JOCA_OS/.gitignore` com `data/` ignorada (o defeito que faz as 2 maquinas
+repo real teria reposto o `JOCA_OS/.gitignore` com `data/` ignorada (o defeito que faz as maquinas
 divergirem sem aviso) e apagado as portas configuraveis do `start.bat`/`stop.bat`. Nem o `tsc` nem o
 build se queixam. Portanto mede-se primeiro **o que vem de onde**.
 
@@ -72,6 +72,13 @@ git diff --stat HEAD "$PUB/$PUBBASE" -- $PATHS                        # conteudo
 | 1ª lista com ficheiros | Ha material novo → seguir para o checkout, so desses caminhos. |
 | 2ª lista com ficheiros | Sao locais. O checkout **nao** lhes toca; nao entram na lista de remocoes. |
 
+⚠ **`.claude/rules/` e os `CLAUDE.md` de uma instalação de trabalho (shape B) NÃO vêm do público por checkout.** Podem ter
+outra estrutura e outras versões (o `$PUB/$PUBBASE` pode divergir em quase todas as rules): promover o público
+reverteria as regras desta instalação. Evoluem por **edição direta** aqui e
+**réplica por âncora** no público (a mesma frase-âncora localizada e editada à mão em cada lado), nunca por
+`git checkout "$PUB/$PUBBASE" -- <rules>` — mesmo com `rules` dentro do `$PATHS` acima, o que vier de lá
+para essas pastas lê-se e porta-se à mão.
+
 ⚠ **`git log HEAD..$PUB/$PUBBASE` NAO serve como sinal de direccao.** Historias geradas a parte dao
 contagens altas com zero conteudo novo — um caso real deu 9 commits "a mais" e 0 ficheiros novos.
 
@@ -87,13 +94,123 @@ seguros e subestima muito o que da para trazer.
 **The selective-checkout path for shape B** (only writes, never deletes — local-only files survive
 untouched by construction):
 
+**0. Check the Brain first (mandatory, before anything is copied).** Mirroring or replacing a tree
+has already run over an *active* Brain decision about specific files — a TerminalPane/TerminalView
+exception decided the day before — and it was only noticed at `/save`, after commit **and** push.
+The decision log is the only place that record exists; the file itself looks unremarkable.
+
 ```
-git branch backup/pre-update-$(git rev-parse --short HEAD)      # 1. make it reversible FIRST
-git checkout "$PUB/$PUBBASE" -- $PATHS                          # 2. code paths ONLY
+node .claude/scripts/joca-brain.mjs active            # active decisions (event-sourced)
+node .claude/scripts/joca-brain.mjs search "<path>"   # once per path/component about to be replaced
 ```
 
+Any hit naming a path you are about to overwrite → **one-line gate to the user before copying**, not
+after. Same rule for any mirror/replace of a tree, not just this command.
+
+```
+git branch backup/pre-update-$(git rev-parse --short HEAD)      # 1. make it reversible FIRST
+: "${PATHS:?PATHS vazio -- ABORTAR}"                            # 2. guard, ver aviso abaixo
+git checkout "$PUB/$PUBBASE" -- $PATHS                          # 3. code paths ONLY
+```
+
+⚠ **O guard `${PATHS:?}` nao e decorativo: sem ele, `$PATHS` vazio troca a ARVORE INTEIRA.**
+`git checkout <ref> -- ` sem pathspec **nao e erro** — o git le-o como troca de ref, entra em
+**detached HEAD** e escreve o template publico por cima de tudo, com **exit 0** e sem uma unica
+mensagem de aviso alem do banner de detached. `$PATHS` chega vazio com facilidade: bloco corrido
+noutra shell que a do passo de direccao, `set -u` ausente, copy-paste so deste bloco. Reproduzido
+num repo descartavel: antes `README.md` = conteudo local, depois `README.md` = conteudo do publico e
+`git status -sb` = `## HEAD (no branch)`. Com o guard, o mesmo cenario para com exit 1 e a arvore
+fica intacta. Vale para qualquer outro `checkout` que use `$PATHS` — verificar a variavel antes,
+nunca confiar no exit code depois.
+
+**2b. Verificacao pos-checkout: o checkout TRUNCA em silencio.** Passo obrigatorio, nao opcional.
+Este caminho ja truncou **25 ficheiros de toolkit** sem um unico conflito, sem erro, e com `tsc`,
+`eslint` e `build` os tres verdes (caiu a Phase 4b do `/upgrade-joca`, o gate de repo publico do
+`/ship` e o Passo 0 da `public-release-audit` que ele chama, o banner `⚠ OBSOLETO` do `/migrate`, e 5
+seccoes do `joca-doctor`). O comando ja cobria "ausente a montante"; o caso que faltava e o inverso —
+**presente dos dois lados e mais pobre no publico**. Um `git checkout` que sai com 0 nao prova nada:
+ele escreve a versao do outro lado por cima, feature local incluida, e nao ha marcador de conflito
+porque nao ha merge.
+
+```
+# (a) rede automatica — todo o ficheiro que ENCOLHEU no checkout le-se antes de aceitar
+#     numstat = <adicionadas> TAB <removidas> TAB <ficheiro>; removidas > adicionadas = perdeu mais do que ganhou
+#     (sem awk com campos numerados: o expansor de argumentos do comando substitui-os)
+git diff --numstat HEAD -- $PATHS | while IFS="$(printf '\t')" read -r add del f; do
+  [ "$del" -gt "$add" ] 2>/dev/null && printf '%s\t%s\n' "$((del-add))" "$f"
+done | sort -rn
+```
+
+```
+# (b) rede curada — marcador por feature local, escrito ANTES do checkout (uma frase literal
+#     por feature, nao o nome do ficheiro), verificado DEPOIS. Zero hits = feature perdida.
+#     Caminhos relativos a RAIZ do repo, como o $PATHS.
+cat > /tmp/marcadores.txt <<'EOF'
+JOCA_Brain/.claude/commands/upgrade-joca.md|Phase 4b
+JOCA_Brain/.claude/commands/ship.md|CHANGELOG
+JOCA_Brain/.claude/skills/public-release-audit.md|Passo 0
+EOF
+
+while IFS='|' read -r f m; do
+  grep -qF -- "$m" "$f" || echo "PERDIDO: [$m] em $f"
+done < /tmp/marcadores.txt
+```
+
+⚠ **Marcadores em ASCII, e testados ANTES do checkout.** Um literal acentuado pode chegar corrompido
+ao `grep -F` e dar **0 hits falso** num ficheiro onde a frase existe — o resultado le-se como feature
+apagada. Duas defesas: (1) correr o `while` acima **antes** do checkout, quando todos os marcadores
+_tem_ de acertar; um `PERDIDO:` nessa altura e marcador mau, nao feature perdida. (2) Antes de
+aceitar qualquer 0 hits, controlo positivo: `grep` por uma frase que se sabe estar no ficheiro.
+Este exemplo ja caiu na propria armadilha: o marcador `repo publico` dava `PERDIDO` porque o
+`ship.md` tem a palavra com acento (e com gralha).
+
+⚠ **Correr o build nao chega.** Foi exactamente o que se fez: os tres gates estaticos passaram e as
+25 truncagens sobreviveram na mesma. Ficheiro que encolheu **le-se**, nao se compila.
+
+**2c. Proveniencia — de quem e a truncagem.** Quando um marcador desaparece, distinguir "a resolucao
+escolheu mal" de "o lado de origem ja vinha pobre" decide se se repoe a mao ou se se rejeita o
+import inteiro:
+
+```
+git diff <lado-A>:<F> <merge>:<F>          # o que a resolucao tirou ao lado A
+git diff <merge-base>:<F> <lado-B>:<F>     # o que o lado B ja tinha tirado sozinho
+```
+
+Segundo diff vazio → a resolucao escolheu mal (repor do backup). Segundo diff com as mesmas linhas →
+o lado B ja vinha truncado (nao importar dele; corrigir a montante).
+
+**3. Removals do not happen by themselves.** `git checkout <ref> -- <paths>` **only writes; it never
+deletes.** On a release that *removes* files (one real case: −10546 lines, 22 files deleted),
+following the command literally leaves the old code sitting on disk while the new routes no longer
+mount it — and neither `tsc` nor the build says a word:
+
+```
+git diff --diff-filter=D --name-only HEAD upstream/main -- <the same paths>   # deleted upstream
+git rm <the files you decided to drop>
+```
+
+⚠ **"absent upstream" ≠ "to be deleted".** The public repo merely *ignores* files a working install
+needs (`package-lock.json`, local config); they show up in that list and must **not** be removed.
+Delete only what belongs to the toolkit and was genuinely dropped in the release.
+
 Never checkout `memory/`, `JOCA_OS/data/`, `.claude/settings.json` or `soul.md` this way — those are
-the installation, not the toolkit.
+the installation, not the toolkit. Local-only files under the imported code paths survive the
+checkout by construction; the `git rm` step above is the one that can touch them, so read the list
+before running it.
+
+### Contagens: uma instalacao de trabalho e o publico NAO tem o mesmo inventario
+
+Escrever num brief "157 skills / 112 agentes" com o numero da **outra** instalacao manda o agente
+trabalhar contra um mapa errado (ja aconteceu: instalacao de trabalho 157/112 vs publico 145/103). O numero e
+**perecivel e por instalacao** — deriva-se no destino, nunca se cita de memoria nem de uma memoria
+antiga:
+
+```
+ls .claude/skills/*.md | wc -l ; ls .claude/agents/*.md | wc -l ; ls .claude/commands/*.md | wc -l
+```
+
+A divergencia e **deliberada** (o publico nao leva componentes nem estado pessoal) — nao e defeito a
+corrigir, e um facto a datar. Registar na memoria do projecto com a data.
 
 ### Passo das remocoes (o checkout so escreve)
 
@@ -108,6 +225,34 @@ git diff --diff-filter=D --name-only HEAD "$PUB/$PUBBASE" -- $PATHS   # candidat
 ⚠ **"ausente a montante" ≠ "a apagar".** Da lista tirar tudo o que o publico apenas **ignora** ou
 nunca teve: `package-lock.json`, ficheiros com `origin: local` no frontmatter, e o que apareceu na
 2ª lista do passo de direccao (exclusivos locais). O que sobrar, e so isso, sai por `git rm`.
+
+**A regra em prosa nao chega — a prova e um comando.** Num caso real, **50 dos 51 ficheiros ausentes
+no publico estavam apenas gitignorados la** (3 `package-lock.json` e 47 GIFs de um tema de
+terceiros); seguir a lista a letra teria apagado o tema inteiro e os lockfiles. O que decide nao e a
+lista de diferencas — sao **os padroes de ignore do OUTRO lado**:
+
+```
+git show "$PUB/$PUBBASE":.gitignore                                  # o da raiz
+git ls-tree -r --name-only "$PUB/$PUBBASE" | grep '\.gitignore$'     # ha mais, por subpasta
+```
+
+Avaliar os candidatos contra as regras de la exige um worktree descartavel desse ref — dentro dele o
+`check-ignore` ve os `.gitignore` do publico, nao os locais:
+
+```
+git worktree add --detach /tmp/pub "$PUB/$PUBBASE"
+git diff --diff-filter=D --name-only HEAD "$PUB/$PUBBASE" -- $PATHS \
+  | git -C /tmp/pub check-ignore --no-index -v -n --stdin
+git worktree remove --force /tmp/pub
+```
+
+| Linha do output | Leitura |
+|---|---|
+| `.gitignore:<n>:<padrao>` + TAB + `<ficheiro>` | So **ignorado** la. **NAO sai** por `git rm`. |
+| `::` + TAB + `<ficheiro>` (o `-n` mostra os que nao casam) | Nao casa nenhum padrao de la → candidato real a `git rm`. |
+
+⚠ O `-v` diz **que ficheiro de ignore** casou. Se a origem nao for um `.gitignore` do worktree
+publico (excludes globais, `core.excludesFile`), o teste nao provou nada — repetir.
 
 `JOCA_Brain/.claude/reference/` viaja com o toolkit (templates do `/start`, playbooks, stacks) —
 e codigo, nao estado. Os `PROGRESSO.md` vivem nos repos dos PROJECTOS, nunca neste — o update do
@@ -309,7 +454,7 @@ UI files to update (will trigger rebuild):
   M  JOCA_OS/backend/src/server.ts
 
 Protected files (will NOT be touched):
-  memory/projects/*.md
+  memory/projects/ (pastas <slug>/ e fichas *.md)
   memory/feedback/*.md
   memory/soul.md
   JOCA_OS/data/projects.json
@@ -352,6 +497,7 @@ These files and directories are NEVER overwritten, deleted, or reset:
 | `JOCA_OS/data/session-snapshots.json` | UI session history |
 | `JOCA_OS/data/ui-settings.json` | UI user preferences |
 | Files with `origin: local` frontmatter | User-created skills/agents/commands |
+| `.claude/modelos-agentes.local.json` | Escolhas de modelo/effort por agente (repostas no 5d-bis) |
 
 **NEVER use:** `git reset --hard`, `git checkout .`, `git clean -f`, or any destructive git command.
 
@@ -416,8 +562,12 @@ If backend files changed:
 ```
 cd <JOCA_DIR>/JOCA_OS/backend
 npm install
+rm -rf dist
 npm run build
 ```
+O `rm -rf dist` vem **antes** do build: o `build` do backend é `tsc` (`backend/package.json`), e o
+`tsc` escreve por cima mas **não apaga** — o subsistema de Automações, removido na fonte, ficou em
+`dist/automations/` com o build verde: código morto que o servidor já não monta, mas que parece vivo (2026-08-20).
 
 If frontend files changed:
 ```
@@ -468,6 +618,44 @@ for PY in python python3; do command -v "$PY" >/dev/null 2>&1 && "$PY" .claude/s
 
 Python-first (`python` before `python3` — the Windows Store `python3` is an empty stub). If neither works: report and skip.
 
+### 5d-bis. Modelo dos agentes (sempre; passo opcional para o utilizador)
+
+O update traz os agentes com o `model:`/`effort:` do upstream e desfaz as escolhas locais. Primeiro
+repõem-se as escolhas já guardadas, sem perguntar (é repor o que o utilizador já decidiu):
+
+```
+node .claude/scripts/modelos-agentes.mjs --reaplicar
+node .claude/scripts/modelos-agentes.mjs --tabela          # agentes NOVOS ou ainda sem escolha
+```
+
+Conflito do `stash pop` (Option B) numa linha `model:`/`effort:` → ficar com a versão do upstream; o
+`--reaplicar` repõe a escolha.
+
+Tabela vazia → nada a perguntar, segue. Com linhas → mostrar a tabela (agente · actual · sugestão ·
+porquê, agrupada por sugestão) e `AskUserQuestion`:
+
+```
+question: "Há N agentes sem escolha de modelo. Aplico as sugestões da tabela?"
+header: "Modelos"
+options:
+  - "Sim, aplicar todas"          # → --tabela --json > <scratchpad>/escolhas.json → --aplicar
+  - "Alterar alguns"              # → pedir em prosa «agente: herdar|sonnet|opus|haiku · effort»;
+                                  #   editar só esses no escolhas.json; aplicar o resto como sugerido
+  - "Manter como está"            # → mesmas linhas com "model": "manter" → --aplicar (não muda ficheiros,
+                                  #   só regista; não volta a perguntar)
+  - "Saltar por agora"            # → nada muda; volta a perguntar no próximo update
+```
+
+```
+node .claude/scripts/modelos-agentes.mjs --tabela --json > <scratchpad>/escolhas.json
+node .claude/scripts/modelos-agentes.mjs --aplicar <scratchpad>/escolhas.json
+```
+
+A sugestão vive no próprio agente (`modelo-sugerido`/`effort-sugerido`/`porque-modelo`, campos que o
+Claude Code ignora) e nunca se activa sem este sim. Agente sem sugestão sai como «manter o actual»:
+«aplicar todas» não lhe muda o `model:` nem o `effort:`. A escolha fica em
+`.claude/modelos-agentes.local.json` — o checkout do update não lhe toca (não está em `$PATHS`).
+
 ### 5e. New/updated skills notification (if skills changed)
 
 If any `.claude/skills/` files were added or modified in the diff:
@@ -510,6 +698,7 @@ Post-update actions:
   [done] statusline-command.js copied to ~/.claude/
   [done] Hooks verified (.js paths confirmed)
   [done] SKILL_INDEX.json regenerated
+  [done] Modelos dos agentes: N escolhas reaplicadas · M novas (aplicadas | mantidas | saltadas)
   [info] 2 new skills, 1 updated skill
 
 Local version: <hash> -- <latest commit message>

@@ -22,7 +22,7 @@ Official skills in `~/.claude/skills/`: `gen-ai-use` (all-rounder), `gen-ai-vide
 | **Vectorize** (raster -> SVG, logo without source vector) | **picsart** |
 | **Upscale / enhance** (resolution, restoration) | **picsart** |
 | Remove / replace background | **picsart** (`remove-bg` / `change-bg`) |
-| Image gen where the model matters (Flux, Recraft, Seedream, Ideogram) | picsart, only if the user names the model |
+| Image gen where the model matters (Flux, Recraft, Seedream, Ideogram) | picsart, only if the user names the model **and no included CLI serves it** — check rule 0 of the cost gate first |
 
 ## 2. Cost gate (MANDATORY before any generation)
 
@@ -34,6 +34,8 @@ gen-ai pricing <model> [-d 8 -r 1080p]   # dry-run quote, free, charges nothing
 ```
 
 Rules:
+0. **BEFORE any quote — does this model exist on a CLI already covered by a subscription?** If yes, use that one and tell the user. `gen-ai pricing` is free but it is the *second* question; the first is whether the credit should be spent at all.
+   > **A model name is NOT a provider choice.** The same model is served by several paths — some paid, some already included. A request phrased by model name ("use nano banana 2") was read as a choice of *provider*, went to the Picsart catalogue because that is where the name showed up, and burned **21 paid credits** on a model `agy` serves for free (confirmed: 928×1152, identical output either way). When the user names a model, resolve **which paths serve it** first: `img-gen` (gpt-image-2 via Codex, Gemini/nano-banana via `agy`) is included in existing subscriptions; Picsart is not.
 1. **Always quote before generating.** `gen-ai pricing` invokes no model.
 2. **Video needs confirmation.** Quote, show the number, ask once.
 3. **Image/audio single calls** are cheap -- generate without asking, report the cost after.

@@ -1,15 +1,15 @@
 ---
 name: tech-spec
-description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how). MUST be invoked when the user says: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
-triggers: tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
-chain: c4-diagram, task-breakdown
+description: "Generates TECH_SPEC.md — bridge between PRD (what/why) and code (how) — and change proposals (ex-RFC: alternatives considered, rollout plan). MUST be invoked when the user says: RFC, proposta de mudanca, breaking change, tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown. SHOULD also invoke when: sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design."
+triggers: RFC, request for comments, proposta de mudanca, change proposal, migrar de X para Y, breaking change, mudanca grande, mudar API, tech spec, technical specification, especificacao tecnica, como implementar, data model, modelo de dados, API design, component breakdown, sequence diagram, diagrama de sequencia, arquitectura tecnica, technical architecture, design tecnico, technical design, spec.md, how to build, como construir
+chain: c4-diagram, novo-issue, planear-ondas
 ---
 
 # Tech Spec
 
 Bridge between PRD (what/why) and code (how). Produces `TECH_SPEC.md` at project root.
 
-**Activate** after PRD is approved and `prd-reviewer` passes. Before any code.
+**Activate** after PRD is approved and `prd-reviewer` passes. Before any code. Cross-cutting change → see «Change proposal (ex-RFC)».
 
 ---
 
@@ -154,7 +154,7 @@ sequenceDiagram
 |---------|-------------|-------|
 | [decisao] | [A, B] | [porque esta] |
 
-> Significant decisions should also have an ADR in `docs/adr/`. See skill `adr`.
+> Significant decisions also get an entry in `docs/DECISIONS.md` — format in `.claude/reference/adr-formato.md`.
 
 ---
 
@@ -209,6 +209,42 @@ For features that don't justify a full spec, use only:
 
 ---
 
+## Change proposal (ex-RFC)
+
+Use when the change is **cross-cutting**: spans several modules, breaks a public API/contract, introduces a new codebase
+pattern, is a technology migration, or costs > 1 week. Normal feature → PRD + spec · single choice → decision entry · bug fix → neither.
+
+Write it as a lean spec (or `docs/rfcs/RFC-YYYY-MM-DD-<slug>.md` if the project already keeps RFCs) with these extra sections:
+
+```markdown
+## Problema
+[Problema actual com evidencia — metricas, incidentes. Sem solucao aqui.]
+
+## Problemas que isto NAO resolve
+[Scope explicito — evita scope creep.]
+
+## Alternativas consideradas
+### [Alternativa A]
+- **Pros:** [...] · **Cons:** [...]
+- **Rejeitada porque:** [razao concreta]
+
+## Plano de rollout
+### Fase 1: [descricao]
+- [passos]
+- **Rollback:** [como reverter se correr mal]
+### Fase 2: [...]
+### Deprecation
+- [o que e deprecado] · [prazo de remocao] · [como avisar os consumidores]
+
+## Riscos
+| Risco | Probabilidade | Impacto | Mitigacao |
+```
+
+Ask only: core problem? alternatives already considered? hard deadline? Each rollout phase becomes an issue (`novo-issue`);
+each significant choice made along the way becomes a decision entry. Rejected proposal → keep the file, state why.
+
+---
+
 ## Updates
 
 Update TECH_SPEC.md when:
@@ -226,7 +262,7 @@ Process: edit surgically, increment version, add line to history if it exists.
 Pipeline position in JOCA sequence:
 
 -> **before**: `prd` + `prd-reviewer` (validated requirements)
--> **during**: `adr` (capture significant decisions from sec. 8)
--> **after**: `c4-diagram` (visualize components from sec. 4) -> `task-breakdown` (break into atomic work)
+-> **during**: decision entries for sec. 8 (`.claude/reference/adr-formato.md`)
+-> **after**: `c4-diagram` (visualize components from sec. 4) -> `novo-issue` (one issue per unit of work) -> `planear-ondas` (order, dependencies, estimates)
 
 Notify on completion: `-> proximo: c4-diagram`

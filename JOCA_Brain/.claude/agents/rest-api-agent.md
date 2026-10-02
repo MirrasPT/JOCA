@@ -1,13 +1,16 @@
 ---
 name: rest-api-agent
-description: "código · REST API design specialist. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "API design, REST API, endpoint"
 skills: rest-api
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec
 generated-from: .claude/skills/rest-api.md
 generated-by: skill-agents.mjs
-content-hash: 2acba8348c4336c4
+content-hash: 1cac76f831356e57
 ---
 
 # rest-api — agente de execução
@@ -28,6 +31,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

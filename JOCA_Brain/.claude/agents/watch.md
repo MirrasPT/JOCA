@@ -1,13 +1,11 @@
 ---
 name: watch
-description: >
-  Use when the user wants to watch, analyze, or ask questions about a video (URL or local file).
-  Downloads with yt-dlp, extracts auto-scaled frames with ffmpeg, gets transcript from native
-  captions or WhisperX local fallback (no API key needed), then answers the user's question.
-  Triggered by: video URL, local video file path, "watch this", "what's in this video",
-  "transcribe this video", "summarize this video".
+description: "ver/transcrever vídeo (yt-dlp)"
 tools: Bash, Read
-model: sonnet
+model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: low
+porque-modelo: "pipeline de scripts (yt-dlp, frames, transcrição)"
 triggers: vigiar, monitorizar ficheiros, watch mode
 ---
 
@@ -60,6 +58,26 @@ Flags:
 - `--no-whisperx` — disable WhisperX fallback (frames-only if no captions)
 
 **Focusing on a section:** when the user asks about a specific moment, use `--start`/`--end` for denser frame coverage.
+
+### Download fails with `HTTP Error 403: Forbidden` (yt-dlp)
+
+YouTube 403 leaves you with auto-captions only. Known fallbacks, in this order (both flags exist in `yt-dlp --help`):
+```bash
+yt-dlp --cookies-from-browser chrome "<url>"
+yt-dlp --extractor-args "youtube:player_client=web_safari,android" "<url>"
+```
+**If the task is to read values shown on screen and you only got audio, say so explicitly:** «só tenho áudio — isto não serve para ler definições do ecrã». Do not hand in the partial list as if it were the answer.
+
+**Odd term in an auto-caption of a technical video = almost always a misheard proper noun** (e.g. «T30 Volcun» was `Turnip T30`, a driver). Search for it in the device/project before declaring it nonexistent.
+
+### Pinterest pins (no yt-dlp needed)
+
+Pinterest video pins: fetch the pin page, grep the MP4, tile frames with ffmpeg:
+```bash
+curl -sL -A "Mozilla/5.0" "<pin-url>" | grep -oE 'https://v1\.pinimg\.com/videos/[^"]+\.mp4' | head -1
+ffmpeg -i "<mp4-url>" -vf "fps=1,scale=320:-1,tile=4x3" -frames:v 1 strip.png
+```
+Then `Read()` the strip.
 
 ## Step 2 — Read every frame
 

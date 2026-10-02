@@ -38,15 +38,14 @@ $jocaDir = Split-Path $jocaOs
 Set-Location $jocaDir
 ```
 
-Se houver mais do que uma instalação na máquina, **pergunta ao dono qual** — não escolhas a primeira
+Se houver mais do que uma instalação na máquina, **pergunta ao utilizador qual** — não escolhas a primeira
 que aparecer.
 
 ---
 
 ## Passo 2 — Garantir acesso ao repositório público
 
-O `origin` de uma instalação de trabalho pode ser um repo **privado** (é o caso da instalação de
-produção). O público entra como remote à parte, chamado `publico`.
+O `origin` de uma instalação de trabalho pode ser um repo **privado** (um fork próprio). O público entra como remote à parte, chamado `publico`.
 
 ```bash
 git remote -v
@@ -57,7 +56,7 @@ git fetch publico
 Se o `origin` já for `https://github.com/MirrasPT/JOCA.git`, usa `origin` em vez de `publico` nos
 passos seguintes.
 
-**Resolver o ramo — nunca assumir.** O repo público usa `main`; instalações privadas usam `master`.
+**Resolver o ramo — nunca assumir.** O repo público usa `main`; um fork privado pode usar outro.
 ```bash
 BASE=$(git remote show publico | sed -n 's/.*HEAD branch: //p')
 [ -z "$BASE" ] && BASE=main
@@ -91,7 +90,7 @@ Há duas variantes desta pasta, e a diferença é invisível até ser tarde:
 | Instalação | `JOCA_OS/data/` | Porquê |
 |---|---|---|
 | Pública / máquina única | **ignorada** | O estado é local e nunca se publica |
-| Trabalho, alternada entre 2 máquinas | **versionada, de propósito** | O estado É o que se quer sincronizar |
+| Trabalho, alternada entre máquinas | **versionada, de propósito** | O estado É o que se quer sincronizar |
 
 O `JOCA_OS/.gitignore` é um ficheiro versionado **dentro** de `JOCA_OS/`, portanto o Passo 5
 sobrepõe-no pela versão pública. Numa instalação do segundo tipo isso não apaga nada de imediato —

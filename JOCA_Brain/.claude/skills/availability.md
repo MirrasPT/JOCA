@@ -7,6 +7,8 @@ chain: tester-security
 
 # Availability & Recovery
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 Backups, failover, zero-downtime deploys and recovery for Laravel.
 
 **Activate** when `laravel-specialist` or `deploy-*` sets up production.

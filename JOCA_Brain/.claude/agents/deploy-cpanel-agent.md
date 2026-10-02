@@ -1,13 +1,16 @@
 ---
 name: deploy-cpanel-agent
-description: "deploy · Deploy Laravel/PHP or Node.js apps to cPanel, shared hosting, or traditional hosting environments. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "shared hosting, hosting partilhado"
 skills: deploy-cpanel
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
-triggers: shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess
+triggers: 503 Passenger, stderr.log, SetEnv htaccess, shared hosting, hosting partilhado, public_html
 generated-from: .claude/skills/deploy-cpanel.md
 generated-by: skill-agents.mjs
-content-hash: d75ab4a630cae450
+content-hash: bbd105628996e91f
 ---
 
 # deploy-cpanel — agente de execução
@@ -15,7 +18,7 @@ content-hash: d75ab4a630cae450
 Especialista em deploy-cpanel. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
+**Gatilhos:** 503 Passenger, stderr.log, SetEnv htaccess, shared hosting, hosting partilhado, public_html, FTP, phpMyAdmin, .htaccess, hosting barato, alojamento, hosting tradicional, cpanel deploy, deploy cpanel, file manager, hosting simples, Passenger, Node.js cPanel, Setup Node.js App, restart.txt, nodevenv
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
@@ -38,6 +41,30 @@ Se o brief mencionar outras skills, lê-as também antes de começar.
 4. Segue as convenções do projecto onde estás (CLAUDE.md do projecto, padrões do código à volta)
    acima dos defaults da skill.
 5. Valida o que fizeste (build, testes, ou o critério de pronto que o brief definir).
+
+## Gate obrigatório — inventário antes de restauro ou sync destrutivo
+
+> Secção acrescentada à mão (o resto do ficheiro é gerado por `skill-agents.mjs`). A doutrina
+> completa está em `.claude/reference/gates-runtime.md`, categoria «Restauro · `rsync --delete`».
+
+Antes de **qualquer** restauro (AIO, backup completo, dump de BD), `rsync --delete`, ou sobreposição
+de uma árvore por outra: **produz e mostra o inventário do que existe SÓ NO DESTINO** — a lista do
+que vai desaparecer. Isto corre **antes** de escrever, não depois.
+
+- O **comando de prova entra literalmente** no relatório, com caminhos completos:
+  `rsync -avn --delete --itemize-changes <origem>/ <destino>/ | grep -i deleting` — **ensaia com um
+  ficheiro plantado só no destino**: se a corrida a seco não o nomear, o inventário está cego e não
+  avanças (no alojamento partilhado o `rsync` muitas vezes nem existe; então é o `diff` abaixo) ·
+  `diff <(ssh <destino> 'ls -1 <dir>') <(ls -1 <dir>)` ·
+  plugins/extensões activas nos dois lados (`wp plugin list --status=active --field=name`) ·
+  encomendas, utilizadores e posts modificados contados nos dois lados.
+- **Um `--dry-run`/`--itemize-changes` conta. «A pasta parece igual», o total de ficheiros bater e o
+  «concluído» da ferramenta não contam.**
+- Inventário **vazio** é resultado e diz-se. Inventário **não vazio** → paras e devolves a lista ao
+  caller como proposta (é irreversível, ver Limites); nunca a resumes nem a filtras.
+
+Porquê: um deploy por AIO completo quase apagou o plugin Redsys e checkouts que só existiam no
+staging, instalados por terceiro. O que os salvou foi o inventário ter sido feito primeiro.
 
 ## Limites
 

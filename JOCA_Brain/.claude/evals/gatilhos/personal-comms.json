@@ -1,0 +1,27 @@
+{
+ "skill": "personal-comms",
+ "deve": [
+  "vê o meu email pessoal se chegou a resposta do banco",
+  "marca no calendário a consulta de quinta às 10h",
+  "que reuniões tenho amanhã no calendário",
+  "responde ao email da escola a confirmar a presença",
+  "check my personal inbox for the invoice",
+  "procura no gmail o email com o contrato da casa",
+  "mete um lembrete no calendário para pagar o seguro",
+  "tenho emails por responder? resume",
+  "arquiva os emails de newsletters da caixa pessoal",
+  "agenda jantar sexta no calendário pessoal"
+ ],
+ "quase": [
+  "escreve um email transacional de confirmação de encomenda",
+  "cria o template de email em react email",
+  "configura o spf e dkim do domínio",
+  "a conta de email do cpanel não recebe",
+  "cria uma sequência de emails de marketing",
+  "faz um calendário de conteúdos para o instagram",
+  "implementa um calendário de reservas na app",
+  "envia newsletters com o mailchimp",
+  "escreve um email de proposta comercial",
+  "integra o google calendar na app"
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "skill": "mobile",
+ "deve": [
+  "o site não fica bem no telemóvel, torna-o responsivo",
+  "o menu hamburger não abre no iphone",
+  "a página parte toda em ecrãs pequenos, corrige o mobile",
+  "adiciona um bottom sheet para os filtros na versão mobile",
+  "a barra de baixo fica tapada pela safe area no iphone",
+  "make the checkout responsive on mobile",
+  "transforma a app numa PWA instalável",
+  "no tablet a grelha fica com 1 coluna só, ajusta os breakpoints",
+  "quero swipe entre as fotos da galeria no telemovel",
+  "a versao mobile tem scroll horizontal, descobre o que esta a passar da largura"
+ ],
+ "quase": [
+  "muda a cor do botão principal para verde",
+  "cria um endpoint para listar produtos",
+  "o login não funciona, dá erro de csrf",
+  "gera um ícone para a app",
+  "escreve o copy da página inicial",
+  "faz o build android da app unity",
+  "configura o redis para cache",
+  "a página demora 6 segundos a carregar no desktop",
+  "traduz a interface para inglês",
+  "revê o design desta página e diz se está bom"
+ ]
+}

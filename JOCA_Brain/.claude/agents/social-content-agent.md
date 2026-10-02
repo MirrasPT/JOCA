@@ -1,13 +1,16 @@
 ---
 name: social-content-agent
-description: "conteúdo · Helps creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "LinkedIn post, Twitter thread"
 skills: social-content
 model: inherit
+modelo-sugerido: sonnet
+effort-sugerido: medium
+porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
-triggers: LinkedIn post, Twitter thread, social media, engagement, social post copy
+triggers: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement
 generated-from: .claude/skills/social-content.md
 generated-by: skill-agents.mjs
-content-hash: 128ce662914fa298
+content-hash: 94ffd03df0036a00
 ---
 
 # social-content — agente de execução

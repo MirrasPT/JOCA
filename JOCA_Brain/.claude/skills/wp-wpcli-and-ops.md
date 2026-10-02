@@ -6,6 +6,8 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Requires WP-CLI in the exe
 
 # WP-CLI and Ops
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## When to use
 
 WordPress operational work via WP-CLI:
@@ -93,6 +95,10 @@ For repeatable ops, prefer:
   - Missing `--url` or wrong URL
 - Search-replace causes unexpected serialization issues
   - Wrong flags or changing serialized data unsafely
+- **`wp ai1wm backup` sai com código 0 e não fez nada** (All-in-One WP Migration free): imprime «This feature is available in Unlimited Extension» — paywall, não backup. Verificar sempre pelo ficheiro `.wpress` em `wp-content/ai1wm-backups/`, nunca pelo exit code (medido 2026-09-04).
+  - Contorno sem UI nem password (site de cliente, 2026-09-04): `php -d memory_limit=1024G -d max_execution_time=0 -r 'require "wp-load.php"; require "aiexp.php";'` como `www-data`, com o `aiexp.php` a (1) ler `get_option(AI1WM_SECRET_KEY)`, (2) **definir `WP_CLI` e uma classe `WP_CLI` mínima DEPOIS do `wp-load`**, (3) chamar `Ai1wm_Export_Controller::export(['secret_key'=>$sk,'priority'=>5])`. ⚠ Definir `WP_CLI` **antes** do `wp-load` mata o site (`Class "WP_CLI_Command" not found`).
+  - Extensão S3 desactualizada face ao plugin base → o backup aborta a meio e escreve um `.wpress` **truncado** (sem EOF). Desactivar a extensão antes do export (caso real).
+  - Plugin instalado só para o export → remover no fim (plugin, `option_name LIKE 'ai1wm%'`, `wp-content/ai1wm-backups/`).
 
 ## Escalation
 

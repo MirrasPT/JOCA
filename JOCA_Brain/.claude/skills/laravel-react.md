@@ -5,6 +5,8 @@ triggers: laravel react, connect admin to frontend, ligar admin ao frontend, ine
 ---
 # Laravel ↔ React — Integration Specialist
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 The seam between the Laravel backend (`laravel-specialist`, `filament` admin) and the React frontend (`frontend` cluster: `react-patterns`, `tailwind`, `shadcn`). Owns auth, CORS, the API contract, and type sharing.
 
 Invoked when wiring an admin/backend to a storefront/SPA. Default architecture for "Filament admin + React storefront" = **headless API**.

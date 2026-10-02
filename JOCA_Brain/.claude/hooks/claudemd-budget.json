@@ -1,0 +1,7 @@
+{
+  "_nota": "Orçamento de tamanho (chars) por CLAUDE.md, lido pelo guard-claudemd.js. As chaves de excepção casam por sufixo do caminho normalizado (/). Aviso, nunca bloqueio.",
+  "default": 12000,
+  "excepcoes": {
+    "JOCA_Brain/CLAUDE.md": 8000
+  }
+}

@@ -1,13 +1,16 @@
 ---
 name: browser-automate-agent
-description: "código · Automate a local canvas/litegraph web app via Playwright headless — load a workflow template. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "Playwright canvas, drive litegraph"
 skills: browser-automate
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "escreve código de produção (juízo de código)"
 category: código
 triggers: Playwright canvas, automate ComfyUI, drive litegraph, page.evaluate workflow, headless browser automation, POST to prompt API
 generated-from: .claude/skills/browser-automate.md
 generated-by: skill-agents.mjs
-content-hash: d878988d5f555359
+content-hash: b0edd6f9828d8805
 ---
 
 # browser-automate — agente de execução
@@ -27,6 +30,7 @@ skill é editada, este agente passa a seguir a versão nova sem regeneração. N
 o campo `skills:` do frontmatter não a carrega sozinho.
 
 Se o brief mencionar outras skills, lê-as também antes de começar.
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
 
 ## Como trabalhar
 

@@ -1,7 +1,7 @@
 # /goal — Auto-Orquestração a partir de Linguagem Natural
 
 Ponto de entrada de workflow multi-agente **sem PRD**. Recebe uma tarefa em linguagem natural,
-sintetiza um plano mínimo in-memory, e dispara o `master-orchestrator` com um GOAL + loop até concluir.
+sintetiza um plano mínimo in-memory, e o main loop segue o playbook `master-orchestrator` com um GOAL + loop até concluir.
 
 Variante NL-driven do `/one-shot` (que se mantém PRD-driven). Use `/goal <descrição>`.
 
@@ -40,10 +40,10 @@ Detectar acções irreversíveis no GOAL (auth/payments/migrations/deletes/deplo
 Se houver → **1 linha de confirmação** antes de disparar. Caso contrário, prosseguir.
 
 ### 4. Executar (o main loop É o orquestrador)
-O **main loop adopta o playbook `.claude/agents/master-orchestrator.md`** e conduz a orquestração ELE PRÓPRIO — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não poderia despachar workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop dispara os *workers* via `Agent()` com:
+O **main loop adopta o playbook `.claude/reference/master-orchestrator.md`** e conduz a orquestração ELE PRÓPRIO — **não** se faz `Agent(subagent_type="master-orchestrator")` (um subagente não poderia despachar workers; regra de 1-nível em `rules/orchestration-patterns.md`). Seguindo o playbook, o main loop dispara os *workers* via `Agent()` com:
 - o GOAL + critérios de aceitação,
 - o plano in-memory (work-streams),
-- o brief canónico obrigatório (8 cláusulas — ver master-orchestrator.md / soul.md).
+- o brief canónico obrigatório (8 cláusulas — ver `reference/master-orchestrator.md` §Rules / soul.md).
 
 Corre a Phase 4.5 (Goal-Satisfaction Loop): compara resultado vs critérios, re-decompõe só a lacuna, re-dispatch. Cap `loop_max_iterations` (default 4); 3x sem progresso → para e reporta.
 
@@ -56,7 +56,7 @@ Resumir o que foi feito vs critérios de aceitação. Listar o que ficou por con
 
 ## Restrição arquitectural
 
-Sub-agentes **não** fazem spawn de sub-agentes. A auto-orquestração vive no **main loop / neste command**, não num agente-que-chama-agentes. `master-orchestrator.md` é o **playbook** que o main loop segue; **o spawn dos workers é feito pelo main loop** (não por um `master-orchestrator` spawned). Ver `rules/orchestration-patterns.md`.
+Sub-agentes **não** fazem spawn de sub-agentes. A auto-orquestração vive no **main loop / neste command**, não num agente-que-chama-agentes. `reference/master-orchestrator.md` é o **playbook** que o main loop segue; **o spawn dos workers é feito pelo main loop** (não por um `master-orchestrator` spawned). Ver `rules/orchestration-patterns.md`.
 
 
 ---
@@ -70,6 +70,6 @@ Quando o script for desnecessário, `Agent()` em paralelo no mesmo turno serve n
 Travões que **não** caem com esta autorização:
 - **Recon barato ANTES de autorar** o script (`rules/pipelines.md`) — `grep`/`ls` ao domínio, inline.
 - **Gate de 1 linha** em irreversível (deploy · push · migration · delete · payment · auth).
-- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop.json`).
+- **Verificador ≠ produtor** — quem escreve não assina o gate (`.joca/loop/<session_id>.json`).
 - **Tamanho** vem do `/config` ("Dynamic workflow size"), não deste comando.
 - **Custo anunciado**: ≥6 agentes ou loop de rondas → ordem de grandeza de tokens antes de lançar.

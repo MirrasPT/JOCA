@@ -1,0 +1,27 @@
+{
+ "skill": "preparar-design",
+ "deve": [
+  "desenha o ecrã de perfil do utilizador",
+  "faz um mockup do ecrã de checkout",
+  "como vai ser esta página de agendamentos? mostra-me",
+  "prepara o design do ecrã novo de relatórios",
+  "quero ver um protótipo do ecrã antes de implementar",
+  "desenha a interface da lista de encomendas",
+  "faz o briefing de design para o ecrã de onboarding",
+  "mockup do ecrã de definições, dentro do estilo que já temos",
+  "precisamos de um ecrã novo para gerir stocks, desenha",
+  "design the settings screen first, before coding"
+ ],
+ "quase": [
+  "o mockup está bom? posso implementar?",
+  "transforma o mockup aprovado em html",
+  "cria o design system do zero",
+  "gera uma imagem de produto",
+  "revê a ui que já está em produção",
+  "faz o logótipo da marca",
+  "escreve os testes do ecrã de perfil",
+  "o ecrã de login dá erro 419",
+  "cria o PRD do projecto",
+  "implementa o ecrã de perfil em livewire"
+ ]
+}

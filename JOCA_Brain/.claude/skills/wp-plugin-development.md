@@ -6,6 +6,8 @@ compatibility: "Targets WordPress 6.9+ (PHP 7.2.24+). Filesystem-based agent wit
 
 # WP Plugin Development
 
+Antes de escrever código: `Read(".claude/reference/codigo-minimo.md")` — escada + guard-rails.
+
 ## When to use
 
 - Creating or refactoring plugin structure (bootstrap, includes, namespaces/classes)

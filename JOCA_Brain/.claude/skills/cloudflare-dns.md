@@ -23,12 +23,15 @@ Token scope: Zone.DNS Edit + Account.Email Routing Addresses/Rules Edit, na zona
 `account_id`: Cloudflare dashboard → domínio → Overview → coluna direita.
 
 **Nunca** fazer `echo`/`cat`/print do token ou do header `Authorization` em stdout, logs, ou mensagens.
+⚠ **O nome do campo varia entre instalações** (`token` vs `api_token`) — assumir o errado faz a 1.ª chamada à API sair sem autorização. Receitas copiadas de memória ou de outra skill (purge de cache em `deploy-vps`) assumem um deles: ler os nomes dos campos antes de extrair, como no bloco Auth.
 
 ## Auth (base de toda a sessão)
 
 ```bash
 CF_FILE=~/.cloudflare/<account>.json
-CF_TOKEN=$(jq -r .token "$CF_FILE")
+jq -r 'keys[]' "$CF_FILE"            # 1.º os NOMES dos campos (nunca valores): o Mac usa `token`, o Windows `api_token`
+CF_TOKEN=$(jq -r '.api_token // .token // empty' "$CF_FILE")
+[ -n "$CF_TOKEN" ] || echo "token: ausente em $CF_FILE (nem api_token nem token)"
 CF_ACCT=$(jq -r .account_id "$CF_FILE")
 API=https://api.cloudflare.com/client/v4
 AUTH=(-H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json")
@@ -121,6 +124,26 @@ dig @1.1.1.1 TXT example.com +short              # SPF merged, um único registo
 dig @1.1.1.1 TXT cf2024-1._domainkey.example.com +short
 ```
 Confirmar nos dois resolvers antes de declarar concluído — propagação assíncrona entre eles.
+
+## 6. Registo A para um site na VPS (vindo do `deploy-vps` §7)
+
+POST cru, como estava no `deploy-vps`; para não duplicar registos preferir `dns_upsert` (§2).
+
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/dns_records" \
+  -H "Authorization: Bearer <CF_API_TOKEN>" -H "Content-Type: application/json" \
+  --data '{"type":"A","name":"<sub>","content":"<ip>","ttl":1,"proxied":true}'
+```
+
+`ZONE_ID`: dashboard → domínio → Overview → API (direita). Token: My Profile → API Tokens → "Edit
+zone DNS". Proxied `true` → CDN + DDoS; `false` → DNS puro (IP exposto).
+
+> ⚠ **Ao apontar um domínio já existente, não tocar nos registos de EMAIL** (MX, SPF, `mail`,
+> `autoconfig`, SRV) — o correio costuma ser de outro fornecedor e desaparece em silêncio.
+> ⚠ **Listas de subdomínios escritas à mão envelhecem em silêncio.** Consultar a API antes de afirmar
+> o que existe.
+> ⚠ **Ao ler um ficheiro de credenciais, extrair só a chave de que precisas** — nunca imprimir a
+> estrutura. Um filtro por nome de chave falha em blocos aninhados.
 
 ## Gotchas
 

@@ -1,13 +1,16 @@
 ---
 name: deploy-ploi-agent
-description: "deploy · Deploying via Ploi.io, managing servers, or configuring Ploi deployments. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "ploi, deploy, servidor, server"
 skills: deploy-ploi
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
 triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor
 generated-from: .claude/skills/deploy-ploi.md
 generated-by: skill-agents.mjs
-content-hash: 341694f95f3e14ab
+content-hash: d2621e7a3d737b0a
 ---
 
 # deploy-ploi — agente de execução

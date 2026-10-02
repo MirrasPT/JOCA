@@ -1,0 +1,27 @@
+{
+ "skill": "planear-ondas",
+ "deve": [
+  "organiza os issues em ondas",
+  "por onde começo? tenho 20 issues abertos",
+  "faz o plano de ondas do backlog",
+  "que issues primeiro?",
+  "cria milestones e agrupa os issues",
+  "replaneia as ondas, entraram issues novos",
+  "organizar o backlog por ordem e dependências",
+  "plan the work waves for open issues",
+  "atualiza o ONDAS.md",
+  "agrupa os issues por sessão e vê o que dá para paralelizar"
+ ],
+ "quase": [
+  "abre um issue para o bug",
+  "escreve o PRD",
+  "planeia as férias de agosto",
+  "faz o plano de marketing",
+  "fecha o issue 12",
+  "escreve os testes do issue",
+  "cria a release",
+  "o que é uma milestone no github",
+  "faz o plano de conteúdos para o mês",
+  "divide esta tarefa em passos"
+ ]
+}

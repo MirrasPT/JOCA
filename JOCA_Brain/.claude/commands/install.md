@@ -32,7 +32,7 @@ grep -n "autonomy_level\|communication_mode" memory/soul.md 2>/dev/null
 grep -c "JOCA_ROOT" .claude/settings.json 2>/dev/null         # >0 = placeholder por substituir
 # que CLIs ja existem (nao perguntar por estes):
 for c in gh gws gcloud aws agy codex ffmpeg yt-dlp markitdown wp shopify wix ntn \
-         sentry-cli stripe graphify python python3; do
+         sentry-cli stripe python python3; do
   command -v "$c" >/dev/null 2>&1 && echo "TEM $c"
 done
 ```
@@ -85,13 +85,13 @@ melhores respostas — produz respostas inventadas.
 
 ### Areas de trabalho — **nao se perguntam**
 
-O JOCA traz **131 skills** que activam por relevancia >= 60% via `SKILL_INDEX.json` + Trigger Map do
-`CLAUDE.md`. Nao ha nada para ligar ou desligar: uma skill de WordPress nunca dispara num projecto
+O JOCA traz **131 skills** que activam por relevancia >= 60% via `SKILL_INDEX.json` (hook `prompt-triage.js`) +
+`.claude/reference/trigger-map.md`. Nao ha nada para ligar ou desligar: uma skill de WordPress nunca dispara num projecto
 Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria para **esconder**
 skills que o utilizador viria a precisar.
 
 O que e especifico de um projecto (stack, plataforma, CLIs desse projecto) e decidido pelo
-`/start`, que ve a pasta. Aqui trata-se so da maquina.
+`/start`, que ve a pasta (absorveu o antigo `/init-project`). Aqui trata-se so da maquina.
 
 ---
 
@@ -101,7 +101,7 @@ A FASE 0 ja disse o que existe. Apresenta **so o que falta**, agrupado, com uma 
 serve — e deixa escolher em bloco, nao um a um:
 
 ```
-Ja tens: gh, ffmpeg, python, graphify
+Ja tens: gh, ffmpeg, python
 
 Faltam (escolhe os grupos que queres):
   [core]      markitdown   -> motor do /know (ingerir PDF/Office/YouTube)
@@ -112,12 +112,6 @@ Faltam (escolhe os grupos que queres):
   [dev]       sentry-cli · stripe-cli · cli-printing-press (Go 1.26+)
   [browser]   Playwright CLI (nunca browser-use, nunca MCP)
 ```
-
-⚠ **`graphify` não entra nesta escolha — é OBRIGATÓRIO, instala-se sempre, sem perguntar.** É a
-memória de código/conhecimento mais barata do JOCA (ver `memory/tools/clis.md`); sem ele, `/save`,
-`/resume`, `/map-joca` e `/clean-install` ficam a reler ficheiros `.md` inteiros em vez de consultar
-o grafo. Instalação na FASE EXECUÇÃO corre incondicionalmente, mesmo que o utilizador não escolha
-nenhum grupo opcional.
 
 Recomendar `[core]` sempre; o resto so se o papel (FASE 1) o justificar — um designer nao precisa de
 `stripe-cli` por defeito. **Instalar CLIs que nao se usam custa tempo e falha em silencio.**
@@ -146,7 +140,7 @@ CHAVES:        <as que foram dadas> | PENDENTE: <as que faltam>
 
 VOU CRIAR/ACTUALIZAR
   memory/soul.md                 <- parametros + alinhamento com o utilizador
-  ~/CLAUDE.md                    <- perfil + comandos + tabela de projectos
+  ~/CLAUDE.md                    <- perfil + comandos + lista de nomes de projectos
   .claude/settings.json          <- paths reais (substitui <JOCA_ROOT>)
   JOCA_OS                        <- dependencias + build do frontend
   <launcher>                     <- atalho de arranque
@@ -173,10 +167,14 @@ Ler ficheiro actual. Adicionar/actualizar sem apagar conteudo existente:
 ## Utilizador
 [Nome] — [papel][, localizacao]
 
+## Lingua
+Responder sempre em [lingua] — mesmo que o pedido, um ficheiro lido ou o output de uma ferramenta estejam
+noutra lingua. Excepcao: codigo, nomes de ficheiros/variaveis, comandos e citacoes exactas.
+
 ## JOCA
 Toolkit instalado em: [caminho_joca]
 Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /start (novo projecto ou ligar existente), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review, /migrate
+Comandos: /install, /start (novo projecto ou ligar existente), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_OS
@@ -185,10 +183,10 @@ Arranque: start.bat (Windows) ou bash start.sh (macOS/Linux)
 
 ## Workspace
 
-## Projectos activos
-| Directorio | Descricao |
-|-----------|-----------|
-<!-- Entradas adicionadas por /start e /save -->
+## Projectos
+> So nomes. Pasta, estado e detalhe -> `memory/INDEX.md` §Projects e `memory/projects/<x>/`.
+
+**Activos:** <!-- so o nome, separado por ` · `; adicionado por /start e /save -->
 
 @[caminho_joca]/JOCA_Brain/CLAUDE.md
 ```
@@ -219,21 +217,9 @@ touch memory/projects/.gitkeep memory/feedback/.gitkeep
 [ -f memory/INDEX.md ] || touch memory/INDEX.md
 ```
 
-### 3b. Graphify (OBRIGATÓRIO — corre sempre, sem perguntar)
-
-```bash
-uv tool install graphifyy   # pacote real chama-se "graphifyy"; instala o entrypoint "graphify"
-# sem uv: pipx install graphifyy
-bash .claude/scripts/graphify-patch.sh   # reaplica patches (DOC_EXTENSIONS, dotdirs incluídos)
-```
-
-Verificar: `graphify --help` ou `python3 -c "import graphify"`. Sem isto, `/save`/`/resume`/
-`/map-joca`/`/clean-install` degradam para reler ficheiros `.md` inteiros em vez de consultar o
-grafo — é a optimização de custo mais barata que o JOCA tem, nunca saltar este passo.
-
 ### 4. Browser Automation (se seleccionado)
 
-⚠ **`browser-use` está BANIDO — nunca instalar, nunca sugerir.** Política do dono (2026-08-05):
+⚠ **`browser-use` está BANIDO — nunca instalar, nunca sugerir.** Política do JOCA (2026-08-05):
 verificação ad-hoc → extensão **Claude no Chrome**; automação com script → **Playwright CLI**.
 **Nunca instalar o MCP do Playwright** (`@playwright/mcp`) — mesmo que pareça a via mais simples.
 
@@ -244,7 +230,7 @@ npm install -g @playwright/cli
 ```
 
 Verificar: `playwright-cli --help` (ou `npx playwright --version`). Se não estiver instalado nesta
-máquina, pedir ao dono para o instalar — nunca usar MCP como atalho.
+máquina, pedir ao utilizador para o instalar — nunca usar MCP como atalho.
 
 **markitdown (Knowledge Base / `/know`):**
 
@@ -481,11 +467,15 @@ Instruir: `zmail:>login` para OAuth via browser. Para data centers regionais usa
 
 Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 
-### 7. settings.json do projecto
+### 7. settings.json do projecto (âmbito PROJECTO)
 
 **PASSO OBRIGATORIO — sem isto os hooks nao correm.**
 
-O `JOCA_Brain/.claude/settings.json` vem com os **10 hooks** a apontar para o placeholder
+> ⚠ Esta seccao trata do `JOCA_Brain/.claude/settings.json`, que so vale **dentro** do repo do JOCA.
+> Ha hooks que tem de valer em **qualquer** pasta onde o Claude Code arranque — esses ficam no
+> `~/.claude/settings.json` e sao a seccao **7b**, que nao se pode saltar.
+
+O `JOCA_Brain/.claude/settings.json` vem com os **14 hooks** (+ o script `check-skill-paths.sh`) a apontar para o placeholder
 `<JOCA_ROOT>`. Substituir **todas** as ocorrencias pelo caminho absoluto onde o JOCA foi
 clonado (a pasta que contem `JOCA_Brain/`), sem barra final:
 
@@ -526,13 +516,21 @@ Usar `/` mesmo em Windows.
         "matcher": "Edit|Write",
         "hooks": [
           { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-freeze.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-tdd.js\"" }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-tdd.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-claudemd.js\"" }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-careful.js\"" }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-careful.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-git-add.js\"" }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-git-add.js\"" }
         ]
       }
     ],
@@ -556,7 +554,14 @@ Usar `/` mesmo em Windows.
         "hooks": [
           { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"", "async": true },
           { "type": "command", "command": "bash \"<BRAIN>/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/skill-lint.js\"" }
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/skill-lint.js\"" },
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-checkpoint.js\"", "async": true }
+        ]
+      },
+      {
+        "matcher": "Read|Skill|Agent|Task|Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/registo-uso.js\"" }
         ]
       }
     ],
@@ -577,6 +582,60 @@ Notas:
 - **Ordem no array Stop importa:** `stop-checkpoint.js` → `auto-test-dispatch.js` → `stop-continuar.js`. O checkpoint corre ANTES do dispatch (este limpa a `.joca/test-queue.jsonl`); o `stop-continuar.js` corre **por último**, porque é o único que pode bloquear o fim do turno — e bloqueia **uma vez** por turno (guarda `stop_hook_active`; ver `rules/chaining.md`).
 - Runtime `node` para todos os hooks excepto `check-skill-paths.sh` (bash, vive em `.claude/scripts/`).
 - Hooks flag-file (`check-freeze`, `check-careful`, `check-tdd`) são no-op sem a flag `.joca/*.flag` — armados pelas skills `freeze`/`careful`/`tdd`, desarmados por `unfreeze`.
+- `guard-claudemd.js` trava linhas gordas em `CLAUDE.md`; `guard-git-add.js` trava `git add -A`/`.` com agentes vivos e `git commit` sem `--only` com índice alheio; `auto-checkpoint.js` grava checkpoints `-auto`; `registo-uso.js` conta usos de skills/agentes em `.joca/uso-skills.jsonl` (gitignored).
+
+### 7b. Hooks de ambito-MAQUINA (`~/.claude/settings.json`)
+
+**PASSO OBRIGATORIO — a seccao 7 nao cobre isto.** Um hook registado no `settings.json` do projecto
+so corre quando a sessao arranca **dentro** desse projecto. O `guard-claudemd.js` existe para
+proteger o `~/CLAUDE.md` de linhas gordas, e o `~/CLAUDE.md` e escrito de **qualquer** pasta — logo
+tem de estar registado na maquina, nao no repo. Sem este passo o guard existe no disco e nunca corre:
+falha em silencio, exactamente como o placeholder `<JOCA_ROOT>` da seccao 7.
+
+Caminho **absoluto** (o `~/.claude/settings.json` nao tem `$CLAUDE_PROJECT_DIR` util — a sessao pode
+arrancar em qualquer sitio). Acrescentar ao ficheiro existente, **sem o substituir**:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node <JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-claudemd.js" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Verificar (o ficheiro tem de continuar valido **e** o hook tem de aparecer):
+
+```bash
+node -e "JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude/settings.json','utf8')); console.log('JSON ok')"
+grep -c 'guard-claudemd' ~/.claude/settings.json         # >=1
+test -f "$(grep -o '/[^\" ]*guard-claudemd.js' ~/.claude/settings.json | head -1)" && echo "alvo existe"
+```
+
+⚠ **O `~/.claude/settings.json` costuma ja ter conteudo** (hooks de outras ferramentas, permissoes).
+Fundir por `Edit` cirurgico ou por script que faz `JSON.parse` → merge → escrita atomica. Um `Write`
+por cima apaga configuracao de outras ferramentas e nao ha aviso.
+⚠ Mudar a pasta do JOCA de sitio obriga a repetir **este** passo tambem, nao so o da seccao 7.
+
+### 7c. Lingua (ambito-MAQUINA)
+
+**PASSO OBRIGATORIO — sem ele a instalacao muda para ingles.** O modelo tende a responder em ingles a seguir a texto
+de sistema, hooks ou output de ferramentas em ingles. A regra de lingua tem de viver no `~/CLAUDE.md` (carregado em
+qualquer pasta), nao so nas instrucoes do repo.
+
+Escrever o bloco `## Lingua` no `~/CLAUDE.md` (template da seccao 2), sem apagar conteudo existente.
+
+Verificar (falha → vai para o relatorio final como PENDENTE):
+
+```bash
+grep -q '^## Lingua' ~/CLAUDE.md && echo "OK regra de lingua no ~/CLAUDE.md"
+```
 
 ### 8. JOCA_OS (instala por defeito)
 
@@ -644,6 +703,36 @@ chmod +x "<destino>/JOCA UI.command"
 Copy-Item "<caminho_joca>\..\JOCA_OS\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
 ```
 
+### 9b. Modelo dos agentes (opcional)
+
+Cada agente traz uma sugestão de modelo + effort escrita nele (`modelo-sugerido`/`effort-sugerido`/
+`porque-modelo` — campos que o Claude Code ignora). Agente sem sugestão (ex.: pack marketeer) aparece
+como «manter o actual» e nunca muda. **Por defeito nada muda.** Reinstalação: repor
+primeiro as escolhas já feitas, depois ver o que falta.
+
+```bash
+node .claude/scripts/modelos-agentes.mjs --reaplicar
+node .claude/scripts/modelos-agentes.mjs --tabela        # agentes sem escolha: actual · sugestão · porquê
+```
+
+Tabela vazia → salta. Com linhas → mostrar a tabela e `AskUserQuestion`:
+```
+question: "Aplico as sugestões de modelo da tabela aos N agentes?"
+header: "Modelos"
+options:
+  - "Sim, aplicar todas"
+  - "Alterar alguns"        # pedir em prosa «agente: herdar|sonnet|opus|haiku · effort»
+  - "Manter como está"      # regista o actual ("model": "manter"); não volta a perguntar
+  - "Saltar por agora"      # nada muda; volta a perguntar no próximo /install ou /update-joca
+```
+
+```bash
+node .claude/scripts/modelos-agentes.mjs --tabela --json > <scratchpad>/escolhas.json   # editar só os alterados
+node .claude/scripts/modelos-agentes.mjs --aplicar <scratchpad>/escolhas.json
+```
+
+A escolha fica em `.claude/modelos-agentes.local.json` e o `/update-joca` reaplica-a depois de cada update.
+
 ### 10. Skills novas (se confirmado)
 
 Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamente aprovada. Nao ha deteccao de gaps na instalacao: um gap real aparece a trabalhar num projecto (e o `/start` ou o `/upgrade-joca` levantam-no), nao a responder a um formulario.
@@ -653,10 +742,12 @@ Executar `/create-skill [nome]` para cada skill nova que tenha sido explicitamen
 ```
 OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
+OK Lingua fixada no ~/CLAUDE.md
 OK Memoria: estrutura verificada
 OK Skills: 127 configuradas (RFC 2119 trigger system)
-OK Integracoes: [Browser: playwright-cli/nenhum] · [Graphify: instalado] · [CLIs: lista]
+OK Integracoes: [Browser: playwright-cli/nenhum] · [CLIs: lista]
 OK JOCA_OS: instalado (backend :7491, frontend :7492)[ · Windows: skill joca-os-windows aplicada]
+OK Modelos dos agentes: [aplicadas N | mantidos | saltado]
 OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
 

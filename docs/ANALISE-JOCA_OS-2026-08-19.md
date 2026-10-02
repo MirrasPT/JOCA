@@ -178,6 +178,6 @@ inexistentes). Suite: **49/49**. Dois contratos reais documentados no processo: 
 (200 + `ok:false`). Armadilha registada no próprio teste: o isolamento vem do `JOCA_DATA_DIR` do
 `vitest.config.ts` — limpar via `DATA_DIR` importado, nunca um tmpdir próprio.
 
-**Extra (fora da análise, pedido do dono):** `start` juntou-se aos quick commands por omissão
+**Extra (fora da análise, pedido do utilizador):** `start` juntou-se aos quick commands por omissão
 (`['start','save','compact','plan']` — 3 defaults do backend + base do frontend); o toolkit modal
 apanha as skills novas do disco sem alteração.

@@ -236,7 +236,7 @@ C4Container
 Pipeline position in the JOCA sequence:
 
 -> **before**: `tech-spec` (sec. 4 Component Breakdown as input)
--> **lateral**: `adr` (architectural decisions logged during diagramming)
--> **after**: `task-breakdown` (break components into atomic work)
+-> **lateral**: decision entries in `docs/DECISIONS.md` (format: `.claude/reference/adr-formato.md`)
+-> **after**: `novo-issue` -> `planear-ondas` (break components into issues and waves)
 
-Notify on completion: `-> proximo: task-breakdown`
+Notify on completion: `-> proximo: novo-issue`

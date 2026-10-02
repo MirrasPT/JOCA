@@ -15,6 +15,10 @@
           {
             "type": "command",
             "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/check-tdd.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-claudemd.js\""
           }
         ]
       },
@@ -24,6 +28,19 @@
           {
             "type": "command",
             "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/check-careful.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-git-add.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-git-add.js\""
           }
         ]
       }
@@ -64,6 +81,20 @@
           {
             "type": "command",
             "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/skill-lint.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/auto-checkpoint.js\"",
+            "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Skill|Agent|Task|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/registo-uso.js\""
           }
         ]
       }

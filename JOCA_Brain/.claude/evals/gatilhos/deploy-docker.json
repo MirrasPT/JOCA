@@ -1,0 +1,27 @@
+{
+ "skill": "deploy-docker",
+ "deve": [
+  "containeriza a app com docker",
+  "escreve o Dockerfile para o laravel",
+  "docker compose com mysql e redis",
+  "deploy na vps com docker e traefik",
+  "dockerize this node app",
+  "php-fpm e nginx em docker",
+  "o container reinicia sem parar",
+  "caddy em docker para o site",
+  "monta o stack em containers na vps",
+  "docker compose para desenvolvimento local"
+ ],
+ "quase": [
+  "faz deploy no ploi",
+  "faz deploy no cpanel",
+  "o docker desktop ocupa muito disco, limpa",
+  "configura github actions",
+  "instala o node na vps",
+  "cria um servidor no ploi",
+  "o dns não propaga",
+  "escreve um script bash de backup",
+  "cria uma fila de jobs",
+  "kubernetes, vale a pena?"
+ ]
+}

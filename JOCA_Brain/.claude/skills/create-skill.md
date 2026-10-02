@@ -21,6 +21,18 @@ Read `templates/skill-template.md` for canonical format before starting.
 ## Step 1: Context Gathering
 
 ### Mode: new
+0. **Prior-art — MANDATORY before drafting anything** (order fixed; stop at the first hit):
+   1. **Official upstream** — does the vendor of the tool/model/API publish its own skill? Search the
+      vendor's GitHub org for a `skills/` folder or `SKILL.md` (`gh search code "<topic>" --owner <vendor> --filename SKILL.md`),
+      plus `anthropics/skills` (public Agent Skills repo).
+   2. **Community** — `"[REQUEST] SKILL.md"` / `"[REQUEST] claude code skill"` on GitHub.
+   3. **Local index** — `grep -i "<domain>" memory/SKILL_INDEX.json` (step 1 below).
+   Official hit → **adopt, don't rewrite**: copy the originals literally to `.claude/reference/<name>-oficial/`,
+   write a thin wrapper skill with `origem: <owner>/<repo> (oficial)` in frontmatter (model:
+   `h3-prompt-writing.md`), and skip Steps 2-3. Community hit → use as v1 input, cite the source.
+   No hit → say so in the summary with the searches run, then continue.
+   > Real case (2026-09-04): almost an hour spent preparing MiniMax-H3 skills from scratch before
+   > finding that MiniMax publishes 9 official Claude Code skills — the user had to ask.
 1. **Scan existing skills** — detect overlap:
    ```bash
    find .claude/skills/ -name "SKILL.md" | sort
@@ -190,4 +202,4 @@ A skill that states a version, limit or browser support without a date reads as 
 - **Denylist:** a phrase that once came out wrong (API that does not exist, support claimed where there is none) goes in `created-skills/[name]/DENYLIST.tsv` as `pattern<TAB>why<TAB>narrow exemption` (the exemption covers only the sentence that teaches "never write X"). Before saving an upgrade, `grep -F` each pattern over the skill — a hit blocks the save.
 - **Upgrade mode** reads both files in Step 1 and re-verifies rows older than the subject's release cadence.
 
-Adapted from AThevon/genjutsu `VERSIONS.md` + `scripts/check-denylist.sh` (MIT).
+Adapted from AThevon/genjutsu `VERSIONS.md` + `AThevon/genjutsu:scripts/check-denylist.sh` (MIT; third-party repo, not in this tree).

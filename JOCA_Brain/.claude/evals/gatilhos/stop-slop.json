@@ -1,0 +1,27 @@
+{
+ "skill": "stop-slop",
+ "deve": [
+  "este texto soa a AI, limpa",
+  "tira os tiques de AI deste email",
+  "o post parece escrito por um robô, corrige",
+  "polir o copy da página, está cheio de frases feitas",
+  "remove o AI slop deste artigo",
+  "make this paragraph sound less like chatgpt",
+  "reescreve isto para não parecer AI",
+  "o texto da newsletter tem cara de AI, melhora",
+  "limpa a escrita deste relatório, muito palavroso e genérico",
+  "este linkedin post soa a robo, arranja"
+ ],
+ "quase": [
+  "escreve um post para o linkedin sobre o lançamento",
+  "traduz este texto para inglês",
+  "corrige os erros ortográficos do documento",
+  "faz um resumo deste pdf",
+  "escreve o copy da landing page",
+  "cria uma sequência de 3 emails de boas vindas",
+  "revê o código, tem muito código morto",
+  "o design parece gerado por AI, revê",
+  "gera uma imagem que não pareça AI",
+  "escreve a descrição do produto para a loja"
+ ]
+}

@@ -1,13 +1,16 @@
 ---
 name: anima-agent
-description: "design · Adding motion to websites, animating UI elements, creating scroll-based animations, or building. Despachar para trabalho isolável deste domínio, em paralelo."
+description: "animacao, animation, gsap, lottie"
 skills: anima
 model: inherit
+modelo-sugerido: opus
+effort-sugerido: medium
+porque-modelo: "juízo de design"
 category: design
-triggers: animacao, animation, gsap, lottie, scroll animation, page transition
+triggers: animate logo, create lottie, motion graphics, svg to lottie, trim path, animacao
 generated-from: .claude/skills/anima.md
 generated-by: skill-agents.mjs
-content-hash: c842c5a03a58992e
+content-hash: 9a1111adc3709456
 ---
 
 # anima — agente de execução
@@ -15,7 +18,7 @@ content-hash: c842c5a03a58992e
 Especialista em anima. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** animacao, animation, gsap, lottie, scroll animation, page transition, hover animation, animacao de icone, animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada, animar, micro-interacao, microinteraction, efeito scroll, parallax, reveal, fade in, slide in, stagger, timeline, sequencia animada, loading animation, skeleton, shimmer, morphing, SVG animation
+**Gatilhos:** animate logo, create lottie, motion graphics, svg to lottie, trim path, animacao, animation, gsap, lottie, animar, scroll animation, page transition, hover animation, animacao de icone, animacao de ilustracao, scroll trigger, motion, animate, transicao, efeito de entrada, micro-interacao, parallax, loading animation, morphing, SVG animation
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
