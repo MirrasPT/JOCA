@@ -25,7 +25,7 @@ import path from 'path';
 import { DATA_DIR } from '../project-store';
 import { sessionManager } from '../session-manager';
 import {
-  higienizarNome, avaliarResposta, pedidoParaModelo, embrulharPedido, ambienteDoFilho, escolherBinWindows,
+  higienizarNome, avaliarResposta, pedidoParaModelo, embrulharPedido, ambienteDoTerminal, escolherBinWindows,
   criarNomeadorHaiku, ARGS_HAIKU, NOME_MODELO_MAX, semComando, type Nomeador,
 } from '../session-namer';
 
@@ -133,13 +133,13 @@ describe('pedidoParaModelo / embrulharPedido', () => {
   });
 });
 
-describe('ambienteDoFilho', () => {
-  it('tira as variáveis do JOCA e do Claude Code, fica a autenticação', () => {
-    const env = ambienteDoFilho({
+describe('ambiente do filho do Haiku (#106: o mesmo dos terminais)', () => {
+  it('tira as variáveis do JOCA e da sessão do Claude Code, fica a autenticação e a config', () => {
+    const env = ambienteDoTerminal({
       PATH: '/bin', HOME: '/h', JOCA_API_URL: 'u', JOCA_CLI: 'c', JOCA_SESSION_ID: 's', JOCA_API_TOKEN: 't',
-      CLAUDECODE: '1', CLAUDE_CODE_ENTRYPOINT: 'cli', CLAUDE_CODE_OAUTH_TOKEN: 'o', JOCA_DATA_DIR: 'd',
+      CLAUDECODE: '1', CLAUDE_CODE_ENTRYPOINT: 'cli', CLAUDE_CODE_OAUTH_TOKEN: 'o', CLAUDE_CODE_USE_BEDROCK: '1', JOCA_DATA_DIR: 'd',
     });
-    expect(Object.keys(env).sort()).toEqual(['CLAUDE_CODE_OAUTH_TOKEN', 'HOME', 'JOCA_DATA_DIR', 'PATH']);
+    expect(Object.keys(env).sort()).toEqual(['CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'HOME', 'JOCA_DATA_DIR', 'PATH']);
   });
 });
 
