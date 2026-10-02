@@ -135,7 +135,7 @@ ls CORRECOES.md 2>/dev/null
 **Se o ficheiro existir:** lê-o e aplica-o. Ele próprio traz, por correção, uma linha
 `Já está aplicada?` — corre-a primeiro e salta as que já estiverem feitas (um update repetido não
 pode aplicar a mesma coisa duas vezes). Se um bloco *Antes* não bater certo à letra, **não
-adivinhes**: salta essa correção e diz ao dono qual falhou.
+adivinhes**: salta essa correção e diz ao utilizador qual falhou.
 
 Quando **todas** derem `aplicada`, o ficheiro cumpriu o seu papel — o release seguinte já traz as
 correções. Aí apaga o `CORRECOES.md` e este passo.

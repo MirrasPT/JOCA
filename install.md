@@ -72,14 +72,14 @@ cd "<destino>/JOCA/JOCA_Brain"
 
 Executar `/install` — o assistente configura:
 - Identidade e personalidade (soul calibration)
-- Skills (127 disponíveis, sistema de triggers) + auto-orquestração (task-intake 4 vias)
-- Browser automation (Playwright CLI — nunca browser-use, nunca MCP) + Graphify (obrigatório)
+- Skills (activação por gatilhos, hook `prompt-triage.js`) + auto-orquestração (task-intake 4 vias)
+- Browser automation (Playwright CLI — nunca browser-use, nunca MCP)
 - MCPs (markitdown — motor do /know)
 - CLIs externos (gh, ffmpeg, codex, agy, gws, …) — inventário completo com comandos de instalação por plataforma em `JOCA_Brain/memory/tools/clis.md`
 - API keys (OpenAI, Gemini, etc.)
 - JOCA_OS (browser interface)
 - StatusLine + Rate Limits tracking (Node.js cross-platform)
-- `~/CLAUDE.md` (perfil global)
+- `~/CLAUDE.md` (perfil global + regra de língua)
 
 > **Plataforma:** o JOCA_OS foi desenvolvido e validado em **macOS** (plataforma de referência). Em **Windows**, o `/install` activa automaticamente a skill `joca-os-windows`, que testa, verifica e corrige numa só passagem os pontos sensíveis (build do node-pty — requer Visual Studio Build Tools + Python, PTY PowerShell, paths, statusline/Keychain, launchers).
 
@@ -97,7 +97,7 @@ do questionário; esta secção existe para saberes o que é cada um se precisar
 
 | Placeholder | Onde | O que é |
 |-------------|------|---------|
-| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (11 hooks) | Caminho absoluto da pasta que contém `JOCA_Brain/`, com barras `/` e sem barra final. **Se não for substituído, os 11 hooks falham em silêncio** — sem erro visível. Verificar com `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (tem de dar `0`). |
+| `<JOCA_ROOT>` | `JOCA_Brain/.claude/settings.json` (todos os hooks) | Caminho absoluto da pasta que contém `JOCA_Brain/`, com barras `/` e sem barra final. **Se não for substituído, os hooks falham em silêncio** — sem erro visível. Verificar com `grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json` (tem de dar `0`). |
 | `<YOUR_NAME>` · `<YOUR_ROLE>` · `<YOUR_STRENGTHS>` · `<YOUR_LEARNING_AREAS>` · `<STRONG_DOMAIN>` · `<LEARNING_DOMAIN>` · `<YOUR_FRUSTRATION_TRIGGERS>` | `JOCA_Brain/memory/soul.md` | O teu perfil, recolhido nas perguntas Q1/Q2 e Q-SOUL-5/6/7. Enquanto não estiverem preenchidos o JOCA usa os defaults de `Communication` + `Calibration Parameters`. |
 
 **Contextuais — só interessam se usares a skill respectiva** (são exemplos na documentação,

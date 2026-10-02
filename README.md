@@ -22,12 +22,12 @@ JOCA/
 │   │   ├── SKILL_INDEX.json <- indice lazy-loading
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
-│   │   └── tools/           <- graphify, MCP routing
+│   │   └── tools/           <- CLIs e MCPs (install + auth)
 │   └── .claude/
-│       ├── commands/        <- 31 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
-│       ├── agents/          <- 109 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 173 skills flat — triggers declarativos, on-demand loading
-│       ├── rules/           <- 8 directivas globais (task-intake, chaining, pipelines, testing, ...)
+│       ├── commands/        <- 30 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── agents/          <- 97 agentes (tester-*, debug, research, media, orquestração, ...)
+│       ├── skills/          <- 178 skills flat — triggers declarativos, on-demand loading
+│       ├── rules/           <- 5 directivas globais (task-intake, chaining, pipelines, orchestration, stack)
 │       ├── reference/       <- referencia densa, carregada on-demand (nao vive em contexto)
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
 │       └── scripts/         <- statusline, compile-bridges, build-skill-index
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**313 componentes:** 173 skills + 109 agents + 31 commands.
+**305 componentes:** 178 skills + 97 agents + 30 commands.
 
 ---
 
@@ -68,7 +68,7 @@ o favicon do separador.
 - **Slash command autocomplete:** `/` abre dropdown de comandos, skills e agentes com combobox ARIA + filtragem
 - **Rate limits dashboard:** Claude (context, 5h, 7d, Sonnet via OAuth + Keychain), Codex (SQLite), Gemini (agy statusline)
 - **Dashboard:** projectos, sessoes activas, JOCA_Brain engine status, rate limits multi-CLI
-- **Toolkit panel:** browse/search/edit dos 313 componentes do JOCA_Brain
+- **Toolkit panel:** browse/search/edit dos componentes do JOCA_Brain
 - **File browser:** filesystem real com dotfiles toggle, window-focus refresh, drag-to-terminal
 - **Settings:** runtime info, CLI status (Claude/Codex/agy), conexoes
 - **Agentes rapidos na barra:** as sessoes sem projecto aparecem no topo da barra lateral, com
@@ -143,9 +143,8 @@ Le o ficheiro clean-install.md em https://raw.githubusercontent.com/MirrasPT/JOC
 O assistente clona o JOCA para dentro desta pasta (que passa a ser a instalação de produção, não se
 move outra vez), descobre TODAS as instalações antigas na máquina, audita-as contra este baseline,
 propõe uma tabela de optimizações de tokens (nunca aplica sem aprovares), consolida a memória de
-todas as instalações antigas para aqui (a mais recente vence em conflito, nada se descarta), corre o
-graphify (obrigatório) sobre todos os projectos ligados, e arquiva as instalações antigas numa pasta
-`Old/` — nunca as apaga.
+todas as instalações antigas para aqui (a mais recente vence em conflito, nada se descarta), e
+arquiva as instalações antigas numa pasta `Old/` — nunca as apaga.
 
 ### Iniciar a interface
 
@@ -207,12 +206,12 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (173)
+## Skills (178)
 
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
 ### Base
-`caveman` · `karpathy-guidelines` · `agent-context` · `plan` · `planning` · `prd` · `create-skill` · `pt-pt-translator` · `browser-automate` · `joca-terminal`
+`caveman` · `plan` · `prd` · `create-skill` · `pt-pt-translator` · `browser-automate` · `joca-terminal`
 
 ### Design
 `frontend` · `mobile` · `brand-guidelines` · `graphic-design` · `slides` · `anima` · `lottie-animator` · `img-gen` · `design-system` · `design-tokens` · `component-system` · `html-review`
@@ -227,23 +226,23 @@ Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`,
 `paid-ads` · `seo` · `seo-local` · `email-sequence` · `content-strategy` · `content-calendar` · `social-content` · `copywriting` · `page-cro` · `ab-test-setup` · `brand-positioning` · `analytics-tracking` · `launch-strategy` · `lead-capture` · `competitor-profiling` · `landing-page` · `marketing`
 
 ### Analytics
-`google-analytics` · `microsoft-clarity`
+`analytics-tracking` · `cloudflare-analytics`
 
 ### Video & Media
 `video` · `hyperframes` · `remotion` · `lyric-align` · `site-capture` · `html-to-pdf`
 
 ### WordPress
-`wordpress-router` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-performance-review` · `wp-phpstan` · `wp-playground` · `wp-interactivity-api` · `wp-abilities-api` · `wpds` · `blueprint`
+`wp-index` · `wp-project-triage` · `wp-block-development` · `wp-block-themes` · `wp-plugin-development` · `wp-plugin-directory-guidelines` · `wp-rest-api` · `wp-wpcli-and-ops` · `wp-performance` · `wp-phpstan` · `wp-playground` · `wp-interactivity-api` · `wp-abilities-api` · `wpds`
 
 ### Shopify
 `shopify-router` · `shopify-app` · `shopify-theme` · `shopify-store-audit` · `shopify-store-fixer`
 
 ### Architecture & Docs
-`rfc` · `adr` · `tech-spec` · `task-breakdown` · `c4-diagram`
+`tech-spec` · `c4-diagram`
 
 ---
 
-## Agents (109)
+## Agents (97)
 
 Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — inventario completo em `JOCA_Brain/.claude/agents/`.)
 
@@ -257,7 +256,7 @@ Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — invent
 `deep-research` · `seo-analyst` · `dependency-auditor`
 
 ### Orchestration
-`master-orchestrator` · `self-improver` · `gemini-auditor`
+`task-router` · `self-improver` · `gemini-auditor` (o `master-orchestrator` é playbook em `reference/`, adoptado pelo principal)
 
 ### Generation & Media
 `img-gen-openai` · `img-gen-google` · `video-gen` · `watch` · `gemini-brain`
@@ -265,7 +264,7 @@ Agentes correm em sub-processos isolados, em paralelo. (Lista parcial — invent
 ### Specialists
 `payment-integration` · `skill-evaluator` · `skill-improver` · `security-review`
 
-### Execucao (65, gerados das skills)
+### Execucao (63, gerados das skills)
 Cada skill que **produz artefactos** tem um agente gemeo `<skill>-agent` que le a skill como Step 0
 — mesma doutrina, contexto proprio. Existem para poder correr varios trabalhos ao mesmo tempo sem
 ocupar a conversa principal: `tailwind-agent`, `laravel-specialist-agent`, `copywriting-agent`,
@@ -279,7 +278,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (31)
+## Commands (30)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 
@@ -301,7 +300,6 @@ Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 | `/create-skill` | Pipeline: research -> draft -> evaluate -> iterate |
 | `/upgrade-joca` | Self-improvement: research -> plan -> execute -> validate |
 | `/update-joca` | Sync com GitHub (protege local, rebuild UI) |
-| `/migrate` | Migracao v1-legacy -> v2.0 |
 | `/wp-perf-review` | Code review WordPress |
 | `/wp-perf` | Quick triage WordPress |
 | `/status` | Rate limits, contexto e modelo em uso |
@@ -348,7 +346,7 @@ bash .claude/scripts/compile-bridges.sh
 - **Node.js 18+** (para JOCA_OS e hooks cross-platform)
 - **macOS** ou **Windows** (Linux experimental)
 - **gh CLI** (GitHub — `winget install GitHub.cli` / `brew install gh`)
-- Opcional: Python 3.10+ (graphify), Codex CLI, Antigravity CLI (agy), browser-use CLI, playwright-cli, sentry-cli, ffmpeg, gws, zmail-cli (Java 11+)
+- Opcional: Python 3.10+ (build-skill-index), Codex CLI, Antigravity CLI (agy), playwright-cli, sentry-cli, ffmpeg, gws, zmail-cli (Java 11+)
 
 ---
 
