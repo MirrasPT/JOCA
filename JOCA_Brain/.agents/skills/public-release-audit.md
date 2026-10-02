@@ -44,7 +44,7 @@ passou intacto.
 
 Os dois critérios acima varrem **conteúdo**. O vazamento real não foi de conteúdo: uma árvore de
 trabalho tinha o `origin` a apontar ao repo **público** e um `git push` sem argumentos publicou
-`memory/profile.md`, `MEMORY.md`, `projects/joca.md` e `settings.json`. Nenhum scan de PII o teria
+o perfil pessoal, `MEMORY.md`, `projects/joca.md` e `settings.json`. Nenhum scan de PII o teria
 impedido — o diff nem chegou a ser inspeccionado. Auditar o conteúdo antes de auditar a topologia é
 auditar a fechadura de uma porta que está noutra parede.
 

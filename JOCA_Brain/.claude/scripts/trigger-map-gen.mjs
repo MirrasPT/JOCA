@@ -26,7 +26,7 @@
  *
  * FICHEIRO INTEIRO GERADO: .claude/reference/trigger-map.md não tem conteúdo escrito à mão — o
  * script escreve-o todo (cabeçalho + legenda + bloco entre <!-- TRIGGER-MAP:INICIO --> e
- * <!-- TRIGGER-MAP:FIM -->). O `--check` compara o ficheiro inteiro, byte a byte.
+ * <!-- TRIGGER-MAP:FIM -->). O `--check` compara o ficheiro inteiro, byte a byte (salvo CRLF).
  *
  * USO:
  *   node .claude/scripts/trigger-map-gen.mjs            → --check (não escreve; exit 1 se stale)
@@ -287,7 +287,9 @@ const { bloco, linhas, semTriggers, novas, cobertas } = r;
 
 // O ficheiro inteiro é gerado: a comparação é byte a byte, e o `--apply` é idempotente (2ª corrida = 0 bytes).
 const saida = `${bloco}\n`;
-const igual = saida === md;
+// CRLF ≠ drift: num clone Windows com core.autocrlf=true o checkout traz o ficheiro em CRLF, e o
+// byte a byte acusava stale num clone acabado de fazer (o doctor dava ⚠ sem nada desactualizado).
+const igual = md != null && saida === md.replace(/\r\n/g, '\n');
 
 console.log(`[trigger-map] ${linhas} linhas · ${cobertas}/${skills.length} skills · cap ${cap} triggers/linha · ${bloco.length} chars ≈ ${tokens} tokens (tecto ${ORCAMENTO_TOKENS}; referência on-demand, fora do contexto fixo)`);
 if (allow.length) console.log(`[trigger-map] fora por allowlist (${allow.length}): ${allow.join(', ')}`);

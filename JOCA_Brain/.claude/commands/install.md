@@ -28,7 +28,7 @@ As perguntas que sobram sao sobre **preferencias** e **intencao**, que nenhum co
 node -e "console.log(process.platform, process.version)"     # OS + Node (Node e obrigatorio)
 cat ~/CLAUDE.md 2>/dev/null | head -30                        # perfil ja existe?
 ls memory/soul.md memory/projects memory/feedback JOCA_OS/data 2>/dev/null
-grep -n "autonomy_level\|communication_mode" memory/soul.md 2>/dev/null
+grep -c "<YOUR_NAME>" memory/soul.md 2>/dev/null           # >0 = soul.md ainda e o template
 grep -c "JOCA_ROOT" .claude/settings.json 2>/dev/null         # >0 = placeholder por substituir
 # que CLIs ja existem (nao perguntar por estes):
 for c in gh gws gcloud aws agy codex ffmpeg yt-dlp markitdown wp shopify wix ntn \
@@ -43,7 +43,7 @@ done
 |---|---|
 | `process.platform` | OS: `win32` -> PowerShell em tudo; `darwin`/`linux` -> bash |
 | `~/CLAUDE.md` com perfil | nome e papel do utilizador ja existem |
-| `memory/soul.md` com `autonomy_level` preenchido | ja foi calibrado — isto e **reconfiguracao**, nao instalacao |
+| `memory/soul.md` sem `<YOUR_NAME>` (grep = 0) | ja foi calibrado (o template publico ja traz `autonomy_level`, por isso nao serve de sinal) — isto e **reconfiguracao**, nao instalacao |
 | `TEM <cli>` | esse CLI ja esta instalado; so entra na lista se faltar |
 | `JOCA_OS/data/` existe | o JOCA_OS ja esta a ser usado; nao reinstalar por cima |
 | `<JOCA_ROOT>` no `settings.json` | placeholder por substituir — **com ele la, nenhum hook corre** |
