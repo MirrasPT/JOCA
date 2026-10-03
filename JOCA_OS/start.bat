@@ -2,10 +2,18 @@
 setlocal enabledelayedexpansion
 
 set "DIR=%~dp0"
-set "BACKEND_PORT=7491"
-set "FRONTEND_PORT=7492"
+:: Portas configuraveis, como no start.sh: uma segunda instalacao arranca noutras portas.
+::   set JOCA_BACKEND_PORT=7591
+::   set JOCA_FRONTEND_PORT=7592
+::   start.bat
+:: (PORT generico nao serve de fallback de proposito - ver start.sh.)
+if not defined JOCA_BACKEND_PORT set "JOCA_BACKEND_PORT=7491"
+if not defined JOCA_FRONTEND_PORT set "JOCA_FRONTEND_PORT=7492"
+set "BACKEND_PORT=%JOCA_BACKEND_PORT%"
+set "FRONTEND_PORT=%JOCA_FRONTEND_PORT%"
 set "URL=http://localhost:%FRONTEND_PORT%"
-set "LOG_DIR=%TEMP%\joca-os"
+:: Logs e launchers por porta - senao duas instalacoes reescrevem os mesmos ficheiros.
+set "LOG_DIR=%TEMP%\joca-os-%BACKEND_PORT%"
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
@@ -64,7 +72,10 @@ timeout /t 2 /nobreak >nul
 
 :: Start frontend
 set "FRONTEND_LAUNCHER=%LOG_DIR%\run-frontend.bat"
-> "!FRONTEND_LAUNCHER!" echo @cd /d "%DIR%frontend"
+rem O proxy do vite le JOCA_BACKEND_PORT (vite.config.ts); sem ela cai na 7491.
+> "!FRONTEND_LAUNCHER!" echo @set JOCA_BACKEND_PORT=%BACKEND_PORT%
+>>"!FRONTEND_LAUNCHER!" echo @set JOCA_FRONTEND_PORT=%FRONTEND_PORT%
+>>"!FRONTEND_LAUNCHER!" echo @cd /d "%DIR%frontend"
 >>"!FRONTEND_LAUNCHER!" echo @npx vite --host 127.0.0.1 --port %FRONTEND_PORT% ^>^>"!LOG_DIR!\frontend.log" 2^>^&1
 start /b "" cmd /c "!FRONTEND_LAUNCHER!"
 echo Frontend started on port %FRONTEND_PORT%

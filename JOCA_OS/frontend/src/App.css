@@ -2197,7 +2197,7 @@ background:var(--surface-panel);
   cursor:pointer;
 }
 
-.f-btn:hover {
+.f-btn:hover:not(:disabled) {
   background:#ff5a1f;
 }
 
@@ -3015,8 +3015,11 @@ background:var(--surface-main);
 
 .project-group-header {
   min-height:34px;
-  padding:6px 9px;
+  padding:5px 9px;
 }
+/* Alvo mínimo de 24px (WCAG 2.5.8): o botão do nome media 20px. O padding de cima/baixo do
+   cabeçalho cede 1px de cada lado para a linha continuar com 34px. */
+.project-group-label { min-height:24px; }
 
 .project-group-sessions {
   padding:4px 6px 8px;
@@ -3873,7 +3876,7 @@ background:var(--surface-panel);
   background:color-mix(in srgb, var(--on-surface) 3.5%, transparent);
 }
 
-.f-btn--secondary:hover {
+.f-btn--secondary:hover:not(:disabled) {
   color:var(--text-bright);
   border-color:color-mix(in srgb, var(--on-surface) 20%, transparent);
 }
@@ -5640,6 +5643,17 @@ background: var(--surface-panel);
   }
 }
 
+/* Telemóvel baixo (~667px): os 38dvh da tira davam 253px de barra lateral e a lista da vista
+   Agentes ficava com 168px — com o aviso que um agente à espera abre, sobravam ~56px. Aqui a tira
+   desce a 30dvh, o que ainda cabe a moldura dela mais uma linha de projecto inteira. Enquanto se
+   pesquisa ou ordena mantém os 62dvh (`--filtering`). */
+@media (max-width: 860px) and (max-height: 700px) {
+  .session-sidebar:not(.session-sidebar--filtering),
+  .session-sidebar:not(.session-sidebar--filtering) .sidebar-main-bento {
+    max-height:30dvh;
+  }
+}
+
 /* ── v3: inbox, runs, login, pwa ── */
 
 /* ─── Auth gate + login ─── */
@@ -7265,6 +7279,13 @@ background: var(--surface-panel);
   .dashboard-view:not(.project-workspace) .vp-title { font-size: 21px; }
   .dashboard-view:not(.project-workspace) .db-stats-grid { gap: 10px; margin-bottom: 12px; }
   .dashboard-view:not(.project-workspace) .db-logic-status { margin-bottom: 12px; padding: 10px 14px; }
+}
+/* Layout estreito: a moldura (cabeçalho + 4 estatísticas empilhadas + Brain) já enche o ecrã, e a
+   grelha, que só fica com o resto, encolhia até 0px — a 390px os projectos desapareciam. Aqui a
+   invariante não cabe: volta a scrollar a vista inteira e a grelha tem a altura dos cartões. */
+@media (max-width: 860px) {
+  .dashboard-view:not(.project-workspace) { overflow-y: auto; }
+  .dashboard-view:not(.project-workspace) .db-projects-grid { flex: none; overflow: visible; }
 }
 @media (max-height: 620px) {
   .dashboard-view:not(.project-workspace) { padding: 10px 16px; }

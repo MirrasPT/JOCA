@@ -263,8 +263,8 @@ export function useSessionSocket(deps: SessionSocketDeps) {
           if (msg.isDone) {
             const session = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
             if (session && session.id !== d.activeIdRef.current) {
-              // NO popup toast for your own terminal work — keep only the subtle unread dot in the
-              // sidebar. Workers criados programaticamente (origin 'auto') DO fire an OS
+              // O aviso no ecrã sai do `session_agent_state` (passagem para `done`); aqui fica o
+              // ponto de não lido na sidebar. Workers criados programaticamente (origin 'auto') DO fire an OS
               // notification: correm em segundo plano, portanto o utilizador tem de ser avisado de
               // que o resultado está pronto para inspecção.
               d.setUnreadIds((prev) => new Set([...prev, msg.sessionId]));
@@ -277,13 +277,20 @@ export function useSessionSocket(deps: SessionSocketDeps) {
 
         // Estado real do agente. Substitui os três campos de uma vez: um `waiting` que passa a
         // `working` tem de perder a razão, e um campo ausente na mensagem quer dizer "limpo".
-        case 'session_agent_state':
+        case 'session_agent_state': {
+          // Aviso «Sessão terminada»: só na passagem para `done` (o mesmo estado repetido não conta)
+          // e só para sessões que não estás a ver — no teu próprio terminal já vês que acabou.
+          const antes = d.sessionsRef.current.find((s) => s.id === msg.sessionId);
+          if (antes && msg.agentState === 'done' && antes.agentState !== 'done' && antes.id !== d.activeIdRef.current) {
+            d.addToast(antes);
+          }
           d.setSessions((prev) => prev.map((s) =>
             s.id === msg.sessionId
               ? { ...s, agentState: msg.agentState, agentStateAt: msg.agentStateAt, waitingReason: msg.waitingReason }
               : s
           ));
           break;
+        }
 
         // Linha de estado escrita pelo agente (`joca status`). Ausente na mensagem = limpa.
         case 'session_current_job':
@@ -302,9 +309,10 @@ export function useSessionSocket(deps: SessionSocketDeps) {
         // O painel de notificações foi removido; o que sobra são os canais efémeros. Notificação
         // do SO só para 'system'.
         case 'notification':
-          // `read: true` = resolvida no servidor (resolveNotificationGroup): só fecha o toast, sem
-          // voltar a tocar nem a avisar o SO.
-          if (msg.notification.read) {
+          // `read: true` = resolvida no servidor (resolveNotificationGroup); `snoozedUntil` no futuro
+          // = adiada (aqui ou noutro separador). Nos dois casos só fecha o toast e volta a pedir a
+          // fila, sem voltar a tocar nem a avisar o SO.
+          if (msg.notification.read || (msg.notification.snoozedUntil ?? 0) > Date.now()) {
             if (msg.notification.priority === 'action') d.addNotificationToast(msg.notification);
             break;
           }

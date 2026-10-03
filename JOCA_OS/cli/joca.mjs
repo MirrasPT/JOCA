@@ -122,11 +122,11 @@ const commands = {
     if (self?.projectName) console.log(`# terminais de "${self.projectName}" (só vês os do teu projecto)\n`);
     for (const s of list) {
       const me = s.id === SESSION_ID ? '  ← este terminal' : '';
-      const area = s.area ? `${s.area}${s.busy ? '*' : ''}` : '—';
+      const area = s.area || '—';
       const job = s.currentJob ? `  · ${oneLine(s.currentJob, 60)}` : '';
       console.log(`${short(s.id)}  [${s.cli}] ${s.status.padEnd(7)} ${oneLine(s.name, 28).padEnd(30)} ${area.padEnd(16)}${job}${me}`);
     }
-    console.log('\n(área com * = ocupado a trabalhar · lê o que faz com: joca read <id>)');
+    console.log('\n(o estado working/idle diz se está a trabalhar · lê o que faz com: joca read <id>)');
   },
 
   async 'new-session'(flags, [...nameParts]) {

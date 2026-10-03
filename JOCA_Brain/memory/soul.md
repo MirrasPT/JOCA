@@ -40,7 +40,7 @@ Adjust: "stop caveman" / "normal mode".
 
 ## User Alignment — <template, fill on first run>
 <!--
-  Preencher a partir de `memory/profile.md` após a entrevista de onboarding (`/install`).
+  Preencher com as respostas da entrevista de onboarding (`/install`).
   Enquanto estiver por preencher, o JOCA usa os defaults de Communication + Calibration acima.
   Substituir os placeholders abaixo pelo perfil real do utilizador:
 -->

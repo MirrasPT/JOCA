@@ -16,7 +16,7 @@ import request from 'supertest';
 import { DATA_DIR } from '../project-store';
 import {
   pushNotification, loadNotifications, waitingQueue, snoozeNotification, resolveNotificationGroup,
-  markNotificationRead,
+  markNotificationRead, setNotificationsBroadcaster, type AppNotification,
 } from '../notifications/store';
 import { systemRouter } from '../http/system-routes';
 
@@ -94,6 +94,35 @@ describe('adiar', () => {
     expect(q.queue.map((x) => x.id)).toEqual([segunda.id]);
     expect(q.queue[0].snoozedUntil).toBeUndefined();
     expect(q.snoozed).toBe(0);                        // a adiada foi resolvida, já não conta
+  });
+
+  it('difunde o adiamento por WS — os outros separadores tiram-na da fila já, não no poll', () => {
+    const enviados: AppNotification[] = [];
+    setNotificationsBroadcaster((x) => enviados.push(x));
+    try {
+      const n = waitingFor('s1');
+      enviados.length = 0;
+      snoozeNotification(n.id, 15, 1_000_000);
+      expect(enviados).toHaveLength(1);
+      expect(enviados[0]).toMatchObject({ id: n.id, read: false, snoozedUntil: 1_000_000 + 15 * 60_000 });
+      // Recusado (já resolvida) não difunde nada.
+      resolveNotificationGroup('agent-waiting:s1');
+      enviados.length = 0;
+      expect(snoozeNotification(n.id, 15)).toBe('not_waiting');
+      expect(enviados).toHaveLength(0);
+    } finally {
+      setNotificationsBroadcaster(() => {});
+    }
+  });
+
+  it('devolve as adiadas em si, para a UI contar só as que ainda têm sessão', () => {
+    const now = 1_000_000;
+    const a = waitingFor('s1');
+    waitingFor('s2');
+    snoozeNotification(a.id, 60, now);
+    const q = waitingQueue(now);
+    expect(q.snoozedItems.map((x) => x.id)).toEqual([a.id]);
+    expect(q.snoozedItems[0].meta?.sessionId).toBe('s1');
   });
 
   it('recusa adiar o que já não está à espera', () => {

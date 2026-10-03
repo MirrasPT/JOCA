@@ -34,7 +34,8 @@ import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
 import { jocaAgentEnv, prepareClaudeHooksSettings, CLAUDE_HOOK_EVENTS } from './agent-bridge';
 import { pushNotification, resolveNotificationGroup } from './notifications/store';
-import { criarNomeadorHaiku, binParaNomear, modeloDeNomeLigado, pedidoParaModelo, semComando, type Nomeador } from './session-namer';
+import { criarNomeadorHaiku, binParaNomear, modeloDeNomeLigado, pedidoParaModelo, semComando, ambienteDoTerminal, type Nomeador } from './session-namer';
+import { revokeAgentTokens } from './auth';
 
 // Estado do AGENTE dentro do terminal, distinto do `status` (bytes a sair / silêncio):
 //   working → está a trabalhar num pedido · waiting → parou à espera de ti · done → acabou o turno.
@@ -178,6 +179,8 @@ export interface SessionInfo {
 export interface SpawnOptions {
   cwd?: string;
   sessionName?: string;
+  /** Origem do `sessionName` (por omissão 'user'). Reiniciar passa a da sessão antiga (#29). */
+  nameSource?: NameSource;
   projectId?: string;
   initialInput?: string;
   origin?: 'user' | 'auto';   // default 'user'
@@ -274,15 +277,35 @@ const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1
  *    `Doyoutrustthecontentsofthisdirectory`. Qualquer padrão com espaços falha. Daí normalizar
  *    para só letras antes de comparar.
  *
- * Em ambos os CLIs o Enter aceita a opção segura por omissão (Claude: confiar; codex: "1. Yes,
- * continue" já seleccionada, "Press enter to continue"). São pastas que o dono abriu de propósito.
+ * 3. **O Claude 2.1.284+ trocou o diálogo** (#22): «Quick safety check: Is this a project you
+ *    created or one you trust?», com «❯ No, exit» seleccionado e «Yes, I trust this folder» por
+ *    baixo (medido no 2.1.288). Aqui o Enter cego SAI do claude — ver `opcaoSeleccionada`.
+ *
+ * Nos diálogos antigos (Claude e codex) o Enter aceita a opção por omissão, que é confiar. São
+ * pastas que o dono abriu de propósito: a resposta é sempre confiar.
  */
 export function pedeConfiancaNaPasta(buffer: string): boolean {
   const t = buffer.replace(ANSI_RE, '').toLowerCase().replace(/[^a-z]/g, '');
   return t.includes('doyoutrustthefiles')
     || t.includes('doyoutrustthecontents')
     || t.includes('trustthefilesinthisfolder')
-    || t.includes('trustthecontentsofthisdirectory');
+    || t.includes('trustthecontentsofthisdirectory')
+    || t.includes('quicksafetycheck')
+    || t.includes('aprojectyoucreatedoroneyoutrust')
+    || t.includes('itrustthisfolder');
+}
+
+/**
+ * A opção seleccionada (a do último cursor `❯`/`›` no ecrã) é recusar ou aceitar? No diálogo novo
+ * do claude é «No, exit» por omissão: um Enter aí fecha o claude e o pedido inicial morre com ele
+ * (#22). Lê o cursor em vez de supor a ordem das opções — o diálogo antigo tinha «Yes» primeiro.
+ * Sem cursor reconhecido devolve `null`: não se sabe o que o Enter escolhe, por isso não se responde.
+ */
+export function opcaoSeleccionada(buffer: string): 'recusar' | 'aceitar' | null {
+  const t = buffer.replace(ANSI_RE, '');
+  const cursor = Math.max(t.lastIndexOf('❯'), t.lastIndexOf('›'));
+  if (cursor === -1) return null;
+  return /^(\d+\.)?no/.test(t.slice(cursor + 1).toLowerCase().replace(/[^a-z0-9.]/g, '')) ? 'recusar' : 'aceitar';
 }
 
 /**
@@ -399,8 +422,9 @@ export class SessionManager extends EventEmitter {
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
-    // Nome dado ao criar (projecto, skill, reinício, `joca open --name`) é escolha de alguém.
-    const nameSource: NameSource = sessionName ? 'user' : 'default';
+    // Nome dado ao criar (projecto, skill, `joca open --name`) é escolha de alguém. O reinício
+    // traz a origem do nome antigo: uma «Session N» reiniciada continua a esperar o 1.º pedido.
+    const nameSource: NameSource = sessionName ? (opts.nameSource ?? 'user') : 'default';
 
     const shellArgs = IS_WINDOWS && SHELL.includes('powershell') ? ['-NoLogo'] : [];
     const ptyProcess = pty.spawn(SHELL, shellArgs, {
@@ -411,7 +435,7 @@ export class SessionManager extends EventEmitter {
       // Every session is born knowing how to talk back to JOCA: the agent inside can open and
       // message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
       // JOCA_SESSION_ID lets it identify itself.
-      env: { ...process.env, ...jocaAgentEnv(id) } as Record<string, string>,
+      env: { ...ambienteDoTerminal(), ...jocaAgentEnv(id) } as Record<string, string>,
     });
 
     const session: Session = {
@@ -576,6 +600,9 @@ export class SessionManager extends EventEmitter {
     });
 
     ptyProcess.onExit(() => {
+      // Fechada pela UI: o `kill()` já limpou e emitiu 'closed'; o node-pty dispara este onExit a
+      // seguir, e um 2.º 'closed' saía para todos os clientes (#106).
+      if (this.sessions.get(id) !== session) return;
       // Atenção: isto cancela um `idleTimer` pendente, logo o 'done' desta rajada NUNCA sai. Um
       // processo que acaba depressa (ou que morre) fecha sem nunca ter dito "terminei" — quem
       // estivesse à espera do 'done' ficava à espera para sempre. Por isso o 'closed' leva o
@@ -585,6 +612,7 @@ export class SessionManager extends EventEmitter {
       if (session.writeTimer) clearTimeout(session.writeTimer);
       session.writeQueue.length = 0;
       this.largarEstadoDoAgente(session);
+      revokeAgentTokens(id);
       const finalOutput = session.buffer.replace(ANSI_RE, '');
       this.sessions.delete(id);
       this.emit('closed', { sessionId: id, finalOutput });
@@ -707,28 +735,51 @@ export class SessionManager extends EventEmitter {
    * que a abriu); actualizar-se sozinho a meio de um arranque, nunca. Em ciclo, porque vêm em
    * série — a actualização aparece antes da confiança.
    */
-  private async limparDialogosDeArranque(session: Session): Promise<void> {
+  //
+  // Devolve se o arranque ficou livre de diálogos. Depois de uma resposta só se olha para o que o
+  // CLI escreveu A SEGUIR: o ecrã antigo continua no fim do buffer e voltava a ser respondido.
+  // A seta para baixo não conta como resposta — a volta seguinte relê o ecrã inteiro e confirma
+  // que o cursor chegou ao «Yes» antes do Enter (uma seta e um Enter seguidos podiam chegar ao
+  // TUI antes de ele mudar a selecção, e o Enter ia para «No, exit»).
+  private async limparDialogosDeArranque(session: Session): Promise<boolean> {
     const p = session.pty;
-    for (let i = 0; i < 4; i++) {
-      if (!this.sessions.has(session.id)) return;
-      const tail = session.buffer.slice(-4000);
-      if (ofereceActualizacao(tail)) {
+    let desde = Math.max(0, session.buffer.length - 4000);
+    for (let i = 0; i < 6; i++) {
+      if (!this.sessions.has(session.id)) return false;
+      const ecra = session.buffer.slice(desde);
+      if (ofereceActualizacao(ecra)) {
         // "2. Skip" nos dois formatos conhecidos; o dígito selecciona, o CR confirma.
         safePtyWrite(p, '2');
         await new Promise((r) => setTimeout(r, 120));
         safePtyWrite(p, '\r');
-      } else if (pedeConfiancaNaPasta(tail)) {
-        safePtyWrite(p, '\r');
+        desde = session.buffer.length;
+      } else if (pedeConfiancaNaPasta(ecra)) {
+        const opcao = opcaoSeleccionada(ecra);
+        if (opcao === 'recusar') {
+          safePtyWrite(p, '\x1b[B');
+        } else if (opcao === 'aceitar') {
+          safePtyWrite(p, '\r');
+          desde = session.buffer.length;
+        }
+        // Sem cursor reconhecido não se escreve nada: a volta seguinte relê o ecrã e, se continuar
+        // assim, o diálogo fica por resolver e o pedido inicial não sai.
       } else {
-        return;
+        return true;
       }
       await this.waitForQuiet(session, 700, 8000);
     }
+    const ecra = session.buffer.slice(desde);
+    return !ofereceActualizacao(ecra) && !pedeConfiancaNaPasta(ecra);
   }
 
   private async runStartupSequence(session: Session, initialInput?: string): Promise<void> {
     await this.waitForTuiReady(session, 25000);
-    await this.limparDialogosDeArranque(session);
+    const livre = await this.limparDialogosDeArranque(session);
+    if (initialInput && !livre && this.sessions.has(session.id)) {
+      // Escrever o pedido por cima de um diálogo é responder-lhe às cegas (#22): fica por enviar.
+      console.warn(`[session ${session.id.slice(0, 8)}] diálogo de arranque por resolver — o pedido inicial não foi enviado`);
+      return;
+    }
     if (initialInput && this.sessions.has(session.id)) {
       // Arm the done-on-idle signal: the brief is a real work burst, so the next idle is a 'done'
       // (é isto que deixa quem despachou esperar pela conclusão do worker).
@@ -949,7 +1000,8 @@ export class SessionManager extends EventEmitter {
 
   // Cooperative close used by the WS 'close_session' path: clears the idle timer, kills the PTY,
   // removes it from the map, and emits 'closed'. (PTY-driven exit also emits 'closed' via onExit;
-  // calling this after a natural exit is a no-op because the session is already gone.)
+  // calling this after a natural exit is a no-op because the session is already gone, and the
+  // onExit that follows this kill is a no-op for the same reason — 'closed' sai uma só vez.)
   kill(sessionId: string): boolean {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
@@ -957,6 +1009,7 @@ export class SessionManager extends EventEmitter {
     if (session.writeTimer) clearTimeout(session.writeTimer);
     session.writeQueue.length = 0;
     this.largarEstadoDoAgente(session);
+    revokeAgentTokens(sessionId);
     try { session.pty.kill(); } catch {}
     const finalOutput = session.buffer.replace(ANSI_RE, '');
     this.sessions.delete(sessionId);
@@ -966,7 +1019,8 @@ export class SessionManager extends EventEmitter {
 
   // Returns the cleaned name on success, or null if the session is missing / the name is empty.
   // Único caminho de mudar o nome: emite 'renamed' (→ broadcast `session_renamed`). Sem `source`
-  // é um rename teu (UI, API, CLI) e fica para sempre — o nome automático nunca lhe passa por cima.
+  // é um rename teu — hoje só pela UI (mensagem WS `rename_session`) — e fica para sempre: o nome
+  // automático nunca lhe passa por cima.
   rename(sessionId: string, name: string, source: 'user' | 'auto' = 'user'): string | null {
     const session = this.sessions.get(sessionId);
     if (!session) return null;

@@ -106,6 +106,14 @@ export function agentTokenSession(req: { headers: IncomingMessage['headers'] }):
   return meta && meta.expiresAt > Date.now() ? meta.sessionId : undefined;
 }
 
+// O terminal fechou: o token que lhe foi entregue deixa de abrir rotas e de ocupar lugar no tecto
+// de MAX_TOKENS (senão 50 terminais abertos e fechados expulsavam o login do browser).
+export function revokeAgentTokens(sessionId: string): void {
+  const tokens = loadTokens();
+  const restantes = Object.entries(tokens).filter(([, meta]) => meta.sessionId !== sessionId);
+  if (restantes.length !== Object.keys(tokens).length) writeJsonFile(TOKENS_FILE, Object.fromEntries(restantes));
+}
+
 function revokeToken(token: string): void {
   const tokens = loadTokens();
   if (tokens[token]) { delete tokens[token]; writeJsonFile(TOKENS_FILE, tokens); }

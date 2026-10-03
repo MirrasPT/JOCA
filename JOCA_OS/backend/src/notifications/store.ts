@@ -171,6 +171,9 @@ export const SNOOZE_MINUTES = [15, 60, 240] as const;
 export interface WaitingQueue {
   queue: AppNotification[];   // por ordem de espera, a mais antiga primeiro
   snoozed: number;            // quantas estão adiadas agora
+  // As adiadas em si: a UI esconde as órfãs (sessão que já não existe ou já não espera) e só pode
+  // contar com o mesmo filtro se as vir — o número sozinho dizia «1 adiada» com a fila vazia.
+  snoozedItems: AppNotification[];
   nextWakeAt?: number;        // quando acaba o adiamento mais próximo (a UI refaz o pedido aí)
 }
 
@@ -181,7 +184,7 @@ export function waitingQueue(now: number = Date.now()): WaitingQueue {
   const snoozed = waiting.filter((n) => (n.snoozedUntil ?? 0) > now);
   const queue = waiting.filter((n) => (n.snoozedUntil ?? 0) <= now).sort((a, b) => a.ts - b.ts);
   const nextWakeAt = snoozed.length ? Math.min(...snoozed.map((n) => n.snoozedUntil as number)) : undefined;
-  return { queue, snoozed: snoozed.length, ...(nextWakeAt ? { nextWakeAt } : {}) };
+  return { queue, snoozed: snoozed.length, snoozedItems: snoozed, ...(nextWakeAt ? { nextWakeAt } : {}) };
 }
 
 // Adia uma entrada da fila. Só o que está mesmo à espera (acção, por ler): adiar uma coisa já
@@ -195,5 +198,8 @@ export function snoozeNotification(
   if (!isWaiting(n)) return 'not_waiting';
   n.snoozedUntil = now + minutes * 60_000;
   saveNotifications(list);
+  // Os outros separadores só sabiam do adiamento no poll seguinte (60 s): difunde-se já, com o
+  // `snoozedUntil`, para a UI tirar a entrada da fila e fechar o aviso de acção.
+  try { notificationsBroadcaster?.(n); } catch { /* inbox already persisted */ }
   return n;
 }
