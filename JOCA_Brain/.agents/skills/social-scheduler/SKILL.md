@@ -18,6 +18,7 @@ origin: local
 Executor de agendamento/publicação social via **TryPost** self-hosted (ex.: `trypost.<YOUR_DOMAIN>`, MCP `mcp__trypost__*`, OAuth, user scope). A skill `content-calendar` faz o *planeamento* (calendário, captions, rollout); esta faz a *execução*. Ver `memory/projects/<your-vps>/` (stack/creds TryPost).
 
 ## Pré-requisitos
+- Lote de um mês: só se agenda depois de passar o gate de variedade da skill `content-calendar` (§Gate de variedade).
 - Contas sociais ligadas: `mcp__trypost__list-social-accounts-tool` (confirmar `id` + estado de cada plataforma antes de publicar).
 - Workspace: `mcp__trypost__get-workspace-tool`.
 

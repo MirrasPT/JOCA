@@ -1,7 +1,7 @@
 # Anima — Lottie (referência da skill `anima`)
 
 > Lido pelo `anima` sempre que o pedido é Lottie: embed na web **e** gerar o JSON a partir de um SVG.
-> Inclui o conteúdo do antigo `lottie-animator` (fundido no `anima` na F4.2, issue #61).
+> Inclui o conteúdo do antigo `lottie-animator` (fundido no `anima` nas fusões de domínio da F4.2).
 
 ## Índice
 - [Quando usar](#quando-usar)

@@ -10,7 +10,7 @@ category: wordpress
 triggers: wp search-replace, migração de domínio, wp db
 generated-from: .claude/skills/wp-wpcli-and-ops.md
 generated-by: skill-agents.mjs
-content-hash: e96749b4aeb21212
+content-hash: 9d453fd99d9dcf81
 ---
 
 # wp-wpcli-and-ops — agente de execução

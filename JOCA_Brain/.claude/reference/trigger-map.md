@@ -105,7 +105,7 @@ Sufixo = tipo do componente: **sem sufixo → skill** (`.claude/skills/`); `(age
 | real-time · WebSockets · broadcasting · Reverb | `reverb-realtime` |
 | debugbar · telescope · ignition · ray | `error-tracking-dev` |
 | sentry · flare · production logging · structured logging | `error-tracking-prod` |
-| security · segurança · vulnerabilidade · vulnerability | `security` (skill — review profundo de código → `security-review` agente; auditoria completa → `cso`) |
+| security · segurança · vulnerabilidade · vulnerability | `security` (skill — review profundo de código → `security-review` agente; auditoria completa → `seguranca` / `/seguranca`) |
 | postmark · react email · @react-email · email template | `transactional-email` (núcleo do email — Postmark e React Email em reference/) |
 | PRD · requirements doc · product spec | `prd` |
 | planear · planning · como comecar · how to start | `plan` (auto) |
@@ -141,7 +141,7 @@ Sufixo = tipo do componente: **sem sufixo → skill** (`.claude/skills/`); `(age
 | codificar design · transformar em HTML · construir página · implementar design | `design-html` |
 | gauntlet · aim prompt · prompt do Shumer · ao nível de | `gauntlet-loop` (`/gauntlet-loop`) |
 | ship · push para main · abrir PR · está pronto envia | `/ship` |
-| cso · auditoria de seguranca · auditoria de segurança · threat model | `cso` |
+| /seguranca · auditoria de segurança · security audit · security review completo | `seguranca` |
 | o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube | `/last30days` (plugin externo) |
 | /know · guardar isto · knowledge base · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | ler email · resumir inbox · enviar email · responder email | `personal-comms` (agent + skill) |

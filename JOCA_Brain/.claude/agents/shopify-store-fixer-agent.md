@@ -10,7 +10,7 @@ category: plataformas
 triggers: fix shopify store, bulk update products, apply audit fixes
 generated-from: .claude/skills/shopify-store-fixer.md
 generated-by: skill-agents.mjs
-content-hash: 7db33e5c8e9233b1
+content-hash: 89817baa66648326
 ---
 
 # shopify-store-fixer — agente de execução

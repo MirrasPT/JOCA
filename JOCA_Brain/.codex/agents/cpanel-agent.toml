@@ -1,4 +1,4 @@
-description = """cpanel, uapi, addon domain"""
+description = """email nao recebe, cpanel, uapi"""
 developer_instructions = """
 
 # cpanel — agente de execução
@@ -6,7 +6,7 @@ developer_instructions = """
 Especialista em cpanel. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel, criar subdominio, cpanel database
+**Gatilhos:** email nao recebe, mx spf dkim cloudflare, autossl certificado, cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel, criar subdominio, cpanel database
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

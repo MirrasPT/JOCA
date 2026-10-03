@@ -10,7 +10,7 @@ category: código
 triggers: auth, authentication, login, logout, register, sanctum
 generated-from: .claude/skills/auth.md
 generated-by: skill-agents.mjs
-content-hash: f21488eb4139e6bb
+content-hash: d98859f9a32ebd2e
 ---
 
 # auth — agente de execução

@@ -13,7 +13,8 @@
     "design-tokens",
     "component-system",
     "blender-scripting",
-    "blender-render"
+    "blender-render",
+    "cso"
   ],
   "motivos": {
     "karpathy-guidelines": "Stub de redireção (fundida em yagni a 2026-10-01); a linha da yagni cobre os gatilhos. Linha própria seria ruído.",
@@ -27,6 +28,7 @@
     "react-email": "Stub de redireção (fundida em transactional-email a 2026-10-02, onda 4: o pack marketeer ainda cita o nome); corpo em reference/react-email.md, gatilhos na transactional-email.",
     "design-tokens": "Stub de redireção (fundida em design-system a 2026-10-02, onda 4); corpo em reference/design-system-tokens.md, gatilhos na design-system.",
     "component-system": "Stub de redireção (fundida em design-system a 2026-10-02, onda 4); corpo em reference/design-system-componentes.md, gatilhos na design-system.",
+    "cso": "Stub de redireção (fundida no comando /seguranca a 2026-10-02); gatilhos na skill seguranca.",
     "blender-scripting": "Stub de redireção (fundida em blender a 2026-10-02, onda 4); corpo em reference/blender-scripting.md, gatilhos na blender.",
     "blender-render": "Stub de redireção (fundida em blender a 2026-10-02, onda 4); corpo em reference/blender-render.md, gatilhos na blender."
   }

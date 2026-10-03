@@ -10,7 +10,7 @@ category: 3d
 triggers: imprimibilidade, imprimivel, malha imprimivel, watertight, estanque, non-manifold
 generated-from: .claude/skills/meshy-3d-print.md
 generated-by: skill-agents.mjs
-content-hash: 8595213299412516
+content-hash: d9c5ab855c067f93
 ---
 
 # meshy-3d-print — agente de execução

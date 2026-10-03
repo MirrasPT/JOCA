@@ -1,16 +1,16 @@
 ---
 name: content-calendar-agent
-description: "plano de publicacao, calendario social"
+description: "content calendar, social calendar"
 skills: content-calendar
 model: inherit
 modelo-sugerido: sonnet
 effort-sugerido: medium
 porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
-triggers: plano de publicacao, calendario social, rollout de lancamento, captions por plataforma, content schedule, posting schedule
+triggers: content calendar, social calendar, plano de publicacao, calendario social, rollout de lancamento, captions por plataforma
 generated-from: .claude/skills/content-calendar.md
 generated-by: skill-agents.mjs
-content-hash: 4cf2de418a12b05a
+content-hash: baf51381394cdb6a
 ---
 
 # content-calendar — agente de execução

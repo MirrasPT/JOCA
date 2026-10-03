@@ -257,8 +257,9 @@ Copy-Item -Recurse python_pkg/tools/include/* python_embeded/Include/
 
 Ao escrever código contra um SDK externo (ex.: `@anthropic-ai/claude-agent-sdk`, `@anthropic-ai/sdk`), **ler os `.d.ts` instalados** como fonte de verdade antes de escrever código:
 ```bash
-cat node_modules/@anthropic-ai/claude-agent-sdk/dist/*.d.ts | head -100
+cat node_modules/@anthropic-ai/claude-agent-sdk/sdk.d.ts | head -100   # na raiz; o pacote não tem dist/
 ```
+O sítio dos `.d.ts` varia por pacote — confirmar no campo `types` do `package.json` antes de os ler (Agent SDK 0.3.221: `"types": "sdk.d.ts"`, verificado 2026-10-02).
 Doc online pode estar desactualizada; `.d.ts` reflecte o pacote instalado. `tsc`/`build` passam com uma opção de API errada que só rebenta em runtime.
 
 ### Agent SDK — armadilhas medidas no JOCA_OS

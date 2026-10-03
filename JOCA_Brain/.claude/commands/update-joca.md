@@ -123,136 +123,23 @@ num repo descartavel: antes `README.md` = conteudo local, depois `README.md` = c
 fica intacta. Vale para qualquer outro `checkout` que use `$PATHS` — verificar a variavel antes,
 nunca confiar no exit code depois.
 
-**2b. Verificacao pos-checkout: o checkout TRUNCA em silencio.** Passo obrigatorio, nao opcional.
-Este caminho ja truncou **25 ficheiros de toolkit** sem um unico conflito, sem erro, e com `tsc`,
-`eslint` e `build` os tres verdes (caiu a Phase 4b do `/upgrade-joca`, o gate de repo publico do
-`/ship` e o Passo 0 da `public-release-audit` que ele chama, o banner `⚠ OBSOLETO` do `/migrate`, e 5
-seccoes do `joca-doctor`). O comando ja cobria "ausente a montante"; o caso que faltava e o inverso —
-**presente dos dois lados e mais pobre no publico**. Um `git checkout` que sai com 0 nao prova nada:
-ele escreve a versao do outro lado por cima, feature local incluida, e nao ha marcador de conflito
-porque nao ha merge.
-
-```
-# (a) rede automatica — todo o ficheiro que ENCOLHEU no checkout le-se antes de aceitar
-#     numstat = <adicionadas> TAB <removidas> TAB <ficheiro>; removidas > adicionadas = perdeu mais do que ganhou
-#     (sem awk com campos numerados: o expansor de argumentos do comando substitui-os)
-git diff --numstat HEAD -- $PATHS | while IFS="$(printf '\t')" read -r add del f; do
-  [ "$del" -gt "$add" ] 2>/dev/null && printf '%s\t%s\n' "$((del-add))" "$f"
-done | sort -rn
-```
-
-```
-# (b) rede curada — marcador por feature local, escrito ANTES do checkout (uma frase literal
-#     por feature, nao o nome do ficheiro), verificado DEPOIS. Zero hits = feature perdida.
-#     Caminhos relativos a RAIZ do repo, como o $PATHS.
-cat > /tmp/marcadores.txt <<'EOF'
-JOCA_Brain/.claude/commands/upgrade-joca.md|Phase 4b
-JOCA_Brain/.claude/commands/ship.md|CHANGELOG
-JOCA_Brain/.claude/skills/public-release-audit.md|Passo 0
-EOF
-
-while IFS='|' read -r f m; do
-  grep -qF -- "$m" "$f" || echo "PERDIDO: [$m] em $f"
-done < /tmp/marcadores.txt
-```
-
-⚠ **Marcadores em ASCII, e testados ANTES do checkout.** Um literal acentuado pode chegar corrompido
-ao `grep -F` e dar **0 hits falso** num ficheiro onde a frase existe — o resultado le-se como feature
-apagada. Duas defesas: (1) correr o `while` acima **antes** do checkout, quando todos os marcadores
-_tem_ de acertar; um `PERDIDO:` nessa altura e marcador mau, nao feature perdida. (2) Antes de
-aceitar qualquer 0 hits, controlo positivo: `grep` por uma frase que se sabe estar no ficheiro.
-Este exemplo ja caiu na propria armadilha: o marcador `repo publico` dava `PERDIDO` porque o
-`ship.md` tem a palavra com acento (e com gralha).
-
-⚠ **Correr o build nao chega.** Foi exactamente o que se fez: os tres gates estaticos passaram e as
-25 truncagens sobreviveram na mesma. Ficheiro que encolheu **le-se**, nao se compila.
-
-**2c. Proveniencia — de quem e a truncagem.** Quando um marcador desaparece, distinguir "a resolucao
-escolheu mal" de "o lado de origem ja vinha pobre" decide se se repoe a mao ou se se rejeita o
-import inteiro:
-
-```
-git diff <lado-A>:<F> <merge>:<F>          # o que a resolucao tirou ao lado A
-git diff <merge-base>:<F> <lado-B>:<F>     # o que o lado B ja tinha tirado sozinho
-```
-
-Segundo diff vazio → a resolucao escolheu mal (repor do backup). Segundo diff com as mesmas linhas →
-o lado B ja vinha truncado (nao importar dele; corrigir a montante).
-
-**3. Removals do not happen by themselves.** `git checkout <ref> -- <paths>` **only writes; it never
-deletes.** On a release that *removes* files (one real case: −10546 lines, 22 files deleted),
-following the command literally leaves the old code sitting on disk while the new routes no longer
-mount it — and neither `tsc` nor the build says a word:
-
-```
-git diff --diff-filter=D --name-only HEAD upstream/main -- <the same paths>   # deleted upstream
-git rm <the files you decided to drop>
-```
-
-⚠ **"absent upstream" ≠ "to be deleted".** The public repo merely *ignores* files a working install
-needs (`package-lock.json`, local config); they show up in that list and must **not** be removed.
-Delete only what belongs to the toolkit and was genuinely dropped in the release.
+**2b/2c/3. Depois do checkout (obrigatório, antes de aceitar o import)** → `Read(".claude/reference/update-joca/pos-checkout.md")`:
+verificação de truncagem (rede automática dos ficheiros que encolheram + marcadores curados), proveniência
+da truncagem e remoções. O `git checkout` sai com 0 e trunca em silêncio; os gates estáticos não o apanham.
 
 Never checkout `memory/`, `JOCA_OS/data/`, `.claude/settings.json` or `soul.md` this way — those are
 the installation, not the toolkit. Local-only files under the imported code paths survive the
-checkout by construction; the `git rm` step above is the one that can touch them, so read the list
+checkout by construction; the `git rm` step (in `.claude/reference/update-joca/pos-checkout.md`) is the one that can touch them, so read the list
 before running it.
 
 ### Contagens: uma instalacao de trabalho e o publico NAO tem o mesmo inventario
 
-Escrever num brief "157 skills / 112 agentes" com o numero da **outra** instalacao manda o agente
-trabalhar contra um mapa errado (ja aconteceu: instalacao de trabalho 157/112 vs publico 145/103). O numero e
-**perecivel e por instalacao** — deriva-se no destino, nunca se cita de memoria nem de uma memoria
-antiga:
-
-```
-ls .claude/skills/*.md | wc -l ; ls .claude/agents/*.md | wc -l ; ls .claude/commands/*.md | wc -l
-```
-
-A divergencia e **deliberada** (o publico nao leva componentes nem estado pessoal) — nao e defeito a
-corrigir, e um facto a datar. Registar na memoria do projecto com a data.
+Antes de citar contagens de skills/agentes/comandos num brief → `Read(".claude/reference/update-joca/contagens.md")` (derivam-se no destino).
 
 ### Passo das remocoes (o checkout so escreve)
 
-`git checkout <ref> -- <paths>` **nunca apaga**. Num release que remove ficheiros (aconteceu:
-−10 546 linhas, 22 ficheiros apagados) seguir o comando a letra deixa o codigo antigo no disco com as
-rotas novas a nao o montar — e nem o `tsc` nem o build se queixam.
-
-```
-git diff --diff-filter=D --name-only HEAD "$PUB/$PUBBASE" -- $PATHS   # candidatos a remover
-```
-
-⚠ **"ausente a montante" ≠ "a apagar".** Da lista tirar tudo o que o publico apenas **ignora** ou
-nunca teve: `package-lock.json`, ficheiros com `origin: local` no frontmatter, e o que apareceu na
-2ª lista do passo de direccao (exclusivos locais). O que sobrar, e so isso, sai por `git rm`.
-
-**A regra em prosa nao chega — a prova e um comando.** Num caso real, **50 dos 51 ficheiros ausentes
-no publico estavam apenas gitignorados la** (3 `package-lock.json` e 47 GIFs de um tema de
-terceiros); seguir a lista a letra teria apagado o tema inteiro e os lockfiles. O que decide nao e a
-lista de diferencas — sao **os padroes de ignore do OUTRO lado**:
-
-```
-git show "$PUB/$PUBBASE":.gitignore                                  # o da raiz
-git ls-tree -r --name-only "$PUB/$PUBBASE" | grep '\.gitignore$'     # ha mais, por subpasta
-```
-
-Avaliar os candidatos contra as regras de la exige um worktree descartavel desse ref — dentro dele o
-`check-ignore` ve os `.gitignore` do publico, nao os locais:
-
-```
-git worktree add --detach /tmp/pub "$PUB/$PUBBASE"
-git diff --diff-filter=D --name-only HEAD "$PUB/$PUBBASE" -- $PATHS \
-  | git -C /tmp/pub check-ignore --no-index -v -n --stdin
-git worktree remove --force /tmp/pub
-```
-
-| Linha do output | Leitura |
-|---|---|
-| `.gitignore:<n>:<padrao>` + TAB + `<ficheiro>` | So **ignorado** la. **NAO sai** por `git rm`. |
-| `::` + TAB + `<ficheiro>` (o `-n` mostra os que nao casam) | Nao casa nenhum padrao de la → candidato real a `git rm`. |
-
-⚠ O `-v` diz **que ficheiro de ignore** casou. Se a origem nao for um `.gitignore` do worktree
-publico (excludes globais, `core.excludesFile`), o teste nao provou nada — repetir.
+Antes de qualquer `git rm` depois do checkout → `Read(".claude/reference/update-joca/pos-checkout.md")` §Passo das remocoes:
+a lista de diferenças não decide; decidem os padrões de ignore do OUTRO lado (`check-ignore` num worktree descartável).
 
 `JOCA_Brain/.claude/reference/` viaja com o toolkit (templates do `/start`, playbooks, stacks) —
 e codigo, nao estado. Os `PROGRESSO.md` vivem nos repos dos PROJECTOS, nunca neste — o update do
@@ -270,24 +157,7 @@ Then run `node .claude/scripts/joca-doctor.mjs` — it is the check that catches
 
 ### Shape B, variant: porting a *range of commits* between the two repos
 
-Selective checkout brings a snapshot. When what you want is a specific range of work that landed in
-the other repo (this has been done twice — `e6dc864`, `3cded18`), the path is a patch, not a merge:
-
-```
-git -C <other-repo> format-patch <from>..<to> --stdout > /tmp/port.patch
-git apply --3way --stat /tmp/port.patch     # dry look first
-git apply --3way /tmp/port.patch
-```
-
-⚠ **`git apply` is atomic, but its output lies.** It prints `Applied patch to X` for every file that
-landed *before* it aborts — so `git apply ... | head -40` shows a wall of successes and hides the
-fatal error in the tail. **Verify by effect, never by report:** `git status` must show the expected
-number of modified files (214, not 1). One port looked like it had landed and had reverted everything.
-
-⚠ **A resolved conflict in code is not a resolved conflict until the artifact runs.** A
-`build-skill-index.py` came out of a 3-way with no markers, syntactically plausible, and blew up on
-first execution — `match` out of scope, two constants lost because neighbouring hunks were resolved to
-opposite sides and the halves never met. Run every script/build you touched.
+Antes de portar um intervalo de commits entre os dois repos (patch, não merge) → `Read(".claude/reference/update-joca/porte-commits.md")`.
 
 ---
 
@@ -400,24 +270,7 @@ Categorize every changed file:
 
 Scan for files with `origin: local` in their frontmatter (use cross-platform approach):
 
-```
-node -e "
-const fs = require('fs'); const path = require('path');
-const dirs = ['.claude/skills', '.claude/agents', '.claude/commands'];
-const found = [];
-for (const dir of dirs) {
-  const full = path.join(process.cwd(), dir);
-  if (!fs.existsSync(full)) continue;
-  for (const f of fs.readdirSync(full, {recursive:true})) {
-    const fp = path.join(full, f);
-    if (!fs.statSync(fp).isFile()) continue;
-    const head = fs.readFileSync(fp, 'utf8').slice(0, 500);
-    if (/^origin:\s*local/m.test(head)) found.push(path.relative(process.cwd(), fp));
-  }
-}
-found.forEach(f => console.log(f));
-"
-```
+Script `node -e` (cross-platform) → `Read(".claude/reference/update-joca/receitas-node.md")` §6b.
 
 These files were created locally via `/create-skill` or manually. If the upstream introduces a file with the same name:
 1. Report the conflict to the user
@@ -437,44 +290,8 @@ If overlap exists: flag as potential conflicts.
 
 ## Phase 3 -- Present summary
 
-```
-UPDATE AVAILABLE -- JOCA
-------------------------
-
-N new commits:
-  abc1234 <message>
-  def5678 <message>
-
-Core files to update (safe):
-  M  .claude/skills/create-skill.md
-  A  .claude/commands/novo-comando.md
-  M  CLAUDE.md
-
-UI files to update (will trigger rebuild):
-  M  JOCA_OS/backend/src/server.ts
-
-Protected files (will NOT be touched):
-  memory/projects/ (pastas <slug>/ e fichas *.md)
-  memory/feedback/*.md
-  memory/soul.md
-  JOCA_OS/data/projects.json
-  JOCA_OS/data/project-memory.json
-  JOCA_OS/data/session-snapshots.json
-  JOCA_OS/data/ui-settings.json
-
-Local-origin files protected:
-  .claude/skills/created-skills/minha-skill/SKILL.md
-  .claude/agents/meu-agente.md
-
-Merge-only (new keys added, your config preserved):
-  .claude/settings.json
-
-Potential conflicts (modified locally + changed upstream):
-  ! .claude/commands/resume.md  -- you have local changes
-
-------------------------
-Apply update? [Y/n]
-```
+Mostrar o resumo no formato de `Read(".claude/reference/update-joca/resumos.md")` §Phase 3 (commits, ficheiros core/UI,
+protegidos, `origin: local`, merge-only, conflitos potenciais) e terminar com `Apply update? [Y/n]`.
 
 If potential conflicts exist, warn before confirming:
 > "You have local changes in X files that also changed upstream. They will be stashed before pulling and restored after."
@@ -589,17 +406,7 @@ Report rebuild results. If `npm install` or `npm run build` fails: report the er
 
 If `.claude/scripts/statusline-command.js` was in the diff:
 
-```
-node -e "
-const fs = require('fs'); const path = require('path');
-const src = path.join(process.cwd(), '.claude/scripts/statusline-command.js');
-const home = process.env.HOME || process.env.USERPROFILE;
-const dest = path.join(home, '.claude', 'statusline-command.js');
-fs.mkdirSync(path.dirname(dest), {recursive: true});
-fs.copyFileSync(src, dest);
-console.log('Copied to ' + dest);
-"
-```
+Copiar o script para `~/.claude/` com a receita de `Read(".claude/reference/update-joca/receitas-node.md")` §5b.
 
 ### 5c. Hooks verification (if hook files changed)
 
@@ -633,28 +440,8 @@ Conflito do `stash pop` (Option B) numa linha `model:`/`effort:` → ficar com a
 
 Tabela vazia → nada a perguntar, segue. Com linhas → mostrar a tabela (agente · actual · sugestão ·
 porquê, agrupada por sugestão) e `AskUserQuestion`:
-
-```
-question: "Há N agentes sem escolha de modelo. Aplico as sugestões da tabela?"
-header: "Modelos"
-options:
-  - "Sim, aplicar todas"          # → --tabela --json > <scratchpad>/escolhas.json → --aplicar
-  - "Alterar alguns"              # → pedir em prosa «agente: herdar|sonnet|opus|haiku · effort»;
-                                  #   editar só esses no escolhas.json; aplicar o resto como sugerido
-  - "Manter como está"            # → mesmas linhas com "model": "manter" → --aplicar (não muda ficheiros,
-                                  #   só regista; não volta a perguntar)
-  - "Saltar por agora"            # → nada muda; volta a perguntar no próximo update
-```
-
-```
-node .claude/scripts/modelos-agentes.mjs --tabela --json > <scratchpad>/escolhas.json
-node .claude/scripts/modelos-agentes.mjs --aplicar <scratchpad>/escolhas.json
-```
-
-A sugestão vive no próprio agente (`modelo-sugerido`/`effort-sugerido`/`porque-modelo`, campos que o
-Claude Code ignora) e nunca se activa sem este sim. Agente sem sugestão sai como «manter o actual»:
-«aplicar todas» não lhe muda o `model:` nem o `effort:`. A escolha fica em
-`.claude/modelos-agentes.local.json` — o checkout do update não lhe toca (não está em `$PATHS`).
+Opções do `AskUserQuestion`, comandos de aplicação e semântica das sugestões → `Read(".claude/reference/update-joca/modelos-agentes.md")`.
+A escolha fica em `.claude/modelos-agentes.local.json` — o checkout do update não lhe toca (não está em `$PATHS`).
 
 ### 5e. New/updated skills notification (if skills changed)
 
@@ -674,39 +461,8 @@ Updated skills:
 
 ## Phase 6 -- Final summary
 
-```
-JOCA UPDATED
-------------------------
-
-Commits applied: N
-  abc1234 <message>
-  def5678 <message>
-
-Files updated: X
-  M  .claude/skills/...
-  A  .claude/commands/...
-
-Files protected (not touched): Y
-  memory/projects/ (user data)
-  memory/soul.md (calibration)
-  JOCA_OS/data/ (all user data files)
-  origin:local files (Z files)
-
-Post-update actions:
-  [done] Backend rebuilt (npm install + npm run build)
-  [done] Frontend deps installed
-  [done] statusline-command.js copied to ~/.claude/
-  [done] Hooks verified (.js paths confirmed)
-  [done] SKILL_INDEX.json regenerated
-  [done] Modelos dos agentes: N escolhas reaplicadas · M novas (aplicadas | mantidas | saltadas)
-  [info] 2 new skills, 1 updated skill
-
-Local version: <hash> -- <latest commit message>
-
-Next:
-  Review changes: git diff HEAD~N HEAD
-  If JOCA_OS was rebuilt: restart the UI (start.bat / start.sh)
-```
+Resumo final no formato de `Read(".claude/reference/update-joca/resumos.md")` §Phase 6 (commits aplicados, ficheiros atualizados e
+protegidos, acções pós-update, versão local, próximos passos).
 
 ---
 

@@ -22,7 +22,8 @@ MAX_TRIGGERS = 25
 
 # F4.1 — domínio de cada entrada: o 1.º nível do encaminhamento no prompt-triage.js (domínio → ramo).
 # A 1.ª regra que casa ganha (padrões fnmatch); `dominio:` no frontmatter manda sobre a tabela; o gémeo
-# `<skill>-agent` herda o da skill; sem regra → "geral". Skill nova fora da tabela → acrescentar aqui.
+# `<skill>-agent` herda o da skill (o `dominio:` do frontmatter DA SKILL, senão a tabela pelo nome da
+# skill); sem regra → "geral". Skill nova fora da tabela → acrescentar aqui.
 DOMINIOS = [
     ("wordpress", ["wp-*", "woocommerce-elementor"]),
     ("ecommerce", ["shopify-*", "wix-cli"]),
@@ -46,7 +47,7 @@ DOMINIOS = [
                  "algoritmo-de-terceiros", "error-tracking-dev"]),
     ("deploy", ["deploy-*", "cpanel", "cloudflare-dns", "selfhosted-arr", "availability", "error-tracking-prod",
                 "github", "pr-repair"]),
-    ("qualidade", ["escrever-testes", "tdd", "mutation-testing", "tester-*", "security*", "cso", "gdpr-compliance",
+    ("qualidade", ["escrever-testes", "tdd", "mutation-testing", "tester-*", "security*", "seguranca", "cso", "gdpr-compliance",
                    "credential-handling", "dependency-auditor", "tech-debt-auditor", "codex-review", "gemini-auditor",
                    "log-debugger", "public-release-audit", "source-driven-development", "yagni", "careful",
                    "auditoria-site-live", "browser-automate"]),
@@ -236,12 +237,17 @@ def build_index():
         fm = parse_frontmatter(agent_file)
         desc = fm.get("description", "") or extract_first_sentence(agent_file)
         triggers = cap_triggers("agent", name, extract_triggers(agent_file, desc))
+        gemea = SKILLS_DIR / f"{name[:-6]}.md" if name.endswith("-agent") else None
+        if gemea and gemea.exists():
+            dominio = parse_frontmatter(gemea).get("dominio") or dominio_de(name[:-6], fm)
+        else:
+            dominio = dominio_de(name, fm)
 
         entries.append({
             "type": "agent",
             "name": name,
             "category": "agents",
-            "dominio": dominio_de(name[:-6] if name.endswith("-agent") and (SKILLS_DIR / f"{name[:-6]}.md").exists() else name, fm),
+            "dominio": dominio,
             "path": agent_file.relative_to(JOCA_ROOT).as_posix(),
             "description": desc[:200],
             "triggers": triggers,

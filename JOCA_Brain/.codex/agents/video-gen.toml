@@ -28,7 +28,7 @@ Isto passa qualquer validação do tipo \"existe um ficheiro .mp4 de 3 segundos\
 | Caminho | Quando | Como |
 |---|---|---|
 | **gen-ai CLI (Picsart)** | Primeira escolha quando disponível — Sora/Kling/Veo/Runway/Luma por API | `Read` a skill `gen-ai-video` e seguir; suporta text→video, image→video, extensão de clipe |
-| **ComfyUI local (WAN 2.2)** | Offline, privado, sem custo por geração; máquina Windows `D:\\_Comfyui` | Workflow WAN via API do ComfyUI; ver skill `browser-automate` / `comfy-mcp-workarounds` |
+| **ComfyUI local (WAN 2.2)** | Offline, privado, sem custo por geração; instalação local do ComfyUI | Workflow WAN via API do ComfyUI; ver skill `browser-automate` / `comfy-mcp-workarounds` |
 | **HyperFrames** | Já existe footage e o que falta é montagem/motion, ou vídeo programático (lyric video, data-driven, texto animado) — não é geração AI, é render | Pela skill `video` (Step 0) → `skills-video/hyperframes/SKILL.md` |
 | Externo manual | Google Flow/Veo, Runway, Pika — sem CLI local | Reportar ao utilizador que é passo manual; não simular |
 

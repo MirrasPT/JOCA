@@ -10,7 +10,7 @@ category: código
 triggers: MySQL, query lenta, slow query, EXPLAIN, index, indice
 generated-from: .claude/skills/mysql.md
 generated-by: skill-agents.mjs
-content-hash: 9b21a611a8b45b12
+content-hash: 46b76ec084c63895
 ---
 
 # mysql — agente de execução

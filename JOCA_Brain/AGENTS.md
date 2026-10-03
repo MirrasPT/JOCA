@@ -19,9 +19,9 @@ A orientação canónica do JOCA vive em `CLAUDE.md`. Manter o JOCA Claude-first
 
 | Componente | Nº | Fonte canónica |
 |---|---|---|
-| Skills | 178 | `.claude/skills/<nome>.md` |
+| Skills | 179 | `.claude/skills/<nome>.md` |
 | Agentes | 97 | `.claude/agents/<nome>.md` |
-| Comandos | 30 | `.claude/commands/<nome>.md` |
+| Comandos | 31 | `.claude/commands/<nome>.md` |
 | Rules (globais) | 5 | `.claude/rules/<nome>.md` |
 
 ⚠ **Não existe aqui lista de skills nem de agentes, de propósito.** O inventário completo
@@ -179,7 +179,7 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 | **Debug** | `log-debugger` (Iron Law: causa-raiz primeiro) → `query-debugger` (se SQL) |
 | **QA loop** | `tester-*` test→fix→verify+commit atómico, repetir até verde |
 | **Ship** (`/ship`) | sync base → testes → review diff (`tester-code`) → version/CHANGELOG → ⛔ push → PR (`github`) |
-| **Segurança CSO** (`cso`) | secrets → deps (`dependency-auditor`) → OWASP/STRIDE (`security-review`+`tester-security`) → gate de confiança |
+| **Segurança CSO** (`/seguranca`) | `.claude/commands/seguranca.md`: F0 âmbito (testes ativos/produção ⛔) → F1 recon + STRIDE + CLIs (instalação ⛔) → F2 frentes em paralelo (código `security-review` · segredos gitleaks · deps osv-scanner/`dependency-auditor` · API `tester-api`/`tester-ratelimit` · RGPD `gdpr-compliance`) → F3 revisor adversarial com reprodução → F4 relatório + issue por confirmado (repo de terceiro/público ⛔) |
 | **Deploy** | `deploy-executor` (detecta alvo, corre `deploy-*`, health-check **derivado do HTML publicado**, purga CF se houve adições; âmbito = o último confirmado, ambíguo → perguntar) ⛔ |
 | **Auditoria → correcção** | `analisar-plataforma` → issue por achado → correcção em fan-out (ficheiros disjuntos) → varredura transversal (não-produtor) → gate de runtime → ⛔ deploy |
 | **Reparar PR** | `pr-repair` (conflitos → bot reviews → CI → ⛔ push 1x no fim) |
@@ -193,10 +193,10 @@ Cada pipeline = sequência de passos + gates. (⛔ = gate de confirmação irrev
 ### Arranque de produto
 | Pipeline | Sequência |
 |---|---|
-| **Produto novo (0 → produção)** | `/start` como **router**: 0b deduz o tipo do disco → pergunta 1.0 «Tipo de trabalho» (multiSelect, valor deduzido primeiro) → Aplicação → `executar-projeto` · Website → **Website** · Identidade/branding → **Identidade/branding** · Marketing → `/marketeer` · mais de um → **Projeto multi-tipo**; Fase 6 grava `PROGRESSO.md ## Workflows` e pergunta ⏸ «Avanço para o primeiro workflow: <nome>?». Ramo Aplicação: entrevista + PRD + stack + direcção de design → `executar-projeto`: E1 fundação ⛔ push → E2 design (via Claude Design c/ conversão, OU directo: `design-system`→`design-shotgun` se frontend→`preparar-design`/`validar-design` por ecrã) → E3 ponto de situação ⏸ → E4 `planear-ondas` → loop por onda (implementar c/ agentes de domínio → `escrever-testes` **sessão separada** → `tester-code` → gate runtime → portão) → `security-review` → ⛔ deploy |
+| **Produto novo (0 → produção)** | `/start` como **router**: 0b deduz o tipo do disco → pergunta 1.0 «Tipo de trabalho» (multiSelect, valor deduzido primeiro) → Aplicação → `executar-projeto` · Website → **Website** · Identidade/branding → **Identidade/branding** · Marketing → `/marketeer` · mais de um → **Projeto multi-tipo**; Fase 6 grava `PROGRESSO.md ## Workflows` e pergunta ⏸ «Avanço para o próximo workflow: <nome>?». Ramo Aplicação: entrevista + PRD + stack + direcção de design → `executar-projeto`: E1 fundação ⛔ push → E2 design (via Claude Design c/ conversão, OU directo: `design-system`→`design-shotgun` se frontend→`preparar-design`/`validar-design` por ecrã) → E3 ponto de situação ⏸ → E4 `planear-ondas` → loop por onda (implementar c/ agentes de domínio → `escrever-testes` **sessão separada** → `tester-code` → gate runtime → portão) → `security-review` → ⛔ deploy |
 | **Website** (institucional, landing, portefólio; sem login/loja/BD — com isso é Aplicação; Next.js 16) | W1 estrutura e copy: `copywriting` → `stop-slop` → `pt-pt-translator`; `seo`; `landing-page` se página única → W2 design: `brand-guidelines` + `design-system` (tokens) **só se não houver branding** (há → mede do `docs/DESIGN.md`); `design-shotgun` → `design-review` (verificador); handoff Claude Design ⏸ variante → W3 fundação: `frontend` + `tailwind` (preset Next.js 16 do `/start`); `github` (CI); `novo-issue` (1 por página) ⛔ `gh repo create` → W4 páginas: `design-html` → `frontend` (`frontend-agent` em paralelo, 1 por página); `anima` opcional; `img-gen`/`foto-produto`; `icon-design` → W5 qualidade (verificador ≠ produtor): `design-review` + `tester-ui-ux` (→ `a11y-fixer`); `seo` técnico (+ `seo-local`); `analytics-tracking` (`generate_lead` + formulário); gate de runtime → W6 ponto de situação: `site-capture` do preview ⏸ dono → W7 publicação: `deploy-executor` ⛔ deploy → `auditoria-site-live` → `PROGRESSO.md` |
-| **Identidade/branding** (logótipo, marca, manual, aplicações) | B1 posicionamento: `brand-positioning`; `competitor-profiling` → B2 nome **só se faltar**: `brand-guidelines` (secção de naming) ⏸ nome → `docs/DECISIONS.md` → B3 logótipo — **gate de pergunta caso a caso**: existe em raster → `raster-para-vector` · novo → conceitos `img-gen` (exploração) + vetor `icon-design` · ou ficheiro do designer ⏸ logótipo → B4 sistema visual: direções de design em HTML local (modelo do `/start`) → `brand-guidelines` → `design-system` (tokens; família de marcas → modo multimarca; componentes só se houver site/app) ⏸ direção → B5 aplicações: `icon-design`; `graphic-design` (cartão 85×55, papel de carta, flyer); `slides` → `design-review` (verificador) ⏸ → B6 manual de normas: `graphic-design` (brandbook HTML) → `html-to-pdf` ⏸ → B7 entrega: pacote `brand/` (SVG/PNG, tokens, licenças) → `PROGRESSO.md` ⛔ envio à gráfica |
-| **Projeto multi-tipo** (vários tipos na 1.0) | ordem: **Identidade/branding** → **Website** e/ou Aplicação (`executar-projeto`; consomem os tokens do B4, não os recriam) → Marketing (`/marketeer`, depois do W7/E4: site e lead medidos). Passagem entre workflows = ⏸ 1 gate Sim/Não; dentro de cada um, `chain:` automático. Estado entre sessões em `PROGRESSO.md ## Workflows`; retoma no 1.º por fazer com «Começa quando» cumprido. Redes sociais vão sempre pelo `/marketeer` |
+| **Identidade/branding** (logótipo, marca, manual, aplicações) | B1 posicionamento: `brand-positioning`; `competitor-profiling` → B2 nome **só se faltar**: `brand-guidelines` (secção de naming) ⏸ nome → `docs/DECISIONS.md` → B3 logótipo — **gate de pergunta caso a caso**: existe em raster → `raster-para-vector` · novo → conceitos `img-gen` (exploração) + vetor `icon-design` · ou ficheiro do designer ⏸ logótipo → B4 sistema visual: direções de design em HTML local (modelo do `/start`) → `brand-guidelines` → `design-system` (tokens; família de marcas → modo multimarca; componentes só se houver site/app) ⏸ direção → B5 aplicações: `icon-design`; `graphic-design` (cartão 85×55, papel de carta, flyer); `slides` → `design-review` (verificador) ⏸ → B6 manual de normas: `graphic-design` (brandbook HTML) → `html-to-pdf` ⏸ → B7 entrega: pacote `assets/brand/` (SVG/PNG, tokens, licenças) → `PROGRESSO.md` ⛔ envio à gráfica |
+| **Projeto multi-tipo** (vários tipos na 1.0) | ordem: **Identidade/branding** → **Website** e/ou Aplicação (`executar-projeto`; consomem os tokens do B4, não os recriam) → Marketing (`/marketeer`; começa com `W7 feito` se houver Website, senão com `E4 feito` da Aplicação: site e lead medidos). Passagem entre workflows = ⏸ 1 gate Sim/Não «Avanço para o próximo workflow: <nome>?»; dentro de cada um, `chain:` automático. Estado entre sessões em `PROGRESSO.md ## Workflows`; retoma no 1.º por fazer com «Começa quando» cumprido. Redes sociais vão sempre pelo `/marketeer` |
 | **Ecrã novo em projecto existente** | `preparar-design` (Artifact) → `validar-design` → `novo-issue` se houver componentes novos → implementar → `escrever-testes` |
 | **Produto físico novo** (peça impressa · objecto) | recon da família existente → **gate de viabilidade física MEDIDO** (estabilidade/tombo, parede mínima, formato, orientação de impressão) antes do fan-out de desenho → `blender` → gate «Fabrico» (`gates-runtime.md`) → 1.ª falha com detalhe abaixo do bico: teste da zona mais fina a 3 escalas numa chapa, antes de mexer em definições (`impressao-3d.md` §Gate de runtime) |
 | **Backlog → plano** | `novo-issue` (×N) → `planear-ondas` (milestones + `blocked-by` + `docs/ONDAS.md`) |
@@ -320,7 +320,7 @@ Sufixo = tipo do componente: **sem sufixo → skill** (`.claude/skills/`); `(age
 | real-time · WebSockets · broadcasting · Reverb | `reverb-realtime` |
 | debugbar · telescope · ignition · ray | `error-tracking-dev` |
 | sentry · flare · production logging · structured logging | `error-tracking-prod` |
-| security · segurança · vulnerabilidade · vulnerability | `security` (skill — review profundo de código → `security-review` agente; auditoria completa → `cso`) |
+| security · segurança · vulnerabilidade · vulnerability | `security` (skill — review profundo de código → `security-review` agente; auditoria completa → `seguranca` / `/seguranca`) |
 | postmark · react email · @react-email · email template | `transactional-email` (núcleo do email — Postmark e React Email em reference/) |
 | PRD · requirements doc · product spec | `prd` |
 | planear · planning · como comecar · how to start | `plan` (auto) |
@@ -356,7 +356,7 @@ Sufixo = tipo do componente: **sem sufixo → skill** (`.claude/skills/`); `(age
 | codificar design · transformar em HTML · construir página · implementar design | `design-html` |
 | gauntlet · aim prompt · prompt do Shumer · ao nível de | `gauntlet-loop` (`/gauntlet-loop`) |
 | ship · push para main · abrir PR · está pronto envia | `/ship` |
-| cso · auditoria de seguranca · auditoria de segurança · threat model | `cso` |
+| /seguranca · auditoria de segurança · security audit · security review completo | `seguranca` |
 | o que as pessoas dizem · últimos 30 dias · sinal social · recon antes de reunião · trending real · Reddit/X/YouTube | `/last30days` (plugin externo) |
 | /know · guardar isto · knowledge base · segundo cérebro | `knowledge-ingest` (agent + skill) |
 | ler email · resumir inbox · enviar email · responder email | `personal-comms` (agent + skill) |
@@ -441,6 +441,7 @@ Tabela canónica dos comandos (saiu do `JOCA_Brain/CLAUDE.md` a 2026-09-15 para 
 | WORKFLOW | `/review-design` | UI/UX + accessibility |
 | WORKFLOW | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
 | WORKFLOW | `/create-skill [desc]` | new skill via research pipeline (`--upgrade [nome]` melhora uma existente) |
+| SEGURANÇA | `/seguranca [caminho\|url]` | auditoria de segurança: âmbito → frentes em paralelo → revisor que reproduz → relatório + issues (não corrige) |
 | MARKETING | `/marketeer <marca>` | ciclo de marketing: análise → proposta → artes → implementação (em pausa) |
 | MARKETING | `/marketeer-review <marca>` | rever resultados e abrir o ciclo seguinte |
 | CONHECIMENTO | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |

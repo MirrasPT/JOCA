@@ -152,7 +152,7 @@ Um teste negativo que contém, sem se dar por isso, **as palavras que o filtro p
 causa de si próprio — e o resultado lê-se como cegueira do filtro. Vale para greps, regex de guard,
 filtros de lint e classificadores: o defeito plantado usa-se com vocabulário **neutro**, fora do
 domínio do critério.
-> Real (2026-08-20): plantou-se `.claude/reference/ficheiro-que-nao-existe.md` para testar o check 9
+> Real (2026-08-20): plantou-se um `ficheiro-que-nao-existe.md` em `reference/` para testar o check 9
 > do `joca-doctor`. Não acusou. A causa não era o check — era o filtro `ABSENTE`, que procura
 > `n[aã]o exist` **na linha**, a casar o próprio nome do ficheiro de teste. Com `zzqq-fantasma.md`
 > acusou na hora. **O teste ia produzir uma acusação falsa contra o trabalho do outro lado.**

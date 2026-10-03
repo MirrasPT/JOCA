@@ -1,0 +1,27 @@
+{
+ "skill": "seguranca",
+ "deve": [
+  "faz uma auditoria de segurança ao meu projeto",
+  "/seguranca no repo da loja",
+  "pentest ao meu projeto antes de ir para produção",
+  "security audit of this repo",
+  "corre o ciclo de segurança completo: segredos, dependências e código",
+  "quero um modelo de ameaças da aplicação",
+  "procura segredos no histórico do git e CVEs nas dependências",
+  "auditoria de segurança com relatório e issues",
+  "o projeto está seguro para lançar? faz a auditoria completa",
+  "security review completo do projeto com achados priorizados"
+ ],
+ "quase": [
+  "corrige este XSS no formulário",
+  "implementa login com 2FA",
+  "roda a password da base de dados",
+  "adiciona headers CSP ao next.config",
+  "escreve a política de privacidade",
+  "configura o firewall da vps",
+  "atualiza as dependências do npm",
+  "o certificado ssl expirou",
+  "faz code review deste PR",
+  "testa a performance do site"
+ ]
+}

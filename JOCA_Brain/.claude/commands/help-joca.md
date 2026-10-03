@@ -31,6 +31,7 @@ Tabela canónica dos comandos (saiu do `JOCA_Brain/CLAUDE.md` a 2026-09-15 para 
 | WORKFLOW | `/review-design` | UI/UX + accessibility |
 | WORKFLOW | `/ship` | levar código a PR: sync → testes → review diff → version/CHANGELOG → gate → push → PR |
 | WORKFLOW | `/create-skill [desc]` | new skill via research pipeline (`--upgrade [nome]` melhora uma existente) |
+| SEGURANÇA | `/seguranca [caminho\|url]` | auditoria de segurança: âmbito → frentes em paralelo → revisor que reproduz → relatório + issues (não corrige) |
 | MARKETING | `/marketeer <marca>` | ciclo de marketing: análise → proposta → artes → implementação (em pausa) |
 | MARKETING | `/marketeer-review <marca>` | rever resultados e abrir o ciclo seguinte |
 | CONHECIMENTO | `/know` | ingerir conteúdo na Knowledge Base (markitdown → resumo → tags) |
@@ -53,7 +54,7 @@ Tabela canónica dos comandos (saiu do `JOCA_Brain/CLAUDE.md` a 2026-09-15 para 
 JOCA — Referência rápida
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[comandos: tabela ## Commands acima, agrupada por Grupo (SESSÃO · WORKFLOW · MARKETING · CONHECIMENTO ·
+[comandos: tabela ## Commands acima, agrupada por Grupo (SESSÃO · WORKFLOW · SEGURANÇA · MARKETING · CONHECIMENTO ·
  MANUTENÇÃO · WORDPRESS), uma linha por comando: nome alinhado + função em ~10 palavras.
  Feedback do projecto + JOCA é auto-capturado pelo /save.]
 

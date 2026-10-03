@@ -10,7 +10,7 @@ category: deploy
 triggers: media stack, arr stack, *arr, selfhosted, self-hosted media, jellyfin
 generated-from: .claude/skills/selfhosted-arr.md
 generated-by: skill-agents.mjs
-content-hash: 3516be8a0d3dcdc3
+content-hash: 81b672d78090d6ba
 ---
 
 # selfhosted-arr — agente de execução

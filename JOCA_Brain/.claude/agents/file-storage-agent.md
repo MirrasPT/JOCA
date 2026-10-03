@@ -10,7 +10,7 @@ category: código
 triggers: file upload, S3, R2, presigned URL, ClamAV
 generated-from: .claude/skills/file-storage.md
 generated-by: skill-agents.mjs
-content-hash: f6fc14524c9acab8
+content-hash: 89eb0038173361c4
 ---
 
 # file-storage — agente de execução

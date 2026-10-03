@@ -10,7 +10,7 @@ category: conteúdo
 triggers: write copy for, improve this copy, rewrite this page, marketing copy, headline help, CTA copy
 generated-from: .claude/skills/copywriting.md
 generated-by: skill-agents.mjs
-content-hash: 2458962c33b8f32a
+content-hash: 2f376ac9c8d6a8b5
 ---
 
 # copywriting — agente de execução

@@ -1,6 +1,6 @@
 # BullMQ — Node.js + Redis queues (reference of `queues`)
 
-> Moved from `skills/bullmq.md` (F4.2, issue #61). Universal queue rules, solution choice and routing (Laravel → `horizon`) stay in `skills/queues.md`; this file is the BullMQ implementation.
+> Moved from `skills/bullmq.md` (F4.2, domain merges). Universal queue rules, solution choice and routing (Laravel → `horizon`) stay in `skills/queues.md`; this file is the BullMQ implementation.
 
 ## Contents
 - [Setup](#setup)

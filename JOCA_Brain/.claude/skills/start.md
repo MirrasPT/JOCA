@@ -382,7 +382,7 @@ variantes dentro da direccao escolhida).
    e individual por utilizador; o PROGRESSO.md e a versao publica — as duas apontam uma para a
    outra, nunca duplicam conteudo.) Tipo que nao seja so Aplicacao → secção `## Workflows` antes
    de `## Fases` (formato em `$REF/progresso-formato.md`): uma linha por workflow, pela ordem
-   branding → website/app → marketing, com «Comeca quando». A linha de marketing leva **so**
+   branding → website/app → marketing, com «Comeca quando» (marketing: `W7 feito` com website, senao `E4 feito`). A linha de marketing leva **so**
    `marketeer: slug=<slug>` — o estado vive no `estado.json`, e a RAIZ (caminho da maquina) **nunca**
    entra no `PROGRESSO.md`. O que cada workflow entrega ao seguinte: `$REF/workflows-encadeamento.md`.
 4. **Memoria do Brain** — pasta `memory/projects/<nome>/` (`<nome>` = `normalizeSlug(basename(pwd))`).
@@ -402,7 +402,7 @@ variantes dentro da direccao escolhida).
 5. **Resumo final** ao utilizador: o que ficou decidido e o que o primeiro workflow vai fazer. **O
    avanco e assumido** — nao perguntes se ele quer continuar. O unico gate e um `AskUserQuestion` de
    duas opcoes, com a primeira em recomendado:
-   > **Avanco para o primeiro workflow: <nome>?**
+   > **Avanço para o próximo workflow: <nome>?**
    > 1. **Sim, avancar** (recomendado) — Aplicacao: `executar-projeto` a partir da E1 · Website: W1
    >    da pipeline **Website** · Identidade: B1 da pipeline **Identidade/branding** · Marketing: `/marketeer <marca>`
    > 2. **Nao — so queria o plano** — fica tudo em `docs/` + `PROGRESSO.md` (+ dossier na RAIZ)
@@ -442,6 +442,6 @@ variantes dentro da direccao escolhida).
 
 - Confirmado → o **primeiro workflow** de `## Workflows`: **`executar-projeto`** (Aplicacao) · pipeline
   **Website** ou **Identidade/branding** pelo auto-runner (`rules/pipelines.md`) · **`marketeer`**.
-  Passagem entre workflows = 1 gate Sim/Nao; dentro de cada um, chain automatico.
+  Passagem entre workflows = 1 gate Sim/Nao «Avanço para o próximo workflow: <nome>?»; dentro de cada um, chain automatico.
 - So queria o plano → fica tudo em `docs/` + `PROGRESSO.md`; a execucao corre quando ele quiser.
 - Backlog a organizar antes → `planear-ondas` depois de a execucao abrir os issues.

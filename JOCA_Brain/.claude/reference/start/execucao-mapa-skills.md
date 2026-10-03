@@ -66,7 +66,7 @@ Estado em `PROGRESSO.md ## Workflows`; o que recebe do branding → `workflows-e
 | B4 Sistema visual ⏸ | `brand-guidelines` → `design-system` (tokens; família de marcas e componentes dentro dela) | `design-system-agent` |
 | B5 Aplicações | `icon-design` · `graphic-design` (cartão, papel de carta, flyer) · `slides` → `design-review` (verif.) | `graphic-design-agent` · `slides-agent` |
 | B6 Manual de normas ⏸ | `graphic-design` + `html-to-pdf` (documento longo) | — |
-| B7 Entrega ⛔ (envio à gráfica) | sem skill própria: pacote `brand/` (SVG/PNG, tokens, licenças) | — |
+| B7 Entrega ⛔ (envio à gráfica) | sem skill própria: pacote `assets/brand/` (SVG/PNG, tokens, licenças) | — |
 
 ## Orquestracao
 - Fan-out: playbook `master-orchestrator` ADOPTADO pelo main loop (agentes nao fazem spawn).

@@ -24,7 +24,7 @@ conflitos resolvem-se como qualquer merge.
 tipo: [branding, website, marketing]
 | # | Workflow | Estado | Começa quando | Entrega | Prova |
 |---|---|---|---|---|---|
-| 1 | branding  | ✅ 2026-08-19 | —           | docs/BRAND.md · docs/DESIGN.md · brand/ | B7 |
+| 1 | branding  | ✅ 2026-08-19 | —           | docs/BRAND.md · docs/DESIGN.md · assets/brand/ | B7 |
 | 2 | website   | ⏳ W4         | B4 aprovado | URL publicado · GA4/GTM | — |
 | 3 | marketing | ⬜            | W7 feito    | marketeer: slug=<slug> (estado.json) | `estado.mjs ler <slug>` |
 
@@ -59,7 +59,7 @@ o workflow activo e expira em 6 h, por isso não serve para isto.
 - **Uma linha por workflow**, pela ordem em que correm (`#`). Um só tipo = uma linha.
 - **Prefixos de fase** em `## Fases`: **S** (entrevista do `/start`) e **E** (aplicação, `executar-projeto`) ·
   **W** (website, W1–W7) · **B** (branding, B1–B7). As fases de cada workflow vão para `## Fases` com o seu prefixo.
-- **«Começa quando»** é uma fase com prova (`B4 aprovado`, `W7 feito`) ou `—` (começa já).
+- **«Começa quando»** é uma fase com prova (`B4 aprovado`, `W7 feito`) ou `—` (começa já). Marketing começa com `W7 feito` se houver website, senão com `E4 feito` da aplicação.
 - **Marketing não se espelha:** o estado vive no `estado.json` do pack do `/marketeer`. Aqui entra só o
   slug na coluna Entrega e o comando de prova (`estado.mjs ler <slug>`); a coluna Estado fica `⬜` até
   arrancar e depois `▶ estado.json`. O caminho da RAIZ do marketeer vai para o frontmatter de

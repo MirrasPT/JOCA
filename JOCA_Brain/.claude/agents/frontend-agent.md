@@ -10,7 +10,7 @@ category: código
 triggers: frontend-design, frontend design, website, landing page, site, webapp
 generated-from: .claude/skills/frontend.md
 generated-by: skill-agents.mjs
-content-hash: 31d889fd68acd764
+content-hash: 0d5ce4d759b4b495
 ---
 
 # frontend — agente de execução

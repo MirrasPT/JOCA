@@ -127,7 +127,8 @@ no mesmo servidor, e há servidores com sites por utilizador de sistema (não o 
    `kill $(lsof -t -i :<N> -sTCP:LISTEN)` se o `fuser` não existir) → o daemon relança. Nunca por
    nome: o Next renomeia o processo para `next-server (v…)` e um `pkill -f "next start…"` não apanha
    nada, em silêncio — fica a servir o build antigo. Nunca `pkill node` (mata os Next dos outros sites).
-   Confirmar que o PID na porta mudou (`lsof -t -i :<N> -sTCP:LISTEN` antes e depois).
+   Confirmar que o PID na porta mudou (`lsof -t -i :<N> -sTCP:LISTEN` antes e depois; sem `lsof`,
+   `fuser -n tcp <N>` ou `fuser <N>/tcp` — os PIDs saem no stdout, o resto no stderr).
 4. Verificar pelo **corpo** nos dois caminhos (`/` e `/<prefixo>/`), como na secção do site estático.
 
 ---

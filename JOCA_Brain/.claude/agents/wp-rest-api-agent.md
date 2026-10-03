@@ -10,7 +10,7 @@ category: wordpress
 triggers: WordPress REST API, CPTs
 generated-from: .claude/skills/wp-rest-api.md
 generated-by: skill-agents.mjs
-content-hash: dd8d61a58a3d2a42
+content-hash: f882156ee0e6e9c3
 ---
 
 # wp-rest-api — agente de execução

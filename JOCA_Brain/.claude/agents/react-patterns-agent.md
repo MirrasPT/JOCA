@@ -10,7 +10,7 @@ category: código
 triggers: react performance, re-render, useEffect, server component, RSC, waterfall
 generated-from: .claude/skills/react-patterns.md
 generated-by: skill-agents.mjs
-content-hash: 7e3c8fd4b33870fe
+content-hash: 0a4b93e370917246
 ---
 
 # react-patterns — agente de execução

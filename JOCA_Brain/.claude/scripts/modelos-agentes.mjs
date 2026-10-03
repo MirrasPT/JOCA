@@ -111,7 +111,13 @@ function sugestao(fm) {
   const m = fm['modelo-sugerido'];
   // Sem sugestão → «manter»: «aplicar todas» nunca mexe em quem não tem recomendação (D3).
   if (!m) return { model: 'manter', effort: null, porque: 'sem sugestão no agente — fica como está' };
-  return { model: m, effort: fm['effort-sugerido'] || null, porque: fm['porque-modelo'] || '' };
+  const effort = fm['effort-sugerido'] || null;
+  // A sugestão nunca BAIXA o effort actual em «aplicar todas»: fica o actual e a descida vai
+  // em `desce`, só aplicada se o utilizador a escolher para esse agente (effort editado no JSON).
+  if (effort && fm.effort && EFFORTS.indexOf(effort) < EFFORTS.indexOf(fm.effort)) {
+    return { model: m, effort: fm.effort, desce: effort, porque: fm['porque-modelo'] || '' };
+  }
+  return { model: m, effort, porque: fm['porque-modelo'] || '' };
 }
 
 const ROTULO = { manter: 'manter o actual', inherit: 'herdar do chat principal', sonnet: 'Sonnet', opus: 'Opus', haiku: 'Haiku', fable: 'Fable' };
@@ -125,7 +131,7 @@ function tabela({ todos, json }) {
     .map((a) => ({ nome: a.nome, actual: rot(a.fm.model || 'inherit', a.fm.effort), ...sugestao(a.fm) }));
   if (json) {
     const out = { agentes: {} };
-    for (const l of linhas) out.agentes[l.nome] = { model: l.model, effort: l.effort, actual: l.actual, porque: l.porque };
+    for (const l of linhas) out.agentes[l.nome] = { model: l.model, effort: l.effort, ...(l.desce && { desce: l.desce }), actual: l.actual, porque: l.porque };
     console.log(JSON.stringify(out, null, 2));
     return;
   }
@@ -135,7 +141,10 @@ function tabela({ todos, json }) {
   console.log(`[modelos-agentes] ${linhas.length} agente(s) ${todos ? 'no total' : 'sem escolha'}:\n`);
   console.log('| Agente | Actual | Sugestão | Porquê |');
   console.log('|---|---|---|---|');
-  for (const l of linhas) console.log(`| ${l.nome} | ${l.actual} | ${rot(l.model, l.effort)} | ${l.porque} |`);
+  for (const l of linhas) {
+    const sug = l.desce ? `${rot(l.model)} · ↓ manter ${l.effort} (sugerido ${l.desce}: só se escolhido)` : rot(l.model, l.effort);
+    console.log(`| ${l.nome} | ${l.actual} | ${sug} | ${l.porque} |`);
+  }
 }
 
 function validar(nome, e) {

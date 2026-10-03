@@ -53,7 +53,7 @@ await page.goto(url, { waitUntil: 'networkidle' });
 ### 4. Com/sem `Origin` — não reinventar a receita
 
 Receita completa (curl com/sem `Origin`, o que cada resposta significa) já existe em
-`.claude/commands/resume.md` §2f — ler dali, não copiar aqui. Sem `Origin` a API responde 200 e
+`.claude/reference/resume/live.md` §Endereços live (ponteiro em `.claude/commands/resume.md` §2f) — ler dali, não copiar aqui. Sem `Origin` a API responde 200 e
 parece resolvida; o browser real do utilizador manda `Origin` sempre.
 
 ### 4b. Domínio atrás de login, WAF ou desafio Cloudflare — quando a sonda falha antes de começar
@@ -87,7 +87,7 @@ no cliente.
 - Tabela completa de gates por categoria (auth, despublicado, deploy, recurso máquina-a-máquina) →
   `.claude/reference/gates-runtime.md`.
 - Receita `com/sem Origin` e hash/símbolo vs `content-length` para "está deployado?" →
-  `.claude/commands/resume.md` §2f.
+  `.claude/reference/resume/live.md` §Endereços live e §Paridade live ↔ repo (`/resume` §2f e §2c).
 
 ## Caso-fonte
 

@@ -10,7 +10,7 @@ category: 3d
 triggers: meshy, meshy.ai, gerar modelo 3d, criar modelo 3d, modelo 3d por ia, text-to-3d
 generated-from: .claude/skills/meshy.md
 generated-by: skill-agents.mjs
-content-hash: 0fc95afd48a2ba9d
+content-hash: f3732d0a33f5cdeb
 ---
 
 # meshy — agente de execução

@@ -10,7 +10,7 @@ category: código
 triggers: multi-tenancy Laravel, tenant isolation, feature flags SaaS, subscription tiers gate, tenant onboarding workflow, queue tenant context
 generated-from: .claude/skills/saas-patterns.md
 generated-by: skill-agents.mjs
-content-hash: b783b5bd8419e636
+content-hash: c2c74cc1ab739c19
 ---
 
 # saas-patterns — agente de execução

@@ -10,7 +10,7 @@ category: plataformas
 triggers: Shopify, Liquid, Dawn, Theme Check, CLI
 generated-from: .claude/skills/shopify-theme.md
 generated-by: skill-agents.mjs
-content-hash: 86ac9276e28c709c
+content-hash: 7e5c9b98c9ead687
 ---
 
 # shopify-theme — agente de execução

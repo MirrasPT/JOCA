@@ -153,7 +153,7 @@ Trabalho paralelo produz exactamente este buraco: cada peça correcta, a junçã
 
 ---
 
-## Texto retirado da rule — corte de tokens (issue #3, 2026-09-15)
+## Texto retirado da rule — corte de tokens (2026-09-15)
 
 A rule ficou com uma formulação curta por regra; o resto saiu para aqui, tal qual.
 

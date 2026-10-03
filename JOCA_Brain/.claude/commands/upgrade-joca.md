@@ -128,81 +128,9 @@ Regras duras:
 
 ### 1.6 Modo backlog (acima de ~30 issues)
 
-Acima de ~30 issues a Phase 1.3 ("agregar e deduplicar numa lista") e a Phase 3 (tabela para
-confirmar) deixam de ser praticáveis — já se chegou a 330 issues em 101 ficheiros. Nesse caso:
-
-**(a) Triagem por fan-out de agentes SÓ-LEITURA.** Um agente por **família de alvos** (comandos ·
-rules · skills · agents · scripts · memory), 3-5 em paralelo no mesmo turno. Cada um devolve, por
-issue: `estado` + prova + severidade + alvo. Brief obrigatório, além dos 4 campos habituais:
-
-```
-NÃO EDITAS NADA. Ferramentas de escrita proibidas — só Read/Grep/Glob/Bash-de-leitura.
-Um triador que "aproveita e corrige" destrói a idempotência que a triagem existe para garantir,
-e o resultado deixa de ser auditável (não se sabe o que era estado inicial e o que foi acção tua).
-Escreve o resultado em .joca/upgrade/triagem-<familia>.md e devolve só o resumo + o path.
-```
-
-**Destino dos relatórios — nunca o scratchpad.** Corridas multi-agente longas escrevem os relatórios em
-`~/.claude/joca-runs/<YYYY-MM-DD>-<tarefa>/`; o scratchpad fica para rascunhos de minutos. A triagem continua em
-`.joca/upgrade/` (acima, porque é auditada e versionada com o repo); **qualquer outro relatório de agente desta
-corrida** vai para o `joca-runs/`, e o caminho entra no brief de cada agente. Medido: o scratchpad da sessão
-desapareceu a meio de uma corrida longa e levou os relatórios de 8 agentes — só sobreviveu o que tinha sido copiado
-a tempo para fora dele.
-
-**(b) Agregar por defeito, não por issue.** Apresentar **clusters** (mesmo defeito, mesmo alvo) na
-Phase 3, não 330 linhas. Ficheiros disjuntos por cluster — dois agentes no mesmo ficheiro pisam-se.
-
-**(c) Fatiar por severidade.** Uma corrida = uma banda (`critical`+`high`, depois `medium`+`low`).
-No frontmatter de cada ficheiro coberto só em parte:
-
-```yaml
-processed: partial
-upgrade_run: 2026-08-17
-upgrade_covered: [critical, high]
-```
-
-Arquivar (Phase 6.3) só quando **todas** as bandas estiverem cobertas.
-
-**(d) Caducidade — expire `medium`/`low` by age (> ~8 weeks).** `medium`/`low` com mais de ~8
-semanas num toolkit que mudou entretanto já não descrevem o mesmo gap — e re-derivar o `estado` de
-cada um custa uma leitura de ficheiro por corrida, para sempre. Propor arquivo por idade no gate da
-Phase 3, com a lista à vista — arquivar por idade é mais honesto do que manter uma fila que nunca se
-esvazia. Antes de fatiar, listar os candidatos:
-
-```bash
-find memory/feedback -maxdepth 1 -name '*.md' -mtime +56    # candidates (severity checked per file)
-```
-
-Para cada candidato cujos issues restantes sejam todos `medium`/`low`: acrescentar
-`expired: <YYYY-MM-DD> — caducado por idade, não verificado` ao frontmatter e movê-lo para
-`memory/feedback/archive/`. **`critical`/`high` nunca caducam** — esperam.
-
-⚠ **A contagem de "novos" lê-se do FRONTMATTER, nunca de `find -newermt`.** Uma corrida anterior
-carimba frontmatter em todos os ficheiros que tocou, logo os `mtime` saltam todos para a data dessa
-corrida e o `find` devolve "todos" (medido 2026-08-20: disse 115 novos, eram 34):
-```bash
-grep -L '^upgrade_run:' memory/feedback/session-*.md | wc -l   # novos desde a última corrida
-```
-
-**(e) Entrada vs saída — Report intake vs throughput: the backlog must be shown converging, or shown
-not to.** Backlog mode slices the queue; it does not by itself drain it. Reportar sempre: ficheiros
-novos desde a última corrida (baseline 1.0) vs processados nesta. Every run measures both ends and
-prints the line in Phase 6, even (especially) when the news is bad:
-
-```bash
-LAST=$(grep -rhoP '^upgrade_run: *\K\S+' memory/feedback/*.md 2>/dev/null | sort | tail -1)
-ls memory/feedback/session-*.md | wc -l                            # total still pending
-grep -L '^upgrade_run:' memory/feedback/session-*.md | wc -l       # NEW since last run
-```
-
-`IN: <new files since last run> · OUT: <files closed this run>`. Each `/save` session produces
-1--2 new files: if `IN >= OUT` across successive runs, **say so in one line** ("the queue is not
-converging: N in, M out") instead of letting backlog mode hide it behind a tidy severity slice. Se a
-entrada ganhar de forma consistente, o modo backlog está a mascarar o problema, não a resolvê-lo —
-dizê-lo no relatório da Phase 6.
-
-> Measured 2026-08-17: 111 files pending, 79 `partial` since 2026-08-12, 32 never touched --
-> 26 critical, 152 high, 216 medium, 87 low.
+Já se chegou a 330 issues em 101 ficheiros. Antes da triagem → `Read(".claude/reference/upgrade-joca/backlog.md")`: (a) triagem por fan-out de
+agentes **só-leitura**, (b) agregar por defeito, (c) fatiar por severidade, (d) caducidade de `medium`/`low`,
+(e) entrada vs saída (linha obrigatória na Phase 6).
 
 ---
 
@@ -259,32 +187,7 @@ never inside the confirmation prompt.
 
 Present a numbered list. Every item MUST include all fields:
 
-```
-JOCA UPGRADE PLAN
------------------
-
- #  Type          Component    Description                                     Impact   Effort
---- ------------- ------------ ----------------------------------------------- -------- --------
- 1  NEW_SKILL     skill        next-auth — Next.js authentication patterns     HIGH     SMALL
-                               Research: OAuth 2.1 PKCE, NextAuth.js v5 API
- 2  IMPROVE_SKILL skill        frontend — add Tailwind v4 utilities        MEDIUM   SMALL
-                               Research: Tailwind v4 migration guide patterns
- 3  FIX_TRIGGER   skill        laravel-specialist — false positive on "artisan" HIGH     TRIVIAL
-                               in non-Laravel contexts
- 4  IMPROVE_CMD   command      save — missing error handling on checkpoint fail MEDIUM   SMALL
- 5  FIX_WORKFLOW  workflow     create-skill pipeline — evaluator timeout        LOW      MEDIUM
-                               not handled
- 6  NEW_AGENT     agent        perf-monitor — continuous performance tracking   LOW      LARGE
- 7  IMPROVE_AGENT agent        deep-research — add firecrawl_extract fallback  MEDIUM   TRIVIAL
-
------------------
-7 improvements planned (2 HIGH, 3 MEDIUM, 2 LOW)
-
-Sources:
-  #1: session-meu-projecto-2026-05-20.md > Issue 3
-  #2: auto-2026-05-22.md > Issue 1, joca-patterns.md > "Tailwind v4"
-  ...
-```
+Formato da tabela (exemplo com os 7 tipos e as fontes) → `Read(".claude/reference/upgrade-joca/modelos-saida.md")` §Plano.
 
 **Custo das rules no plano.** Qualquer item que escreva em `.claude/rules/*.md` (auto-carregadas em
 **todas** as mensagens) mostra no plano o **delta estimado de chars** por rule e o de onde sai o espaço
@@ -344,62 +247,8 @@ For each workflow fix:
 
 For each `IMPROVE_SKILL` or `NEW_SKILL` item:
 
-**Step A -- Draft/Revise (skill-improver agent)**
-
-```
-Agent(subagent_type="skill-improver")
-```
-
-Brief:
-```
-ORIGINAL REQUEST: [description of what the skill should do, from the feedback issue]
-ITERATION: 1 of 3
-PREVIOUS EVALUATOR FEEDBACK: [none for iteration 1, or evaluator's feedback array for iterations 2-3]
-CURRENT SKILL CONTENT: [full content of existing skill, or "NEW -- create from scratch"]
-RESEARCH CONTEXT: [actionable findings from Phase 2, if available]
-```
-
-**Step B -- Evaluate (skill-evaluator agent)**
-
-```
-Agent(subagent_type="skill-evaluator")
-```
-
-Brief:
-```
-ORIGINAL REQUEST: [same as above]
-ITERATION: [N] of 3
-SKILL TO EVALUATE:
-[the full skill content returned by skill-improver]
-```
-
-**Step C -- Decision**
-
-Parse the evaluator's JSON response:
-- If `verdict` is `"PASS"` (score >= 8.0): accept the skill, proceed to write
-- If `verdict` is `"FAIL"` and iteration < 3: go back to Step A with `feedback` array as `PREVIOUS EVALUATOR FEEDBACK`
-- If `verdict` is `"FAIL"` and iteration == 3: report the skill as failed, include the best-scoring version in the report, suggest manual review
-
-**Step D -- Write**
-
-For accepted skills:
-1. Write/overwrite the skill file at `.claude/skills/<name>.md`
-2. **Origin marking depends on whether the file was CREATED or merely IMPROVED:**
-   - `NEW_SKILL` (the file did not exist before this run) → add `origin: local` to the frontmatter.
-   - `IMPROVE_SKILL` (the file already existed) → **add no origin marker, and remove none.** Leave the
-     frontmatter's origin field exactly as it was.
-   Rationale: `origin: local` is what `/update-joca` treats as "never touch". Stamping it on a skill
-   that came from upstream freezes that skill against every future upstream fix, silently. An earlier
-   version of this command did exactly that and froze 20 published skills/commands.
-3. **Prove the file is on disk before calling it applied:** `ls -l .claude/skills/<name>.md` (and, for
-   an improvement, `git diff --stat -- .claude/skills/<name>.md` non-empty). The `skill-improver` can
-   return the full content **without writing anything** — it happened with `mutation-testing`, and
-   Phase 4b only checks files that are already on its list. No hit → the item is `failed`, not `applied`.
-4. Confirm: `[skill: <name>] score <X>/10 -- applied (iteration N)`
-
-For failed skills (3 iterations, never passed):
-1. Do NOT write the file
-2. Report: `[skill: <name>] best score <X>/10 -- FAILED after 3 iterations. Manual review needed.`
+Antes de despachar o `skill-improver` → `Read(".claude/reference/upgrade-joca/skill-loop.md")`: Step A (rascunho), Step B (avaliação), Step C
+(decisão PASS/FAIL, máx. 3 iterações) e Step D (escrita, marcação de origem e prova em disco).
 
 ### 4.4 Agent improvements and new agents
 
@@ -423,81 +272,12 @@ For each command improvement:
 
 ## Phase 4b -- Verificar por EFEITO (obrigatória)
 
-Nunca se passa da Phase 4 à Phase 5 pelo relatório de quem escreveu. Numa corrida com verificação
-adversarial por fora apanharam-se 4 defeitos que teriam entrado em silêncio: um agente apagou 20
-linhas inteiras de um comando e não o reportou; outro escreveu um aviso factualmente falso alegando
-tê-lo "verificado a correr o script". **O relatório descreve a intenção; só o disco mostra o efeito.**
+Nunca se passa da Phase 4 à Phase 5 pelo relatório de quem escreveu: o relatório descreve a intenção; só o disco
+mostra o efeito.
 
-Para **cada ficheiro tocado**:
-
-```bash
-grep -n "<frase exacta que foi acrescentada>" <ficheiro>   # o texto novo existe mesmo?
-git diff --stat -- <ficheiro>                               # quanto entrou vs quanto saiu
-git diff -- <ficheiro> | grep '^-' | grep -v '^---'         # o que foi APAGADO (deve ser só o previsto)
-```
-
-E, conforme o tipo:
-
-| O que a alteração introduziu | Verificação |
-|---|---|
-| caminho de ficheiro | `ls <caminho completo>` |
-| flag de CLI | `<cli> --help` e confirmar a flag na saída |
-| `.js` / `.mjs` | `node --check <ficheiro>` |
-| `.py` | `python3 -m py_compile <ficheiro>` |
-| `.sh` | `bash -n <ficheiro>` |
-| triggers de skill | ver 4b.1 |
-
-**Checklist completo — run it for every file touched in Phase 4.** Verify by effect, never by the
-report's description. An agent's summary is a lead; the disk is the evidence. Do not skip a file
-because the report says the edit was small, obvious, or already checked. One real run let **4 defects
-through in silence**: 20 lines deleted from `/install`, a factually false warning written into
-`/learn`, a real bug hidden behind an inflated claim, and test junk left in `learnings/*.jsonl` that
-`session-intake.js` then injected into every session. Reindexing an unverified change propagates it.
-
-| # | Check | How |
-|---|---|---|
-| 1 | The new text is really there | `grep -n "<a literal phrase from the new text>" <file>` -- must hit. Claim without a hit = not applied |
-| 2 | The edit was additive, not destructive | `git diff --stat <file>` then `git diff <file>` -- read the deletions. An "improvement" that removes more lines than it adds is a regression until proven otherwise |
-| 3 | Nothing else was touched | `git status --porcelain` -- files changed but not in the Phase 4 list are unrequested edits; revert them |
-| 4 | Every path introduced exists | `ls <path>` for each new file/dir reference in the text |
-| 5 | Every command/flag introduced is real | `<cmd> --help` (or `command -v <cmd>`) for each new CLI/flag cited. A plausible flag that does not exist reads exactly like one that does |
-| 6 | Code parses | `node --check <f.js/.mjs>` · `python -m py_compile <f.py>` (Windows: `python`) · `bash -n <f.sh>` · `php -l <f.php>` |
-| 7 | Factual claims in the new text are true | For each new assertion about the toolkit's behaviour, run the check that proves it. A warning that describes behaviour the code does not have is worse than no warning |
-| 8 | No test/scratch residue | `git diff` for junk lines in data files (`*.jsonl`, indexes, logs) that a trial run left behind |
-
-**Failure handling:** any check that fails → the item is **not applied**. Revert that file
-(`git checkout -- <file>` if the working tree was clean before, otherwise undo the edit surgically),
-and record it as `failed -- verification` in the Phase 6 report with the check that caught it. Never
-"fix it in Phase 5" -- Phase 5 only reindexes.
-
-**In workflow mode (fan-out):** one verifier agent per batch of files, dispatched after the batch
-returns. The verifier gets the file list + the claims made for each file, runs the checklist above,
-and reports pass/fail **per file**. The verifier never edits and is never the same agent that wrote
-the change (an author re-reading its own claim confirms its own description, not the disk).
-
-**4b.1 Triggers novos vão para o INÍCIO da lista.** O `build-skill-index.py` guarda no máximo
-`MAX_TRIGGERS` triggers por componente (constante no topo do script — ler o valor lá, não daqui) e
-corta o resto; avisa com `[index] AVISO skill <x>: … descartados`, mas o aviso perde-se no meio do
-output da reindexação. Acrescentar no
-fim da lista do frontmatter — o que qualquer editor faz por omissão — produz uma alteração que existe
-no ficheiro e **não faz nada**: as skills carregam lazy pelo índice e o termo novo nunca é
-encontrado. Depois de reindexar (4c):
-
-```bash
-grep -c "<trigger novo>" memory/SKILL_INDEX.json   # 0 = inerte, ficou fora do corte
-```
-
-**Em modo backlog:** um verificador por lote, despachado **depois** do lote de escrita e **sem** ter
-participado nele. Quem escreveu o código não assina o gate.
-
-Defeito encontrado aqui = reparação nesta corrida, não item para o próximo ciclo.
-
-**4b.9 -- o sistema, não só os ficheiros.** Todos os checks acima são **por ficheiro**. Nada em 4b
-olha para o toolkit como um todo, e os três scripts de reindexação vivem na Phase 5 — que esta mesma
-fase declara não ser sítio para corrigir nada ("Defeito encontrado aqui = reparação nesta corrida").
-Uma corrida pode portanto acabar com **cada ficheiro verificado e o toolkit inconsistente**. É para
-isso que existe o bloco de sistema da **Phase 4c** (abaixo): corre **uma vez**, depois de todos os
-ficheiros terem passado 4b ou terem sido revertidos, e compara-se sempre contra o baseline da 1.0.
+Antes de verificar o primeiro ficheiro → `Read(".claude/reference/upgrade-joca/verificacao-efeito.md")`: comandos por ficheiro, checklist de 8 pontos,
+tratamento de falhas, modo workflow (verificador ≠ autor), 4b.1 (triggers novos no INÍCIO da lista) e 4b.9
+(o sistema, não só os ficheiros — daí a Phase 4c).
 
 ## Phase 4c -- Bloco de sistema (uma vez, contra o baseline)
 
@@ -621,50 +401,8 @@ Then edit by hand, surgically: the counts and the component's line in `memory/IN
 
 ### 6.1 Summary
 
-```
-JOCA UPGRADE COMPLETE
----------------------
-
-Applied: N
-  [1] NEW_SKILL    next-auth               score 8.5/10 (iter 2)
-  [3] FIX_TRIGGER  laravel-specialist       applied
-  [4] IMPROVE_CMD  save                     applied
-
-Already resolved on disk: J (estado JA_RESOLVIDO -- not re-applied)
-  [2] IMPROVE_SKILL frontend                already at .claude/skills/frontend.md:88
-
-Uncertain: I (estado INCERTO -- needs the user to arbitrate)
-  [8] FIX_WORKFLOW  hook dispatch            target ambiguous, nothing applied
-
-Skipped: M (user choice)
-  [6] NEW_AGENT    perf-monitor             skipped by user
-
-Failed: K
-  [5] FIX_WORKFLOW create-skill pipeline    failed -- codex review found regression
-  [7] IMPROVE_CMD  install                  failed -- verification (4b check 2: 20 lines deleted)
-
----------------------
-Files modified:
-  .claude/skills/<nova-skill>.md      (NEW, ex.: next-auth)
-  .claude/skills/laravel-specialist.md (trigger fix)
-  .claude/commands/save.md             (improved)
-
-Validation:
-  Phase 4b: N/N files verified on disk (0 reverted)
-  SKILL_INDEX.json regenerated
-  Bridges recompiled
-  joca-doctor: baseline 20 ✓ · 1 ⚠ · 1 ✗  →  depois 21 ✓ · 1 ⚠ · 0 ✗
-    novos desta corrida: 0        (qualquer ⚠/✗ novo é defeito desta corrida)
-    pré-existentes:      1 ⚠ (soul.md por preencher)
-  [Codex review: 0 issues / not available]
-
-Entrada vs saída (desde <data da última corrida>):
-  ficheiros de feedback novos: N     processados nesta corrida: M
-  → saldo: +/-K        (se a entrada ganhar de forma consistente, dizê-lo em voz alta)
-  banda coberta: [critical, high]    adiado: X issues medium/low
-
----------------------
-```
+Antes de escrever o resumo → `Read(".claude/reference/upgrade-joca/modelos-saida.md")` §Relatório (aplicado · já resolvido · incerto · saltado · falhado,
+ficheiros, validação contra o baseline, entrada vs saída).
 
 ### 6.2 Mark feedback as processed
 
@@ -714,13 +452,7 @@ For `joca-patterns.md`: do NOT move -- only mark individual entries as processed
 
 ### 6.4 Suggest next steps
 
-```
-Next steps:
-  - Run /update-joca if upstream changes are available
-  - Realign the derived inventory if skills/agents/commands changed (step 5.6)
-  - Run /save in your next session to auto-capture new feedback patterns
-  - Review failed items manually: <list of failed items>
-```
+Bloco de próximos passos → `Read(".claude/reference/upgrade-joca/modelos-saida.md")` §Próximos passos (`/update-joca`, realinhar o inventário pela 5.6, `/save`, falhados).
 
 > **Windows:** if this upgrade ran on Windows and any change touches the JOCA_OS layer, defer UI verification to the `joca-os-windows` skill — the JOCA_OS is developed/validated on macOS and that skill re-tests and fixes the Windows-sensitive parts in one pass.
 
@@ -756,27 +488,11 @@ Next steps:
 
 `/upgrade-joca --auto` corre o ciclo SEM interacção — pensado para sessões em que o user pediu explicitamente rotina autónoma. O gate humano da Phase 3.2 é substituído por um perímetro conservador:
 
-**Pode aplicar sozinho (allowlist):**
-- `IMPROVE_SKILL` — melhorar skill existente (loop improver/evaluator, threshold 8.0/10 mantém-se)
-- `FIX_TRIGGER` — corrigir triggers/description de skill que não disparou quando devia
-- Regenerar `SKILL_INDEX.json` + bridges + marcar/arquivar feedback processado
+Antes de correr com `--auto` → `Read(".claude/reference/upgrade-joca/modo-auto.md")`: allowlist e regras extra (máx. 5
+melhorias por run, Phases 4b/4c obrigatórias, `auto-upgrade-log.md`).
 
 **NUNCA aplica sozinho (fica em proposta):**
 - `NEW_SKILL` / `NEW_AGENT` — escreve o draft em `memory/feedback/proposals/<nome>.md` com o rationale e pára
 - `FIX_AGENT` em agentes de orquestração (task-router, self-improver); o playbook `reference/master-orchestrator.md` corrige-se como referência
 - `CONFIG_CHANGE` (CLAUDE.md, soul.md, rules/, settings.json, hooks)
 - Qualquer coisa fora de `.claude/skills/` + índices
-
-**Regras extra do modo auto:**
-- Sem feedback pendente (≥1 ficheiro) → termina imediatamente com "nada a processar" (não inventa melhorias)
-- Máximo 5 melhorias aplicadas por run (as restantes ficam para o próximo ciclo, por ordem de severidade)
-- As **Phases 4b e 4c são obrigatórias também aqui** — sem gate humano, são a única coisa que separa
-  "aplicado" de "alegado". Item que falhe qualquer check é revertido e reportado como
-  `failed -- verification`; o modo auto **nunca** aplica sem verificar, e a verificação não alarga o
-  que ele pode tocar
-- O campo `estado` (Phase 1.5) aplica-se na íntegra: só `PENDENTE` entra nos 5 do run. `INCERTO` vai
-  para o log como proposta, nunca é aplicado sozinho
-- Com backlog grande (Phase 1.6) escreve `processed: partial` + `upgrade_run`/`upgrade_covered` e
-  **não arquiva** o ficheiro
-- No fim, escreve um resumo em `memory/feedback/auto-upgrade-log.md` (append): data, itens aplicados, itens em proposta, itens falhados
-- Termina SEMPRE com um resumo claro (o worker do JOCA_OS captura-o e o juiz classifica) — listar: aplicado / proposto / falhado / adiado

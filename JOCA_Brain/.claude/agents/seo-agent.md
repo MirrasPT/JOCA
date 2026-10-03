@@ -10,7 +10,7 @@ category: conteúdo
 triggers: SEO audit, technical SEO, why am I not ranking, traffic dropped, lost rankings, crawl errors
 generated-from: .claude/skills/seo.md
 generated-by: skill-agents.mjs
-content-hash: 7bbeedf486e045b2
+content-hash: bd17c4d0e0094f40
 ---
 
 # seo — agente de execução

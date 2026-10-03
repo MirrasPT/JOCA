@@ -10,7 +10,7 @@ category: design
 triggers: landing page, create landing page, build landing page, lead gen page, squeeze page, opt-in page
 generated-from: .claude/skills/landing-page.md
 generated-by: skill-agents.mjs
-content-hash: 3e4402c9d450b067
+content-hash: fb67127e3818ed4e
 ---
 
 # landing-page — agente de execução

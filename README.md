@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── feedback/        <- sessoes de feedback (capturado pelo /save)
 │   │   └── tools/           <- CLIs e MCPs (install + auth)
 │   └── .claude/
-│       ├── commands/        <- 30 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
+│       ├── commands/        <- 31 comandos (/install, /save, /goal, /know, /upgrade-joca, ...)
 │       ├── agents/          <- 97 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 178 skills flat — triggers declarativos, on-demand loading
+│       ├── skills/          <- 179 skills flat — triggers declarativos, on-demand loading
 │       ├── rules/           <- 5 directivas globais (task-intake, chaining, pipelines, orchestration, stack)
 │       ├── reference/       <- referencia densa, carregada on-demand (nao vive em contexto)
 │       ├── hooks/           <- Node.js cross-platform (track-changes, auto-test, task-intake)
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh / stop.bat   <- stop scripts
 ```
 
-**305 componentes:** 178 skills + 97 agents + 30 commands.
+**307 componentes:** 179 skills + 97 agents + 31 commands.
 
 ---
 
@@ -206,7 +206,7 @@ Le feedback acumulado, pesquisa best practices com `deep-research`, melhora skil
 
 ---
 
-## Skills (178)
+## Skills (179)
 
 Activadas on-demand com sistema de triggers RFC 2119 (`MUST be invoked when...`, `SHOULD also invoke when...`). Activacao automatica quando relevancia >= 60%. (Lista parcial — inventario completo em `JOCA_Brain/memory/SKILL_INDEX.json`.)
 
@@ -278,7 +278,7 @@ Uma parte so → ler a skill e fazer inline sai mais barato. Ver `rules/task-int
 
 ---
 
-## Commands (30)
+## Commands (31)
 
 Lista parcial — inventario completo em `JOCA_Brain/.claude/commands/`.
 

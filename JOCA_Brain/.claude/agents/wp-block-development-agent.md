@@ -10,7 +10,7 @@ category: wordpress
 triggers: block invalid, block.json, create-block
 generated-from: .claude/skills/wp-block-development.md
 generated-by: skill-agents.mjs
-content-hash: 560448676f9e93d6
+content-hash: 5c0f17258217f581
 ---
 
 # wp-block-development — agente de execução

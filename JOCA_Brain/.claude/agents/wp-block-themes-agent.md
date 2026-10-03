@@ -1,16 +1,16 @@
 ---
 name: wp-block-themes-agent
-description: "theme.json, block theme"
+description: "site editor, template parts, fse"
 skills: wp-block-themes
 model: inherit
 modelo-sugerido: opus
 effort-sugerido: medium
 porque-modelo: "escreve código WordPress/WooCommerce"
 category: wordpress
-triggers: theme.json, block theme, styles not applying
+triggers: site editor, template parts, template part, style variations, padrões de blocos, padroes de blocos
 generated-from: .claude/skills/wp-block-themes.md
 generated-by: skill-agents.mjs
-content-hash: 95fda25745282b6f
+content-hash: e00b3aaeb1910369
 ---
 
 # wp-block-themes — agente de execução
@@ -18,6 +18,7 @@ content-hash: 95fda25745282b6f
 Especialista em wp-block-themes. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
+**Gatilhos:** site editor, template parts, template part, style variations, padrões de blocos, padroes de blocos, block patterns, tema de blocos, fse, full site editing, template da página, templates do tema, theme.json, block theme, styles not applying, estilos do theme.json, paleta no theme.json
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

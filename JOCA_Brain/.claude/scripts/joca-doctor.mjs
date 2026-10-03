@@ -482,7 +482,7 @@ for (const d of ['projects', 'feedback']) {
   else ok(`memory/projects/: ${comEstado} ficha(s) com directorio_estado, nenhuma quebrada`);
 }
 
-// Limites da memória por pastas (desenho §1.4, issue #82). Regras no lib (`lintMemoria`), não aqui:
+// Limites da memória por pastas (desenho §1.4). Regras no lib (`lintMemoria`), não aqui:
 // o `validate-skill.py --all` mostra a mesma lista. ✗ = estrutura partida ou index fora do limite
 // (o /resume lê o index em cada sessão); ⚠ = área grande ou áreas a mais (arquivar é decisão do utilizador).
 {
@@ -558,8 +558,11 @@ if (!fs.existsSync(checkPathsSh)) {
   // opcionais — e um aviso que grita por um nao-defeito treina quem le a ignorar a seccao.
   // Bilingue de proposito: as skills importadas de terceiros estao em ingles.
   // A forma real nas skills e `If \`<path>\` exists (or …)` — o verbo vem DEPOIS do path, por isso
-  // nao se procura uma frase contigua: basta a linha falar de existencia ou de verificar.
-  const OPCIONAL = /\b(exists?|existir|exista|existe|houver|opcional|optional|if present|if available|check for|verifica se)\b/i;
+  // nao se procura uma frase contigua — mas a palavra tem de QUALIFICAR o path: procura-se ate
+  // JANELA caracteres antes e depois da citacao (mesma linha, sem o proprio path), nao na linha
+  // inteira («quando houver codigo» noutro sitio da linha calava um ponteiro morto).
+  const OPCIONAL = /\b(exists?|existir|exista|existe|se houver|opcional|optional|if present|if available|check for|verifica se)\b/i;
+  const JANELA = 40;
   // Uma linha que AFIRMA que o path nao existe esta a documentar um caso, nao a prometer um
   // ficheiro. Caso real: o `/upgrade-joca` explica a regra "alvo inexistente = achado" citando
   // `skills/webapp-testing.md`, que nao existe DE PROPOSITO — e o check acusava-o como defeito.
@@ -588,20 +591,23 @@ if (!fs.existsSync(checkPathsSh)) {
     // mantendo o comprimento (os índices das ocorrências continuam a bater com as linhas).
     const text = raw0.replace(/^(#{1,6}[ \t]+(?:Cr[ée]ditos|Credits|Atribui[çc][ãa]o|Attribution)\b[^\n]*\n)([\s\S]*?)(?=^#{1,6}[ \t]|(?![\s\S]))/gim,
       (_m, h, corpo) => h + corpo.replace(/[^\n]/g, ' '));
-    const cands = new Map();   // path citado → índice da 1ª ocorrência (para ler a linha)
-    const add = (v, i) => { if (!cands.has(v)) cands.set(v, i); };
-    for (const m of text.matchAll(/Read\(\s*["']([^"']+)["']\s*\)/g)) add(m[1], m.index);
-    for (const m of text.matchAll(/`([^`\n]+)`/g)) add(m[1], m.index);
-    for (const m of text.matchAll(/\]\(([^)\s]+)\)/g)) add(m[1], m.index);
-    for (const [raw, idx] of cands) {
+    const cands = new Map();   // path citado → [início, fim] da 1ª ocorrência (para ler a linha)
+    const add = (m) => { if (!cands.has(m[1])) cands.set(m[1], [m.index, m.index + m[0].length]); };
+    for (const m of text.matchAll(/Read\(\s*["']([^"']+)["']\s*\)/g)) add(m);
+    for (const m of text.matchAll(/`([^`\n]+)`/g)) add(m);
+    for (const m of text.matchAll(/\]\(([^)\s]+)\)/g)) add(m);
+    for (const [raw, [idx, fimC]] of cands) {
       const c = raw.trim();
       if (/[<>*${}|"'[\]\s]/.test(c)) continue;         // placeholders, globs, variáveis
       if (c.endsWith('/')) continue;
       if (!/\.[a-z0-9]{1,5}$/i.test(c)) continue;       // tem de ter extensão
       if (RUNTIME.test(c)) continue;                    // estado de runtime, não ponteiro
-      // A linha onde o path aparece decide: citado como opcional → não é defeito.
-      const linha = text.slice(text.lastIndexOf('\n', idx) + 1, (text.indexOf('\n', idx) + 1 || text.length));
-      if (OPCIONAL.test(linha)) continue;
+      // A vizinhança do path decide se é opcional; a linha inteira decide se é afirmado ausente.
+      const ini = text.lastIndexOf('\n', idx) + 1;
+      const fim = text.indexOf('\n', idx) < 0 ? text.length : text.indexOf('\n', idx);
+      const linha = text.slice(ini, fim);
+      const perto = text.slice(Math.max(ini, idx - JANELA), idx) + ' ' + text.slice(fimC, Math.min(fim, fimC + JANELA));
+      if (OPCIONAL.test(perto)) continue;
       if (ABSENTE.test(linha)) continue;
       // Um path sem prefixo (`reference/x.md`) pode ser irmao do ficheiro que o cita, viver na
       // pasta-companheira do componente (`deep-research.md` + `deep-research/`), ou ser relativo

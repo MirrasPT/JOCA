@@ -10,7 +10,7 @@ category: código
 triggers: search, meilisearch, typesense, algolia, full-text search, faceted search
 generated-from: .claude/skills/search.md
 generated-by: skill-agents.mjs
-content-hash: 96e0c62718eda22b
+content-hash: edadc4866aff8141
 ---
 
 # search — agente de execução

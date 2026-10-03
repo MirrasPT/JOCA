@@ -28,11 +28,11 @@ orçamento (upgrade 2026-09-15) — a rule aponta para ela.
 | `security` (skill) | `security-review` (agente) | review profundo |
 | `freeze`/`careful`/`guard` | `unfreeze` | desligar no fim |
 | `/learn` | `/retro` | retrospectiva da janela |
-| `/start` (router) | `executar-projeto` · **Website** · **Identidade/branding** · `/marketeer` | pelo tipo da 1.0; ⏸ «Avanço para o primeiro workflow» |
+| `/start` (router) | `executar-projeto` · **Website** · **Identidade/branding** · `/marketeer` | pelo tipo da 1.0; ⏸ «Avanço para o próximo workflow: <nome>?» |
 | `design-shotgun` (W2) | `design-review` | sempre — escolhe a variante; ⏸ do dono depois |
 | `frontend` (W4) | `design-review` → `tester-ui-ux` → `a11y-fixer` | W5; a11y se houver violações WCAG |
 | `deploy-executor` (W7) | `auditoria-site-live` | sempre após publicar; o 200 sozinho não prova |
-| Website concluído (W7) | `/marketeer` | só em multi-tipo com Marketing — ⏸ gate de passagem |
+| Website concluído (W7) · sem Website, Aplicação concluída (E4) | `/marketeer` | só em multi-tipo com Marketing — ⏸ gate de passagem |
 | B3 logótipo | `raster-para-vector` · `img-gen` → `icon-design` · ficheiro do designer | gate de pergunta caso a caso |
 | `brand-guidelines` (B4) | `design-system` | tokens a partir da direção aprovada |
 | `graphic-design` (B5/B6) | `design-review` · `html-to-pdf` | verificador ≠ produtor · manual de normas em PDF |
@@ -53,6 +53,8 @@ Pipelines multi-passo nomeadas (cross-stack) vivem em `reference/pipelines-catal
 | Todos `verificado` | o hook **apaga** o contrato; pedido novo na sessão → contrato novo de raiz (Write, não update) |
 
 Expiração: 6 h **sem escrita** do modelo (mtime/`actualizado`), não desde `criado`.
+Contrato expirado **com passos `em_curso` não se apaga** (o agente de fundo pode estar vivo): o hook deixa de insistir e manda fechá-lo à mão quando o agente acabar.
+Cada remoção pelo hook (expiração, legado sem dono expirado, todos `verificado`) fica numa linha de `.joca/loop/_apagados.log`: data · sessão · ficheiro · motivo · `id:estado` dos passos.
 
 ### Passo `em_curso` — agentes de fundo a trabalhar
 
@@ -65,8 +67,9 @@ Expiração: 6 h **sem escrita** do modelo (mtime/`actualizado`), não desde `cr
 
 Contrato: `"estado": "em_curso"` + `"agente": "<id do agente>"`. O hook:
 - só passos `em_curso` por fechar → não bloqueia e **não conta iteração** (não queima o travão);
-- `em_curso` misturado com `pendente`/`feito` → bloqueia só pelos outros, e lista os em curso;
-- a expiração de 6 h e a recusa de `verificador === produtor` valem na mesma.
+- `em_curso` misturado com `pendente`/`feito` → bloqueia só pelos outros, e lista os em curso; turno sem mudança de estados e com agente em curso conta como **espera** e não sobe a iteração;
+- ⚠ mas o contador `sem_progresso` sobe na mesma nessa espera: 4 turnos seguidos sem mudar nenhum estado disparam o travão «3 iterações sem progresso» com o agente ainda vivo. Espera longa no caso misto → `"aguarda_utilizador": true` não serve (é mentira); fechar ou marcar os outros passos (`depende_de`, `verificacao`) para que só fiquem os `em_curso`;
+- a recusa de `verificador === produtor` vale na mesma; a expiração de 6 h deixa de insistir mas não apaga (ver acima).
 Quando a notificação de conclusão chega: `feito` (com `produtor`) → verificador → `verificado`.
 
 ### Gate vermelho escreve contrato
@@ -91,7 +94,7 @@ caller corrigiu, logo o caller não verifica a correcção.
 
 ---
 
-## Texto retirado da rule — corte de tokens (issue #3, 2026-09-15)
+## Texto retirado da rule — corte de tokens (2026-09-15)
 
 - Encadear a partir do **relatório** de um passo com output visual/binário é o erro: um agente pode reportar sucesso e descrever mal o que produziu; um build sem erros pode ter 3 bugs visuais.
 - O guarda `stop_hook_active` é obrigatório no contrato de hooks do Claude Code.
@@ -108,5 +111,5 @@ caller corrigiu, logo o caller não verifica a correcção.
 | Terminar o turno com passos do contrato por fechar | `.joca/loop/<session_id>.json` manda: continuar até `verificado`, ou `aguarda_utilizador`/apagar o contrato |
 | O mesmo agente que escreveu a assinar a verificação | Verificador ≠ produtor, sempre — inclusive quando o produtor foi o main loop |
 
-## Texto retirado da rule — F8.3 (issue #85, 2026-10-01)
+## Texto retirado da rule — F8.3 (2026-10-01)
 - Resumo que abria a rule: um passo passa o trabalho ao seguinte sem o user pedir — classifica a via (task-intake), corre, encadeia, pára só em irreversível. · Mecânica do hook: `stop_hook_active` cala o `stop-continuar.js` no bloco seguinte (limite: `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`); `iteracao > max_iteracoes` e `sem_progresso >= 3` são rede de segurança, não o que fecha o contrato. · Verificação: cada volta do verificador costuma achar defeito novo — aceitar o 1.º `aprovado: false` e dar o ciclo por fechado é o erro.

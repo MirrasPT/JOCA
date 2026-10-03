@@ -197,6 +197,44 @@ test('PowerShell: Set-Location -Path "C:\\…\\B"; git commit com alheio → rec
   assert.ok(!A.hook(`git -C "${B.dir}" commit --only a.txt -m 'x'`, { tool_name: 'PowerShell' }).nega, '--only');
 });
 
+// Ref com caminhos — checkout/restore/reset de um ref com caminhos explícitos (forma B do /update-joca).
+function comRef() {
+  const r = repo();
+  fs.writeFileSync(path.join(r.dir, 'a.txt'), 'v2\n'); fs.writeFileSync(path.join(r.dir, 'b.txt'), 'v2\n');
+  r.g('commit', '-q', '-am', 'v2'); r.g('tag', 'outra'); r.g('reset', '-q', '--hard', 'HEAD~1');
+  return r;
+}
+
+test('ref com caminhos: git checkout <ref> -- a b + git commit -m seguinte → passa', () => {
+  const { g, hook } = comRef();
+  assert.ok(!hook('git checkout outra -- a.txt b.txt').nega); g('checkout', 'outra', '--', 'a.txt', 'b.txt');
+  const r = hook('git commit -m "x"'); assert.ok(!r.nega, r.out);
+});
+
+test('ref com caminhos: git restore --source=<ref> --staged e git reset <ref> -- <p> registam', () => {
+  const a = comRef();
+  assert.ok(!a.hook('git restore --source=outra --staged --worktree a.txt').nega); a.g('restore', '--source=outra', '--staged', '--worktree', 'a.txt');
+  assert.ok(!a.hook('git commit -m x').nega);
+  const b = comRef();
+  assert.ok(!b.hook('git reset outra -- b.txt').nega); b.g('reset', '-q', 'outra', '--', 'b.txt');
+  assert.ok(!b.hook('git commit -m x').nega);
+});
+
+test('ref com caminhos: git checkout <ref> sem -- não regista', () => {
+  const { g, hook } = comRef();
+  g('checkout', 'outra', '--', 'a.txt');                  // staged por fora
+  assert.ok(!hook('git checkout outra a.txt').nega);
+  assert.ok(!hook('git checkout -- a.txt').nega);       // sem ref: não mexe no índice
+  const r = hook('git commit -m x'); assert.ok(r.nega, r.out); assert.match(r.out, /a\.txt/);
+});
+
+test('ref com caminhos: checkout <ref> -- a não cobre o alheio staged por outro processo', () => {
+  const { g, hook } = comRef();
+  g('rm', '-q', 'alheio.txt');
+  const r = hook('git checkout outra -- a.txt && git commit -m x');
+  assert.ok(r.nega, r.out); assert.match(r.out, /alheio\.txt/); assert.doesNotMatch(r.out, /a\.txt[,)]/);
+});
+
 // Regressão do comportamento original (stage em massa com subagente)
 test('git add -A vindo de subagente → recusa', () => {
   const { hook } = repo();
