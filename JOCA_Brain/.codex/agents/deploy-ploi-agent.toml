@@ -6,7 +6,7 @@ developer_instructions = """
 Especialista em deploy-ploi. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
+**Gatilhos:** ploi api, ploi cli, chave ssh ploi, nginx config ploi, token ploi, ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

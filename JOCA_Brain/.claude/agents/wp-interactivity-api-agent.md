@@ -10,7 +10,7 @@ category: wordpress
 triggers: WordPress Interactivity API
 generated-from: .claude/skills/wp-interactivity-api.md
 generated-by: skill-agents.mjs
-content-hash: f028051aa5c7a50c
+content-hash: 7b07bd85fe127ec4
 ---
 
 # wp-interactivity-api — agente de execução

@@ -10,7 +10,7 @@ category: design
 triggers: explorar variantes, variantes de design, opções de design, design shotgun, mostra hipóteses, mostra opções
 generated-from: .claude/skills/design-shotgun.md
 generated-by: skill-agents.mjs
-content-hash: 4e779fdf98bf3288
+content-hash: bba27bc56c2aeb0f
 ---
 
 # design-shotgun — agente de execução

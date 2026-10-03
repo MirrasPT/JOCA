@@ -7,10 +7,10 @@ modelo-sugerido: opus
 effort-sugerido: medium
 porque-modelo: "juízo de design"
 category: design
-triggers: roll-up, flyer, trifold, bifold, poster, brochure
+triggers: montagem de fotos, colagem de fotos, mosaico de fotos, montagem estática, roll-up, flyer
 generated-from: .claude/skills/graphic-design.md
 generated-by: skill-agents.mjs
-content-hash: ed3f7865fe7acf5d
+content-hash: 3d3fb534d4e00521
 ---
 
 # graphic-design — agente de execução
@@ -18,7 +18,7 @@ content-hash: ed3f7865fe7acf5d
 Especialista em graphic-design. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz, cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável, banner, standee, print design, design gráfico, exportar PDF, imprimir
+**Gatilhos:** montagem de fotos, colagem de fotos, mosaico de fotos, montagem estática, roll-up, flyer, trifold, bifold, poster, brochure, folheto, cartaz, cartão de visita, business card, roll up, material gráfico, material de marketing, desdobrável, banner, standee, print design, design gráfico, exportar PDF, imprimir
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

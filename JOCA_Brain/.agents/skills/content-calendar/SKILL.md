@@ -92,6 +92,27 @@ utilizador perguntar onde estavam os vídeos (2026-09-08). Peça rotulada reel s
 
 ---
 
+## Gate de variedade — obrigatório antes de gerar as artes ou publicar um mês
+
+Vale para todas as marcas, com ou sem pedido. Corre sobre o **plano** do mês (antes de gastar geração de imagem) e de novo sobre as **peças finais** (antes de as mostrar ao cliente ou de as entregar ao `social-scheduler`).
+
+1. **Matriz por post** — uma linha por peça do mês: `Post | Sujeito | Ângulo | Distância/enquadramento | Formato`.
+   - Sujeito: o que aparece (produto sozinho, pessoa com produto, espaço, detalhe, texto/tipografia…).
+   - Ângulo: frontal, picado, contrapicado, lateral, zenital.
+   - Distância: plano geral, médio, aproximado, detalhe.
+   - Formato: post, carrossel, story, capa de reel, reel (vocabulário de §Asset-to-Slot).
+   - **Composição** = a combinação sujeito + ângulo + distância.
+2. **Comparar com os 2 meses anteriores** da mesma marca (posts publicados ou o plano aprovado; sem histórico → dizê-lo e comparar só dentro do mês).
+3. **Tectos (defaults ajustáveis por marca, não factos medidos):**
+   - nenhuma composição em mais de **25%** dos posts do mês;
+   - nenhum formato em mais de **50%**;
+   - a composição mais usada no mês não pode ser também a mais usada nos 2 meses anteriores.
+   Se a marca tiver tectos próprios no perfil, mandam esses.
+4. **Falha → refazer as peças em excesso antes de mostrar.** Nunca entregar com a nota «está repetitivo»: troca-se sujeito, ângulo ou distância até os tectos passarem.
+5. **Juntar a matriz** (com as percentagens) ao calendário entregue, para o cliente ver que a variedade foi medida.
+
+---
+
 ## Hook + Caption Generation
 
 **Short-form video structure (TikTok / Reels / Shorts):**

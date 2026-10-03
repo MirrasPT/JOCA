@@ -10,7 +10,7 @@ category: código
 triggers: shadcn, shadcn/ui, shadcn ui, components.json, npx shadcn, shadcn add
 generated-from: .claude/skills/shadcn.md
 generated-by: skill-agents.mjs
-content-hash: 39b5d27d688fec50
+content-hash: eedb18c2e26ddf43
 ---
 
 # shadcn — agente de execução

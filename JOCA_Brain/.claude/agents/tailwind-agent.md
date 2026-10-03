@@ -10,7 +10,7 @@ category: código
 triggers: oklab, tailwind, tailwindcss, tailwind 4, utility classes, utility-first
 generated-from: .claude/skills/tailwind.md
 generated-by: skill-agents.mjs
-content-hash: e9d852a678baa564
+content-hash: 97878baff54694fd
 ---
 
 # tailwind — agente de execução

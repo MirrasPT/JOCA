@@ -10,7 +10,7 @@ category: design
 triggers: codificar design, transformar em HTML, construir página, implementar design, fazer mockup real, finalizar design
 generated-from: .claude/skills/design-html.md
 generated-by: skill-agents.mjs
-content-hash: 50bfe16f750a4cc4
+content-hash: 4b4ffae9c9336ba6
 ---
 
 # design-html — agente de execução

@@ -8,7 +8,7 @@ Versão comprimida (auto-carregada) em `.claude/rules/pipelines.md` §Doutrina d
 - Acrescentos de 2026-09-15 (saíram de `rules/pipelines.md` ou vieram do feedback)
   - Recon antes de autorar — casos
   - `escrever-testes` em sessão separada — porquê
-- Texto retirado de `rules/pipelines.md` — corte de tokens (issue #3, 2026-09-15)
+- Texto retirado de `rules/pipelines.md` — corte de tokens (2026-09-15)
   - Doutrina de projecto (linhas da tabela, forma longa)
   - Gates (forma longa)
   - Auto-runner e princípios (forma longa)
@@ -86,7 +86,7 @@ dito explicitamente no brief dele, com a lista. Continua a não ser a sessão qu
 
 ---
 
-## Texto retirado de `rules/pipelines.md` — corte de tokens (issue #3, 2026-09-15)
+## Texto retirado de `rules/pipelines.md` — corte de tokens (2026-09-15)
 
 ### Doutrina de projecto (linhas da tabela, forma longa)
 - A doutrina é o modo por omissão de **qualquer** projecto; o `/start` instala-a, a ausência dele não a dispensa.

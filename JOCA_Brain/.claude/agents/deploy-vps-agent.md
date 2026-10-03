@@ -10,7 +10,7 @@ category: deploy
 triggers: Laravel SPA mesmo origin, Livewire Caddy, matcher Caddy, 403 depois do rsync, deploy VPS, VPS setup
 generated-from: .claude/skills/deploy-vps.md
 generated-by: skill-agents.mjs
-content-hash: ee0b39594273894c
+content-hash: 7e973dfe50f3e564
 ---
 
 # deploy-vps — agente de execução

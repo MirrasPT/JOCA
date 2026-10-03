@@ -10,7 +10,7 @@ category: conteúdo
 triggers: traduzir para PT-PT, localizar UI, rever português
 generated-from: .claude/skills/pt-pt-translator.md
 generated-by: skill-agents.mjs
-content-hash: 6607e902ab97df30
+content-hash: ca4699e97607fb4e
 ---
 
 # pt-pt-translator — agente de execução

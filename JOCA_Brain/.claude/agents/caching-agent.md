@@ -10,7 +10,7 @@ category: código
 triggers: cache, caching, Redis, Cache::remember, cache invalidation, CDN
 generated-from: .claude/skills/caching.md
 generated-by: skill-agents.mjs
-content-hash: 81cebc8dfe175282
+content-hash: d2bd5498d83dc033
 ---
 
 # caching — agente de execução

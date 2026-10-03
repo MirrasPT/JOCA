@@ -10,7 +10,7 @@ category: portugal
 triggers: ifthenpay, Multibanco, MB WAY, MBWay, pagamento Portugal, referencia multibanco
 generated-from: .claude/skills/portugal-payments.md
 generated-by: skill-agents.mjs
-content-hash: d69975fae42aac3c
+content-hash: eca59d7b2ef5ecb7
 ---
 
 # portugal-payments — agente de execução

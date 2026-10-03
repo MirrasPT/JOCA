@@ -10,7 +10,7 @@ category: wordpress
 triggers: criar plugin WP, settings page, nonces/capabilities
 generated-from: .claude/skills/wp-plugin-development.md
 generated-by: skill-agents.mjs
-content-hash: 3c7abde305fd546a
+content-hash: 0af8f2e16a46e158
 ---
 
 # wp-plugin-development — agente de execução

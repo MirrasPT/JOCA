@@ -10,7 +10,7 @@ category: código
 triggers: laravel react, connect admin to frontend, ligar admin ao frontend, inertia, inertiajs, sanctum spa
 generated-from: .claude/skills/laravel-react.md
 generated-by: skill-agents.mjs
-content-hash: efefc688f94714c5
+content-hash: e483de8f0a686157
 ---
 
 # laravel-react — agente de execução

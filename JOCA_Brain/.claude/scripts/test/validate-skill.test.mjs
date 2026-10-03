@@ -40,6 +40,35 @@ test('controlo: a mesma citação marcada como opcional não é acusada (excepç
   try { assert.doesNotMatch(lint(f).stdout, /\[ponteiro\]/); } finally { limpar(); }
 });
 
+// Ponteiro morto — a palavra «opcional» só conta se qualificar o caminho (janela à volta da citação), não a linha inteira.
+const BASE88 = 'Antes de escrever código: `Read(".claude/reference/ponteiro-partido-f12.md")` — escada + guard-rails.';
+for (const [nome, sufixo, acusa] of [
+  ['sem qualificador → acusa', '', true],
+  ['«Se existir.» perto do caminho → não acusa', ' Se existir.', false],
+  ['«(opcional)» junto ao caminho → não acusa', ' (opcional)', false],
+  ['«quando houver código» (não qualifica) → acusa', ' quando houver código', true],
+  ['«Se existir.» longe do caminho, noutro sítio da linha → acusa', ' Ver também a tabela de exemplos lá em baixo. Se existir.', true],
+]) {
+  test(`ponteiro opcional: ${nome}`, () => {
+    const { f, limpar } = tmpFile('skills', 'caveman.md', skillReal + '\n' + BASE88 + sufixo + '\n');
+    try {
+      const out = lint(f).stdout;
+      if (acusa) assert.match(out, /\[ponteiro\][^\n]*ponteiro-partido-f12\.md/);
+      else assert.doesNotMatch(out, /\[ponteiro\]/);
+    } finally { limpar(); }
+  });
+}
+
+test('ponteiro morto --strict: ponteiro morto dá exit 1; sem ponteiro morto, exit 0', () => {
+  const a = tmpFile('skills', 'caveman.md', skillReal + '\n' + BASE88 + '\n');
+  const b = tmpFile('skills', 'caveman.md', skillReal);
+  try {
+    assert.equal(lint(a.f).status, 0);
+    assert.equal(lint('--strict', a.f).status, 1);
+    assert.equal(lint('--strict', b.f).status, 0);
+  } finally { a.limpar(); b.limpar(); }
+});
+
 test('Step 0 de agente para ficheiro inexistente é acusado mesmo com «does not exist» na linha', () => {
   const txt = '---\nname: x-agent\ndescription: teste\n---\n\n## Step 0\n\n`Read(".claude/skills/ponteiro-partido-f12.md")` — if it does not exist, say so.\n\n## Resto\n';
   const { f, limpar } = tmpFile('agents', 'x-agent.md', txt);

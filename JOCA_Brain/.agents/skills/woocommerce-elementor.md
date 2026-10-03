@@ -60,10 +60,12 @@ HFE_ID=$(wp post create --post_type=elementor-hf --post_title="Header" --post_st
 wp post meta update $HFE_ID _elementor_data    "$(cat elementor-templates/header.json)"
 wp post meta update $HFE_ID _elementor_edit_mode "builder"
 wp post meta update $HFE_ID ehf_template_type    "type_header"   # or "type_footer"
+# Display rule — without it the template may never render. Value = array { rule: [...], specific: [...] }
+wp post meta update $HFE_ID ehf_target_include_locations '{"rule":["basic-global"],"specific":[]}' --format=json
 wp elementor flush_css
 ```
 
-HFE widget types: `site-logo`, `navigation-menu`, `hfe-cart`. The "entire site" display condition is set once in the UI and survives rebuilds.
+HFE widget types: `site-logo`, `navigation-menu`, `hfe-cart`. `basic-global` = «Entire Website»; the plugin reads `ehf_target_include_locations` as an array with `rule` (list of location keys) and `specific` (post ids, only when `rule` has `specifics`) — the same shape its admin form saves (verificado 2026-10-02 em HFE 2.9.5, trunk r3725521: `admin/class-hfe-admin.php` `save_template_meta()` + `inc/lib/target-rule/class-astra-target-rules-fields.php` `get_format_rule_value()`, https://plugins.trac.wordpress.org/browser/header-footer-elementor/trunk). `--format=json` makes WP-CLI store it as a PHP array (serialized), not a string.
 
 ---
 
@@ -171,7 +173,7 @@ Without this recipe the CI was born red: 186 PHPCS errors and 169 PHPStan errors
 ## Checklist
 - [ ] Import sets `_elementor_data` + `_elementor_edit_mode=builder` + flush_css (deleted `_elementor_css`)
 - [ ] `css_classes` on containers, `_css_classes` on widgets — verified in rendered HTML
-- [ ] Header/Footer as `elementor-hf` CPT (`ehf_template_type=type_header|type_footer`, HFE 2.9.5), imported the same way
+- [ ] Header/Footer as `elementor-hf` CPT (`ehf_template_type=type_header|type_footer` + `ehf_target_include_locations`, HFE 2.9.5), imported the same way
 - [ ] `woocommerce_coming_soon=no` + pretty permalinks flushed
 - [ ] Product card = `content-product.php` override (path strips `/templates/`), loop add-to-cart removed via hook
 - [ ] Thumbnails uncropped + regenerated before QA; single gallery `opacity:1` static

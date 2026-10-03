@@ -10,7 +10,7 @@ category: código
 triggers: responsivo, responsive, mobile, mobile-first, touch, swipe
 generated-from: .claude/skills/mobile.md
 generated-by: skill-agents.mjs
-content-hash: 65802bf281dce2da
+content-hash: ff60f41744308885
 ---
 
 # mobile — agente de execução

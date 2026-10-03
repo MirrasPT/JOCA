@@ -10,7 +10,7 @@ category: conteúdo
 triggers: local SEO, Google Business Profile, GBP, map pack, local pack, citations
 generated-from: .claude/skills/seo-local.md
 generated-by: skill-agents.mjs
-content-hash: 459b3a249357dd0c
+content-hash: e00b04c60fb9ae1b
 ---
 
 # seo-local — agente de execução

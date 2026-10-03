@@ -126,8 +126,12 @@ function linhasSugestao(skillName, category) {
   return `modelo-sugerido: ${sm}\n${se ? `effort-sugerido: ${se}\n` : ''}porque-modelo: "${sp}"\n`;
 }
 
-function linhasModelo(agentName, skillName, category) {
-  const e = ESCOLHAS[agentName];
+function linhasModelo(agentName, skillName, category, existente) {
+  // Sem escolha guardada, regenerar mantém o model/effort que o ficheiro já tem: o effort por
+  // tier não volta a medium só porque o hash foi re-selado.
+  const fm = existente ? (existente.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---\n/) || [])[1] : null;
+  const actual = fm && fm.match(/^model: *(\S+)/m);
+  const e = ESCOLHAS[agentName] || (actual && { model: actual[1], effort: (fm.match(/^effort: *(\S+)/m) || [])[1] });
   const model = e ? e.model : 'inherit';
   const effort = e ? (e.effort ?? null) : null;
   return `model: ${model}\n${effort ? `effort: ${effort}\n` : ''}${linhasSugestao(skillName, category)}`;
@@ -438,8 +442,8 @@ for (const [category, skills] of Object.entries(EXECUTION_SKILLS)) {
     // Um agente gerado leva o hash do que foi gerado. Se o ficheiro em disco já não corresponde ao
     // seu próprio hash, alguém o editou — e regenerar apagaria esse trabalho em silêncio. Sem isto,
     // correr o script uma segunda vez destrói qualquer personalização.
-    if (fs.existsSync(agentFile)) {
-      const existing = fs.readFileSync(agentFile, 'utf8');
+    const existing = fs.existsSync(agentFile) ? fs.readFileSync(agentFile, 'utf8') : null;
+    if (existing) {
       if (!existing.includes(MARKER)) { manual.push(agentName); continue; }   // curado à mão
       if (!FORCE && bodyHash(existing) !== storedHash(existing)) {
         manual.push(agentName);
@@ -454,7 +458,7 @@ for (const [category, skills] of Object.entries(EXECUTION_SKILLS)) {
 name: ${agentName}
 description: "${agentDescription(skillName, fm, category).replace(/"/g, "'")}"
 skills: ${skillName}
-${linhasModelo(agentName, skillName, category)}category: ${category}
+${linhasModelo(agentName, skillName, category, existing)}category: ${category}
 ${agentTriggers(fm)}${MARKER} .claude/skills/${skillName}.md
 generated-by: skill-agents.mjs
 ---

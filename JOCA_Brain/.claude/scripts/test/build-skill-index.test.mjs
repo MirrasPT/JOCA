@@ -3,7 +3,7 @@
 // Uso: node --test .claude/scripts/test/build-skill-index.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +42,22 @@ test('todas as entradas do índice têm `dominio`, nenhuma cai em "geral"; o gé
 test('`dominio:` no frontmatter manda sobre a tabela', () => {
   assert.equal(py('print(m.dominio_de("frontend", {"dominio": "design"}))').trim(), 'design');
   assert.equal(py('print(m.dominio_de("frontend", {}))').trim(), 'frontend');
+});
+
+test('o gémeo `<skill>-agent` herda o `dominio:` declarado no frontmatter da skill', () => {
+  const d = mkdtempSync(join(tmpdir(), 'joca-idx-'));
+  try {
+    for (const sub of ['skills', 'agents']) mkdirSync(join(d, sub));
+    writeFileSync(join(d, 'skills', 'frontend.md'), '---\nname: frontend\ndescription: x\ndominio: design\n---\n');
+    writeFileSync(join(d, 'agents', 'frontend-agent.md'), '---\nname: frontend-agent\ndescription: x\n---\n');
+    writeFileSync(join(d, 'skills', 'wp-x.md'), '---\nname: wp-x\ndescription: x\n---\n');
+    writeFileSync(join(d, 'agents', 'wp-x-agent.md'), '---\nname: wp-x-agent\ndescription: x\n---\n');
+    const out = join(d, 'SKILL_INDEX.json');
+    py(`m.JOCA_ROOT=Path(${JSON.stringify(d)}); m.SKILLS_DIR=m.JOCA_ROOT/"skills"; m.AGENTS_DIR=m.JOCA_ROOT/"agents"; m.OUTPUT=Path(${JSON.stringify(out)}); m.build_index()`);
+    const por = Object.fromEntries(JSON.parse(readFileSync(out, 'utf8')).map((e) => [e.name, e.dominio]));
+    assert.equal(por['frontend-agent'], 'design');   // declarado na skill
+    assert.equal(por['wp-x-agent'], 'wordpress');     // sem declaração: tabela pelo nome da skill
+  } finally { rmSync(d, { recursive: true, force: true }); }
 });
 
 test('gatilhos iguais a menos de acentos ocupam um só lugar do cap', () => {

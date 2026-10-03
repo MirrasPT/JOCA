@@ -10,7 +10,7 @@ category: código
 triggers: Playwright canvas, automate ComfyUI, drive litegraph, page.evaluate workflow, headless browser automation, POST to prompt API
 generated-from: .claude/skills/browser-automate.md
 generated-by: skill-agents.mjs
-content-hash: b0edd6f9828d8805
+content-hash: a32c2d741604baed
 ---
 
 # browser-automate — agente de execução

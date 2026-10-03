@@ -85,7 +85,7 @@ melhores respostas — produz respostas inventadas.
 
 ### Areas de trabalho — **nao se perguntam**
 
-O JOCA traz **131 skills** que activam por relevancia >= 60% via `SKILL_INDEX.json` (hook `prompt-triage.js`) +
+As skills do JOCA (contagem: linha `disco:` de `node .claude/scripts/joca-doctor.mjs`) activam por relevancia >= 60% via `SKILL_INDEX.json` (hook `prompt-triage.js`) +
 `.claude/reference/trigger-map.md`. Nao ha nada para ligar ou desligar: uma skill de WordPress nunca dispara num projecto
 Laravel, porque o trigger nao casa. Escolher "areas" na instalacao so serviria para **esconder**
 skills que o utilizador viria a precisar.
@@ -142,6 +142,7 @@ VOU CRIAR/ACTUALIZAR
   memory/soul.md                 <- parametros + alinhamento com o utilizador
   ~/CLAUDE.md                    <- perfil + comandos + lista de nomes de projectos
   .claude/settings.json          <- paths reais (substitui <JOCA_ROOT>)
+  ~/.claude/settings.json        <- merge: guard-claudemd (7b) · statusLine (7d)
   JOCA_OS                        <- dependencias + build do frontend
   <launcher>                     <- atalho de arranque
 ```
@@ -173,8 +174,8 @@ noutra lingua. Excepcao: codigo, nomes de ficheiros/variaveis, comandos e citaco
 
 ## JOCA
 Toolkit instalado em: [caminho_joca]
-Skills activas: 127 (trigger system RFC 2119 — activacao automatica por relevancia)
-Comandos: /install, /start (novo projecto ou ligar existente), /resume, /save, /create-skill, /plan, /debug, /review-code, /review-design, /help-joca, /one-shot, /upgrade-joca, /update-joca, /status, /wp-perf, /wp-perf-review
+Skills: ativação automática por relevância (índice em JOCA_Brain/memory/SKILL_INDEX.json)
+Comandos: `/help-joca` (inventario vivo — nao se transcreve aqui: uma lista a mao desactualiza-se em silencio)
 Geracao de imagens: [motores seleccionados]
 
 ## JOCA_OS
@@ -232,20 +233,8 @@ npm install -g @playwright/cli
 Verificar: `playwright-cli --help` (ou `npx playwright --version`). Se não estiver instalado nesta
 máquina, pedir ao utilizador para o instalar — nunca usar MCP como atalho.
 
-**markitdown (Knowledge Base / `/know`):**
-
-```bash
-python -m pip install markitdown-mcp        # MCP + core (Windows: python, nao python3)
-python -m pip install 'markitdown[all]'     # NAO e opcional — ver aviso abaixo
-claude mcp add markitdown --scope user -- python -m markitdown_mcp
-```
-
-⚠ **Instalar sempre com `[all]`.** O markitdown do brew (e o `pip install markitdown` simples) vem
-sem o extra `[docx]` → converter um `.docx` rebenta com `MissingDependencyException`, sem pista de
-qual e o extra em falta. Se nao der para reinstalar: um `.docx` e um zip — `zipfile` + regex sobre
-`word/document.xml` extrai o texto.
-
-Verificar: `claude mcp list | grep markitdown` (deve dizer Connected). Ver `memory/tools/mcps.md`.
+**markitdown (Knowledge Base / `/know`):** instalar sempre com `[all]` — receita e verificação em
+`Read(".claude/reference/install/clis-externos.md")` §1.
 
 Google connectors: instruir activacao em claude.ai/settings (OAuth nativo).
 
@@ -266,206 +255,7 @@ Para chaves PENDENTE — listar com link de obtencao:
 
 ### 6. CLIs externos
 
-**gh CLI** (se seleccionado e instalado):
-```
-Correr: gh auth login
-Segue as instrucoes interactivas para autenticar via browser.
-```
-
-**gws** (se seleccionado):
-
-```bash
-npm install -g @googleworkspace/cli
-```
-
-Autenticar:
-```bash
-gws auth setup    # cria projecto Cloud + activa APIs + login (requer gcloud)
-gws auth login    # logins subsequentes
-```
-
-Sem gcloud: configurar OAuth client manualmente no Cloud Console, download JSON para `~/.config/gws/client_secret.json`, depois `gws auth login`.
-
-Gotchas de auth (vividos — conta **pessoal**, não Workspace):
-- `gws auth setup --login` pede **86 scopes** (incl. admin de Workspace, `cloud-identity.devices`) → numa conta pessoal dá `invalid_scope`/Erro 400.
-- `gws auth login --services gmail --readonly` **NÃO** restringe scopes — só `--scopes <lista explícita>` restringe (ex.: `https://www.googleapis.com/auth/gmail.readonly`).
-- Consent screen em "Testing" sem test users → `403 access_denied` (add user em `console.cloud.google.com/auth/audience?project=<id>`).
-- App em "Testing" → Google **expira o refresh token ~7 dias**. Fix: **publicar a app em Production** (conta pessoal não tem via Workspace-Internal).
-- Headless/VPS: creds no keyring + `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE`. Capacidades p/ automações (e2e): `gws gmail +triage` (não-lidos), `+read`, `+send`/`+reply`/`+forward` — corre non-interactive via `child_process.exec`.
-- **`+send` anexos têm de estar no cwd** — `--attach <path>` fora da pasta actual → `validationError 400` ("outside the current directory"). Correr o `+send` a partir da pasta dos ficheiros (subshell `( cd <pasta> && gws ... -a <nome-relativo> )`) ou copiar o anexo para cwd primeiro. Body HTML completo passa bem por `--body "$(cat file.html)" --html`.
-
-**sentry-cli** (se seleccionado):
-
-macOS:
-```bash
-brew install getsentry/tools/sentry-cli
-```
-
-Linux:
-```bash
-curl -sL https://sentry.io/get-cli/ | sh
-```
-
-Windows (Scoop):
-```powershell
-scoop install sentry-cli
-```
-
-Instruir: `sentry-cli login` para autenticar, ou definir `SENTRY_AUTH_TOKEN` em env.
-
-**ffmpeg** (se seleccionado):
-
-macOS:
-```bash
-brew install ffmpeg
-```
-
-Linux (apt):
-```bash
-sudo apt install ffmpeg
-```
-
-Windows (Scoop):
-```powershell
-scoop install ffmpeg
-```
-
-Verificar: `ffmpeg -version`
-
-**yt-dlp** (se seleccionado — usado pelo agent `watch`):
-
-macOS: `brew install yt-dlp`
-Linux: `pip3 install -U yt-dlp` ou `sudo apt install yt-dlp`
-Windows: `scoop install yt-dlp` ou `pip install -U yt-dlp`
-
-Verificar: `yt-dlp --version`
-
-**whisperx** (se seleccionado — transcricao local sem API):
-
-Prereq: Python 3.10+ e ffmpeg.
-```bash
-pip install -U whisperx
-```
-Primeira execucao descarrega modelo (~3GB para `large-v3`).
-
-Verificar: `whisperx --help`
-
-**stripe-cli** (se seleccionado):
-
-macOS: `brew install stripe/stripe-cli/stripe`
-Linux: download de github.com/stripe/stripe-cli/releases
-Windows: `scoop install stripe`
-
-Instruir: `stripe login` (OAuth interactivo) e usar `stripe listen --forward-to localhost:8000/webhook` para testes locais.
-
-**aws-cli** (se seleccionado):
-
-macOS: `brew install awscli`
-Linux: `sudo apt install awscli` ou installer oficial em aws.amazon.com/cli
-Windows: `winget install Amazon.AWSCLI`
-
-Instruir: `aws configure` (key, secret, region, output).
-
-**gcloud** (se seleccionado — prereq para `gws auth setup`):
-
-macOS: `brew install --cask google-cloud-sdk`
-Linux: `curl https://sdk.cloud.google.com | bash`
-Windows: `winget install Google.CloudSDK`
-
-Instruir: `gcloud init` para autenticar e seleccionar projecto.
-
-**huggingface-cli** (se seleccionado):
-
-Windows (PowerShell):
-```powershell
-pip install -U "huggingface_hub[cli]"
-```
-
-macOS / Linux (bash):
-```bash
-pip3 install -U "huggingface_hub[cli]"
-```
-
-Instruir: `huggingface-cli login` para autenticar.
-
-**Antigravity CLI** (se seleccionado):
-
-Windows (PowerShell):
-```powershell
-npm install -g @anthropic-ai/antigravity
-```
-
-macOS / Linux (bash):
-```bash
-npm install -g @anthropic-ai/antigravity
-```
-
-Instruir: `agy auth login` ou definir `GEMINI_API_KEY`.
-
-**Codex CLI** (se seleccionado):
-
-Windows (PowerShell):
-```powershell
-npm install -g @openai/codex
-```
-
-macOS / Linux (bash):
-```bash
-npm install -g @openai/codex
-```
-
-Instruir: `codex login` ou definir `OPENAI_API_KEY`.
-
-**CLI Printing Press** (se seleccionado):
-
-Prerequisito — Go 1.26+:
-macOS: `brew install go`
-Linux: `sudo apt install golang` ou download de golang.org
-Windows: download de golang.org/dl
-
-Garantir `$GOPATH/bin` no PATH:
-```bash
-echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
-Instalar:
-```bash
-go install github.com/mvanhorn/cli-printing-press/v4/cmd/cli-printing-press@latest
-```
-
-Verificar: `cli-printing-press --version`
-
-**Zoho Mail CLI** (se seleccionado):
-
-Prerequisito — Java 11+:
-- macOS: `brew install openjdk@21` (keg-only, adicionar `/opt/homebrew/opt/openjdk@21/bin` ao PATH)
-- Linux: `sudo apt install openjdk-21-jdk` ou equivalente
-- Windows: download de adoptium.net (Eclipse Temurin)
-
-Verificar: `java -version` (deve mostrar 11+)
-
-Instalar:
-```bash
-mkdir -p ~/.local/bin/zmail-cli
-curl -L -o ~/.local/bin/zmail-cli/zmail-cli.jar \
-  https://www.zohowebstatic.com/mail/3938191/ZMAIL_CLI/zmail-cli.jar
-```
-
-Criar wrapper `~/.local/bin/zmail`:
-```bash
-#!/usr/bin/env bash
-export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
-exec java -jar "$HOME/.local/bin/zmail-cli/zmail-cli.jar" "$@"
-```
-
-Tornar executável: `chmod +x ~/.local/bin/zmail`
-
-Verificar: `zmail` (abre prompt interactivo — pede password de encriptação no primeiro arranque para proteger refresh tokens locais).
-
-Instruir: `zmail:>login` para OAuth via browser. Para data centers regionais usar `login --dc <tld>` (`.com`, `.eu`, `.in`, `.au`, `.jp`, `.ca`, `.sa`).
-
-Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
+Para cada CLI escolhido na FASE 3 → `Read(".claude/reference/install/clis-externos.md")` §2 (instalação por OS, auth e gotchas).
 
 ### 7. settings.json do projecto (âmbito PROJECTO)
 
@@ -475,114 +265,34 @@ Docs: https://www.zoho.com/mail/help/cli/getting-started-with-cli.html
 > Ha hooks que tem de valer em **qualquer** pasta onde o Claude Code arranque — esses ficam no
 > `~/.claude/settings.json` e sao a seccao **7b**, que nao se pode saltar.
 
-O `JOCA_Brain/.claude/settings.json` vem com os **14 hooks** (+ o script `check-skill-paths.sh`) a apontar para o placeholder
-`<JOCA_ROOT>`. Substituir **todas** as ocorrencias pelo caminho absoluto onde o JOCA foi
-clonado (a pasta que contem `JOCA_Brain/`), sem barra final:
+Se o `JOCA_Brain/.claude/settings.json` trouxer hooks a apontar para o placeholder `<JOCA_ROOT>`,
+substituir **todas** as ocorrências pelo caminho absoluto onde o JOCA foi clonado (a pasta que
+contém `JOCA_Brain/`), sem barra final. A raiz sai do `git rev-parse --show-toplevel` (barras `/`
+também no Windows) e a troca é feita em `node` — sem `sed`, que difere entre GNU e BSD/macOS. O
+mesmo comando corre igual em bash (macOS, Linux, Git Bash) e PowerShell, a partir de qualquer pasta
+dentro do clone; sem placeholder não mexe no ficheiro:
 
 ```bash
-# macOS / Linux
-JOCA_ROOT="$(cd "$(dirname "$0")" && pwd)"        # raiz resolvida na FASE 0
-sed -i '' "s|<JOCA_ROOT>|$JOCA_ROOT|g" JOCA_Brain/.claude/settings.json
-```
-```powershell
-# Windows
-$JOCA_ROOT = "C:/Users/<utilizador>/Desktop/JOCA"   # caminho real, com barras /
-(Get-Content JOCA_Brain\.claude\settings.json -Raw) -replace '<JOCA_ROOT>', $JOCA_ROOT |
-  Set-Content JOCA_Brain\.claude\settings.json -NoNewline
+node -e "const fs=require('fs'),r=require('child_process').execSync('git rev-parse --show-toplevel').toString().trim(),f=r+'/JOCA_Brain/.claude/settings.json',s=fs.readFileSync(f,'utf8');if(s.includes('<JOCA_ROOT>'))fs.writeFileSync(f,s.split('<JOCA_ROOT>').join(r));console.log('JOCA_ROOT='+r)"
 ```
 
-Verificar (tem de dar **0** e o JSON tem de continuar valido):
+Verificar (tem de dar `OK`; o JSON tem de continuar válido):
 ```bash
-grep -c '<JOCA_ROOT>' JOCA_Brain/.claude/settings.json    # 0
-node -e "JSON.parse(require('fs').readFileSync('JOCA_Brain/.claude/settings.json','utf8')); console.log('JSON ok')"
+node -e "const fs=require('fs'),r=require('child_process').execSync('git rev-parse --show-toplevel').toString().trim(),s=fs.readFileSync(r+'/JOCA_Brain/.claude/settings.json','utf8');JSON.parse(s);console.log(s.includes('<JOCA_ROOT>')?'FALHA placeholder por substituir':'OK 0 placeholders, JSON ok')"
 ```
 
-**Porque absolutos:** no Windows o cwd dos hooks nao e garantidamente a raiz do repo e a
-variavel `$CLAUDE_PROJECT_DIR` pode vir vazia (alem de os hooks poderem correr em `cmd`, que
-nao expande `$VAR`). Paths relativos falham **em silencio** — o hook nao corre e nao ha erro.
-Usar `/` mesmo em Windows.
+O `JOCA_ROOT=` impresso é o valor de `<JOCA_ROOT>` nas secções seguintes (7b, 7c, 7d, 8, 9).
 
-⚠ Se mudares a pasta do JOCA de sitio, tens de repetir esta substituicao.
+**Porque absolutos:** o `settings.json` deste repo chama todos os hooks (e o
+`scripts/check-skill-paths.sh`) por caminho absoluto, `"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/..."`, sem
+variaveis de ambiente — o caminho nao depende do cwd em que o hook corre. Enquanto o placeholder la
+estiver, o caminho nao existe e o hook falha **em silencio** — nao corre e nao ha erro. Usar `/` mesmo
+em Windows.
 
-```json
-{
-  "permissions": {
-    "allow": [],
-    "deny": []
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-freeze.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-tdd.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-claudemd.js\"" }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/check-careful.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-git-add.js\"" }
-        ]
-      },
-      {
-        "matcher": "PowerShell",
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/guard-git-add.js\"" }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/session-intake.js\"" }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/prompt-triage.js\"" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/track-changes.js\" \"$TOOL_INPUT_FILE_PATH\"", "async": true },
-          { "type": "command", "command": "bash \"<BRAIN>/.claude/scripts/check-skill-paths.sh\" \"$TOOL_INPUT_FILE_PATH\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/skill-lint.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-checkpoint.js\"", "async": true }
-        ]
-      },
-      {
-        "matcher": "Read|Skill|Agent|Task|Edit|Write",
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/registo-uso.js\"" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-checkpoint.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/auto-test-dispatch.js\"" },
-          { "type": "command", "command": "node \"<BRAIN>/.claude/hooks/stop-continuar.js\"" }
-        ]
-      }
-    ]
-  }
-}
-```
+⚠ Se mudares a pasta do JOCA de sitio, tens de repetir esta substituicao (o `settings.json` ja nao tem
+o placeholder: troca-se o caminho antigo pelo novo).
 
-Notas:
-- **Ordem no array Stop importa:** `stop-checkpoint.js` → `auto-test-dispatch.js` → `stop-continuar.js`. O checkpoint corre ANTES do dispatch (este limpa a `.joca/test-queue.jsonl`); o `stop-continuar.js` corre **por último**, porque é o único que pode bloquear o fim do turno — e bloqueia **uma vez** por turno (guarda `stop_hook_active`; ver `rules/chaining.md`).
-- Runtime `node` para todos os hooks excepto `check-skill-paths.sh` (bash, vive em `.claude/scripts/`).
-- Hooks flag-file (`check-freeze`, `check-careful`, `check-tdd`) são no-op sem a flag `.joca/*.flag` — armados pelas skills `freeze`/`careful`/`tdd`, desarmados por `unfreeze`.
-- `guard-claudemd.js` trava linhas gordas em `CLAUDE.md`; `guard-git-add.js` trava `git add -A`/`.` com agentes vivos e `git commit` sem `--only` com índice alheio; `auto-checkpoint.js` grava checkpoints `-auto`; `registo-uso.js` conta usos de skills/agentes em `.joca/uso-skills.jsonl` (gitignored).
+Bloco de hooks esperado (JSON) e notas de ordem → `Read(".claude/reference/install/settings-hooks.md")`.
 
 ### 7b. Hooks de ambito-MAQUINA (`~/.claude/settings.json`)
 
@@ -602,7 +312,7 @@ arrancar em qualquer sitio). Acrescentar ao ficheiro existente, **sem o substitu
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node <JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-claudemd.js" }
+          { "type": "command", "command": "node \"<JOCA_ROOT>/JOCA_Brain/.claude/hooks/guard-claudemd.js\"" }
         ]
       }
     ]
@@ -610,12 +320,12 @@ arrancar em qualquer sitio). Acrescentar ao ficheiro existente, **sem o substitu
 }
 ```
 
-Verificar (o ficheiro tem de continuar valido **e** o hook tem de aparecer):
+Verificar (o ficheiro tem de continuar valido, o hook tem de aparecer **e** o alvo tem de existir).
+Lê o JSON em `node` em vez de `grep`, para aceitar `C:/...`, `C:\\...` e caminhos com espaços —
+corre igual em bash e PowerShell; qualquer `FALHA` vai para o relatório como PENDENTE:
 
 ```bash
-node -e "JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude/settings.json','utf8')); console.log('JSON ok')"
-grep -c 'guard-claudemd' ~/.claude/settings.json         # >=1
-test -f "$(grep -o '/[^\" ]*guard-claudemd.js' ~/.claude/settings.json | head -1)" && echo "alvo existe"
+node -e "const fs=require('fs'),s=JSON.parse(fs.readFileSync(require('os').homedir()+'/.claude/settings.json','utf8'));const cs=Object.values(s.hooks||{}).flat().flatMap(g=>g.hooks||[]).map(h=>h.command||'').filter(c=>c.includes('guard-claudemd.js'));if(!cs.length)console.log('FALHA hook guard-claudemd ausente');for(const c of cs){const p=c.replace(/^\s*node\s+/,'').replace(/[\x22']/g,'').trim();console.log(/\s/.test(p)&&!/[\x22']/.test(c)?'FALHA caminho com espacos sem aspas: '+c:(fs.existsSync(p)?'OK alvo existe: ':'FALHA alvo nao existe: ')+p)}"
 ```
 
 ⚠ **O `~/.claude/settings.json` costuma ja ter conteudo** (hooks de outras ferramentas, permissoes).
@@ -637,40 +347,36 @@ Verificar (falha → vai para o relatorio final como PENDENTE):
 grep -q '^## Lingua' ~/CLAUDE.md && echo "OK regra de lingua no ~/CLAUDE.md"
 ```
 
+### 7d. StatusLine e rate limits (âmbito-MÁQUINA)
+
+A barra de estado do Claude Code (modelo, contexto, limites 5h/7d) é o `statusline-command.js`, que também escreve
+`<tmpdir>/joca-ui/rate-limits.json` — o ficheiro que o JOCA OS lê em `GET /rate-limits`. Fica em `~/.claude/` e é
+ligado no `statusLine` do `~/.claude/settings.json`. Os dois comandos correm iguais em bash e PowerShell; o primeiro
+**não escreve por cima** de um script nem de um `statusLine` que já existam (diz `JA EXISTE` e segue):
+
+```bash
+node -e "const fs=require('fs'),d=require('os').homedir()+'/.claude/statusline-command.js';if(fs.existsSync(d))console.log('JA EXISTE '+d);else{fs.mkdirSync(require('path').dirname(d),{recursive:true});fs.copyFileSync('<JOCA_ROOT>/JOCA_Brain/.claude/scripts/statusline-command.js',d);console.log('OK copiado '+d)}"
+node -e "const fs=require('fs'),h=require('os').homedir().replace(/\x5c/g,'/'),p=h+'/.claude/settings.json',s=fs.existsSync(p)?JSON.parse(fs.readFileSync(p,'utf8')):{};if(s.statusLine)console.log('JA EXISTE statusLine: '+JSON.stringify(s.statusLine));else{s.statusLine={type:'command',command:'node \x22'+h+'/.claude/statusline-command.js\x22'};fs.writeFileSync(p+'.tmp',JSON.stringify(s,null,2));fs.renameSync(p+'.tmp',p);console.log('OK statusLine ligada')}"
+```
+
+Verificar (falha → PENDENTE no relatório). No Windows sem `~/.claude/.credentials.json` a barra de 7 dias pode
+ficar vazia — ver a skill `joca-os-windows`:
+
+```bash
+node -e "const h=require('os').homedir(),o=require('child_process').execFileSync(process.execPath,[h+'/.claude/statusline-command.js'],{input:'{\x22model\x22:{\x22display_name\x22:\x22teste\x22}}'}).toString();console.log(o.includes('teste')?'OK statusline responde':'FALHA statusline: '+o)"
+```
+
 ### 8. JOCA_OS (instala por defeito)
 
-O JOCA_OS corre em **porta 7491** (backend) e **porta 7492** (frontend). A interface detecta automaticamente o JOCA_Brain como directorio irmao — zero configuracao.
+Portas por defeito: **7491** (backend) e **7492** (frontend); outra instalação na mesma máquina usa outras com
+`JOCA_BACKEND_PORT`/`JOCA_FRONTEND_PORT` (`start.sh` e `start.bat`). A interface detecta automaticamente o JOCA_Brain como directorio irmao — zero configuracao.
 
 > **macOS e a plataforma de referencia** — o JOCA_OS foi desenvolvido e validado em macOS. Se o OS detectado na FASE 0 for **Windows** (`process.platform === 'win32'`), ler e activar a skill `.claude/skills/joca-os-windows.md` ANTES de correr `npm install`/`npm run build`: ela conduz build do node-pty (requer VS Build Tools + Python), PTY PowerShell, paths, statusline/Keychain e launchers, testando e corrigindo numa so passagem. Notificar: `[skill: joca-os-windows]`.
 
-**Windows (PowerShell):**
-
-Usa a abordagem de temp batch launcher para evitar problemas de quoting em nested processes:
-
-```powershell
-Set-Location "<caminho_joca>\..\JOCA_OS\backend"
-npm install
-npm run build
-Set-Location "<caminho_joca>\..\JOCA_OS\frontend"
-npm install
-```
-
-Verificar: `node <caminho_joca>\..\JOCA_OS\backend\dist\server.js` inicia sem erros.
-
-Arranque Windows: `start.bat` — cria batch launchers temporarios em `%TEMP%\joca-ui\` para backend e frontend, evitando problemas de quoting com caminhos que contem espacos.
-
-**macOS / Linux (bash):**
-
-```bash
-cd "<caminho_joca>/../JOCA_OS"
-cd backend && npm install && npm run build && cd ..
-cd frontend && npm install && cd ..
-chmod +x start.sh stop.sh 2>/dev/null
-```
-
-Verificar: `node <caminho_joca>/../JOCA_OS/backend/dist/server.js` inicia sem erros.
-
-Arranque macOS/Linux: `bash start.sh` — usa `nohup` + `disown` para manter os processos em background.
+Instalar backend **e** frontend (`npm install` + `npm run build` nos dois — sem o `frontend/dist` o backend devolve
+`ENOENT` com o caminho absoluto), verificar e arrancar → `Read(".claude/reference/install/joca-os.md")`.
+A verificação arranca o backend numa **porta de teste** (ex.: `PORT=7591`) com `JOCA_DATA_DIR` temporário e pede
+`GET /runtime` (não existe `/health`) — **nunca** na 7491/7492, que podem ter um JOCA OS vivo.
 
 **JOCA_OS Slash Command Autocomplete:**
 O JOCA_OS suporta autocomplete de comandos, skills e agents — ao digitar `/` no terminal emulado, aparece um dropdown com todos os comandos disponiveis. Mencionar isto ao utilizador.
@@ -694,20 +400,21 @@ Se seleccionado:
 
 **macOS:**
 ```bash
-cp "<caminho_joca>/../JOCA_OS/JOCA UI.command" "<destino>/JOCA UI.command"
-chmod +x "<destino>/JOCA UI.command"
+cp "<JOCA_ROOT>/JOCA_OS/JOCA OS.command" "<destino>/JOCA OS.command"
+chmod +x "<destino>/JOCA OS.command"
 ```
 
 **Windows:**
 ```powershell
-Copy-Item "<caminho_joca>\..\JOCA_OS\JOCA UI.vbs" "<destino>\JOCA UI.vbs"
+Copy-Item "<JOCA_ROOT>\JOCA_OS\JOCA OS.vbs" "<destino>\JOCA OS.vbs"
 ```
 
 ### 9b. Modelo dos agentes (opcional)
 
 Cada agente traz uma sugestão de modelo + effort escrita nele (`modelo-sugerido`/`effort-sugerido`/
 `porque-modelo` — campos que o Claude Code ignora). Agente sem sugestão (ex.: pack marketeer) aparece
-como «manter o actual» e nunca muda. **Por defeito nada muda.** Reinstalação: repor
+como «manter o actual» e nunca muda. Sugestão de effort abaixo do actual sai marcada «↓ manter X»:
+«aplicar todas» mantém o actual, e a descida só entra se escolhida para esse agente. **Por defeito nada muda.** Reinstalação: repor
 primeiro as escolhas já feitas, depois ver o que falta.
 
 ```bash
@@ -744,11 +451,11 @@ OK Soul calibrado — [autonomia], [comunicacao], [erros]
 OK ~/CLAUDE.md actualizado
 OK Lingua fixada no ~/CLAUDE.md
 OK Memoria: estrutura verificada
-OK Skills: 127 configuradas (RFC 2119 trigger system)
+OK Skills: [N] skills · [N] agents · [N] commands (linha `disco:` do joca-doctor.mjs — nunca escrito à mão)
 OK Integracoes: [Browser: playwright-cli/nenhum] · [CLIs: lista]
-OK JOCA_OS: instalado (backend :7491, frontend :7492)[ · Windows: skill joca-os-windows aplicada]
+OK JOCA_OS: instalado e verificado em /runtime na porta de teste (arranque: backend :[7491], frontend :[7492])[ · Windows: skill joca-os-windows aplicada]
 OK Modelos dos agentes: [aplicadas N | mantidos | saltado]
-OK StatusLine: instalada (rate limits -> %TEMP%/joca-ui/rate-limits.json)
+[OK|JA EXISTE|PENDENTE] StatusLine: secção 7d (rate limits -> <tmpdir>/joca-ui/rate-limits.json)
 [estado] Deps: node / npm / git / gh / jq / bun / docker
 
 API KEYS

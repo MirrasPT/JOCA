@@ -10,7 +10,7 @@ category: deploy
 triggers: docker, container, docker compose, docker-compose, Dockerfile, VPS
 generated-from: .claude/skills/deploy-docker.md
 generated-by: skill-agents.mjs
-content-hash: ebe3128c55b5b0ca
+content-hash: d4dc00343bfd1acc
 ---
 
 # deploy-docker — agente de execução

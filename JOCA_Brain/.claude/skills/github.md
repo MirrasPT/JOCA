@@ -418,6 +418,34 @@ jobs:
 
 ---
 
+## Transferir um repo de dono/organização
+
+Irreversível na prática (`POST repos/{o}/{r}/transfer` com `new_owner`; é assíncrono, 202) → gate. Fonte: docs.github.com/en/repositories/creating-and-managing-repositories/transferring-a-repository + /en/rest (verificado 2026-10-02).
+Webhooks, secrets e deploy keys **acompanham** o repo e há redirect dos URLs git/web; o **GitHub Pages não é redirecionado**, colaboradores só-leitura não passam para conta pessoal, e repo privado em plano Free perde branch protection e Pages. O que a doc **não** garante são as integrações do lado de fora — essas falham em silêncio.
+
+**ANTES — inventário (guardar o output):**
+```bash
+R=dono/repo
+gh api repos/$R/hooks --jq '.[] | {id, url: .config.url, events, active}'   # webhooks
+gh api repos/$R/keys --jq '.[] | {id, title, read_only}'                     # deploy keys
+gh api repos/$R/actions/secrets --jq '.secrets[].name'                      # só nomes, nunca valores
+gh api repos/$R/actions/variables --jq '.variables[].name'
+gh api repos/$R/dependabot/secrets --jq '.secrets[].name'
+gh api repos/$R/environments --jq '.environments[].name'                    # secrets por environment à parte
+B=$(gh api repos/$R -q .default_branch); gh api repos/$R/branches/$B/protection; gh api repos/$R/rulesets          # 403 «Upgrade to GitHub Pro» = plano Free
+gh api repos/$R/pages                                                       # 404 = sem Pages
+gh api orgs/<org>/installations --jq '.installations[] | {app_slug, repository_selection}'  # só owner da org
+```
+**GitHub Apps** (integração Shopify↔GitHub, Vercel, Netlify, bots): em conta pessoal o token do `gh` **não as lista** (`repos/$R/installation` pede JWT da app → 401; `user/installations` pede token de GitHub App → 403) — ver em `github.com/settings/installations`. Uma app instalada no dono antigo **não está instalada no novo**: reinstalar na organização destino e dar-lhe acesso ao repo. Somar também: links em CI/painéis externos (Vercel/Netlify/Shopify apontam para `dono/repo`), badges, `git remote` dos clones, secrets de org que o repo usava (não existem na org nova).
+
+**DEPOIS — confirmar pelo efeito, não pelo ecrã de configuração:**
+1. Um commit trivial + push → o deploy/sync externo **corre** (novo deploy no painel, tema/loja actualizado), e o workflow de Actions fica verde.
+2. Webhooks: `gh api repos/$NOVO/hooks/<id>/deliveries --jq '.[0] | {event, status_code, delivered_at}'` — o delivery **posterior** ao push com `status_code` 2xx (ou `POST .../hooks/<id>/pings`).
+3. Deploy key: um pull/push real do servidor que a usa. Pages: abrir o URL novo (o antigo não redireciona).
+«A app aparece ligada» ou «o webhook está activo» não prova nada — só o delivery 2xx e o deploy feito.
+
+---
+
 ## Common pitfalls
 
 | Problema | Fix |

@@ -10,7 +10,7 @@ category: plataformas
 triggers: Wix, Wix CLI, Wix app, dashboard extension, wix.config.json, Velo
 generated-from: .claude/skills/wix-cli.md
 generated-by: skill-agents.mjs
-content-hash: fc142019a47b1ec8
+content-hash: f1d921ecca2270e0
 ---
 
 # wix-cli — agente de execução

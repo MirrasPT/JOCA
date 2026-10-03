@@ -10,7 +10,7 @@ category: portugal
 triggers: Moloni, faturação, fatura, fatura-recibo, invoice Portugal, nota de crédito
 generated-from: .claude/skills/portugal-invoicing.md
 generated-by: skill-agents.mjs
-content-hash: f9f3d704b32eafe8
+content-hash: 84cf39a64787f33f
 ---
 
 # portugal-invoicing — agente de execução

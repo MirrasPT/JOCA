@@ -10,7 +10,7 @@ category: código
 triggers: compound component, component api, boolean props, prop proliferation, slots, slot pattern
 generated-from: .claude/skills/react-composition.md
 generated-by: skill-agents.mjs
-content-hash: 0ad473f6eb3c8ce4
+content-hash: 86d63d0b1eddff51
 ---
 
 # react-composition — agente de execução

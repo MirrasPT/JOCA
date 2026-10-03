@@ -10,7 +10,7 @@ category: deploy
 triggers: cloudflare dns, cloudflare-dns, email routing, registo dns, spf merge, mx cloudflare
 generated-from: .claude/skills/cloudflare-dns.md
 generated-by: skill-agents.mjs
-content-hash: 5ab4c9e31d2ff333
+content-hash: 87a0130060fbc234
 ---
 
 # cloudflare-dns — agente de execução

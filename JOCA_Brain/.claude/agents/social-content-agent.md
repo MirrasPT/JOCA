@@ -7,10 +7,10 @@ modelo-sugerido: sonnet
 effort-sugerido: medium
 porque-modelo: "escrita guiada pela skill, sem código"
 category: conteúdo
-triggers: LinkedIn post, Twitter thread, social media, content calendar, social scheduling, engagement
+triggers: LinkedIn post, Twitter thread, social media, engagement, social post copy
 generated-from: .claude/skills/social-content.md
 generated-by: skill-agents.mjs
-content-hash: 94ffd03df0036a00
+content-hash: 0b6adb25a4240e06
 ---
 
 # social-content — agente de execução

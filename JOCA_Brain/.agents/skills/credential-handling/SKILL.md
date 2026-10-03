@@ -110,7 +110,10 @@ Regras:
   files `systemd` (`Environment=`). Um `cat` ao `.htaccess` do cPanel pôs um `JWT_SECRET` de produção
   no transcript (2026-09-22). Inspecionar só as linhas-alvo (`grep -n 'RewriteRule' .htaccess`) ou
   só os **nomes**, com um padrão que pára antes do valor (lista branca, como o `^[A-Z0-9_]+=` acima):
-  `grep -noE '^[[:space:]]*(SetEnv[[:space:]]+[A-Za-z0-9_]+|Environment="?[A-Za-z0-9_]+=|define\([[:space:]]*.[A-Za-z0-9_]+.)' <ficheiro>`.
+  `grep -inoE '^[[:space:]]*(SetEnv[[:space:]]+[A-Za-z0-9_]+|define\([[:space:]]*.[A-Za-z0-9_]+.)' <ficheiro>`
+  (`-i`: o Apache aceita `setenv`). O `Environment=` do `systemd` leva várias atribuições por linha
+  (`Environment="A=1" "B=2"`) — sai cada nome, respeitando as aspas para não partir um valor com espaços:
+  `awk -v q="'" '/^[ \t]*Environment[ \t]*=/{s=$0;sub(/^[ \t]*Environment[ \t]*=[ \t]*/,"",s);re="^(\"[^\"]*\"|" q "[^" q "]*" q "|[^ \t\"" q "]+)[ \t]*";while(s!=""&&match(s,re)){t=s;s=substr(s,RLENGTH+1);c=substr(t,1,1);if(c=="\""||c==q)t=substr(t,2);if(match(t,/^[A-Za-z0-9_]+=/))print NR": Environment "substr(t,1,RLENGTH-1)}}' <ficheiro>`.
   Nunca `grep -v` com palavras a esconder: deixa passar `DATABASE_URL=…:<pass>@…` e o hash do
   `basicauth` do Caddy (o bloco do `basicauth` não tem nome a listar — é opaco, ver abaixo).
 - **Ficheiro de segredo sem `NOME=` é opaco.** Um ficheiro de 1 linha só com o valor (token solto,

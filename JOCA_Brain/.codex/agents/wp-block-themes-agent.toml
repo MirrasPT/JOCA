@@ -1,4 +1,4 @@
-description = """theme.json, block theme"""
+description = """site editor, template parts, fse"""
 developer_instructions = """
 
 # wp-block-themes — agente de execução
@@ -6,6 +6,7 @@ developer_instructions = """
 Especialista em wp-block-themes. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
+**Gatilhos:** site editor, template parts, template part, style variations, padrões de blocos, padroes de blocos, block patterns, tema de blocos, fse, full site editing, template da página, templates do tema, theme.json, block theme, styles not applying, estilos do theme.json, paleta no theme.json
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

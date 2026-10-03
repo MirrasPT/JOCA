@@ -10,7 +10,7 @@ category: conteúdo
 triggers: email sequence, drip campaign, nurture sequence, onboarding emails, welcome sequence, re-engagement emails
 generated-from: .claude/skills/email-sequence.md
 generated-by: skill-agents.mjs
-content-hash: 3646cbb282459c92
+content-hash: 16a713085883d895
 ---
 
 # email-sequence — agente de execução

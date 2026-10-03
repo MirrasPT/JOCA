@@ -205,7 +205,7 @@ gates de runtime passados · security review sem Critical · deploy feito (ou en
 
 **Passagem ao workflow seguinte:** com `## Workflows` no `PROGRESSO.md`, marca a linha da app ✅ com a
 data e procura a seguinte por fazer cujo «Comeca quando» ficou cumprido. Ha → 1 gate
-`AskUserQuestion` **«Avanco para o proximo workflow: <nome>?»** (*Sim, avancar* recomendado · *Nao,
+`AskUserQuestion` **«Avanço para o próximo workflow: <nome>?»** (*Sim, avancar* recomendado · *Nao,
 fica para depois*); marketing → `/marketeer <marca>` (o slug esta na linha; a RAIZ no frontmatter do
 `index.md` da memoria). Nao ha → fim.
 

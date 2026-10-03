@@ -34,6 +34,7 @@ VALIDACOES
 SAIDA
     Linha OK / WARN / FAIL por ficheiro + sumario.
     Exit 1 se algum FAIL; exit 0 caso contrario.
+    --strict (com ficheiros, sem args ou com --all): ponteiro morto ([ponteiro]/[step0]) tambem da exit 1.
 """
 
 import math
@@ -97,7 +98,10 @@ def parse_frontmatter(text):
 OWNED = re.compile(r"^\.claude/(skills|agents|commands|rules|reference|scripts|hooks|workflows)/|^memory/")
 SUB = re.compile(r"^(rules|reference|skills|agents|commands|scripts|hooks|workflows)/")
 RUNTIME = re.compile(r"^memory/(feedback|projects|knowledge|decisions|learnings|checkpoints)/")
-OPCIONAL = re.compile(r"\b(exists?|existir|exista|existe|houver|opcional|optional|if present|if available|check for|verifica se)\b", re.I)
+OPCIONAL = re.compile(r"\b(exists?|existir|exista|existe|se houver|opcional|optional|if present|if available|check for|verifica se)\b", re.I)
+# A palavra so torna o caminho opcional se o QUALIFICAR: procura-se ate JANELA caracteres antes e
+# depois da citacao (na mesma linha, sem o proprio caminho), nao na linha inteira.
+JANELA = 40
 ABSENTE = re.compile(r"(n[aã]o exist|inexistente|em falta|does not exist|doesn't exist|did ?n[o']t exist|no longer exists|missing|nunca existiu)", re.I)
 CREDITOS = re.compile(r"^(#{1,6}[ \t]+(?:Cr[ée]ditos|Credits|Atribui[çc][ãa]o|Attribution)\b[^\n]*\n)(.*?)(?=^#{1,6}[ \t]|\Z)", re.M | re.I | re.S)
 TEMPLATE_DE_PROJECTO = re.compile(r"[\\/]reference[\\/]start[\\/]templates[\\/]")
@@ -110,16 +114,16 @@ STOP = set("""a o as os de da do das dos e em no na nos nas um uma para por com 
 
 
 def citations(f, text):
-    """Lista (caminho, linha, alvos) dos caminhos JOCA-internos citados em `text`."""
+    """Lista (caminho, linha, alvos, perto) dos caminhos JOCA-internos citados em `text`."""
     text = CREDITOS.sub(lambda m: m.group(1) + re.sub(r"[^\n]", " ", m.group(2)), text)
     cands = {}
     for rx in CAND_RES:
         for m in rx.finditer(text):
-            cands.setdefault(m.group(1), m.start())
+            cands.setdefault(m.group(1), m.span())
     out = []
     d = f.parent
     comp = d / f.stem
-    for raw, idx in cands.items():
+    for raw, (idx, fim_c) in cands.items():
         c = raw.strip()
         if re.search(r"[<>*${}|\"'\[\]\s]", c) or c.endswith("/") or not re.search(r"\.[a-z0-9]{1,5}$", c, re.I):
             continue
@@ -127,7 +131,9 @@ def citations(f, text):
             continue
         ini = text.rfind("\n", 0, idx) + 1
         fim = text.find("\n", idx)
-        linha = text[ini:fim if fim >= 0 else len(text)]
+        fim = fim if fim >= 0 else len(text)
+        linha = text[ini:fim]
+        perto = text[max(ini, idx - JANELA):idx] + " " + text[fim_c:min(fim, fim_c + JANELA)]
         if c.startswith("./"):
             alvos = [d / c[2:]]
         elif OWNED.search(c):
@@ -136,15 +142,15 @@ def citations(f, text):
             alvos = [d / c, comp / c, CLAUDE_DIR / c]
         else:
             continue
-        out.append((c, linha, alvos))
+        out.append((c, linha, alvos, perto))
     return out
 
 
 def dead_pointers(f, text):
     if TEMPLATE_DE_PROJECTO.search(str(f)):
         return []
-    return [c for c, linha, alvos in citations(f, text)
-            if not OPCIONAL.search(linha) and not ABSENTE.search(linha) and not any(a.exists() for a in alvos)]
+    return [c for c, linha, alvos, perto in citations(f, text)
+            if not OPCIONAL.search(perto) and not ABSENTE.search(linha) and not any(a.exists() for a in alvos)]
 
 
 def step0_dead(text):
@@ -323,7 +329,7 @@ def memoria_lint():
     return fmt(dados.get("erros", [])), fmt(dados.get("avisos", []))
 
 
-def report_all():
+def report_all(strict=False):
     """Relatorio do repo inteiro. Devolve exit code (1 se algum FAIL de frontmatter)."""
     def md(d, rec=True):
         return sorted((d.rglob if rec else d.glob)("*.md"))
@@ -359,7 +365,7 @@ def report_all():
         except (OSError, UnicodeDecodeError):
             return set()
         out = set()
-        for _c, _l, alvos in citations(f, text):
+        for _c, _l, alvos, _p in citations(f, text):
             for a in alvos:
                 if a.is_file() and kind_of(a) == "reference" and a.resolve() != f.resolve():
                     out.add(a.resolve())
@@ -405,7 +411,7 @@ def report_all():
             orfas.append(rel(r))
     cats["orfa"] = orfas
 
-    # (m) memoria por pastas (issue #82): as regras vivem no lib JS (fonte unica, o doctor §7 usa a mesma);
+    # (m) memoria por pastas: as regras vivem no lib JS (fonte unica, o doctor §7 usa a mesma);
     # aqui so se mostra a lista. Informativo: nao mexe no exit code.
     mem_erros, mem_avisos = memoria_lint()
     cats["memoria"] = mem_erros
@@ -433,13 +439,15 @@ def report_all():
     print("\n## FAIL (frontmatter): %d" % len(fails))
     for i in fails:
         print("  - " + i)
-    return 1 if fails else 0
+    return 1 if fails or (strict and (cats.get("ponteiro") or cats.get("step0"))) else 0
 
 
 def main(argv):
     args = argv[1:]
+    strict = "--strict" in args
+    args = [a for a in args if a != "--strict"]
     if args == ["--all"]:
-        return report_all()
+        return report_all(strict)
     if args:
         targets = [Path(a) for a in args]
     else:
@@ -453,9 +461,11 @@ def main(argv):
 
     catalog = skill_catalog() if len(targets) > 1 else None
     counts = {"OK": 0, "WARN": 0, "FAIL": 0}
+    mortos = 0
     for t in targets:
         status, msgs = validate(t, catalog)
         counts[status] += 1
+        mortos += sum(1 for m in msgs if m.startswith(("[ponteiro]", "[step0]")))
         line = "[%-4s] %s" % (status, t.name)
         print(line)
         for m in msgs:
@@ -465,7 +475,7 @@ def main(argv):
     print("Total: %d  OK: %d  WARN: %d  FAIL: %d" % (
         len(targets), counts["OK"], counts["WARN"], counts["FAIL"]))
 
-    return 1 if counts["FAIL"] else 0
+    return 1 if counts["FAIL"] or (strict and mortos) else 0
 
 
 if __name__ == "__main__":

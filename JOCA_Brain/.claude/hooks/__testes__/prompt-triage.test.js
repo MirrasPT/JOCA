@@ -57,7 +57,7 @@ test('pedido irreversível normal mantém o [plano]', () => {
 
 // T039 T106 T175 + não estragar o [projecto] aprovado
 test('[projecto] traz o recall do slug', () => {
-  // memória por pastas: `acme/index.md` (a ficha plana `acme.md` já não se lê, issue #82)
+  // memória por pastas: `acme/index.md` (a ficha plana `acme.md` já não se lê)
   assert.match(triar('continua o acme'), /\[projecto\] acme → ler memory\/projects\/acme\/index\.md \+ `node ".*joca-brain\.mjs" recall --slug acme`/);
 });
 test('«vendas do mês» continua sem [projecto] nem [projecto?]', () => {

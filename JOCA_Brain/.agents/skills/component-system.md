@@ -5,5 +5,5 @@ description: "Fundida em design-system — usar design-system quando for preciso
 
 # component-system → `design-system`
 
-Stub de redireção (F4.2, issue #61). Usar `Read(".claude/skills/design-system.md")`.
+Stub de redireção (fusões de domínio, F4.2). Usar `Read(".claude/skills/design-system.md")`.
 O conteúdo (inventário, template de spec, estados, registo de assets) está em `.claude/reference/design-system-componentes.md`.

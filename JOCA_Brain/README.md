@@ -24,9 +24,9 @@ JOCA/
 │   │   ├── projects/        <- estado por projecto (/save)
 │   │   └── tools/           <- CLIs e MCPs (install + auth)
 │   └── .claude/
-│       ├── commands/        <- 30 comandos (/install, /resume, /save, /plan, /goal, ...)
+│       ├── commands/        <- 31 comandos (/install, /resume, /save, /plan, /goal, ...)
 │       ├── agents/          <- 97 agentes (tester-*, debug, research, media, orquestração, ...)
-│       ├── skills/          <- 178 skills flat (.md) — on-demand loading
+│       ├── skills/          <- 179 skills flat (.md) — on-demand loading
 │       ├── hooks/           <- autonomous testing + task-intake pipeline
 │       ├── rules/           <- task-intake, pipelines, chaining, orchestration-patterns, stack-padrao
 │       └── scripts/         <- compile-bridges, build-skill-index, statusline
@@ -40,7 +40,7 @@ JOCA/
     └── stop.sh              <- stop macOS/Linux
 ```
 
-**305 componentes:** 178 skills + 97 agents + 30 commands.
+**307 componentes:** 179 skills + 97 agents + 31 commands.
 
 ---
 
@@ -112,7 +112,7 @@ Para arrancar um projecto novo ou ligar um existente:
 
 ---
 
-## Skills (178)
+## Skills (179)
 
 Skills sao activadas on-demand — so carregam quando invocadas. Formato flat: um `.md` por skill em `.claude/skills/`, com triggers RFC 2119 (MUST/SHOULD/MAY).
 
@@ -190,7 +190,7 @@ Agentes correm em sub-processos isolados, em paralelo.
 
 ---
 
-## Commands (30)
+## Commands (31)
 
 | Command | Funcao |
 |---------|--------|

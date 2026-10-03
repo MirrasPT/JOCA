@@ -10,7 +10,7 @@ category: design
 triggers: slides, apresentação, presentation, pitch deck, deck, powerpoint
 generated-from: .claude/skills/slides.md
 generated-by: skill-agents.mjs
-content-hash: 7e46565c4e803edc
+content-hash: 6d13a1efb4eb92a5
 ---
 
 # slides — agente de execução

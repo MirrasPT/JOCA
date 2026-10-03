@@ -36,6 +36,16 @@ function gate(args) {
     (err, stdout, stderr) => ok({ code: err ? err.code : 0, stdout, stderr })));
 }
 
+test('--help imprime o uso com as flags reais e sai 0', async () => {
+  const r = await gate(['--help']);
+  assert.equal(r.code, 0, r.stderr);
+  for (const f of ['--base', '--rotas', '--config', '--temas', '--viewports', '--clicar', '--dispensar', '--out', '--esperar', '--estado', '--login', '--medir', '--classes']) {
+    assert.ok(r.stdout.includes(f), `--help sem ${f}`);
+  }
+  assert.match(r.stdout, /Exit code: 0 = tudo limpo/);
+  assert.doesNotMatch(r.stdout, /Falta o URL base/);
+});
+
 test('B02a + B03 no gate-runtime', async (t) => {
   const s = await servidor();
   const out = mkdtempSync(join(tmpdir(), 'gate-runtime-b03-'));

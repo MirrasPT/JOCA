@@ -10,7 +10,7 @@ category: plataformas
 triggers: Notion, ntn, tarefa Notion, base de dados Notion, data source Notion, workspace de clientes
 generated-from: .claude/skills/notion.md
 generated-by: skill-agents.mjs
-content-hash: 95475595553c93c1
+content-hash: 4af39909426e8e85
 ---
 
 # notion — agente de execução

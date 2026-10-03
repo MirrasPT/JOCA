@@ -2,7 +2,7 @@
 
 > Lido pelo `design-system` quando o pedido é tokens: design tokens, CSS variables / custom properties,
 > DTCG, Style Dictionary, escala de espaçamentos, dark mode, tipografia em `clamp()`.
-> Inclui o conteúdo do antigo `design-tokens` (fundido no `design-system` na F4.2, issue #61).
+> Inclui o conteúdo do antigo `design-tokens` (fundido no `design-system` nas fusões de domínio da F4.2).
 > Multi-marca (N marcas irmãs): o núcleo `design-system` aponta a referência própria.
 
 ## Índice

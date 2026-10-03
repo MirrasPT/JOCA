@@ -1,16 +1,16 @@
 ---
 name: cpanel-agent
-description: "cpanel, uapi, addon domain"
+description: "email nao recebe, cpanel, uapi"
 skills: cpanel
 model: inherit
 modelo-sugerido: opus
 effort-sugerido: medium
 porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
-triggers: cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel
+triggers: email nao recebe, mx spf dkim cloudflare, autossl certificado, cpanel, uapi, addon domain
 generated-from: .claude/skills/cpanel.md
 generated-by: skill-agents.mjs
-content-hash: 20db0dc7937dd1c0
+content-hash: 1a1c1a2fa471a1f0
 ---
 
 # cpanel — agente de execução
@@ -18,7 +18,7 @@ content-hash: 20db0dc7937dd1c0
 Especialista em cpanel. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel, criar subdominio, cpanel database
+**Gatilhos:** email nao recebe, mx spf dkim cloudflare, autossl certificado, cpanel, uapi, addon domain, gerir hosting, conta de email cpanel, zona dns cpanel, criar subdominio, cpanel database
 
 ## Step 0 — obrigatório, antes de qualquer acção
 

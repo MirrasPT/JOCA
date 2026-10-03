@@ -1,6 +1,6 @@
 // Memória de projectos por pastas (2026-10-01): lib memoria-projecto + migrar-memoria-pastas + os
 // consumidores, sempre numa árvore descartável com pastas `<slug>/index.md` e uma ficha plana antiga
-// `<slug>.md` que já NÃO se lê (fase D, issue #82): só se detecta. Nunca lê a memória real. Uso: node --test .claude/scripts/test/memoria-pastas.test.mjs
+// `<slug>.md` que já NÃO se lê (fase D): só se detecta. Nunca lê a memória real. Uso: node --test .claude/scripts/test/memoria-pastas.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, readFileSync, existsSync, rmSync, readdirSync } from 'node:fs';

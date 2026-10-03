@@ -10,7 +10,7 @@ category: conteúdo
 triggers: stop slop, AI slop, soa a AI, parece AI, escrito por AI, tells de AI
 generated-from: .claude/skills/stop-slop.md
 generated-by: skill-agents.mjs
-content-hash: b49cd971c0c1bd12
+content-hash: 0ebec25fe8f399cd
 ---
 
 # stop-slop — agente de execução

@@ -1,6 +1,6 @@
 // T134 — Playwright MCP em qualquer scope do ~/.claude.json (ou .mcp.json) é ✗.
 // B08  — ficha com `directorio_estado: quebrado` aparece no doctor.
-// #82  — limites da memória por pastas (lint do lib) e ficha plana antiga = ✗.
+// Memória por pastas — limites da memória por pastas (lint do lib) e ficha plana antiga = ✗.
 // Corre o doctor numa árvore descartável (BRAIN pelo __dirname) com HOME/USERPROFILE falsos —
 // nunca lê o ~/.claude.json real. Uso: node --test .claude/scripts/test/joca-doctor.test.mjs
 // (JOCA_TEST_SCRIPT=<cópia> para mutação)
@@ -8,13 +8,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const ALVO = process.env.JOCA_TEST_SCRIPT || join(dirname(fileURLToPath(import.meta.url)), '..', 'joca-doctor.mjs');
 
-function doctor({ claudeJson, fichas, pastas, extra }) {
+function doctor({ claudeJson, fichas, pastas, extra, skills }) {
   const raiz = mkdtempSync(join(tmpdir(), 'joca-doctor-t134-'));
   const brain = join(raiz, 'JOCA_Brain');
   const home = join(raiz, 'home');
@@ -35,6 +35,9 @@ function doctor({ claudeJson, fichas, pastas, extra }) {
     writeFileSync(join(brain, 'memory', 'projects', nome, 'index.md'), `---\nname: ${nome}\ndirectorio_estado: ${estado}\n---\n# ${nome}\n`);
   }
   for (const [rel, texto] of Object.entries(extra || {})) writeFileSync(join(brain, 'memory', 'projects', rel), texto);
+  // skills: { '<nome>.md': texto } em .claude/skills/ (§9b, ponteiros mortos)
+  if (skills) mkdirSync(join(brain, '.claude', 'skills'), { recursive: true });
+  for (const [nome, texto] of Object.entries(skills || {})) writeFileSync(join(brain, '.claude', 'skills', nome), texto);
   const r = spawnSync(process.execPath, [join(brain, '.claude', 'scripts', 'joca-doctor.mjs')],
     { cwd: brain, encoding: 'utf8', timeout: 120000, env: { ...process.env, HOME: home, USERPROFILE: home } });
   rmSync(raiz, { recursive: true, force: true });
@@ -61,14 +64,14 @@ test('B08 directorio_estado: quebrado aparece no doctor (pastas)', () => {
   assert.match(ok, /✓ memory\/projects\/: 1 pasta\(s\) dentro dos limites/);
 });
 
-test('#82 ficha plana antiga já não se lê: não conta no B08 e é ✗', () => {
+test('memória por pastas: ficha plana antiga já não se lê: não conta no B08 e é ✗', () => {
   const out = doctor({ claudeJson: {}, fichas: { velha: 'quebrado' }, pastas: { outra: 'ambos' } });
   assert.match(out, /✓ memory\/projects\/: 1 ficha\(s\) com directorio_estado, nenhuma quebrada/);
   assert.match(out, /✗ 1 problema\(s\) na memória por pastas/);
   assert.match(out, /velha: ficha plana antiga velha\.md \(sem pasta\)/);
 });
 
-test('#82 limites: corpo do index, mini-estado, ficheiro não listado, área >40 KB', () => {
+test('memória por pastas: limites: corpo do index, mini-estado, ficheiro não listado, área >40 KB', () => {
   const corpo = Array.from({ length: 41 }, (_, i) => `linha ${i}`).join('\n');
   const out = doctor({ claudeJson: {}, pastas: { a: 'ambos', b: 'ambos', c: 'ambos' }, extra: {
     'a/index.md': `---\nname: a\n---\n# a\n${corpo}\n`,
@@ -84,4 +87,14 @@ test('#82 limites: corpo do index, mini-estado, ficheiro não listado, área >40
   assert.match(out, /b: §Ficheiros lista fantasma\.md, que não existe na pasta/);
   assert.match(out, /⚠ 1 aviso\(s\) de tamanho[\s\S]*c: loja\.md com 41 KB/);
   assert.doesNotMatch(out, /\n\s+c: (?!loja\.md com)/);
+});
+
+test('ponteiro morto §9b: «opcional» só conta junto ao caminho (mesma regra do validate-skill)', () => {
+  const base = 'Antes de escrever código: `Read(".claude/reference/ponteiro-partido-f12.md")` — escada + guard-rails.';
+  const casos = { 'a.md': base, 'b.md': base + ' Se existir.', 'c.md': base + ' (opcional)',
+    'd.md': base + ' quando houver código', 'e.md': base + ' Ver também a tabela de exemplos lá em baixo. Se existir.' };
+  const out = doctor({ claudeJson: {}, skills: Object.fromEntries(Object.entries(casos).map(([n, t]) => [n, `# ${n}\n\n${t}\n`])) });
+  assert.match(out, /✗ 3 ponteiro\(s\) morto\(s\)/);
+  for (const n of ['a.md', 'd.md', 'e.md']) assert.ok(out.includes(`skills${sep}${n} → `), n);
+  for (const n of ['b.md', 'c.md']) assert.ok(!out.includes(`${n} → `), n);
 });

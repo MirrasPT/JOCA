@@ -11,10 +11,10 @@ Não há workflow de redes sociais: as redes vão sempre pelo `/marketeer`.
 
 ```
 branding ──B4──► website / app (consomem os tokens, não os recriam)
-                     └──W5/W7──► marketing (site e lead já medidos)
+                     └──W7 (website) · E4 (app)──► marketing (site e lead já medidos)
 ```
 
-- **Passagem entre workflows** = 1 gate Sim/Não («Avanço para o workflow seguinte: <nome>?»).
+- **Passagem entre workflows** = 1 gate Sim/Não («Avanço para o próximo workflow: <nome>?»).
 - **Dentro do workflow** as fases encadeiam sozinhas (`chain:`), com os gates ⛔/⏸ de cada fase.
 - Um workflow sem predecessor no projecto começa já (`Começa quando: —`). Ex.: website sem branding
   mede a identidade do que existir (W2 corre `brand-guidelines`/`design-system` só nesse caso).

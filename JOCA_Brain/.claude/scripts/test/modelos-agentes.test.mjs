@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 const SCRIPTS = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -70,7 +71,8 @@ test('reaplicar: repõe as escolhas depois de um update simulado', () => {
     const loc = join(r.d, '.claude/modelos-agentes.local.json');
     const guardado = readFileSync(loc, 'utf8');
     rmSync(loc);
-    r.run('skill-agents.mjs', '--force');
+    rmSync(join(r.d, '.claude/agents/frontend-agent.md'));
+    r.run('skill-agents.mjs');
     assert.equal(linha(r.ag('frontend-agent'), 'model'), 'inherit', 'sem escolhas o gerador volta ao inherit');
     writeFileSync(loc, guardado);
     const out = r.run('modelos-agentes.mjs', '--reaplicar');
@@ -110,6 +112,42 @@ test('sem sugestão = manter: «aplicar todas» não muda model nem effort', () 
     assert.equal(r.ag('semsug'), SEM_SUGESTAO, 'ficheiro intacto');
     const guardado = JSON.parse(readFileSync(join(r.d, '.claude/modelos-agentes.local.json'), 'utf8'));
     assert.deepEqual({ m: guardado.agentes.semsug.model, e: guardado.agentes.semsug.effort }, { m: 'opus', e: 'high' });
+  } finally { r.limpar(); }
+});
+
+test('«aplicar todas» não baixa effort; a descida vai marcada na tabela', () => {
+  const r = raiz();
+  try {
+    const t = r.run('modelos-agentes.mjs', '--tabela').stdout;
+    assert.match(t, /\| curado \| Opus · xhigh \| Sonnet · ↓ manter xhigh \(sugerido low: só se escolhido\) \|/);
+    const json = r.run('modelos-agentes.mjs', '--tabela', '--json');
+    const todas = JSON.parse(json.stdout);
+    assert.deepEqual({ e: todas.agentes.curado.effort, d: todas.agentes.curado.desce }, { e: 'xhigh', d: 'low' });
+    const esc = join(r.d, 'todas.json');
+    writeFileSync(esc, json.stdout);
+    assert.equal(r.run('modelos-agentes.mjs', '--aplicar', esc).status, 0);
+    assert.equal(linha(r.ag('curado'), 'model'), 'sonnet');
+    assert.equal(linha(r.ag('curado'), 'effort'), 'xhigh', 'effort actual mantido');
+    // Escolha explícita desse agente aplica a descida.
+    writeFileSync(esc, JSON.stringify({ agentes: { curado: { model: 'sonnet', effort: 'low' } } }));
+    assert.equal(r.run('modelos-agentes.mjs', '--aplicar', esc).status, 0);
+    assert.equal(linha(r.ag('curado'), 'effort'), 'low');
+  } finally { r.limpar(); }
+});
+
+test('gerador: regenerar sem escolha guardada mantém o model/effort do ficheiro', () => {
+  const r = raiz();
+  try {
+    r.run('skill-agents.mjs');
+    const f = join(r.d, '.claude/agents/frontend-agent.md');
+    // Model/effort (opus · high) re-selados à mão, como um selo manual: regenerar não os volta ao inherit.
+    const H = /^content-hash: .*$\n?/m;
+    const t = r.ag('frontend-agent').replace('model: inherit', 'model: opus\neffort: high');
+    const hash = createHash('sha256').update(t.replace(H, '')).digest('hex').slice(0, 16);
+    const selado = t.replace(/^content-hash: .*$/m, `content-hash: ${hash}`);
+    writeFileSync(f, selado);
+    assert.doesNotMatch(r.run('skill-agents.mjs').stdout, /preservados/);
+    assert.equal(r.ag('frontend-agent'), selado);
   } finally { r.limpar(); }
 });
 

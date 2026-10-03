@@ -10,7 +10,7 @@ category: código
 triggers: webhook, webhook receiver, signature verification, idempotency, stripe webhook, github webhook
 generated-from: .claude/skills/webhooks.md
 generated-by: skill-agents.mjs
-content-hash: e825eaad52e1da86
+content-hash: d9dcac412f149636
 ---
 
 # webhooks — agente de execução

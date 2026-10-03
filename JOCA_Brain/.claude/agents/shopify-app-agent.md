@@ -10,7 +10,7 @@ category: plataformas
 triggers: shopify app init, checkout extension, admin extension
 generated-from: .claude/skills/shopify-app.md
 generated-by: skill-agents.mjs
-content-hash: 862c961ba461ba03
+content-hash: 42714c2f33524c7f
 ---
 
 # shopify-app — agente de execução

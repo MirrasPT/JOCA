@@ -767,22 +767,8 @@
     "category": "general",
     "dominio": "qualidade",
     "path": ".claude/skills/cso.md",
-    "description": "Modo Chief Security Officer — auditoria de segurança infra-first com threat modeling estruturado (STRIDE + OWASP Top 10) e dois modos com gate de confiança: daily (zero-ruído, gate 8/10) e comprehensi",
-    "triggers": [
-      "cso",
-      "auditoria de seguranca",
-      "threat model",
-      "modelo de ameacas",
-      "OWASP",
-      "STRIDE",
-      "security audit",
-      "pentest review",
-      "CSO review",
-      "rever seguranca",
-      "postura de seguranca",
-      "security posture",
-      "rever postura de segurança antes de produção/deploy"
-    ]
+    "description": "Fundida em seguranca: ponteiro para o comando /seguranca, que leva o STRIDE na F1, o gate de confiança (confirmado / não confirmado / rejeitado) na F3 e a tendência entre auditorias na F4. Usar quando",
+    "triggers": []
   },
   {
     "type": "skill",
@@ -3462,6 +3448,34 @@
   },
   {
     "type": "skill",
+    "name": "seguranca",
+    "category": "general",
+    "dominio": "qualidade",
+    "path": ".claude/skills/seguranca.md",
+    "description": "Ciclo completo de auditoria de segurança de um projeto (/seguranca): âmbito com autorização para testes ativos, reconhecimento da stack, frentes em paralelo (código, segredos no histórico, dependência",
+    "triggers": [
+      "/seguranca",
+      "auditoria de seguranca",
+      "security audit",
+      "security review completo",
+      "pentest ao meu projeto",
+      "pentest projeto",
+      "ciclo de seguranca",
+      "modelo de ameacas",
+      "threat model",
+      "STRIDE",
+      "cso",
+      "segredos no historico",
+      "projeto esta seguro",
+      "auditoria completa de seguranca",
+      "security scan do repo",
+      "o projeto está seguro para lançar",
+      "procurar segredos no histórico",
+      "ciclo de segurança antes de produção"
+    ]
+  },
+  {
+    "type": "skill",
     "name": "selfhosted-arr",
     "category": "general",
     "dominio": "deploy",
@@ -4518,14 +4532,14 @@
     "category": "agents",
     "dominio": "marketing",
     "path": ".claude/agents/content-calendar-agent.md",
-    "description": "plano de publicacao, calendario social",
+    "description": "content calendar, social calendar",
     "triggers": [
+      "content calendar",
+      "social calendar",
       "plano de publicacao",
       "calendario social",
       "rollout de lancamento",
-      "captions por plataforma",
-      "content schedule",
-      "posting schedule"
+      "captions por plataforma"
     ]
   },
   {
@@ -4550,14 +4564,14 @@
     "category": "agents",
     "dominio": "deploy",
     "path": ".claude/agents/cpanel-agent.md",
-    "description": "cpanel, uapi, addon domain",
+    "description": "email nao recebe, cpanel, uapi",
     "triggers": [
+      "email nao recebe",
+      "mx spf dkim cloudflare",
+      "autossl certificado",
       "cpanel",
       "uapi",
-      "addon domain",
-      "gerir hosting",
-      "conta de email cpanel",
-      "zona dns cpanel"
+      "addon domain"
     ]
   },
   {
@@ -4632,12 +4646,12 @@
     "path": ".claude/agents/deploy-ploi-agent.md",
     "description": "ploi, deploy, servidor, server",
     "triggers": [
-      "ploi",
-      "deploy",
-      "deploy to ploi",
-      "ploi.io",
-      "deployment",
-      "servidor"
+      "ploi api",
+      "ploi cli",
+      "chave ssh ploi",
+      "nginx config ploi",
+      "token ploi",
+      "ploi"
     ]
   },
   {
@@ -4814,12 +4828,12 @@
     "path": ".claude/agents/graphic-design-agent.md",
     "description": "roll-up, flyer, trifold, bifold",
     "triggers": [
+      "montagem de fotos",
+      "colagem de fotos",
+      "mosaico de fotos",
+      "montagem estática",
       "roll-up",
-      "flyer",
-      "trifold",
-      "bifold",
-      "poster",
-      "brochure"
+      "flyer"
     ]
   },
   {
@@ -5437,9 +5451,8 @@
       "LinkedIn post",
       "Twitter thread",
       "social media",
-      "content calendar",
-      "social scheduling",
-      "engagement"
+      "engagement",
+      "social post copy"
     ]
   },
   {
@@ -5676,11 +5689,13 @@
     "category": "agents",
     "dominio": "wordpress",
     "path": ".claude/agents/wp-block-themes-agent.md",
-    "description": "theme.json, block theme",
+    "description": "site editor, template parts, fse",
     "triggers": [
-      "theme.json",
-      "block theme",
-      "styles not applying"
+      "site editor",
+      "template parts",
+      "template part",
+      "style variations",
+      "padrões de blocos"
     ]
   },
   {

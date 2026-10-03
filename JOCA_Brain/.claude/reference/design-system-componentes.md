@@ -2,7 +2,7 @@
 
 > Lido pelo `design-system` quando o pedido é especificar componentes: inventário, anatomia, variantes,
 > tamanhos, estados, acessibilidade, UI kit. Inclui o conteúdo do antigo `component-system`
-> (fundido no `design-system` na F4.2, issue #61). Os tokens que as specs citam → `design-system-tokens.md`.
+> (fundido no `design-system` nas fusões de domínio da F4.2). Os tokens que as specs citam → `design-system-tokens.md`.
 
 ## Índice
 - [Output](#output) — `system/component-inventory.md` + `system/components/*.md`

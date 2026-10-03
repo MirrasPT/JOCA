@@ -58,10 +58,10 @@ haver 2-4 cópias esquecidas ao longo do tempo.
 
 ## Passo 3 — Baseline de comparação
 
-Se não houver um clone local do `Joca-Open-Source` já disponível (o brief deve indicar um path se
+Se não houver um clone local do repo público do JOCA já disponível (o brief deve indicar um path se
 houver), clonar `https://github.com/MirrasPT/JOCA` para uma pasta temporária (`/tmp/` ou
-equivalente) só para esta comparação — nunca comparar contra a instalação privada/produção do autor
-do JOCA, é o repo público que serve de baseline.
+equivalente) só para esta comparação — nunca comparar contra uma instalação já personalizada
+(a de quem corre o comando ou outra): é o repo público que serve de baseline.
 
 ## Passo 4 — Auditoria por instalação encontrada
 
@@ -78,7 +78,7 @@ apresentar):
    de trabalho (`testing.md` estava assim). Sinalizar qualquer caso.
 4. **Descriptions de agentes**: somar `length()` da linha `description:` de cada `.claude/agents/*.md`.
    Sinalizar individualmente as que passarem de 400 caracteres (candidatas ao mesmo corte já
-   aplicado ao Joca-Open-Source e à produção nesta sessão — ~40-50% de redução sem tocar em
+   aplicado ao repo público — ~40-50% de redução sem tocar em
    doutrina, só cortar frases-padrão repetidas tipo "Use this agent when...").
 5. **Skills possivelmente mortas**: cruzar nomes de skills desta instalação com o que existe no
    baseline. Uma skill que já não existe no baseline E não é referenciada em nenhum

@@ -110,6 +110,15 @@ const flag = (nome, def = null) => {
   return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : def;
 };
 
+// `--help`: imprime o bloco «Uso … Exit code» do cabeçalho deste ficheiro — uma só fonte, não diverge.
+if (argv.includes('--help') || argv.includes('-h')) {
+  const cab = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n');
+  const ini = cab.findIndex((l) => l.startsWith('// Uso:'));
+  const fim = cab.findIndex((l) => l.startsWith('// Exit code:'));
+  console.log(cab.slice(ini, fim + 1).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  process.exit(0);
+}
+
 let cfg = {};
 const configPath = flag('config');
 if (configPath) {

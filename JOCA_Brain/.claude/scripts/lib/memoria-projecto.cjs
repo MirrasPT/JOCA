@@ -2,7 +2,7 @@
 //
 //   memory/projects/<slug>/index.md  (+ geral.md, <area>.md, pastas.md, normas.md, config.md, acessos.md, arquivo.md)
 //
-// Fase D do desenho (~/.claude/joca-runs/2026-10-01-memoria-pastas/desenho.md, issue #82): a ficha plana
+// Fase D do desenho da memória por pastas: a ficha plana
 // antiga `memory/projects/<slug>.md` deixou de ser lida. Só `fichasPlanas()` a vê, para o
 // doctor avisar quando uma cópia antiga a traz.
 // Resolução SÓ por igualdade (caminho · slug · alias); o resto vira lista de quase-iguais, nunca escolha.

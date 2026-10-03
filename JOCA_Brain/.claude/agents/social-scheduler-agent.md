@@ -10,7 +10,7 @@ category: conteúdo
 triggers: agendar post, publicar nas redes, schedule social post, trypost, carrossel instagram, publicar tiktok
 generated-from: .claude/skills/social-scheduler.md
 generated-by: skill-agents.mjs
-content-hash: df26a9a5fe8ea480
+content-hash: 23ebe71a29cd867a
 ---
 
 # social-scheduler — agente de execução

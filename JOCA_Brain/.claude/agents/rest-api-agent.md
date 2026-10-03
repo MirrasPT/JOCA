@@ -10,7 +10,7 @@ category: código
 triggers: API design, REST API, endpoint, OpenAPI, Swagger, API spec
 generated-from: .claude/skills/rest-api.md
 generated-by: skill-agents.mjs
-content-hash: 1cac76f831356e57
+content-hash: 2f8a0b8851f84868
 ---
 
 # rest-api — agente de execução

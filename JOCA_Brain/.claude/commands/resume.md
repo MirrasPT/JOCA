@@ -31,33 +31,10 @@ ALVO="<path-alvo>"
 grep -rIl -E "^directorio[a-z_]*: *\"?${ALVO}\"? *(#.*)?$|^directorio[a-z_]*: *\[.*${ALVO}[],\"]" \
      memory/projects/*/index.md 2>/dev/null
 ```
-⚠ Um `grep` só com a 1ª forma **não casa** entradas com `directorio: [a, b]` e manda a resolução para
-o fallback por nome sem motivo — o campo é lista desde que há projectos em várias máquinas.
+Antes de correr estes `grep` à mão ou de duvidar do que o `resolver` devolveu → `Read(".claude/reference/resume/resolucao.md")` §Família directorio* e realpath:
+a 2.ª forma (lista), a família `directorio[a-z_]*` (excluir `directorio_anterior_*`; absorvidas fora), e o `realpath`
+quando o grep compara strings e não destinos (symlink do Google Drive).
 
-⚠ **O campo não é só `directorio:` — é uma família, e um matcher ancorado em `^directorio:` é cego a
-quase metade das memórias.** Medido numa instalação real: `directorio:` 70 · `directorio_mac:` 66 ·
-`directorio_win:` 58 · `directorio_codigo_mac:` 3 · `directorio_design:` 3 · `directorio_drive:` 3,
-mais `_entrega_`, `_conteudo_`, `_arquivo_`. Um `/resume` num projecto activo
-devolvia **zero** com o padrão antigo e caía para o fallback por nome sem motivo; com
-`^directorio[a-z_]*:` resolve para a entrada certa. O `[a-z_]*` cobre a família toda de uma vez —
-incluindo `directorio_codigo_*` para os projectos cujo código e cujo design vivem em pastas
-diferentes. Nesse caso, **anunciar os DOIS caminhos** no resumo (código e design/conteúdo), e
-ordenar candidatas de pasta-mãe pelo `mtime` do directório de **código**, não da pasta-mãe.
-⚠ Excluir `directorio_anterior_*` de um match que decida a resolução — é histórico, não estado.
-⚠ **Memória absorvida usa `absorvida_directorio*`** — o `^directorio` ancorado já não a casa, e é de
-propósito: a absorvida não é candidata à resolução. Não alargar o padrão para `[a-z_]*directorio`.
-Encontrada por nome → carregar a que a absorveu (2g).
-⚠ **O grep compara strings, não destinos.** `~/Google Drive/…` (symlink) e `~/Library/CloudStorage/GoogleDrive-<conta>/…`
-são a mesma pasta e não casam. Sem match exato, repetir com os dois lados normalizados por `realpath` antes de
-descer à Prioridade 2 (forma de 1 path; uma lista compara-se elemento a elemento):
-```bash
-A=$(realpath "<path-alvo>" 2>/dev/null)
-grep -HE '^directorio[a-z_]*:' memory/projects/*/index.md 2>/dev/null | grep -v ':directorio_[a-z_]*anterior' | while IFS= read -r l; do
-  f=${l%%:*}; v=${l#*: }; v=${v#\"}; v=${v%%\"*}; v=${v%% #*}
-  case "$v" in "~/"*) v="$HOME/${v#\~/}";; esac
-  [ -n "$A" ] && [ "$(realpath "$v" 2>/dev/null)" = "$A" ] && echo "$f"
-done
-```
 ⚠ **Entrada com `directorio_estado: quebrado`** (escrito pelo `/save` quando o `test -d` falha) não casa por
 caminho: o campo aponta para uma pasta que não existe. Avisar no resumo (`⚠ directorio quebrado: <entrada>`) e
 resolver por nome.
@@ -75,17 +52,7 @@ resolver por nome.
    `⚠ README DA PASTA-MÃE DESACTUALIZADO: <sub> declara <a>, origin é <b>` no resumo.
 4. **Path-alvo é SUBDIR de uma entrada** → carregar essa entrada-mãe.
 
-**`directorio:` aceita LISTA.** Um projecto pode viver legitimamente em mais do que um path — quem
-alterna entre várias máquinas (ex.: macOS + Windows) tem projectos que existem em mais do que uma. O
-frontmatter suporta as duas formas:
-
-```yaml
-directorio: /Users/<user>/Projectos/meu-projecto                  # 1 path
-directorio: [/Users/<user>/Projectos/meu-projecto, C:\Users\<user>\Projetos\meu-projecto]
-```
-
-A Prioridade 1 casa contra **qualquer** elemento da lista. Só se nenhum casar é que se desce ao
-fallback por nome — e é aí que o aviso faz sentido.
+**`directorio:` aceita LISTA** (várias máquinas): a Prioridade 1 casa contra qualquer elemento → forma e exemplo em `Read(".claude/reference/resume/resolucao.md")` §directorio em lista.
 
 **Prioridade 2 — por NOME, só IGUALDADE** (fallback, só se a Prioridade 1 não deu nada — ex.: o `directorio:` na memória está desactualizado/movido, ou a pasta não bate certo com nenhum `directorio`): o **basename do path-alvo** (normalizado: minúsculas, `_`/espaços→`-`) tem de ser **igual** ao nome de uma pasta, ou **igual** a um valor de `aliases:` de um index (o alias `x#<area>` resolve para a pasta + área). Se casar, carregar essa entrada **e avisar** que se resolveu por nome porque o `directorio:` não bateu.
 Sem igualdade → casar o basename **cru** (sem normalizar) contra o **basename de cada
@@ -116,18 +83,7 @@ outra máquina). Só sugerir substituição quando o path antigo já não existe
 **Path-alvo (ou `directorio*` resolvido) que NÃO EXISTE nesta máquina → é a 1.ª linha do resumo**
 (`⚠ PROJECTO NÃO EXISTE NESTA MÁQUINA: <path>`), não uma nota a meio. Antes de o dar por ausente,
 traduzir a raiz de nuvem da outra máquina e listar **um nível** da pasta traduzida:
-
-| macOS | Windows |
-|---|---|
-| `~/Library/CloudStorage/GoogleDrive-<conta>/Shared drives/` | `G:\Discos partilhados\` |
-| `~/Library/CloudStorage/GoogleDrive-<conta>/My Drive/` | `G:\O meu disco\` |
-
-```bash
-find ~/Library/CloudStorage -maxdepth 1 -name 'GoogleDrive-*' 2>/dev/null   # a conta montada (Mac); sem glob que parta em zsh
-```
-Um `directorio_estado:` na memória (`so-mac`, `ambos`, …) confirma à cabeça se o projecto devia cá estar.
-> Caso real: path de Mac numa sessão Windows; a cópia `_Codigo` no Drive, com trabalho por commitar,
-> só apareceu por um `ls` à mão.
+Antes de dar o projecto por ausente → `Read(".claude/reference/resume/nuvem.md")` §Raízes de nuvem entre máquinas (tabela macOS ↔ Windows e a conta montada).
 
 ### 1b. Arg opcional: `<git-remote-url>`
 
@@ -291,14 +247,8 @@ done
 ```
 `commits próprios: 0` = branch vazia (propor apagar, com gate); `> 0` sem upstream = trabalho só neste disco.
 
-**Repo dentro de drive de nuvem → aviso à cabeça do resumo.** O `git log` responde e o `git status`/
-`git diff` penduram (o File Stream materializa a árvore inteira), e `vendor/`/`node_modules/` in-place
-tornam cada comando lento ou pendurado:
-```bash
-case "$PWD" in *CloudStorage*|*"Google Drive"*|*MEGA*|*Dropbox*|*OneDrive*) echo "⚠ REPO EM DRIVE DE NUVEM";; esac
-```
-Nesse caso: `git status` em `run_in_background`, nunca em primeiro plano; e **propor mover o código para
-disco local** (`~/Projetos/<nome>`) antes de qualquer comando de dependências — o Drive fica para design.
+**Repo dentro de drive de nuvem** (`$PWD` com `CloudStorage`/`Google Drive`/`MEGA`/`Dropbox`/`OneDrive`) → aviso à cabeça
+do resumo e `git status` só em `run_in_background`; antes do 1.º comando de git ou de dependências → `Read(".claude/reference/resume/nuvem.md")` §Repo em drive de nuvem.
 > Caso real: um clone 51/59 commits atrás passou pelo `/resume` sem aviso; noutro, o `origin/main`
 > avançado por outra pessoa só apareceu no push recusado.
 - **Antes de declarar trabalho "perdido/nunca committado": correr `git log --all` + `git branch -a` é Step 0 obrigatório.** Branches `backup/*`, `stash/*`, ou outra branch que não a actual escondem trabalho real após um switch de remote. Se detectar `backup/*` → `⚠ Existe branch de backup — verificar antes de reconstruir trabalho`. (Caso real: um backoffice completo estava em `backup/local-pre-dev` e foi declarado perdido.)
@@ -309,49 +259,9 @@ disco local** (`~/Projetos/<nome>`) antes de qualquer comando de dependências �
   Ficheiro mudado **depois** da data do pendente → `⚠ PENDENTE POSSIVELMENTE FEITO: <item> (<ficheiro> mudou a <data>)`
   — ler o diff antes de o refazer (caso: «frente 4 a meio» com 5 dos 10 defeitos já commitados).
 
-**Se a pasta não é um repo git**, tudo o que está acima colapsa **em silêncio**: os comandos devolvem
-`fatal: not a git repository` e o passo não dá sinal — sem histórico, sem `git diff`, sem
-`checkout --`, com o código todo lá e aparentemente saudável. Detectar antes de interpretar:
-```bash
-git rev-parse --is-inside-work-tree 2>/dev/null || ls -A | head   # pasta cheia + sem repo?
-```
-Pasta **com ficheiros** mas sem `.git` **não é trabalho perdido** — é o `.git` que desapareceu
-(renomear/mover a pasta, cópia sem dotfiles, sync de cloud que não leva dotfiles). Caso real:
-`site-exemplo` → `Site-Exemplo`. Fluxo:
-1. **Não declarar trabalho perdido** nem reconstruir nada.
-2. Localizar o repo remoto pela memória (`**Repo:**`/origin) e comparar a data do último push com os
-   mtimes locais — ficheiros locais mais recentes que o push = delta por salvar:
-   ```bash
-   gh repo view <owner>/<repo> --json pushedAt -q .pushedAt
-   ls -lt | head
-   ```
-3. Reportar como pendente **bloqueante** (não editar antes de restaurar), com a receita: clonar o
-   repo para **outro** sítio (`gh repo clone <owner>/<repo> <tmp>`), mover só o `.git` de lá para a
-   pasta original, e confirmar com `git status` — limpo == nada perdido; ficheiros modificados == é
-   o delta local, rever antes de commitar.
-   **Pasta em drive de nuvem → alternativa preferida:** clone de trabalho limpo em `~/Projetos/<nome>`
-   (`gh repo clone <owner>/<repo> ~/Projetos/<nome>`) sem mexer na pasta do Drive, que fica só para design —
-   a mesma regra do aviso «Repo dentro de drive de nuvem» acima. O delta local da pasta do Drive compara-se
-   com o clone novo antes de ser dado por perdido ou por salvo.
-
-⚠ Não confundir com o 2d (pasta **vazia**, projecto vive noutra máquina): aí clona-se para a pasta;
-aqui **nunca** — um clone por cima destrói o que está no disco.
-
-**Pasta sem git e sem repo remoto** (design, documentos, cliente) → o drift faz-se por `mtime`: comparar
-a data da «Última sessão» da memória com o ficheiro mais recente das pastas activas que a memória nomeia
-(`ls -lt "<pasta-activa>" | head -5`, um nível — sem `find` recursivo em nuvem, ver 2e). Disco mais
-novo que a memória → `⚠ DISCO MAIS RECENTE QUE A MEMÓRIA: <ficheiro> (<data>) vs última sessão <data>`
-no resumo — houve trabalho que nenhum `/save` registou.
-**Scripts de build com caminhos absolutos** (`build.py`, `*.sh`, `*.bat` na pasta sem git) partem em silêncio
-quando uma montagem morre (MEGA) ou uma arrumação renomeia ficheiros. Testar cada caminho citado:
-```bash
-grep -nhoiE "([a-z]:[\\\\/]|/Users/|~/)[^\"' )]*|[^\"' ]*MEGA[^\"' )]*" build.py *.sh *.bat 2>/dev/null | cut -d: -f2- | sort -u |
-  while IFS= read -r p; do case "$p" in "~/"*) p="$HOME/${p#\~/}";; esac; test -e "$p" || echo "CAMINHO MORTO: $p"; done
-```
-`CAMINHO MORTO:` → **pendente bloqueante** no resumo (o build não corre até o caminho ser corrigido).
-
-> Caso real: uma mudança de nome de pasta deixou o `.git` para trás. A pasta parecia saudável e
-> editou-se lá durante uma sessão inteira sem histórico nenhum.
+**Pasta que não é repo git** (`git rev-parse --is-inside-work-tree` falha) → tudo o que está acima colapsa em silêncio.
+Antes de interpretar o drift → `Read(".claude/reference/resume/sem-git.md")`: pasta cheia sem `.git` (nunca declarar perdido, nunca clonar
+por cima), pasta sem git nem remoto (drift por `mtime`) e scripts de build com caminhos mortos (pendente bloqueante).
 
 Nunca confiar cegamente na memória se o git divergir. Ler ficheiros-chave (ex.: `CLAUDE.md` do projecto, `package.json`) para confirmar stack/estado real.
 
@@ -461,155 +371,27 @@ recentemente) + a conf que o liga (`grep -n access_log <conf do vhost>`). Instru
 zero — e zero lê-se como ausência.
 > Caso real: inexistência de acessos concluída de um vhost com `access_log off`.
 
-**"Está deployado" é perecível — medir paridade live ↔ repo.** Um health-check só prova que o
-endereço responde; um live um mês atrasado responde 200 na mesma. Se a memória declarar um **URL
-live** *e* um **repo**, correr o check barato:
-```bash
-git log -1 --format=%H                                  # sha local
-curl -s <url-do-bundle-js-ou-css> | shasum -a 256              # hash servido
-shasum -a 256 <ficheiro-correspondente-no-build-local>         # hash local
-curl -s <url-do-bundle> | grep -c "<símbolo-do-último-commit>" # o commit chegou ao ar?
-curl -s -o /dev/null -w '%{http_code}\n' https://<dominio>/<rota-que-só-existe-no-último-commit>  # 404 = atrasado
-```
-Hash diferente, símbolo ausente, ou rota exclusiva do lado novo a 404 → `⚠ LIVE ATRASADO face a <sha>`
-no resumo, como pendente. ⚠ **Comparar `content-length` não serve:** uma alteração de igual tamanho
-passa como paridade — o hash ou o símbolo é que provam.
-> Caso real: o live servia tudo e faltavam duas features. Uma delas era *esconder rascunhos* — o
-> efeito visível ("aparece tudo") é indistinguível de não estar deployada. Só a comparação do
-> ficheiro estático dos dois lados o revelou.
+**"Está deployado" é perecível.** Memória com **URL live** *e* **repo** → antes de dar o live por actual → `Read(".claude/reference/resume/live.md")` §Paridade live ↔ repo
+(hash ou símbolo do bundle, nunca `content-length`; diferente → `⚠ LIVE ATRASADO face a <sha>`).
 
 #### 2d. Pasta local vazia — o projecto vive noutra máquina (ou noutra nuvem)
 
-**Antes de concluir "não está cá": se o path-alvo estiver debaixo de uma montagem de nuvem** (`MEGA`,
-`Dropbox`, `OneDrive`, `Google Drive`, `~/Library/CloudStorage/…`), uma pasta vazia ou com 1-2
-ficheiros é tantas vezes uma **migração a meio** como uma máquina nova. Medir e procurar o gémeo
-antes de clonar seja o que for:
-```bash
-ls -A <path-alvo> | head            # vazio? stub de 1 ficheiro?
-find ~/<outra-raiz-de-nuvem> -mindepth 2 -maxdepth 2 -name '<basename-do-path-alvo>' 2>/dev/null   # o mesmo nome noutra nuvem; sem glob que parta em zsh
-```
-⚠ Procura **dirigida** (`ls` a paths conhecidos, `find` só com `-maxdepth`), nunca `find` sem limite/`grep -r` a partir de `~`
-nem da raiz da montagem: a home **contém** as montagens e o mount materializa cada pasta ao percorrê-la
-— estoura o timeout e vai para background sem resultado.
-Encontrado o gémeo com conteúdo → é esse o projecto: **corrigir o `directorio:` na memória**
-(acrescentar o path novo à lista, não substituir às cegas) e reportar a migração no resumo.
-> Caso real: o path de nuvem da memória apareceu como stub de 1 ficheiro e o código estava noutra
-> nuvem. Sem esta verificação, trabalha-se por cima de uma pasta incompleta.
-
-**Ausência numa pasta de cloud re-verifica-se antes de reportar perda.** O File Stream materializa
-pastas com atraso: uma pasta dada como ausente apareceu 15 min depois. Repetir o `ls` ao path e ao pai
-no **fim** do `/resume`; até lá, reportar «ainda não visível», nunca «perdido».
-
-Se o path-alvo existe mas está **vazio** (sem ficheiros de projecto), e a memória tem o projecto com
-repo remoto: não é um projecto novo, é esta máquina que ainda não o tem. Fluxo (repetível — 2
-máquinas alternadas):
-
-⚠ Pasta **cheia mas sem `.git`** é o caso do 2b, não este — clonar por cima destruiria o disco.
-
-⚠ **Antes disso: `directorio:` numa drive de sincronização (MEGA, Google Drive, Dropbox, OneDrive,
-iCloud) verifica-se EXISTE E NÃO ESTÁ VAZIO** — um path que existe não prova que o projecto lá
-está. Migrações entre clouds deixam **stubs**: a pasta continua no sítio, com um ficheiro lá dentro,
-e o projecto vive noutra montagem.
-```bash
-ls -A "<path-alvo>" | wc -l      # 0 ou ~1 num path de cloud → stub, não projecto
-```
-Vazio/stub → **procurar o mesmo nome nas outras montagens** (`G:`, outras letras de drive, `~/MEGA`,
-`~/Google Drive`, `~/Library/CloudStorage/…`) **antes** de reportar o projecto como em falta ou de
-seguir para o clone.
-> Caso real: migração entre duas nuvens a meio — `~/<nuvem-antiga>/<cliente>/<projecto>` apareceu vazio (1
-> ficheiro) e o código estava na nuvem nova.
-
-1. `gh repo clone <owner>/<repo> <path>` — para repos **privados** usar o `gh`; o `git clone https`
-   pendura à espera de credenciais.
-2. Listar o que é **gitignored e portanto não veio**: `.env`, base de dados, `uploads/`, `storage/`.
-   Ir buscá-los à origem real (VPS/cPanel/backup) — a memória do projecto diz onde.
-3. Instalar dependências — **de CADA projecto do repo**, não só da raiz (um clone com N apps instalava 1):
-   ```bash
-   find . -maxdepth 3 \( -name package.json -o -name composer.json \) -not -path '*/node_modules/*' -not -path '*/vendor/*'
-   ```
-   `npm install` / `composer install` na pasta de cada manifesto listado.
-4. **Verificar coerência BD ↔ disco**: registos que apontem para ficheiros que não existem localmente.
-5. Só depois arrancar. Portas: respeitar as hard rules do projecto.
-   **Arrancar com o binário do projecto (`npm run dev` ou `./node_modules/.bin/<x>`), nunca `npx <x>` num projecto com `node_modules`** — o `npx` pode descarregar outra versão e reescrever `package.json`/lock (caso real: `npx next dev` trouxe o Next 16 a um projecto em 15 e o dev rebentou).
-
-Se o projecto envolver geração de imagens: verificar se `Branding.md` ou a entrada de memória define `default_model`. Se sim, incluir no resumo final para evitar usar modelo errado.
-
-**Pasta CHEIA e mesmo assim ilegível — ambiente containerizado sobre drive de nuvem.** O 2d acima
-cobre "pasta vazia"; falta o inverso, que é pior porque parece bom: a pasta tem tudo, o `ls` do host
-mostra os ficheiros, e o **container** não consegue lê-los. Bind-mounts de Google Drive/Dropbox em
-Docker Desktop/Colima falham como `Resource deadlock avoided`, ou montam vazio, sem erro na subida.
-Se houver `docker-compose.yml`/`compose.yaml` com binds sob uma montagem de nuvem, ler um ficheiro
-montado **de dentro do container** antes de dar o local por bom:
-
-```bash
-grep -nE '^\s*-\s.*(CloudStorage|Google Drive|Dropbox|OneDrive|MEGA)' docker-compose.yml compose.yaml 2>/dev/null
-docker compose up -d
-docker compose exec <servico> ls -la /var/www/html | head    # vazio ou erro = o bind não serve
-docker compose exec <servico> head -c 100 /var/www/html/<um-ficheiro-que-existe-no-host>
-```
-
-Falha aqui → **não é o projecto, é o mount**: copiar a árvore para disco local (`~/Projetos/<nome>`)
-e apontar o bind para lá. Reportar no resumo como bloqueador de ambiente, não como projecto partido.
+Sinal: path-alvo **vazio ou stub** (`ls -A | wc -l` 0 ou ~1), sobretudo sob montagem de nuvem, ou pasta cheia ilegível
+dentro de um container. Antes de clonar ou de dar o projecto por em falta → `Read(".claude/reference/resume/pasta-vazia.md")`.
+⚠ Pasta **cheia mas sem `.git`** é o caso do 2b (`sem-git.md`), não este — clonar por cima destruiria o disco.
 
 #### 2e. Varrimento por data — nunca `find` recursivo em drive de cloud
 
-Para ver o que mudou desde a última sessão (sobretudo em projectos **sem git**: pastas de cliente,
-design, print), a via óbvia é `find <path> -mtime -N` / `find -iname` a partir da raiz. Em drives de
-cloud montadas isso **estoura o timeout de 2 min do Bash** — o File Stream materializa cada pasta que
-é tocada (vivido 2×, uma delas ficou em background a correr para nada).
-
-Detectar **antes** de varrer. O path-alvo é de cloud se estiver numa drive mapeada (`G:`, `H:`, …) ou
-se contiver `Google Drive`, `GoogleDrive-`, `CloudStorage`, `MEGA` ou `Dropbox`:
-- **Cloud → saltar o `find` recursivo.** `ls -lt` (ou `Get-ChildItem`) direccionado às 2-3 pastas que
-  interessam — as que a memória do projecto nomeia como activas — um nível de cada vez.
-- **Disco local → `find` normal**, excluindo `vendor/`, `node_modules/`, `storage/`, `bootstrap/cache/`, `out/`, `public/`.
-- **Código dentro de pasta de cloud = violação de «código nunca no Drive».** Ao listar um `directorio*` de cloud,
-  procurar manifestos a 1-2 níveis (o `-maxdepth` é o limite que a cloud aguenta):
-  `find "<directorio-cloud>" -maxdepth 2 \( -name composer.json -o -name package.json -o -name .env \) 2>/dev/null`.
-  Cada hit → `⚠ CÓDIGO NO DRIVE: <subpasta>` no resumo (com `.env` = credenciais na nuvem); a saída é a do 2b
-  (clone de trabalho em `~/Projetos/<nome>`).
-- **Cópias a partir da cloud** (`rsync`, `cp -R`) arrancam logo em `run_in_background` — em primeiro
-  plano estouram o timeout a meio e deixam a cópia parcial. Ficheiro isolado **>1 MB** a ler/processar
-  → copiar para local em background primeiro.
-- **I/O a UM ficheiro de cloud que pendura → controlo com um vizinho** antes de concluir
-  (`head -c 100 "<outro ficheiro pequeno da mesma pasta>"`): o vizinho responde → é aquele ficheiro a
-  materializar, espera-se; o vizinho também pendura → é o mount, reportar como bloqueio de ambiente.
+Path-alvo de cloud (drive mapeada `G:`…, ou `Google Drive`/`GoogleDrive-`/`CloudStorage`/`MEGA`/`Dropbox`) → **nunca `find` recursivo**
+(estoura o timeout de 2 min). Antes de varrer por data, copiar ou ler ficheiros da cloud → `Read(".claude/reference/resume/nuvem.md")` §Varrimento por data.
 - **Leitura de cloud com timeout por ficheiro e 2.ª via** (MCP Google Drive / `gws`), e processos de leitura presos listados e mortos antes de seguir → receita «ler da cloud» em `.claude/reference/workflows-and-tooling.md`.
 
 Regra genérica (drives de cloud/rede, `tar`, paths Windows): `.claude/reference/workflows-and-tooling.md`.
 
 #### 2f. Endereços live — verificar, não acreditar
 
-Um "**LIVE** em X" na memória é **afirmação a verificar**, não facto (caso particular do 2c). Meia
-sessão foi trabalhada a assumir que o live de um portfólio era a VPS porque era o que a memória
-dizia: o site real estava noutro alojamento, a correr código de 4 meses antes — e a VPS continuava
-no ar com uma **segunda cópia pública** que ninguém tinha em conta.
-
-Para projectos cuja memória cita domínios/subdomínios ou `**Repo:**`, sondar **todos** os endereços
-conhecidos (produção, staging, host antigo):
-```bash
-curl -sI https://<dominio> | head -20     # status, redirects, server, last-modified
-curl -s  https://<dominio> | head -40     # marcador de versão/build no HTML servido
-```
-- Comparar `last-modified`/conteúdo com o repo local (data do último commit que toca o output).
-- **Live mais antigo que o repo**, ou HTML que não bate com o build actual → pendente explícito no
-  resumo, não nota de rodapé.
-- **Vários endereços a servir o mesmo projecto** → listá-los todos e sinalizar as cópias esquecidas;
-  continuam públicas (e com o que lá estiver: analytics, versões antigas, dados).
-- Endereço na memória que já não responde (DNS/404/host morto) → corrigir a memória no `/save`.
-- **API com CORS: sondar COM `Origin`.** Um `curl -sI` sem `Origin` devolve 200 e dá «resolvido» a um
-  defeito que só o browser vê. Comparar as duas respostas:
-  ```bash
-  curl -sI https://<api>/<rota> | grep -i access-control-allow-origin
-  curl -sI -H "Origin: https://<dominio-do-frontend>" https://<api>/<rota> | grep -i access-control-allow-origin
-  ```
-- **Destino de publicação** (outro projecto, loja, canal onde o projecto publica) → sondá-lo também, não só
-  os endereços próprios, e comparar por hash (`md5`/`shasum -a 256`) com os originais locais:
-  `curl -s <url-do-ficheiro-no-destino> | shasum -a 256` vs `shasum -a 256 <original>`. Diferente → o
-  destino tem outra versão; ausente → não foi publicado.
-- **CI configurado ≠ CI corrido.** Havendo `.github/workflows/`, ver se correu e com que resultado:
-  `ls .github/workflows 2>/dev/null && gh run list --limit 3`. Zero runs → `⚠ CI NUNCA CORREU`, não «CI configurado».
-  Run falhado em <10 s sem steps → ler as anotações (`gh api repos/<o>/<r>/check-runs/<id>/annotations`) antes de diagnosticar código: costuma ser faturação/limite de gasto da organização (ver `.claude/agents/pr-repair.md`, «Every job failed in 2-5 s?»).
+Memória cita domínios/subdomínios ou `**Repo:**` → antes de afirmar o que está no ar → `Read(".claude/reference/resume/live.md")` §Endereços live
+(sondar todos os endereços, CORS com `Origin`, destino de publicação por hash, CI configurado ≠ CI corrido).
 
 #### 2g. Memórias absorvidas — duas entradas, o mesmo trabalho
 
@@ -625,85 +407,13 @@ Em formato pasta a absorção é um **alias**: o slug antigo vive no `aliases:` 
 
 #### 2h. Projectos de design sem código — engenharia inversa dos entregáveis
 
-Sem repo, o 2b não tem nada para comparar e a memória fica sem contraditório. O contraditório são os
-**finais já entregues**: listar a pasta de entrega (`_Final/`, `_Publicar/`, `Entregues/` — o que o
-projecto usar), **medir dimensões**, amostrar as cores dominantes e registar as bandas de layout
-ocupadas (onde está o logo, o texto, a margem).
-
-```bash
-ls -lt "<pasta>/_Final" | head -20
-python -c "from PIL import Image;import sys,glob
-for f in sorted(glob.glob(sys.argv[1]))[:12]:
-    im=Image.open(f); print(im.size, f)" "<pasta>/_Final/*.png"
-```
-
-**O material do cliente vem ANTES de amostrar cores.** Antes de fazer engenharia inversa dos
-pixels, inventariar as pastas de origem (`_material/`, `_ref/`, `_briefing/`, `Fornecido/`) e **ler**
-o que lá está escrito — `.rtf`, `.txt`, `.md`, `.docx`. É onde o cliente costuma mandar os códigos de
-cor, as fontes e as regras, por escrito. Amostrar a cor dominante de um JPEG comprimido quando o
-`.rtf` ao lado diz o hex exacto é inventar um token que já era facto:
-
-```bash
-ls -R "<pasta>"/_material "<pasta>"/_ref 2>/dev/null | head -40
-find "<pasta>" -maxdepth 3 \( -name '*.rtf' -o -name '*.txt' -o -name '*.md' \) -print 2>/dev/null
-textutil -convert txt -stdout "<ficheiro>.rtf" 2>/dev/null | head -40   # macOS: lê RTF sem abrir app
-```
-
-Cor/fonte lida de um documento fornecido é **facto documentado**; amostrada de um PNG é **estimativa**
-— e marca-se como tal (`soul.md`: sem token medido ou documentado → `TODO: token em falta`).
-
-**Entregas anteriores = espaço ocupado.** Em produção recorrente (posts, campanhas, peças mensais),
-listar o que já foi publicado/entregue como **inventário a não repetir** — tema, imagem, frase de
-abertura — e pô-lo no resumo antes de produzir peças novas. Sem isto, repete-se um post de há dois meses.
-
-**Um final exportado pelo cliente/designer é o brandguide de facto quando não há documento** — e é a
-única forma de saber o **formato-alvo real**.
-> Caso real: entregaram-se 6 imagens a 1080×1350 porque era o que a memória dizia; o formato de
-> entrega era **1200×1500**, descoberto por acaso ao inspeccionar finais exportados minutos depois.
-> Ninguém tinha medido os finais em 2 meses de projecto, e a memória afirmava "o sistema de design
-> está por definir" quando existia um sistema completo, visível nos PNG de `_Final/`.
-
-**Projecto de design com site publicado: medir COBERTURA, não só o que foi entregue.** A memória
-lista os entregáveis; ninguém compara essa lista com o inventário de páginas do site-alvo, portanto
-páginas por redesenhar ficam invisíveis até o cliente perguntar. Puxar o inventário do próprio site
-e cruzar:
-
-```bash
-curl -s <url>/sitemap.xml | grep -oE '<loc>[^<]+' | sed 's/<loc>//' | sort -u    # inventário real
-ls "<pasta>/_Final" | sed 's/\.[a-z]*$//' | sort -u                              # o que existe feito
-```
-
-Sem `sitemap.xml`, extrair os `href` internos da homepage. Reportar no resumo em três números:
-**páginas do alvo · com entregável · sem entregável**, e nomear as que faltam. Uma cobertura parcial
-apresentada como "entregue" é a forma mais comum de um projecto de design parecer fechado e não estar.
+Projecto sem repo, de design → antes de produzir peças ou de afirmar o sistema de design → `Read(".claude/reference/resume/design-sem-codigo.md")`
+(material do cliente antes de amostrar cores, medir os finais, entregas anteriores, cobertura do site).
 
 #### 2i. Respostas no canal de entrega — o cliente pode já ter respondido
 
-Se a memória nomeia um **canal de entrega** (DM Mattermost, email, grupo) **e** a data do último envio,
-ler as mensagens desse canal **desde essa data** antes de apresentar o estado. Um "à espera de
-feedback" pode estar respondido há dias.
-```bash
-mmctl post list <equipa:canal> --since <YYYY-MM-DDTHH:MM:SS+00:00> --suppress-warnings
-```
-⚠ **O `--since` exige fuso numérico.** O mmctl faz `time.Parse("2006-01-02T15:04:05-07:00", …)`: `…Z` e a data
-sem hora dão `Error: invalid since time` e **zero posts**, que se lêem como «sem resposta». Alternativa que não
-depende do formato: `--number 30` e filtrar pela data na leitura.
-Email → a pesquisa do Gmail (MCP) ou `gws gmail +triage`, filtrada pelo remetente e pela data.
-**O cliente pode responder por fora do canal.** Se a memória nomeia um **intermediário** que reencaminha ao
-cliente (ex.: alguém da equipa que lhe passa as peças), pesquisar também o Gmail pelo **domínio do cliente** desde o
-último envio (`from:<dominio-cliente> after:<YYYY/MM/DD>`) — uma resposta chegou por email reencaminhado e só
-apareceu porque o utilizador a exportou.
-**«Já tens isso» / «já existe» sobre um ficheiro do cliente → ler primeiro o canal de entrega (DM) desde a última
-sessão, e só depois varrer o Drive.** O material vem muitas vezes anexado na conversa (gastaram-se 5 pesquisas no
-Drive para algo que estava numa DM).
-Resposta encontrada → entra no resumo como **pendente novo**, com a data e o essencial; nada → dizer
-"sem resposta desde <data>" (com o comando corrido), não omitir.
-
-**Projecto cuja FONTE é uma caixa de correio** (documentos administrativos, cartas, pedidos que chegam
-por email — a memória declara-o num campo `fonte:`) → não é só o canal de entrega: pesquisar **tudo o que
-chegou desde a última sessão** antes de apresentar o estado. No Gmail: `newer_than:<N>d` (N = dias desde
-a data da «Última sessão»), filtrado pelos remetentes/assuntos que a memória nomeia. O estado do
-projecto é o que está na caixa, não o que a memória diz que estava.
+Memória nomeia um canal de entrega e a data do último envio, ou uma `fonte:` caixa de correio → antes de apresentar o
+estado → `Read(".claude/reference/resume/canal-entrega.md")` (`mmctl --since` exige fuso numérico; resposta por fora do canal; «já existe» → DM primeiro).
 
 ### 3. (removido 2026-09-15: verificação de grafos de código retirada do JOCA)
 

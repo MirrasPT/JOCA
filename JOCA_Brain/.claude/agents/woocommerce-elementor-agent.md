@@ -10,7 +10,7 @@ category: wordpress
 triggers: elementor, _elementor_data, hello elementor, elementor free, woocommerce, woocommerce storefront
 generated-from: .claude/skills/woocommerce-elementor.md
 generated-by: skill-agents.mjs
-content-hash: 9f0b26bd0487e5ac
+content-hash: efe5f0c11d26cd3d
 ---
 
 # woocommerce-elementor — agente de execução

@@ -14,10 +14,10 @@ Versão comprimida (auto-carregada) em `.claude/rules/task-intake.md`. Este fich
 - Agentes de execução por domínio (texto integral)
 - Verificações antes do fan-out — acrescentos de 2026-09-15
 - Segurança — acrescentos de 2026-09-15
-- Texto retirado da rule — corte de tokens (issue #3, 2026-09-15)
+- Texto retirado da rule — corte de tokens (2026-09-15)
 - Ligações
 - Verificações antes do fan-out (saídas da rule — corte de tokens, 2026-09-23)
-- Texto retirado da rule — F8.3 (issue #85, 2026-10-01)
+- Texto retirado da rule — F8.3 (2026-10-01)
 
 ## A pergunta que vem primeiro — o eixo `planear-ondas`
 
@@ -214,7 +214,7 @@ Vivem aqui, não na rule (orçamento). A rule aponta para esta secção na linha
 
 ---
 
-## Texto retirado da rule — corte de tokens (issue #3, 2026-09-15)
+## Texto retirado da rule — corte de tokens (2026-09-15)
 
 A rule ficou com uma formulação curta por regra; as frases de explicação saíram para aqui, tal qual.
 
@@ -288,7 +288,7 @@ Fan-out multiplica por N o erro da premissa. Antes do 1.º agente:
 Mais verificações neste ficheiro (`docs/DECISIONS.md`, termo sem match, dados existem?, entidade nova, projecto irmão, forma do entregável).
 
 
-## Texto retirado da rule — F8.3 (issue #85, 2026-10-01)
+## Texto retirado da rule — F8.3 (2026-10-01)
 
 A norma ficou na rule; as frases de porquê saíram para aqui, tal qual. As que já existiam neste ficheiro não se repetiram («Other» perde-se, números inventados no gate, o gate autoriza mas não valida, lista negra não apanha blocos aninhados, instrumento cego, exit 0, clone mente por omissão, tabela de gatilhos vs `prompt-triage.js`).
 

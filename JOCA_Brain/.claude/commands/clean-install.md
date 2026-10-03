@@ -2,7 +2,7 @@
 
 Para quando alguém já usa JOCA há tempo (possivelmente com várias cópias/versões na mesma
 máquina) e se queixa de **consumo excessivo de tokens**. Este comando não copia nada às cegas:
-audita tudo o que existe, compara com o baseline actual do `Joca-Open-Source`, propõe uma tabela de
+audita tudo o que existe, compara com o baseline actual do repo público do JOCA (`MirrasPT/JOCA`), propõe uma tabela de
 optimizações, e só depois de aprovada consolida a memória, arquiva as instalações antigas numa
 pasta `Old` e promove uma instalação nova, limpa e optimizada a produção.
 
@@ -20,15 +20,15 @@ Este comando **nunca deve correr de dentro de uma instalação JOCA já existent
 (`memory/soul.md` já calibrado, sem sinais de acabar de ser clonada). Se corresse lá, estaria a
 tentar arquivar/mover a própria pasta de onde o Claude Code está a correr — self-reference, risco
 de estado inconsistente a meio. O fluxo correcto (documentado em `clean-install.md` da raiz do
-`Joca-Open-Source` + no `README.md` público): o utilizador cria uma pasta nova e vazia, abre um
-terminal Claude Code lá, e o bootstrap clona o `Joca-Open-Source` PARA DENTRO dela antes de este
+repo público do JOCA (`MirrasPT/JOCA`) + no `README.md` público): o utilizador cria uma pasta nova e vazia, abre um
+terminal Claude Code lá, e o bootstrap clona o repo público do JOCA (`MirrasPT/JOCA`) PARA DENTRO dela antes de este
 comando arrancar.
 
 **Verificar ao arrancar:**
 - Se `memory/soul.md` do cwd já está calibrado (sem placeholders `<YOUR_*>`) e o repo tem histórico
   de mais de poucos commits desde o clone → provável instalação madura, não bootstrap. PARAR e
   instruir o utilizador a criar uma pasta nova vazia e recomeçar pelo `clean-install.md` da raiz.
-- Caso normal (bootstrap): cwd é uma cópia fresca do `Joca-Open-Source`, acabada de clonar — **esta
+- Caso normal (bootstrap): cwd é uma cópia fresca do repo público do JOCA (`MirrasPT/JOCA`), acabada de clonar — **esta
   pasta é a instalação NOVA a partir de agora, e nunca entra na lista de "instalações antigas" que
   a Fase 0/1 vai descobrir noutros sítios da máquina.** Não se move mais tarde (ver Fase 4).
 
@@ -38,7 +38,7 @@ Despachar `Agent(subagent_type="clean-install-audit")` com o brief:
 - Objectivo: encontrar TODAS as instalações JOCA nesta máquina **excepto o cwd actual** (é a
   instalação nova, ver Fase -1 — não é um achado, é o baseline), inventariar MCPs/CLIs
   relacionados, e comparar cada instalação encontrada contra ESTE cwd (já é o baseline mais
-  recente do `Joca-Open-Source`, clonado no bootstrap — não precisa de clonar outro).
+  recente do repo público do JOCA (`MirrasPT/JOCA`), clonado no bootstrap — não precisa de clonar outro).
 - Step 0 obrigatório: `Read(".claude/agents/clean-install-audit.md")` já traz a doutrina completa
   (o agente lê-a a si próprio como primeiro passo).
 - Não aplicar nada. Não apagar nada. Só ler, comparar, e escrever o relatório.
@@ -79,7 +79,7 @@ Nada da Fase 3 em diante corre sem esta resposta.
 
 ## Fase 3 — Aplicar (só após aprovação)
 
-Esta pasta (cwd) já é um clone fresco do `Joca-Open-Source` — não há checkout/clone novo a fazer
+Esta pasta (cwd) já é um clone fresco do repo público do JOCA (`MirrasPT/JOCA`) — não há checkout/clone novo a fazer
 aqui, isso já aconteceu no bootstrap (Fase -1). Só falta aplicar por cima:
 
 1. Aplicar só os itens aprovados na Fase 2, por esta ordem de prioridade: paths mortos/segurança

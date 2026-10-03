@@ -111,6 +111,29 @@ function caminhosAdicionados(g, raiz) {
   }
   return res;
 }
+// Caminhos postos no índice por ref — `git checkout <ref> -- <p>`, `git reset <ref> -- <p>` e `git restore --source=<ref> --staged <p>`
+// também põem <p> no índice. Só caminhos explícitos: sem `--` (checkout/reset), sem ref ou sem
+// --staged não regista nada — o alcance não se sabe pelo texto.
+function caminhosDeRef(g) {
+  const res = [];
+  if (g.sub === 'restore') {
+    let fonte = false; let staged = false; let fim = false;
+    for (let i = 0; i < g.args.length; i++) {
+      const a = g.args[i];
+      if (!fim && a === '--') { fim = true; continue; }
+      if (!fim && (a === '--source' || a === '-s')) { fonte = Boolean(g.args[++i]); continue; }
+      if (!fim && /^(?:--source=|-s)./.test(a)) { fonte = true; continue; }
+      if (!fim && a === '--staged') { staged = true; continue; }
+      if (!fim && /^-[a-zA-Z]+$/.test(a)) { if (a.includes('S')) staged = true; continue; }
+      if (!fim && a.startsWith('-')) continue;
+      if (a) res.push(path.resolve(g.dir, conv(a)));
+    }
+    return fonte && staged ? res : [];
+  }
+  const sep = g.args.indexOf('--');
+  if (sep < 1 || !g.args.slice(0, sep).some((a) => a && !a.startsWith('-'))) return [];
+  return g.args.slice(sep + 1).filter(Boolean).map((a) => path.resolve(g.dir, conv(a)));
+}
 // `git commit` que leva o índice inteiro (sem --only e sem caminhos)? Devolve true.
 function commitDoIndice(g) {
   const comValor = new Set(['-m', '-F', '-C', '-c', '-t', '--author', '--date', '--template', '--cleanup', '--fixup', '--squash', '--trailer', '--message', '--file', '--reuse-message', '--reedit-message']);
@@ -207,6 +230,7 @@ try {
         } catch (_) {}
         novos.push(...caminhosAdicionados(g, raiz));
       }
+      if (g.sub === 'checkout' || g.sub === 'restore' || g.sub === 'reset') novos.push(...caminhosDeRef(g));
       if (g.sub === 'commit' && commitDoIndice(g)) {
         const alheios = stagedAlheios(g, [...lerAdicionados(sid), ...novos]);
         if (alheios.length) {

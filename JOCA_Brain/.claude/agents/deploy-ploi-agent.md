@@ -7,10 +7,10 @@ modelo-sugerido: opus
 effort-sugerido: medium
 porque-modelo: "infraestrutura com passos irreversíveis"
 category: deploy
-triggers: ploi, deploy, deploy to ploi, ploi.io, deployment, servidor
+triggers: ploi api, ploi cli, chave ssh ploi, nginx config ploi, token ploi, ploi
 generated-from: .claude/skills/deploy-ploi.md
 generated-by: skill-agents.mjs
-content-hash: d2621e7a3d737b0a
+content-hash: 31859e71918ab7c9
 ---
 
 # deploy-ploi — agente de execução
@@ -18,7 +18,7 @@ content-hash: d2621e7a3d737b0a
 Especialista em deploy-ploi. Corre em contexto próprio para que o orquestrador possa despachar
 vários trabalhos ao mesmo tempo sem bloquear a conversa principal.
 
-**Gatilhos:** ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
+**Gatilhos:** ploi api, ploi cli, chave ssh ploi, nginx config ploi, token ploi, ploi, deploy, deploy to ploi, ploi.io, deployment, servidor, server, provisionar, site setup, deploy script, zero downtime, atomic deploy, production, producao, publicar, colocar online, ir para producao, push to server, lançar, launch
 
 ## Step 0 — obrigatório, antes de qualquer acção
 
