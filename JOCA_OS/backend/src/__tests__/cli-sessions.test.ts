@@ -10,7 +10,7 @@ import type { AddressInfo } from 'net';
 const CLI = path.resolve(__dirname, '../../../cli/joca.mjs');
 
 const sessions = [
-  { id: 'aaaaaaaa-1111', name: 'Revisor', cwd: '/tmp', origin: 'user', cli: 'claude', status: 'working', currentJob: 'a rever o PR 12' },
+  { id: 'aaaaaaaa-1111', name: 'Revisor', cwd: '/tmp', origin: 'user', cli: 'claude', status: 'working', currentJob: 'a rever o PR 12', area: 'frontend', busy: true },
   { id: 'bbbbbbbb-2222', name: 'Parado', cwd: '/tmp', origin: 'user', cli: 'codex', status: 'idle' },
 ];
 

@@ -46,7 +46,7 @@ import fs from 'fs';
 import net from 'net';
 import { WebSocket } from 'ws';
 import { DATA_DIR } from '../project-store';
-import { sessionManager, pedeConfiancaNaPasta, recusaPorOmissao } from '../session-manager';
+import { sessionManager, pedeConfiancaNaPasta, opcaoSeleccionada } from '../session-manager';
 import { ambienteDoTerminal } from '../session-namer';
 import { isAuthenticated } from '../auth';
 
@@ -72,9 +72,9 @@ const PROMPT_PRONTO = `\x1b[2J\x1b[20;2H❯ \x1b[22;2H? for shortcuts`;
 describe('diálogo de confiança (#22)', () => {
   it('reconhece o diálogo novo e vê que a selecção por omissão é sair', () => {
     expect(pedeConfiancaNaPasta(DIALOGO_NOVO)).toBe(true);
-    expect(recusaPorOmissao(DIALOGO_NOVO)).toBe(true);
+    expect(opcaoSeleccionada(DIALOGO_NOVO)).toBe('recusar');
     // Depois da seta, o último cursor está no «Yes».
-    expect(recusaPorOmissao(DIALOGO_NOVO + REPINTA_YES)).toBe(false);
+    expect(opcaoSeleccionada(DIALOGO_NOVO + REPINTA_YES)).toBe('aceitar');
   });
 
   it('formulações tolerantes, com e sem espaços', () => {
@@ -87,20 +87,20 @@ describe('diálogo de confiança (#22)', () => {
   });
 
   it('diálogos antigos têm «Yes» seleccionado: Enter directo', () => {
-    expect(recusaPorOmissao('Do you trust the files in this folder?\n❯ 1. Yes, proceed\n  2. No, exit')).toBe(false);
-    expect(recusaPorOmissao('Do you trust the contents of this directory?\n› 1. Yes, continue\n  2. No, quit')).toBe(false);
-    expect(recusaPorOmissao('  1. Yes, proceed\n❯ 2. No, exit')).toBe(true);
-    expect(recusaPorOmissao('sem cursor nenhum')).toBe(false);
+    expect(opcaoSeleccionada('Do you trust the files in this folder?\n❯ 1. Yes, proceed\n  2. No, exit')).toBe('aceitar');
+    expect(opcaoSeleccionada('Do you trust the contents of this directory?\n› 1. Yes, continue\n  2. No, quit')).toBe('aceitar');
+    expect(opcaoSeleccionada('  1. Yes, proceed\n❯ 2. No, exit')).toBe('recusar');
+    expect(opcaoSeleccionada('sem cursor nenhum')).toBeNull();
   });
 
   // Um claude falso com o diálogo novo: Enter em «No» sai, a seta move para «Yes».
-  function claudeComDialogo(opts: { ignoraTeclas?: boolean } = {}) {
+  function claudeComDialogo(opts: { ignoraTeclas?: boolean; dialogo?: string } = {}) {
     const estado = { selec: 'no' as 'no' | 'yes', dialogo: false, saiu: false };
     return (p: FakePty) => {
       p.onWrite = (d) => {
         if (!estado.dialogo && !estado.saiu && d.endsWith('\r') && d.length > 1 && p.writes.length === 1) {
           estado.dialogo = true;
-          setTimeout(() => p.emit(DIALOGO_NOVO), 20);
+          setTimeout(() => p.emit(opts.dialogo ?? DIALOGO_NOVO), 20);
           return;
         }
         if (estado.dialogo && !opts.ignoraTeclas) {
@@ -147,6 +147,20 @@ describe('diálogo de confiança (#22)', () => {
     expect(p.writes.some((w) => w.includes('pedido que não pode sair'))).toBe(false);
     // Nenhum Enter cego com «No, exit» seleccionado: só setas.
     expect(p.writes.filter((w) => w === '\r')).toHaveLength(0);
+  }, 25000);
+
+  it('diálogo sem cursor reconhecido: nem Enter nem pedido inicial', async () => {
+    const s = sessionManager.spawn({ cli: 'claude', initialInput: 'pedido sem cursor' });
+    spawned.push(s.id);
+    const p = ultimoPty();
+    // Diálogo novo com um glifo de cursor que não se conhece: um Enter escolheria «No, exit».
+    const estado = claudeComDialogo({ dialogo: DIALOGO_NOVO.replace('❯', '»') })(p);
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await vi.waitFor(() => expect(aviso.mock.calls.some((c) => String(c[0]).includes('diálogo de arranque por resolver'))).toBe(true), { timeout: 15000, interval: 200 });
+    aviso.mockRestore();
+    expect(estado.saiu).toBe(false);
+    expect(p.writes.some((w) => w.includes('pedido sem cursor'))).toBe(false);
+    expect(p.writes.filter((w) => w === '\r' || w === '\x1b[B')).toHaveLength(0);
   }, 25000);
 });
 

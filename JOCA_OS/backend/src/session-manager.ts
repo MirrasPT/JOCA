@@ -279,7 +279,7 @@ const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1
  *
  * 3. **O Claude 2.1.284+ trocou o diálogo** (#22): «Quick safety check: Is this a project you
  *    created or one you trust?», com «❯ No, exit» seleccionado e «Yes, I trust this folder» por
- *    baixo (medido no 2.1.288). Aqui o Enter cego SAI do claude — ver `recusaPorOmissao`.
+ *    baixo (medido no 2.1.288). Aqui o Enter cego SAI do claude — ver `opcaoSeleccionada`.
  *
  * Nos diálogos antigos (Claude e codex) o Enter aceita a opção por omissão, que é confiar. São
  * pastas que o dono abriu de propósito: a resposta é sempre confiar.
@@ -296,15 +296,16 @@ export function pedeConfiancaNaPasta(buffer: string): boolean {
 }
 
 /**
- * A opção seleccionada (a do último cursor `❯`/`›` no ecrã) é recusar? No diálogo novo do claude
- * é «No, exit» por omissão: um Enter aí fecha o claude e o pedido inicial morre com ele (#22). Lê
- * o cursor em vez de supor a ordem das opções — o diálogo antigo tinha «Yes» primeiro.
+ * A opção seleccionada (a do último cursor `❯`/`›` no ecrã) é recusar ou aceitar? No diálogo novo
+ * do claude é «No, exit» por omissão: um Enter aí fecha o claude e o pedido inicial morre com ele
+ * (#22). Lê o cursor em vez de supor a ordem das opções — o diálogo antigo tinha «Yes» primeiro.
+ * Sem cursor reconhecido devolve `null`: não se sabe o que o Enter escolhe, por isso não se responde.
  */
-export function recusaPorOmissao(buffer: string): boolean {
+export function opcaoSeleccionada(buffer: string): 'recusar' | 'aceitar' | null {
   const t = buffer.replace(ANSI_RE, '');
   const cursor = Math.max(t.lastIndexOf('❯'), t.lastIndexOf('›'));
-  if (cursor === -1) return false;
-  return /^(\d+\.)?no/.test(t.slice(cursor + 1).toLowerCase().replace(/[^a-z0-9.]/g, ''));
+  if (cursor === -1) return null;
+  return /^(\d+\.)?no/.test(t.slice(cursor + 1).toLowerCase().replace(/[^a-z0-9.]/g, '')) ? 'recusar' : 'aceitar';
 }
 
 /**
@@ -753,12 +754,15 @@ export class SessionManager extends EventEmitter {
         safePtyWrite(p, '\r');
         desde = session.buffer.length;
       } else if (pedeConfiancaNaPasta(ecra)) {
-        if (recusaPorOmissao(ecra)) {
+        const opcao = opcaoSeleccionada(ecra);
+        if (opcao === 'recusar') {
           safePtyWrite(p, '\x1b[B');
-        } else {
+        } else if (opcao === 'aceitar') {
           safePtyWrite(p, '\r');
           desde = session.buffer.length;
         }
+        // Sem cursor reconhecido não se escreve nada: a volta seguinte relê o ecrã e, se continuar
+        // assim, o diálogo fica por resolver e o pedido inicial não sai.
       } else {
         return true;
       }

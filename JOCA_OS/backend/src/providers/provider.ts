@@ -8,6 +8,7 @@
 //   ⚠️ ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN in env would WIN and bill credits — strip them.
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { execFile } from 'child_process';
+import { ambienteDoTerminal } from '../session-namer';
 
 export type ProviderEvent =
   | { type: 'text'; text: string }
@@ -44,10 +45,11 @@ export interface BrainRunOptions {
   abortSignal?: AbortSignal;
 }
 
-// Build an env that forces SUBSCRIPTION auth: copy process.env, drop the API-key vars.
+// Build an env that forces SUBSCRIPTION auth: o ambiente de um terminal (sem a sessão do Claude
+// que arrancou o backend nem variáveis de injeção — #18), menos as vars da API key.
 // Options.env replaces (not merges), so we must include the rest of process.env (PATH, etc.).
 function subscriptionEnv(): Record<string, string | undefined> {
-  const env: Record<string, string | undefined> = { ...process.env };
+  const env: Record<string, string | undefined> = ambienteDoTerminal();
   delete env.ANTHROPIC_API_KEY;
   delete env.ANTHROPIC_AUTH_TOKEN;
   return env;
