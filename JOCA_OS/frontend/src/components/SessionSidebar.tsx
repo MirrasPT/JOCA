@@ -66,7 +66,7 @@ interface Props {
 
 type LucideName =
   | 'layout-dashboard' | 'plus' | 'folder-plus' | 'message-square'
-  | 'terminal' | 'terminal-quick' | 'folder' | 'folder-open' | 'chevron-right' | 'chevron-down'
+  | 'terminal' | 'terminal-quick' | 'folder' | 'folders' | 'folder-open' | 'chevron-right' | 'chevron-down'
   | 'sparkles' | 'chevrons-left' | 'search' | 'x'
   | 'check' | 'refresh' | 'command' | 'chevrons-right' | 'chevron-left' | 'info'
   | 'grip' | 'archive' | 'archive-restore' | 'cpu' | 'arrow-up-down' | 'link' | 'trash'
@@ -194,11 +194,13 @@ function LucideIcon({ name }: { name: LucideName }) {
   if (name === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>;
   if (name === 'folder-plus') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /><path d="M12 10v6M9 13h6" /></svg>;
   if (name === 'message-square') return <svg {...common}><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" /></svg>;
-  // `terminal-quick` (sessão rápida / agentes soltos) desenha-se igual ao `terminal` no conjunto
-  // normal — é a MESMA coisa. Existe como nome próprio só para poder receber um ícone diferente nos
-  // temas: partilhar a chave fazia o GIF dos Agentes aparecer também na sessão rápida.
-  if (name === 'terminal' || name === 'terminal-quick') return <svg {...common}><path d="m5 7 5 5-5 5" /><path d="M12 19h7" /></svg>;
+  // `terminal` é a tab Agentes (robô); `terminal-quick` é a sessão rápida (prompt). Glifos diferentes:
+  // com o mesmo desenho, as duas entradas da barra liam-se como a mesma coisa.
+  if (name === 'terminal') return <svg {...common}><rect x="4" y="8" width="16" height="12" rx="2" /><path d="M12 8V4H8" /><path d="M2 14h2M20 14h2M9 13v2M15 13v2" /></svg>;
+  if (name === 'terminal-quick') return <svg {...common}><path d="m5 7 5 5-5 5" /><path d="M12 19h7" /></svg>;
   if (name === 'folder') return <svg {...common}><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H10l2 2h5.5A2.5 2.5 0 0 1 20 8.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
+  // Pilha de pastas — os grupos, para não se confundirem com os projectos (pasta simples).
+  if (name === 'folders') return <svg {...common}><path d="M8 17h11a2 2 0 0 0 2-2V8.5A2 2 0 0 0 19 6.5h-4.5L13 5H8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z" /><path d="M3 9v9.5A1.5 1.5 0 0 0 4.5 20H16" /></svg>;
   if (name === 'folder-open') return <svg {...common}><path d="M6 17.5A2.5 2.5 0 0 1 3.5 15V6.5A2.5 2.5 0 0 1 6 4h3.5l2 2H18a2 2 0 0 1 2 2v1" /><path d="M4 17.5 6.2 10h15.3l-2.2 7.5A2 2 0 0 1 17.4 19H5.9A2 2 0 0 1 4 17.5Z" /></svg>;
   if (name === 'chevron-down') return <svg {...common}><path d="m6 9 6 6 6-6" /></svg>;
   if (name === 'sparkles') return <svg {...common}><path d="m12 3-1.8 5.2L5 10l5.2 1.8L12 17l1.8-5.2L19 10l-5.2-1.8Z" /><path d="M5 3v4M3 5h4M19 17v4M17 19h4" /></svg>;
@@ -229,7 +231,7 @@ function LucideIcon({ name }: { name: LucideName }) {
 // O monograma vem em `data-mono` e só o CSS o troca pelo svg quando a barra está fechada (o ícone
 // de pasta continua no DOM para a barra aberta).
 
-function ProjectAvatar({ icon, name, id }: { icon?: ProjectIcon; name: string; id?: string }) {
+function ProjectAvatar({ icon, name, id, fallback = 'folder' }: { icon?: ProjectIcon; name: string; id?: string; fallback?: LucideName }) {
   const brand = useBrand();
   // A pool só entra quando o projecto NÃO tem ícone próprio: um logótipo que o dono escolheu ganha
   // sempre ao sorteio. Hook chamado incondicionalmente (regra dos hooks) e desligado por `activo`.
@@ -254,7 +256,7 @@ function ProjectAvatar({ icon, name, id }: { icon?: ProjectIcon; name: string; i
   }
   return (
     <span className="project-group-icon" data-mono={iconInitials(name)}>
-      <LucideIcon name="folder" />
+      <LucideIcon name={fallback} />
     </span>
   );
 }
@@ -821,18 +823,9 @@ function ProjectFolder({
   return (
     <div className={`project-folder${flyoutOpen ? ' project-folder--flyout-open' : ''}`}>
       <div className="project-group-header project-folder-header">
-        <button
-          type="button"
-          className="project-group-grip project-folder-chevron"
-          onClick={onToggle}
-          aria-expanded={expanded}
-          aria-label={`${expanded ? 'Colapsar' : 'Expandir'} grupo ${group.name}`}
-        >
-          <LucideIcon name={expanded ? 'chevron-down' : 'chevron-right'} />
-        </button>
         {editing ? (
           <>
-            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} />
+            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} fallback="folders" />
             <span
               className="project-group-color"
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -871,7 +864,7 @@ function ProjectFolder({
             aria-haspopup={collapsed ? 'menu' : undefined}
             aria-expanded={collapsed ? flyoutOpen : expanded}
           >
-            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} />
+            <ProjectAvatar icon={group.icon} name={group.name} id={group.id} fallback="folders" />
             <span
               className={`project-group-color${dotDragOver ? ' project-group-color--dragover' : ''}`}
               style={{ '--project-color': projectColor(group) } as CSSProperties}
@@ -910,6 +903,17 @@ function ProjectFolder({
             </button>
           </div>
         )}
+        {/* Seta à direita de tudo: à esquerda empurrava o ícone do grupo para fora do alinhamento
+            com os projectos soltos. */}
+        <button
+          type="button"
+          className="project-folder-chevron"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-label={`${expanded ? 'Colapsar' : 'Expandir'} grupo ${group.name}`}
+        >
+          <LucideIcon name={expanded ? 'chevron-down' : 'chevron-right'} />
+        </button>
       </div>
       {/* Painel próprio em vez de o meter no modo de renome: o input de nome grava em `onBlur`,
           e tocar nos botões do ícone fechava a edição por baixo dos pés do utilizador. */}

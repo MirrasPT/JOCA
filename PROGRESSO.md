@@ -5,11 +5,10 @@
 
 ## Estado actual
 
-Toolkit maduro e em uso. A publicar por vagas a partir da instalação de trabalho: cada vaga é um
-commit em `main` com o que já foi verificado ao vivo. A vaga mais recente (`cc3d6b0`, 2026-09-08) foi
-só de `JOCA_OS` — o `JOCA_Brain` não foi tocado.
+Toolkit maduro e em uso, publicado por PRs no `main` (#2–#18 fundidos até 2026-10-06, CI verde).
+O JOCA OS passa à versão 1.0 na branch `chore/versao-1.0` (barra lateral redesenhada), por fundir.
 
-Próximo passo: portar a vaga de 2026-09-08 para as instalações de trabalho com o `update-os.md`.
+Próximo passo: rever e fundir `chore/versao-1.0`; depois levar a 1.0 às instalações de trabalho.
 
 > Este projecto nasceu antes do `/start`, portanto não tem as fases S1-S5/E1-E4 de um arranque
 > guiado. A tabela abaixo é o que existe de facto, com a prova de cada linha.
@@ -19,16 +18,21 @@ Próximo passo: portar a vaga de 2026-09-08 para as instalações de trabalho co
 | Área | Estado | Prova |
 |---|---|---|
 | Motor (`JOCA_Brain/`) | ✅ publicado | 152 skills · 105 agentes · 29 comandos em `JOCA_Brain/.claude/` |
-| Interface (`JOCA_OS/`) | ✅ publicado | `cc3d6b0` · `cd JOCA_OS/backend && npm test` → 67 testes, 7 ficheiros |
+| Interface (`JOCA_OS/`) | ✅ publicado | `a3c8b65` · `cd JOCA_OS/backend && npm test` → 218 testes, 23 ficheiros (2026-10-06) |
 | Instalação de raiz | ✅ | `install.md` |
 | Update completo (motor + interface) | ✅ | `update.md` |
 | Update só da interface | ✅ 2026-09-08 | `update-os.md` |
 | Consolidar instalações antigas | ✅ | `clean-install.md` |
 | Testes do frontend | ⬜ **não existem** | `JOCA_OS/frontend/src` sem ficheiros de teste |
-| CI | ⬜ **não existe** | sem `.github/workflows/` |
+| CI | ✅ | `.github/workflows/joca-os.yml` (backend + frontend), verde no #18 |
 
 ## Diário (mais recente primeiro)
 
+- 2026-10-06 · macOS · `JOCA_OS` 1.0 (branch `chore/versao-1.0`): versão 1.0 nos três `package.json`;
+  barra lateral numa grelha única (caixas de borda a borda, ícones e textos numa coluna, fechada
+  centrada); grupos com ícone próprio, seta à direita e caixa bento quando abertos; ícone de robô na
+  tab Agentes. Antes, no `main` (#18): alinhamento do grupo, scope systemd com `MemoryMax` no Linux e
+  `allowScripts`, vindos do PR de um colaborador. → `a3c8b65`
 - 2026-09-08 · macOS · `JOCA_OS`: retrato das sessões em disco — reiniciar o backend deixa de fazer
   as conversas desaparecerem sem explicação, e o output que tinham fica legível. Caixa de escrita
   colapsável, `Save all` no dashboard, `start.sh`/`stop.sh` a deixarem de confundir clientes de uma

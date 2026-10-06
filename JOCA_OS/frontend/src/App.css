@@ -1311,11 +1311,14 @@ html, body, #root {
   transition:opacity var(--t-fast), width var(--t-fast), color var(--t-fast);
 }
 .project-group-grip svg { width:12px; height:12px; display:block; }
+/* Escondida (largura 0), a pega não pode gastar o gap do cabeçalho: senão o ícone do projecto anda
+   8px conforme a ordenação permite arrastar ou não, e desalinha dos grupos. */
+.project-group-grip { margin-right:-8px; }
 .project-group-header:hover .project-group-grip,
-.project-group-header:focus-within .project-group-grip { width:13px; opacity:0.6; }
+.project-group-header:focus-within .project-group-grip { width:13px; opacity:0.6; margin-right:0; }
 .project-group-grip:hover { color:var(--text-dim); opacity:1; }
-.project-group-grip:focus-visible { width:13px; opacity:1; color:var(--text-dim); outline:2px solid var(--accent); outline-offset:1px; border-radius:3px; }
-@media (hover:none) { .project-group-grip { width:13px; opacity:0.6; } }
+.project-group-grip:focus-visible { width:13px; margin-right:0; opacity:1; color:var(--text-dim); outline:2px solid var(--accent); outline-offset:1px; border-radius:3px; }
+@media (hover:none) { .project-group-grip { width:13px; opacity:0.6; margin-right:0; } }
 .project-group-grip:active { cursor:grabbing; }
 .project-group--dragging { opacity:0.45; }
 .project-group--dragover { box-shadow: inset 0 2px 0 0 var(--project-color, var(--accent)); border-radius:var(--r-sm); }
@@ -6006,8 +6009,9 @@ background: var(--surface-panel);
   display:flex;
   align-items:center;
   gap:6px;
-  margin:0 var(--sp-3) 6px;
-  padding:0 6px;
+  /* Mesma largura dos cartões da lista e o ícone na coluna dos ícones dos projectos. */
+  margin:0 0 6px;
+  padding:0 9px;
   height:26px;
   border:1px solid var(--border-subtle);
   border-radius:var(--r-sm);
@@ -6596,18 +6600,27 @@ background: var(--surface-panel);
   width: 16px; height: 16px; padding: 0; flex-shrink: 0;
 }
 .project-folder-chevron svg { width: 12px; height: 12px; }
-/* O chevron ocupa o padding esquerdo do cabeçalho, para o ícone do grupo alinhar com o dos projectos
-   soltos — com 16px + gap à frente, a pasta-mãe ficava recuada ao nível dos membros. Sem margem
-   negativa à esquerda: a lista tem overflow-x:auto e cortava-o. */
-.session-sidebar:not(.session-sidebar--collapsed) .project-folder-header { padding-left: 0; }
-.project-folder-header > .project-folder-chevron,
-.project-folder-header:hover > .project-folder-chevron,
-.project-folder-header:focus-within > .project-folder-chevron { width: 12px; margin-right: -2px; }
+/* A seta vive à direita de tudo (margin-left:auto). O 1px do label compensa a borda do cartão dos
+   projectos soltos, para o ícone do grupo ficar na mesma coluna. */
+.project-folder-header > .project-folder-chevron { margin-left: auto; margin-right: -1px; }
+.project-folder-header > .project-group-label { margin-left: 1px; }
+.session-sidebar--collapsed .project-folder-header > .project-folder-chevron { display: none; }
 .project-folder-count {
   font-size: 10px; color: var(--text-ghost); background: rgba(255,255,255,0.06);
   border-radius: 999px; padding: 0 5px; line-height: 15px; flex-shrink: 0;
 }
 .project-folder-members { display: flex; flex-direction: column; }
+/* Grupo aberto = uma caixa bento à volta do cabeçalho e dos membros, para o conjunto se destacar dos
+   projectos soltos. A borda (1px) já faz o recuo que o label compensava com margin-left. */
+.session-sidebar:not(.session-sidebar--collapsed) .project-folder:has(> .project-folder-members) {
+  margin: 6px 0;
+  padding-bottom: 6px;
+  border: 1px solid var(--border-bento);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--on-surface) 2.5%, transparent);
+}
+.session-sidebar:not(.session-sidebar--collapsed) .project-folder:has(> .project-folder-members) > .project-folder-header > .project-group-label { margin-left: 0; }
+.session-sidebar:not(.session-sidebar--collapsed) .project-folder-members > .project-group--indented { margin-left: 8px; margin-right: 6px; }
 .session-sidebar--collapsed .project-folder-members,
 .session-sidebar--collapsed .project-folder-count,
 .session-sidebar--collapsed .project-folder-chevron { display: none; }
@@ -7527,3 +7540,25 @@ background: var(--surface-panel);
      não persiste (App.tsx), portanto numa carga a esta largura o estado é inalcançável. */
   .sb-header .sidebar-collapse-btn { display:none; }
 }
+
+/* ─── Grelha da barra lateral (aberta) ─────────────────────────────────────────────────────────
+   Duas linhas verticais para tudo: as CAIXAS (cartões, pesquisa, botões com borda, rodapé) vão de
+   borda a borda do bento; os ÍCONES e TEXTOS soltos (logótipo, títulos de secção, ícones das linhas)
+   ficam na coluna interior, 10px para dentro — a mesma dos ícones dos projectos. */
+.session-sidebar:not(.session-sidebar--collapsed) .sb-header { padding-left: 10px; padding-right: 0; }
+.session-sidebar:not(.session-sidebar--collapsed) .session-sidebar-header { padding-left: 10px; padding-right: 0; }
+.session-sidebar:not(.session-sidebar--collapsed) .sidebar-loose-title { padding-left: 10px; }
+.session-sidebar:not(.session-sidebar--collapsed) .nav-btn { padding-left: 9px; }
+.session-sidebar:not(.session-sidebar--collapsed) .sidebar-footer-pair { margin-left: 0; margin-right: 0; }
+/* Grupo aberto: a borda da caixa (1px) empurra a seta para dentro — o cabeçalho cede esse 1px. */
+.session-sidebar:not(.session-sidebar--collapsed) .project-folder:has(> .project-folder-members) > .project-folder-header { padding-right: 8px; }
+
+/* ─── Grelha da barra lateral (fechada) ────────────────────────────────────────────────────────
+   Uma só linha central: todas as caixas com 44px e centradas, e o ícone no centro da caixa. Antes
+   havia caixas de 44, 45 e 46px encostadas à esquerda, e o «>_» da sessão rápida descentrado
+   pelo gap de um texto escondido. */
+.session-sidebar--collapsed .nav-menu { padding-left: 9px; padding-right: 9px; }
+.session-sidebar--collapsed .session-sidebar-list > .project-folder,
+.session-sidebar--collapsed .session-sidebar-list > .project-group { width: 44px; align-self: center; }
+.session-sidebar--collapsed .project-folder-header { width: 44px; }
+.session-sidebar--collapsed .sidebar-quick-session-btn { gap: 0; }
