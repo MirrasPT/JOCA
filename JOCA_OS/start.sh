@@ -19,6 +19,30 @@ BACKEND_LOG="/tmp/joca-backend-$BACKEND_PORT.log"
 BUILD_LOG="/tmp/joca-backend-$BACKEND_PORT-build.log"
 VITE_LOG="/tmp/joca-vite-$FRONTEND_PORT.log"
 
+# Scope systemd própria para backend, vite e browser — porquê: comentário no arranque do backend.
+# Testa-se a scope a sério (com `true`), não só a sessão do utilizador: o systemd <253 recusa
+# OOMPolicy= em scopes e sai antes do exec — o backend nunca arrancava e o script dizia ✓.
+SCOPE=()
+if [ "$(uname)" = "Linux" ] && command -v systemd-run >/dev/null 2>&1; then
+  SCOPE_TRY=(systemd-run --user --scope -q -p "MemoryMax=${JOCA_MEMORY_MAX:-16G}" -p OOMPolicy=continue)
+  if "${SCOPE_TRY[@]}" true >/dev/null 2>&1; then
+    SCOPE=("${SCOPE_TRY[@]}")
+  fi
+fi
+
+# Abrir o browser: `open` é do macOS; no Linux pode nem existir ou ser o `openvt`. Falha em silêncio
+# (ex.: sessão sem ambiente gráfico) — os servidores já estão a correr e o URL fica impresso.
+open_url() {
+  if [ "$(uname)" = "Darwin" ]; then
+    open "$1"
+  elif command -v xdg-open >/dev/null 2>&1; then
+    # Scope própria: um browser novo aberto daqui não fica no cgroup do gnome-shell (ver backend).
+    "${SCOPE[@]}" xdg-open "$1" >/dev/null 2>&1 &
+  else
+    echo "  Abre no browser: $1"
+  fi
+}
+
 # Detect sibling JOCA_Brain
 LOGIC_DIR="$DIR/../JOCA_Brain"
 if [ -d "$LOGIC_DIR/.claude" ]; then
@@ -58,7 +82,7 @@ port_is_ours() {
 # correr" e abria o browser na instalação do vizinho.
 if port_is_ours "$BACKEND_PORT" && port_is_ours "$FRONTEND_PORT"; then
   echo "✓ JOCA OS (esta instalação) já está a correr → $URL"
-  open "$URL"
+  open_url "$URL"
   exit 0
 fi
 
@@ -99,7 +123,12 @@ fi
 # sub-sessão dessa: herda o orçamento dela ("Reached maximum budget") e acaba a recusar arrancar,
 # com uma mensagem enganadora sobre libc/musl que nada tem a ver com macOS.
 # Limpar aqui, no arranque, é o único sítio que cobre os dois lançadores.
-nohup env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_CHILD_SESSION \
+#
+# Linux: o backend e todos os `claude` filhos vão para uma scope própria com tecto de memória.
+# Sem isto herdam o cgroup de quem lançou (muitas vezes o gnome-shell): um teste descontrolado a
+# 24 GB fazia o OOM killer derrubar a sessão gráfica inteira. Com a scope morre só o processo que
+# esgotou o tecto (OOMPolicy=continue). `--scope` faz exec — o PID mantém-se para o stop.sh.
+nohup "${SCOPE[@]}" env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_CHILD_SESSION \
   -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_EXECPATH -u CLAUDE_PID -u CLAUDE_EFFORT \
   PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
   >> "$BACKEND_LOG" 2>&1 < /dev/null &
@@ -110,7 +139,7 @@ sleep 2
 
 # Frontend
 cd "$DIR/frontend" || exit 1
-nohup "$FRONTEND_VITE" --host 127.0.0.1 --port $FRONTEND_PORT \
+nohup "${SCOPE[@]}" "$FRONTEND_VITE" --host 127.0.0.1 --port $FRONTEND_PORT \
   >> "$VITE_LOG" 2>&1 < /dev/null &
 FRONTEND_PID=$!
 disown $FRONTEND_PID
@@ -123,4 +152,4 @@ echo ""
 echo "Podes fechar esta janela — os servidores continuam."
 echo "Para parar: ./stop.sh   (mesmas variáveis de porta, se as usaste no arranque)"
 
-sleep 3 && open "$URL"
+sleep 3 && open_url "$URL"

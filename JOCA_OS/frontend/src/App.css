@@ -6596,6 +6596,13 @@ background: var(--surface-panel);
   width: 16px; height: 16px; padding: 0; flex-shrink: 0;
 }
 .project-folder-chevron svg { width: 12px; height: 12px; }
+/* O chevron ocupa o padding esquerdo do cabeçalho, para o ícone do grupo alinhar com o dos projectos
+   soltos — com 16px + gap à frente, a pasta-mãe ficava recuada ao nível dos membros. Sem margem
+   negativa à esquerda: a lista tem overflow-x:auto e cortava-o. */
+.session-sidebar:not(.session-sidebar--collapsed) .project-folder-header { padding-left: 0; }
+.project-folder-header > .project-folder-chevron,
+.project-folder-header:hover > .project-folder-chevron,
+.project-folder-header:focus-within > .project-folder-chevron { width: 12px; margin-right: -2px; }
 .project-folder-count {
   font-size: 10px; color: var(--text-ghost); background: rgba(255,255,255,0.06);
   border-radius: 999px; padding: 0 5px; line-height: 15px; flex-shrink: 0;
