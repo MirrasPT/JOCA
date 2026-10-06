@@ -5,10 +5,10 @@
 
 ## Estado actual
 
-Toolkit maduro e em uso, publicado por PRs no `main` (#2–#18 fundidos até 2026-10-06, CI verde).
-O JOCA OS passa à versão 1.0 na branch `chore/versao-1.0` (barra lateral redesenhada), por fundir.
+Toolkit maduro e em uso, publicado por PRs no `main` (#2–#19 fundidos até 2026-10-06, CI verde).
+JOCA OS 1.0 no `main` (#19, `72fc77a`), com a barra lateral redesenhada.
 
-Próximo passo: rever e fundir `chore/versao-1.0`; depois levar a 1.0 às instalações de trabalho.
+Próximo passo: levar a 1.0 às instalações de trabalho.
 
 > Este projecto nasceu antes do `/start`, portanto não tem as fases S1-S5/E1-E4 de um arranque
 > guiado. A tabela abaixo é o que existe de facto, com a prova de cada linha.
@@ -28,7 +28,7 @@ Próximo passo: rever e fundir `chore/versao-1.0`; depois levar a 1.0 às instal
 
 ## Diário (mais recente primeiro)
 
-- 2026-10-06 · macOS · `JOCA_OS` 1.0 (branch `chore/versao-1.0`): versão 1.0 nos três `package.json`;
+- 2026-10-06 · macOS · `JOCA_OS` 1.0 (#19, `72fc77a`): versão 1.0 nos três `package.json`;
   barra lateral numa grelha única (caixas de borda a borda, ícones e textos numa coluna, fechada
   centrada); grupos com ícone próprio, seta à direita e caixa bento quando abertos; ícone de robô na
   tab Agentes. Antes, no `main` (#18): alinhamento do grupo, scope systemd com `MemoryMax` no Linux e
