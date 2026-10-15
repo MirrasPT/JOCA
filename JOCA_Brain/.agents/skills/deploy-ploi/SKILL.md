@@ -26,12 +26,39 @@ Server types: web, load balancer, dedicated database, Redis/Valkey, worker, stor
 ## Site setup
 
 1. Create site -- domain, web directory `/public`, project directory `/`
-2. Connect Git repo (GitHub/GitLab/Bitbucket) -- generates initial deploy script
+2. **Install Repository no Ploi (obrigatório quando o projecto tem repo)** -- gera o deploy script
 3. Configure DNS (A record to server IP)
 4. SSL -- tab SSL, automatic Let's Encrypt
 5. Edit `.env` via environment editor (no SSH needed)
 6. Create database via Databases tab
 7. First deploy
+
+### Instalar o repositório — o site só está feito quando o Ploi conhece o repo
+
+Projecto com repo git → o repo **instala-se no Ploi**, nunca se contorna. Pôr o site no ar por
+`scp`/`rsync` ou por repo bare quando existe repo deixa o site em «Install Repository» (sem deploy
+script; o «Deploy now» devolve 200 e não corre nada) — **parece pronto e não está**.
+
+**Pré-requisitos (verificar antes de criar o site; falta um → parar e pedir ao utilizador):**
+- provedor git (GitHub/GitLab/Bitbucket) ligado ao Ploi em Profile → Source control, com acesso à
+  org/conta dona do repo — sem isto nenhuma via instala o repo;
+- token: `ploi token` (CLI) ou chave da API (ploi.io → Profile → API keys) — o utilizador cola-o, o
+  modelo nunca o escreve.
+
+**Ordem de tentativa** (descer só quando a anterior falha com erro medido):
+1. **API** — `POST /servers/{server}/sites/{site}/repository` com `provider` (`github`|`gitlab`|`bitbucket`|`custom`),
+   `branch`, `name` (`org/repo`) — ver `reference/ploi-api.md`.
+2. **CLI** — `ploi repository:install --server=<nome ou IP> --site=<domínio>`.
+3. **Painel pelo Chrome** (sessão Ploi iniciada) — site → Install Repository → provedor, repo, branch → Install.
+
+**Proibido como substituto:** `scp`/`rsync`/repo bare para um projecto **que tem repo**. Se as três
+vias falharem → parar, reportar o erro exacto de cada uma e o pré-requisito em falta. As secções «sem
+repo» abaixo são **só** para conteúdo que não vive em nenhum repositório.
+
+**Critério de feito (os três, com evidência):**
+- painel do site mostra **Deployment → Deploy script** (não «Install Repository»);
+- «Deploy now» e o **Deploy log** mostra o `git pull`/checkout do branch e o commit esperado;
+- o site serve o conteúdo desse commit — verificar pelo **corpo** (`curl -s … | grep -F "<marcador>"`).
 
 ⚠ **Segredos que vêm de outro site do mesmo servidor não se copiam por script** (o deploy script a ler
 o `.env` do vizinho foi bloqueado, e bem) nem se escrevem no browser pelo modelo. Vias válidas
@@ -43,6 +70,8 @@ destino — `php artisan key:generate`, BD com utilizador próprio criado pelo d
 ---
 
 ## Site estatico sem repo (`scp`)
+
+⛔ **Só para conteúdo sem repositório.** Projecto com repo → §«Instalar o repositório».
 
 O deploy script pressupoe repo git. Um HTML unico (landing, apresentacao, mockup publicado) nao
 precisa de repo — mas o caminho nao esta no painel e descobre-se todo a mao:
@@ -129,11 +158,17 @@ no mesmo servidor, e há servidores com sites por utilizador de sistema (não o 
    nada, em silêncio — fica a servir o build antigo. Nunca `pkill node` (mata os Next dos outros sites).
    Confirmar que o PID na porta mudou (`lsof -t -i :<N> -sTCP:LISTEN` antes e depois; sem `lsof`,
    `fuser -n tcp <N>` ou `fuser <N>/tcp` — os PIDs saem no stdout, o resto no stderr).
+   ⚠ `pkill -f …` dentro de `ssh '…'` pode casar com a **própria shell remota** (o padrão está na linha
+   de comando dela) e matá-la, enquanto o filho `next-server` sobrevive a servir o build antigo da
+   memória; o supervisor relança, bate na porta ocupada e fica **FATAL por `EADDRINUSE`**. Reiniciar o
+   grupo do daemon: `supervisorctl restart worker-<id>:*` (2026-10-06).
 4. Verificar pelo **corpo** nos dois caminhos (`/` e `/<prefixo>/`), como na secção do site estático.
 
 ---
 
 ## App Node (`next start`) sem repo
+
+⛔ **Só para app sem repositório.** Projecto com repo → §«Instalar o repositório» (o repo bare abaixo não o substitui).
 
 Um Next.js **dinâmico** também corre no Ploi — não é só estático e Laravel (validada 1×, 2026-09-28,
 num projecto de cliente):
@@ -146,6 +181,9 @@ num projecto de cliente):
 4. Verificar pelo **corpo**, como no site estático.
 
 ⚠ Se o `npm run build` falhar no servidor, a via usada foi enviar o `.next` já compilado noutra máquina.
+⚠ **Site sem repositório registado: o Deploy do Ploi (botão ou API) devolve 200 e não corre nada.**
+Via usada: repo **bare** no servidor (`git init --bare`) como remoto + script de deploy próprio,
+corrido por SSH; provar pelo efeito (PID/hora do processo, corpo), nunca pelo 200 (2026-10-06).
 
 ---
 
@@ -154,8 +192,10 @@ num projecto de cliente):
 Os editores do painel (nginx, ambiente, deploy script) são **Monaco sem `window.monaco`**: um
 `ClipboardEvent` sintético não cola, `ctrl+g` não abre o ir-para-linha, e o auto-close de `{` meteu
 uma `}` a mais no nginx (2026-09-21).
-- **Ler** o estado pelos props Inertia — o `<script>` que começa por `{"component"` — não pelo ecrã.
-- **Escrever** com `type`, navegar com as setas.
+- **Não editar Monaco/CodeMirror por automação:** o `fill()` trunca (ficou só a cauda do script) e
+  `.view-line` virtualiza — mostra só a janela visível (pareceram 7 linhas, eram 20) (2026-09-14).
+- **Entregar o artefacto ao utilizador para colar**; antes de gravar, **reler o conteúdo completo**
+  pelos props Inertia — o `<script>` que começa por `{"component"` — não pelo ecrã.
 - **Conferir** chavetas e linhas pelos props **antes** de «Test configuration».
 
 ---
@@ -177,6 +217,8 @@ php artisan horizon:terminate
 ```
 
 **CRITICAL:** Always `--force` on `php artisan migrate` -- without it, interactive prompt blocks the deploy.
+⚠ O deploy script corre com o **PHP global** do servidor, que pode não ser o do site → versão explícita:
+`php8.4 /usr/local/bin/composer …` (idem `php8.4 artisan`) (2026-10-06).
 
 ---
 
@@ -205,6 +247,21 @@ jobs:
 
 ### Skip deploy
 Include `[skip ci]` or `[ci skip]` in commit message.
+
+### Esperar pelo deploy (pós-trigger)
+Comparar **SHAs completos**, nunca `--short` (abreviaturas de comprimento diferente nunca casam e o
+loop espera para sempre), com **tecto de tempo**:
+```bash
+ALVO=$(git rev-parse HEAD)                          # local, 40 chars
+for i in $(seq 1 30); do                            # tecto: 30 x 10 s = 5 min
+  REMOTO=$(ssh <user>@<host> 'git -C <dir-do-site>/current rev-parse HEAD' 2>/dev/null)  # sem atomic: <dir-do-site>
+  [ "$REMOTO" = "$ALVO" ] && { echo "OK deploy em $ALVO"; break; }
+  sleep 10
+done
+[ "$REMOTO" = "$ALVO" ] || echo "FALHA: servidor em ${REMOTO:-?}, esperado $ALVO — ler o log de deploy"
+```
+Alternativa: esperar pela linha de conclusão no **log de deploy do Ploi** (painel → Deployments do
+site), com o mesmo tecto. SHA igual prova o código, não o efeito — o health-check abaixo continua obrigatório.
 
 ---
 
@@ -357,6 +414,18 @@ HTML**, e o deploy deu verde sem entregar nada. O health-check verifica o **corp
 | CSS/JS de 0 bytes com 200 | Build no servidor OOM/disco cheio, exit 0 mentiroso | `find public/build -type f -empty` + health-check `content-length`>0 |
 | 502 nas duas portas num site novo | Edge fala HTTPS com o nginx; falta vhost em 443 | `ssl-upstream.conf` com `listen 443 ssl` (seccao acima) |
 | Backup da BD com 20 bytes, `mysqldump` com «Access denied» | senha lida do `.env` por `grep\|cut` | `~/.my-dump.cnf` temporário (`[client]`, modo 600, gerado por `php artisan tinker` a partir de `config('database.connections.<ligação>')`, sem a senha passar pelo ecrã) → `mysqldump --defaults-extra-file=~/.my-dump.cnf <bd>` (a opção tem de ser a 1.ª) → `rm -f` no fim; **o backup prova-se pelo nº de `CREATE TABLE`, nunca por o ficheiro existir** |
+
+**Backup pré-migrate — receita.** Sem `pipefail`, um `mysqldump` falhado sai pelo `gzip` com exit 0 e
+deixa um `.gz` de ~20 bytes; a migration corre sem cópia. A verificação vem **antes** do migrate:
+```bash
+set -o pipefail
+F=~/backups/<bd>-$(date +%Y%m%d-%H%M%S).sql.gz
+mysqldump --defaults-extra-file=~/.my-dump.cnf -h 127.0.0.1 --single-transaction <bd> | gzip > "$F" \
+  || { echo "FALHA mysqldump — NÃO migrar"; exit 1; }
+N=$(zcat "$F" | grep -c "CREATE TABLE")
+[ "$N" -gt 0 ] || { echo "FALHA backup sem tabelas ($N) — NÃO migrar"; exit 1; }
+php artisan migrate --force                          # só depois da prova acima
+```
 
 ---
 
