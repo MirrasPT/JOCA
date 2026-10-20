@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { CSSProperties, ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { MainView, SessionInfo, Project, ProjectIcon, ProjectGroup as ProjectGroupData } from '../types';
 import { iconInitials, projectIconUrl } from '../types';
@@ -651,6 +652,9 @@ function ProjectRow({
  * Linha de um agente rápido (sessão sem projecto). Duplo-clique no nome entra em edição — mesmo
  * gesto que renomeia um projecto na linha acima, para não haver dois vocabulários na mesma barra.
  * Com a barra fechada não há nome à vista, portanto também não há renome: fica só o quadrado.
+ * Em compensação, o nome e o estado aparecem num cartão ao lado ao passar o rato / focar (portal
+ * em `body`: a lista tem `overflow-x: hidden` e cortava um tooltip desenhado por dentro), e o X de
+ * fechar mantém-se, no canto do quadrado.
  */
 function LooseAgentRow({
   session, collapsed, onOpen, onRename, onClose,
@@ -667,11 +671,23 @@ function LooseAgentRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(session.name);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [peek, setPeek] = useState<{ top: number; left: number } | null>(null);
+  const [confirmClose, setConfirmClose] = useState(false);
   const state = shownState(session);
 
   useEffect(() => {
     if (editing) { setDraft(session.name); inputRef.current?.focus(); inputRef.current?.select(); }
   }, [editing, session.name]);
+
+  useEffect(() => { if (!collapsed) setPeek(null); }, [collapsed]);
+
+  const openPeek = () => {
+    if (!collapsed) return;
+    const r = rowRef.current?.getBoundingClientRect();
+    if (r) setPeek({ top: r.top + r.height / 2, left: r.right });
+  };
+  const closePeek = () => setPeek(null);
 
   const commit = () => {
     const t = draft.trim();
@@ -701,25 +717,38 @@ function LooseAgentRow({
   }
 
   return (
+    <>
     <div
+      ref={rowRef}
       role="button"
       tabIndex={0}
       className={`sidebar-loose-item${state === 'working' ? ' is-working' : ''}`}
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       onDoubleClick={onRename && !collapsed ? (e) => { e.stopPropagation(); setEditing(true); } : undefined}
-      title={onRename && !collapsed
+      onMouseEnter={openPeek}
+      onMouseLeave={closePeek}
+      onFocus={openPeek}
+      onBlur={closePeek}
+      title={collapsed ? undefined : onRename
         ? `${session.name} — agente sem projecto${state !== 'idle' ? ` — ${stateText(session)}` : ''} (duplo-clique renomeia)`
         : `${session.name} — agente sem projecto${state !== 'idle' ? ` — ${stateText(session)}` : ''}`}
       aria-label={`Abrir agente ${session.name}${state !== 'idle' ? ` — ${stateText(session)}` : ''}`}
     >
       <span className="sidebar-loose-icon">{poolGif ? <OfficeGif src={poolGif} className="office-gif-icon office-gif-icon--avatar" /> : <LucideIcon name="terminal-quick" />}</span>
       <span className="sidebar-loose-name">{session.name}</span>
-      {onClose && !collapsed && (
+      {collapsed && peek && createPortal(
+        <div className="sidebar-loose-peek" role="tooltip" style={{ top: peek.top, left: peek.left }}>
+          <span className="sidebar-loose-peek-name">{session.name}</span>
+          <span className="sidebar-loose-peek-state" data-state={state}>{state === 'idle' ? 'Agente rápido' : stateText(session)}</span>
+        </div>,
+        document.body,
+      )}
+      {onClose && (
         <button
           type="button"
           className="sidebar-loose-close"
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          onClick={(e) => { e.stopPropagation(); closePeek(); setConfirmClose(true); }}
           aria-label={`Fechar agente ${session.name}`}
           data-tooltip="Fechar agente"
           data-tooltip-position="bottom"
@@ -729,6 +758,21 @@ function LooseAgentRow({
       )}
       <span className="sidebar-loose-dot" data-on={state === 'working'} data-state={state} aria-hidden />
     </div>
+    {/* Fora da linha: os eventos de um portal sobem pela árvore do React, e dentro da linha um
+        clique no diálogo disparava o `onOpen` dela. */}
+    {confirmClose && onClose && createPortal(
+      <ConfirmDialog
+        title={`Fechar "${session.name}"?`}
+        confirmLabel="Fechar agente"
+        onCancel={() => setConfirmClose(false)}
+        onConfirm={() => { setConfirmClose(false); onClose(); }}
+      >
+        Vais fechar o terminal de <strong>{session.name}</strong>. Se estiver a trabalhar, o que está
+        a fazer é interrompido.
+      </ConfirmDialog>,
+      document.body,
+    )}
+    </>
   );
 }
 

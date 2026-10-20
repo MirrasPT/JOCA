@@ -6500,6 +6500,43 @@ background: var(--surface-panel);
   justify-content: center;
 }
 .session-sidebar--collapsed .sidebar-loose-dot { position: absolute; top: 5px; right: 7px; }
+/* O X fica no canto do quadrado (no lugar do ponto, que sai ao passar — regra acima). O tooltip
+   próprio do botão seria cortado pelo overflow da lista; o nome já vem no cartão `-peek`. */
+.session-sidebar--collapsed .sidebar-loose-close {
+  position: absolute; top: 2px; right: 3px;
+  width: 16px; height: 16px;
+  background: var(--surface-panel);
+}
+.session-sidebar--collapsed .sidebar-loose-close::after { display: none; }
+
+/* Cartão com o nome e o estado do agente, ao lado do quadrado da barra fechada. Fixo em `body`
+   (portal): a lista corta com `overflow-x: hidden`. Não recebe rato — some quando o rato sai. */
+.sidebar-loose-peek {
+  position: fixed;
+  z-index: 200;
+  transform: translateY(-50%);
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 280px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--on-surface) 8%, transparent);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  font-family: var(--font-ui);
+  pointer-events: none;
+}
+.sidebar-loose-peek-name {
+  color: var(--text-bright);
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sidebar-loose-peek-state { color: var(--text-ghost); font-size: 10px; }
+.sidebar-loose-peek-state[data-state='working'] { color: var(--accent); }
+.sidebar-loose-peek-state[data-state='waiting'] { color: var(--accent-text); }
 
 .session-sidebar--collapsed .project-group-grip,
 .session-sidebar--collapsed .project-group-name,
