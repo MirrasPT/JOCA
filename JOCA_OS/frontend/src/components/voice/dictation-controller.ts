@@ -70,6 +70,9 @@ export class ControladorDoDitado {
 
   get fase(): FaseDoDitado { return this.#fase; }
 
+  /** O volume do microfone agora (0..1); 0 fora de «a ouvir». Para ler por frame, fora do React. */
+  nivel(): number { return this.#gravador?.nivel() ?? 0; }
+
   /** Para o `useSyncExternalStore`. */
   readonly subscrever = (ouvinte: () => void): (() => void) => {
     this.#ouvintes.add(ouvinte);

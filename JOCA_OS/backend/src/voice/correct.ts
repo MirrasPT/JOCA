@@ -25,6 +25,8 @@ export interface PedidoDeCorrecao {
   readonly contexto: string | null;
   readonly modelo: string;
   readonly termos: readonly string[];
+  /** O `--system-prompt`, já normalizado pelas definições. */
+  readonly instrucoes: string;
 }
 
 export type ResultadoDaCorrecao =
@@ -34,6 +36,7 @@ export type ResultadoDaCorrecao =
 /** Quem corre o `claude`: devolve o stdout. Injectável nos testes. */
 export type CorredorDoClaude = (args: readonly string[], stdin: string, prazoMs: number) => Promise<string>;
 
+/** As instruções originais: a omissão das definições e o que «Repor as originais» devolve. */
 export const INSTRUCOES = [
   'És um corretor de transcrições de voz. Recebes uma TRANSCRIÇÃO feita por um modelo de voz local e, por vezes, o contexto do terminal de onde a pessoa ditou (uma imagem, ou as últimas linhas do ecrã).',
   'A tua única tarefa: devolver a transcrição corrigida.',
@@ -103,13 +106,13 @@ export function lerResultado(stdout: string): string {
   throw new Error('o claude acabou sem resposta');
 }
 
-export function argsDoClaude(modelo: string): string[] {
+export function argsDoClaude(modelo: string, instrucoes: string): string[] {
   return [
     '-p', '--model', modelo,
     '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose',
     '--setting-sources', 'local', '--strict-mcp-config', '--no-session-persistence',
     '--tools', '',
-    '--system-prompt', INSTRUCOES,
+    '--system-prompt', instrucoes,
   ];
 }
 
@@ -184,7 +187,7 @@ export async function corrigirTexto(
   };
   try {
     const correr = opts.correr ?? correrClaude;
-    const saida = validarSaida(pedido.texto, deDados(await correr(argsDoClaude(pedido.modelo), mensagemDoPedido(pedido), opts.prazoMs ?? PRAZO_DA_CORRECAO_MS)));
+    const saida = validarSaida(pedido.texto, deDados(await correr(argsDoClaude(pedido.modelo, pedido.instrucoes), mensagemDoPedido(pedido), opts.prazoMs ?? PRAZO_DA_CORRECAO_MS)));
     if ('porque' in saida) return falhou(saida.porque);
     return { corrigido: true, texto: saida.texto, ms: Date.now() - inicio };
   } catch (error) {

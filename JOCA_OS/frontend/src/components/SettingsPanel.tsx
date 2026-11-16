@@ -6,6 +6,7 @@ import type { ThemeMode } from '../lib/theme';
 import { saveThemeSettings } from '../hooks/useAutoTheme';
 import { BRAND_THEMES, applyBrand, readBrand } from '../lib/brand';
 import VoiceSettings from './voice/VoiceSettings';
+import './settings-panel.css';
 
 interface ServiceConnection {
   id: string;
@@ -51,6 +52,63 @@ function FecharX() {
 }
 
 export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, projects, services, onReloadRuntime, onRunCommand, onClose }: Props) {
+  // Índice à esquerda: só lista as secções que estão mesmo desenhadas (a do Brain é condicional).
+  const secoes = [
+    { id: 'tema', label: 'Tema' },
+    ...(services.length ? [{ id: 'servicos', label: 'Serviços' }] : []),
+    { id: 'instalacao', label: 'Esta instalação' },
+    ...(jocaLogicInfo ? [{ id: 'brain', label: 'JOCA Brain' }] : []),
+    { id: 'permissoes', label: 'Permissões' },
+    { id: 'ditado', label: 'Ditado' },
+    { id: 'clis', label: 'AI CLIs' },
+  ];
+  const [secaoActiva, setSecaoActiva] = useState('tema');
+  const corpoRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  // Depois de um clique no índice, o scroll suave passa por cima de outras secções (e no fundo
+  // nem chega a pôr a escolhida no topo): enquanto esse scroll corre, o activo é o clicado.
+  const bloqueioRef = useRef<number | null>(null);
+
+  const topoNoCorpo = (corpo: HTMLElement, el: HTMLElement) =>
+    el.getBoundingClientRect().top - corpo.getBoundingClientRect().top + corpo.scrollTop;
+
+  const actualizarActiva = useCallback(() => {
+    const corpo = corpoRef.current;
+    if (!corpo) return;
+    if (bloqueioRef.current !== null) {
+      window.clearTimeout(bloqueioRef.current);
+      bloqueioRef.current = window.setTimeout(() => { bloqueioRef.current = null; }, 150);
+      return;
+    }
+    const lista = [...corpo.querySelectorAll<HTMLElement>('[data-secao]')];
+    if (!lista.length) return;
+    // No fundo, a última secção pode ser curta demais para chegar ao topo: conta como visível.
+    const noFundo = corpo.scrollTop + corpo.clientHeight >= corpo.scrollHeight - 2;
+    const linha = corpo.scrollTop + corpo.clientHeight / 3;
+    const actual = noFundo ? lista[lista.length - 1] : lista.filter((el) => topoNoCorpo(corpo, el) <= linha).pop() ?? lista[0];
+    setSecaoActiva(actual.dataset.secao!);
+  }, []);
+
+  useEffect(() => () => { if (bloqueioRef.current !== null) window.clearTimeout(bloqueioRef.current); }, []);
+
+  // Na faixa horizontal (ecrã estreito) o item activo pode estar fora de vista.
+  useEffect(() => {
+    navRef.current?.querySelector<HTMLElement>('[aria-current="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [secaoActiva]);
+
+  const irParaSecao = useCallback((id: string) => {
+    const corpo = corpoRef.current;
+    const alvo = corpo?.querySelector<HTMLElement>(`[data-secao="${id}"]`);
+    if (!corpo || !alvo) return;
+    setSecaoActiva(id);
+    if (bloqueioRef.current !== null) window.clearTimeout(bloqueioRef.current);
+    bloqueioRef.current = window.setTimeout(() => { bloqueioRef.current = null; }, 150);
+    const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    corpo.scrollTo({ top: topoNoCorpo(corpo, alvo), behavior: reduzir ? 'auto' : 'smooth' });
+    // O foco vai para a secção, para o Tab seguinte continuar dentro dela e não no índice.
+    alvo.focus({ preventScroll: true });
+  }, []);
+
   const [cliTools, setCliTools] = useState<CliToolStatus[]>([]);
   const [cliLoading, setCliLoading] = useState(false);
   const [skipPermissions, setSkipPermissions] = useState(false);
@@ -175,7 +233,25 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           <FecharX />
         </button>
       </div>
-      <div className="settings-panel-body">
+      <div className="settings-layout">
+      <nav className="settings-index" aria-label="Secções das definições" ref={navRef}>
+        <ul>
+          {secoes.map((secao) => (
+            <li key={secao.id}>
+              <a
+                href={`#definicoes-${secao.id}`}
+                className="settings-index-link"
+                aria-current={secaoActiva === secao.id ? 'true' : undefined}
+                onClick={(e) => { e.preventDefault(); irParaSecao(secao.id); }}
+              >
+                {secao.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="settings-panel-body" ref={corpoRef} onScroll={actualizarActiva}>
+        <section id="definicoes-tema" data-secao="tema" aria-label="Tema" tabIndex={-1} className="settings-section">
         <div className="settings-service-card">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">aparência</span>
@@ -255,6 +331,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             </div>
           </div>
         </div>
+        </section>
+        {services.length > 0 && (
+        <section id="definicoes-servicos" data-secao="servicos" aria-label="Serviços" tabIndex={-1} className="settings-section">
         {services.map((service) => (
           <div key={service.id} className="settings-service-card">
             <div className="settings-service-head">
@@ -266,6 +345,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             <p>{service.scope}</p>
           </div>
         ))}
+        </section>
+        )}
+        <section id="definicoes-instalacao" data-secao="instalacao" aria-label="Esta instalação" tabIndex={-1} className="settings-section">
         <div className="settings-service-card settings-service-card--runtime">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">estado</span>
@@ -281,7 +363,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </dl>
           <button className="db-project-card-btn" onClick={onReloadRuntime}>Actualizar</button>
         </div>
+        </section>
         {jocaLogicInfo && (
+          <section id="definicoes-brain" data-secao="brain" aria-label="JOCA Brain" tabIndex={-1} className="settings-section">
           <div className="settings-service-card">
             <div className="settings-service-head">
               <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'ligado' : 'desligado'}`}>
@@ -306,7 +390,9 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               </p>
             )}
           </div>
+          </section>
         )}
+        <section id="definicoes-permissoes" data-secao="permissoes" aria-label="Permissões" tabIndex={-1} className="settings-section">
         <div className="settings-service-card">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">claude</span>
@@ -321,8 +407,12 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </p>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
         </div>
+        </section>
+        <section id="definicoes-ditado" data-secao="ditado" aria-label="Ditado" tabIndex={-1} className="settings-section">
         <VoiceSettings />
+        </section>
         {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
+        <section id="definicoes-clis" data-secao="clis" aria-label="AI CLIs" tabIndex={-1} className="settings-section">
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">
             <span className="status-pill status-pill--connected">cli</span>
@@ -390,6 +480,8 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
             {cliLoading ? 'A verificar…' : 'Verificar de novo'}
           </button>
         </div>
+        </section>
+      </div>
       </div>
     </div>
   );

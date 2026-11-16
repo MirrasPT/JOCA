@@ -6,6 +6,7 @@
 import path from 'path';
 import { DATA_DIR, readJsonFile, writeJsonFile } from '../project-store';
 import { DEFAULT_VOICE_MODEL_ID, VOICE_LANGUAGES, voiceModelById } from './catalog';
+import { INSTRUCOES } from './correct';
 
 export interface VoiceSettings {
   readonly correcaoLigada: boolean;
@@ -13,6 +14,8 @@ export interface VoiceSettings {
   readonly termos: readonly string[];
   readonly modeloVoz: string;
   readonly idioma: string;
+  /** O `--system-prompt` da limpeza. Por omissão, as `INSTRUCOES` originais. */
+  readonly instrucoes: string;
 }
 
 /** Genérica de propósito (o repo é público): termos técnicos que o modelo de voz ouve mal. */
@@ -28,12 +31,14 @@ export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   termos: DEFAULT_TERMS,
   modeloVoz: DEFAULT_VOICE_MODEL_ID,
   idioma: 'pt',
+  instrucoes: INSTRUCOES,
 };
 
 /** Um alias (`haiku`) ou um id de modelo. Nunca começa por `-`: vai para a linha de comando. */
 const MODELO_VALIDO = /^[a-zA-Z0-9][a-zA-Z0-9._:[\]-]{0,63}$/;
 const MAX_TERMOS = 200;
 const MAX_TERMO = 80;
+export const MAX_INSTRUCOES = 8_000;
 
 export function voiceSettingsFile(): string {
   return path.join(DATA_DIR, 'voice-settings.json');
@@ -44,6 +49,7 @@ export function normalizeVoiceSettings(guardado: unknown, base: VoiceSettings = 
   const v = typeof guardado === 'object' && guardado !== null && !Array.isArray(guardado)
     ? (guardado as Record<string, unknown>) : {};
   const { modeloCorrecao, modeloVoz, idioma, termos } = v;
+  const instrucoes = typeof v.instrucoes === 'string' ? v.instrucoes.replace(/\r\n?/g, '\n').trim() : '';
   return {
     correcaoLigada: typeof v.correcaoLigada === 'boolean' ? v.correcaoLigada : base.correcaoLigada,
     modeloCorrecao: typeof modeloCorrecao === 'string' && MODELO_VALIDO.test(modeloCorrecao) ? modeloCorrecao : base.modeloCorrecao,
@@ -56,6 +62,9 @@ export function normalizeVoiceSettings(guardado: unknown, base: VoiceSettings = 
         .filter((t) => t !== '' && t.length <= MAX_TERMO)
         .slice(0, MAX_TERMOS)
       : base.termos,
+    // Vai como valor de `--system-prompt`: começado por `-` seria lido como opção; um NUL parte o spawn.
+    instrucoes: instrucoes !== '' && instrucoes.length <= MAX_INSTRUCOES && !instrucoes.startsWith('-') && !instrucoes.includes('\0')
+      ? instrucoes : base.instrucoes,
   };
 }
 

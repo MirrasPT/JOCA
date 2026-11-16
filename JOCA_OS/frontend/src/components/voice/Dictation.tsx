@@ -1,4 +1,5 @@
 // O botão de ditar (barra do terminal) e a linha de estado do ditado.
+import { useEffect, useRef } from 'react';
 import type { FaseDoDitado, useDictation } from './useDictation';
 import './dictation.css';
 
@@ -35,6 +36,33 @@ export function DictationButton({ fase, desligado, aoCarregar }: { readonly fase
   );
 }
 
+const BARRAS = 5;
+
+/**
+ * As barras que sobem e descem com o microfone: a prova de que está a captar. O nível lê-se por
+ * frame e vai para a CSS var `--nivel` deste elemento — sem setState, nada re-renderiza a 60 fps.
+ * Com movimento reduzido não há frame nenhum: as barras ficam paradas (o CSS fixa o nível).
+ */
+function NivelDoMicrofone({ lerNivel }: { readonly lerNivel: () => number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let frame = 0;
+    const desenhar = (): void => {
+      el.style.setProperty('--nivel', lerNivel().toFixed(3));
+      frame = requestAnimationFrame(desenhar);
+    };
+    frame = requestAnimationFrame(desenhar);
+    return () => cancelAnimationFrame(frame);
+  }, [lerNivel]);
+  return (
+    <span ref={ref} className="ditado-niveis" aria-hidden>
+      {Array.from({ length: BARRAS }, (_, i) => <span key={i} className="ditado-nivel" />)}
+    </span>
+  );
+}
+
 export interface AvisoDoDitado {
   readonly texto: string;
   readonly tom: 'info' | 'erro';
@@ -46,7 +74,7 @@ export function DictationStatus({ ditado, aviso, aoFecharAviso }: {
   readonly aviso: AvisoDoDitado | null;
   readonly aoFecharAviso: () => void;
 }) {
-  const { fase, segundos, cancelar, tentarDeNovo, descarregar, tamanhoDoModelo } = ditado;
+  const { fase, segundos, cancelar, tentarDeNovo, descarregar, tamanhoDoModelo, lerNivel } = ditado;
   if (fase.nome === 'parado' && aviso === null) return null;
 
   const texto = fase.nome === 'parado' ? '' : {
@@ -63,7 +91,7 @@ export function DictationStatus({ ditado, aviso, aoFecharAviso }: {
     <div className="ditado-linhas">
       {fase.nome !== 'parado' && (
         <div className="ditado-estado" role="status">
-          {fase.nome === 'a-ouvir' && <span className="ditado-ponto" aria-hidden />}
+          {fase.nome === 'a-ouvir' && <NivelDoMicrofone lerNivel={lerNivel} />}
           <span>{texto}</span>
           {fase.nome === 'sem-modelo' && (
             <button type="button" className="ditado-accao" onClick={() => descarregar(fase.modelo)}>Descarregar</button>

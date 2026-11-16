@@ -1,0 +1,107 @@
+/* ─── Definições: índice à esquerda + conteúdo à direita ──────────────────────────────────────
+ * Este ficheiro entra no bundle ANTES do App.css (é importado pelo componente; o App.css vem do
+ * main.tsx), por isso cada regra leva um prefixo extra para ganhar em especificidade a quem já
+ * estiliza o modal e o corpo do painel no App.css.
+ *
+ * O item activo marca-se com fundo lavado + cor da tinta (a mesma receita do `.theme-mode-btn`),
+ * nunca com barra lateral. O índice não leva moldura: os cartões das secções já são as caixas.
+ */
+
+.settings-modal-backdrop > .settings-modal {
+  width: min(1040px, 92vw, 100%);
+  height: min(84vh, 900px);
+}
+
+.settings-panel .settings-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--sp-4);
+}
+
+.settings-panel .settings-index {
+  min-height: 0;
+  overflow-y: auto;
+  /* A folga de --sp-1 deixa o contorno de foco (2px + 2px de offset) caber dentro do scroll. */
+  padding: var(--sp-1) var(--sp-1) var(--sp-4) var(--sp-5);
+}
+
+.settings-panel .settings-index ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.settings-panel .settings-index-link {
+  display: block;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--text-dim);
+  font: 700 13px var(--font-ui);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.settings-panel .settings-index-link:hover {
+  color: var(--text-bright);
+  background: var(--surface-soft);
+}
+
+.settings-panel .settings-index-link[aria-current="true"] {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-text);
+}
+
+.settings-panel .settings-panel-body {
+  padding: 0 var(--sp-4) var(--sp-4) 0;
+}
+
+/* Cada secção é um alvo do índice (recebe o foco ao saltar), não um controlo: sem contorno. */
+.settings-panel .settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-panel .settings-section:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel .settings-index-link { transition: none; }
+}
+
+/* Ecrã estreito: uma coluna; o índice vira uma faixa horizontal com scroll por cima do conteúdo. */
+@media (max-width: 720px) {
+  .settings-panel .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: var(--sp-2);
+  }
+
+  .settings-panel .settings-index {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--sp-1) var(--sp-4);
+    scrollbar-width: thin;
+  }
+
+  .settings-panel .settings-index ul {
+    flex-direction: row;
+  }
+
+  .settings-panel .settings-index-link {
+    min-height: 44px; /* alvo de toque, como o `.theme-mode-btn` */
+    display: flex;
+    align-items: center;
+  }
+
+  .settings-panel .settings-panel-body {
+    padding: 0 var(--sp-4) var(--sp-4);
+  }
+}

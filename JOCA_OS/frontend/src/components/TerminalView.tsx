@@ -822,9 +822,6 @@ export default function TerminalView({
             >
               <EraserIcon /> Apagar texto
             </button>
-            {/* Ditado: transcreve nesta máquina e põe o texto na caixa, por enviar. */}
-            <DictationButton fase={ditado.fase} desligado={!activeId} aoCarregar={carregarNoMicrofone} />
-
             <div className="command-bar-divider" />
             <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Comandos, skills e agentes" aria-label="Comandos, skills e agentes">+</button>
             <button
@@ -857,6 +854,9 @@ export default function TerminalView({
             <span className={`cmd-bar-status cmd-bar-status--${activeSession.status}`}>
               {activeSession.status === 'working' ? 'a trabalhar' : 'parado'}
             </span>
+            {/* Ditado: transcreve nesta máquina e põe o texto na caixa, por enviar. O último de
+                tudo, à direita do estado (pedido do dono, 2026-11-16). */}
+            <DictationButton fase={ditado.fase} desligado={!activeId} aoCarregar={carregarNoMicrofone} />
           </div>
 
           <DictationStatus ditado={ditado} aviso={avisoDitado} aoFecharAviso={() => setAvisoDitado(null)} />

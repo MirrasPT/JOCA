@@ -34,6 +34,7 @@ const cancelar = () => controlador.cancelar();
 const tentarDeNovo = () => controlador.tentarDeNovo();
 const descarregar = controlador.descarregar.bind(controlador);
 const entregarPendentes = (sessao: string | null) => controlador.entregarPendentes(sessao);
+const lerNivel = () => controlador.nivel();
 
 interface Opcoes {
   readonly desligado: boolean;
@@ -80,6 +81,7 @@ export function useDictation({ desligado, entregar, aoAviso }: Opcoes) {
     tentarDeNovo,
     descarregar,
     entregarPendentes,
+    lerNivel,
     tamanhoDoModelo: emMegabytes,
   };
 }
