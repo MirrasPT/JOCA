@@ -1,8 +1,9 @@
 import { randomUUID } from 'crypto';
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 import { HttpError, isInside, realPathSafe } from '../security-fs';
-import { CLAUDE_DIR, parseFrontmatter } from '../toolkit-registry';
+import { BRAIN, parseFrontmatter } from '../toolkit-registry';
 
 // Shared constants and pure helpers used across the HTTP route modules. No Express/closure state —
 // everything here is a pure function or a constant, so any router can import it freely.
@@ -59,12 +60,44 @@ export const UPLOAD_ALLOWED_EXTS = new Set([
   'bin',
 ]);
 
-export function assertClaudePath(targetPath: string) {
+/**
+ * Caminho real de `p`, mesmo que ainda não exista (criar um item): o realpath do ancestral mais
+ * fundo que existe, mais o resto. Um atalho PARTIDO pelo caminho é recusado — escrever através
+ * dele criava o alvo onde quer que ele aponte.
+ */
+export function caminhoReal(p: string): string {
+  let dir = path.resolve(p);
+  const resto: string[] = [];
+  for (;;) {
+    let existe = true;
+    try { fs.lstatSync(dir); } catch { existe = false; }
+    if (existe) break;
+    const pai = path.dirname(dir);
+    if (pai === dir) break;
+    resto.unshift(path.basename(dir));
+    dir = pai;
+  }
+  let real: string;
+  try { real = fs.realpathSync.native(dir); } catch { throw new HttpError('Forbidden', 403); }
+  return path.join(real, ...resto);
+}
+
+/** Pastas do toolkit de um Brain (já resolvidas): `.claude`, e as do v2 `.agents` e `skills`. */
+export function raizesDoToolkit(brainRoot: string): string[] {
+  return ['.claude', '.agents', 'skills'].map((d) => realPathSafe(path.join(brainRoot, d)));
+}
+
+/**
+ * Um item do toolkit só se lê/escreve se, DEPOIS de resolvido (atalhos incluídos), ficar dentro de
+ * uma pasta de toolkit do Brain encontrado. As skills v2 vivem em `.agents/skills` e
+ * `.agents/globais`, atrás de atalhos em `.claude/skills` — por isso conta o caminho real, não só o
+ * `.claude`. `../`, atalho para fora do Brain e «sem Brain» → 403. Devolve o caminho lexical.
+ */
+export function assertClaudePath(targetPath: string, brainRoot: string | null = BRAIN?.root ?? null) {
+  if (!brainRoot || !targetPath) throw new HttpError('Forbidden', 403);
   const lexical = path.resolve(targetPath);
-  // Resolve any symlinks before checking containment — prevents symlink-escape
-  // (planted symlink inside .claude pointing to /etc).
-  const real = realPathSafe(lexical);
-  if (!isInside(CLAUDE_DIR, real)) throw new HttpError('Forbidden', 403);
+  const real = caminhoReal(lexical);
+  if (!raizesDoToolkit(brainRoot).some((raiz) => isInside(raiz, real))) throw new HttpError('Forbidden', 403);
   return lexical;
 }
 

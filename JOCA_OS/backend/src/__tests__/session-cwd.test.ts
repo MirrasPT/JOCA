@@ -31,7 +31,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { DATA_DIR, saveProjects } from '../project-store';
-import { sessionManager, pastaDoTerminal } from '../session-manager';
+import { sessionManager, pastaDoTerminal, ambienteComBrain } from '../session-manager';
 import { loadNotifications } from '../notifications/store';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'joca-session-cwd-'));
@@ -72,6 +72,17 @@ describe('pastaDoTerminal (pura)', () => {
   });
   it('solta → pasta pessoal', () => {
     expect(pastaDoTerminal({ home, existe })).toEqual({ cwd: home });
+  });
+});
+
+describe('ambienteComBrain (pura)', () => {
+  it('com Brain: põe JOCA_BRAIN e tira o JOCA_LOGIC_PATH herdado', () => {
+    expect(ambienteComBrain({ PATH: '/bin', JOCA_LOGIC_PATH: '/exemplo/legado' }, '/exemplo/JOCA_Brain'))
+      .toEqual({ PATH: '/bin', JOCA_BRAIN: '/exemplo/JOCA_Brain' });
+  });
+  it('sem Brain: o ambiente fica como está', () => {
+    const env = { PATH: '/bin', JOCA_LOGIC_PATH: '/exemplo/legado' };
+    expect(ambienteComBrain(env, null)).toEqual(env);
   });
 });
 

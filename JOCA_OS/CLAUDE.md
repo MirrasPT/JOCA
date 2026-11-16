@@ -66,7 +66,10 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
   conta uma pasta com `AGENTS.md` ou `CLAUDE.md` e com `.claude/` ou `skills/`. Sem Brain o JOCA OS
   arranca e funciona: o toolkit global fica vazio, as Definições dizem «Sem JOCA Brain» e nada é
   escrito no Brain. O toolkit lê as duas estruturas (`.claude/skills/*.md` e as skills em pasta
-  com `SKILL.md`, incluindo atalhos), sem repetir. Os terminais de um projecto **abrem na pasta do
+  com `SKILL.md`, incluindo atalhos), sem repetir; abrir/editar um item vale se o caminho REAL
+  ficar dentro de `.claude/`, `.agents/` ou `skills/` do Brain (`http/helpers.ts`). Os lançadores
+  (`start.sh`, `start.bat`, `JOCA OS.command`) já não exportam a pasta irmã — quem decide é o
+  backend, pela ordem acima. Os terminais de um projecto **abrem na pasta do
   projecto** (na pessoal, com aviso, se ela já não existir); os soltos abrem na pasta pessoal,
   nunca no Brain. Cada terminal recebe `JOCA_BRAIN` quando há Brain; com o Brain v2 o resumo da
   pasta (`.joca/resumo.md`) entra sozinho pelo hook, e o botão de resume fica como recurso manual.

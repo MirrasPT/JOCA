@@ -405,6 +405,18 @@ export function pastaDoTerminal(o: {
   return { cwd: o.home };
 }
 
+/**
+ * Com Brain, o terminal recebe `JOCA_BRAIN=<raiz>` (o CLI e os hooks do Brain sabem onde ele está,
+ * mesmo que o backend o tenha achado por uma via legada) e PERDE o `JOCA_LOGIC_PATH` herdado: um
+ * JOCA OS arrancado de dentro deste terminal tomá-lo-ia por escolha explícita do utilizador.
+ * Sem Brain, o ambiente fica como está. Pura; exportada para ser testável.
+ */
+export function ambienteComBrain(env: NodeJS.ProcessEnv, brainRoot: string | null): NodeJS.ProcessEnv {
+  if (!brainRoot) return env;
+  const { JOCA_LOGIC_PATH: _herdado, ...resto } = env;
+  return { ...resto, JOCA_BRAIN: brainRoot };
+}
+
 function eDirectorio(p: string): boolean {
   try { return fs.statSync(p).isDirectory(); } catch { return false; }
 }
@@ -478,12 +490,8 @@ export class SessionManager extends EventEmitter {
       cwd,
       // Every session is born knowing how to talk back to JOCA: the agent inside can open and
       // message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
-      // JOCA_SESSION_ID lets it identify itself. JOCA_BRAIN (quando há Brain) diz ao CLI e aos hooks
-      // do Brain onde ele está, mesmo que o backend o tenha achado por uma via legada.
-      env: {
-        ...ambienteDoTerminal(), ...jocaAgentEnv(id),
-        ...(BRAIN ? { JOCA_BRAIN: BRAIN.root } : {}),
-      } as Record<string, string>,
+      // JOCA_SESSION_ID lets it identify itself. JOCA_BRAIN: ver ambienteComBrain.
+      env: ambienteComBrain({ ...ambienteDoTerminal(), ...jocaAgentEnv(id) }, BRAIN?.root ?? null) as Record<string, string>,
     });
 
     const session: Session = {
