@@ -13,10 +13,36 @@ class ColetorDoDitado extends AudioWorkletProcessor {
 registerProcessor('coletor-do-ditado', ColetorDoDitado)
 `;
 
-/** Uma gravação aberta. `terminar` fecha o microfone e devolve o PCM a 16 kHz; `descartar` só fecha. */
+/**
+ * Uma gravação aberta. `terminar` fecha o microfone e devolve o PCM a 16 kHz; `descartar` só fecha.
+ * `nivel` é o volume agora (0..1, suavizado); lê-se por frame (rAF), e dá 0 depois de fechar.
+ */
 export interface Gravador {
   terminar(): Float32Array;
   descartar(): void;
+  nivel(): number;
+}
+
+// Voz ao microfone anda entre ~-50 dB (baixinho) e ~-10 dB (perto e alto): é esse o intervalo
+// que enche as barras. Sobe depressa e desce devagar, como um VU — senão as barras tremem.
+const DB_SILENCIO = -55;
+const DB_CHEIO = -12;
+const SUBIDA = 0.5;
+const DESCIDA = 0.12;
+
+function medidorDeNivel(analisador: AnalyserNode, fechado: () => boolean): () => number {
+  const amostras = new Float32Array(analisador.fftSize);
+  let suave = 0;
+  return () => {
+    if (fechado()) return 0;
+    analisador.getFloatTimeDomainData(amostras);
+    let soma = 0;
+    for (const a of amostras) soma += a * a;
+    const db = 20 * Math.log10(Math.sqrt(soma / amostras.length) || 1e-8);
+    const alvo = Math.min(1, Math.max(0, (db - DB_SILENCIO) / (DB_CHEIO - DB_SILENCIO)));
+    suave += (alvo - suave) * (alvo > suave ? SUBIDA : DESCIDA);
+    return suave;
+  };
 }
 
 function juntarPedacos(pedacos: readonly Float32Array[]): Float32Array {
@@ -62,7 +88,9 @@ export async function abrirMicrofone(): Promise<Gravador> {
   }
   let stream: MediaStream | null = null;
   let contexto: AudioContext | null = null;
+  let fechado = false;
   const fechar = (): void => {
+    fechado = true;
     for (const faixa of stream?.getTracks() ?? []) faixa.stop();
     void contexto?.close().catch(() => undefined);
   };
@@ -74,12 +102,18 @@ export async function abrirMicrofone(): Promise<Gravador> {
     const coletor = new AudioWorkletNode(contexto, 'coletor-do-ditado');
     const pedacos: Float32Array[] = [];
     coletor.port.onmessage = (evento: MessageEvent<Float32Array>) => { pedacos.push(evento.data); };
-    contexto.createMediaStreamSource(stream).connect(coletor);
+    // O analisador fica NO caminho (passa o áudio tal e qual): assim é processado de certeza, e o
+    // coletor recebe exactamente o mesmo que recebia ligado à fonte.
+    const analisador = contexto.createAnalyser();
+    analisador.fftSize = 1024;
+    contexto.createMediaStreamSource(stream).connect(analisador);
+    analisador.connect(coletor);
     coletor.connect(contexto.destination);
     const taxa = contexto.sampleRate;
     return {
       terminar: () => { fechar(); return reamostrar(juntarPedacos(pedacos), taxa); },
       descartar: fechar,
+      nivel: medidorDeNivel(analisador, () => fechado),
     };
   } catch (erro) {
     fechar();

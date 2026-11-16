@@ -5,6 +5,8 @@
 export const TAXA_DE_AMOSTRAGEM = 16_000;
 /** O tecto de um ditado, em segundos. O mesmo `MAX_DICTATION_SECONDS` do backend. */
 export const MAX_SEGUNDOS = 300;
+/** O tecto das instruções da limpeza. O mesmo `MAX_INSTRUCOES` do backend (`voice/settings.ts`). */
+export const MAX_INSTRUCOES = 8_000;
 
 export interface ModeloDeVoz {
   readonly id: string;
@@ -20,6 +22,8 @@ export interface DefinicoesDeVoz {
   readonly termos: readonly string[];
   readonly modeloVoz: string;
   readonly idioma: string;
+  /** O `--system-prompt` da limpeza. */
+  readonly instrucoes: string;
 }
 
 export type DescargaDeVoz =
@@ -32,6 +36,8 @@ export interface EstadoDeVoz {
   readonly idiomas: readonly string[];
   readonly descarga: DescargaDeVoz | null;
   readonly definicoes: DefinicoesDeVoz;
+  /** As instruções de origem, para «Repor as originais». */
+  readonly instrucoesOriginais: string;
   readonly falhaDoMotor: string | null;
   readonly motorCarregado: boolean;
 }

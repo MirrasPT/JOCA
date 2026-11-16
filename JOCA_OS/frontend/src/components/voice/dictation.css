@@ -1,10 +1,30 @@
 /* O ditado na barra do terminal. Só tokens que já existem (App.css). */
 
-.ditado-botao--a-ouvir,
-.ditado-botao--a-ouvir:hover {
-  color: var(--accent-text);
-  border-color: var(--accent-border);
-  background: var(--accent-soft);
+/* O microfone é o último da fila, à direita do estado do terminal, e vermelho. `.quick-command-btn`
+   repetido sobe a especificidade: este CSS carrega ANTES do TerminalView.css (ordem dos imports),
+   e com a mesma especificidade a pílula cinzenta ganhava. Sem `margin-left: auto` aqui: quem
+   empurra para a direita é o `.cmd-bar-status` (já o tem); um segundo `auto` dividia o espaço e
+   deixava o estado a meio da fila. */
+.quick-command-btn.ditado-botao {
+  margin-left: 6px;
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 34%, transparent);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+
+.quick-command-btn.ditado-botao:hover {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 55%, transparent);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
+
+/* A ouvir: contorno cheio e fundo mais carregado — distinto do repouso sem depender só da cor
+   (o ícone também muda, de microfone para quadrado de parar). */
+.quick-command-btn.ditado-botao--a-ouvir,
+.quick-command-btn.ditado-botao--a-ouvir:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
 }
 
 .ditado-botao:disabled {
@@ -30,20 +50,33 @@
 .ditado-aviso--erro { color: var(--red); }
 .ditado-aviso--info { color: var(--text-bright); }
 
-.ditado-ponto {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: ditado-pulsar 1.2s ease-in-out infinite;
+/* Barras do nível do microfone. `--nivel` (0..1) escreve-o o JS por frame; cada barra tem o seu
+   peso (a do meio é a maior) e um mínimo, para o silêncio ainda se ver como cinco traços. */
+.ditado-niveis {
+  --nivel: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
 }
 
-@keyframes ditado-pulsar {
-  50% { opacity: 0.3; }
+.ditado-nivel {
+  --peso: 1;
+  width: 3px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--red);
+  transform: scaleY(calc(0.18 + 0.82 * var(--nivel) * var(--peso)));
 }
 
+.ditado-nivel:nth-child(1) { --peso: 0.5; }
+.ditado-nivel:nth-child(2) { --peso: 0.78; }
+.ditado-nivel:nth-child(4) { --peso: 0.7; }
+.ditado-nivel:nth-child(5) { --peso: 0.45; }
+
+/* Sem movimento: o JS não arranca o ciclo e as barras ficam paradas a meio. */
 @media (prefers-reduced-motion: reduce) {
-  .ditado-ponto { animation: none; }
+  .ditado-niveis { --nivel: 0.6 !important; }
 }
 
 .ditado-accao {

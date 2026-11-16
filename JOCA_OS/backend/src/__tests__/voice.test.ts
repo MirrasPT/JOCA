@@ -10,8 +10,8 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { locateModel, VOICE_MODELS, voiceModelById, DEFAULT_VOICE_MODEL_ID, type VoiceModel } from '../voice/catalog';
 import { descarregarModelo, urlDoModelo } from '../voice/download';
-import { argsDoClaude, corrigirTexto, lerResultado, mensagemDoPedido, validarSaida, type CorredorDoClaude } from '../voice/correct';
-import { normalizeVoiceSettings, voiceSettingsFile, DEFAULT_VOICE_SETTINGS } from '../voice/settings';
+import { argsDoClaude, corrigirTexto, INSTRUCOES, lerResultado, mensagemDoPedido, validarSaida, type CorredorDoClaude } from '../voice/correct';
+import { normalizeVoiceSettings, voiceSettingsFile, DEFAULT_VOICE_SETTINGS, MAX_INSTRUCOES } from '../voice/settings';
 import { voiceRouter } from '../http/voice-routes';
 import type { VoiceEngine } from '../voice/engine';
 
@@ -119,10 +119,10 @@ describe('descarga', () => {
 });
 
 describe('limpeza (claude -p)', () => {
-  const base = { texto: 'ola mundo isto e um teste', imagem: null, contexto: null, modelo: 'haiku', termos: ['JOCA'] };
+  const base = { texto: 'ola mundo isto e um teste', imagem: null, contexto: null, modelo: 'haiku', termos: ['JOCA'], instrucoes: INSTRUCOES };
 
   it('a forma do comando: -p, sem --bare, sem ferramentas, sem MCP, sem sessão, settings só locais', () => {
-    const args = argsDoClaude('haiku');
+    const args = argsDoClaude('haiku', INSTRUCOES);
     expect(args).toContain('-p');
     expect(args).not.toContain('--bare');
     expect(args[args.indexOf('--model') + 1]).toBe('haiku');
@@ -130,6 +130,16 @@ describe('limpeza (claude -p)', () => {
     expect(args[args.indexOf('--setting-sources') + 1]).toBe('local');
     expect(args).toContain('--strict-mcp-config');
     expect(args).toContain('--no-session-persistence');
+  });
+
+  it('o --system-prompt leva as instruções dadas, como um só argumento', async () => {
+    const minhas = 'Corrige só a pontuação.\nNada mais.';
+    const args = argsDoClaude('haiku', minhas);
+    expect(args[args.indexOf('--system-prompt') + 1]).toBe(minhas);
+    const correr = vi.fn<CorredorDoClaude>(async () => lerResultado(resultado('Olá mundo, isto é um teste.')));
+    await corrigirTexto({ ...base, instrucoes: minhas }, { correr });
+    const [enviados] = correr.mock.calls[0];
+    expect(enviados[enviados.indexOf('--system-prompt') + 1]).toBe(minhas);
   });
 
   it('qualquer falha do claude devolve o texto em bruto, com o motivo', async () => {
@@ -180,6 +190,17 @@ describe('definições', () => {
       .toEqual(DEFAULT_VOICE_SETTINGS);
     expect(normalizeVoiceSettings({ termos: ['a\nb', '', 3, 'ok'] }).termos).toEqual(['a b', 'ok']);
   });
+
+  it('instruções: a omissão são as originais; vazio, não-string, acima do limite ou começado por - vale a base', () => {
+    expect(DEFAULT_VOICE_SETTINGS.instrucoes).toBe(INSTRUCOES);
+    expect(normalizeVoiceSettings({}).instrucoes).toBe(INSTRUCOES);
+    const base = { ...DEFAULT_VOICE_SETTINGS, instrucoes: 'as guardadas' };
+    for (const lixo of ['', '   \r\n ', 42, null, ['x'], 'a'.repeat(MAX_INSTRUCOES + 1), '--dangerously-skip-permissions', '  -p', 'a\0b']) {
+      expect(normalizeVoiceSettings({ instrucoes: lixo }, base).instrucoes).toBe('as guardadas');
+    }
+    expect(normalizeVoiceSettings({ instrucoes: 'a'.repeat(MAX_INSTRUCOES) }).instrucoes).toHaveLength(MAX_INSTRUCOES);
+    expect(normalizeVoiceSettings({ instrucoes: '  linha 1\r\nlinha 2 - fim \n' }).instrucoes).toBe('linha 1\nlinha 2 - fim');
+  });
 });
 
 // ── Rotas ──────────────────────────────────────────────────────────────────────
@@ -223,6 +244,7 @@ describe('GET /voice/status', () => {
     expect(r.body.modelos).toHaveLength(VOICE_MODELS.length);
     expect(r.body.modelos[0]).toEqual({ id: VOICE_MODELS[0].id, nome: VOICE_MODELS[0].nome, bytes: VOICE_MODELS[0].bytes, origem: null });
     expect(r.body.definicoes).toEqual(DEFAULT_VOICE_SETTINGS);
+    expect(r.body.instrucoesOriginais).toBe(INSTRUCOES);
     expect(r.body.descarga).toBeNull();
     expect(JSON.stringify(r.body)).not.toContain(os.homedir());
   });
@@ -327,6 +349,23 @@ describe('POST /voice/correct', () => {
     const [args, stdin] = correr.mock.calls[0];
     expect(args[args.indexOf('--model') + 1]).toBe('sonnet');
     expect(stdin).toContain('$ git status');
+  });
+
+  it('usa as instruções gravadas; repor as originais volta a mandá-las', async () => {
+    const correr = vi.fn<CorredorDoClaude>(async () => lerResultado(resultado('O que eu disse.')));
+    const a = app({ correr });
+    const gravadas = await request(a).put('/voice/settings').send({ instrucoes: 'Só pontuação.' });
+    expect(gravadas.body.instrucoes).toBe('Só pontuação.');
+    await request(a).post('/voice/correct').send({ texto: 'o que eu disse' });
+    const [args1] = correr.mock.calls[0];
+    expect(args1[args1.indexOf('--system-prompt') + 1]).toBe('Só pontuação.');
+
+    const status = await request(a).get('/voice/status');
+    expect(status.body.definicoes.instrucoes).toBe('Só pontuação.');
+    await request(a).put('/voice/settings').send({ instrucoes: status.body.instrucoesOriginais });
+    await request(a).post('/voice/correct').send({ texto: 'o que eu disse' });
+    const [args2] = correr.mock.calls[1];
+    expect(args2[args2.indexOf('--system-prompt') + 1]).toBe(INSTRUCOES);
   });
 
   it('com a limpeza desligada devolve o bruto sem chamar o claude', async () => {

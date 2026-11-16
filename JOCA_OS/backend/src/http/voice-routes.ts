@@ -1,6 +1,7 @@
 // O ditado por voz (speech-to-text local). Autenticação: a de todas as outras rotas (`server.ts`).
 //
-//   GET    /voice/status      → modelos e onde estão, descarga em curso, definições, falha do motor
+//   GET    /voice/status      → modelos e onde estão, descarga em curso, definições (e as instruções
+//                                originais da limpeza), falha do motor
 //   PUT    /voice/settings    → grava as definições (campo a campo; lixo vale a omissão)
 //   POST   /voice/prepare     → carrega o motor, para o 1.º ditado não esperar por ele
 //   POST   /voice/download    → descarrega um modelo do catálogo (202; progresso no /voice/status)
@@ -12,7 +13,7 @@
 // para os logs (os logs dizem só tempos e tamanhos).
 import express, { Router } from 'express';
 import { locateModel, VOICE_LANGUAGES, VOICE_MODELS, voiceModelById } from '../voice/catalog';
-import { corrigirTexto, type CorredorDoClaude, type ImagemDeContexto } from '../voice/correct';
+import { corrigirTexto, INSTRUCOES, type CorredorDoClaude, type ImagemDeContexto } from '../voice/correct';
 import { descarregarModelo, type EstadoDescarga } from '../voice/download';
 import { VoiceEngine } from '../voice/engine';
 import { readVoiceSettings, updateVoiceSettings } from '../voice/settings';
@@ -98,6 +99,7 @@ export function voiceRouter(deps: VoiceRouterDeps = {}): Router {
       idiomas: VOICE_LANGUAGES,
       descarga,
       definicoes: readVoiceSettings(),
+      instrucoesOriginais: INSTRUCOES,
       falhaDoMotor: motor.ultimaFalha,
       motorCarregado: motor.carregado,
       maxSegundos: MAX_DICTATION_SECONDS,
@@ -198,7 +200,7 @@ export function voiceRouter(deps: VoiceRouterDeps = {}): Router {
     if (!def.correcaoLigada) {
       return res.json({ corrigido: false, texto, aviso: 'a limpeza está desligada nas Definições', ms: 0 });
     }
-    res.json(await corrigirTexto({ texto, imagem, contexto, modelo: def.modeloCorrecao, termos: def.termos }, { correr: deps.correr }));
+    res.json(await corrigirTexto({ texto, imagem, contexto, modelo: def.modeloCorrecao, termos: def.termos, instrucoes: def.instrucoes }, { correr: deps.correr }));
   });
 
   return r;

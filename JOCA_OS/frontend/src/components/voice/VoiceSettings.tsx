@@ -6,6 +6,7 @@ import {
   emMegabytes,
   gravarDefinicoes,
   lerEstadoDeVoz,
+  MAX_INSTRUCOES,
   type DefinicoesDeVoz,
   type EstadoDeVoz,
 } from './voice-client';
@@ -25,6 +26,7 @@ export default function VoiceSettings() {
   const [guardado, setGuardado] = useState(false);
   // `null` = não se está a editar: mostra-se o que está guardado.
   const [termos, setTermos] = useState<string | null>(null);
+  const [instrucoes, setInstrucoes] = useState<string | null>(null);
 
   const ler = useCallback(() => {
     lerEstadoDeVoz()
@@ -64,7 +66,8 @@ export default function VoiceSettings() {
     );
   }
 
-  const { definicoes, modelos, idiomas, descarga } = estado;
+  const { definicoes, modelos, idiomas, descarga, instrucoesOriginais } = estado;
+  const instrucoesVistas = instrucoes ?? definicoes.instrucoes;
   const escolhido = modelos.find((m) => m.id === definicoes.modeloVoz);
   const limpeza = definicoes.correcaoLigada ? definicoes.modeloCorrecao : 'off';
   const limpezas = LIMPEZAS.some((l) => l.valor === limpeza) ? LIMPEZAS : [...LIMPEZAS, { valor: limpeza, label: limpeza }];
@@ -146,6 +149,49 @@ export default function VoiceSettings() {
             setTermos(null);
           }}
         />
+        <label className="settings-default-cli-label" htmlFor="voz-instrucoes">Instruções da limpeza</label>
+        <p id="voz-instrucoes-nota" className="settings-default-cli-hint">
+          Cada pedido de limpeza leva ao <code>claude</code> a imagem do terminal (ou as últimas linhas
+          dele), a transcrição, os termos acima e estas instruções. O texto ditado e o do terminal vão
+          como dados, nunca como ordens.
+        </p>
+        <textarea
+          id="voz-instrucoes"
+          className="voz-definicoes-termos"
+          style={{ fontFamily: 'var(--font-mono)' }}
+          aria-describedby="voz-instrucoes-nota voz-instrucoes-conta"
+          rows={10}
+          maxLength={MAX_INSTRUCOES}
+          spellCheck={false}
+          value={instrucoesVistas}
+          onChange={(e) => setInstrucoes(e.target.value)}
+          onBlur={() => {
+            if (instrucoes === null) return;
+            const limpas = instrucoes.trim();
+            setInstrucoes(null);
+            if (limpas === definicoes.instrucoes) return;
+            if (limpas === '' || limpas.startsWith('-')) {
+              setErro('As instruções não ficaram gravadas: não podem ficar vazias nem começar por «-».');
+              return;
+            }
+            gravar({ instrucoes: limpas });
+          }}
+        />
+        <div className="settings-default-cli-row">
+          <span id="voz-instrucoes-conta" className="settings-default-cli-hint">
+            {instrucoesVistas.length} / {MAX_INSTRUCOES} caracteres
+          </span>
+          <button
+            type="button"
+            className="db-project-card-btn"
+            disabled={instrucoes === null && definicoes.instrucoes === instrucoesOriginais}
+            // Sem tirar o foco à caixa: o blur dela gravaria o texto editado ao mesmo tempo.
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { setInstrucoes(null); gravar({ instrucoes: instrucoesOriginais }); }}
+          >
+            Repor as originais
+          </button>
+        </div>
         <p className="settings-default-cli-hint">
           O áudio, o texto e o contexto nunca são gravados em disco nem nos logs. Se a limpeza falhar,
           fica a transcrição em bruto.
