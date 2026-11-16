@@ -11,9 +11,11 @@
 //   coreografia era disparada por haver resume ou brief, e a flag não era lida em lado nenhum.
 //   Deixar um terminal parado no diálogo de update é pior do que qualquer contexto em falta — um
 //   Enter cego nesse diálogo dispara um `npm install -g` e mata o terminal.
-// resumeCmd: a forma do comando que o BOTÃO manual compõe. Claude Code entende o `/resume` custom;
-// os outros CLIs não têm comandos custom e recebem `resume "<pasta>"` em texto simples (o
-// AGENTS.md/GEMINI.md compilado no JOCA_Brain diz-lhes o que isso significa).
+// resumeCmd: a forma do comando que o BOTÃO manual compõe. O terminal de um projecto já nasce na
+// pasta dele e, com o Brain v2, o resumo entra sozinho pelo hook — o botão é o recurso manual para
+// quando não entrou. Claude Code entende o `/resume` custom; os outros CLIs não têm comandos custom
+// e recebem `resume "<pasta>"` em texto simples (o AGENTS.md/GEMINI.md do JOCA Brain diz-lhes o
+// que isso significa).
 import path from 'path';
 import { DATA_DIR, readJsonFile } from './project-store';
 

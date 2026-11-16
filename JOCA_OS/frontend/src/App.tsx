@@ -385,12 +385,15 @@ export default function App() {
     const session = sessions.find((s) => s.id === id);
     if (!session) return;
     const { name, projectId } = session;
-    // Reiniciar repete o arranque canónico: nasce no JOCA_Brain, ligado ao mesmo projecto. O
-    // contexto do projecto NÃO é recarregado sozinho — o resume é manual, pelo botão da barra.
+    // Reiniciar repete o arranque canónico na MESMA pasta. Sessão de projecto: o backend volta a
+    // abri-la na pasta do projecto. Sessão solta: leva a pasta que tinha, salvo se for a pessoal
+    // (é a que o backend dá por omissão, e o backend recusa a pasta pessoal como `cwd` explícito).
     // `restartOf`: o backend fecha a antiga e mantém a origem do nome — uma «Session N» reiniciada
     // continua a receber o nome do 1.º pedido (#29).
-    send({ type: 'create_session', restartOf: id, sessionName: name, projectId });
-  }, [sessions, send]);
+    const home = runtimeInfo?.home;
+    const cwd = !projectId && home && session.cwd && session.cwd !== home ? session.cwd : undefined;
+    send({ type: 'create_session', restartOf: id, sessionName: name, projectId, ...(cwd ? { cwd } : {}) });
+  }, [sessions, send, runtimeInfo?.home]);
 
   const handleInput = useCallback((sessionId: string, data: string) => {
     send({ type: 'input', sessionId, data });
@@ -619,8 +622,9 @@ export default function App() {
   // ecrã cheio (o ref é consumido uma vez pelo router do WebSocket e volta a `true` sozinho).
   const handleAddProjectAgent = useCallback((project: Project, cli?: string) => {
     focusNewSessionRef.current = false;
-    // SEM `cwd`: o terminal nasce no JOCA_Brain (default do backend) e recebe o contexto do
-    // projecto pelo comando de resume do perfil (`/resume "<pasta>"` no claude, `resume` nos outros).
+    // SEM `cwd`: o backend abre o terminal na pasta do projecto (`project.path`; na pessoal, com
+    // aviso, se a pasta já não existir). Com o Brain v2 o resumo da pasta entra sozinho pelo hook;
+    // o botão de resume da barra (`/resume "<pasta>"` no claude, `resume` nos outros) é o manual.
     send({
       type: 'create_session', projectId: project.id,
       ...(cli && cli !== 'claude' ? { cli } : {}),

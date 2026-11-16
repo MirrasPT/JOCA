@@ -43,13 +43,9 @@ open_url() {
   fi
 }
 
-# Detect sibling JOCA_Brain
-LOGIC_DIR="$DIR/../JOCA_Brain"
-if [ -d "$LOGIC_DIR/.claude" ]; then
-  export JOCA_LOGIC_PATH="$(cd "$LOGIC_DIR" && pwd)"
-else
-  echo "⚠ JOCA_Brain not found at $LOGIC_DIR — running in standalone mode"
-fi
+# O JOCA Brain NÃO se procura aqui: o backend decide pela ordem JOCA_BRAIN → JOCA_LOGIC_PATH (só se
+# o definires tu) → env.JOCA_BRAIN em ~/.claude/settings.json → pasta irmã ../JOCA_Brain, e diz no
+# log qual encontrou (src/brain-locator.ts). Exportar aqui a irmã passava-a à frente do settings.
 
 # Quem é que está À ESCUTA nesta porta? `lsof -ti:<porta>` devolve o servidor E todos os clientes
 # ligados a ele — o browser aberto na interface, o vite ligado por proxy ao backend. Um cliente não
@@ -108,7 +104,6 @@ for PORT_TO_FREE in $BACKEND_PORT $FRONTEND_PORT; do
 done
 
 echo "▶ JOCA OS a arrancar... (backend :$BACKEND_PORT · frontend :$FRONTEND_PORT)"
-[ -n "$JOCA_LOGIC_PATH" ] && echo "  JOCA_Brain → $JOCA_LOGIC_PATH"
 
 # Backend
 cd "$DIR/backend" || exit 1
@@ -130,7 +125,7 @@ fi
 # esgotou o tecto (OOMPolicy=continue). `--scope` faz exec — o PID mantém-se para o stop.sh.
 nohup "${SCOPE[@]}" env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_CHILD_SESSION \
   -u CLAUDE_CODE_SESSION_ID -u CLAUDE_CODE_EXECPATH -u CLAUDE_PID -u CLAUDE_EFFORT \
-  PORT=$BACKEND_PORT JOCA_LOGIC_PATH="${JOCA_LOGIC_PATH:-}" node dist/server.js \
+  PORT=$BACKEND_PORT node dist/server.js \
   >> "$BACKEND_LOG" 2>&1 < /dev/null &
 BACKEND_PID=$!
 disown $BACKEND_PID

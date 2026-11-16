@@ -6,9 +6,14 @@ import { getCliTools } from '../cli-capabilities';
 import { CLI_IDS, type CliId } from '../cli-profiles';
 import { getRateLimits } from '../rate-limits';
 import {
-  JOCA_LOGIC_ROOT, CLAUDE_DIR, MEMORY_INDEX_FILE,
+  BRAIN, BRAIN_LOCALIZADO, CLAUDE_DIR, MEMORY_INDEX_FILE,
   parseFrontmatter, collectToolkitItems, refreshMemoryIndexSnapshot,
 } from '../toolkit-registry';
+import { DESCRICAO_DA_VIA } from '../brain-locator';
+
+// Sem Brain não há toolkit global para ler nem onde gravar: as rotas de itens recusam com isto, em
+// vez de criarem uma pasta `.claude` num sítio qualquer.
+const SEM_BRAIN_ERRO = 'Sem JOCA Brain — define JOCA_BRAIN para gerir o toolkit global';
 import {
   loadProjects, loadProjectMemory, saveProjectMemory,
   loadUiSettings, saveUiSettings,
@@ -129,18 +134,19 @@ export function toolkitRouter(): Router {
   });
 
   r.get('/joca-logic', (_req, res) => {
-    const connected = fs.existsSync(path.join(JOCA_LOGIC_ROOT, '.claude'));
-    const items = connected ? collectToolkitItems() : { commands: [], agents: [], skills: [] };
-    const hasMemoryIndex = fs.existsSync(MEMORY_INDEX_FILE);
-    const hasSoul = fs.existsSync(path.join(JOCA_LOGIC_ROOT, 'memory', 'soul.md'));
+    const items = collectToolkitItems();   // vazio sem Brain
     res.json({
-      connected,
-      path: JOCA_LOGIC_ROOT,
+      connected: BRAIN !== null,
+      // Sem Brain fica '' (o contrato é string) e a UI mostra «Sem JOCA Brain».
+      path: BRAIN?.root ?? '',
+      via: BRAIN?.via ?? null,
+      viaDescricao: BRAIN ? DESCRICAO_DA_VIA[BRAIN.via] : null,
+      avisos: BRAIN_LOCALIZADO.avisos,
       skillCount: items.skills.length,
       agentCount: items.agents.length,
       commandCount: items.commands.length,
-      hasMemoryIndex,
-      hasSoul,
+      hasMemoryIndex: BRAIN !== null && fs.existsSync(MEMORY_INDEX_FILE),
+      hasSoul: BRAIN !== null && fs.existsSync(path.join(BRAIN.root, 'memory', 'soul.md')),
     });
   });
 
@@ -149,6 +155,7 @@ export function toolkitRouter(): Router {
   });
 
   r.get('/toolkit-item', (req, res) => {
+    if (!BRAIN) return res.status(409).json({ error: SEM_BRAIN_ERRO });
     try {
       const itemPath = assertClaudePath(String(req.query.path || ''));
       if (!fs.existsSync(itemPath)) return res.status(404).json({ error: 'Not found' });
@@ -161,6 +168,7 @@ export function toolkitRouter(): Router {
   });
 
   r.post('/toolkit-item', express.json({ limit: '2mb' }), (req, res) => {
+    if (!BRAIN) return res.status(409).json({ error: SEM_BRAIN_ERRO });
     try {
       const { type, name, category, content } = req.body as { type: 'commands' | 'skills' | 'agents'; name: string; category?: string; content: string };
       if (!['commands', 'skills', 'agents'].includes(type)) return res.status(400).json({ error: 'Invalid type' });
@@ -183,6 +191,7 @@ export function toolkitRouter(): Router {
   });
 
   r.patch('/toolkit-item', express.json({ limit: '2mb' }), (req, res) => {
+    if (!BRAIN) return res.status(409).json({ error: SEM_BRAIN_ERRO });
     try {
       const { path: itemPathRaw, type, content } = req.body as { path: string; type: 'commands' | 'skills' | 'agents'; content: string };
       const itemPath = assertClaudePath(itemPathRaw);
@@ -199,6 +208,7 @@ export function toolkitRouter(): Router {
   });
 
   r.delete('/toolkit-item', express.json(), (req, res) => {
+    if (!BRAIN) return res.status(409).json({ error: SEM_BRAIN_ERRO });
     try {
       const { path: itemPathRaw, type } = req.body as { path?: string; type?: string };
       if (!itemPathRaw) return res.status(400).json({ error: 'Missing path' });
