@@ -28,9 +28,10 @@ import { randomUUID } from 'crypto';
 import * as pty from 'node-pty';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { execSync } from 'child_process';
-import { JOCA_LOGIC_ROOT } from './toolkit-registry';
-import { loadProjectMemory, saveProjectMemory, loadUiSettings } from './project-store';
+import { BRAIN } from './toolkit-registry';
+import { loadProjectMemory, saveProjectMemory, loadUiSettings, loadProjects } from './project-store';
 import { getCliProfile, buildLaunchLine, type CliId } from './cli-profiles';
 import { jocaAgentEnv, prepareClaudeHooksSettings, CLAUDE_HOOK_EVENTS } from './agent-bridge';
 import { pushNotification, resolveNotificationGroup } from './notifications/store';
@@ -377,6 +378,37 @@ function safePtyWrite(pty: { write(d: string): void }, data: string): boolean {
   try { pty.write(data); return true; } catch { return false; }
 }
 
+/**
+ * Em que pasta nasce um terminal. O terminal de um projecto abre NA PASTA DO PROJECTO — é aí que o
+ * CLI lê o CLAUDE.md/AGENTS.md do projecto e que o hook do Brain v2 (session-intake.js) carrega
+ * sozinho o `.joca/resumo.md`. Antes nascia no JOCA_Brain e só sabia do projecto pelo resume.
+ *   • `cwd` explícito (API, `joca open --cwd`, reinício de uma sessão solta) → esse;
+ *   • projecto com pasta que existe → a pasta do projecto;
+ *   • projecto com pasta que já não existe → a pasta pessoal, com aviso;
+ *   • sessão solta → a pasta pessoal. Nunca o Brain.
+ * Pura: `existe` é injectado. Exportada para ser testável.
+ */
+export function pastaDoTerminal(o: {
+  cwd?: string;
+  projectPath?: string;
+  home: string;
+  existe: (p: string) => boolean;
+}): { cwd: string; aviso?: string } {
+  if (o.cwd) return { cwd: o.cwd };
+  if (o.projectPath) {
+    if (o.existe(o.projectPath)) return { cwd: o.projectPath };
+    return {
+      cwd: o.home,
+      aviso: `A pasta do projecto não existe (${o.projectPath}) — o terminal abriu na pasta pessoal.`,
+    };
+  }
+  return { cwd: o.home };
+}
+
+function eDirectorio(p: string): boolean {
+  try { return fs.statSync(p).isDirectory(); } catch { return false; }
+}
+
 export class SessionManager extends EventEmitter {
   private sessions = new Map<string, Session>();
   private sessionCounter = 0;
@@ -418,10 +450,22 @@ export class SessionManager extends EventEmitter {
     // Explicit cli wins; otherwise the user's configured default (Settings → CLI por defeito).
     const profile = getCliProfile(opts.cli ?? loadUiSettings().defaultCli);
 
-    const cwd = opts.cwd ?? JOCA_LOGIC_ROOT;
+    const projecto = !opts.cwd && projectId ? loadProjects().find((p) => p.id === projectId) : undefined;
+    const { cwd, aviso: avisoDaPasta } = pastaDoTerminal({
+      cwd: opts.cwd, projectPath: projecto?.path, home: os.homedir(), existe: eDirectorio,
+    });
     this.sessionCounter++;
     const id = randomUUID();
     const name = sessionName ?? `Session ${this.sessionCounter}`;
+    if (avisoDaPasta) {
+      console.warn(`[sessão ${name}] ${avisoDaPasta}`);
+      pushNotification({
+        kind: 'system',
+        title: `«${name}» abriu na pasta pessoal`,
+        text: avisoDaPasta,
+        meta: { sessionId: id, projectId },
+      });
+    }
     // Nome dado ao criar (projecto, skill, `joca open --name`) é escolha de alguém. O reinício
     // traz a origem do nome antigo: uma «Session N» reiniciada continua a esperar o 1.º pedido.
     const nameSource: NameSource = sessionName ? (opts.nameSource ?? 'user') : 'default';
@@ -434,8 +478,12 @@ export class SessionManager extends EventEmitter {
       cwd,
       // Every session is born knowing how to talk back to JOCA: the agent inside can open and
       // message other terminals, etc. via the `joca` CLI (JOCA_OS/cli/joca.mjs).
-      // JOCA_SESSION_ID lets it identify itself.
-      env: { ...ambienteDoTerminal(), ...jocaAgentEnv(id) } as Record<string, string>,
+      // JOCA_SESSION_ID lets it identify itself. JOCA_BRAIN (quando há Brain) diz ao CLI e aos hooks
+      // do Brain onde ele está, mesmo que o backend o tenha achado por uma via legada.
+      env: {
+        ...ambienteDoTerminal(), ...jocaAgentEnv(id),
+        ...(BRAIN ? { JOCA_BRAIN: BRAIN.root } : {}),
+      } as Record<string, string>,
     });
 
     const session: Session = {
@@ -492,10 +540,11 @@ export class SessionManager extends EventEmitter {
     });
     setTimeout(() => safePtyWrite(ptyProcess, `${launchLine}\r`), 100);
 
-    // NENHUM comando de contexto é injectado no arranque. O `/resume` é MANUAL: o dono carrega no
-    // botão de resume da barra do chat quando quer carregar o contexto do projecto (o frontend
-    // compõe o comando a partir de `profile.resumeCmd`). Um terminal que arranca a gastar um turno
-    // inteiro a carregar contexto que ninguém pediu é trabalho por cima do dono.
+    // NENHUM comando de contexto é injectado no arranque. O terminal do projecto já nasce na pasta
+    // dele (pastaDoTerminal) e, com o Brain v2, o hook session-intake carrega sozinho o
+    // `.joca/resumo.md` dessa pasta. O botão de resume da barra do chat fica como recurso MANUAL (o
+    // frontend compõe o comando a partir de `profile.resumeCmd`). Um terminal que arranca a gastar
+    // um turno inteiro a carregar contexto que ninguém pediu é trabalho por cima do dono.
     //
     // `/init-project` também NUNCA é enviado daqui, pela mesma razão: abria um questionário por
     // cima de trabalho que o utilizador nem pediu.
