@@ -16,6 +16,7 @@ import { filesRouter } from './http/files-routes';
 import { systemRouter } from './http/system-routes';
 import { sessionsRouter } from './http/sessions-routes';
 import { shutdownRouter } from './http/shutdown-routes';
+import { voiceRouter } from './http/voice-routes';
 import { setApiPort, JOCA_CLI_PATH, prepareClaudeHooksSettings } from './agent-bridge';
 import { setNotificationsBroadcaster } from './notifications/store';
 import { installSessionsSnapshot } from './sessions-snapshot';
@@ -110,6 +111,7 @@ app.use(requireAuth, systemRouter());
 app.use(requireAuth, sessionsRouter());
 app.use(requireAuth, filesRouter());
 app.use(requireAuth, shutdownRouter());
+app.use(requireAuth, voiceRouter());
 
 // JSON error handler — must precede static + catch-all to intercept errors from API routes
 // before the SPA fallback swallows them. 5xx responses use a generic message to avoid leaking

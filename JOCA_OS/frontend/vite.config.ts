@@ -36,6 +36,7 @@ export default defineConfig({
       '/pick-folder': { target: http },
       '/sessions': { target: http },
       '/shutdown': { target: http },
+      '/voice': { target: http },
     },
   },
 });

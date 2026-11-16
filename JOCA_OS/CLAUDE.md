@@ -66,6 +66,13 @@ cd backend/node_modules/node-pty && npx node-gyp rebuild
   `JOCA_API_URL`, `JOCA_SESSION_ID` e (com auth) `JOCA_API_TOKEN`. O agente dentro do terminal opera
   o JOCA_OS **em execução** pela mesma API HTTP que o browser usa — abre terminais,
   fala com outros. Uma implementação por acção, sem reinícios.
+- **Ditado por voz** (`src/voice/*`, `src/http/voice-routes.ts`, `frontend/src/components/voice/*`):
+  microfone na barra do terminal → PCM 16 kHz → `transcribe-cpp` (Parakeet, o motor do Handy) num
+  **processo filho** (se o nativo cair, cai só o ditado) → limpeza opcional por `claude -p` (sem
+  `--bare`, sem ferramentas/MCP/sessão) com as últimas ~60 linhas visíveis do terminal como contexto.
+  O texto vai para a caixa **sem Enter**; qualquer falha da limpeza devolve o texto em bruto. Modelos
+  em `~/.joca-os/modelos/` (sha-256 verificado), nunca no repo; definições em `data/voice-settings.json`.
+  Áudio, texto e contexto nunca vão para disco nem para logs.
 
 ## Testes
 
