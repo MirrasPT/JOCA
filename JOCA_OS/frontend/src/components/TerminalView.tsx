@@ -5,7 +5,7 @@ import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
 import { useDictation } from './voice/useDictation';
 import { DictationButton, DictationStatus, type AvisoDoDitado } from './voice/Dictation';
-import { juntarTextoDitado, linhasVisiveis } from './voice/voice-client';
+import { juntarTextoDitado } from './voice/voice-client';
 import './TerminalView.css';
 
 interface Props {
@@ -517,28 +517,27 @@ export default function TerminalView({
   }, [activeId, setTerminalDraft, abrirCaixa]);
 
   /**
-   * Ditado por voz. O texto entra na linha de entrada do terminal de ONDE se ditou, SEM Enter:
-   * enviar é sempre gesto de quem ditou. `origemDoDitado` guarda esse terminal, porque durante a
-   * transcrição/limpeza pode-se mudar de terminal.
-   *  - ainda é o activo → acrescenta à caixa de escrita (sem apagar o que lá estava);
-   *  - já não é → escreve na linha do próprio CLI, sem quebras de linha nem caracteres de
-   *    controlo (um `\r` ou `\n` ali era um Enter).
+   * Ditado por voz. O texto entra na linha de entrada do terminal de ONDE se ditou (pela id da
+   * sessão, que o controlador guarda), SEM Enter: enviar é sempre gesto de quem ditou.
+   *  - a origem é o terminal activo → acrescenta à caixa de escrita (sem apagar o que lá estava);
+   *  - está nesta vista mas não activa → escreve na linha do próprio CLI, sem quebras de linha nem
+   *    caracteres de controlo (um `\r` ou `\n` ali era um Enter);
+   *  - não está nesta vista → `false`: o controlador guarda o texto e entrega-o quando a sessão
+   *    voltar a estar visível (efeito mais abaixo). Nunca se perde.
    */
-  const origemDoDitado = useRef<string | null>(null);
   const activeIdRef = useRef(activeId);
   const draftRef = useRef(terminalDraft);
   useEffect(() => { activeIdRef.current = activeId; draftRef.current = terminalDraft; }, [activeId, terminalDraft]);
-  const aoTextoDitado = useCallback((texto: string) => {
-    const origem = origemDoDitado.current;
-    if (!origem) return;
+  const entregarDitado = useCallback((origem: string, texto: string): boolean => {
     if (origem === activeIdRef.current) {
       abrirCaixa();
       setTerminalDraft(juntarTextoDitado(draftRef.current, texto));
       inputAreaRef.current?.focus({ preventScroll: true });
-      return;
+      return true;
     }
-    if (!sessions.some((s) => s.id === origem)) return;
+    if (!sessions.some((s) => s.id === origem)) return false;
     onInput(origem, texto.replace(/[\x00-\x1f\x7f]+/g, ' '));
+    return true;
   }, [abrirCaixa, onInput, sessions, setTerminalDraft]);
   // Os avisos do ditado ficam na linha dele, por cima da caixa, até se fecharem ou ao próximo
   // ditado: um «microfone recusado» explica o que fazer e não pode sumir em 4 s.
@@ -546,17 +545,11 @@ export default function TerminalView({
   const aoAvisoDitado = useCallback((aviso: string | null, tom: 'info' | 'erro' = 'erro') => {
     setAvisoDitado(aviso === null ? null : { texto: aviso, tom });
   }, []);
-  const contextoDoDitado = useCallback(() => {
-    const origem = origemDoDitado.current;
-    return origem ? linhasVisiveis(document.querySelector(`[data-sessao="${CSS.escape(origem)}"]`)) : null;
-  }, []);
-  const ditado = useDictation({ desligado: !activeId, aoTexto: aoTextoDitado, aoAviso: aoAvisoDitado, obterContexto: contextoDoDitado });
-  const { alternar: alternarDitado } = ditado;
-  const faseDoDitado = ditado.fase.nome;
-  const carregarNoMicrofone = useCallback(() => {
-    if (faseDoDitado === 'parado') origemDoDitado.current = activeId;
-    alternarDitado();
-  }, [activeId, alternarDitado, faseDoDitado]);
+  const ditado = useDictation({ desligado: !activeId, entregar: entregarDitado, aoAviso: aoAvisoDitado });
+  const { alternar: alternarDitado, entregarPendentes } = ditado;
+  const carregarNoMicrofone = useCallback(() => alternarDitado(activeId), [activeId, alternarDitado]);
+  // Texto ditado que ficou guardado para esta sessão (mudou-se de vista a meio) entra agora.
+  useEffect(() => { entregarPendentes(activeId); }, [activeId, entregarPendentes]);
 
   return (
     <div
