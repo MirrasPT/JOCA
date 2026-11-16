@@ -5,6 +5,7 @@ import { readThemeSettings, resolveTheme } from '../lib/theme';
 import type { ThemeMode } from '../lib/theme';
 import { saveThemeSettings } from '../hooks/useAutoTheme';
 import { BRAND_THEMES, applyBrand, readBrand } from '../lib/brand';
+import VoiceSettings from './voice/VoiceSettings';
 
 interface ServiceConnection {
   id: string;
@@ -286,16 +287,24 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
               <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'ligado' : 'desligado'}`}>
                 {jocaLogicInfo.connected ? 'ligado' : 'desligado'}
               </span>
-              <span>JOCA_Brain</span>
+              <span>JOCA Brain</span>
             </div>
-            <dl className="settings-runtime-grid">
-              <dt>Pasta</dt><dd>{shortPath(jocaLogicInfo.path)}</dd>
-              <dt>Skills</dt><dd>{jocaLogicInfo.skillCount}</dd>
-              <dt>Agentes</dt><dd>{jocaLogicInfo.agentCount}</dd>
-              <dt>Comandos</dt><dd>{jocaLogicInfo.commandCount}</dd>
-              <dt>Índice de memória</dt><dd>{jocaLogicInfo.hasMemoryIndex ? 'presente' : 'em falta'}</dd>
-              <dt>Soul</dt><dd>{jocaLogicInfo.hasSoul ? 'carregado' : 'em falta'}</dd>
-            </dl>
+            {jocaLogicInfo.connected ? (
+              <dl className="settings-runtime-grid">
+                <dt>Pasta</dt><dd>{shortPath(jocaLogicInfo.path)}</dd>
+                {/* `viaDescricao` ainda não está no tipo partilhado: lê-se à parte, sem o alargar. */}
+                <dt>Encontrado por</dt><dd>{(jocaLogicInfo as JocaLogicInfo & { viaDescricao?: string | null }).viaDescricao ?? '—'}</dd>
+                <dt>Skills</dt><dd>{jocaLogicInfo.skillCount}</dd>
+                <dt>Agentes</dt><dd>{jocaLogicInfo.agentCount}</dd>
+                <dt>Comandos</dt><dd>{jocaLogicInfo.commandCount}</dd>
+                <dt>Índice de memória</dt><dd>{jocaLogicInfo.hasMemoryIndex ? 'presente' : 'em falta'}</dd>
+                <dt>Soul</dt><dd>{jocaLogicInfo.hasSoul ? 'carregado' : 'em falta'}</dd>
+              </dl>
+            ) : (
+              <p style={{ fontSize: '0.85em', opacity: 0.7, margin: '4px 0 0' }}>
+                Sem JOCA Brain — o JOCA OS funciona na mesma. Para o ligar, define a variável <code>JOCA_BRAIN</code> com a pasta do Brain (o instalador do Brain grava-a em <code>~/.claude/settings.json</code>) e reinicia o JOCA OS.
+              </p>
+            )}
           </div>
         )}
         <div className="settings-service-card">
@@ -312,6 +321,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </p>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
         </div>
+        <VoiceSettings />
         {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">

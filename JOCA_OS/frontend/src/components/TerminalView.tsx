@@ -3,6 +3,9 @@ import type { SessionInfo, TerminalRef, ProjectMemory, JocaItems, CliProfileInfo
 import TerminalPane from './TerminalPane';
 import { basename } from '../lib/paths';
 import { captureDrop, dragRealPaths, dropHadFilesWithoutPath, resolveDrop, uploadPickedFiles, uploadPastedImages } from '../lib/fileDrop';
+import { useDictation } from './voice/useDictation';
+import { DictationButton, DictationStatus, type AvisoDoDitado } from './voice/Dictation';
+import { juntarTextoDitado } from './voice/voice-client';
 import './TerminalView.css';
 
 interface Props {
@@ -513,6 +516,41 @@ export default function TerminalView({
     inputAreaRef.current?.focus();
   }, [activeId, setTerminalDraft, abrirCaixa]);
 
+  /**
+   * Ditado por voz. O texto entra na linha de entrada do terminal de ONDE se ditou (pela id da
+   * sessão, que o controlador guarda), SEM Enter: enviar é sempre gesto de quem ditou.
+   *  - a origem é o terminal activo → acrescenta à caixa de escrita (sem apagar o que lá estava);
+   *  - está nesta vista mas não activa → escreve na linha do próprio CLI, sem quebras de linha nem
+   *    caracteres de controlo (um `\r` ou `\n` ali era um Enter);
+   *  - não está nesta vista → `false`: o controlador guarda o texto e entrega-o quando a sessão
+   *    voltar a estar visível (efeito mais abaixo). Nunca se perde.
+   */
+  const activeIdRef = useRef(activeId);
+  const draftRef = useRef(terminalDraft);
+  useEffect(() => { activeIdRef.current = activeId; draftRef.current = terminalDraft; }, [activeId, terminalDraft]);
+  const entregarDitado = useCallback((origem: string, texto: string): boolean => {
+    if (origem === activeIdRef.current) {
+      abrirCaixa();
+      setTerminalDraft(juntarTextoDitado(draftRef.current, texto));
+      inputAreaRef.current?.focus({ preventScroll: true });
+      return true;
+    }
+    if (!sessions.some((s) => s.id === origem)) return false;
+    onInput(origem, texto.replace(/[\x00-\x1f\x7f]+/g, ' '));
+    return true;
+  }, [abrirCaixa, onInput, sessions, setTerminalDraft]);
+  // Os avisos do ditado ficam na linha dele, por cima da caixa, até se fecharem ou ao próximo
+  // ditado: um «microfone recusado» explica o que fazer e não pode sumir em 4 s.
+  const [avisoDitado, setAvisoDitado] = useState<AvisoDoDitado | null>(null);
+  const aoAvisoDitado = useCallback((aviso: string | null, tom: 'info' | 'erro' = 'erro') => {
+    setAvisoDitado(aviso === null ? null : { texto: aviso, tom });
+  }, []);
+  const ditado = useDictation({ desligado: !activeId, entregar: entregarDitado, aoAviso: aoAvisoDitado });
+  const { alternar: alternarDitado, entregarPendentes } = ditado;
+  const carregarNoMicrofone = useCallback(() => alternarDitado(activeId), [activeId, alternarDitado]);
+  // Texto ditado que ficou guardado para esta sessão (mudou-se de vista a meio) entra agora.
+  useEffect(() => { entregarPendentes(activeId); }, [activeId, entregarPendentes]);
+
   return (
     <div
       className="terminal-area"
@@ -614,6 +652,7 @@ export default function TerminalView({
             <div
               key={s.id}
               className="terminal-wrapper"
+              data-sessao={s.id}
               style={{ display: s.id === activeId ? 'flex' : 'none' }}
             >
               {activatedIds.has(s.id) && (
@@ -783,6 +822,8 @@ export default function TerminalView({
             >
               <EraserIcon /> Apagar texto
             </button>
+            {/* Ditado: transcreve nesta máquina e põe o texto na caixa, por enviar. */}
+            <DictationButton fase={ditado.fase} desligado={!activeId} aoCarregar={carregarNoMicrofone} />
 
             <div className="command-bar-divider" />
             <button type="button" onClick={onOpenCommandPalette} className="quick-command-btn quick-command-btn--plus" data-tooltip="Comandos, skills e agentes" aria-label="Comandos, skills e agentes">+</button>
@@ -817,6 +858,8 @@ export default function TerminalView({
               {activeSession.status === 'working' ? 'a trabalhar' : 'parado'}
             </span>
           </div>
+
+          <DictationStatus ditado={ditado} aviso={avisoDitado} aoFecharAviso={() => setAvisoDitado(null)} />
 
           {attachments.length > 0 && (
             <div className="attachment-row">

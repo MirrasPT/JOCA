@@ -17,15 +17,9 @@ set "LOG_DIR=%TEMP%\joca-os-%BACKEND_PORT%"
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
-:: Detect sibling JOCA_Brain
-if exist "%DIR%..\JOCA_Brain\.claude" (
-    pushd "%DIR%..\JOCA_Brain"
-    set "JOCA_LOGIC_PATH=!CD!"
-    popd
-    echo JOCA_Brain detected: !JOCA_LOGIC_PATH!
-) else (
-    echo WARNING: JOCA_Brain not found — running in standalone mode
-)
+:: O JOCA Brain encontra-o o backend (JOCA_BRAIN, JOCA_LOGIC_PATH so se o definires tu,
+:: env.JOCA_BRAIN no settings.json do Claude, pasta irma ..\JOCA_Brain) e diz no log qual achou.
+:: Aqui nao se exporta nada: exportar a irma passava-a a frente do settings.json.
 
 :: Check if already running
 netstat -ano 2>nul | findstr ":%BACKEND_PORT% " | findstr "LISTENING" >nul 2>&1
@@ -61,7 +55,6 @@ rem dela e acaba a recusar arrancar. Limpar antes de o lancar (ver o mesmo bloco
 >>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_PID="
 >>"!BACKEND_LAUNCHER!" echo @set "CLAUDE_EFFORT="
 >>"!BACKEND_LAUNCHER!" echo @set PORT=%BACKEND_PORT%
->>"!BACKEND_LAUNCHER!" echo @set JOCA_LOGIC_PATH=!JOCA_LOGIC_PATH!
 >>"!BACKEND_LAUNCHER!" echo @cd /d "%DIR%backend"
 >>"!BACKEND_LAUNCHER!" echo @node dist/server.js ^>^>"!LOG_DIR!\backend.log" 2^>^&1
 start /b "" cmd /c "!BACKEND_LAUNCHER!"

@@ -141,13 +141,22 @@ export default function ProjectsOverview({
         <div className="db-logic-status">
           <div className="db-logic-status-header">
             <BrainIcon />
-            <span className="db-logic-status-title">JOCA_Brain</span>
+            <span className="db-logic-status-title">JOCA Brain</span>
             <span className={`status-pill status-pill--${jocaLogicInfo.connected ? 'connected' : 'offline'}`}>
               {jocaLogicInfo.connected ? 'ligado' : 'offline'}
             </span>
           </div>
+          {!jocaLogicInfo.connected && (
+            <div className="db-logic-status-counts">
+              <span>Sem JOCA Brain — o JOCA OS funciona na mesma</span>
+            </div>
+          )}
           {jocaLogicInfo.connected && (
             <div className="db-logic-status-counts">
+              {/* `viaDescricao` ainda não está no tipo partilhado: lê-se à parte, sem o alargar. */}
+              <span title={`Encontrado por: ${(jocaLogicInfo as JocaLogicInfo & { viaDescricao?: string | null }).viaDescricao ?? '—'}`}>
+                {shortPath(jocaLogicInfo.path)}
+              </span>
               <span>{jocaLogicInfo.skillCount} skills</span>
               <span>{jocaLogicInfo.agentCount} agentes</span>
               <span>{jocaLogicInfo.commandCount} comandos</span>
