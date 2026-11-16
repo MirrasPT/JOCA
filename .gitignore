@@ -25,3 +25,6 @@ rename-to-brain.bat
 # GIFs do tema The Office — obra de terceiros, ficam locais (ver LEIA-ME dentro da pasta)
 JOCA_OS/frontend/public/brand/office/*
 !JOCA_OS/frontend/public/brand/office/LEIA-ME.txt
+
+# Modelos de voz (centenas de MB) vivem em ~/.joca-os/modelos, nunca no repo.
+*.gguf

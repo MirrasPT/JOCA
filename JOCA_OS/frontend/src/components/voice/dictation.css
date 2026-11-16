@@ -1,0 +1,77 @@
+/* O ditado na barra do terminal. Só tokens que já existem (App.css). */
+
+.ditado-botao--a-ouvir,
+.ditado-botao--a-ouvir:hover {
+  color: var(--accent-text);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.ditado-botao:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.ditado-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-normal);
+}
+
+.ditado-linhas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ditado-aviso--erro { color: var(--red); }
+.ditado-aviso--info { color: var(--text-bright); }
+
+.ditado-ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ditado-pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes ditado-pulsar {
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ditado-ponto { animation: none; }
+}
+
+.ditado-accao {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Definições do ditado */
+.voz-definicoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.voz-definicoes-termos {
+  width: 100%;
+  min-height: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 12px;
+  resize: vertical;
+}

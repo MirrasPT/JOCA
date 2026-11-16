@@ -5,6 +5,7 @@ import { readThemeSettings, resolveTheme } from '../lib/theme';
 import type { ThemeMode } from '../lib/theme';
 import { saveThemeSettings } from '../hooks/useAutoTheme';
 import { BRAND_THEMES, applyBrand, readBrand } from '../lib/brand';
+import VoiceSettings from './voice/VoiceSettings';
 
 interface ServiceConnection {
   id: string;
@@ -320,6 +321,7 @@ export default function SettingsPanel({ runtimeInfo, jocaLogicInfo, sessions, pr
           </p>
           <p style={{ fontSize: '0.75em', opacity: 0.5, margin: '4px 0 0' }}>Aplica-se a novas sessões. Sessões existentes não são afectadas.</p>
         </div>
+        <VoiceSettings />
         {/* O modelo escolhe-se no próprio terminal (/model) ou no CLI por defeito abaixo. */}
         <div className="settings-service-card settings-service-card--cli">
           <div className="settings-service-head">
