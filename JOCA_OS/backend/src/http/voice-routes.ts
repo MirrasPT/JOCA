@@ -20,7 +20,10 @@ import { readVoiceSettings, updateVoiceSettings } from '../voice/settings';
 
 export const SAMPLE_RATE = 16_000;
 /** O tecto de um ditado. O cliente pára sozinho aqui; a rota confirma-o. */
-export const MAX_DICTATION_SECONDS = 300;
+// 15 min. Medido a 2026-11-16 (Mac M4, Parakeet TDT 0.6b v3 Q8, transcribe-cpp 0.4.1, uma passagem): sem
+// truncar nem perder qualidade até 30 min (WER ~7% do 1.º ao último minuto), 15 min em 11,7 s e ~1 GB;
+// o modelo corre com atenção local (tempo e memória lineares). O travão é o tamanho do envio (57,6 MB).
+export const MAX_DICTATION_SECONDS = 900;
 const MIN_DICTATION_SECONDS = 0.1;
 const MAX_PCM_BYTES = MAX_DICTATION_SECONDS * SAMPLE_RATE * 4;
 const MAX_TEXT_CHARS = 40_000;

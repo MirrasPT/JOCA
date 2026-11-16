@@ -4,7 +4,7 @@
 
 export const TAXA_DE_AMOSTRAGEM = 16_000;
 /** O tecto de um ditado, em segundos. O mesmo `MAX_DICTATION_SECONDS` do backend. */
-export const MAX_SEGUNDOS = 300;
+export const MAX_SEGUNDOS = 900;
 /** O tecto das instruções da limpeza. O mesmo `MAX_INSTRUCOES` do backend (`voice/settings.ts`). */
 export const MAX_INSTRUCOES = 8_000;
 

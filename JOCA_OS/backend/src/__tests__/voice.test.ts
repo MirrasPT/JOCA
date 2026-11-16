@@ -12,7 +12,7 @@ import { locateModel, VOICE_MODELS, voiceModelById, DEFAULT_VOICE_MODEL_ID, type
 import { descarregarModelo, urlDoModelo } from '../voice/download';
 import { argsDoClaude, corrigirTexto, INSTRUCOES, lerResultado, mensagemDoPedido, validarSaida, type CorredorDoClaude } from '../voice/correct';
 import { normalizeVoiceSettings, voiceSettingsFile, DEFAULT_VOICE_SETTINGS, MAX_INSTRUCOES } from '../voice/settings';
-import { voiceRouter } from '../http/voice-routes';
+import { voiceRouter, MAX_DICTATION_SECONDS } from '../http/voice-routes';
 import type { VoiceEngine } from '../voice/engine';
 
 const raiz = fs.mkdtempSync(path.join(os.tmpdir(), 'joca-voz-'));
@@ -287,7 +287,7 @@ describe('POST /voice/transcribe', () => {
   });
 
   it('recusa acima do limite (413)', async () => {
-    expect((await transcrever(app(), pcm(301))).status).toBe(413);
+    expect((await transcrever(app(), pcm(MAX_DICTATION_SECONDS + 1))).status).toBe(413);
   }, 30_000);
 
   it('áudio válido sem modelo → 409 modelo-em-falta, sem tocar no motor', async () => {
